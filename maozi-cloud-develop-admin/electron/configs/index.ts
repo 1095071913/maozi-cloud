@@ -1,9 +1,9 @@
-import { ipcMain } from 'electron'
-import { execFile, spawn } from 'node:child_process'
-import { promisify } from 'node:util'
-import { listConfigs, upsertConfig, removeConfig } from './store'
-import { getShellPath } from '../system/sysinfo'
-import type { ConfigEntry, ConfigType, ToolAvailability } from './types'
+import {ipcMain} from 'electron'
+import {execFile, spawn} from 'node:child_process'
+import {promisify} from 'node:util'
+import {listConfigs, removeConfig, upsertConfig} from './store'
+import {getShellPath} from '../system/sysinfo'
+import type {ConfigEntry, ConfigType, ToolAvailability} from './types'
 
 const exec = promisify(execFile)
 

@@ -1,17 +1,10 @@
-import { execFile } from 'node:child_process'
-import { homedir, tmpdir } from 'node:os'
+import {execFile} from 'node:child_process'
+import {homedir, tmpdir} from 'node:os'
 import fs from 'node:fs'
 import path from 'node:path'
-import { promisify } from 'node:util'
-import type {
-  EnvFile,
-  EnvSaveParams,
-  EnvVarEntry,
-  HostsEntry,
-  LaunchctlParams,
-  Platform
-} from './types'
-import { parseHosts, renderHosts } from './shared'
+import {promisify} from 'node:util'
+import type {EnvFile, EnvSaveParams, EnvVarEntry, HostsEntry, LaunchctlParams, Platform} from './types'
+import {parseHosts, renderHosts} from './shared'
 
 const exec = promisify(execFile)
 

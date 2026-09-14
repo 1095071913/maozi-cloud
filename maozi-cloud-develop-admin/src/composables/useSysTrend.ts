@@ -1,5 +1,5 @@
-import { reactive } from 'vue'
-import { api, type SysDynamicInfo } from '../api'
+import {reactive} from 'vue'
+import {api, type SysDynamicInfo} from '../api'
 
 /** 近 5 分钟趋势窗口：1 秒采样 × 300 点 */
 export const TREND_POINTS = 300

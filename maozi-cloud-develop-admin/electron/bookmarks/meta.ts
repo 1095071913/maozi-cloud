@@ -1,5 +1,5 @@
-import { net } from 'electron'
-import type { PageMeta } from './types'
+import {net} from 'electron'
+import type {PageMeta} from './types'
 
 /**
  * 网页信息抓取：标题 / 描述 / 图标

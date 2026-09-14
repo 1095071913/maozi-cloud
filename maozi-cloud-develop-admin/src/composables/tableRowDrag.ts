@@ -1,4 +1,4 @@
-import type { Ref } from 'vue'
+import type {Ref} from 'vue'
 
 /**
  * el-table 行拖拽排序：事件委托到表格根节点（tbody 重渲染不丢监听），

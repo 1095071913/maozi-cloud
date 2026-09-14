@@ -1,10 +1,10 @@
-import { app, BrowserWindow, shell } from 'electron'
+import {app, BrowserWindow, shell} from 'electron'
 import path from 'node:path'
-import { registerPlatformHandlers } from './platform'
-import { registerSysinfoHandlers } from './system/sysinfo'
-import { registerBookmarkHandlers } from './bookmarks'
-import { registerConfigHandlers } from './configs'
-import { registerProjectHandlers } from './projects'
+import {registerPlatformHandlers} from './platform'
+import {registerSysinfoHandlers} from './system/sysinfo'
+import {registerBookmarkHandlers} from './bookmarks'
+import {registerConfigHandlers} from './configs'
+import {registerProjectHandlers} from './projects'
 
 // 禁用沙箱要求下的安全默认值由 BrowserWindow 配置保证
 registerPlatformHandlers()

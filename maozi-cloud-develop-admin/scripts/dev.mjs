@@ -2,8 +2,8 @@
  * 开发模式：先编译主进程/preload（保证最新代码），再启动 vite dev server，
  * 就绪后以 ELECTRON_START_URL 拉起 electron
  */
-import { spawn } from 'node:child_process'
-import { build } from 'esbuild'
+import {spawn} from 'node:child_process'
+import {build} from 'esbuild'
 
 const isWin = process.platform === 'win32'
 const npmCmd = isWin ? 'npm.cmd' : 'npm'

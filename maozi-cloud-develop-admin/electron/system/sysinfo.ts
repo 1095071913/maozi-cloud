@@ -1,8 +1,8 @@
-import { execFile } from 'node:child_process'
+import {execFile} from 'node:child_process'
 import os from 'node:os'
 import fs from 'node:fs'
-import { promisify } from 'node:util'
-import { ipcMain } from 'electron'
+import {promisify} from 'node:util'
+import {ipcMain} from 'electron'
 
 const exec = promisify(execFile)
 

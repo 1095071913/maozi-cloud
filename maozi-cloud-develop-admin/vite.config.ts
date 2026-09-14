@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import {defineConfig} from 'vite'
 import vue from '@vitejs/plugin-vue'
 
 // 渲染进程（Vue 前端）构建配置

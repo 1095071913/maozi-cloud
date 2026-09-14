@@ -1,4 +1,4 @@
-import type { HostsEntry } from './types'
+import type {HostsEntry} from './types'
 
 /**
  * hosts 文件解析与序列化（平台无关，darwin / win32 共用）

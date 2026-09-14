@@ -1,8 +1,8 @@
-import { app, safeStorage } from 'electron'
+import {app, safeStorage} from 'electron'
 import fs from 'node:fs'
 import path from 'node:path'
 import crypto from 'node:crypto'
-import type { ConfigEntry } from './types'
+import type {ConfigEntry} from './types'
 
 /**
  * 密钥持久化：userData/configs.json（仓库之外，新增数据不会进 git）

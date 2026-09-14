@@ -1,7 +1,7 @@
 /**
  * 用 esbuild 将主进程 / preload 编译为 CJS（electron 不支持 ESM 入口）
  */
-import { build } from 'esbuild'
+import {build} from 'esbuild'
 
 const shared = {
   bundle: true,

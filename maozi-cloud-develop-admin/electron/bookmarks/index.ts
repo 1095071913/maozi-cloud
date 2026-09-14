@@ -1,7 +1,7 @@
-import { ipcMain, clipboard, shell } from 'electron'
-import { listBookmarks, upsertBookmark, removeBookmark, reorderBookmarks } from './store'
-import { fetchPageMeta } from './meta'
-import type { Bookmark } from './types'
+import {clipboard, ipcMain, shell} from 'electron'
+import {listBookmarks, removeBookmark, reorderBookmarks, upsertBookmark} from './store'
+import {fetchPageMeta} from './meta'
+import type {Bookmark} from './types'
 
 export function registerBookmarkHandlers(): void {
   ipcMain.handle('bookmarks:list', () => {

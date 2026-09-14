@@ -1,7 +1,7 @@
-import { ipcMain } from 'electron'
-import type { Platform } from './types'
-import { darwinPlatform } from './darwin'
-import { win32Platform } from './win32'
+import {ipcMain} from 'electron'
+import type {Platform} from './types'
+import {darwinPlatform} from './darwin'
+import {win32Platform} from './win32'
 
 /**
  * 平台入口：按当前系统选择实现，并向 ipcMain 注册平台无关的接口。

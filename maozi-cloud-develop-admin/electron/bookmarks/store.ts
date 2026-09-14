@@ -1,8 +1,8 @@
-import { app, safeStorage } from 'electron'
+import {app, safeStorage} from 'electron'
 import fs from 'node:fs'
 import path from 'node:path'
 import crypto from 'node:crypto'
-import type { Bookmark } from './types'
+import type {Bookmark} from './types'
 
 /**
  * 书签持久化：userData/bookmarks.json

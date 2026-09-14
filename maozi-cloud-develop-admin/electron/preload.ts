@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import {contextBridge, ipcRenderer} from 'electron'
 
 /**
  * 渲染进程唯一的能力入口：所有系统操作都经由 ipcMain.handle 完成，

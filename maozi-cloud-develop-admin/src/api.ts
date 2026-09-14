@@ -3,23 +3,23 @@
  */
 import type {
   EnvFile,
-  EnvVarEntry,
   EnvSaveParams,
-  LaunchctlParams,
+  EnvVarEntry,
   HostsEntry,
+  LaunchctlParams,
   PlatformResult
 } from '../electron/platform/types'
 import type {
-  SysStaticInfo,
-  SysDynamicInfo,
+  DevToolInfo,
+  GpuInfo,
   NetInterface,
   PublicIPInfo,
-  GpuInfo,
-  DevToolInfo
+  SysDynamicInfo,
+  SysStaticInfo
 } from '../electron/system/sysinfo'
-import type { Bookmark, PageMeta } from '../electron/bookmarks/types'
-import type { ConfigEntry, ConfigType, AuthType, ToolAvailability } from '../electron/configs/types'
-import type { ComposeServiceStats, EnvSettingGroup, EnvSettingItem, ProjectBinding } from '../electron/projects/types'
+import type {Bookmark, PageMeta} from '../electron/bookmarks/types'
+import type {AuthType, ConfigEntry, ConfigType, ToolAvailability} from '../electron/configs/types'
+import type {ComposeServiceStats, EnvSettingGroup, EnvSettingItem, ProjectBinding} from '../electron/projects/types'
 
 export type { EnvFile, EnvVarEntry, EnvSaveParams, LaunchctlParams, HostsEntry, PlatformResult }
 export type { SysStaticInfo, SysDynamicInfo, NetInterface, PublicIPInfo, GpuInfo, DevToolInfo }

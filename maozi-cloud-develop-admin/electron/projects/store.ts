@@ -1,7 +1,7 @@
-import { app } from 'electron'
+import {app} from 'electron'
 import fs from 'node:fs'
 import path from 'node:path'
-import type { ProjectBinding } from './types'
+import type {ProjectBinding} from './types'
 
 /**
  * 项目绑定持久化：userData/projects.json（仓库之外）

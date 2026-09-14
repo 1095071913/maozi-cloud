@@ -2,7 +2,7 @@
 
 # ============================================================
 # 自动部署入口 (单一 git 仓库版)
-# 对应 bat 版: maozi-cloud-deploy-bat-run/maozi-cloud-deploy-all-distributed.bat
+# 对应 bat 版: maozi-cloud-deploy-bat-run/maozi-cloud-deploy-services-distributed.bat
 # ------------------------------------------------------------
 # 项目原先拆分为 parent / basics / services 三个独立 git 仓库,
 # 现已合并为单一 git 仓库 (maozi-cloud-parent), 本脚本作为唯一入口:

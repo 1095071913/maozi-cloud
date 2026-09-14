@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#1e3fae"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="1024" height="1024" rx="220" fill="url(#bg)"/>
+  <!-- 猫耳 -->
+  <polygon points="296,214 236,446 438,374" fill="#ffffff"/>
+  <polygon points="728,214 788,446 586,374" fill="#ffffff"/>
+  <!-- 猫脸 -->
+  <ellipse cx="512" cy="580" rx="262" ry="232" fill="#ffffff"/>
+  <!-- 眼睛 -->
+  <ellipse cx="422" cy="548" rx="32" ry="42" fill="#1e3fae"/>
+  <ellipse cx="602" cy="548" rx="32" ry="42" fill="#1e3fae"/>
+  <!-- 终端符号 > （几何绘制，保证对齐） -->
+  <path d="M 420 660 L 508 724 L 420 788" fill="none" stroke="#1e3fae" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 终端符号 _ -->
+  <rect x="548" y="764" width="150" height="44" rx="10" fill="#1e3fae"/>
+</svg>

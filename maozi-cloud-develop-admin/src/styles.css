@@ -1,0 +1,212 @@
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC',
+    'Microsoft YaHei', sans-serif;
+  background: linear-gradient(180deg, #f6f8fb 0%, #eef2f9 100%);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== 全局滚动条 ===== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c9d2e0;
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #aab6c8;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ===== 页面进场动画 ===== */
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    /* 结束态用 none，避免动画结束后 transform 常驻导致内部 fixed 元素（弹窗遮罩）定位失效 */
+    transform: none;
+  }
+}
+
+/* 页面切换过渡（配合 App.vue 的 <Transition name="page">；transition 结束后不留驻 transform，
+   避免层叠上下文把悬浮元素压到 el-dialog 遮罩之下） */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-leave-to {
+  opacity: 0;
+}
+
+/* ===== Element Plus 表格统一精修 ===== */
+.el-table {
+  --el-table-header-bg-color: #f8fafc;
+  --el-table-header-text-color: #64748b;
+  --el-table-row-hover-bg-color: #f0f7ff;
+  --el-table-border-color: #eef2f7;
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+/* ===== 对话框：内容超高时在内部滚动，保证字段完整可见（不影响全屏弹窗） ===== */
+.el-dialog:not(.is-fullscreen) {
+  display: flex;
+  flex-direction: column;
+  max-height: 84vh;
+  margin-top: 8vh !important;
+  margin-bottom: 8vh !important;
+}
+
+.el-dialog:not(.is-fullscreen) .el-dialog__body {
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1;
+}
+
+.el-table th.el-table__cell {
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+}
+
+.el-table .el-table__cell {
+  padding: 10px 0;
+}
+
+/* ===== 通用元素 ===== */
+/* 无缝标题栏:页面头部作为窗口拖拽区,交互控件排除 */
+.page-header {
+  -webkit-app-region: drag;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.page-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: #0f1e30;
+  margin: 0;
+  position: relative;
+  padding-left: 12px;
+}
+
+/* 标题左侧渐变竖条 */
+.page-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 3px;
+  bottom: 3px;
+  width: 4px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #3b82f6, #1e3fae);
+}
+
+.page-sub {
+  color: #8a94a6;
+  font-size: 12px;
+  margin-top: 6px;
+  padding-left: 16px;
+}
+
+.page-header button,
+.page-header .el-button,
+.page-header .el-select,
+.page-header .el-input,
+.page-header input {
+  -webkit-app-region: no-drag;
+}
+
+.code-text {
+  font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace;
+}
+
+.mono-cell {
+  font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  word-break: break-all;
+}
+
+/* 变量名/关键值 pill */
+.name-pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 6px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  font-size: 12.5px;
+  font-weight: 600;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 迷你统计卡 */
+.stat-card {
+  background: #fff;
+  border: 1px solid #eef2f7;
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(16, 24, 40, 0.09);
+}
+
+.stat-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f1e30;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #8a94a6;
+  margin-top: 3px;
+}

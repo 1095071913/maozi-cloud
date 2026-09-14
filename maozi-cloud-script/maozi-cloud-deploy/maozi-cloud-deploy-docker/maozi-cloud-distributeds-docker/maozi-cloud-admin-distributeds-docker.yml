@@ -1,0 +1,41 @@
+# ============================================================
+# maozi-cloud-admin-distributeds-docker.yml —— 后台前端一键拉起 (微服务模式)
+# ------------------------------------------------------------
+# 本 Compose 启动后台管理前端 (maozi-cloud-admin) 的 nginx 容器:
+#   - 端口 999 (与《服务端口描述》前端端口一致)
+#   - 镜像 maozi-cloud-admin-distributeds:laster 由 maozi-cloud-deploy-admin-distributed.sh 多阶段构建:
+#     node 阶段 npm ci + npm run build 产出 dist,
+#     nginx 阶段托管静态资源并做同源转发 (API -> 网关, /nacos, /grafana)
+# ------------------------------------------------------------
+# 启动前置:
+#   1. 外部网络 maozi-cloud-network 必须已创建;
+#   2. 容器内 nginx 把 /api 转发到 maozi-cloud-gateway-service,
+#      需先启动 maozi-cloud-distributeds-docker (微服务模式);
+#      单体模式 (maozi-cloud-monomer-docker) 无独立网关容器,
+#      需把 maozi-cloud-admin-nginx.conf 中 /api/ 转发地址
+#      改为 maozi-cloud-service-monomer:1000 后重新构建镜像;
+#   3. /nacos /grafana 同源代理需要 maozi-cloud-basics-docker 已启动。
+# ------------------------------------------------------------
+# 关于镜像 tag: 与其他服务一致统一使用 "laster" (历史拼写, 保持体系一致)。
+# ============================================================
+version: "3.7"
+services:
+
+  # ============ Admin 后台前端 ============
+  maozi-cloud-admin-distributeds:
+    image: maozi-cloud-admin-distributeds:laster
+    container_name: maozi-cloud-admin-distributeds
+    restart: always
+    ports:
+      - 999:999
+    environment:
+      TZ: Asia/Shanghai
+      # 后端请求地址: 直接指向 maozi-cloud-network 内的网关容器服务名
+      API_BASE_PATH: http://maozi-cloud-gateway-service:1100
+
+# 外部网络: 与 services-docker / basics-docker 共享同一网络,
+# nginx 才能通过容器服务名转发到网关 / Nacos / Grafana
+networks:
+  default:
+    external:
+      name: maozi-cloud-network

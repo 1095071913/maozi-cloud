@@ -11,7 +11,7 @@
 #       * grafana     指标/日志/追踪可视化
 #       * promtail    日志采集 agent，采集共享日志目录后推送至 loki
 # 注: maozi-cloud-gateway-service / maozi-cloud-monitor-service 已迁往
-#     maozi-cloud-distributeds-docker/docker-compose.yml, 与 system / oauth 同层管理.
+#     maozi-cloud-distributeds-docker/maozi-cloud-services-distributeds-docker.yml, 与 system / oauth 同层管理.
 # ------------------------------------------------------------
 # 启动前必须先创建外部网络：
 #     docker network create maozi-cloud-network
@@ -140,7 +140,7 @@ services:
       - 9080:9080
     volumes:
       # 共享日志目录,Promtail 只读采集所有应用的日志文件
-      - /Users/maozi/Desktop/maozi-cloud-logs:/maozi-logs:ro
+      - ${APPLICATION_LOG_PATH:-./maozi-cloud-basic-promtail/maozi-cloud-logs}:/maozi-logs:ro
       # Promtail 配置
       - ./maozi-cloud-basic-promtail/config/promtail-config.yml:/etc/promtail/config.yml:ro
       # positions (采集位置) 持久化,容器重启可续读
@@ -168,9 +168,9 @@ services:
       - "7091:7091"
       - "8091:8091"
     environment:
-      - SEATA_IP=192.168.124.3
-      - SEATA_PORT=8091
-      - STORE_MODE=db
+      SEATA_IP: ${NACOS_REGISTER_IP}
+      SEATA_PORT: 8091
+      STORE_MODE: db
     volumes:
       - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime
       - /usr/share/zoneinfo/Asia/Shanghai:/etc/timezone

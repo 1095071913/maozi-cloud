@@ -3,7 +3,7 @@ chcp 65001 > nul
 setlocal enabledelayedexpansion
 
 REM ============================================================
-REM 统一构建逻辑 (单一 git 仓库版), 由 maozi-cloud-deploy-all-distributed.bat 调用
+REM 统一构建逻辑 (单一 git 仓库版), 由 maozi-cloud-deploy-services-distributed.bat 调用
 REM 对应 shell 版: maozi-cloud-deploy-shell-run/maozi-cloud-deploy-shell-util/maozi-cloud-deploy-jar-utils.sh
 REM ------------------------------------------------------------
 REM 参数: %~1 = current_directory (调用方脚本目录, 作为相对路径锚点)

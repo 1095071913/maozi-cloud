@@ -6,7 +6,7 @@ REM 本文件用于被 call 执行, 对应 shell 版 maozi-cloud-scan-file-utils
 REM 请勿直接运行, 也不要使用 exit /b 终止调用方 bat
 REM ------------------------------------------------------------
 REM 作用: 在 maozi-cloud-parent 仓库根目录比对分支与提交, 判定本次构建范围
-REM   通过脚本目录下的 maozi-cloud-parent-env 文件夹记录上次构建状态:
+REM   通过脚本目录下的 maozi-cloud-deploy-services-distributed-record 文件夹记录上次构建状态:
 REM     CURRENT_BRANCH  上次构建时的分支
 REM     CURRENT_SHA     上次构建时的提交 SHA
 REM   并据此输出给 jar-utils:
@@ -37,7 +37,7 @@ for /f "delims=" %%i in ('git branch --show-current 2^>nul') do set current_bran
 for /f "delims=" %%i in ('git rev-parse HEAD 2^>nul') do set current_sha=%%i
 
 REM env 状态目录: 统一存放 maozi-cloud-parent 仓库的构建状态
-set env_directory=%current_directory%\maozi-cloud-parent-env
+set env_directory=%current_directory%\maozi-cloud-deploy-services-distributed-record
 if not exist "%env_directory%" mkdir "%env_directory%"
 
 set branch_file=%env_directory%\CURRENT_BRANCH

@@ -1,0 +1,4 @@
+maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker/maozi-cloud-basics-docker/maozi-cloud-basic-nacos/maozi-cloud-nacos-middleware-db.sql
+maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker/maozi-cloud-basics-docker/maozi-cloud-basic-seata/maozi-cloud-seata-middleware-db.sql
+maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker/maozi-cloud-basics-docker/maozi-cloud-basic-snailjob/maozi-cloud-snailjob-middleware-db.sql
+maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker/maozi-cloud-basics-docker/maozi-cloud-basic-xxljob/maozi-cloud-xxljob-middleware-db.sql

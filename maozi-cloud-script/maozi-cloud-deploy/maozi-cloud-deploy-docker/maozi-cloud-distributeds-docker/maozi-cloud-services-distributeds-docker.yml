@@ -1,5 +1,5 @@
 # ============================================================
-# maozi-cloud-distributeds-docker —— 业务服务一键拉起
+# maozi-cloud-services-distributeds-docker.yml —— 业务服务一键拉起
 # ------------------------------------------------------------
 # 本 Compose 启动 maozi-cloud 平台的「业务服务」层（区别于 basics 的基础组件层）：
 #   - maozi-cloud-system-service   系统管理服务（端口 4000 / Dubbo 20881）
@@ -33,12 +33,11 @@ services:
     ports:
       - 1100:1100
     environment:
-      APPLICATION_VERSION: main
-      APPLICATION_ENVIRONMENT: dev
-      NACOS_CONFIG_SERVER: maozi-cloud-basic-nacos:8848
+      APPLICATION_VERSION: ${APPLICATION_VERSION}
+      APPLICATION_ENVIRONMENT: ${APPLICATION_ENVIRONMENT}
     volumes:
       # 日志文件挂载到宿主机共享目录,供 promtail 采集
-      - /Users/maozi/Desktop/maozi-cloud-logs/gateway:/application/maozi-cloud-gateway-service/logs
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${APPLICATION_ENVIRONMENT:-dev}/${APPLICATION_VERSION:-main}/maozi-cloud-gateway-service:/application/maozi-cloud-gateway-service/logs
 
   # ============ Monitor 监控服务 (Spring Boot Admin) ============
   maozi-cloud-monitor-service:
@@ -48,12 +47,11 @@ services:
     ports:
       - 2000:2000
     environment:
-      APPLICATION_VERSION: main
-      APPLICATION_ENVIRONMENT: dev
-      NACOS_CONFIG_SERVER: maozi-cloud-basic-nacos:8848
+      APPLICATION_VERSION: ${APPLICATION_VERSION}
+      APPLICATION_ENVIRONMENT: ${APPLICATION_ENVIRONMENT}
     volumes:
       # 日志文件挂载到宿主机共享目录,供 promtail 采集
-      - /Users/maozi/Desktop/maozi-cloud-logs/monitor:/application/maozi-cloud-monitor-service/logs
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${APPLICATION_ENVIRONMENT:-dev}/${APPLICATION_VERSION:-main}/maozi-cloud-monitor-service:/application/maozi-cloud-monitor-service/logs
 
   # ============ OAuth 业务服务 ============
   maozi-cloud-oauth-service:
@@ -64,12 +62,11 @@ services:
       - 3000:3000
       - 21881:21881
     environment:
-      APPLICATION_VERSION: main
-      APPLICATION_ENVIRONMENT: dev
-      NACOS_CONFIG_SERVER: maozi-cloud-basic-nacos:8848
+      APPLICATION_VERSION: ${APPLICATION_VERSION}
+      APPLICATION_ENVIRONMENT: ${APPLICATION_ENVIRONMENT}
     volumes:
       # 日志文件挂载到宿主机共享目录,供 promtail 采集
-      - /Users/maozi/Desktop/maozi-cloud-logs/oauth:/application/maozi-cloud-oauth-service/logs
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${APPLICATION_ENVIRONMENT:-dev}/${APPLICATION_VERSION:-main}/maozi-cloud-oauth-service:/application/maozi-cloud-oauth-service/logs
 
   # ============ System 业务服务 ============
   maozi-cloud-system-service:
@@ -80,12 +77,11 @@ services:
       - 4000:4000
       - 21880:21880
     environment:
-      APPLICATION_VERSION: main
-      APPLICATION_ENVIRONMENT: dev
-      NACOS_CONFIG_SERVER: maozi-cloud-basic-nacos:8848
+      APPLICATION_VERSION: ${APPLICATION_VERSION}
+      APPLICATION_ENVIRONMENT: ${APPLICATION_ENVIRONMENT}
     volumes:
       # 日志文件挂载到宿主机共享目录,供 promtail 采集
-      - /Users/maozi/Desktop/maozi-cloud-logs/system:/application/maozi-cloud-system-service/logs
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${APPLICATION_ENVIRONMENT:-dev}/${APPLICATION_VERSION:-main}/maozi-cloud-system-service:/application/maozi-cloud-system-service/logs
 
   # ============ AI 业务服务 ============
   maozi-cloud-ai-service:
@@ -96,12 +92,11 @@ services:
       - 6000:6000
       - 21882:21882
     environment:
-      APPLICATION_VERSION: main
-      APPLICATION_ENVIRONMENT: dev
-      NACOS_CONFIG_SERVER: maozi-cloud-basic-nacos:8848
+      APPLICATION_VERSION: ${APPLICATION_VERSION}
+      APPLICATION_ENVIRONMENT: ${APPLICATION_ENVIRONMENT}
     volumes:
       # 日志文件挂载到宿主机共享目录,供 promtail 采集
-      - /Users/maozi/Desktop/maozi-cloud-logs/ai:/application/maozi-cloud-ai-service/logs
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${APPLICATION_ENVIRONMENT:-dev}/${APPLICATION_VERSION:-main}/maozi-cloud-ai-service:/application/maozi-cloud-ai-service/logs
 
 
 # 外部网络：与 maozi-cloud-basics-docker 共享同一网络

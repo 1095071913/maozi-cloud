@@ -3,7 +3,7 @@
 # ============================================================
 # 镜像渲染器 (模板 + JSON -> Dockerfile, 然后构建并清理)
 # ------------------------------------------------------------
-# 被 maozi-cloud-deploy-jar-utils.sh / maozi-cloud-deploy-all-distributed-force.sh
+# 被 maozi-cloud-deploy-jar-utils.sh / maozi-cloud-deploy-services-distributed-force.sh
 # 通过 source 调用, 暴露 render_and_build_image 函数.
 # 对应 bat 版: maozi-cloud-deploy-bat-run/maozi-cloud-deploy-bat-util/maozi-cloud-render-image.bat + .ps1
 # ------------------------------------------------------------
@@ -51,6 +51,13 @@ render_and_build_image() {
     docker_directory="$(route_docker_dir "$service_name")"
     local image_file="$image_directory/${service_name}-image"
 
+    # compose 文件名: distributeds 目录已改用带前缀文件名, basics 目录仍为 docker-compose.yml
+    local compose_file
+    case "$service_name" in
+        maozi-cloud-basics-*) compose_file="$docker_directory/docker-compose.yml" ;;
+        *)                    compose_file="$docker_directory/maozi-cloud-services-distributeds-docker.yml" ;;
+    esac
+
     # 父目录可能被误删 (例如静态 Dockerfile 清理后空目录被系统 / IDE 自动清理),
     # 渲染前确保存在, 否则 Python open(out_path, "w") 会抛 FileNotFoundError
     mkdir -p "$image_directory"
@@ -61,7 +68,7 @@ render_and_build_image() {
     _render_image_py() {
         local out_path="$1"
         python3 - "$service_name" "$config_file" "$template_file" "$out_path" <<'PYEOF'
-import json, sys
+import json, os, sys
 
 service_name  = sys.argv[1]
 config_path   = sys.argv[2]
@@ -84,7 +91,8 @@ has_dubbo = "dubbo_port" in svc
 otel      = bool(svc.get("opentelemetry"))
 jvm       = svc.get("jvm_params")  or d.get("jvm_params", "")
 base      = svc.get("base_image")  or d.get("base_image", "maozi-cloud-base-jdk:1.0.0")
-dubbo_ip  = d.get("dubbo_ip_to_registry", "")
+# 注册 IP 不写死在 JSON, 读构建机环境变量 NACOS_REGISTER_IP, 未设置则不注入 ENV
+dubbo_ip  = os.environ.get("NACOS_REGISTER_IP", "")
 
 # OTel / Dubbo / add-opens 标志全部从 JSON 读, 改参数不用动部署脚本
 # 服务块里同名键会整体覆盖 defaults 里的列表 (不合并)
@@ -96,10 +104,9 @@ add_opens  = svc.get("add_opens")  or d.get("add_opens", [])
 dubbo_port_line = (", Dubbo " + str(svc["dubbo_port"])) if has_dubbo else ""
 dubbo_env_block = ""
 if has_dubbo:
-    dubbo_env_block = (
-        "ENV DUBBO_IP_TO_REGISTRY=" + dubbo_ip + "\n"
-        "ENV APPLICATION_DUBBO_PORT=" + str(svc["dubbo_port"])
-    )
+    dubbo_env_block = "ENV APPLICATION_DUBBO_PORT=" + str(svc["dubbo_port"])
+    if dubbo_ip:
+        dubbo_env_block = "ENV DUBBO_IP_TO_REGISTRY=" + dubbo_ip + "\n" + dubbo_env_block
 dubbo_expose_line = "\nEXPOSE ${APPLICATION_DUBBO_PORT}" if has_dubbo else ""
 
 # CMD 行: java -server [+ Dubbo 标志] [+ OTel block] [jvm] [add-opens] -jar
@@ -159,7 +166,7 @@ PYEOF
         echo "cp \"$repo_root/$module_dir/target/${service_name}.jar\" \"$image_directory/\""
         echo "cd \"$image_directory\""
         echo "docker buildx build -f \"$image_file\" -t \"${service_name}:laster\" ."
-        echo "docker-compose -f \"$docker_directory/docker-compose.yml\" up -d ${service_name}"
+        echo "docker-compose -f \"$compose_file\" up -d ${service_name}"
         echo "rm -f \"$image_directory/${service_name}.jar\""
         echo "rm -f \"$image_file\""
         echo "rm -f \"\$0\""
@@ -227,7 +234,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
 
     # 直接调 python, 不走 render_and_build_image (后者会触发 docker build)
     if ! python3 - "$service_name" "$config_file" "$template_file" - <<'PYEOF'
-import json, sys
+import json, os, sys
 service_name  = sys.argv[1]
 config_path   = sys.argv[2]
 template_path = sys.argv[3]
@@ -244,17 +251,17 @@ has_dubbo = "dubbo_port" in svc
 otel      = bool(svc.get("opentelemetry"))
 jvm       = svc.get("jvm_params")  or d.get("jvm_params", "")
 base      = svc.get("base_image")  or d.get("base_image", "maozi-cloud-base-jdk:1.0.0")
-dubbo_ip  = d.get("dubbo_ip_to_registry", "")
+# 注册 IP 不写死在 JSON, 读构建机环境变量 NACOS_REGISTER_IP, 未设置则不注入 ENV
+dubbo_ip  = os.environ.get("NACOS_REGISTER_IP", "")
 dubbo_flag = svc.get("dubbo_flag") or d.get("dubbo_flag", "")
 otel_flags = svc.get("otel_flags") or d.get("otel_flags", [])
 add_opens  = svc.get("add_opens")  or d.get("add_opens", [])
 dubbo_port_line = (", Dubbo " + str(svc["dubbo_port"])) if has_dubbo else ""
 dubbo_env_block = ""
 if has_dubbo:
-    dubbo_env_block = (
-        "ENV DUBBO_IP_TO_REGISTRY=" + dubbo_ip + "\n"
-        "ENV APPLICATION_DUBBO_PORT=" + str(svc["dubbo_port"])
-    )
+    dubbo_env_block = "ENV APPLICATION_DUBBO_PORT=" + str(svc["dubbo_port"])
+    if dubbo_ip:
+        dubbo_env_block = "ENV DUBBO_IP_TO_REGISTRY=" + dubbo_ip + "\n" + dubbo_env_block
 dubbo_expose_line = "\nEXPOSE ${APPLICATION_DUBBO_PORT}" if has_dubbo else ""
 cmd_parts = ["java -server"]
 if has_dubbo and dubbo_flag:

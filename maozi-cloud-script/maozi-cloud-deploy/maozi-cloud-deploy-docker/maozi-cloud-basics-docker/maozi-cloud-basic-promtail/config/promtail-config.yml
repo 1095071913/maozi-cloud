@@ -29,7 +29,7 @@ scrape_configs:
       - targets:
           - localhost
         labels:
-          __path__: /maozi-logs/*/*.log
+          __path__: /maozi-logs/*/*/*/*.log
     pipeline_stages:
       # multiline: 以 [ yyyy-MM-dd HH:mm:ss ] 开头的行视为新日志条目首行,
       # 后续的堆栈跟踪行(java.lang.Xxx / at com.xxx...)被合并到上一条

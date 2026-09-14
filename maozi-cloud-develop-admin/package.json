@@ -1,0 +1,31 @@
+{
+  "name": "maozi-cloud-develop-admin",
+  "version": "1.0.0",
+  "description": "个人开发管理 - 开发环境管理工具（环境变量 / hosts）",
+  "main": "dist-electron/main.js",
+  "author": "maozi",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "vite build && node scripts/build-main.mjs",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "dist:mac:arm64": "npm run build && electron-builder --mac --arm64",
+    "dist:mac:x64": "npm run build && electron-builder --mac --x64",
+    "dist:mac:universal": "npm run build && electron-builder --mac --universal",
+    "dist:win": "npm run build && electron-builder --win"
+  },
+  "dependencies": {
+    "element-plus": "^2.14.5",
+    "vue": "^3.5.42"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.8",
+    "electron": "^44.3.0",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vue-tsc": "^3.3.11"
+  }
+}

@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 
 REM ============================================================
 REM 自动部署入口 (单一 git 仓库版)
-REM 对应 shell 版: maozi-cloud-deploy-shell-run/maozi-cloud-deploy-all-distributed.sh
+REM 对应 shell 版: maozi-cloud-deploy-shell-run/maozi-cloud-deploy-services-distributed.sh
 REM ------------------------------------------------------------
 REM 项目原先拆分为 parent / basics / services 三个独立 git 仓库,
 REM 现已合并为单一 git 仓库 (maozi-cloud-parent), 本脚本作为唯一入口:

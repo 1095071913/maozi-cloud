@@ -3,7 +3,7 @@
 # 请勿直接运行, 也不要使用 exit (否则会退出调用方 shell)。
 # ------------------------------------------------------------
 # 作用: 在 maozi-cloud-parent 仓库根目录比对分支与提交, 判定本次构建范围
-#   通过脚本目录下的 maozi-cloud-parent-env 文件夹记录上次构建状态:
+#   通过脚本目录下的 maozi-cloud-deploy-services-distributed-record 文件夹记录上次构建状态:
 #     CURRENT_BRANCH  上次构建时的分支
 #     CURRENT_SHA     上次构建时的提交 SHA
 #   并据此输出给 jar-utils:
@@ -27,7 +27,7 @@ current_sha="$(git rev-parse HEAD)"
 
 # env 状态目录: 统一存放 maozi-cloud-parent 仓库的构建状态
 # 与原多仓库脚本不同, 现在整个项目合并为单一 git 仓库, 只保留一份状态
-env_directory="$current_directory/maozi-cloud-parent-env"
+env_directory="$current_directory/maozi-cloud-deploy-services-distributed-record"
 mkdir -p "$env_directory"
 
 branch_file="$env_directory/CURRENT_BRANCH"

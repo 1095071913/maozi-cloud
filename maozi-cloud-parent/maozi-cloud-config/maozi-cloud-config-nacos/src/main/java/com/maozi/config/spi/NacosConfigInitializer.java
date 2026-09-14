@@ -30,11 +30,8 @@ public class NacosConfigInitializer implements ConfigInitializer {
     /** Nacos 服务地址默认值占位符：优先取环境变量 NACOS_SERVER，缺省使用内置 Nacos 服务地址 */
     private final static String PROJECT_NACOS_SERVER_VALUE = "${NACOS_SERVER:maozi-cloud-basic-nacos:8848}";
 
-    /** 项目自定义的 Nacos 命名空间属性键 */
-    private final static String PROJECT_NACOS_NAMESPACE_KEY = "nacos.namespace";
-
     /** Nacos 命名空间默认值占位符：优先取环境变量 NACOS_NAMESPACE，缺省跟随当前运行环境 */
-    private final static String PROJECT_NACOS_NAMESPACE_VALUE = "${NACOS_NAMESPACE:${application.environment}}";
+    private final static String PROJECT_NACOS_NAMESPACE_VALUE = "${application.environment}";
 
     /** Nacos 配置中心服务地址属性键 */
     private final static String NACOS_CONFIG_SERVER_KEY = "spring.cloud.nacos.config.server-addr";
@@ -82,15 +79,8 @@ public class NacosConfigInitializer implements ConfigInitializer {
             properties.put(NACOS_DISCOVERY_SERVER_KEY, PROJECT_NACOS_SERVER_VALUE);
         }
 
-        // 若已存在项目级 nacos.namespace 定义，则配置中心与注册中心命名空间以占位符方式引用该值
-        if(properties.containsKey(PROJECT_NACOS_NAMESPACE_KEY)){
-            properties.put(NACOS_CONFIG_NAMESPACE_KEY, "${" + PROJECT_NACOS_NAMESPACE_KEY + "}");
-            properties.put(NACOS_DISCOVERY_NAMESPACE_KEY, "${" + PROJECT_NACOS_NAMESPACE_KEY + "}");
-        }else{
-            // 否则写入默认占位符：优先取环境变量 NACOS_NAMESPACE，缺省跟随当前运行环境
-            properties.put(NACOS_CONFIG_NAMESPACE_KEY, PROJECT_NACOS_NAMESPACE_VALUE);
-            properties.put(NACOS_DISCOVERY_NAMESPACE_KEY, PROJECT_NACOS_NAMESPACE_VALUE);
-        }
+        properties.put(NACOS_CONFIG_NAMESPACE_KEY, PROJECT_NACOS_NAMESPACE_VALUE);
+        properties.put(NACOS_DISCOVERY_NAMESPACE_KEY, PROJECT_NACOS_NAMESPACE_VALUE);
 
         // Nacos 客户端在 spring.config.import 阶段（早于 Spring 应用 logback-spring.xml）即初始化并输出 INFO 日志，
         // 此时 logback 仍处于内置默认配置（root=DEBUG + 控制台输出），启动前置写入的 logging.level.root 尚未生效；

@@ -4,7 +4,7 @@ chcp 65001 > nul
 REM ============================================================
 REM 镜像渲染器 (模板 + JSON -> Dockerfile, 然后构建并清理)
 REM ------------------------------------------------------------
-REM 被 maozi-cloud-deploy-jar-utils.bat / maozi-cloud-deploy-all-distributed-force.bat
+REM 被 maozi-cloud-deploy-jar-utils.bat / maozi-cloud-deploy-services-distributed-force.bat
 REM 通过 call 调用, 暴露两个函数:
 REM   call maozi-cloud-render-image.bat                       (初始化)
 REM   call maozi-cloud-render-image.bat render_and_build_image "svc" "dir"
@@ -29,8 +29,9 @@ if not defined deploy_sentinel_dir set deploy_sentinel_dir=%TEMP%\maozi-deploy-s
 if not exist "%deploy_sentinel_dir%" rd /s /q "%deploy_sentinel_dir%" 2>nul & mkdir "%deploy_sentinel_dir%" 2>nul
 if not defined deploy_services_list set deploy_services_list=
 
-REM 第一次进入本脚本时把 Python 渲染逻辑写到临时 .py 文件 (只生成一次, 复用)
-if not exist "%maozi_render_py%" call :write_render_py
+REM 每次进入本脚本时把 Python 渲染逻辑重写到临时 .py 文件
+REM (必须重写: %TEMP% 里可能残留旧版本 .py, 若跳过会导致新渲染逻辑不生效)
+call :write_render_py
 
 REM 按第一个参数派发 (用 goto 避免 %errorlevel% 在括号块里被提前展开)
 if "%~1"==""                  goto :mode_init
@@ -128,6 +129,10 @@ call :route_docker_dir "%_ra_service_name%"
 set _ra_docker_directory=%route_result%
 set _ra_image_file=%_ra_image_directory%\%_ra_service_name%-image
 
+REM compose 文件名: distributeds 目录已改用带前缀文件名, basics 目录仍为 docker-compose.yml
+set _ra_compose_file=%_ra_docker_directory%\maozi-cloud-services-distributeds-docker.yml
+if /i "%_ra_service_name:~0,19%"=="maozi-cloud-basics-" set _ra_compose_file=%_ra_docker_directory%\docker-compose.yml
+
 REM 父目录可能被误删, 渲染前确保存在, 否则 Python open(out_path, "w") 会抛错
 if not exist "%_ra_image_directory%" mkdir "%_ra_image_directory%"
 
@@ -147,7 +152,7 @@ if exist "%_ra_sentinel%" del /f /q "%_ra_sentinel%" > nul 2>&1
 >> "%_ra_build_script%" echo copy /Y "%repo_root%\%_ra_module_dir%\target\%_ra_service_name%.jar" "%_ra_image_directory%\" ^> nul
 >> "%_ra_build_script%" echo cd /d "%_ra_image_directory%"
 >> "%_ra_build_script%" echo docker buildx build -f "%_ra_image_file%" -t "%_ra_service_name%:laster" .
->> "%_ra_build_script%" echo docker-compose -f "%_ra_docker_directory%\docker-compose.yml" up -d %_ra_service_name%
+>> "%_ra_build_script%" echo docker-compose -f "%_ra_compose_file%" up -d %_ra_service_name%
 >> "%_ra_build_script%" echo del /f /q "%_ra_image_directory%\%_ra_service_name%.jar" ^> nul 2^>^&1
 >> "%_ra_build_script%" echo del /f /q "%_ra_image_file%" ^> nul 2^>^&1
 >> "%_ra_build_script%" echo del /f /q "%_ra_build_script%" ^> nul 2^>^&1
@@ -233,10 +238,10 @@ exit /b 0
 
 REM ============================================================
 REM 把 Python 渲染逻辑写到临时 .py 文件
-REM 一次性生成, 多次调用 render_and_build_image 时复用, 避免重复 IO
+REM 每次调用都重写, 保证临时 .py 与本脚本渲染逻辑一致 (无旧版本残留问题)
 REM ============================================================
 :write_render_py
-> "%maozi_render_py%" echo import json, sys
+> "%maozi_render_py%" echo import json, os, sys
 >> "%maozi_render_py%" echo service_name  = sys.argv[1]
 >> "%maozi_render_py%" echo config_path   = sys.argv[2]
 >> "%maozi_render_py%" echo template_path = sys.argv[3]
@@ -255,17 +260,17 @@ REM ============================================================
 >> "%maozi_render_py%" echo otel      = bool^(svc.get^("opentelemetry"^)^)
 >> "%maozi_render_py%" echo jvm       = svc.get^("jvm_params"^)  or d.get^("jvm_params", ""^)
 >> "%maozi_render_py%" echo base      = svc.get^("base_image"^)  or d.get^("base_image", "maozi-cloud-base-jdk:1.0.0"^)
->> "%maozi_render_py%" echo dubbo_ip  = d.get^("dubbo_ip_to_registry", ""^)
+>> "%maozi_render_py%" echo # 注册 IP 不写死在 JSON, 读构建机环境变量 NACOS_REGISTER_IP, 未设置则不注入 ENV
+>> "%maozi_render_py%" echo dubbo_ip  = os.environ.get^("NACOS_REGISTER_IP", ""^)
 >> "%maozi_render_py%" echo dubbo_flag = svc.get^("dubbo_flag"^) or d.get^("dubbo_flag", ""^)
 >> "%maozi_render_py%" echo otel_flags = svc.get^("otel_flags"^) or d.get^("otel_flags", []^)
 >> "%maozi_render_py%" echo add_opens  = svc.get^("add_opens"^)  or d.get^("add_opens", []^)
 >> "%maozi_render_py%" echo dubbo_port_line = ^(", Dubbo " + str^(svc["dubbo_port"]^)^) if has_dubbo else ""
 >> "%maozi_render_py%" echo dubbo_env_block = ""
 >> "%maozi_render_py%" echo if has_dubbo:
->> "%maozi_render_py%" echo     dubbo_env_block = ^(
->> "%maozi_render_py%" echo         "ENV DUBBO_IP_TO_REGISTRY=" + dubbo_ip + "\n"
->> "%maozi_render_py%" echo         "ENV APPLICATION_DUBBO_PORT=" + str^(svc["dubbo_port"]^)
->> "%maozi_render_py%" echo     ^)
+>> "%maozi_render_py%" echo     dubbo_env_block = "ENV APPLICATION_DUBBO_PORT=" + str^(svc["dubbo_port"]^)
+>> "%maozi_render_py%" echo     if dubbo_ip:
+>> "%maozi_render_py%" echo         dubbo_env_block = "ENV DUBBO_IP_TO_REGISTRY=" + dubbo_ip + "\n" + dubbo_env_block
 >> "%maozi_render_py%" echo dubbo_expose_line = "\nEXPOSE ${APPLICATION_DUBBO_PORT}" if has_dubbo else ""
 >> "%maozi_render_py%" echo cmd_parts = ["java -server"]
 >> "%maozi_render_py%" echo if has_dubbo and dubbo_flag:

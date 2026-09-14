@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ============================================================
-# 统一构建逻辑 (单一 git 仓库版), 由 maozi-cloud-deploy-all-distributed.sh 调用
+# 统一构建逻辑 (单一 git 仓库版), 由 maozi-cloud-deploy-services-distributed.sh 调用
 # 对应 bat 版: maozi-cloud-deploy-bat-run/maozi-cloud-deploy-bat-util/maozi-cloud-deploy-jar-utils.bat
 # ------------------------------------------------------------
 # 兼容性: macOS 自带 bash 3.2 不支持关联数组 (declare -A),

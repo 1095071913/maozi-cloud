@@ -22,7 +22,8 @@
 # ------------------------------------------------------------
 # Dubbo 参数 (启用状态: __DUBBO_YES_NO__):
 #   APPLICATION_DUBBO_PORT 为 RPC 端口, 注意不同服务错开
-#   -DDUBBO_IP_TO_REGISTRY 注册到注册中心的 IP, 生产环境请改对外 IP
+#   -DDUBBO_IP_TO_REGISTRY 注册到注册中心的 IP, 取构建机环境变量 NACOS_REGISTER_IP,
+#   环境变量未设置时不注入 ENV DUBBO_IP_TO_REGISTRY (由 Dubbo 自动探测本机 IP)
 # ============================================================
 FROM __BASE_IMAGE__
 

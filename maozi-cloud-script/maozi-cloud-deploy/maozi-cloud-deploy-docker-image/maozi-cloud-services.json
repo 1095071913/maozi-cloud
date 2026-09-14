@@ -2,7 +2,6 @@
   "defaults": {
     "base_image": "maozi-cloud-business-jdk:1.0.0",
     "jvm_params": "-Xms256m -Xmx256m -Xss256k -XX:MaxMetaspaceSize=192m -XX:+UseSerialGC -XX:CompressedClassSpaceSize=32m -XX:ReservedCodeCacheSize=32m -XX:MaxDirectMemorySize=32m",
-    "dubbo_ip_to_registry": "192.168.124.3",
     "dubbo_flag": "-DDUBBO_IP_TO_REGISTRY=${DUBBO_IP_TO_REGISTRY}",
     "add_opens": [
       "--add-opens java.base/java.math=ALL-UNNAMED",

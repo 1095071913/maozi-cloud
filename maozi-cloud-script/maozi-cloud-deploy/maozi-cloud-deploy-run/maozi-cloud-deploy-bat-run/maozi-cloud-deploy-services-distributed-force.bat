@@ -4,10 +4,10 @@ setlocal enabledelayedexpansion
 
 REM ============================================================
 REM 强制全量部署入口 (单一 git 仓库版)
-REM 对应 shell 版: maozi-cloud-deploy-shell-run/maozi-cloud-deploy-all-distributed-force.sh
+REM 对应 shell 版: maozi-cloud-deploy-shell-run/maozi-cloud-deploy-services-distributed-force.sh
 REM ------------------------------------------------------------
-REM 与 maozi-cloud-deploy-all-distributed.bat 的区别:
-REM   - 不读取 / 写入 maozi-cloud-parent-env 状态 (分支 / SHA)
+REM 与 maozi-cloud-deploy-services-distributed.bat 的区别:
+REM   - 不读取 / 写入 maozi-cloud-deploy-services-distributed-record 状态 (分支 / SHA)
 REM   - 不做 git diff 增量比对
 REM   - 不做 jar mtime 前后快照对比
 REM   - 无条件: 全量 mvn 构建 + 所有在 JSON 配置里登记的服务全部重建并重启
@@ -37,7 +37,7 @@ REM 切换到本脚本所在目录, 使后续相对路径可靠
 cd /d "%~dp0"
 set current_directory=%CD%
 
-REM 源码仓库根目录 (与 maozi-cloud-deploy-all-distributed.bat 保持一致:
+REM 源码仓库根目录 (与 maozi-cloud-deploy-services-distributed.bat 保持一致:
 REM 向上 4 级无 pom.xml 时进入 maozi-cloud-parent)
 set repo_directory=%~dp0..\..\..\..
 if not exist "%repo_directory%\pom.xml" set repo_directory=%~dp0..\..\..\..\maozi-cloud-parent

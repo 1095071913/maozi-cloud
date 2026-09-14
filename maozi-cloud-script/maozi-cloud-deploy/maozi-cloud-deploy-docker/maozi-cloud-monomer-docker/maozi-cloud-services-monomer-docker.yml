@@ -1,21 +1,21 @@
 # ============================================================
-# maozi-cloud-monomer-docker —— 聚合服务单独拉起
+# maozi-cloud-services-monomer-docker.yml —— 聚合服务单独拉起
 # ------------------------------------------------------------
-# 仅启动 maozi-cloud-monomer-service (all-in-one 单镜像, 源码模块为
+# 仅启动 maozi-cloud-service-monomer (all-in-one 单镜像, 源码模块为
 # maozi-cloud-all-service, 把所有业务模块打成
 # 一个 jar, 用单一端口 1000 暴露, 替代标准拆分部署的 gateway 路由).
 # ------------------------------------------------------------
 # 与 maozi-cloud-distributeds-docker 互斥:
 #   monomer-service 与 gateway 都占 1000 端口, 不能同时跑.
 #   要切换到聚合部署时, 先把 services-docker 停掉:
-#       docker-compose -f maozi-cloud-distributeds-docker/docker-compose.yml down
+#       docker-compose -f maozi-cloud-distributeds-docker/maozi-cloud-services-distributeds-docker.yml down
 #   再起本 compose:
-#       docker-compose -f maozi-cloud-monomer-docker/docker-compose.yml up -d
+#       docker-compose -f maozi-cloud-monomer-docker/maozi-cloud-services-monomer-docker.yml up -d
 # ------------------------------------------------------------
 # 启动前置:
 #   1. 先启动 maozi-cloud-basics-docker (提供 mysql / nacos / redis 等);
 #   2. 外部网络 maozi-cloud-network 必须已创建;
-#   3. monomer-service 镜像需通过 maozi-cloud-deploy-all-monomer.sh 构建.
+#   3. monomer-service 镜像需通过 maozi-cloud-deploy-services-monomer.sh 构建.
 # ------------------------------------------------------------
 # 关于 environment.ENVIRONMENT:
 #   environment 块下传入两个环境变量:
@@ -29,21 +29,20 @@ version: "3.7"
 services:
 
   # ============ Monomer 聚合服务 (all-in-one) ============
-  maozi-cloud-monomer-service:
-    image: maozi-cloud-monomer-service:laster
-    container_name: maozi-cloud-monomer-service
+  maozi-cloud-service-monomer:
+    image: maozi-cloud-service-monomer:laster
+    container_name: maozi-cloud-service-monomer
     restart: always
     ports:
       - 1100:1100
     environment:
       APPLICATION_PORT: 1100
-      APPLICATION_VERSION: main
-      APPLICATION_ENVIRONMENT: dev
-      NACOS_CONFIG_SERVER: maozi-cloud-basic-nacos:8848
+      APPLICATION_VERSION: ${APPLICATION_VERSION}
+      APPLICATION_ENVIRONMENT: ${APPLICATION_ENVIRONMENT}
     volumes:
       # 日志文件挂载到宿主机共享目录, 供 promtail 采集
-      # 容器内路径与镜像 WORKDIR /application/maozi-cloud-monomer-service 对应
-      - /Users/maozi/Desktop/maozi-cloud-logs/all:/application/maozi-cloud-monomer-service/logs
+      # 容器内路径与镜像 WORKDIR /application/maozi-cloud-service-monomer 对应
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${APPLICATION_ENVIRONMENT:-dev}/${APPLICATION_VERSION:-main}/maozi-cloud-service-monomer:/application/maozi-cloud-service-monomer/logs
 
 
 # 外部网络: 与 maozi-cloud-basics-docker 共享同一网络

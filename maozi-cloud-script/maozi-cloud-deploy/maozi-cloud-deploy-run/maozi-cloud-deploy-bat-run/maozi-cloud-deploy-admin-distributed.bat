@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 
 REM ============================================================
 REM 后台前端 (maozi-cloud-admin) 容器化部署入口 (self-contained)
-REM 对应 shell 版: maozi-cloud-deploy-shell-run/maozi-cloud-deploy-admin.sh
+REM 对应 shell 版: maozi-cloud-deploy-shell-run/maozi-cloud-deploy-admin-distributed.sh
 REM ------------------------------------------------------------
 REM 与后端 jar 服务不同, 前端是 Docker 多阶段镜像构建:
 REM   1. 定位 maozi-cloud-admin 源码目录 (构建上下文)
@@ -35,8 +35,8 @@ set admin_directory=%repo_root%\maozi-cloud-admin
 REM 部署资产目录 (镜像定义与 compose 均随脚本仓库走, 不侵入前端项目)
 set image_directory=%current_directory%\..\..\maozi-cloud-deploy-docker-image\maozi-cloud-admin-image
 set nginx_conf_name=maozi-cloud-admin-nginx.conf
-set COMPOSE_FILE=%current_directory%\..\..\maozi-cloud-deploy-docker\maozi-cloud-admin-docker\docker-compose.yml
-set IMAGE_TAG=maozi-cloud-admin:laster
+set COMPOSE_FILE=%current_directory%\..\..\maozi-cloud-deploy-docker\maozi-cloud-distributeds-docker\maozi-cloud-admin-distributeds-docker.yml
+set IMAGE_TAG=maozi-cloud-admin-distributeds:laster
 
 REM ---- 前置检查 ----
 if not exist "%admin_directory%\package.json" (

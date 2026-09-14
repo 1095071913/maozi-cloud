@@ -1,0 +1,15 @@
+{
+    "应用服务": {
+        "环境": "APPLICATION_ENVIRONMENT",
+        "灰度": "APPLICATION_VERSION",
+        "日志地址":"APPLICATION_LOG_PATH",
+        "服务注册Nacos地址": "NACOS_REGISTER_IP"
+    },
+    "百炼云": {
+        "密钥": "AI_DASHSCOPE_KEY"
+    },
+    "阿里云":{
+        "标识":"ALIYUN_CLIENT_ID",
+        "密钥":"ALIYUN_CLIENT_SECRET"
+    }
+}

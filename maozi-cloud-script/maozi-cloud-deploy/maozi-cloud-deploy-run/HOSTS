@@ -1,0 +1,6 @@
+127.0.0.1	maozi-cloud-basic-nacos
+127.0.0.1	maozi-cloud-basic-mysql
+127.0.0.1	maozi-cloud-basic-redis
+127.0.0.1	maozi-cloud-basic-xxljob
+127.0.0.1	maozi-cloud-basic-snailjob
+127.0.0.1	maozi-cloud-gateway-service

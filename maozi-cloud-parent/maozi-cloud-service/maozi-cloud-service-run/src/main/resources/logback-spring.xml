@@ -25,9 +25,10 @@
     <springProperty scope="context" name="APPENDER" source="logging.appender" defaultValue="ASYNC_CONSOLE"/>
 
     <!-- 日志文件根目录 -->
-    <property name="LOG_PATH" value="./logs"/>
+    <springProperty scope="context" name="LOG_PATH" source="LOG_PATH" defaultValue="./logs"/>
+    <springProperty scope="context" name="LOG_FILE" source="LOG_FILE" defaultValue="${LOG_PATH}/${APPLICATION_NAME}.log"/>
     <!-- 日志输出格式：[ 时间 ] [ Level：级别 ] [ TID：链路追踪ID ] [ Service：服务名 ] [ Environment：环境 ] [ 消息 ] -->
-    <property name="LOG_PATTERN" value="%clr([ %d{yyyy-MM-dd HH:mm:ss} ]){green}  %clr([ Level：%level ]){blue}  %clr([ TID：%X{trace_id:-} ]){magenta}  %clr([ Service：${APPLICATION_NAME} ]){red}  %clr([ Environment：${ENVIRONMENT} ]){yellow}  %clr([ %m ]){cyan}%n"/>
+    <property name="LOG_PATTERN" value="%clr([ %d{yyyy-MM-dd HH:mm:ss:SSS} ]){green}  %clr([ Level：%level ]){blue}  %clr([ TID：%X{trace_id:-} ]){magenta}  %clr([ Service：${APPLICATION_NAME} ]){red}  %clr([ Environment：${ENVIRONMENT} ]){yellow}  %clr([ %m ]){cyan}%n"/>
 
     <!-- ============ local 环境：控制台输出 ============ -->
     <if condition='property("ENVIRONMENT").contains("local")'>
@@ -60,7 +61,7 @@
         <then>
             <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
                 <!-- 文件路径 ，注意LOG_PATH是默认值,它的配置对应application.properties里的logging.path值-->
-                <file>${LOG_PATH}/${APPLICATION_NAME}.log</file>
+                <file>${LOG_FILE}</file>
                 <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
                     <!-- 文件名称 -->
                     <fileNamePattern>${LOG_PATH}/${APPLICATION_NAME}/%d{yyyy-MM-dd}.%i.log</fileNamePattern>

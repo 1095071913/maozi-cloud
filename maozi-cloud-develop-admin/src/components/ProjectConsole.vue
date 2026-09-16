@@ -1146,6 +1146,7 @@
             {{ scriptRunning ? '中断执行' : '关闭' }}
           </button>
           <button
+            v-if="scriptRunning || activeSession?.action.type !== 'sshClone'"
             class="pcd-btn primary"
             type="button"
             :disabled="scriptRunning"
@@ -2202,6 +2203,9 @@ function onRerunLast(): Promise<void> {
   if (a.type === 'networkCreate') return onNetworkCreate(true)
   if (a.type === 'appSvc') return onAppService({ name: a.service, file: a.file }, a.action, true)
   if (a.type === 'appSvcAll') return onAppServiceAll(a.action, true)
+  if (a.type === 'gitPull') return onGitPull()
+  if (a.type === 'gitCheckout') return runGitCheckout(a.branch)
+  if (a.type === 'sshClone') return Promise.resolve() // 克隆不可重放：目录已存在，按钮对此类会话隐藏
   return onDbInit(true)
 }
 
@@ -3866,7 +3870,7 @@ async function loadGitBranches(): Promise<void> {
   }
 }
 
-/** 选中分支：确认后 fetch + checkout（日志走脚本日志会话），成功刷新分支与项目信息 */
+/** 选中分支：确认后执行切换（日志走脚本日志会话），成功刷新分支与项目信息 */
 async function onPickBranch(b: string): Promise<void> {
   if (b === gitInfo.value.branch) {
     branchVisible.value = false
@@ -3880,6 +3884,12 @@ async function onPickBranch(b: string): Promise<void> {
   } catch {
     return /* 用户取消 */
   }
+  branchVisible.value = false
+  await runGitCheckout(b)
+}
+
+/** 执行分支切换（fetch + checkout），日志走脚本日志会话 */
+async function runGitCheckout(b: string): Promise<void> {
   if (focusRunning((a) => a.type === 'gitPull' || a.type === 'gitCheckout')) return
   const s = startSession({ type: 'gitCheckout', branch: b }, {
     label: `切换分支 → ${b}`,
@@ -3887,7 +3897,6 @@ async function onPickBranch(b: string): Promise<void> {
     title: '切换分支',
     sub: `git fetch + checkout ${b}`
   })
-  branchVisible.value = false
   try {
     const r = await api.projects.gitCheckout(b, s.id)
     finishSession(s, r.ok)

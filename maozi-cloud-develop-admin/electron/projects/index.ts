@@ -2,6 +2,7 @@ import {app, BrowserWindow, dialog, ipcMain, shell} from 'electron'
 import {execFile, spawn} from 'node:child_process'
 import {promisify} from 'node:util'
 import fs from 'node:fs'
+import net from 'node:net'
 import os from 'node:os'
 import path from 'node:path'
 import crypto from 'node:crypto'
@@ -395,12 +396,13 @@ async function projStream(
   channel: string,
   cmd: string,
   args: string[],
-  opts: { cwd?: string; timeoutMs: number; sid?: string; extraEnv?: Record<string, string>; stdinData?: string }
+  opts: { cwd?: string; timeoutMs: number; sid?: string; extraEnv?: Record<string, string>; stdinData?: string; sshEnvPrefix?: string }
 ): Promise<void> {
   const ctx = getProjectCtx()
   const cwd = opts.cwd ?? ctx.root
   if (ctx.isRemote && ctx.ssh) {
-    const full = `cd "${cwd}" && ${cmd} ${args.join(' ')}`
+    // extraEnv 无法跨 SSH 生效，远程环境注入走 sshEnvPrefix（export 前缀）
+    const full = `${opts.sshEnvPrefix ?? ''}cd "${cwd}" && ${cmd} ${args.join(' ')}`
     await sshStream(sender, channel, ctx.ssh, full, { timeoutMs: opts.timeoutMs, sid: opts.sid })
     return
   }
@@ -702,6 +704,90 @@ async function getProxyEnv(): Promise<Record<string, string>> {
     /* 读不到系统代理时按直连处理 */
   }
   return env
+}
+
+/** 代理地址 TCP 可达性探测（1.5s）：GUI 读到的系统代理可能是 VPN 退出后的残留配置 */
+function probeProxyReachable(url: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    try {
+      const u = new URL(url)
+      const port = Number(u.port || (u.protocol === 'socks5:' ? 1080 : 80))
+      const s = net.connect({ host: u.hostname, port, timeout: 1500 })
+      s.once('connect', () => {
+        s.destroy()
+        resolve(true)
+      })
+      s.once('error', () => resolve(false))
+      s.once('timeout', () => {
+        s.destroy()
+        resolve(false)
+      })
+    } catch {
+      resolve(false)
+    }
+  })
+}
+
+/**
+ * 远端代理（VPN）三级探测：shell 环境变量 → git 全局配置 http.proxy → macOS 系统代理（scutil，
+ * ClashX 等只设系统代理不设环境变量）。返回可直接拼进 SSH 命令的 export 前缀与代理地址，
+ * 检测失败不阻塞、按直连处理
+ */
+async function detectRemoteProxy(t: SshTarget): Promise<{ exports: string; proxy: string }> {
+  try {
+    const detect =
+      'p="${https_proxy:-${http_proxy:-${all_proxy:-}}}"; ' +
+      'if [ -z "$p" ]; then p=$(git config --get http.proxy 2>/dev/null); fi; ' +
+      'if [ -z "$p" ] && command -v scutil >/dev/null 2>&1; then ' +
+      'p=$(scutil --proxy 2>/dev/null | awk \'/HTTPSEnable : 1/{e=1} /HTTPSProxy :/{h=$3} /HTTPSPort :/{pt=$3} END{if(e&&h!="")printf "http://%s:%s",h,pt}\'); ' +
+      'fi; printf \'%s\' "$p"'
+    const proxy = (await sshExec(t, detect, 15_000)).trim()
+    if (proxy) {
+      return { exports: `export https_proxy=${JSON.stringify(proxy)} http_proxy=${JSON.stringify(proxy)}; `, proxy }
+    }
+  } catch {
+    /* 检测失败按直连 */
+  }
+  return { exports: '', proxy: '' }
+}
+
+/**
+ * git 网络操作（ls-remote / pull / fetch）的代理解析，不发日志：本地绑定读本机系统代理
+ * 并探测可达性，远程绑定在服务器侧三级探测。检出可用代理返回注入用环境与代理地址，否则直连
+ */
+async function resolveGitProxy(b: ProjectBinding): Promise<{ extraEnv?: Record<string, string>; sshEnvPrefix?: string; proxy: string }> {
+  if (b.remote) {
+    const { exports, proxy } = await detectRemoteProxy(resolveSshTarget(b.remote.configId))
+    return proxy ? { sshEnvPrefix: exports, proxy } : { proxy: '' }
+  }
+  const proxyEnv = await getProxyEnv()
+  const tip = proxyEnv.https_proxy ?? proxyEnv.http_proxy ?? proxyEnv.all_proxy
+  if (tip && (await probeProxyReachable(tip))) {
+    return { extraEnv: proxyEnv, proxy: tip }
+  }
+  return { proxy: '' }
+}
+
+/**
+ * git 网络操作（pull / fetch）前的代理就绪检查：解析代理并向日志打提示，返回注入用环境；
+ * 分支列表拉取等不发日志的场景直接用 resolveGitProxy
+ */
+async function prepareGitProxy(
+  sender: Electron.WebContents,
+  channel: string,
+  sid: string,
+  b: ProjectBinding
+): Promise<{ extraEnv?: Record<string, string>; sshEnvPrefix?: string }> {
+  const send = (text: string): void => {
+    if (!sender.isDestroyed()) sender.send(channel, { kind: 'line', text, sid })
+  }
+  const r = await resolveGitProxy(b)
+  if (r.proxy) {
+    send(b.remote ? `▶ 检测到远端代理（VPN）：${r.proxy}，git 将经代理拉取` : `▶ 已启用系统代理 ${r.proxy}，git 将经代理拉取`)
+  } else {
+    send(b.remote ? '▶ 未检测到远端代理，直连拉取（缓慢或卡住请先在服务器开启 VPN / 配置 http_proxy）' : '▶ 无可用系统代理，直连拉取（缓慢或卡住请先开启 VPN）')
+  }
+  return { extraEnv: r.extraEnv, sshEnvPrefix: r.sshEnvPrefix }
 }
 
 /** 流式执行 git clone，输出逐段推送到渲染进程；\r 进度段作为对上一行的覆盖更新 */
@@ -1314,15 +1400,17 @@ export function registerProjectHandlers(): void {
       const b = getBinding()
       if (!b) throw new Error('尚未绑定项目')
       let stdout = ''
+      // ls-remote 同样访问 GitHub：先解析 VPN 代理（静默不打日志），可用则注入
+      const proxy = await resolveGitProxy(b)
       if (b.remote) {
         const t = resolveSshTarget(b.remote.configId)
-        stdout = await sshExec(t, `cd ${JSON.stringify(b.path)} && git ls-remote --heads origin`, 30_000)
+        stdout = await sshExec(t, `${proxy.sshEnvPrefix ?? ''}cd ${JSON.stringify(b.path)} && git ls-remote --heads origin`, 30_000)
       } else {
         const pathEnv = await getShellPath()
         const r = await exec('git', ['ls-remote', '--heads', 'origin'], {
           cwd: b.path,
           timeout: 30_000,
-          env: { ...process.env, PATH: pathEnv }
+          env: { ...process.env, PATH: pathEnv, ...(proxy.extraEnv ?? {}) }
         })
         stdout = r.stdout
       }
@@ -1344,10 +1432,14 @@ export function registerProjectHandlers(): void {
       const sid = validSid(sidArg)
       const b = getBinding()
       if (!b) throw new Error('尚未绑定项目')
+      // GitHub 直连易链路假死：拉取前先看 VPN 代理是否可用，可用则注入 git 代理环境
+      const proxy = await prepareGitProxy(event.sender, 'projects:scriptLog', sid, b)
       await projStream(event.sender, 'projects:scriptLog', 'git', [...GIT_STALL_ARGS, 'pull', '--progress'], {
         cwd: b.path,
         timeoutMs: 10 * 60_000,
-        sid
+        sid,
+        extraEnv: proxy.extraEnv,
+        sshEnvPrefix: proxy.sshEnvPrefix
       })
       return { ok: true }
     } catch (err) {
@@ -1366,11 +1458,30 @@ export function registerProjectHandlers(): void {
       if (!/^[A-Za-z0-9._/-]{1,100}$/.test(branch) || branch.includes('..') || branch.startsWith('/') || branch.endsWith('/')) {
         throw new Error('非法的分支名')
       }
-      // fetch 让远端引用就位（全量仓库等价于刷新，浅克隆则取回目标分支），再 checkout
-      await projStream(event.sender, 'projects:scriptLog', 'git', [...GIT_STALL_ARGS, 'fetch', '--progress', '--depth', '1', 'origin', branch], {
+      // 克隆带 --depth 1 --single-branch，refspec 只含主分支：目标分支不在 refspec 内时，
+      // fetch 不建远端跟踪引用，checkout 的 DWIM/--track/pull 又都按 refspec 反查而落空，
+      // 便报 pathspec 不匹配。先把 refspec 放开为全分支（幂等，此后任意分支可切、pull 可用），
+      // 再显式 refspec 取回目标分支后普通 checkout：已有本地分支等价普通切换（不动本地提交），
+      // 首次切换 DWIM 建分支并自动设上游
+      const fullRefspec = '+refs/heads/*:refs/remotes/origin/*'
+      if (b.remote) {
+        await sshExec(resolveSshTarget(b.remote.configId), `cd ${JSON.stringify(b.path)} && git config remote.origin.fetch ${JSON.stringify(fullRefspec)}`, 15_000)
+      } else {
+        const pathEnv = await getShellPath()
+        await exec('git', ['config', 'remote.origin.fetch', fullRefspec], {
+          cwd: b.path,
+          timeout: 15_000,
+          env: { ...process.env, PATH: pathEnv }
+        })
+      }
+      // 取回目标分支走 GitHub：先看 VPN 代理是否可用，可用则注入 git 代理环境（checkout 本身无网络）
+      const proxy = await prepareGitProxy(event.sender, 'projects:scriptLog', sid, b)
+      await projStream(event.sender, 'projects:scriptLog', 'git', [...GIT_STALL_ARGS, 'fetch', '--progress', '--depth', '1', 'origin', `+refs/heads/${branch}:refs/remotes/origin/${branch}`], {
         cwd: b.path,
         timeoutMs: 10 * 60_000,
-        sid
+        sid,
+        extraEnv: proxy.extraEnv,
+        sshEnvPrefix: proxy.sshEnvPrefix
       })
       await projStream(event.sender, 'projects:scriptLog', 'git', ['checkout', '--progress', branch], {
         cwd: b.path,
@@ -2943,26 +3054,12 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
       const authedUrl = REPO_URL.replace('https://', 'https://' + auth + '@')
       const targetDir = destDir + '/maozi-cloud'
 
-      // 拉取前检测远端代理（VPN）：GitHub 直连极易链路假死；检测到代理则显式注入 git 环境。
-      // 三级来源：shell 环境变量 → git 全局配置 → macOS 系统代理（scutil，ClashX 等只设系统代理不设环境变量）
-      let proxyExports = ''
-      try {
-        const detect =
-          'p="${https_proxy:-${http_proxy:-${all_proxy:-}}}"; ' +
-          'if [ -z "$p" ]; then p=$(git config --get http.proxy 2>/dev/null); fi; ' +
-          'if [ -z "$p" ] && command -v scutil >/dev/null 2>&1; then ' +
-          'p=$(scutil --proxy 2>/dev/null | awk \'/HTTPSEnable : 1/{e=1} /HTTPSProxy :/{h=$3} /HTTPSPort :/{pt=$3} END{if(e&&h!="")printf "http://%s:%s",h,pt}\'); ' +
-          'fi; printf \'%s\' "$p"'
-        const out = await sshExec(target, detect, 15_000)
-        const proxy = out.trim()
-        if (proxy) {
-          proxyExports = `export https_proxy=${JSON.stringify(proxy)} http_proxy=${JSON.stringify(proxy)}; `
-          send(`▶ 检测到远端代理（VPN）：${proxy}，git clone 将经代理拉取`)
-        } else {
-          send('▶ 未检测到远端代理，直连 GitHub（若拉取缓慢或卡住，请先在服务器开启 VPN / 配置 http_proxy')
-        }
-      } catch {
-        /* 代理检测失败不阻塞拉取 */
+      // 拉取前检测远端代理（VPN）：GitHub 直连极易链路假死；检测到代理则显式注入 git 环境
+      const { exports: proxyExports, proxy: remoteProxy } = await detectRemoteProxy(target)
+      if (remoteProxy) {
+        send(`▶ 检测到远端代理（VPN）：${remoteProxy}，git clone 将经代理拉取`)
+      } else {
+        send('▶ 未检测到远端代理，直连 GitHub（若拉取缓慢或卡住，请先在服务器开启 VPN / 配置 http_proxy')
       }
 
       // 浅克隆减小传输量；低速熔断（<1KB/s 持续 60s 判定链路假死中止）——GitHub 连接静默假死时 git 会无限挂起

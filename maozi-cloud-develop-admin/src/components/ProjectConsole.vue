@@ -1677,6 +1677,91 @@
       </template>
     </el-dialog>
 
+    <!-- ===== 确认切换分支弹窗：分支流转 + 执行流程 + 风险提示 ===== -->
+    <el-dialog
+      v-model="branchConfirmVisible"
+      draggable
+      append-to-body
+      destroy-on-close
+      modal-class="pc-dlg pbc-dlg"
+      :show-close="false"
+      :close-on-click-modal="false"
+    >
+      <template #header>
+        <div class="pcd-header pbc-header">
+          <div class="pcd-deco pcd-deco-1"></div>
+          <div class="pcd-deco pcd-deco-2"></div>
+          <div class="pcd-header-main">
+            <div class="pcd-header-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="6" x2="6" y1="3" y2="15" />
+                <circle cx="18" cy="6" r="3" />
+                <circle cx="6" cy="18" r="3" />
+                <path d="M18 9a9 9 0 0 1-9 9" />
+              </svg>
+            </div>
+            <div>
+              <div class="pcd-title">确认切换分支</div>
+              <div class="pcd-subtitle">切换前自动 fetch 目标分支</div>
+            </div>
+          </div>
+          <button class="pcd-close" type="button" @click="branchConfirmVisible = false">✕</button>
+        </div>
+      </template>
+
+      <div class="pcd-body pbc-body">
+        <!-- 分支流转：当前 → 目标 -->
+        <div class="pbc-flow">
+          <div class="pbc-chip from">
+            <span class="pbc-tag">当前分支</span>
+            <span class="pbc-name mono-text">{{ gitInfo.branch || '—' }}</span>
+          </div>
+          <svg class="pbc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14" />
+            <path d="m13 6 6 6-6 6" />
+          </svg>
+          <div class="pbc-chip to">
+            <span class="pbc-tag">目标分支</span>
+            <span class="pbc-name mono-text">{{ branchConfirmTarget }}</span>
+          </div>
+        </div>
+
+        <!-- 执行流程 -->
+        <div class="pbc-steps">
+          <div class="pbc-step"><span class="pbc-dot">1</span>检测代理</div>
+          <span class="pbc-line"></span>
+          <div class="pbc-step"><span class="pbc-dot">2</span>拉取分支</div>
+          <span class="pbc-line"></span>
+          <div class="pbc-step"><span class="pbc-dot">3</span>切换分支</div>
+        </div>
+
+        <!-- 风险提示 -->
+        <div class="pbc-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 20h16a2 2 0 0 0 1.73-2Z" />
+            <path d="M12 9v4" />
+            <path d="M12 17h.01" />
+          </svg>
+          <span>本地未提交的改动可能导致切换失败，已提交内容不受影响。</span>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="pcd-footer">
+          <button class="pcd-btn ghost" type="button" @click="branchConfirmVisible = false">取消</button>
+          <button class="pcd-btn primary" type="button" @click="confirmBranchSwitch">
+            <svg class="pbc-confirm-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="6" x2="6" y1="3" y2="15" />
+              <circle cx="18" cy="6" r="3" />
+              <circle cx="6" cy="18" r="3" />
+              <path d="M18 9a9 9 0 0 1-9 9" />
+            </svg>
+            确认切换
+          </button>
+        </div>
+      </template>
+    </el-dialog>
+
     <!-- ===== 解绑项目确认弹窗 ===== -->
     <el-dialog
       v-model="unbindVisible"
@@ -3870,20 +3955,23 @@ async function loadGitBranches(): Promise<void> {
   }
 }
 
-/** 选中分支：确认后执行切换（日志走脚本日志会话），成功刷新分支与项目信息 */
-async function onPickBranch(b: string): Promise<void> {
+const branchConfirmVisible = ref(false)
+const branchConfirmTarget = ref('')
+
+/** 选中分支：弹确认框（当前 → 目标流转展示），确认后执行切换 */
+function onPickBranch(b: string): void {
   if (b === gitInfo.value.branch) {
     branchVisible.value = false
     return
   }
-  try {
-    await ElMessageBox.confirm(`切换到分支 ${b}？本地未提交的改动可能导致切换失败`, '切换分支', {
-      confirmButtonText: '切换',
-      cancelButtonText: '取消'
-    })
-  } catch {
-    return /* 用户取消 */
-  }
+  branchConfirmTarget.value = b
+  branchConfirmVisible.value = true
+}
+
+/** 确认切换分支：关弹窗并走脚本日志会话执行（fetch + checkout） */
+async function confirmBranchSwitch(): Promise<void> {
+  const b = branchConfirmTarget.value
+  branchConfirmVisible.value = false
   branchVisible.value = false
   await runGitCheckout(b)
 }
@@ -4231,6 +4319,178 @@ onMounted(loadState)
   padding: 28px 0;
   color: #94a3b8;
   font-size: 13px;
+}
+
+/* 确认切换分支弹窗 */
+.pbc-header .pcd-header-icon {
+  color: #fff;
+}
+
+.pbc-header .pcd-header-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.pbc-body {
+  padding: 18px 24px;
+}
+
+.pbc-flow {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+  border: 1px solid #eef2f7;
+}
+
+.pbc-chip {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 8px;
+  border-radius: 10px;
+}
+
+.pbc-chip.from {
+  background: #fff;
+  border: 1px dashed #94a3b8;
+  animation: pbc-in-left 0.35s ease both;
+}
+
+.pbc-chip.to {
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border: 1px solid #bfdbfe;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+  animation: pbc-in-right 0.35s ease 0.08s both;
+}
+
+.pbc-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.pbc-chip.from .pbc-tag {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.pbc-chip.to .pbc-tag {
+  background: #2563eb;
+  color: #fff;
+}
+
+.pbc-name {
+  max-width: 100%;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  word-break: break-all;
+  text-align: center;
+  line-height: 1.35;
+}
+
+.pbc-arrow {
+  align-self: center;
+  width: 24px;
+  height: 24px;
+  color: #2563eb;
+  flex-shrink: 0;
+  animation: pbc-arrow-move 1.3s ease-in-out infinite;
+}
+
+.pbc-steps {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 13px;
+  animation: pbc-in-up 0.3s ease 0.1s both;
+}
+
+.pbc-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.pbc-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.pbc-line {
+  flex: 1;
+  min-width: 8px;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.pbc-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 13px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  font-size: 12px;
+  line-height: 1.55;
+  animation: pbc-in-up 0.3s ease 0.18s both;
+}
+
+.pbc-note svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.pbc-confirm-ico {
+  width: 14px;
+  height: 14px;
+}
+
+@keyframes pbc-arrow-move {
+  0%, 100% { transform: translateX(-2.5px); opacity: 0.65; }
+  50% { transform: translateX(2.5px); opacity: 1; }
+}
+
+@keyframes pbc-in-left {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes pbc-in-right {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes pbc-in-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
 }
 
 .pc-proj-ico {
@@ -6252,6 +6512,10 @@ onMounted(loadState)
 .pc-dlg .el-dialog__body,
 .pc-dlg .el-dialog__footer {
   padding: 0;
+}
+
+.pbc-dlg .el-dialog {
+  width: min(430px, 94vw) !important;
 }
 
 .pcd-header {

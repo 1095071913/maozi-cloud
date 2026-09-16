@@ -56,3 +56,12 @@ target
 # JAVA基础镜像额外依赖
 !opentelemetry-javaagent.jar
 !maozi-cloud-agent-opentelemetry.jar
+
+# 前端项目
+release/
+node_modules/
+.vite/
+dist/
+dist-electron/
+*.local
+.DS_Store

@@ -54,11 +54,30 @@ export function parseConfigFile(dir: string): { name: string; version: string } 
 }
 
 /**
- * 数据库初始化标记：应用仓库根目录 .db-init.json（项目路径 → 完成时间，JSON）。
- * 与 bookmarks.json 等本地运行时数据同目录，已在 .gitignore，不会提交
+ * 状态文件统一落 userData（与 bookmarks.json / configs.json 同目录，仓库之外）。
+ * 旧版本存应用目录，userData 下缺文件时把历史文件搬过来，只迁一次、不删原件
+ */
+export function userDataStateFile(fileName: string): string {
+  const target = path.join(app.getPath('userData'), fileName)
+  try {
+    if (!fs.existsSync(target)) {
+      const legacy = path.join(app.getAppPath(), fileName)
+      if (fs.existsSync(legacy)) {
+        fs.mkdirSync(path.dirname(target), { recursive: true })
+        fs.copyFileSync(legacy, target)
+      }
+    }
+  } catch {
+    /* 迁移失败按全新状态文件处理 */
+  }
+  return target
+}
+
+/**
+ * 数据库初始化标记：userData/.db-init.json（项目路径 → 完成时间，JSON）
  */
 function dbInitMarkFile(): string {
-  return path.join(app.getAppPath(), '.db-init.json')
+  return userDataStateFile('.db-init.json')
 }
 
 export function isDbInitialized(projectPath: string): boolean {

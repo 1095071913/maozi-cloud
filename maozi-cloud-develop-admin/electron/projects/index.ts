@@ -5,7 +5,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import crypto from 'node:crypto'
-import {clearBinding, getBinding, isDbInitialized, markDbInitialized, parseConfigFile, saveBinding} from './store'
+import {clearBinding, getBinding, isDbInitialized, markDbInitialized, parseConfigFile, saveBinding, userDataStateFile} from './store'
 import {listConfigs} from '../configs/store'
 import {selectPlatform} from '../platform'
 import type {EnvFile, EnvVarEntry, HostsEntry} from '../platform/types'
@@ -1156,9 +1156,9 @@ async function streamProcess(
   })
 }
 
-/** UI 状态持久化文件：应用目录 .ui-state.json（git 已忽略，同 bookmarks.json 一类本地运行时数据） */
+/** UI 状态持久化文件：userData/.ui-state.json（同 bookmarks.json 一类本地运行时数据，仓库之外） */
 function uiStateFile(): string {
-  return path.join(app.getAppPath(), '.ui-state.json')
+  return userDataStateFile('.ui-state.json')
 }
 
 /** 记录命令行并流式执行 docker（统一错误包装） */
@@ -1752,7 +1752,7 @@ export function registerProjectHandlers(): void {
     }
   })
 
-  /** UI 状态（Tab 选中 等）：应用目录 .ui-state.json 持久化，git 已忽略 */
+  /** UI 状态（Tab 选中 等）：userData/.ui-state.json 持久化 */
   ipcMain.handle('projects:sshEnvSave', async (_e, params: { key: string; value: string; fileId: string }) => {
     try {
       const b = getBinding()

@@ -2,6 +2,14 @@
 
 > 基于 Spring Cloud Alibaba \+ Dubbo 的一站式分布式解决方案开源封装，内置分布式应用开发所需全套组件，统一团队代码风格，保障代码质量，让开发者专注业务逻辑，实现高效快速开发。
 
+## 🔧 工程项目
+
+- [maozi-cloud-develop-admin](maozi-cloud-develop-admin) - 快速开发控制台项目
+
+- [maozi-cloud-admin](maozi-cloud-admin) - 后台前端系统项目
+
+- [maozi-cloud-parent](maozi-cloud-parent) - 后端系统项目
+
 ## ✨ 核心特性
 
 - **全链路灰度发布** — 精细化流量管控，平滑版本迭代

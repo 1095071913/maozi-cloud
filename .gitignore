@@ -58,10 +58,11 @@ target
 !maozi-cloud-agent-opentelemetry.jar
 
 # 前端项目
-release/
-node_modules/
-.vite/
-dist/
-dist-electron/
-*.local
+release
+node_modules
+dist
+dist-ssr
+dist-electron
+.vite
 .DS_Store
+*.local

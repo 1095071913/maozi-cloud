@@ -89,8 +89,8 @@ export interface ElectronApi {
     composeServices: () => Promise<IpcResult<string[]>>
     composeAction: (service: string, action: string, sid?: string) => Promise<PlatformResult>
     composeStatus: () => Promise<IpcResult<Record<string, string>>>
-    /** 基础服务实时资源占用（CPU/内存，按服务名索引；hostMemTotal 为物理内存，未设配额时作分母） */
-    composeStats: () => Promise<IpcResult<{ stats: Record<string, ComposeServiceStats>; cpuCount: number; hostMemTotal: number } | null>>
+    /** 基础服务实时资源占用（CPU/内存，按服务名索引；hostMemTotal 为物理内存，未设配额时作分母）。preferCache=首屏命中启动预取快照 */
+    composeStats: (preferCache?: boolean) => Promise<IpcResult<{ stats: Record<string, ComposeServiceStats>; cpuCount: number; hostMemTotal: number } | null>>
     /**
      * 服务日志查询：最近 tail 行。ctx 为 compose 上下文 —— 'basics'（默认，基础服务）
      * 或 '<monomer|distributeds>:<admin|services>'（应用服务，-f 指定 compose 文件）
@@ -102,8 +102,8 @@ export interface ElectronApi {
     appServices: (variant: string) => Promise<IpcResult<{ services: AppServiceEntry[] }>>
     /** 应用服务运行状态（服务名 → State） */
     appServicesStatus: (variant: string) => Promise<IpcResult<Record<string, string>>>
-    /** 应用服务实时资源占用（两变体一次性快照，按服务名索引） */
-    appServicesStats: () => Promise<
+    /** 应用服务实时资源占用（两变体一次性快照，按服务名索引）。preferCache=首屏命中启动预取快照 */
+    appServicesStats: (preferCache?: boolean) => Promise<
       IpcResult<{ stats: Record<'monomer' | 'distributeds', Record<string, ComposeServiceStats>>; cpuCount: number; hostMemTotal: number } | null>
     >
     /** 应用服务单服务操作（start/stop/restart；start/restart 前后端自动互斥关闭另一变体） */
@@ -115,8 +115,31 @@ export interface ElectronApi {
       sid?: string
     ) => Promise<PlatformResult>
     /** 应用服务全量启动/关闭（start 前自动互斥关闭另一变体） */
-    appServiceAll: (variant: string, action: string, sid?: string) => Promise<PlatformResult>
+    appServiceAll: (variant: string, action: string, sid?: string, opts?: { foreground?: boolean }) => Promise<PlatformResult>
+    /** 全链路日志查询：按链路 ID 检索所有运行中微服务容器的日志行 */
+    traceLogQuery: (
+      traceId: string,
+      tail?: number
+    ) => Promise<IpcResult<{ results: string[]; message: string }>>
+    /** 远程服务器（SSH）：可用 Linux 密钥列表 */
+    sshConfigs: () => Promise<IpcResult<Array<{ id: string; name: string; address: string }>>>
+    /** SSH 连接测试 */
+    sshTest: (configId: string) => Promise<IpcResult<string | null>>
+    /** 远程目录列表（一级子目录） */
+    sshListDir: (
+      configId: string,
+      path: string
+    ) => Promise<IpcResult<{ path: string; items: Array<{ name: string; isDir: boolean }> }>>
+    /** 在远程目录下创建子目录（选择目录页新建） */
+    sshMkdir: (configId: string, parentDir: string, name: string) => Promise<IpcResult<null>>
+    /** 远程绑定：读取远程 CONFIG 完成绑定 */
+    sshBindDir: (configId: string, path: string) => Promise<IpcResult<ProjectBinding>>
+    /** 检查远程是否安装 git */
+    sshCheckGit: (configId: string) => Promise<IpcResult<boolean>>
+    /** 远程拉取代码（SSH git clone），日志走 onScriptLog */
+    sshClone: (configId: string, gitSecretId: string, destDir: string, sid?: string) => Promise<IpcResult<ProjectBinding>>
     /** UI 状态（Tab 选中 等）：.ui-state.json 持久化 */
+    sshEnvSave: (params: { key: string; value: string; fileId: string }) => Promise<PlatformResult>
     uiStateGet: () => Promise<IpcResult<Record<string, unknown>>>
     uiStateSave: (patch: Record<string, unknown>) => Promise<PlatformResult>
     /** 订阅基础服务日志跟踪输出；返回取消订阅函数 */
@@ -137,13 +160,21 @@ export interface ElectronApi {
     /** 初始化数据库：按需启动 mysql、逐个导入 SQL 脚本 */
     dbInit: (sid?: string) => Promise<PlatformResult>
     /** 环境设置：解析项目 ENVIRONMENT_VARIABLE 并实时读取环境变量当前值 */
-    envSettings: () => Promise<IpcResult<{ groups: EnvSettingGroup[]; files: EnvFile[]; defaultFileId: string } | null>>
+    envSettings: () => Promise<IpcResult<{ groups: EnvSettingGroup[]; files: EnvFile[]; defaultFileId: string; remote?: boolean } | null>>
     /** 中断当前正在执行的脚本（进程组 SIGINT/SIGKILL） */
     stopScript: (sid?: string) => Promise<PlatformResult>
     onScriptLog: (
       cb: (payload: { kind: 'line' | 'update'; text: string; sid?: string }) => void
     ) => () => void
     openDir: () => Promise<PlatformResult>
+    /** 项目 git 管理：仓库检测（含当前分支） */
+    gitInfo: () => Promise<IpcResult<{ isRepo: boolean; branch: string }>>
+    /** 远程分支列表（需网络） */
+    gitBranches: () => Promise<IpcResult<{ branches: string[] }>>
+    /** 拉取代码（git pull），日志走 onScriptLog */
+    gitPull: (sid?: string) => Promise<PlatformResult>
+    /** 切换分支，日志走 onScriptLog */
+    gitCheckout: (branch: string, sid?: string) => Promise<PlatformResult>
     /** 订阅 git clone 实时日志；返回取消订阅函数 */
     onCloneLog: (cb: (payload: { kind: 'line' | 'update'; text: string }) => void) => () => void
   }

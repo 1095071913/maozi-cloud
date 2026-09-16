@@ -5,9 +5,17 @@ export interface ProjectBinding {
   name: string
   /** 项目版本号（CONFIG 的 version） */
   version: string
-  /** 本地项目根目录 */
+  /** 项目根目录（本地路径或远程路径） */
   path: string
   boundAt: number
+  /** 远程绑定时记录服务器信息（本地绑定为空） */
+  remote?: {
+    configId: string
+    configName: string
+    user: string
+    host: string
+    port: number
+  }
 }
 
 /** 环境设置条目：ENVIRONMENT_VARIABLE 中一条「中文名称 → 环境变量 key」及其当前值 */

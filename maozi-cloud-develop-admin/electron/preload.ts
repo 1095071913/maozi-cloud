@@ -45,7 +45,7 @@ contextBridge.exposeInMainWorld('api', {
     composeAction: (service: string, action: string, sid?: string) =>
       ipcRenderer.invoke('projects:composeAction', service, action, sid),
     composeStatus: () => ipcRenderer.invoke('projects:composeStatus'),
-    composeStats: () => ipcRenderer.invoke('projects:composeStats'),
+    composeStats: (preferCache?: boolean) => ipcRenderer.invoke('projects:composeStats', preferCache),
     /** 基础服务日志：一次性查询最近 N 行 */
     composeLogs: (service: string, tail?: number, ctx?: string) => ipcRenderer.invoke('projects:composeLogs', service, tail, ctx),
     /** 基础服务日志实时跟踪（-f 流式，停止复用 stopScript） */
@@ -71,12 +71,27 @@ contextBridge.exposeInMainWorld('api', {
     /** 应用服务（单体/微服务）：变体服务清单与运行状态 */
     appServices: (variant: string) => ipcRenderer.invoke('projects:appServices', variant),
     appServicesStatus: (variant: string) => ipcRenderer.invoke('projects:appServicesStatus', variant),
-    appServicesStats: () => ipcRenderer.invoke('projects:appServicesStats'),
+    appServicesStats: (preferCache?: boolean) => ipcRenderer.invoke('projects:appServicesStats', preferCache),
     appServiceAction: (variant: string, file: string, service: string, action: string, sid?: string) =>
       ipcRenderer.invoke('projects:appServiceAction', variant, file, service, action, sid),
-    appServiceAll: (variant: string, action: string, sid?: string) =>
-      ipcRenderer.invoke('projects:appServiceAll', variant, action, sid),
+    appServiceAll: (variant: string, action: string, sid?: string, opts?: { foreground?: boolean }) =>
+      ipcRenderer.invoke('projects:appServiceAll', variant, action, sid, opts),
+    /** 全链路日志查询：按链路 ID 检索分布式变体所有运行容器的日志 */
+    traceLogQuery: (traceId: string, tail?: number) => ipcRenderer.invoke('projects:traceLogQuery', traceId, tail),
+    /** 远程服务器（SSH）：密钥列表 / 连接测试 / 目录浏览 / 绑定 / git 检测 / 远程 clone */
+    sshConfigs: () => ipcRenderer.invoke('projects:sshConfigs'),
+    sshTest: (configId: string) => ipcRenderer.invoke('projects:sshTest', configId),
+    sshListDir: (configId: string, path: string) => ipcRenderer.invoke('projects:sshListDir', configId, path),
+    /** 在远程目录下创建子目录（选择目录页新建） */
+    sshMkdir: (configId: string, parentDir: string, name: string) =>
+      ipcRenderer.invoke('projects:sshMkdir', configId, parentDir, name),
+    sshBindDir: (configId: string, path: string) => ipcRenderer.invoke('projects:sshBindDir', configId, path),
+    sshCheckGit: (configId: string) => ipcRenderer.invoke('projects:sshCheckGit', configId),
+    sshClone: (configId: string, gitSecretId: string, destDir: string, sid?: string) =>
+      ipcRenderer.invoke('projects:sshClone', configId, gitSecretId, destDir, sid),
     /** UI 状态持久化（Tab 选中 等，.ui-state.json） */
+    sshEnvSave: (params: { key: string; value: string; fileId: string }) =>
+      ipcRenderer.invoke('projects:sshEnvSave', params),
     uiStateGet: () => ipcRenderer.invoke('projects:uiStateGet'),
     uiStateSave: (patch: Record<string, unknown>) => ipcRenderer.invoke('projects:uiStateSave', patch),
     /** 数据库初始化状态：INIT_MYSQL_DB 定义的表是否均已存在 */
@@ -94,6 +109,14 @@ contextBridge.exposeInMainWorld('api', {
       return () => ipcRenderer.removeListener('projects:scriptLog', listener)
     },
     openDir: () => ipcRenderer.invoke('projects:openDir'),
+    /** 项目 git 管理：仓库检测（含当前分支） */
+    gitInfo: () => ipcRenderer.invoke('projects:gitInfo'),
+    /** 远程分支列表（git ls-remote --heads，需网络） */
+    gitBranches: () => ipcRenderer.invoke('projects:gitBranches'),
+    /** 拉取代码（git pull），日志走 onScriptLog */
+    gitPull: (sid?: string) => ipcRenderer.invoke('projects:gitPull', sid),
+    /** 切换分支（fetch 目标分支后 checkout），日志走 onScriptLog */
+    gitCheckout: (branch: string, sid?: string) => ipcRenderer.invoke('projects:gitCheckout', branch, sid),
     onCloneLog: (cb: (payload: { kind: 'line' | 'update'; text: string }) => void) => {
       const listener = (_e: unknown, payload: { kind: 'line' | 'update'; text: string }): void => cb(payload)
       ipcRenderer.on('projects:cloneLog', listener)

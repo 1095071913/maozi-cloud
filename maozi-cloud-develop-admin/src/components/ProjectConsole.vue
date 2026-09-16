@@ -42,10 +42,38 @@
               {{ binding.name }}
               <span v-if="binding.version" class="pc-ver-pill">v{{ binding.version }}</span>
             </div>
-            <div class="pc-path" title="点击复制路径" @click="copyPath">
-              📂 <span class="mono-text">{{ binding.path }}</span>
-              <span class="pc-path-copy">复制</span>
+            <div class="pc-path-row">
+              <div v-if="binding.remote" class="pc-remote-badge" :title="`SSH ${binding.remote.user}@${binding.remote.host}:${binding.remote.port}`">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pc-remote-ico">
+                  <rect x="2" y="4" width="20" height="7" rx="2" />
+                  <rect x="2" y="13" width="20" height="7" rx="2" />
+                </svg>
+                <span>{{ binding.remote.configName || binding.remote.host }}</span>
+                <em class="mono-text">{{ binding.remote.user }}@{{ binding.remote.host }}</em>
+              </div>
+              <div class="pc-path" title="点击复制路径" @click="copyPath">
+                {{ binding.remote ? '📁' : '📂' }} <span class="mono-text">{{ binding.path }}</span>
+                <span class="pc-path-copy">复制</span>
+              </div>
             </div>
+          </div>
+
+          <!-- git 管理：检测到仓库才显示（拉取代码 / 切换分支） -->
+          <div v-if="gitInfo.isRepo" class="pc-git-ops">
+            <span class="pc-git-branch" :title="`当前分支：${gitInfo.branch}`">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="6" y1="3" x2="6" y2="15" />
+                <circle cx="18" cy="6" r="3" />
+                <circle cx="6" cy="18" r="3" />
+                <path d="M18 9a9 9 0 0 1-9 9" />
+              </svg>
+              <span class="mono-text">{{ gitInfo.branch || '—' }}</span>
+            </span>
+            <button class="pc-git-btn" type="button" @click="openBranchDialog">切换分支</button>
+            <button class="pc-git-btn primary" type="button" :disabled="gitPulling" @click="onGitPull">
+              <span v-if="gitPulling" class="pc-env-spin"></span>
+              {{ gitPulling ? '拉取中…' : '拉取代码' }}
+            </button>
           </div>
         </div>
 
@@ -778,6 +806,12 @@
               请确认 maozi-cloud-{{ appSvcTab === 'monomer' ? 'monomer' : 'distributeds' }}-docker 目录下的 compose 文件存在
             </div>
           </div>
+
+          <!-- 全链路日志：仅微服务 Tab，放在服务列表下方 -->
+          <div v-if="appSvcTab === 'distributeds' && activeAppSvcServices.length" class="pas-trace-row">
+            <span class="pas-trace-hint">输入链路 ID，跨所有运行中的微服务检索日志</span>
+            <button class="pc-btn cyan" @click="openTraceQuery">🔍 全链路日志查询</button>
+          </div>
           </div>
         </div>
 
@@ -801,7 +835,6 @@
             </span>
           </button>
           <button class="pc-btn danger-ghost" @click="onUnbind">解绑</button>
-          <button class="pc-btn plain" @click="onOpenDir">📂 打开项目目录</button>
         </div>
       </div>
 
@@ -810,20 +843,141 @@
         <div class="pc-unbound-title">选择绑定方式</div>
         <div class="pc-unbound-sub">绑定后展示项目名称与版本号，随时可解绑重新绑定</div>
         <div class="pc-options">
-          <div class="pc-option" @click="onPickDir">
-            <div class="pc-option-no">01</div>
-            <div class="pc-option-ico dir">📂</div>
-            <div class="pc-option-title">选择本地目录</div>
-            <div class="pc-option-desc">读取目录下 CONFIG 文件（name / version）完成绑定</div>
-            <div class="pc-option-go">开始绑定 →</div>
-          </div>
-          <div class="pc-option" @click="openCloneDialog">
-            <div class="pc-option-no">02</div>
-            <div class="pc-option-ico pull">⬇️</div>
-            <div class="pc-option-title">拉取代码</div>
-            <div class="pc-option-desc">选择 Git 密钥与目标目录，git clone 后自动绑定</div>
-            <div class="pc-option-go">开始拉取 →</div>
-          </div>
+          <!-- 步骤一：选择本地 / 远程 -->
+          <template v-if="!bindMode">
+            <div class="pc-option" @click="bindMode = 'local'">
+              <div class="pc-option-no">01</div>
+              <div class="pc-option-ico dir">💻</div>
+              <div class="pc-option-title">本地项目</div>
+              <div class="pc-option-desc">在本地磁盘选择项目目录或拉取代码</div>
+              <div class="pc-option-go">选择本地 →</div>
+            </div>
+            <div class="pc-option" @click="bindMode = 'remote'; loadSshConfigs()">
+              <div class="pc-option-no">02</div>
+              <div class="pc-option-ico ssh">🖥️</div>
+              <div class="pc-option-title">远程服务器</div>
+              <div class="pc-option-desc">SSH 登录远程 Linux 服务器绑定或拉取代码</div>
+              <div class="pc-option-go">选择远程 →</div>
+            </div>
+          </template>
+          <!-- 步骤二 -->
+          <template v-else>
+            <div class="pc-bind-back" @click="bindMode = ''; sshConnected = false">← 返回上一步</div>
+
+            <!-- 远程：先连接 SSH -->
+            <div v-if="bindMode === 'remote' && !sshConnected" class="pc-ssh-hero">
+              <!-- 背景装饰 -->
+              <div class="pc-ssh-hero-glow"></div>
+              <div class="pc-ssh-hero-grid"></div>
+
+              <!-- 顶部：标题 + 终端状态 -->
+              <div class="pc-ssh-hero-top">
+                <div class="pc-ssh-hero-left">
+                  <div class="pc-ssh-hero-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="2" y="3" width="20" height="6" rx="2" />
+                      <rect x="2" y="11" width="20" height="6" rx="2" />
+                      <path d="M6 6h.01M6 14h.01" stroke-width="2.5" stroke-linecap="round" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="pc-ssh-hero-title">SSH 远程连接</div>
+                    <div class="pc-ssh-hero-sub">选择服务器 → 建立连接 → 浏览目录或拉取代码</div>
+                  </div>
+                </div>
+                <div class="pc-ssh-hero-status" :class="{ connecting: sshTesting, error: !!sshError }">
+                  <span class="pc-ssh-hero-status-dot"></span>
+                  <span>{{ sshTesting ? 'CONNECTING' : sshError ? 'FAILED' : 'READY' }}</span>
+                </div>
+              </div>
+
+              <!-- 服务器列表 -->
+              <div class="pc-ssh-hero-list">
+                <div v-if="sshConfigs.length === 0" class="pc-ssh-hero-empty">
+                  <div class="pc-ssh-hero-empty-ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="2" y="3" width="20" height="6" rx="2" />
+                      <rect x="2" y="11" width="20" height="6" rx="2" />
+                    </svg>
+                  </div>
+                  <div class="pc-ssh-hero-empty-title">暂无 Linux 服务器密钥</div>
+                  <div class="pc-ssh-hero-empty-sub">到「密钥管理」添加 → 类型选 Linux 🐧 → 填写地址与凭据</div>
+                </div>
+                <div
+                  v-for="c in sshConfigs"
+                  :key="c.id"
+                  class="pc-ssh-srv"
+                  :class="{ selected: sshConfigId === c.id, testing: sshTesting && sshConfigId === c.id }"
+                  @click="sshConfigId = c.id; sshError = ''"
+                  @dblclick="sshConfigId = c.id; testSshFromBind()"
+                >
+                  <div class="pc-ssh-srv-led"><span></span></div>
+                  <div class="pc-ssh-srv-body">
+                    <div class="pc-ssh-srv-name">{{ c.name }}</div>
+                    <div class="pc-ssh-srv-addr mono-text">{{ c.address || '未设置地址' }}</div>
+                  </div>
+                  <div class="pc-ssh-srv-right">
+                    <span v-if="sshTesting && sshConfigId === c.id" class="pc-ssh-srv-spin"></span>
+                    <svg v-else-if="sshConfigId === c.id" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="pc-ssh-srv-check">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="pc-ssh-srv-arrow">
+                      <path d="m9 18 6-6-6-6" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 操作 -->
+              <div v-if="sshConfigs.length > 0" class="pc-ssh-hero-actions">
+                <button
+                  class="pc-ssh-connect"
+                  :disabled="!sshConfigId || sshTesting"
+                  @click="testSshFromBind"
+                >
+                  <span v-if="sshTesting" class="pc-ssh-connect-spin"></span>
+                  <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pc-ssh-connect-ico">
+                    <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" />
+                    <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" />
+                  </svg>
+                  {{ sshTesting ? '正在连接…' : '建立 SSH 连接' }}
+                </button>
+                <span class="pc-ssh-hero-tip">单击选中 · 双击直接连接</span>
+              </div>
+
+              <!-- 错误 -->
+              <div v-if="sshError" class="pc-ssh-hero-err">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+                <span>{{ sshError }}</span>
+              </div>
+            </div>
+
+          
+            <template v-if="bindMode === 'local' || sshConnected">
+              <div class="pc-option" @click="bindMode === 'local' ? onPickDir() : openSshBrowser()">
+                <div class="pc-option-no">01</div>
+                <div class="pc-option-ico dir">📂</div>
+                <div class="pc-option-title">选择目录</div>
+                <div class="pc-option-desc">
+                  {{ bindMode === 'local' ? '读取目录下 CONFIG 文件完成绑定' : '浏览远程目录，读取 CONFIG 完成绑定' }}
+                </div>
+                <div class="pc-option-go">开始绑定 →</div>
+              </div>
+              <div class="pc-option" @click="bindMode === 'local' ? openCloneDialog() : openSshCloneBrowser()">
+                <div class="pc-option-no">02</div>
+                <div class="pc-option-ico pull">⬇️</div>
+                <div class="pc-option-title">拉取代码</div>
+                <div class="pc-option-desc">
+                  {{ bindMode === 'local' ? '选择 Git 密钥与目标目录，git clone 后自动绑定' : '选择远程父目录与 Git 密钥，SSH 在远程执行 git clone' }}
+                </div>
+                <div class="pc-option-go">开始拉取 →</div>
+              </div>
+            </template>
+          </template>
         </div>
       </div>
     </div>
@@ -979,7 +1133,13 @@
 
       <template #footer>
         <div class="pcd-footer">
-          <button v-if="scriptRunning" class="pcd-btn ghost" type="button" @click="onRunBackground">
+          <!-- 拉取代码会话不提供后台运行：克隆需关注结果且很快结束 -->
+          <button
+            v-if="scriptRunning && activeSession?.action.type !== 'sshClone'"
+            class="pcd-btn ghost"
+            type="button"
+            @click="onRunBackground"
+          >
             后台运行
           </button>
           <button class="pcd-btn ghost" type="button" @click="onCloseScript">
@@ -1041,7 +1201,7 @@
                 <span v-if="envProgressPct === 100" class="pev-done-badge">✅ 全部就绪</span>
               </div>
               <div class="pev-hero-sub">
-                {{ envSetCount }} / {{ envTotalCount }} 项已配置 · 修改写入 shell 配置并自动备份，部署脚本下次执行即生效
+                {{ envSetCount }} / {{ envTotalCount }} 项已配置 · {{ envRemote ? 'SSH 写入远程 shell 配置，自动备份' : '修改写入 shell 配置并自动备份' }}
               </div>
               <div class="pev-hero-chips">
                 <span v-if="envMissingCount" class="pev-stat warn">⚠ {{ envMissingCount }} 未设置</span>
@@ -1311,7 +1471,12 @@
               >
                 <span class="plg-no">{{ i + 1 }}</span>
                 <span v-if="m.prefix" class="plg-prefix">{{ m.prefix }}</span>
-                <span class="plg-text" :class="m.level ? `lv-${m.level}` : ''">{{ m.text }}</span>
+                <span class="plg-text" :class="m.level ? `lv-${m.level}` : ''">
+                  <template v-for="(seg, si) in m.segments" :key="si">
+                    <mark v-if="seg.hit" class="plg-hit">{{ seg.text }}</mark>
+                    <template v-else>{{ seg.text }}</template>
+                  </template>
+                </span>
               </div>
               <div v-if="logLineModels.length === 0 && !logLoading" class="plg-empty">
                 <svg v-if="logFilter.trim()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="plg-empty-ico">
@@ -1338,6 +1503,328 @@
         <div class="pcd-footer plg-footer">
           <span class="plg-foot-hint">等级自动着色 · 行号为当前过滤结果序号 · LIVE 跟踪自动滚动到底部</span>
           <button class="pcd-btn ghost" type="button" @click="onCloseLog">关闭</button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- ===== 远程服务器绑定弹窗：选密钥 → SSH 连接 → 浏览远程目录 → 绑定 ===== -->
+    <el-dialog
+      v-model="sshBindVisible"
+      width="620px"
+      draggable
+      append-to-body
+      modal-class="pc-dlg pssh-dlg"
+      :show-close="false"
+      :close-on-click-modal="false"
+      @open="loadSshConfigs"
+    >
+      <template #header>
+        <div class="pcd-header pssh-header">
+          <div class="pcd-deco pcd-deco-1"></div>
+          <div class="pcd-deco pcd-deco-2"></div>
+          <div class="pcd-header-main">
+            <div class="pcd-header-icon">{{ sshBrowserMode === 'clone' ? '⬇️' : '🖥️' }}</div>
+            <div>
+              <div class="pcd-title">{{ sshBrowserMode === 'clone' ? '远程拉取代码' : '远程服务器绑定' }}</div>
+              <div class="pcd-subtitle">
+                {{
+                  sshBrowserMode === 'clone'
+                    ? '选择远程父目录与 Git 密钥 · SSH 在远程执行 git clone 后自动绑定'
+                    : 'SSH 登录远程 Linux 服务器 · 浏览目录 · 读取 CONFIG 完成绑定'
+                }}
+              </div>
+            </div>
+          </div>
+          <button class="pcd-close" type="button" @click="sshBindVisible = false">✕</button>
+        </div>
+      </template>
+
+      <div class="pcd-body">
+        <!-- 密钥选择 + 连接 -->
+        <div class="pssh-conn-row">
+          <el-select v-model="sshConfigId" placeholder="选择 Linux 密钥" class="pssh-sel" @change="sshConnected = false">
+            <el-option v-for="c in sshConfigs" :key="c.id" :label="`${c.name}（${c.address}）`" :value="c.id" />
+          </el-select>
+          <button class="pcd-btn primary" type="button" :disabled="!sshConfigId || sshTesting" @click="testSsh">
+            <span v-if="sshTesting" class="pc-env-spin"></span>
+            <template v-else>{{ sshConnected ? '已连接' : '连接' }}</template>
+          </button>
+        </div>
+        <div v-if="sshConfigs.length === 0" class="pssh-hint warn">
+          密钥管理中暂无 Linux 类型密钥，请先到「密钥管理」添加（类型选择 Linux 🐧）
+        </div>
+
+        <!-- 拉取模式：Git 密钥选择 -->
+        <div v-if="sshBrowserMode === 'clone' && sshConnected" class="pssh-conn-row">
+          <el-select v-model="cloneSecretId" placeholder="选择用于拉取代码的 Git 密钥" class="pssh-sel">
+            <el-option v-for="s in secrets" :key="s.id" :label="s.name" :value="s.id" />
+          </el-select>
+        </div>
+        <div v-if="sshBrowserMode === 'clone' && sshConnected && secrets.length === 0" class="pssh-hint warn">
+          密钥管理中暂无 Git 类型密钥，请先到「密钥管理」添加（类型选择 Git）
+        </div>
+
+        <!-- 错误 -->
+        <div v-if="sshError" class="plg-error">⚠️ {{ sshError }}</div>
+
+        <!-- 目录浏览器 -->
+        <template v-if="sshConnected">
+          <div class="pssh-browser">
+            <div class="pssh-path-bar">
+              <button class="pssh-up" type="button" title="上一级" @click="browseSshDir(sshCwd.replace(/\/[^/]+$/, '') || '/')">↑</button>
+              <span class="mono-text pssh-path">{{ sshCwd }}</span>
+              <button class="pssh-mkdir" type="button" :disabled="sshLoadingDir" title="在当前目录下新建子目录" @click="createSshDir">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                  <line x1="12" y1="11" x2="12" y2="17" />
+                  <line x1="9" y1="14" x2="15" y2="14" />
+                </svg>
+                创建目录
+              </button>
+            </div>
+            <div class="pssh-list">
+              <div v-if="sshLoadingDir" class="pssh-loading"><span class="pc-env-spin"></span>读取中…</div>
+              <div
+                v-for="d in sshDirs"
+                :key="d"
+                class="pssh-dir"
+                @click="browseSshDir(sshCwd === '/' ? '/' + d : sshCwd + '/' + d)"
+              >
+                📁 <span class="mono-text">{{ d }}</span>
+              </div>
+              <div v-if="!sshLoadingDir && sshDirs.length === 0" class="pssh-empty">无子目录</div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <template #footer>
+        <div class="pcd-footer">
+          <span v-if="sshConnected" class="pssh-foot-hint">
+            {{ sshBrowserMode === 'clone' ? `拉取到：${sshCwd}/maozi-cloud` : `当前目录：${sshCwd}` }}
+          </span>
+          <button class="pcd-btn ghost" type="button" @click="sshBindVisible = false">取消</button>
+          <button
+            class="pcd-btn primary"
+            type="button"
+            :disabled="!sshConnected || sshLoadingDir || (sshBrowserMode === 'clone' && !cloneSecretId)"
+            @click="confirmSshBind"
+          >
+            {{ sshBrowserMode === 'clone' ? '⬇ 拉取到此目录' : '绑定此目录' }}
+          </button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- ===== 切换分支弹窗：远程分支列表（当前分支置顶） ===== -->
+    <el-dialog
+      v-model="branchVisible"
+      width="440px"
+      draggable
+      append-to-body
+      modal-class="pc-dlg pbr-dlg"
+      :show-close="false"
+      :close-on-click-modal="false"
+      @open="loadGitBranches"
+    >
+      <template #header>
+        <div class="pcd-header pbr-header">
+          <div class="pcd-deco pcd-deco-1"></div>
+          <div class="pcd-deco pcd-deco-2"></div>
+          <div class="pcd-header-main">
+            <div class="pcd-header-icon">🌿</div>
+            <div>
+              <div class="pcd-title">切换分支</div>
+              <div class="pcd-subtitle">从远程分支列表选择 · 切换前自动 fetch 目标分支</div>
+            </div>
+          </div>
+          <button class="pcd-close" type="button" @click="branchVisible = false">✕</button>
+        </div>
+      </template>
+
+      <div class="pcd-body">
+        <div v-if="branchError" class="plg-error">⚠️ {{ branchError }}</div>
+        <div v-if="branchLoading" class="pbr-loading"><span class="pc-env-spin"></span>获取远程分支中…</div>
+        <div v-else class="pbr-list">
+          <div
+            v-for="b in branchList"
+            :key="b"
+            class="pbr-item"
+            :class="{ current: b === gitInfo.branch }"
+            @click="onPickBranch(b)"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="6" y1="3" x2="6" y2="15" />
+              <circle cx="18" cy="6" r="3" />
+              <circle cx="6" cy="18" r="3" />
+              <path d="M18 9a9 9 0 0 1-9 9" />
+            </svg>
+            <span class="mono-text">{{ b }}</span>
+            <span v-if="b === gitInfo.branch" class="pbr-cur">当前</span>
+            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pbr-arrow">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </div>
+          <div v-if="branchList.length === 0" class="pbr-empty">未获取到远程分支</div>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="pcd-footer">
+          <button class="pcd-btn ghost" type="button" @click="branchVisible = false">取消</button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- ===== 解绑项目确认弹窗 ===== -->
+    <el-dialog
+      v-model="unbindVisible"
+      width="480px"
+      draggable
+      append-to-body
+      modal-class="pc-dlg pub-dlg"
+      :show-close="false"
+      :close-on-click-modal="false"
+    >
+      <template #header>
+        <div class="pcd-header pub-header">
+          <div class="pcd-deco pcd-deco-1"></div>
+          <div class="pcd-deco pcd-deco-2"></div>
+          <div class="pcd-header-main">
+            <div class="pcd-header-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 2v6l-7 8a2 2 0 0 0 1.7 3h14a2 2 0 0 0 1.7-3l-7-8V2" />
+                <path d="M8.5 2h7" />
+                <line x1="10" y1="14" x2="14" y2="14" />
+              </svg>
+            </div>
+            <div>
+              <div class="pcd-title">解绑项目</div>
+              <div class="pcd-subtitle">移除本应用与项目的绑定关系</div>
+            </div>
+          </div>
+          <button class="pcd-close" type="button" @click="unbindVisible = false">✕</button>
+        </div>
+      </template>
+
+      <div class="pcd-body">
+        <div class="pub-content">
+          <div class="pub-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 2v6l-7 8a2 2 0 0 0 1.7 3h14a2 2 0 0 0 1.7-3l-7-8V2" />
+              <path d="M8.5 2h7" />
+            </svg>
+          </div>
+          <div class="pub-text">
+            <div class="pub-title">确定解绑 {{ binding?.name }} 吗？</div>
+            <div class="pub-list">
+              <div class="pub-item ok">✓ 本地代码目录不受影响</div>
+              <div class="pub-item ok">✓ Docker 容器与数据卷保持原状</div>
+              <div class="pub-item warn">⚠ 基础服务 / 应用服务面板将隐藏</div>
+              <div class="pub-item warn">⚠ 执行日志会话与环境准备状态将清除</div>
+            </div>
+            <div class="pub-hint">解绑后可随时重新绑定，选择本地目录或拉取代码即可</div>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="pcd-footer">
+          <button class="pcd-btn ghost" type="button" @click="unbindVisible = false">取消</button>
+          <button class="pcd-btn pub-confirm" type="button" @click="confirmUnbind">确定解绑</button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- ===== 全链路日志查询弹窗：输入链路 ID，跨服务检索日志 ===== -->
+    <el-dialog
+      v-model="traceVisible"
+      width="860px"
+      draggable
+      append-to-body
+      modal-class="pc-dlg ptq-dlg"
+      :show-close="false"
+      :close-on-click-modal="false"
+      @closed="traceResults = []; traceError = ''; traceSummary = ''"
+    >
+      <template #header>
+        <div class="pcd-header ptq-header">
+          <div class="pcd-deco pcd-deco-1"></div>
+          <div class="pcd-deco pcd-deco-2"></div>
+          <div class="pcd-header-main">
+            <div class="pcd-header-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" />
+                <path d="M8.5 8.5l5 5M13.5 8.5l-5 5" />
+              </svg>
+            </div>
+            <div>
+              <div class="pcd-title">全链路日志查询</div>
+              <div class="pcd-subtitle">输入链路 ID（trace ID），跨所有运行中的微服务检索日志</div>
+            </div>
+          </div>
+          <button class="pcd-close" type="button" @click="traceVisible = false">✕</button>
+        </div>
+      </template>
+
+      <div class="pcd-body">
+        <!-- 搜索栏 -->
+        <div class="ptq-search-bar">
+          <el-input
+            v-model="traceId"
+            placeholder="输入链路 ID，如 4bf92f3577b34da6a3ce929d0e0e4736"
+            clearable
+            class="ptq-input"
+            @keyup.enter="runTraceQuery"
+          />
+          <button class="pcd-btn primary" type="button" :disabled="traceLoading" @click="runTraceQuery">
+            <span v-if="traceLoading" class="pc-env-spin"></span>
+            <template v-else>🔍 查询</template>
+          </button>
+        </div>
+
+        <!-- 错误 -->
+        <div v-if="traceError" class="plg-error">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          <span>{{ traceError }}</span>
+        </div>
+
+        <!-- 结果 -->
+        <template v-else>
+          <div v-if="traceSummary" class="ptq-summary">{{ traceSummary }}</div>
+          <div v-if="traceResults.length" class="pcd-log-box">
+            <div class="pcd-log-head">
+              <span class="pcd-log-dot"></span>
+              <span class="mono-text">全链路日志 · {{ traceId.trim() }}</span>
+              <span class="pcd-log-status">按时间排序</span>
+            </div>
+            <div class="pcd-log ptq-lines">
+              <div v-for="(l, i) in traceResults" :key="i" class="plg-row">
+                <span class="plg-no">{{ i + 1 }}</span>
+                <span class="plg-text">{{ l }}</span>
+              </div>
+            </div>
+          </div>
+          <div v-if="!traceLoading && traceResults.length === 0 && traceSummary" class="plg-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="plg-empty-ico">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+              <path d="M8.5 8.5l5 5M13.5 8.5l-5 5" />
+            </svg>
+            <span>{{ traceSummary }}</span>
+          </div>
+        </template>
+      </div>
+
+      <template #footer>
+        <div class="pcd-footer">
+          <span v-if="traceResults.length > 0" class="ptq-foot-info mono-text">共 {{ traceResults.length }} 行 · 按时间排序</span>
+          <button class="pcd-btn ghost" type="button" @click="traceVisible = false">关闭</button>
         </div>
       </template>
     </el-dialog>
@@ -1450,16 +1937,20 @@ async function loadState(): Promise<void> {
   const r = await api.projects.state()
   if (r.ok) binding.value = r.data ?? null
   else ElMessage.error(r.error ?? '读取绑定状态失败')
-  // 绑定一就绪立刻发起首次资源统计，不等 3 秒定时器（后续由定时器轮询）
-  if (binding.value) void loadComposeStats()
-  await loadComposeServices()
-  await loadHostsInitStatus()
-  await loadNetworkStatus()
-  await loadDbInitStatus()
-  await loadUiState()
-  await loadAppServices()
-  await loadAppSvcStatuses()
-  void loadAppSvcStats()
+  if (!binding.value) return
+  // 各加载互不依赖：并行发起；资源统计（CPU/内存）带 preferCache —— 命中启动预取的快照则零等待渲染
+  void loadComposeStats(true)
+  void loadAppSvcStats(true)
+  void loadGitInfo()
+  await Promise.all([
+    loadComposeServices(),
+    loadHostsInitStatus(),
+    loadNetworkStatus(),
+    loadDbInitStatus(),
+    loadUiState(),
+    loadAppServices(),
+    loadAppSvcStatuses()
+  ])
 }
 
 function openRepo(): void {
@@ -1530,6 +2021,9 @@ const scriptLogBox = ref<HTMLElement>()
 
 type LastAction =
   | { type: 'script'; kind: 'all' | 'demand' | 'admin' | 'monomerServices' | 'monomerAdmin' }
+  | { type: 'sshClone' }
+  | { type: 'gitPull' }
+  | { type: 'gitCheckout'; branch: string }
   | { type: 'compose'; service: string; action: 'start' | 'stop' | 'restart' }
   | { type: 'adminStop' }
   | { type: 'hostsInit' }
@@ -1738,6 +2232,15 @@ function onBeforeScriptClose(done: () => void): void {
 const offScriptLog = api.projects.onScriptLog((p) => {
   const s = sessions.value.find((x) => x.id === p.sid)
   if (!s) return
+
+  // 后台任务完成标记：结束会话并刷新状态
+  if (p.text === '__APP_SVC_DONE__' || p.text === '__APP_SVC_FAIL__') {
+    finishSession(s, p.text === '__APP_SVC_DONE__')
+    if (p.text === '__APP_SVC_DONE__') ElMessage.success('操作完成')
+    void loadAppSvcStatuses()
+    void loadAppSvcStats()
+    return
+  }
   if (p.kind === 'update' && s.logs.length > 0) {
     s.logs.splice(s.logs.length - 1, 1, p.text)
   } else if (p.kind === 'line') {
@@ -1809,6 +2312,27 @@ interface LogLineModel {
   prefix: string
   text: string
   level: '' | 'error' | 'warn' | 'info' | 'debug'
+  segments: Array<{ text: string; hit: boolean }>
+}
+
+/** 按关键字（大小写不敏感）拆分文本为命中/未命中分段 */
+function highlightSegments(text: string, kw: string): Array<{ text: string; hit: boolean }> {
+  if (!kw) return [{ text, hit: false }]
+  const lowerText = text.toLowerCase()
+  const lowerKw = kw.toLowerCase()
+  const segments: Array<{ text: string; hit: boolean }> = []
+  let idx = 0
+  while (idx <= text.length) {
+    const found = lowerText.indexOf(lowerKw, idx)
+    if (found === -1) {
+      if (idx < text.length) segments.push({ text: text.slice(idx), hit: false })
+      break
+    }
+    if (found > idx) segments.push({ text: text.slice(idx, found), hit: false })
+    segments.push({ text: text.slice(found, found + kw.length), hit: true })
+    idx = found + kw.length
+  }
+  return segments.length > 0 ? segments : [{ text, hit: false }]
 }
 
 const LOG_LEVEL_RE = /\b(FATAL|ERROR|WARNING|WARN|INFO|DEBUG|TRACE)\b/
@@ -1830,7 +2354,13 @@ function parseLogLine(l: string): LogLineModel {
   return { prefix, text, level: lm ? (LOG_LEVEL_MAP[lm[1]] ?? '') : '' }
 }
 
-const logLineModels = computed(() => filteredLogLines.value.map(parseLogLine))
+const logLineModels = computed(() => {
+  const kw = logFilter.value.trim()
+  return filteredLogLines.value.map((l) => {
+    const parsed = parseLogLine(l)
+    return { ...parsed, segments: highlightSegments(parsed.text, kw) }
+  })
+})
 
 const logLevelCounts = computed(() => {
   const c = { error: 0, warn: 0, info: 0, debug: 0 }
@@ -1994,6 +2524,7 @@ const envDraft = ref('')
 const envSaving = ref(false)
 
 /** 汇总统计（汇总条展示） */
+const envRemote = ref(false)
 const envTotalCount = computed(() => envGroups.value.reduce((n, g) => n + g.items.length, 0))
 const envSetCount = computed(() => envGroups.value.reduce((n, g) => n + g.items.filter((i) => i.found && i.enabled).length, 0))
 const envMissingCount = computed(() => envTotalCount.value - envGroups.value.reduce((n, g) => n + g.items.filter((i) => i.found).length, 0))
@@ -2094,7 +2625,9 @@ async function saveEnvEdit(it: EnvSettingItem): Promise<void> {
   const fileId = it.fileId ?? envDefaultFileId.value
   envSaving.value = true
   try {
-    const r = await api.env.save({ mode: it.fileId ? 'update' : 'add', key: it.key, value, fileId })
+    const r = envRemote.value
+      ? await api.projects.sshEnvSave({ key: it.key, value, fileId })
+      : await api.env.save({ mode: it.fileId ? 'update' : 'add', key: it.key, value, fileId })
     if (!r.ok) {
       ElMessage.error(r.error ?? '保存失败')
       return
@@ -2103,7 +2636,11 @@ async function saveEnvEdit(it: EnvSettingItem): Promise<void> {
       const t = await api.env.save({ mode: 'toggle', key: it.key, value, fileId, enabled: true })
       if (!t.ok) ElMessage.warning(t.error ?? '已保存，但启用该行失败，请到「环境变量」页手动启用')
     }
-    ElMessage.success(`已写入 ${envFileName(fileId) || '配置文件'}，部署脚本下次执行即生效`)
+    ElMessage.success(
+        envRemote.value
+          ? `已写入远程 ${envFileName(fileId) || '配置文件'}，部署脚本下次执行即生效`
+          : `已写入 ${envFileName(fileId) || '配置文件'}，部署脚本下次执行即生效`
+      )
     envEditing.value = ''
     await loadEnvSettings()
   } finally {
@@ -2120,6 +2657,7 @@ async function loadEnvSettings(): Promise<void> {
       envGroups.value = r.data.groups
       envFiles.value = r.data.files
       envDefaultFileId.value = r.data.defaultFileId
+      envRemote.value = !!(r.data as { remote?: boolean }).remote
       envRevealed.value = new Set()
     } else {
       envGroups.value = []
@@ -2337,6 +2875,219 @@ async function switchAppSvcTab(v: AppSvcVariant): Promise<void> {
   void api.projects.uiStateSave({ appSvcTab: v })
 }
 
+/** ===== 远程服务器（SSH）绑定 ===== */
+/** 绑定两步选择：'' 未选 / 'local' 本地 / 'remote' 远程 */
+const bindMode = ref<'' | 'local' | 'remote'>('')
+const sshBindVisible = ref(false)
+const sshConfigs = ref<Array<{ id: string; name: string; address: string }>>([])
+const sshConfigId = ref('')
+const sshConnected = ref(false)
+const sshTesting = ref(false)
+const sshCwd = ref('/')
+const sshDirs = ref<string[]>([])
+const sshLoadingDir = ref(false)
+const sshError = ref('')
+
+async function loadSshConfigs(): Promise<void> {
+  const r = await api.projects.sshConfigs()
+  sshConfigs.value = r.ok && r.data ? r.data : []
+}
+
+/** 绑定页内嵌的 SSH 连接（连接成功后显示操作选项） */
+/** 打开远程目录浏览器（已连接时补加载根目录列表） */
+function openSshBrowser(): void {
+  sshBrowserMode.value = 'bind'
+  sshBindVisible.value = true
+  if (sshConnected.value && sshDirs.value.length === 0) {
+    void browseSshDir('/')
+  }
+}
+
+/** 目录浏览器模式：bind=读取 CONFIG 绑定当前目录；clone=选父目录 + Git 密钥远程拉取代码 */
+const sshBrowserMode = ref<'bind' | 'clone'>('bind')
+
+/** 拉取代码（远程）：进入目录浏览器的拉取模式 */
+function openSshCloneBrowser(): void {
+  sshBrowserMode.value = 'clone'
+  sshBindVisible.value = true
+  if (sshConnected.value && sshDirs.value.length === 0) {
+    void browseSshDir('/')
+  }
+  void loadGitSecrets()
+}
+
+/** 加载 Git 类型密钥（本地/远程拉取代码共用） */
+async function loadGitSecrets(): Promise<void> {
+  const r = await api.configs.list()
+  secrets.value = r.ok && r.data ? r.data.configs.filter((s) => s.type === 'Git') : []
+  cloneSecretId.value = ''
+}
+
+async function testSshFromBind(): Promise<void> {
+  if (!sshConfigId.value) return
+  sshTesting.value = true
+  sshError.value = ''
+  sshConnected.value = false
+  try {
+    const r = await api.projects.sshTest(sshConfigId.value)
+    if (r.ok) {
+      sshConnected.value = true
+      sshCwd.value = '/'
+      await browseSshDir('/')
+    } else {
+      sshError.value = r.error ?? '连接失败'
+    }
+  } finally {
+    sshTesting.value = false
+  }
+}
+
+async function testSsh(): Promise<void> {
+  if (!sshConfigId.value) return
+  sshTesting.value = true
+  sshError.value = ''
+  sshConnected.value = false
+  try {
+    const r = await api.projects.sshTest(sshConfigId.value)
+    if (r.ok) {
+      sshConnected.value = true
+      sshCwd.value = '/'
+      await browseSshDir('/')
+    } else {
+      sshError.value = r.error ?? '连接失败'
+    }
+  } finally {
+    sshTesting.value = false
+  }
+}
+
+async function browseSshDir(dir: string): Promise<void> {
+  sshLoadingDir.value = true
+  sshError.value = ''
+  try {
+    const r = await api.projects.sshListDir(sshConfigId.value, dir)
+    if (r.ok && r.data) {
+      sshCwd.value = r.data.path
+      sshDirs.value = r.data.items.filter((i) => i.isDir).map((i) => i.name)
+    } else {
+      sshError.value = r.error ?? '目录读取失败'
+    }
+  } finally {
+    sshLoadingDir.value = false
+  }
+}
+
+/** 选择目录页：在当前浏览目录下新建子目录，创建成功后刷新列表 */
+const SSH_DIR_NAME_RE = /^[A-Za-z0-9._\u4e00-\u9fa5-]{1,64}$/
+async function createSshDir(): Promise<void> {
+  let name = ''
+  try {
+    const r = await ElMessageBox.prompt(`将在 ${sshCwd.value} 下创建子目录`, '创建目录', {
+      confirmButtonText: '创建',
+      cancelButtonText: '取消',
+      inputPlaceholder: '目录名（中文 / 字母 / 数字 / . _ -）',
+      inputValidator: (v: string): string | boolean => {
+        const n = (v ?? '').trim()
+        return SSH_DIR_NAME_RE.test(n) && n !== '.' && n !== '..' ? true : '目录名仅支持中文、字母、数字、点、下划线、连字符（1-64 字符）'
+      }
+    })
+    name = (r.value ?? '').trim()
+  } catch {
+    return /* 用户取消 */
+  }
+  const res = await api.projects.sshMkdir(sshConfigId.value, sshCwd.value, name)
+  if (res.ok) {
+    ElMessage.success(`已创建目录：${name}`)
+    await browseSshDir(sshCwd.value)
+  } else {
+    sshError.value = res.error ?? '创建目录失败'
+  }
+}
+
+async function confirmSshBind(): Promise<void> {
+  if (sshBrowserMode.value === 'clone') {
+    await confirmSshClone()
+    return
+  }
+  sshError.value = ''
+  try {
+    const r = await api.projects.sshBindDir(sshConfigId.value, sshCwd.value)
+    if (r.ok && r.data) {
+      ElMessage.success(`远程绑定成功：${r.data.name}`)
+      sshBindVisible.value = false
+      await loadState()
+    } else {
+      sshError.value = r.error ?? '绑定失败'
+    }
+  } catch (err) {
+    sshError.value = (err as Error).message
+  }
+}
+
+/** 拉取模式确认：选 Git 密钥 → SSH 在远程 git clone 到 <当前目录>/maozi-cloud → 自动绑定；日志走脚本日志会话 */
+async function confirmSshClone(): Promise<void> {
+  if (!cloneSecretId.value) {
+    ElMessage.warning('请选择用于拉取代码的 Git 密钥')
+    return
+  }
+  if (focusRunning((a) => a.type === 'sshClone')) return
+  const s = startSession({ type: 'sshClone' }, {
+    label: `远程拉取 → ${sshCwd.value}/maozi-cloud`,
+    icon: '⬇️',
+    title: '远程拉取代码',
+    sub: `SSH git clone → ${sshCwd.value}/maozi-cloud`
+  })
+  sshError.value = ''
+  try {
+    const r = await api.projects.sshClone(sshConfigId.value, cloneSecretId.value, sshCwd.value, s.id)
+    finishSession(s, r.ok)
+    if (r.ok && r.data) {
+      ElMessage.success(`拉取完成并绑定：${r.data.name}${r.data.version ? `（v${r.data.version}）` : ''}`)
+      sshBindVisible.value = false
+      await loadState()
+    } else if (!stopRequestedSids.has(s.id)) {
+      ElMessage.error(r.error ?? '远程拉取失败')
+    }
+  } catch (err) {
+    finishSession(s, false)
+    if (!stopRequestedSids.has(s.id)) ElMessage.error((err as Error).message)
+  }
+}
+
+/** ===== 全链路日志查询：按链路 ID 检索所有运行中微服务容器的日志 ===== */
+const traceVisible = ref(false)
+const traceId = ref('')
+const traceLoading = ref(false)
+const traceError = ref('')
+const traceResults = ref<string[]>([])
+const traceSummary = ref('')
+
+function openTraceQuery(): void {
+  traceVisible.value = true
+}
+
+async function runTraceQuery(): Promise<void> {
+  const kw = traceId.value.trim()
+  if (!kw) {
+    ElMessage.warning('请输入链路 ID')
+    return
+  }
+  traceLoading.value = true
+  traceError.value = ''
+  traceResults.value = []
+  try {
+    const r = await api.projects.traceLogQuery(kw)
+    if (r.ok && r.data) {
+      traceResults.value = r.data.results
+      traceSummary.value = r.data.message
+    } else {
+      traceError.value = r.error ?? '查询失败'
+    }
+  } finally {
+    traceLoading.value = false
+  }
+}
+
 /** 面板收起/展开：状态持久化 .ui-state.json */
 const basicsCollapsed = ref(false)
 const appSvcCollapsed = ref(false)
@@ -2363,18 +3114,22 @@ async function loadUiState(): Promise<void> {
 
 async function loadAppServices(): Promise<void> {
   if (!binding.value) return
-  for (const v of ['monomer', 'distributeds'] as AppSvcVariant[]) {
-    const r = await api.projects.appServices(v)
-    appServices.value[v] = r.ok && r.data ? r.data.services : []
-  }
+  await Promise.all(
+    (['monomer', 'distributeds'] as AppSvcVariant[]).map(async (v) => {
+      const r = await api.projects.appServices(v)
+      appServices.value[v] = r.ok && r.data ? r.data.services : []
+    })
+  )
 }
 
 async function loadAppSvcStatuses(): Promise<void> {
   if (!binding.value) return
-  for (const v of ['monomer', 'distributeds'] as AppSvcVariant[]) {
-    const r = await api.projects.appServicesStatus(v)
-    appSvcStatuses.value[v] = ((r.ok && r.data ? r.data : {}) ?? {}) as Record<string, string>
-  }
+  await Promise.all(
+    (['monomer', 'distributeds'] as AppSvcVariant[]).map(async (v) => {
+      const r = await api.projects.appServicesStatus(v)
+      appSvcStatuses.value[v] = ((r.ok && r.data ? r.data : {}) ?? {}) as Record<string, string>
+    })
+  )
 }
 
 const appSvcStats = ref<Record<AppSvcVariant, Record<string, ComposeServiceStats>>>({ monomer: {}, distributeds: {} })
@@ -2383,11 +3138,11 @@ const appSvcStats = ref<Record<AppSvcVariant, Record<string, ComposeServiceStats
 const appStatsLoaded = ref(false)
 let appStatsInFlight = false
 
-async function loadAppSvcStats(): Promise<void> {
+async function loadAppSvcStats(preferCache = false): Promise<void> {
   if (!binding.value || appStatsInFlight) return
   appStatsInFlight = true
   try {
-    const r = await api.projects.appServicesStats()
+    const r = await api.projects.appServicesStats(preferCache)
     if (r.ok && r.data) {
       appSvcStats.value = r.data.stats
       hostCpuCount.value = r.data.cpuCount || 1
@@ -2537,16 +3292,14 @@ async function onAppServiceAll(action: 'start' | 'stop', skipConfirm = false): P
   )
   try {
     const r = await api.projects.appServiceAll(v, action, s.id)
-    finishSession(s, r.ok)
-    if (!r.ok && !stopRequestedSids.has(s.id)) ElMessage.error(r.error ?? 'docker 操作失败')
-    else if (r.ok && !stopRequestedSids.has(s.id)) {
-      ElMessage.success(`${APP_SVC_LABELS[v]}已全部${action === 'start' ? '启动' : '关闭'}`)
+    if (!r.ok) {
+      finishSession(s, false)
+      ElMessage.error(r.error ?? 'docker 操作失败')
+      return
     }
-  } finally {
-    s.running = false
-    stopRequestedSids.delete(s.id)
-    await loadAppSvcStatuses()
-    void loadAppSvcStats()
+    // 后台任务：不立即完成会话，等完成标记 __APP_SVC_DONE__/__APP_SVC_FAIL__ 触发
+  } catch {
+    finishSession(s, false)
   }
 }
 
@@ -2700,11 +3453,11 @@ let statsTimer: ReturnType<typeof setInterval> | undefined
 /** 首次统计是否已返回（未返回前大数字做呼吸占位，与服务全停的 0% 区分） */
 const statsLoaded = ref(false)
 
-async function loadComposeStats(): Promise<void> {
+async function loadComposeStats(preferCache = false): Promise<void> {
   if (!binding.value || statsInFlight) return
   statsInFlight = true
   try {
-    const r = await api.projects.composeStats()
+    const r = await api.projects.composeStats(preferCache)
     if (r.ok && r.data) {
       composeStats.value = r.data.stats
       hostCpuCount.value = r.data.cpuCount || 1
@@ -2871,16 +3624,17 @@ onActivated(() => {
     statsTimer = setInterval(() => {
       void loadComposeStats()
       void loadAppSvcStats()
-      // 编译启动等长任务运行中：同步刷新应用服务运行状态，列表实时反映容器起停
-      if (sessions.value.some((x) => x.running)) void loadAppSvcStatuses()
-    }, 3000)
+      void loadAppSvcStatuses()
+    }, binding.value?.remote ? 10000 : 3000)
   void loadComposeStatuses()
   // 回到页面时刷新准备态：hosts 与容器网段可能已变化（如用户改了 docker-compose.yml 网段名）
   void loadHostsInitStatus()
   void loadNetworkStatus()
   void loadDbInitStatus()
   void loadAppSvcStatuses()
-  void loadAppSvcStats()
+  // 回页首拉带 preferCache：1 分钟内的快照直接渲染，随后由轮询刷新
+  void loadComposeStats(true)
+  void loadAppSvcStats(true)
 })
 
 onDeactivated(() => {
@@ -2976,9 +3730,15 @@ async function onRunScript(kind: DeployKind, skipConfirm = false): Promise<void>
   }
   const s = startSession({ type: 'script', kind }, { label: meta.title, ...meta })
   try {
-    // 同一会话内先关闭对侧容器（若有运行），再执行编译启动脚本
+    // 同一会话内先关闭对侧容器（若有运行），再执行编译启动脚本。
+    // foreground 模式：等待真实完成且不发 __APP_SVC_DONE__——后台模式的标记会把本脚本会话提前标记完成
     if (otherRunning().length > 0) {
-      await api.projects.appServiceAll(other, 'stop', s.id)
+      const rs = await api.projects.appServiceAll(other, 'stop', s.id, { foreground: true })
+      if (!rs.ok) {
+        finishSession(s, false)
+        ElMessage.error(rs.error ?? '关闭对侧服务失败')
+        return
+      }
       await loadAppSvcStatuses()
     }
     const r = await api.projects.runScript(kind, s.id)
@@ -2988,17 +3748,16 @@ async function onRunScript(kind: DeployKind, skipConfirm = false): Promise<void>
   } finally {
     s.running = false
     stopRequestedSids.delete(s.id)
-    // 脚本结束（含后台运行结束）后刷新应用服务状态与指标，列表即时反映运行中
+    // 脚本结束（含后台运行结束）后刷新应用服务状态与指标
     await loadAppSvcStatuses()
     void loadAppSvcStats()
+    // 容器从 created → running 需要几秒，延迟补刷确保最终状态正确
+    setTimeout(() => void loadAppSvcStatuses(), 5000)
   }
 }
 
 async function openCloneDialog(): Promise<void> {
-  const r = await api.configs.list()
-  // 项目拉取只使用 Git 类型密钥
-  secrets.value = r.ok && r.data ? r.data.configs.filter((s) => s.type === 'Git') : []
-  cloneSecretId.value = ''
+  await loadGitSecrets()
   cloneDest.value = ''
   cloneLogs.value = []
   cloneVisible.value = true
@@ -3046,16 +3805,114 @@ async function onOpenDir(): Promise<void> {
   }
 }
 
-async function onUnbind(): Promise<void> {
+/** ===== 项目 git 管理：仓库检测 / 拉取代码 / 切换分支 ===== */
+const gitInfo = ref<{ isRepo: boolean; branch: string }>({ isRepo: false, branch: '' })
+const gitPulling = ref(false)
+
+async function loadGitInfo(): Promise<void> {
+  const r = await api.projects.gitInfo()
+  gitInfo.value = r.ok && r.data ? r.data : { isRepo: false, branch: '' }
+}
+
+/** 拉取代码（git pull）：日志走脚本日志会话，成功后刷新分支与项目版本 */
+async function onGitPull(): Promise<void> {
+  if (focusRunning((a) => a.type === 'gitPull' || a.type === 'gitCheckout')) return
+  const s = startSession({ type: 'gitPull' }, {
+    label: '拉取代码',
+    icon: '⬇️',
+    title: '拉取代码',
+    sub: `git pull · ${binding.value?.path ?? ''}`
+  })
+  gitPulling.value = true
   try {
-    await ElMessageBox.confirm(
-      '解绑只移除本应用的绑定关系，不会删除本地代码目录。确定解绑吗？',
-      '解绑项目',
-      { type: 'warning', confirmButtonText: '解绑', cancelButtonText: '取消' }
-    )
-  } catch {
+    const r = await api.projects.gitPull(s.id)
+    finishSession(s, r.ok)
+    if (r.ok) {
+      ElMessage.success('代码已更新到最新')
+      await loadGitInfo()
+      void loadState()
+    } else if (r.error !== '已手动中断') {
+      ElMessage.error(r.error ?? '拉取失败')
+    }
+  } finally {
+    gitPulling.value = false
+  }
+}
+
+const branchVisible = ref(false)
+const branchLoading = ref(false)
+const branchError = ref('')
+const branchList = ref<string[]>([])
+
+function openBranchDialog(): void {
+  branchError.value = ''
+  branchVisible.value = true
+}
+
+/** 远程分支列表（ls-remote，当前分支置顶） */
+async function loadGitBranches(): Promise<void> {
+  branchLoading.value = true
+  branchError.value = ''
+  try {
+    const r = await api.projects.gitBranches()
+    if (r.ok && r.data) {
+      const cur = gitInfo.value.branch
+      branchList.value = [...r.data.branches.filter((b) => b === cur), ...r.data.branches.filter((b) => b !== cur)]
+    } else {
+      branchError.value = r.error ?? '获取远程分支失败'
+    }
+  } finally {
+    branchLoading.value = false
+  }
+}
+
+/** 选中分支：确认后 fetch + checkout（日志走脚本日志会话），成功刷新分支与项目信息 */
+async function onPickBranch(b: string): Promise<void> {
+  if (b === gitInfo.value.branch) {
+    branchVisible.value = false
     return
   }
+  try {
+    await ElMessageBox.confirm(`切换到分支 ${b}？本地未提交的改动可能导致切换失败`, '切换分支', {
+      confirmButtonText: '切换',
+      cancelButtonText: '取消'
+    })
+  } catch {
+    return /* 用户取消 */
+  }
+  if (focusRunning((a) => a.type === 'gitPull' || a.type === 'gitCheckout')) return
+  const s = startSession({ type: 'gitCheckout', branch: b }, {
+    label: `切换分支 → ${b}`,
+    icon: '🌿',
+    title: '切换分支',
+    sub: `git fetch + checkout ${b}`
+  })
+  branchVisible.value = false
+  try {
+    const r = await api.projects.gitCheckout(b, s.id)
+    finishSession(s, r.ok)
+    if (r.ok) {
+      ElMessage.success(`已切换到分支 ${b}`)
+      await loadGitInfo()
+      void loadState()
+    } else if (r.error !== '已手动中断') {
+      ElMessage.error(r.error ?? '切换分支失败')
+    }
+  } catch (err) {
+    finishSession(s, false)
+    ElMessage.error((err as Error).message)
+  }
+}
+
+/** 解绑确认弹窗状态 */
+const unbindVisible = ref(false)
+
+function onUnbind(): void {
+  unbindVisible.value = true
+}
+
+async function confirmUnbind(): Promise<void> {
+  unbindVisible.value = false
   const r = await api.projects.unbind()
   if (!r.ok) {
     ElMessage.error(r.error ?? '解绑失败')
@@ -3234,6 +4091,139 @@ onMounted(loadState)
   gap: 16px;
 }
 
+/* git 管理操作区（检测到仓库才渲染）：当前分支徽标 + 切换分支 / 拉取代码 */
+.pc-git-ops {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.pc-git-branch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+  font-size: 12px;
+  max-width: 200px;
+}
+
+.pc-git-branch svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.pc-git-branch .mono-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pc-git-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #475569;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pc-git-btn:hover:not(:disabled) {
+  border-color: #94a3b8;
+  color: #1e293b;
+}
+
+.pc-git-btn.primary {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+.pc-git-btn.primary:hover:not(:disabled) {
+  background: #1d4ed8;
+  color: #fff;
+}
+
+.pc-git-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* 切换分支弹窗 */
+.pbr-list {
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.pbr-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #334155;
+}
+
+.pbr-item svg {
+  width: 14px;
+  height: 14px;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.pbr-item:hover {
+  background: #f1f5f9;
+}
+
+.pbr-item.current {
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.pbr-item.current svg {
+  color: #15803d;
+}
+
+.pbr-cur {
+  margin-left: auto;
+  font-size: 11px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.pbr-arrow {
+  margin-left: auto;
+}
+
+.pbr-loading,
+.pbr-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 28px 0;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
 .pc-proj-ico {
   width: 56px;
   height: 56px;
@@ -3270,6 +4260,42 @@ onMounted(loadState)
   background: #ecfdf5;
   border: 1px solid #a7f3d0;
   font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace;
+}
+
+/* 远程服务器标签 */
+.pc-path-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.pc-remote-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 9px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #334155;
+  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+  border: 1px solid #cbd5e1;
+  cursor: default;
+}
+
+.pc-remote-ico {
+  width: 13px;
+  height: 13px;
+  color: #64748b;
+}
+
+.pc-remote-badge em {
+  font-style: normal;
+  font-size: 10.5px;
+  color: #8a94a6;
+  margin-left: 2px;
 }
 
 .pc-path {
@@ -3435,6 +4461,22 @@ onMounted(loadState)
   margin-left: auto;
 }
 
+/* 全链路日志行：服务列表下方靠右 */
+.pas-trace-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed #e4eaf3;
+}
+
+.pas-trace-hint {
+  font-size: 11px;
+  color: #98a3b8;
+}
+
 .pas-deploy-hint {
   font-size: 10.5px;
   color: #98a3b8;
@@ -3555,6 +4597,19 @@ onMounted(loadState)
 }
 
 /* 按需编译启动：紫色渐变（区别于绿色后台 / 蓝色全量） */
+/* 全链路日志：青色渐变（与弹窗头部同色系） */
+.pc-btn.cyan {
+  background: linear-gradient(135deg, #22d3ee, #0891b2);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(8, 145, 178, 0.32);
+}
+
+.pc-btn.cyan:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 6px 18px rgba(8, 145, 178, 0.42);
+}
+
 .pc-btn.violet {
   background: linear-gradient(135deg, #a78bfa, #7c3aed);
   color: #fff;
@@ -4724,6 +5779,419 @@ onMounted(loadState)
   background: linear-gradient(135deg, #60a5fa, #2563eb);
 }
 
+/* ===== SSH 远程连接：深色沉浸式面板 ===== */
+.pc-ssh-hero {
+  grid-column: 1 / -1;
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.35);
+  padding: 24px;
+}
+
+/* 背景网格 */
+.pc-ssh-hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+}
+
+/* 背景光晕 */
+.pc-ssh-hero-glow {
+  position: absolute;
+  top: -80px;
+  right: -80px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.12), transparent 70%);
+  pointer-events: none;
+}
+
+/* 顶部 */
+.pc-ssh-hero-top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.pc-ssh-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.pc-ssh-hero-icon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+.pc-ssh-hero-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.pc-ssh-hero-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #f1f5f9;
+  letter-spacing: -0.3px;
+}
+
+.pc-ssh-hero-sub {
+  margin-top: 3px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* 状态指示 */
+.pc-ssh-hero-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.08);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+}
+
+.pc-ssh-hero-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pc-ssh-dot-pulse 2s ease infinite;
+}
+
+.pc-ssh-hero-status.connecting {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.08);
+  border-color: rgba(251, 191, 36, 0.2);
+}
+
+.pc-ssh-hero-status.connecting .pc-ssh-hero-status-dot {
+  animation-duration: 0.6s;
+}
+
+.pc-ssh-hero-status.error {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.08);
+  border-color: rgba(248, 113, 113, 0.2);
+}
+
+@keyframes pc-ssh-dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.3); }
+  50% { box-shadow: 0 0 0 5px rgba(52, 211, 153, 0); }
+}
+
+.pc-ssh-hero-status.connecting .pc-ssh-hero-status-dot {
+  animation-name: pc-ssh-dot-pulse-amber;
+}
+
+@keyframes pc-ssh-dot-pulse-amber {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4); }
+  50% { box-shadow: 0 0 0 5px rgba(251, 191, 36, 0); }
+}
+
+/* 服务器列表 */
+.pc-ssh-hero-list {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 服务器条目：横条 + LED + 信息 */
+.pc-ssh-srv {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border-radius: 12px;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.pc-ssh-srv:hover {
+  background: rgba(51, 65, 85, 0.5);
+  border-color: rgba(148, 163, 184, 0.25);
+  transform: translateX(4px);
+}
+
+.pc-ssh-srv.selected {
+  background: rgba(56, 189, 248, 0.08);
+  border-color: rgba(56, 189, 248, 0.35);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.08);
+}
+
+.pc-ssh-srv.testing {
+  animation: pc-ssh-srv-pulse 1.2s ease infinite;
+}
+
+@keyframes pc-ssh-srv-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(56, 189, 248, 0.08); }
+  50% { box-shadow: 0 0 30px rgba(56, 189, 248, 0.15); }
+}
+
+/* LED 指示灯 */
+.pc-ssh-srv-led {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pc-ssh-srv-led span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #334155;
+  border: 1.5px solid #475569;
+  transition: all 0.25s;
+}
+
+.pc-ssh-srv.selected .pc-ssh-srv-led span {
+  background: #38bdf8;
+  border-color: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+}
+
+.pc-ssh-srv-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.pc-ssh-srv-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e2e8f0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pc-ssh-srv-addr {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pc-ssh-srv-right {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pc-ssh-srv-check {
+  width: 18px;
+  height: 18px;
+  color: #38bdf8;
+}
+
+.pc-ssh-srv-arrow {
+  width: 16px;
+  height: 16px;
+  color: #475569;
+  transition: color 0.2s, transform 0.2s;
+}
+
+.pc-ssh-srv:hover .pc-ssh-srv-arrow {
+  color: #94a3b8;
+  transform: translateX(2px);
+}
+
+.pc-ssh-srv.selected .pc-ssh-srv-arrow {
+  display: none;
+}
+
+.pc-ssh-srv-spin {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(56, 189, 248, 0.2);
+  border-top-color: #38bdf8;
+  border-radius: 50%;
+  animation: pc-ssh-rotate 0.7s linear infinite;
+}
+
+@keyframes pc-ssh-rotate {
+  to { transform: rotate(360deg); }
+}
+
+/* 空态 */
+.pc-ssh-hero-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 36px 16px;
+  text-align: center;
+}
+
+.pc-ssh-hero-empty-ico {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: rgba(148, 163, 184, 0.06);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.pc-ssh-hero-empty-ico svg {
+  width: 22px;
+  height: 22px;
+  color: #475569;
+}
+
+.pc-ssh-hero-empty-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.pc-ssh-hero-empty-sub {
+  font-size: 11.5px;
+  color: #475569;
+}
+
+/* 连接按钮区 */
+.pc-ssh-hero-actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.pc-ssh-connect {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pc-ssh-connect:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(14, 165, 233, 0.4);
+}
+
+.pc-ssh-connect:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.pc-ssh-connect:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.pc-ssh-connect-ico {
+  width: 16px;
+  height: 16px;
+}
+
+.pc-ssh-connect-spin {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: pc-ssh-rotate 0.7s linear infinite;
+}
+
+.pc-ssh-hero-tip {
+  font-size: 11px;
+  color: #475569;
+}
+
+/* 错误 */
+.pc-ssh-hero-err {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+.pc-ssh-hero-err svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.pc-bind-back {
+  grid-column: 1 / -1;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #2563eb;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color 0.15s;
+}
+
+.pc-bind-back:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.pc-option-ico.ssh {
+  background: linear-gradient(135deg, #64748b, #334155);
+}
+
 .pc-option-ico.pull {
   background: linear-gradient(135deg, #34d399, #059669);
 }
@@ -5172,6 +6640,293 @@ onMounted(loadState)
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ===== 远程服务器绑定弹窗（pssh-）===== */
+.pssh-dlg .el-dialog {
+  width: min(620px, 94vw) !important;
+}
+
+.pssh-header {
+  background: linear-gradient(135deg, #475569 0%, #334155 60%, #1e293b 100%) !important;
+}
+
+.pssh-conn-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.pssh-sel {
+  flex: 1;
+}
+
+.pssh-hint {
+  font-size: 12px;
+  color: #8a94a6;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.pssh-hint.warn {
+  color: #b45309;
+  background: #fffbeb;
+  border: 1px dashed #fde68a;
+}
+
+.pssh-browser {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.pssh-path-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.pssh-up {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  color: #475569;
+}
+
+.pssh-path {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: #475569;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pssh-mkdir {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.pssh-mkdir svg {
+  width: 13px;
+  height: 13px;
+}
+
+.pssh-mkdir:hover:not(:disabled) {
+  border-color: #94a3b8;
+  color: #1e293b;
+}
+
+.pssh-mkdir:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pssh-list {
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.pssh-dir {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: #334155;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.pssh-dir:hover {
+  background: #f0f7ff;
+}
+
+.pssh-loading,
+.pssh-empty {
+  padding: 20px;
+  text-align: center;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.pssh-foot-hint {
+  margin-right: auto;
+  font-size: 11px;
+  color: #7c8aa0;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===== 解绑项目确认弹窗（pub-）===== */
+.pub-dlg .el-dialog {
+  width: min(480px, 94vw) !important;
+}
+
+/* 头部：暖灰渐变 */
+.pub-header {
+  background: linear-gradient(135deg, #64748b 0%, #475569 60%, #334155 100%) !important;
+}
+
+.pub-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 4px 2px;
+}
+
+.pub-icon {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+}
+
+.pub-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.pub-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.pub-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2d3d;
+  margin-bottom: 10px;
+}
+
+.pub-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pub-item {
+  font-size: 12px;
+  line-height: 1.6;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.pub-item.ok {
+  color: #059669;
+}
+
+.pub-item.warn {
+  color: #b45309;
+}
+
+.pub-hint {
+  margin-top: 12px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* 确认按钮：暖灰渐变 */
+.pub-confirm {
+  background: linear-gradient(135deg, #64748b, #475569);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(71, 85, 105, 0.3);
+}
+
+.pub-confirm:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(71, 85, 105, 0.4);
+}
+
+/* ===== 全链路日志查询弹窗（ptq-）===== */
+.ptq-dlg .el-dialog {
+  width: min(860px, 94vw) !important;
+}
+
+/* 头部：青色渐变（区别于其他弹窗） */
+.ptq-header {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 60%, #0e7490 100%) !important;
+}
+
+/* 搜索栏 */
+.ptq-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.ptq-input {
+  flex: 1;
+}
+
+.ptq-input .el-input__wrapper {
+  border-radius: 10px;
+  box-shadow: 0 0 0 1px #bfdbfe inset;
+}
+
+.ptq-input .el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px #2563eb inset, 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* 汇总 */
+.ptq-summary {
+  font-size: 12px;
+  color: #64748b;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
+  margin-bottom: 10px;
+}
+
+.ptq-lines {
+  height: auto;
+  max-height: 240px;
+  padding-top: 8px;
+  /* 与日志弹窗同款深色控制台 */
+  background: #0b1220;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+}
+
+/* 底部信息 */
+.ptq-foot-info {
+  margin-right: auto;
+  font-size: 11.5px;
+  color: #7c8aa0;
 }
 
 /* ===== 互斥切换确认弹窗（pmx-）===== */
@@ -5648,6 +7403,15 @@ onMounted(loadState)
   white-space: pre-wrap;
   word-break: break-all;
   color: #b6c5d9;
+}
+
+/* 关键字命中高亮 */
+.plg-hit {
+  background: rgba(250, 204, 21, 0.22);
+  color: #fde047;
+  border-radius: 2px;
+  padding: 0 2px;
+  font-weight: 700;
 }
 
 .plg-text.lv-error {

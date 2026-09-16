@@ -16,7 +16,8 @@ const exec = promisify(execFile)
 const TOOL_BIN: Record<Exclude<ConfigType, ''>, string> = {
   Git: 'git',
   Docker: 'docker',
-  Helm: 'helm'
+  Helm: 'helm',
+  Linux: 'ssh'
 }
 
 const toolCache: Partial<Record<Exclude<ConfigType, ''>, { ok: boolean; at: number }>> = {}
@@ -28,7 +29,7 @@ async function toolExists(type: Exclude<ConfigType, ''>): Promise<boolean> {
   let ok = false
   try {
     const pathEnv = await getShellPath()
-    await exec(TOOL_BIN[type], ['--version'], { timeout: 8000, env: { ...process.env, PATH: pathEnv } })
+    await exec('which', [TOOL_BIN[type]], { timeout: 8000, env: { ...process.env, PATH: pathEnv } })
     ok = true
   } catch {
     ok = false
@@ -38,8 +39,13 @@ async function toolExists(type: Exclude<ConfigType, ''>): Promise<boolean> {
 }
 
 async function checkTools(): Promise<ToolAvailability> {
-  const [git, docker, helm] = await Promise.all([toolExists('Git'), toolExists('Docker'), toolExists('Helm')])
-  return { git, docker, helm }
+  const [git, docker, helm, linux] = await Promise.all([
+    toolExists('Git'),
+    toolExists('Docker'),
+    toolExists('Helm'),
+    toolExists('Linux')
+  ])
+  return { git, docker, helm, linux }
 }
 
 /** 执行命令并向 stdin 写入密码（避免出现在进程参数中） */
@@ -106,8 +112,9 @@ export function registerConfigHandlers(): void {
       const resultType = input.id
         ? (listConfigs().find((c) => c.id === input.id)?.type ?? input.type)
         : input.type
-      if (resultType && resultType !== '' && !(await toolExists(resultType))) {
-        throw new Error(`本机未安装 ${TOOL_BIN[resultType]}，不允许修改`)
+      // Linux 类型纯凭据存储，不关联 CLI 工具，跳过检测；其余类型需对应 CLI 可用
+      if (resultType && resultType !== '' && resultType !== 'Linux' && !(await toolExists(resultType))) {
+        throw new Error(`本机未安装 ${TOOL_BIN[resultType] ?? resultType}，不允许修改`)
       }
       if (input.authType !== undefined && input.authType !== 'password' && input.authType !== 'key') {
         throw new Error('密钥类型不合法')
@@ -133,7 +140,7 @@ export function registerConfigHandlers(): void {
       const entry = listConfigs().find((c) => c.id === id)
       if (!entry) throw new Error('密钥不存在')
       if (entry.type !== 'Docker' && entry.type !== 'Helm') throw new Error('仅 Docker / Helm 类型密钥支持一键登录')
-      if (!(await toolExists(entry.type))) throw new Error(`本机未安装 ${TOOL_BIN[entry.type]}，无法执行`)
+      if (!(await toolExists(entry.type))) throw new Error(`本机未安装 ${TOOL_BIN[entry.type] ?? entry.type}，无法执行`)
       return { ok: true, data: await doLogin(entry) }
     } catch (err) {
       return { ok: false, error: (err as Error).message }

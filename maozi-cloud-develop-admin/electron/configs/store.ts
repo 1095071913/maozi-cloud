@@ -93,6 +93,16 @@ export function listConfigs(): ConfigEntry[] {
       }
     }
   }
+  // 清除已废弃的默认密钥（isDefault=true 且 id 不在当前 DEFAULT_CONFIGS 定义中）
+  const defaultIds = new Set(DEFAULT_CONFIGS.map((d) => d.id))
+  const before = list.length
+  const filtered = list.filter((c) => !c.isDefault || defaultIds.has(c.id))
+  if (filtered.length !== before) {
+    list.length = 0
+    list.push(...filtered)
+    seeded = true
+  }
+
   for (const def of DEFAULT_CONFIGS) {
     if (!list.some((c) => c.id === def.id)) {
       const entry: ConfigEntry = {

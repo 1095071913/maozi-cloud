@@ -13,6 +13,7 @@
         <div class="sec-hero-chips">
           <span v-if="typeCount('Docker')" class="hero-chip docker">🐳 Docker × {{ typeCount('Docker') }}</span>
           <span v-if="typeCount('Helm')" class="hero-chip helm">⎈ Helm × {{ typeCount('Helm') }}</span>
+          <span v-if="typeCount('Linux')" class="hero-chip linux">🐧 Linux × {{ typeCount('Linux') }}</span>
           <span v-if="typeCount('')" class="hero-chip plain">🔑 未分类 × {{ typeCount('') }}</span>
           <span v-if="authCount('key')" class="hero-chip key">🗝 密钥 × {{ authCount('key') }}</span>
         </div>
@@ -214,6 +215,7 @@
               <el-option label="Git 🌿" value="Git" />
               <el-option label="Docker 🐳" value="Docker" />
               <el-option label="Helm ⎈" value="Helm" />
+              <el-option label="Linux 🐧" value="Linux" />
             </el-select>
             <div v-if="typeHint" class="sk-hint">{{ typeHint }}</div>
           </div>
@@ -406,7 +408,8 @@ const grouped = computed(() => {
 const TYPE_META: Record<string, { icon: string; grad: [string, string] }> = {
   Git: { icon: '🌿', grad: ['#34d399', '#059669'] },
   Docker: { icon: '🐳', grad: ['#60a5fa', '#2563eb'] },
-  Helm: { icon: '⎈', grad: ['#a78bfa', '#7c3aed'] }
+  Helm: { icon: '⎈', grad: ['#a78bfa', '#7c3aed'] },
+  Linux: { icon: '🐧', grad: ['#333333', '#1a1a2e'] },
 }
 
 function typeIcon(t: ConfigType): string {
@@ -427,7 +430,8 @@ function typeIconStyle(t: ConfigType): Record<string, string> {
 
 function typeTag(t: ConfigType): 'success' | 'primary' | 'warning' {
   if (t === 'Git') return 'success'
-  return t === 'Docker' ? 'primary' : 'warning'
+  if (t === 'Docker') return 'primary'
+  return t === 'Helm' ? 'warning' : 'info'
 }
 
 /** 表单类型联动提示 */
@@ -435,6 +439,7 @@ const typeHint = computed(() => {
   if (form.value.type === 'Git') return '可用于项目控制台的代码拉取'
   if (form.value.type === 'Docker') return '保存后可「一键登录」执行 docker login'
   if (form.value.type === 'Helm') return '保存后可「一键登录」执行 helm registry login'
+  if (form.value.type === 'Linux') return 'Linux 服务器 SSH 凭据（账号 / 密码或密钥）'
   return ''
 })
 
@@ -443,11 +448,12 @@ function toolReady(row: ConfigEntry): boolean {
   if (row.type === 'Git') return tools.value.git
   if (row.type === 'Docker') return tools.value.docker
   if (row.type === 'Helm') return tools.value.helm
+  if (row.type === 'Linux') return tools.value.linux
   return true
 }
 
 function toolTip(row: ConfigEntry): string {
-  const bin = row.type === 'Git' ? 'git' : row.type === 'Docker' ? 'docker' : 'helm'
+  const bin = row.type === 'Git' ? 'git' : row.type === 'Docker' ? 'docker' : row.type === 'Helm' ? 'helm' : 'ssh'
   return `本机未安装 ${bin}，不允许修改`
 }
 
@@ -647,6 +653,12 @@ onMounted(load)
 
 .hero-chip.docker {
   background: rgba(59, 130, 246, 0.3);
+}
+
+.hero-chip.linux {
+  color: #1e293b;
+  background: #f1f5f9;
+  border-color: #cbd5e1;
 }
 
 .hero-chip.helm {

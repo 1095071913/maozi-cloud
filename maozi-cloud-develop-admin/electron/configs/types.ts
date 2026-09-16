@@ -1,6 +1,6 @@
 /** 密钥管理公共类型 */
 
-export type ConfigType = 'Git' | 'Docker' | 'Helm' | ''
+export type ConfigType = 'Git' | 'Docker' | 'Helm' | 'Linux' | ''
 
 /** 密钥类型：账密（账号+密码）/ 密钥（单一 Token，无账号） */
 export type AuthType = 'password' | 'key'
@@ -32,4 +32,5 @@ export interface ToolAvailability {
   git: boolean
   docker: boolean
   helm: boolean
+  linux: boolean
 }

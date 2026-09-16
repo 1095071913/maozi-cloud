@@ -16,6 +16,7 @@ const MANAGED_END = '# <<< maozi-cloud-develop-admin (managed) <<<'
 
 /** macOS 常见 shell 配置文件，zsh 为默认 shell 排在最前 */
 const ENV_FILE_DEFS = [
+  { id: 'zshenv', name: '~/.zshenv', file: '.zshenv' },
   { id: 'zshrc', name: '~/.zshrc', file: '.zshrc' },
   { id: 'zprofile', name: '~/.zprofile', file: '.zprofile' },
   { id: 'bash_profile', name: '~/.bash_profile', file: '.bash_profile' },

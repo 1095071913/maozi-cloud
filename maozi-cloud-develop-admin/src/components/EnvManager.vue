@@ -141,68 +141,151 @@
       append-to-body
       align-center
       modal-class="ev-dlg"
-      width="620px"
+      width="640px"
     >
-      <div class="evd-header">
+      <!-- 头部：绿色渐变（新增）/ 琥珀渐变（编辑） -->
+      <div class="evd-header" :class="{ edit: isEdit }">
         <div class="evd-deco evd-deco-1"></div>
         <div class="evd-deco evd-deco-2"></div>
         <div class="evd-header-main">
-          <div class="evd-header-icon">{{ isEdit ? '✏️' : '🌱' }}</div>
+          <div class="evd-header-icon">
+            <svg v-if="!isEdit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v6m0 0v6m0-6h6m-6 0H6" />
+              <path d="M12 12v10" opacity="0" />
+            </svg>
+            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+              <path d="m15 5 4 4" />
+            </svg>
+          </div>
           <div>
             <div class="evd-title">{{ isEdit ? '编辑变量' : '添加变量' }}</div>
             <div class="evd-subtitle">{{ isEdit ? `修改 ${form.key} 的值` : '写入 shell 配置文件的 export 变量' }}</div>
           </div>
         </div>
-        <button class="evd-close" @click="dialogVisible = false">✕</button>
+        <button class="evd-close" @click="dialogVisible = false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
       </div>
 
       <div class="evd-body">
+        <!-- 变量名：终端风格芯片 -->
         <div class="evd-field">
-          <div class="evd-label">变量名 <span class="evd-req">*</span></div>
-          <input
-            v-model="form.key"
-            class="evd-input mono"
-            :disabled="isEdit"
-            placeholder="如 JAVA_HOME、MAOZI_ENV"
-          />
+          <div class="evd-label">
+            <span class="evd-label-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="4 17 10 11 4 5" />
+                <line x1="12" y1="19" x2="20" y2="19" />
+              </svg>
+            </span>
+            变量名
+            <span class="evd-req">*</span>
+          </div>
+          <div class="evd-input-wrap" :class="{ disabled: isEdit }">
+            <span class="evd-input-prefix mono">$</span>
+            <input
+              v-model="form.key"
+              class="evd-input mono"
+              :disabled="isEdit"
+              placeholder="JAVA_HOME"
+              @input="form.key = form.key.toUpperCase().replace(/[^A-Z0-9_]/g, '')"
+            />
+            <span v-if="isEdit" class="evd-lock" title="编辑时不可修改变量名">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </span>
+          </div>
+          <div v-if="!isEdit" class="evd-field-hint">仅大写字母、数字、下划线，自动转大写</div>
         </div>
+
+        <!-- 值：终端风格代码输入 -->
         <div class="evd-field">
-          <div class="evd-label">值 <span class="evd-req">*</span></div>
-          <textarea
-            v-model="form.value"
-            class="evd-input evd-textarea mono"
-            rows="3"
-            placeholder="如 /Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home，支持 $(...) 与 ${VAR} 引用"
-          ></textarea>
+          <div class="evd-label">
+            <span class="evd-label-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 7V4h16v3" />
+                <path d="M9 20h6" />
+                <path d="M12 4v16" opacity="0" />
+                <path d="m9 12 3 3 3-3" />
+              </svg>
+            </span>
+            值
+            <span class="evd-req">*</span>
+          </div>
+          <div class="evd-value-wrap">
+            <div class="evd-value-bar">
+              <span class="evd-value-dots"><i></i><i></i><i></i></span>
+              <span class="evd-value-path mono">export {{ (form.key || 'VAR') }}=</span>
+            </div>
+            <textarea
+              v-model="form.value"
+              class="evd-value-input mono"
+              rows="3"
+              placeholder="/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home"
+              spellcheck="false"
+            ></textarea>
+          </div>
+          <div class="evd-field-hint">支持 $(cmd) 与 ${VAR} 引用</div>
         </div>
+
+        <!-- 写入文件：文件卡片选择器 -->
         <div class="evd-field">
-          <div class="evd-label">写入文件</div>
+          <div class="evd-label">
+            <span class="evd-label-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
+            </span>
+            写入文件
+          </div>
           <div class="evd-files">
             <button
               v-for="f in files"
               :key="f.id"
               type="button"
               class="evd-file"
-              :class="{ active: form.fileId === f.id }"
+              :class="{ active: form.fileId === f.id, exists: f.exists }"
               @click="form.fileId = f.id"
             >
-              <span class="evd-file-ico">📄</span>
+              <span class="evd-file-dot"></span>
               <span class="evd-file-body">
-                <span class="evd-file-name">{{ f.name }}</span>
-                <span class="evd-file-tip">{{ f.exists ? '已存在' : '将自动创建' }}</span>
+                <span class="evd-file-name mono">{{ f.name }}</span>
+                <span class="evd-file-tip">{{ f.exists ? '文件已存在' : '将自动创建' }}</span>
               </span>
-              <span v-if="form.fileId === f.id" class="evd-file-check">✓</span>
+              <span class="evd-file-check">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </span>
             </button>
           </div>
         </div>
-        <div class="evd-hint">💾 保存后立即生效，已打开的终端在下一条命令前自动同步{{ isMac ? '；「生效」按钮用于让 IDE、浏览器等图形应用立即读取' : '' }}</div>
+
+        <!-- 底部提示 -->
+        <div class="evd-hint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 16v-4" />
+            <path d="M12 8h.01" />
+          </svg>
+          保存后立即生效，已打开的终端在下一条命令前自动同步
+        </div>
       </div>
 
       <template #footer>
         <div class="evd-footer">
           <button class="evd-btn ghost" @click="dialogVisible = false">取消</button>
-          <button class="evd-btn primary" :disabled="saving" @click="onSave">
-            {{ saving ? '保存中…' : '保存' }}
+          <button class="evd-btn primary" :class="{ edit: isEdit }" :disabled="saving || !form.key.trim() || !form.value.trim()" @click="onSave">
+            <span v-if="saving" class="evd-spin"></span>
+            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            {{ saving ? '保存中…' : isEdit ? '保存修改' : '添加变量' }}
           </button>
         </div>
       </template>
@@ -223,6 +306,8 @@ const isMac = ref(true)
 
 const dialogVisible = ref(false)
 const isEdit = ref(false)
+/** 编辑时原始文件 id：切换文件时需先从旧文件删除再写入新文件 */
+const editOriginFileId = ref('')
 const saving = ref(false)
 const form = ref({ key: '', value: '', fileId: 'zshrc' })
 
@@ -294,6 +379,7 @@ function openAdd(): void {
 
 function openEdit(row: EnvVarEntry): void {
   isEdit.value = true
+  editOriginFileId.value = row.fileId
   form.value = { key: row.key, value: row.value, fileId: row.fileId }
   dialogVisible.value = true
 }
@@ -310,8 +396,16 @@ async function onSave(): Promise<void> {
   }
   saving.value = true
   try {
+    // 编辑时切换了文件：先从旧文件删除，再写入新文件
+    if (isEdit.value && editOriginFileId.value && editOriginFileId.value !== fileId) {
+      const rm = await api.env.save({ mode: 'remove', key, fileId: editOriginFileId.value })
+      if (!rm.ok) {
+        ElMessage.error(`从 ${fileName(editOriginFileId.value)} 移除失败：${rm.error ?? ''}`)
+        return
+      }
+    }
     const result = await api.env.save({
-      mode: isEdit.value ? 'update' : 'add',
+      mode: isEdit.value && editOriginFileId.value === fileId ? 'update' : 'add',
       key,
       value,
       fileId
@@ -320,7 +414,11 @@ async function onSave(): Promise<void> {
       ElMessage.error(result.error ?? '保存失败')
       return
     }
-    ElMessage.success(`已写入 ${fileName(fileId)}，立即生效`)
+    ElMessage.success(
+      isEdit.value && editOriginFileId.value !== fileId
+        ? `已从 ${fileName(editOriginFileId.value)} 迁移到 ${fileName(fileId)}`
+        : `已写入 ${fileName(fileId)}，立即生效`
+    )
     dialogVisible.value = false
     await load()
   } finally {
@@ -1142,6 +1240,7 @@ onMounted(async () => {
   flex: 0 1 auto !important;
 }
 
+/* ===== 弹窗：添加/编辑变量 ===== */
 .evd-header {
   position: relative;
   overflow: hidden;
@@ -1149,288 +1248,86 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 20px 24px;
-  background: linear-gradient(135deg, #16283c 0%, #1e3fae 62%, #2563eb 100%);
+  padding: 22px 24px;
+  background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
 }
+.evd-header.edit { background: linear-gradient(135deg, #b45309 0%, #d97706 50%, #f59e0b 100%); }
+.evd-deco { position: absolute; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.15); pointer-events: none; }
+.evd-deco-1 { width: 200px; height: 200px; right: -50px; top: -100px; }
+.evd-deco-2 { width: 120px; height: 120px; right: 100px; bottom: -70px; border-color: rgba(255,255,255,0.08); }
+.evd-header-main { position: relative; display: flex; align-items: center; gap: 14px; min-width: 0; }
+.evd-header-icon { width: 46px; height: 46px; border-radius: 14px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; backdrop-filter: blur(4px); }
+.evd-header-icon svg { width: 22px; height: 22px; }
+.evd-title { color: #fff; font-size: 17px; font-weight: 800; letter-spacing: 0.3px; }
+.evd-subtitle { margin-top: 4px; color: rgba(255,255,255,0.75); font-size: 12px; font-family: 'SF Mono',Menlo,Monaco,Consolas,monospace; }
+.evd-close { position: relative; width: 32px; height: 32px; border: none; border-radius: 10px; background: rgba(255,255,255,0.15); color: #fff; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+.evd-close svg { width: 14px; height: 14px; }
+.evd-close:hover { background: rgba(255,255,255,0.3); }
 
-.evd-deco {
-  position: absolute;
-  border-radius: 50%;
-  border: 1.5px solid rgba(255, 255, 255, 0.1);
-  pointer-events: none;
-}
+/* 表单 */
+.evd-body { padding: 22px 24px 12px; background: linear-gradient(180deg, #fafbfd 0%, #fff 60px); }
+.evd-field { margin-bottom: 18px; }
+.evd-field:last-of-type { margin-bottom: 8px; }
+.evd-label { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: #334155; font-weight: 700; margin-bottom: 8px; }
+.evd-label-ico { width: 22px; height: 22px; border-radius: 7px; display: flex; align-items: center; justify-content: center; background: #eff6ff; color: #2563eb; flex-shrink: 0; }
+.evd-label-ico svg { width: 11px; height: 11px; }
+.evd-req { color: #ef4444; margin-left: 2px; }
+.evd-field-hint { margin-top: 5px; font-size: 10.5px; color: #98a3b8; }
 
-.evd-deco-1 {
-  width: 220px;
-  height: 220px;
-  right: -60px;
-  top: -120px;
-}
+/* 变量名：终端风格 */
+.evd-input-wrap { display: flex; align-items: center; border: 1.5px solid #dbe4ee; border-radius: 12px; background: #fff; transition: border-color 0.18s, box-shadow 0.18s; overflow: hidden; }
+.evd-input-wrap:focus-within { border-color: #34d399; box-shadow: 0 0 0 3px rgba(52,211,153,0.12); }
+.evd-input-wrap.disabled { background: #f8fafc; border-color: #e2e8f0; }
+.evd-input-prefix { padding: 10px 0 10px 14px; font-size: 15px; font-weight: 700; color: #059669; flex-shrink: 0; }
+.evd-input-wrap.disabled .evd-input-prefix { color: #94a3b8; }
+.evd-input { flex: 1; min-width: 0; border: none; outline: none; padding: 10px 12px 10px 6px; font-size: 14px; font-weight: 600; color: #1e293b; letter-spacing: 0.5px; background: transparent; }
+.evd-input::placeholder { color: #b6c2d2; font-weight: 400; letter-spacing: 0; }
+.evd-input:disabled { color: #64748b; cursor: not-allowed; }
+.evd-lock { padding: 0 12px; color: #94a3b8; flex-shrink: 0; display: flex; }
+.evd-lock svg { width: 15px; height: 15px; }
 
-.evd-deco-2 {
-  width: 140px;
-  height: 140px;
-  right: 110px;
-  bottom: -90px;
-  border-color: rgba(255, 255, 255, 0.07);
-}
+/* 值：终端面板 */
+.evd-value-wrap { border: 1.5px solid #1e293b; border-radius: 12px; overflow: hidden; background: #0d1526; transition: border-color 0.18s; }
+.evd-value-wrap:focus-within { border-color: #34d399; box-shadow: 0 0 0 3px rgba(52,211,153,0.15); }
+.evd-value-bar { display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(255,255,255,0.04); border-bottom: 1px solid #1e293b; }
+.evd-value-dots { display: flex; gap: 5px; }
+.evd-value-dots i { width: 9px; height: 9px; border-radius: 50%; }
+.evd-value-dots i:nth-child(1) { background: #ef4444; }
+.evd-value-dots i:nth-child(2) { background: #f59e0b; }
+.evd-value-dots i:nth-child(3) { background: #10b981; }
+.evd-value-path { font-size: 11.5px; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.evd-value-input { display: block; width: 100%; box-sizing: border-box; border: none; outline: none; padding: 12px 14px; font-size: 13px; line-height: 1.7; color: #a5f3fc; background: transparent; resize: vertical; min-height: 72px; }
+.evd-value-input::placeholder { color: #37475e; }
 
-.evd-header-main {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-width: 0;
-}
+/* 文件选择 */
+.evd-files { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+.evd-file { display: flex; align-items: center; gap: 9px; padding: 10px 12px; border: 1.5px solid #e2e8f0; border-radius: 11px; background: #fff; cursor: pointer; transition: all 0.16s ease; text-align: left; }
+.evd-file:hover { border-color: #94a3b8; transform: translateY(-1px); box-shadow: 0 3px 10px rgba(16,24,40,0.06); }
+.evd-file.active { border-color: #34d399; background: #f0fdf9; box-shadow: 0 0 0 3px rgba(52,211,153,0.1); }
+.evd-file-dot { width: 8px; height: 8px; flex-shrink: 0; border-radius: 50%; background: #cbd5e1; transition: all 0.2s; }
+.evd-file.active .evd-file-dot { background: #10b981; box-shadow: 0 0 8px rgba(16,185,129,0.5); }
+.evd-file-body { flex: 1; min-width: 0; }
+.evd-file-name { display: block; font-size: 11.5px; font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.evd-file-tip { display: block; margin-top: 2px; font-size: 9.5px; color: #94a3b8; }
+.evd-file.exists .evd-file-tip { color: #059669; }
+.evd-file-check { flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg,#34d399,#059669); color: #fff; display: none; align-items: center; justify-content: center; }
+.evd-file.active .evd-file-check { display: flex; }
+.evd-file-check svg { width: 11px; height: 11px; }
 
-.evd-header-icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  flex-shrink: 0;
-}
+/* 提示 */
+.evd-hint { display: flex; align-items: center; gap: 8px; padding: 10px 14px; margin-top: 4px; border-radius: 10px; background: #f0f9ff; border: 1px solid #dbeafe; font-size: 11.5px; color: #0369a1; line-height: 1.5; }
+.evd-hint svg { width: 15px; height: 15px; flex-shrink: 0; }
 
-.evd-title {
-  color: #fff;
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-.evd-subtitle {
-  margin-top: 4px;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 12px;
-}
-
-.evd-close {
-  position: relative;
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  font-size: 13px;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background 0.2s;
-}
-
-.evd-close:hover {
-  background: rgba(255, 255, 255, 0.26);
-}
-
-.evd-body {
-  padding: 20px 24px 10px;
-  background: #fff;
-}
-
-.evd-field {
-  margin-bottom: 14px;
-}
-
-.evd-field:last-of-type {
-  margin-bottom: 4px;
-}
-
-.evd-label {
-  font-size: 12px;
-  color: #475569;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-
-.evd-req {
-  color: #dc2626;
-}
-
-.evd-input {
-  width: 100%;
-  box-sizing: border-box;
-  border: 1px solid #dbe2ea;
-  border-radius: 10px;
-  padding: 9px 12px;
-  font-size: 13px;
-  color: #1f2d3d;
-  outline: none;
-  background: #fff;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  font-family: inherit;
-}
-
-.evd-input.mono {
-  font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
-  font-size: 12.5px;
-}
-
-.evd-input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-}
-
-.evd-input:disabled {
-  background: #f8fafc;
-  color: #64748b;
-  cursor: not-allowed;
-}
-
-.evd-textarea {
-  resize: none;
-  min-height: 76px;
-  line-height: 1.7;
-}
-
-/* 写入文件选择卡片 */
-.evd-files {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.evd-file {
-  flex: 1 1 calc((100% - 32px) / 3);
-  min-width: 0;
-}
-
-.evd-file {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  box-sizing: border-box;
-  padding: 9px 11px;
-  border: 1.5px solid #e4eaf2;
-  border-radius: 11px;
-  background: #fff;
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.15s ease;
-  font-family: inherit;
-}
-
-.evd-file:hover {
-  border-color: #93c5fd;
-  background: #f6faff;
-}
-
-.evd-file.active {
-  border-color: #2563eb;
-  background: linear-gradient(135deg, #eff6ff, #dbeafe);
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.14);
-}
-
-.evd-file-ico {
-  font-size: 17px;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.evd-file-body {
-  min-width: 0;
-  flex: 1;
-}
-
-.evd-file-name {
-  display: block;
-  font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
-  font-size: 12px;
-  font-weight: 600;
-  color: #1f2d3d;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.evd-file.active .evd-file-name {
-  color: #1d4ed8;
-}
-
-.evd-file-tip {
-  display: block;
-  margin-top: 2px;
-  font-size: 10.5px;
-  color: #7d8a9e;
-}
-
-.evd-file.active .evd-file-tip {
-  color: #2563eb;
-}
-
-.evd-file-check {
-  flex-shrink: 0;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #2563eb;
-  color: #fff;
-  font-size: 11px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.evd-hint {
-  margin: 4px 0 8px;
-  font-size: 11.5px;
-  color: #1d4ed8;
-  background: #eff6ff;
-  border: 1px dashed #93c5fd;
-  border-radius: 7px;
-  padding: 6px 10px;
-}
-
-.evd-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 14px 24px;
-  background: #f8fafc;
-  border-top: 1px solid #eef2f7;
-}
-
-.evd-btn {
-  padding: 9px 22px;
-  border-radius: 10px;
-  font-size: 13.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.18s ease;
-  border: 1px solid transparent;
-  font-family: inherit;
-}
-
-.evd-btn.ghost {
-  background: #fff;
-  border-color: #dbe2ea;
-  color: #475569;
-}
-
-.evd-btn.ghost:hover {
-  border-color: #b9c4d2;
-  color: #1f2d3d;
-}
-
-.evd-btn.primary {
-  background: linear-gradient(135deg, #2563eb, #1e3fae);
-  color: #fff;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
-}
-
-.evd-btn.primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
-}
-
-.evd-btn.primary:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-  transform: none;
-}
+/* 底部 */
+.evd-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 24px; background: #f8fafc; border-top: 1px solid #eef2f7; }
+.evd-btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 24px; border-radius: 11px; font-size: 13.5px; font-weight: 700; cursor: pointer; transition: all 0.18s ease; border: 1px solid transparent; }
+.evd-btn svg { width: 15px; height: 15px; }
+.evd-btn.ghost { background: #fff; border-color: #dbe2ea; color: #475569; }
+.evd-btn.ghost:hover { border-color: #b9c4d2; color: #1f2d3d; }
+.evd-btn.primary { background: linear-gradient(135deg, #34d399, #059669); color: #fff; box-shadow: 0 4px 14px rgba(5,150,105,0.3); }
+.evd-btn.primary.edit { background: linear-gradient(135deg, #fbbf24, #d97706); box-shadow: 0 4px 14px rgba(217,119,6,0.3); }
+.evd-btn.primary:hover:not(:disabled) { filter: brightness(1.06); transform: translateY(-1px); }
+.evd-btn.primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+.evd-spin { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: evd-rotate 0.7s linear infinite; }
+@keyframes evd-rotate { to { transform: rotate(360deg); } }
 </style>

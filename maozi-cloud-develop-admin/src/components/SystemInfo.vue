@@ -203,6 +203,20 @@
             </div>
             <el-empty v-if="network && network.interfaces.length === 0" description="未检测到活动网卡" :image-size="60" />
           </div>
+
+          <!-- 系统代理（scutil --proxy） -->
+          <div class="proxy-sec">
+            <div class="proxy-head">
+              <span>系统代理</span>
+              <span class="proxy-src mono-text">scutil --proxy</span>
+            </div>
+            <div class="proxy-grid">
+              <div class="proxy-item" v-for="p in proxyRows" :key="p.label" :class="{ on: !!p.value }">
+                <span class="proxy-label mono-text">{{ p.label }}</span>
+                <span class="proxy-value mono-text">{{ p.value || '未启用' }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </el-col>
 
@@ -275,7 +289,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { api, type SysStaticInfo, type SysDynamicInfo, type NetInterface, type PublicIPInfo, type GpuInfo, type DevToolInfo } from '../api'
+import { api, type SysStaticInfo, type SysDynamicInfo, type NetInterface, type ProxyInfo, type PublicIPInfo, type GpuInfo, type DevToolInfo } from '../api'
 import RingProgress from './RingProgress.vue'
 import MiniTrend from './MiniTrend.vue'
 import { useSysTrend } from '../composables/useSysTrend'
@@ -285,7 +299,7 @@ const info = ref<SysStaticInfo | null>(null)
 /** 动态数据来自常驻采样单例：切页不丢失，趋势窗口连续 */
 const trend = useSysTrend()
 const dyn = computed<SysDynamicInfo | null>(() => trend.latest)
-const network = ref<{ interfaces: NetInterface[]; primaryIP: string } | null>(null)
+const network = ref<{ interfaces: NetInterface[]; primaryIP: string; proxy?: ProxyInfo } | null>(null)
 const publicIP = ref<PublicIPInfo | null>(null)
 const publicIPLoading = ref(false)
 const publicIPError = ref('')
@@ -437,6 +451,13 @@ const cpuHistory = computed(() => trend.cpu)
 const gpuHistory = computed(() => trend.gpu)
 const memHistory = computed(() => trend.mem)
 const trendTimes = computed(() => trend.times)
+
+/** 系统代理展示行（scutil --proxy）：HTTP / HTTPS / ALL(SOCKS)，未启用显示占位 */
+const proxyRows = computed(() => [
+  { label: 'HTTP', value: network.value?.proxy?.http ?? '' },
+  { label: 'HTTPS', value: network.value?.proxy?.https ?? '' },
+  { label: 'ALL', value: network.value?.proxy?.all ?? '' }
+])
 
 /** GPU 从未采集到过数据时隐藏趋势区（该平台不支持） */
 const gpuHasData = computed(() => trend.gpu.some((v) => v !== null))
@@ -965,6 +986,73 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* 系统代理（scutil --proxy） */
+.proxy-sec {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.proxy-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.proxy-src {
+  font-size: 10.5px;
+  font-weight: 400;
+  color: #94a3b8;
+}
+
+.proxy-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.proxy-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
+}
+
+.proxy-item.on {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.proxy-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #94a3b8;
+}
+
+.proxy-item.on .proxy-label {
+  color: #2563eb;
+}
+
+.proxy-value {
+  font-size: 11.5px;
+  color: #cbd5e1;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.proxy-item.on .proxy-value {
+  color: #1e293b;
+  font-weight: 600;
 }
 
 .net-item {

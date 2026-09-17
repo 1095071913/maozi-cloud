@@ -13,6 +13,7 @@ import type {
   DevToolInfo,
   GpuInfo,
   NetInterface,
+  ProxyInfo,
   PublicIPInfo,
   SysDynamicInfo,
   SysStaticInfo
@@ -22,7 +23,7 @@ import type {AuthType, ConfigEntry, ConfigType, ToolAvailability} from '../elect
 import type {ComposeServiceStats, EnvSettingGroup, EnvSettingItem, ProjectBinding} from '../electron/projects/types'
 
 export type { EnvFile, EnvVarEntry, EnvSaveParams, LaunchctlParams, HostsEntry, PlatformResult }
-export type { SysStaticInfo, SysDynamicInfo, NetInterface, PublicIPInfo, GpuInfo, DevToolInfo }
+export type { SysStaticInfo, SysDynamicInfo, NetInterface, ProxyInfo, PublicIPInfo, GpuInfo, DevToolInfo }
 export type {
   Bookmark,
   PageMeta,
@@ -67,7 +68,7 @@ export interface ElectronApi {
   sysinfo: {
     static: () => Promise<IpcResult<SysStaticInfo>>
     dynamic: () => Promise<IpcResult<SysDynamicInfo>>
-    network: () => Promise<IpcResult<{ interfaces: NetInterface[]; primaryIP: string }>>
+    network: () => Promise<IpcResult<{ interfaces: NetInterface[]; primaryIP: string; proxy: ProxyInfo }>>
     publicIP: () => Promise<IpcResult<PublicIPInfo>>
     devtools: () => Promise<IpcResult<DevToolInfo[]>>
   }

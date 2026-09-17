@@ -77,6 +77,14 @@ export interface NetInterface {
   internal: boolean
 }
 
+/** 系统代理（scutil --proxy）：未启用的项为空串 */
+export interface ProxyInfo {
+  http: string
+  https: string
+  /** SOCKS，对应 git 的 all_proxy */
+  all: string
+}
+
 export interface PublicIPInfo {
   ip: string
   location?: string
@@ -506,6 +514,31 @@ function getNetwork(): { interfaces: NetInterface[]; primaryIP: string } {
   return { interfaces, primaryIP: primary?.ip ?? '' }
 }
 
+/** 读 macOS 系统代理（scutil --proxy）：HTTP / HTTPS / SOCKS(ALL) 的地址端口；非 darwin 或读取失败按全未启用 */
+async function getScutilProxy(): Promise<ProxyInfo> {
+  if (process.platform !== 'darwin') return { http: '', https: '', all: '' }
+  try {
+    const { stdout } = await exec('scutil', ['--proxy'], { timeout: 3000 })
+    const str = (k: string): string | null => {
+      const m = stdout.match(new RegExp(`${k} : (.+)`))
+      return m ? m[1].trim() : null
+    }
+    const url = (scheme: string, enableKey: string, hostKey: string, portKey: string): string => {
+      if (!stdout.includes(`${enableKey} : 1`)) return ''
+      const host = str(hostKey)
+      const port = str(portKey)
+      return host && port ? `${scheme}${host}:${port}` : ''
+    }
+    return {
+      http: url('http://', 'HTTPEnable', 'HTTPProxy', 'HTTPPort'),
+      https: url('http://', 'HTTPSEnable', 'HTTPSProxy', 'HTTPSPort'),
+      all: url('socks5://', 'SOCKSEnable', 'SOCKSProxy', 'SOCKSPort')
+    }
+  } catch {
+    return { http: '', https: '', all: '' }
+  }
+}
+
 /** 公网 IP 探测服务链（国内可达性优先） */
 const PUBLIC_IP_SERVICES: { url: string; name: string }[] = [
   { url: 'https://myip.ipip.net', name: 'ipip.net' },
@@ -588,9 +621,9 @@ export function registerSysinfoHandlers(): void {
     }
   })
 
-  ipcMain.handle('sysinfo:network', () => {
-    const net = getNetwork()
-    return { ok: true, data: net }
+  ipcMain.handle('sysinfo:network', async () => {
+    const proxy = await getScutilProxy()
+    return { ok: true, data: { ...getNetwork(), proxy } }
   })
 
   ipcMain.handle('sysinfo:devtools', async () => {

@@ -49,7 +49,7 @@
         </div>
         <div class="ev-rail-note">
           <div class="ev-rail-note-title">🛡 安全机制</div>
-          <div class="ev-rail-note-text">写入前自动备份为 *.maozi.bak；本应用新增的变量统一放在「maozi-cloud-develop-admin」托管区块，不影响手写配置；已打开的终端经 zsh 钩子自动同步，无需重开。</div>
+          <div class="ev-rail-note-text">已打开的终端经 zsh 钩子自动同步，无需重开。</div>
         </div>
         <div class="ev-rail-legend">
           <span class="ev-legend-item"><span class="ev-grip-demo">⠿</span>拖拽卡片可排序</span>

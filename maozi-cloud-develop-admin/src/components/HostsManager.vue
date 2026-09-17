@@ -57,7 +57,7 @@
 
         <div class="ht-rail-note">
           <div class="ht-rail-note-title">🛡 保存机制</div>
-          <div class="ht-rail-note-text">所有改动（新增 / 编辑 / 删除 / 开关 / 排序）都会立即写入系统 hosts 并自动刷新 DNS，原文件自动备份为 .maozi.bak；关闭开关只是把该行注释掉；localhost 等系统默认条目与纯注释行会原样保留。</div>
+          <div class="ht-rail-note-text">所有改动（新增 / 编辑 / 删除 / 开关 / 排序）都会立即写入系统 hosts 并自动刷新 DNS；关闭开关只是把该行注释掉；localhost 等系统默认条目与纯注释行会原样保留。</div>
         </div>
 
         <div class="ht-rail-legend">

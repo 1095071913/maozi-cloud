@@ -4,7 +4,7 @@
 
 ## 🔧 工程项目
 
-- [maozi-cloud-develop-admin](maozi-cloud-develop-admin) - 快速开发控制台项目
+- [maozi-cloud-develop-admin](maozi-cloud-develop-admin) - 快速开发项目控制台
 
 - [maozi-cloud-admin](maozi-cloud-admin) - 后台前端系统项目
 

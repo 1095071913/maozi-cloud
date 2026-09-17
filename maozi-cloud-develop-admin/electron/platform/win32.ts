@@ -72,7 +72,7 @@ export const win32Platform: Platform = {
   }
 }
 
-/** 按原文写入 hosts：临时文件 + UAC 提权覆盖与备份 + 刷新 DNS 缓存 */
+/** 按原文写入 hosts：临时文件 + UAC 提权覆盖 + 刷新 DNS 缓存（不备份） */
 async function writeHostsText(text: string): Promise<void> {
   const tmp = path.join(tmpdir(), `maozi-hosts-${Date.now()}`)
   fs.writeFileSync(tmp, text, { mode: 0o644 })
@@ -84,7 +84,7 @@ async function writeHostsText(text: string): Promise<void> {
       '-Verb RunAs',
       '-Wait',
       '-WindowStyle Hidden',
-      `-ArgumentList '/c copy /y "${hosts}" "${hosts}.maozi.bak" && copy /y "${tmp.replace(/\\/g, '\\\\')}" "${hosts}" && ipconfig /flushdns'`
+      `-ArgumentList '/c copy /y "${tmp.replace(/\\/g, '\\\\')}" "${hosts}" && ipconfig /flushdns'`
     ]
     await exec('powershell.exe', ['-NoProfile', '-Command', psArgs.join(' ')])
   } finally {

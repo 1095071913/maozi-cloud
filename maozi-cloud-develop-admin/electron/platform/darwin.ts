@@ -62,8 +62,11 @@ function readEnvFileLines(fileId: string): string[] {
   return fs.readFileSync(p, 'utf8').split('\n')
 }
 
-function backupAndWrite(file: string, content: string): void {
-  if (fs.existsSync(file)) {
+function backupAndWrite(file: string, content: string, opts?: { backup?: boolean }): void {
+  if (opts?.backup === false) {
+    // 应用全量生成、可随时重建的文件无需备份；顺手清掉历史遗留备份，避免已删除的密钥明文残留
+    fs.rmSync(`${file}.maozi.bak`, { force: true })
+  } else if (fs.existsSync(file)) {
     fs.copyFileSync(file, `${file}.maozi.bak`)
   }
   fs.mkdirSync(path.dirname(file), { recursive: true })
@@ -130,7 +133,7 @@ export const darwinPlatform: Platform = {
       const lines = readEnvFileLines(fileId)
       reorderExportLines(lines, params.orderedKeys ?? [])
       const content = cleanupEmptyManagedBlock(lines).join('\n')
-      backupAndWrite(envFilePath(fileId), `${content}\n`)
+      backupAndWrite(envFilePath(fileId), `${content}\n`, { backup: false })
       installLiveHook()
       syncLiveEnv()
       return
@@ -175,7 +178,8 @@ export const darwinPlatform: Platform = {
 
     // 托管区块为空时移除区块标记，保持文件整洁
     const content = cleanupEmptyManagedBlock(lines).join('\n')
-    backupAndWrite(filePath, `${content}\n`)
+    // 行级精确写入（只动托管区块/匹配行）不做 .maozi.bak 备份，避免已删除的密钥明文残留
+    backupAndWrite(filePath, `${content}\n`, { backup: false })
     // 已打开的终端经 precmd 钩子自动同步，无需重开
     installLiveHook()
     syncLiveEnv()
@@ -225,14 +229,15 @@ const HELPER_PATH = '/usr/local/bin/maozi-hosts-helper'
 const SUDOERS_PATH = '/etc/sudoers.d/maozi-hosts-helper'
 const SUDOERS_LINE = '%admin ALL=(root) NOPASSWD: /usr/local/bin/maozi-hosts-helper'
 
-/** 助手脚本内容：仅接受 /tmp 等临时目录下 maozi-hosts-* 前缀文件，写入前自动备份并刷新 DNS */
+/** 助手脚本内容：仅接受 /tmp 等临时目录下 maozi-hosts-* 前缀文件，写入后刷新 DNS（不备份） */
+const HELPER_VERSION = 'v2'
 function helperScript(): string {
   return [
     '#!/bin/bash',
     '# maozi-cloud-develop-admin hosts 写入助手（root 执行，由 sudoers 免密调用）',
     'set -euo pipefail',
     'HOSTS="/etc/hosts"',
-    'if [ "${1:-}" = "--check" ]; then exit 0; fi',
+    `if [ "\${1:-}" = "--check" ]; then echo ${HELPER_VERSION}; exit 0; fi`,
     'if [ "${1:-}" = "--flush" ]; then',
     '  dscacheutil -flushcache && killall -HUP mDNSResponder',
     '  exit 0',
@@ -243,7 +248,6 @@ function helperScript(): string {
     '  *) echo "拒绝非法路径: $SRC" >&2; exit 2 ;;',
     'esac',
     '[ -f "$SRC" ] || { echo "文件不存在: $SRC" >&2; exit 2; }',
-    'cp "$HOSTS" "$HOSTS.maozi.bak"',
     'cp "$SRC" "$HOSTS"',
     'chown root:wheel "$HOSTS" && chmod 644 "$HOSTS"',
     'rm -f "$SRC"',
@@ -251,18 +255,18 @@ function helperScript(): string {
   ].join('\n')
 }
 
-/** 免密助手是否可用（sudo -n 不弹密码，失败即不可用） */
+/** 免密助手是否可用（sudo -n 不弹密码且版本一致；旧版助手返回空，触发一次授权重装升级） */
 async function helperReady(): Promise<boolean> {
   try {
-    await exec('/usr/bin/sudo', ['-n', HELPER_PATH, '--check'], { timeout: 8_000 })
-    return true
+    const { stdout } = await exec('/usr/bin/sudo', ['-n', HELPER_PATH, '--check'], { timeout: 8_000 })
+    return stdout.trim() === HELPER_VERSION
   } catch {
     return false
   }
 }
 
 /**
- * 按原文写入 hosts：临时文件 + 覆盖 + 备份 + 刷新 DNS 缓存。
+ * 按原文写入 hosts：临时文件 + 覆盖 + 刷新 DNS 缓存（不备份）。
  * 已安装免密助手时静默写入；否则弹一次授权框，并在同一次授权中安装助手，之后不再弹窗。
  */
 async function writeHostsText(text: string): Promise<void> {
@@ -277,8 +281,7 @@ async function writeHostsText(text: string): Promise<void> {
     fs.writeFileSync(helperTmp, helperScript() + '\n', { mode: 0o755 })
     try {
       await runAsAdmin(
-        `cp ${q(HOSTS_PATH)} ${q(HOSTS_PATH + '.maozi.bak')} && ` +
-          `cp ${q(tmp)} ${q(HOSTS_PATH)} && ` +
+        `cp ${q(tmp)} ${q(HOSTS_PATH)} && ` +
           `chown root:wheel ${q(HOSTS_PATH)} && chmod 644 ${q(HOSTS_PATH)} && ` +
           `dscacheutil -flushcache && killall -HUP mDNSResponder && ` +
           `mkdir -p /usr/local/bin && ` +
@@ -304,6 +307,7 @@ const LIVE_END = '# <<< maozi-cloud-develop-admin (live-env) <<<'
 /**
  * 生成实时环境文件：启用的变量 export、禁用的 unset。
  * ~/.zshrc 的 precmd 钩子按 mtime 检测变化并 source 它，已打开的终端无需重开即可生效。
+ * 文件内容全量生成、可随时重建，不做 .maozi.bak 备份（避免已删除的密钥明文残留）。
  */
 function syncLiveEnv(): void {
   const seen = new Set<string>()
@@ -317,7 +321,7 @@ function syncLiveEnv(): void {
       lines.push(serializeEnvLine(v.key, v.value))
     }
   }
-  backupAndWrite(path.join(homedir(), LIVE_ENV_FILE), `${lines.join('\n')}\n`)
+  backupAndWrite(path.join(homedir(), LIVE_ENV_FILE), `${lines.join('\n')}\n`, { backup: false })
 }
 
 /** 在 ~/.zshrc 安装实时同步钩子（幂等；同时挂 preexec/precmd：改动后的第一条命令即用新环境） */
@@ -351,7 +355,7 @@ function installLiveHook(): void {
     '[[ " ${precmd_functions[*]:-} " == *" _maozi_env_sync "* ]] || precmd_functions+=(_maozi_env_sync)',
     LIVE_END
   )
-  backupAndWrite(zshrc, `${lines.join('\n')}\n`)
+  backupAndWrite(zshrc, `${lines.join('\n')}\n`, { backup: false })
 }
 
 function appendManaged(lines: string[], newLine: string): void {

@@ -1321,7 +1321,6 @@
 
       <template #footer>
         <div class="pcd-footer">
-          <button class="pcd-btn ghost" type="button" :disabled="envLoading" @click="loadEnvSettings">⟳ 刷新</button>
           <button class="pcd-btn primary" type="button" @click="envVisible = false">关闭</button>
         </div>
       </template>
@@ -2727,11 +2726,21 @@ async function saveEnvEdit(it: EnvSettingItem): Promise<void> {
     }
     ElMessage.success(
         envRemote.value
-          ? `已写入远程 ${envFileName(fileId) || '配置文件'}，部署脚本下次执行即生效`
+          ? `已同步远程环境（已打开的终端即将自动生效），部署脚本下次执行即生效`
           : `已写入 ${envFileName(fileId) || '配置文件'}，部署脚本下次执行即生效`
       )
     envEditing.value = ''
-    await loadEnvSettings()
+    // 原位更新该变量即可：整表刷新会闪 loading 且重置已显示的密钥；需要重读时用「⟳ 刷新」
+    for (const g of envGroups.value) {
+      const target = g.items.find((x) => x.key === it.key)
+      if (target) {
+        target.value = value
+        target.found = true
+        target.enabled = true
+        if (!target.fileId) target.fileId = fileId
+        break
+      }
+    }
   } finally {
     envSaving.value = false
   }
@@ -3721,6 +3730,8 @@ onActivated(() => {
   void loadNetworkStatus()
   void loadDbInitStatus()
   void loadAppSvcStatuses()
+  // git 仓库状态同理可能已变化（如目录外删除了 .git），刷新后按需隐藏分支与拉取/切换按钮
+  void loadGitInfo()
   // 回页首拉带 preferCache：1 分钟内的快照直接渲染，随后由轮询刷新
   void loadComposeStats(true)
   void loadAppSvcStats(true)

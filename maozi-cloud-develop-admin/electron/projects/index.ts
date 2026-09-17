@@ -1814,11 +1814,9 @@ export function registerProjectHandlers(): void {
           send('✓ 全部映射均已写入远程 hosts，无需初始化')
           return { ok: true }
         }
-        send('▶ SSH 写入远程 /etc/hosts（自动备份原文件）')
+        send('▶ SSH 写入远程 /etc/hosts')
         // 非 root 用户无权直接写 /etc/hosts，经 sudo 提权；-p password: 让 sudo 提示词与 expect 应答模式匹配
         const priv = (cmd: string): string => (ctx.ssh?.user === 'root' ? cmd : `sudo -S -p password: ${cmd}`)
-        // 备份
-        await sshExec(ctx.ssh, priv('cp /etc/hosts /etc/hosts.bak.' + Date.now()), 10_000)
         // 逐条追加（sudo 下重定向必须发生在 sh -c 内，否则 >> 仍按调用方用户权限执行）
         for (const d of missing) {
           await sshExec(ctx.ssh, priv(`sh -c 'echo ${d.ip}    ${d.domains} >> /etc/hosts'`), 10_000)
@@ -1881,17 +1879,41 @@ export function registerProjectHandlers(): void {
       }
       const filePath = REMOTE_ENV_FILES[params.fileId]
       if (!filePath) throw new Error('未知的远程配置文件: ' + params.fileId)
-      const ts = Date.now()
-      await sshExec(ctx.ssh, `cp ${filePath} ${filePath}.bak.${ts} 2>/dev/null; true`, 10_000)
-      const existing = await sshExec(ctx.ssh, `grep -c '^export ${key}=' ${filePath} 2>/dev/null || echo 0`, 10_000)
-      const count = parseInt(existing.trim()) || 0
-      if (count > 0) {
-        // 已有定义则替换：grep -v 剔除旧行 + 追加新行 + mv 回写。
-        // 不用 sed 的 c\ 单行写法——macOS BSD sed 不支持（GNU sed 专属），会 exit 1
-        const safeVal = value.replace(/'/g, "'\\''")
-        await sshExec(ctx.ssh, `grep -v '^export ${key}=' ${filePath} > ${filePath}.mzi && echo "export ${key}='${safeVal}'" >> ${filePath}.mzi && mv ${filePath}.mzi ${filePath}`, 15_000)
+      const safeVal = value.replace(/'/g, "'\\''")
+      if (['zshrc', 'zshenv', 'zprofile'].includes(params.fileId)) {
+        // zsh 系与本地环境设置同机制：值落远程实时环境文件 + ~/.zshrc 幂等装同步钩子（md5 兼容
+        // macOS md5 与 Linux md5sum），已打开的远程终端下一条命令即生效，新开终端经钩子 source 生效
+        await sshExec(
+          ctx.ssh,
+          [
+            'f=~/.maozi-cloud-develop-admin-env.sh; touch "$f"',
+            `grep -v '^export ${key}=' "$f" > "$f.mzi" || true; echo "export ${key}='${safeVal}'" >> "$f.mzi"; mv "$f.mzi" "$f"`,
+            'z=~/.zshrc; touch "$z"',
+            `grep -q 'maozi-cloud-develop-admin (live-env)' "$z" || cat >> "$z" <<'MAOZI_EOF'`,
+            '',
+            '# >>> maozi-cloud-develop-admin (live-env) >>>',
+            '_maozi_env_sync() {',
+            '  local f="$HOME/.maozi-cloud-develop-admin-env.sh"',
+            '  [[ -r "$f" ]] || return',
+            `  local m; m=$(md5 -q "$f" 2>/dev/null || md5sum "$f" 2>/dev/null | awk '{print $1}')`,
+            '  [[ "$m" == "${_MAOZI_ENV_M:-}" ]] && return',
+            '  _MAOZI_ENV_M="$m"',
+            '  source "$f"',
+            '}',
+            '[[ " ${preexec_functions[*]:-} " == *" _maozi_env_sync "* ]] || preexec_functions+=(_maozi_env_sync)',
+            '[[ " ${precmd_functions[*]:-} " == *" _maozi_env_sync "* ]] || precmd_functions+=(_maozi_env_sync)',
+            '# <<< maozi-cloud-develop-admin (live-env) <<<',
+            'MAOZI_EOF'
+          ].join('\n'),
+          15_000
+        )
       } else {
-        await sshExec(ctx.ssh, `echo "export ${key}='${value.replace(/'/g, "'\\''")}'" >> ${filePath}`, 10_000)
+        // bash 系配置文件没有提示符钩子机制，维持直接写入（新开终端生效）
+        await sshExec(
+          ctx.ssh,
+          `grep -v '^export ${key}=' ${filePath} > ${filePath}.mzi 2>/dev/null || true; echo "export ${key}='${safeVal}'" >> ${filePath}.mzi; mv ${filePath}.mzi ${filePath}`,
+          15_000
+        )
       }
       // 远端配置已变更，环境快照立即失效（否则 TTL 内旧值仍会被重放）
       remoteEnvCache.delete(`${ctx.ssh.user}@${ctx.ssh.host}:${ctx.ssh.port}`)

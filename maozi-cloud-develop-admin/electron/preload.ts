@@ -116,6 +116,7 @@ contextBridge.exposeInMainWorld('api', {
     openDir: () => ipcRenderer.invoke('projects:openDir'),
     /** 项目 git 管理：仓库检测（含当前分支） */
     gitInfo: () => ipcRenderer.invoke('projects:gitInfo'),
+    gitRemoteCheck: () => ipcRenderer.invoke('projects:gitRemoteCheck'),
     /** 远程分支列表（git ls-remote --heads，需网络） */
     gitBranches: () => ipcRenderer.invoke('projects:gitBranches'),
     /** 拉取代码（git pull），日志走 onScriptLog */

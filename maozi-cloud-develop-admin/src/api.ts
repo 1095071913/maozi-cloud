@@ -192,8 +192,10 @@ export interface ElectronApi {
       cb: (payload: { kind: 'line' | 'update'; text: string; sid?: string }) => void
     ) => () => void
     openDir: () => Promise<PlatformResult>
-    /** 项目 git 管理：仓库检测（含当前分支） */
-    gitInfo: () => Promise<IpcResult<{ isRepo: boolean; branch: string }>>
+    /** 项目 git 管理：仓库检测（含当前分支与本地最后一次提交短 sha/时间） */
+    gitInfo: () => Promise<IpcResult<{ isRepo: boolean; branch: string; lastSha: string; lastTime: string }>>
+    /** 定时检测远程新提交：fetch 后统计本地落后上游的提交数（失败静默返回 behind=0）；附带本地最后一次提交短 sha 与时间 */
+    gitRemoteCheck: () => Promise<IpcResult<{ isRepo: boolean; branch: string; behind: number; lastSha: string; lastTime: string }>>
     /** 远程分支列表（需网络） */
     gitBranches: () => Promise<IpcResult<{ branches: string[] }>>
     /** 拉取代码（git pull），日志走 onScriptLog */

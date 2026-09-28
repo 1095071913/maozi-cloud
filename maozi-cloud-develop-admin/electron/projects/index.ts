@@ -7,25 +7,25 @@ import os from 'node:os'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import {
-    clearBinding,
-    getBinding,
-    isDbInitialized,
-    markDbInitialized,
-    parseConfigFile,
-    saveBinding,
-    userDataStateFile
+  clearBinding,
+  getBinding,
+  isDbInitialized,
+  markDbInitialized,
+  parseConfigFile,
+  saveBinding,
+  userDataStateFile
 } from './store'
 import {listConfigs} from '../configs/store'
 import {selectPlatform} from '../platform'
 import type {EnvFile, EnvVarEntry, HostsEntry} from '../platform/types'
 import {getShellPath} from '../system/sysinfo'
 import type {
-    AppServiceEntry,
-    ComposeServiceStats,
-    EnvSettingGroup,
-    EnvSettingItem,
-    EnvSettingSection,
-    ProjectBinding
+  AppServiceEntry,
+  ComposeServiceStats,
+  EnvSettingGroup,
+  EnvSettingItem,
+  EnvSettingSection,
+  ProjectBinding
 } from './types'
 
 const exec = promisify(execFile)
@@ -1834,26 +1834,47 @@ export function registerProjectHandlers(): void {
   /** git 通用低速熔断参数：GitHub 链路静默假死时快速失败而不是无限挂起 */
   const GIT_STALL_ARGS = ['-c', 'http.lowSpeedLimit=1024', '-c', 'http.lowSpeedTime=60']
 
-  /** 项目是否 git 仓库 + 当前分支（非仓库 / 未装 git 时 isRepo=false，不报错） */
+  /** 项目是否 git 仓库 + 当前分支 + 本地最后一次提交（短 sha/时间）（非仓库 / 未装 git 时 isRepo=false，不报错） */
   ipcMain.handle('projects:gitInfo', async () => {
-    const data = { isRepo: false, branch: '' }
+    const data = { isRepo: false, branch: '', lastSha: '', lastTime: '' }
     try {
       const b = getBinding()
       if (!b) throw new Error('尚未绑定项目')
+      // 提取 "短sha|提交时间"（%ci 形如 2026-09-29 14:30:25 +0800）
+      const pickLastCommit = (lines: string): void => {
+        const hit = lines
+          .split(/\r?\n/)
+          .map((l) => l.trim())
+          .find((l) => /^[0-9a-f]{7,}\|/.test(l))
+        if (!hit) return
+        const sep = hit.indexOf('|')
+        data.lastSha = hit.slice(0, sep)
+        data.lastTime = hit.slice(sep + 1).trim()
+      }
       if (b.remote) {
         const t = resolveSshTarget(b.remote.configId)
-        const out = await sshExec(t, `cd ${JSON.stringify(b.path)} && git branch --show-current`, 10_000)
-        const branch = out.trim().split(/\r?\n/).filter(Boolean).pop() ?? ''
-        return { ok: true, data: { isRepo: branch !== '', branch } }
+        const out = await sshExec(
+          t,
+          `cd ${JSON.stringify(b.path)} && git branch --show-current && git log -1 --format=%h|%ci`,
+          10_000
+        )
+        pickLastCommit(out)
+        const branch = out.trim().split(/\r?\n/).map((l) => l.trim()).filter(Boolean).pop() ?? ''
+        return { ok: true, data: { ...data, isRepo: branch !== '', branch } }
       }
       const pathEnv = await getShellPath()
+      const env = { ...process.env, PATH: pathEnv }
       const { stdout } = await exec('git', ['branch', '--show-current'], {
         cwd: b.path,
         timeout: 10_000,
-        env: { ...process.env, PATH: pathEnv }
+        env
       })
       const branch = stdout.trim()
-      return { ok: true, data: { isRepo: branch !== '', branch } }
+      if (branch) {
+        const log = await exec('git', ['log', '-1', '--format=%h|%ci'], { cwd: b.path, timeout: 10_000, env })
+        pickLastCommit(log.stdout)
+      }
+      return { ok: true, data: { ...data, isRepo: branch !== '', branch } }
     } catch (err) {
       return { ok: false, error: (err as Error).message, data }
     }
@@ -1888,6 +1909,49 @@ export function registerProjectHandlers(): void {
       return { ok: true, data: { branches } }
     } catch (err) {
       return { ok: false, error: (err as Error).message, data: { branches: [] } }
+    }
+  })
+
+  /**
+   * 定时检测远程新提交：git fetch 后统计本地落后上游的提交数（behind）。
+   * 非仓库 / 无上游 / 网络失败一律静默返回 behind=0（探测语义，不报错）
+   */
+  ipcMain.handle('projects:gitRemoteCheck', async () => {
+    const data = { isRepo: false, branch: '', behind: 0, lastSha: '', lastTime: '' }
+    try {
+      const b = getBinding()
+      if (!b) throw new Error('尚未绑定项目')
+      const proxy = await resolveGitProxy(b)
+      const run = async (args: string[], timeout: number): Promise<string> => {
+        if (b.remote) {
+          const t = resolveSshTarget(b.remote.configId)
+          return sshExec(t, `${proxy.sshEnvPrefix ?? ''}cd ${JSON.stringify(b.path)} && git ${args.join(' ')}`, timeout)
+        }
+        const pathEnv = await getShellPath()
+        const { stdout } = await exec('git', args, {
+          cwd: b.path,
+          timeout,
+          env: { ...process.env, PATH: pathEnv, ...(proxy.extraEnv ?? {}) }
+        })
+        return stdout
+      }
+      const branch = (await run(['branch', '--show-current'], 10_000)).trim()
+      if (!branch) return { ok: true, data }
+      data.isRepo = true
+      data.branch = branch
+      // 本地最后一次提交：短 sha + 提交时间（%ci 形如 2026-09-29 14:30:25 +0800）
+      const log = (await run(['log', '-1', '--format=%h|%ci'], 10_000)).trim()
+      const sep = log.indexOf('|')
+      if (sep > 0) {
+        data.lastSha = log.slice(0, sep)
+        data.lastTime = log.slice(sep + 1).trim()
+      }
+      await run(['fetch', 'origin', '--quiet', '--prune'], 30_000)
+      const cnt = (await run(['rev-list', '--count', 'HEAD..@{u}'], 10_000)).trim()
+      data.behind = parseInt(cnt, 10) || 0
+      return { ok: true, data }
+    } catch {
+      return { ok: true, data }
     }
   })
 

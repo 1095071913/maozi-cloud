@@ -69,6 +69,19 @@
               </svg>
               <span class="mono-text">{{ gitInfo.branch || '—' }}</span>
             </span>
+            <!-- 本地最后一次提交：短 sha + 时间（随 gitInfo 即时显示） -->
+            <span class="pc-git-last" :title="`本地最后一次提交：${gitLastCommit.time || '—'}`">
+              <span class="mono-text">{{ gitLastCommit.sha || '—' }}</span>
+              <em>·</em>{{ gitLastCommit.time ? fmtGitCommitTime(gitLastCommit.time) : '—' }}
+            </span>
+            <!-- 远程新提交提示：定时 git fetch 检测到落后时显示，点击拉取代码即更新 -->
+            <span
+              v-if="gitRemoteBehind > 0"
+              class="pc-git-behind"
+              title="定时检测到远程有新提交，点击右侧「拉取代码」更新"
+            >
+              <i></i>远程有 {{ gitRemoteBehind }} 个新提交
+            </span>
             <button class="pc-git-btn" type="button" @click="openBranchDialog">切换分支</button>
             <button class="pc-git-btn primary" type="button" :disabled="gitPulling" @click="onGitPull">
               <span v-if="gitPulling" class="pc-env-spin"></span>
@@ -4383,6 +4396,8 @@ onActivated(() => {
   void loadAppSvcStatuses()
   // git 仓库状态同理可能已变化（如目录外删除了 .git），刷新后按需隐藏分支与拉取/切换按钮
   void loadGitInfo()
+  // 定时探测远程新提交（仅 git 仓库时实际生效）
+  startGitRemoteWatch()
   // 回页首拉带 preferCache：1 分钟内的快照直接渲染，随后由轮询刷新
   void loadComposeStats(true)
   void loadAppSvcStats(true)
@@ -4393,6 +4408,8 @@ onDeactivated(() => {
     clearInterval(statsTimer)
     statsTimer = undefined
   }
+  // 切走导航停止远程提交探测
+  stopGitRemoteWatch()
   stopLogFollow()
   scriptVisible.value = false
   logVisible.value = false
@@ -4571,8 +4588,85 @@ const gitPulling = ref(false)
 
 async function loadGitInfo(): Promise<void> {
   const r = await api.projects.gitInfo()
-  gitInfo.value = r.ok && r.data ? r.data : { isRepo: false, branch: '' }
+  if (r.ok && r.data) {
+    gitInfo.value = r.data
+    // 最后一次提交随 gitInfo 即时就绪（本地读取，不等远程检测）
+    gitLastCommit.value = { sha: r.data.lastSha ?? '', time: r.data.lastTime ?? '' }
+  } else {
+    gitInfo.value = { isRepo: false, branch: '', lastSha: '', lastTime: '' }
+  }
 }
+
+/** ===== 远程新提交检测：定时 git fetch 统计落后提交数，有新提交则提示拉取 ===== */
+const gitRemoteBehind = ref(0)
+/** 本地最后一次提交：短 sha + 提交时间（原始串形如 2026-09-29 14:30:25 +0800） */
+const gitLastCommit = ref<{ sha: string; time: string }>({ sha: '', time: '' })
+let gitCheckTimer: ReturnType<typeof setInterval> | null = null
+/** 防重复提示：同一批新提交只 toast 一次，归零后重置 */
+let gitBehindNotified = false
+
+/** 提交时间展示：2026-09-29 14:30:25 +0800 → 09-29 14:30 */
+function fmtGitCommitTime(t: string): string {
+  const m = t.match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}:\d{2})/)
+  return m ? `${m[2]}-${m[3]} ${m[4]}` : t
+}
+
+async function checkGitRemote(): Promise<void> {
+  if (!binding.value || !gitInfo.value.isRepo || gitPulling.value) return
+  try {
+    const r = await api.projects.gitRemoteCheck()
+    if (r.ok && r.data && r.data.isRepo) {
+      gitRemoteBehind.value = r.data.behind
+      gitLastCommit.value = { sha: r.data.lastSha, time: r.data.lastTime }
+    } else {
+      gitRemoteBehind.value = 0
+    }
+    const behind = gitRemoteBehind.value
+    if (behind > 0 && !gitBehindNotified) {
+      gitBehindNotified = true
+      ElMessage({
+        type: 'info',
+        duration: 6000,
+        showClose: true,
+        message: `检测到远程有 ${behind} 个新提交，点击「拉取代码」更新`
+      })
+    }
+    if (behind === 0) gitBehindNotified = false
+  } catch {
+    /* 网络失败静默：下次轮询再试 */
+  }
+}
+
+let gitCheckWatchStop: (() => void) | null = null
+
+function startGitRemoteWatch(): void {
+  if (gitCheckTimer) return
+  // gitInfo 就绪（isRepo 变真）立即首查（fetch 网络耗时即全部延迟），之后每 30 秒探测一次
+  gitCheckWatchStop?.()
+  gitCheckWatchStop = watch(
+    () => gitInfo.value.isRepo,
+    (isRepo) => {
+      if (isRepo) {
+        void checkGitRemote()
+        gitCheckWatchStop?.()
+        gitCheckWatchStop = null
+      }
+    },
+    { immediate: true }
+  )
+  gitCheckTimer = setInterval(() => void checkGitRemote(), 30_000)
+}
+
+function stopGitRemoteWatch(): void {
+  if (gitCheckTimer) {
+    clearInterval(gitCheckTimer)
+    gitCheckTimer = null
+  }
+  gitCheckWatchStop?.()
+  gitCheckWatchStop = null
+}
+
+onUnmounted(stopGitRemoteWatch)
 
 /** 拉取代码（git pull）：日志走脚本日志会话，成功后刷新分支与项目版本 */
 async function onGitPull(): Promise<void> {
@@ -4589,8 +4683,12 @@ async function onGitPull(): Promise<void> {
     finishSession(s, r.ok)
     if (r.ok) {
       ElMessage.success('代码已更新到最新')
+      // 拉取后重置新提交提示并立即复测
+      gitRemoteBehind.value = 0
+      gitBehindNotified = false
       await loadGitInfo()
       void loadState()
+      void checkGitRemote()
     } else if (r.error !== '已手动中断') {
       ElMessage.error(r.error ?? '拉取失败')
     }
@@ -4880,6 +4978,55 @@ onMounted(loadState)
   color: #15803d;
   font-size: 12px;
   max-width: 200px;
+}
+
+/* 本地最后一次提交：灰色小药丸（短 sha + 时间） */
+.pc-git-last {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.pc-git-last .mono-text {
+  font-weight: 600;
+  color: #334155;
+}
+
+.pc-git-last em {
+  font-style: normal;
+  color: #cbd5e1;
+}
+
+/* 远程新提交提示徽标：琥珀药丸 + 呼吸圆点 */
+.pc-git-behind {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #b45309;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pc-git-behind i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f59e0b;
+  animation: pc-live-pulse 1.6s ease infinite;
 }
 
 .pc-git-branch svg {

@@ -18,11 +18,11 @@ export interface ProjectBinding {
   }
 }
 
-/** 环境设置条目：ENVIRONMENT_VARIABLE 中一条「中文名称 → 环境变量 key」及其当前值 */
+/** 环境设置条目：environment_variable.json 中一条「中文名称 → 环境变量 key」及其当前值 */
 export interface EnvSettingItem {
-  /** 中文名称（ENVIRONMENT_VARIABLE 的 key） */
+  /** 中文名称（environment_variable.json 的 key） */
   label: string
-  /** 环境变量 key（ENVIRONMENT_VARIABLE 的 value） */
+  /** 环境变量 key（environment_variable.json 的 value） */
   key: string
   /** 当前值（未设置为空串） */
   value: string
@@ -36,10 +36,33 @@ export interface EnvSettingItem {
   fileId?: string
 }
 
-/** 环境设置分组：顶层直接映射的变量归入 name 为空的组 */
+/** 环境设置分组：节内直接映射的变量归入 name 为空的组 */
 export interface EnvSettingGroup {
   name: string
   items: EnvSettingItem[]
+}
+
+/** 环境设置分节（弹窗里的 Tab）：对应 environment_variable.json 的一个一级属性。
+ *  第一节读系统/shell 环境变量（原行为），第二节读写业务 docker 编排的 .env 文件 */
+export interface EnvSettingSection {
+  /** 一级属性名（Tab 标题） */
+  name: string
+  /** 取值来源：env = 系统/shell 环境变量；file = 项目内 .env 文件 */
+  source: 'env' | 'file'
+  /** source=file 时目标文件相对路径（展示用） */
+  file?: string
+  /** 节内分组 */
+  groups: EnvSettingGroup[]
+}
+
+/** 应用服务（单体/微服务）条目：name 为插值后的真实服务名，file 标记归属 compose 文件 */
+export interface AppServiceEntry {
+  /** 真实服务名（yml 中 ${VAR} 占位已按 系统/业务.env 环境插值；docker compose 命令与状态匹配用） */
+  name: string
+  /** 归属 compose 文件（services 后端 / admin 前端后台 / nginx 流量入口） */
+  file: 'admin' | 'services' | 'nginx'
+  /** 服务名含占位时的静态前缀（如 maozi-cloud-admin-monomer），前端展示用；无占位时与 name 相同 */
+  base?: string
 }
 
 /** 单个基础服务容器的实时资源占用 */

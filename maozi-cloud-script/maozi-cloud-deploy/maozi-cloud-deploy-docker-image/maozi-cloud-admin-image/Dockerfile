@@ -31,8 +31,11 @@ RUN apk add --no-cache tzdata && \
     ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo 'Asia/Shanghai' > /etc/timezone
 
-# 覆盖默认 server 块 (default.conf 是 nginx:alpine 自带的欢迎页配置)
-COPY maozi-cloud-admin-nginx.conf /etc/nginx/conf.d/default.conf
+# 配置模板化: 放入 templates 目录, 容器启动时 nginx:alpine 入口脚本
+# 用 envsubst 把 ${API_BASE_PATH} 渲染进 /etc/nginx/conf.d/default.conf
+# (覆盖自带欢迎页); ENV 提供默认值, compose 按部署模式覆盖即可
+ENV API_BASE_PATH=http://maozi-cloud-gateway-service:1000
+COPY maozi-cloud-admin-nginx.conf /etc/nginx/templates/default.conf.template
 
 COPY --from=builder /build/dist /usr/share/nginx/html
 

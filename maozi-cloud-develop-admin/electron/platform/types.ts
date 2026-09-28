@@ -32,14 +32,16 @@ export interface EnvListResult {
   vars: EnvVarEntry[]
 }
 
-export type EnvSaveMode = 'add' | 'update' | 'remove' | 'reorder' | 'toggle'
+export type EnvSaveMode = 'add' | 'update' | 'remove' | 'reorder' | 'toggle' | 'rename'
 
 export interface EnvSaveParams {
   mode: EnvSaveMode
-  /** reorder 模式下不需要 */
+  /** reorder 模式下不需要；mode=rename 时为旧变量名 */
   key?: string
   value?: string
   fileId: string
+  /** mode=rename：新变量名 */
+  newKey?: string
   /** mode=reorder：该文件内的变量按此顺序重排 export 行 */
   orderedKeys?: string[]
   /** mode=toggle：目标启用状态（true=取消注释，false=注释该行） */

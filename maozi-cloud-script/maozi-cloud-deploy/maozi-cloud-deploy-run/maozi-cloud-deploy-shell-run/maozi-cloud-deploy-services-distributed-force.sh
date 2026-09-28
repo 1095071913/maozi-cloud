@@ -11,16 +11,15 @@
 # ------------------------------------------------------------
 # 工作流程:
 #   1. 切换到仓库根目录
-#   2. 构建基础镜像 maozi-cloud-base-jdk:1.0.0 (服务镜像 FROM 它, 必须先就绪)
-#   3. mvn clean install (并行线程数按 CPU 核数动态计算) 全量构建整个 reactor
-#   4. find 扫描 maozi-cloud-services 下所有 jar
-#   5. 对每个 jar:
+#   2. mvn clean install (并行线程数按 CPU 核数动态计算) 全量构建整个 reactor
+#   3. find 扫描 maozi-cloud-services 下所有 jar
+#   4. 对每个 jar:
 #        - 按服务名前缀路由镜像 / docker-compose 目录
 #        - 调用 render-image 渲染器: 读 maozi-cloud-services.json + 模板渲染
 #          ${service_name}-image, buildx 构建, compose up -d, rm 镜像文件
 #        - 服务不在 JSON 配置里时, 渲染器自动 skip, 不阻塞其他服务
 #        - 后台并行执行
-#   6. wait 等所有后台部署完成
+#   5. wait 等所有后台部署完成
 # ------------------------------------------------------------
 # 适用场景:
 #   - 首次部署
@@ -69,7 +68,7 @@ route_docker_dir() {
     local base="$current_directory/../../maozi-cloud-deploy-docker"
     case "$service_name" in
         maozi-cloud-basics-*) echo "$base/maozi-cloud-basics-docker" ;;
-        *)                    echo "$base/maozi-cloud-distributeds-docker" ;;
+        *)                    echo "$base/maozi-cloud-business-docker" ;;
     esac
 }
 
@@ -78,42 +77,7 @@ route_docker_dir() {
 source "$current_directory/maozi-cloud-deploy-shell-util/maozi-cloud-render-image.sh"
 
 # ============================================================
-# 1. 构建基础 JDK 镜像 (所有服务镜像 FROM 它 / business-jdk)
-# ------------------------------------------------------------
-# 两层结构, 必须按顺序构建:
-#   a) maozi-cloud-base-jdk:1.0.0     OS + 时区 + dumb-init (不含 OTel)
-#   b) maozi-cloud-business-jdk:1.0.0 FROM base-jdk + OTel Agent jar
-# 服务镜像按 OTel 开关 FROM 其中一个, 详见 maozi-cloud-services.json
-# ============================================================
-base_image_directory="$current_directory/../../maozi-cloud-deploy-docker-image/maozi-cloud-base-jdk-image"
-business_image_directory="$current_directory/../../maozi-cloud-deploy-docker-image/maozi-cloud-business-jdk-image"
-
-if [ -f "$base_image_directory/Dockerfile" ]; then
-    echo "[base] building maozi-cloud-base-jdk:1.0.0"
-    (cd "$base_image_directory" && docker buildx build -f Dockerfile -t maozi-cloud-base-jdk:1.0.0 .) || {
-        echo "[base] FAILED: maozi-cloud-base-jdk:1.0.0 build error, abort"
-        exit 1
-    }
-    echo "[base] done"
-else
-    echo "[base] skip: Dockerfile not found at $base_image_directory/Dockerfile"
-fi
-
-if [ -f "$business_image_directory/Dockerfile" ]; then
-    echo "[base] building maozi-cloud-business-jdk:1.0.0"
-    # business-jdk FROM base-jdk, 必须等上一步 base-jdk 构建完才能 FROM 到
-    # 上下文为 Dockerfile 所在目录 (含 OTel agent jar)
-    (cd "$business_image_directory" && docker buildx build -f Dockerfile -t maozi-cloud-business-jdk:1.0.0 .) || {
-        echo "[base] FAILED: maozi-cloud-business-jdk:1.0.0 build error, abort"
-        exit 1
-    }
-    echo "[base] done"
-else
-    echo "[base] skip: Dockerfile not found at $business_image_directory/Dockerfile"
-fi
-
-# ============================================================
-# 2. 全量 Maven 构建 (不做 -pl / -amd 增量, 直接整个 reactor)
+# 1. 全量 Maven 构建 (不做 -pl / -amd 增量, 直接整个 reactor)
 # ============================================================
 echo "[build] mvn clean install (full reactor)"
 
@@ -138,7 +102,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # ============================================================
-# 3. 扫描所有 jar, 过滤出可部署的服务
+# 2. 扫描所有 jar, 过滤出可部署的服务
 # ============================================================
 # 锁定仓库根的绝对路径, 让生成的临时脚本里的 cp 源路径不依赖 cwd
 repo_root="$(pwd)"

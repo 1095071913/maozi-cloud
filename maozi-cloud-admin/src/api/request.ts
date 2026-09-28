@@ -52,13 +52,16 @@ let isRefreshing = false
 /** 刷新期间被暂存的请求回调，刷新成功后按新 token 重放，失败时传 null 触发拒绝 */
 let pendingQueue: Array<(token: string | null) => void> = []
 
+/** 登录页完整路径（拼上 vite base 前缀）：原生整页跳转不带 base 会在子路径部署下 404 */
+const LOGIN_PATH = `${import.meta.env.BASE_URL}login`
+
 /** 登录失效统一处理：清理令牌并跳转登录页 */
 function handleUnauthorized(message?: string) {
   clearTokens()
   ElMessage.error(message || '登录已失效，请重新登录')
   // 跳转登录页（避免在登录页自身时重复 push）
-  if (window.location.pathname !== '/login') {
-    window.location.href = '/login'
+  if (window.location.pathname !== LOGIN_PATH) {
+    window.location.href = LOGIN_PATH
   }
 }
 
@@ -75,8 +78,8 @@ function applyRedirectHeader(headers: unknown): boolean {
   const value = String(raw).trim()
   if (value === '0') {
     clearTokens()
-    if (window.location.pathname !== '/login') {
-      window.location.href = '/login'
+    if (window.location.pathname !== LOGIN_PATH) {
+      window.location.href = LOGIN_PATH
     }
     return true
   }

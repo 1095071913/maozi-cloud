@@ -31,8 +31,8 @@ admin_directory="$repo_root/maozi-cloud-admin"
 # 部署资产目录 (镜像定义与 compose 均随脚本仓库走, 不侵入前端项目)
 image_directory="$current_directory/../../maozi-cloud-deploy-docker-image/maozi-cloud-admin-image"
 nginx_conf_name="maozi-cloud-admin-nginx.conf"
-COMPOSE_FILE="$current_directory/../../maozi-cloud-deploy-docker/maozi-cloud-distributeds-docker/maozi-cloud-admin-distributeds-docker.yml"
-IMAGE_TAG="maozi-cloud-admin-distributeds:laster"
+COMPOSE_FILE="$current_directory/../../maozi-cloud-deploy-docker/maozi-cloud-business-docker/maozi-cloud-admin-distributeds-docker.yml"
+IMAGE_TAG="maozi-cloud-admin-distributeds:latest"
 
 # ---- 前置检查 ----
 if [ ! -f "$admin_directory/package.json" ]; then
@@ -65,8 +65,25 @@ if [ $? -ne 0 ]; then
 fi
 
 # ---- 2. 拉起容器 (停旧 / 起新由 compose 自动处理) ----
-echo "[deploy] docker-compose -f $COMPOSE_FILE up -d"
-docker-compose -f "$COMPOSE_FILE" up -d
+# cd 进 compose 目录执行并显式指定项目名
+# -p maozi-cloud-business-docker-${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}-${VERSION:-${APPLICATION_VERSION:-main}}:
+#   - v1 docker-compose 只从工作目录读 .env (ENVIRONMENT / VERSION 等插值变量);
+#   - compose 不会对 -p 做变量插值, 必须由 shell 按同样的回退链展开后传入,
+#     调用方环境优先, 其次 .env, 逐级回退 APPLICATION_* / dev / main,
+#     与容器名等 yml 插值取同一份值
+compose_dir="$(dirname "$COMPOSE_FILE")"
+cd "$compose_dir"
+# .env 的值可含空格 (如 JVM_PARAMS), 不能整体 source, 仅按需提取插值 key;
+# compose 自身会正确解析整个 .env 做容器名等插值
+read_env() { grep -m1 "^$1=" .env 2>/dev/null | cut -d= -f2-; }
+ENVIRONMENT="${ENVIRONMENT:-$(read_env ENVIRONMENT)}"
+ENVIRONMENT="${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-$(read_env APPLICATION_ENVIRONMENT)}}"
+ENVIRONMENT="${ENVIRONMENT:-dev}"
+VERSION="${VERSION:-$(read_env VERSION)}"
+VERSION="${VERSION:-${APPLICATION_VERSION:-$(read_env APPLICATION_VERSION)}}"
+VERSION="${VERSION:-main}"
+echo "[deploy] cd $compose_dir && docker-compose -p maozi-cloud-business-docker-${ENVIRONMENT}-${VERSION} -f $(basename "$COMPOSE_FILE") up -d"
+docker-compose -p "maozi-cloud-business-docker-${ENVIRONMENT}-${VERSION}" -f "$(basename "$COMPOSE_FILE")" up -d
 if [ $? -ne 0 ]; then
     echo "[deploy] FAILED: docker-compose up error"
     exit 1

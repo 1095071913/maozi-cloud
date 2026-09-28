@@ -7,12 +7,15 @@
 server:
   port: ${APPLICATION_PORT:${application.port:0}}
   error.path: /application/error
+  shutdown: graceful # graceful=优雅停机 / immediate=立刻关闭
   # compression:                               # 响应压缩（按需开启）
   #   enabled: true
   #   min-response-size: 1024
   #   mime-types: application/json,application/xml,text/html,text/xml,text/plain
 
 spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 65s # 优雅停机等待最大超时时间，按需调整，一般10~30s
   main:
     banner-mode: off                           # 关闭 Spring Boot Banner（由 BaseApplication 自定义输出）
     log-startup-info: false                    # 关闭启动信息日志（由 BaseApplication 统一记录）

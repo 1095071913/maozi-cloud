@@ -6,6 +6,10 @@ import {ElementPlusResolver} from 'unplugin-vue-components/resolvers'
 import {fileURLToPath, URL} from 'node:url'
 
 export default defineConfig({
+  // 生产经外层统一入口 nginx 以 /admin 子路径托管 (剥前缀转发到本容器):
+  // 资源引用与路由 base 均自动取该值 (vue-router createWebHistory 默认读 BASE_URL),
+  // 本地 dev 访问地址相应变为 http://localhost:999/admin/
+  base: '/admin/',
   plugins: [
     vue(),
     AutoImport({

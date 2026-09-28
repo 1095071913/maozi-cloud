@@ -455,7 +455,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     	wrapper.in(getColumn(AbstractBaseDomain::getId),ids);
 
     	List<T> domains = list(wrapper);
-    	domains.parallelStream().forEach((domain)->{
+    	domains.forEach((domain)->{
 
     		if(domain.getStatus() == Status.DISABLE) {
 				throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
@@ -1279,7 +1279,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
 		CollectionUtil.collectionIsEmptyThrowError(ids, getResourceName() + "列表");
 
-		ids.parallelStream().forEach(this::removeById);
+		ids.forEach(this::removeById);
 
 		return ResultUtil.success();
 

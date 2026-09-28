@@ -28,6 +28,7 @@ import com.maozi.common.result.error.ErrorResult;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.gateway.utils.WebUtil;
 import io.opentelemetry.api.trace.Span;
+import jakarta.annotation.Nonnull;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.logging.MDC;
@@ -47,6 +48,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.reactive.result.view.ViewResolver;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.netty.channel.AbortedException;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -171,6 +173,7 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
 	 * 处理网关异常的核心方法。
 	 * <p>
 	 * 根据异常类型返回不同的错误响应：
+	 * - 客户端断连异常（AbortedException）：不记录错误日志，直接透传异常；
 	 * - NotFoundException：服务不存在，返回对应的错误码和 HTTP 状态码；
 	 * - BlockException（Sentinel 限流）：返回限流错误码和 HTTP 状态码；
 	 * - 其他异常：返回系统内部错误码和 HTTP 状态码。
@@ -183,9 +186,15 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
 	 * @return 异常处理完成的 Void Mono
 	 */
 	@Override
-	public Mono<Void> handle(ServerWebExchange exchange, Throwable e) {
+	public Mono<Void> handle(ServerWebExchange exchange, @Nonnull Throwable e) {
 
 		ServerHttpRequest request = exchange.getRequest();
+
+		// 客户端在响应发送过程中断开连接（AbortedException，含 Connection closed/reset、ClosedChannelException 包装）属于正常业务现象，
+		// 连接已关闭无法写回错误响应，不记录错误日志直接透传（透传后由 ReactorHooksConfiguration 的 onErrorDropped 钩子静默处理）
+		if (e instanceof AbortedException) {
+			return Mono.error(e);
+		}
 
 		// 当 OpenTelemetry 未生成有效 traceId 时，从请求头获取或生成 traceId 写入 MDC；OTel 已有则由其 MDC 集成接管，不覆盖
 		if (ApplicationLinkContext.TRACE_ID_VALUE.equals(Span.current().getSpanContext().getTraceId())) {
@@ -227,13 +236,13 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
 		// 记录错误响应日志
 		LogUtil.error(log,logs);
 
+		// 清除 MDC 上下文，防止内存泄漏
+		MDC.clear();
+
 		// 如果响应已提交（已发送给客户端），则无法修改，直接返回异常
 		if (exchange.getResponse().isCommitted()) {
 			return Mono.error(e);
 		}
-
-		// 清除 MDC 上下文，防止内存泄漏
-		MDC.clear();
 
 		// 将错误结果暂存到 ThreadLocal，供 renderErrorResponse 使用
 		exceptionHandlerResult.set(result);

@@ -9,8 +9,27 @@ body {
   font-family:
     -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC',
     'Microsoft YaHei', sans-serif;
-  background: linear-gradient(180deg, #f6f8fb 0%, #eef2f9 100%);
+  background: #fff;
   -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Electron 拖拽区防击穿 =====
+ * -webkit-app-region: drag 的区域（侧栏/无缝标题栏）会吞掉其几何范围内的所有点击，
+ * 且不受 z-index/弹窗覆盖影响（Electron 按合成层计算拖拽区）——小窗口时居中的弹窗
+ * 与拖拽区重叠，按钮点不动；放大窗口错开后才可点。所有 Element 覆盖层显式 no-drag。
+ */
+.el-overlay,
+.el-overlay-dialog,
+.el-dialog,
+.el-drawer,
+.el-message,
+.el-message-box,
+.el-popper,
+.el-picker__popper,
+.el-select__popper,
+.el-loading-mask,
+.el-image-viewer__wrapper {
+  -webkit-app-region: no-drag;
 }
 
 /* ===== 全局滚动条 ===== */

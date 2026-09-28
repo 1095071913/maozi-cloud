@@ -94,11 +94,16 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.invoke('projects:sshEnvSave', params),
     uiStateGet: () => ipcRenderer.invoke('projects:uiStateGet'),
     uiStateSave: (patch: Record<string, unknown>) => ipcRenderer.invoke('projects:uiStateSave', patch),
-    /** 数据库初始化状态：INIT_MYSQL_DB 定义的表是否均已存在 */
+    /** 数据库初始化状态：init_mysql_db 定义的表是否均已存在 */
     dbInitStatus: () => ipcRenderer.invoke('projects:dbInitStatus'),
     /** 初始化数据库：按需启动 mysql、检测表、导入缺失脚本 */
     dbInit: (sid?: string) => ipcRenderer.invoke('projects:dbInit', sid),
     envSettings: () => ipcRenderer.invoke('projects:envSettings'),
+    envFileSave: (input: { key: string; value: string }) => ipcRenderer.invoke('projects:envFileSave', input),
+    serviceConfig: (service: string, base?: string) => ipcRenderer.invoke('projects:serviceConfig', service, base),
+    hotSwap: (variant: string, enable: boolean, sid?: string) => ipcRenderer.invoke('projects:hotSwap', variant, enable, sid),
+    initImages: () => ipcRenderer.invoke('projects:initImages'),
+    initImageBuild: (name: string, sid?: string) => ipcRenderer.invoke('projects:initImageBuild', name, sid),
     stopScript: (sid?: string) => ipcRenderer.invoke('projects:stopScript', sid),
     onScriptLog: (cb: (payload: { kind: 'line' | 'update'; text: string; sid?: string }) => void) => {
       const listener = (

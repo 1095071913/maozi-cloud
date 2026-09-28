@@ -13,7 +13,7 @@ spring:
     password: ${application-datasource-jdbc-password:password}  # 数据库密码
     hikari:
       maximum-pool-size: 12         # 连接池最大连接数
-      connection-timeout: 6000      # 获取连接超时时间（毫秒）
+      connection-timeout: 16000      # 获取连接超时时间（毫秒）
       minimum-idle: 12              # 最小空闲连接数
       idle-timeout: 500000          # 空闲连接超时时间（毫秒）
       max-lifetime: 540000          # 连接最大存活时间（毫秒）

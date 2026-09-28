@@ -92,7 +92,7 @@ route_docker_dir() {
     local base="$current_directory/../../maozi-cloud-deploy-docker"
     case "$service_name" in
         maozi-cloud-basics-*) echo "$base/maozi-cloud-basics-docker" ;;
-        *)                    echo "$base/maozi-cloud-distributeds-docker" ;;
+        *)                    echo "$base/maozi-cloud-business-docker" ;;
     esac
 }
 

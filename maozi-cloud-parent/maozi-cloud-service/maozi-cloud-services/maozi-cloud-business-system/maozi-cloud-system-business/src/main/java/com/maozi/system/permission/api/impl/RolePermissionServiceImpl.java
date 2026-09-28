@@ -100,7 +100,7 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
 
 			};
 
-			bindPermissionIds.parallelStream().forEach(Objects.requireNonNull(consumer));
+			bindPermissionIds.forEach(Objects.requireNonNull(consumer));
 
 		}
 
@@ -111,7 +111,7 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
 				remove(Wrappers.lambdaQuery(RolePermissionDo.builder().roleId(roleId).permissionId(permissionId).build()));
 			};
 
-			unbindPermissionIds.parallelStream().forEach(Objects.requireNonNull(consumer));
+			unbindPermissionIds.forEach(Objects.requireNonNull(consumer));
 
 		}
 

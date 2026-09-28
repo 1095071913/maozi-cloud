@@ -16,7 +16,15 @@
 # 更新 jar 后在此目录覆盖同名文件, 并重新 build 本镜像即可 (无需重建 base-jdk).
 # ============================================================
 
-FROM maozi-cloud-base-jdk:1.0.0
+FROM eclipse-temurin:17-jre-jammy
+
+# 创建 APP 目录占位（${APP_NAME} 未赋值时实际为根目录）+ 设置时区为 Asia/Shanghai
+RUN mkdir -p /${APP_NAME} && \
+    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo 'Asia/Shanghai' > /etc/timezone
+
+# 安装 dumb-init（Ubuntu/Debian 系统用 apt，Alpine 用 apk）
+RUN apt update && apt install -y dumb-init && rm -rf /var/lib/apt/lists/*
 
 COPY opentelemetry-javaagent.jar          /opt/opentelemetry/opentelemetry-javaagent.jar
 COPY maozi-cloud-agent-opentelemetry.jar  /opt/opentelemetry/maozi-cloud-agent-opentelemetry.jar

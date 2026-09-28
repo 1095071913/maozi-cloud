@@ -1,0 +1,4 @@
+{
+  "maozi-cloud-base-jdk:1.0.0": "./maozi-cloud-base-jdk-image",
+  "maozi-cloud-business-jdk:1.0.0": "./maozi-cloud-business-jdk-image"
+}

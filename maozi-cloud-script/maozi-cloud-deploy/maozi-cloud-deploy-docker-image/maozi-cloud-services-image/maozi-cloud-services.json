@@ -1,8 +1,7 @@
 {
   "defaults": {
     "base_image": "maozi-cloud-business-jdk:1.0.0",
-    "jvm_params": "-Xms256m -Xmx256m -Xss256k -XX:MaxMetaspaceSize=192m -XX:+UseSerialGC -XX:CompressedClassSpaceSize=32m -XX:ReservedCodeCacheSize=32m -XX:MaxDirectMemorySize=32m",
-    "dubbo_flag": "-DDUBBO_IP_TO_REGISTRY=${DUBBO_IP_TO_REGISTRY}",
+    "jvm_params": "${JVM_PARAMS}",
     "add_opens": [
       "--add-opens java.base/java.math=ALL-UNNAMED",
       "--add-opens java.base/java.lang=ALL-UNNAMED",
@@ -25,31 +24,23 @@
   "services": [
     {
       "service_name": "maozi-cloud-gateway-service",
-      "service_port": 1100,
       "opentelemetry": true
     },
     {
       "service_name": "maozi-cloud-monitor-service",
-      "service_port": 2000,
       "opentelemetry": false,
       "base_image": "maozi-cloud-base-jdk:1.0.0"
     },
     {
       "service_name": "maozi-cloud-oauth-service",
-      "service_port": 3000,
-      "dubbo_port": 21881,
       "opentelemetry": true
     },
     {
       "service_name": "maozi-cloud-system-service",
-      "service_port": 4000,
-      "dubbo_port": 21880,
       "opentelemetry": true
     },
     {
       "service_name": "maozi-cloud-ai-service",
-      "service_port": 6000,
-      "dubbo_port": 21882,
       "opentelemetry": true
     }
   ]

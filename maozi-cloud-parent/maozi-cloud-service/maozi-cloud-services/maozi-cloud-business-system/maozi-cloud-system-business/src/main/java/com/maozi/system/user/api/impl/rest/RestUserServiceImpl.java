@@ -87,6 +87,9 @@ public class RestUserServiceImpl extends UserServiceImpl implements RestUserServ
 
 		// 先获取用户的用户名和客户端ID，删除后需用于注销认证令牌
 		UserDo user = getById(id, UserDo::getUsername,UserDo::getClientId);
+		if(ObjectUtil.isNullEmpty(user)){
+			return ResultUtil.success();
+		}
 
 		// 删除用户数据库记录
 		AbstractBaseResult<Void> responseResult = removeByIdResult(id);

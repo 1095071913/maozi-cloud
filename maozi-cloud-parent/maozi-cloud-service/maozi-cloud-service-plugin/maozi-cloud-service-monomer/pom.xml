@@ -15,4 +15,12 @@
     <!-- 单体部署插件构件名称 -->
     <artifactId>maozi-cloud-service-monomer</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.maozi</groupId>
+            <artifactId>maozi-cloud-config-monitor</artifactId>
+            <version>${maozi-cloud-config-monitor.version}</version>
+        </dependency>
+    </dependencies>
+
 </project>

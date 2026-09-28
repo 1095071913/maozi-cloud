@@ -6,12 +6,27 @@ import net from 'node:net'
 import os from 'node:os'
 import path from 'node:path'
 import crypto from 'node:crypto'
-import {clearBinding, getBinding, isDbInitialized, markDbInitialized, parseConfigFile, saveBinding, userDataStateFile} from './store'
+import {
+    clearBinding,
+    getBinding,
+    isDbInitialized,
+    markDbInitialized,
+    parseConfigFile,
+    saveBinding,
+    userDataStateFile
+} from './store'
 import {listConfigs} from '../configs/store'
 import {selectPlatform} from '../platform'
 import type {EnvFile, EnvVarEntry, HostsEntry} from '../platform/types'
 import {getShellPath} from '../system/sysinfo'
-import type {ComposeServiceStats, EnvSettingGroup, EnvSettingItem, ProjectBinding} from './types'
+import type {
+    AppServiceEntry,
+    ComposeServiceStats,
+    EnvSettingGroup,
+    EnvSettingItem,
+    EnvSettingSection,
+    ProjectBinding
+} from './types'
 
 const exec = promisify(execFile)
 
@@ -295,7 +310,11 @@ async function sshStream(
         clearTimeout(timer)
         if (carry.trim()) send('line', carry)
         const stopped = opts.sid ? (runningProcs.get(opts.sid)?.stopRequested ?? false) : false
-        if (opts.sid) runningProcs.delete(opts.sid)
+        // 被中断的会话保留 stopRequested 标记（无 child）：热备健康等待与后续流程据此中止
+        if (opts.sid) {
+          if (stopped) runningProcs.set(opts.sid, { stopRequested: true })
+          else runningProcs.delete(opts.sid)
+        }
         if (stopped) reject(new Error('已手动中断'))
         else if (code === 0) resolve(); else reject(new Error(`exit ${code}`))
       })
@@ -401,8 +420,10 @@ async function projStream(
   const ctx = getProjectCtx()
   const cwd = opts.cwd ?? ctx.root
   if (ctx.isRemote && ctx.ssh) {
-    // extraEnv 无法跨 SSH 生效，远程环境注入走 sshEnvPrefix（export 前缀）
-    const full = `${opts.sshEnvPrefix ?? ''}cd "${cwd}" && ${cmd} ${args.join(' ')}`
+    // extraEnv 无法跨 SSH 生效，远程环境注入走 sshEnvPrefix（export 前缀）；
+    // stdinData 以管道前置应答（如 compose rm 不带 --force 的交互确认）
+    const pipedIn = opts.stdinData !== undefined ? `printf 'y\\n' | ` : ''
+    const full = `${opts.sshEnvPrefix ?? ''}${pipedIn}cd "${cwd}" && ${cmd} ${args.join(' ')}`
     await sshStream(sender, channel, ctx.ssh, full, { timeoutMs: opts.timeoutMs, sid: opts.sid })
     return
   }
@@ -446,88 +467,202 @@ function projFileExistsSync(relPath: string): boolean {
   return fs.existsSync(path.join(b.path, relPath))
 }
 
-/** 项目内置 hosts 映射文件（相对项目根目录，每行 "IP<Tab>域名"） */
-const HOSTS_FILE = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-run/HOSTS'
+/** 项目内置 hosts 映射文件：JSON，key = ip，value = 域名（可逗号/空格分隔多个或字符串数组） */
+const HOSTS_FILE = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-run/init_hosts.json'
 
 /** 项目环境变量定义文件：JSON，key 为中文名称，value 为环境变量 key；value 为对象时表示分组 */
-const ENV_VARS_FILE = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-run/ENVIRONMENT_VARIABLE'
+/** 项目环境变量定义文件：JSON，一级属性为分节（Tab），节内中文名称 → 环境变量 key，可再嵌套一层分组 */
+const ENV_VARS_FILE = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-run/environment_variable.json'
+
+/** 服务级 docker 配置定义文件：JSON，一级 key = 容器完整名称（如 maozi-cloud-admin-monomer），节内 配置描述 → 变量 key */
+const DOCKER_VARS_FILE = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-run/docker_variable.json'
+
+/** 业务 docker 编排 .env 文件（每行 key=value）：环境设置第二个分节（Tab）的读写目标 */
+const BUSINESS_ENV_FILE = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker/maozi-cloud-business-docker/.env'
 
 /**
- * 数据库初始化定义文件：每行一个 SQL 脚本路径（相对项目根），# 注释与空行忽略。
- * 初始化标记为 .db-init.json（见 store.ts，位于 maozi-cloud-develop-admin 应用目录，git 已忽略）
+ * 数据库初始化定义文件：init_mysql_db.json（JSON 数组，每项一个 SQL 脚本路径，相对项目根）。
+ * 初始化标记为 .db-init.json（见 store.ts，位于 maozi-cloud-develop-admin 应用目录，git 已忽略）。
+ * 兼容尚未改名的旧文件 init_mysql_db（按行）
  */
-const INIT_MYSQL_DB_FILE = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-run/INIT_MYSQL_DB'
+const INIT_MYSQL_DB_FILE = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-run/init_mysql_db.json'
+const INIT_MYSQL_DB_FILE_LEGACY = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-run/init_mysql_db'
+
+/** 读取初始化脚本定义：优先 init_mysql_db.json，缺失时回退旧 init_mysql_db；均无返回 null */
+async function readInitMysqlDb(): Promise<string | null> {
+  if (await projFileExists(INIT_MYSQL_DB_FILE)) return readProjFile(INIT_MYSQL_DB_FILE)
+  if (await projFileExists(INIT_MYSQL_DB_FILE_LEGACY)) return readProjFile(INIT_MYSQL_DB_FILE_LEGACY)
+  return null
+}
+
+/** 初始化镜像定义文件：JSON，key = 镜像名（含 tag），value = 构建目录（相对本文件所在目录） */
+const INIT_BASE_IMAGE_FILE = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker-image/init_base_image.json'
+const DOCKER_IMAGE_DIR = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker-image'
 
 interface HostsDef {
   ip: string
   domains: string
 }
 
-/** 解析项目 hosts 文件：忽略空行与注释行 */
+/**
+ * 解析 init_hosts.json（key = ip，value = 域名）：同一 ip 可出现多条（JSON.parse 会丢弃
+ * 重复 key，改对原始文本逐条正则提取）；value 支持单个域名、逗号/空格分隔多个、字符串数组
+ */
 function parseProjectHosts(text: string): HostsDef[] {
   const defs: HostsDef[] = []
-  for (const raw of text.split('\n')) {
-    const line = raw.trim()
-    if (!line || line.startsWith('#')) continue
-    const m = line.match(/^(\S+)\s+(.+)$/)
-    if (!m) continue
-    if (!/^[0-9a-fA-F:.]+$/.test(m[1])) continue
-    const domains = m[2].trim().split(/\s+/).filter(Boolean).join(' ')
-    if (domains) defs.push({ ip: m[1], domains })
+  const re = /"([^"]+)"\s*:\s*(?:"([^"]*)"|\[([^\]]*)\])/g
+  let m: RegExpExecArray | null
+  while ((m = re.exec(text)) !== null) {
+    const ip = m[1].trim()
+    const raw = m[2] !== undefined ? m[2] : m[3] ?? ''
+    const domains = raw
+      .split(/[,，\s]+/)
+      .map((s) => s.trim().replace(/^"|"$/g, ''))
+      .filter(Boolean)
+      .join(' ')
+    if (!ip || !domains) continue
+    if (!/^[0-9a-fA-F:.]+$/.test(ip)) continue
+    defs.push({ ip, domains })
   }
   return defs
 }
 
-/** 解析 ENVIRONMENT_VARIABLE（JSON）：字符串 value 为直接映射，对象 value 为分组 */
-function parseEnvVarDefs(text: string): EnvSettingGroup[] {
+/**
+ * 解析 environment_variable.json（JSON）：一级属性 = 分节（Tab）。节内 value 为字符串是直接映射，
+ * 对象为分组（组内 key 为中文名称、value 为变量 key 字符串）；顶层 value 为字符串的旧两级
+ * 格式归入未命名分节，保持兼容
+ */
+function parseEnvVarDefs(text: string): EnvSettingSection[] {
   let data: unknown
   try {
     data = JSON.parse(text)
   } catch (err) {
-    throw new Error(`ENVIRONMENT_VARIABLE 不是合法 JSON：${(err as Error).message}`)
+    throw new Error(`environment_variable.json 不是合法 JSON：${(err as Error).message}`)
   }
   if (typeof data !== 'object' || data === null || Array.isArray(data)) {
-    throw new Error('ENVIRONMENT_VARIABLE 格式错误：顶层应为 JSON 对象')
+    throw new Error('environment_variable.json 格式错误：顶层应为 JSON 对象')
   }
-  const groups: EnvSettingGroup[] = []
+  const pushItem = (sec: EnvSettingSection, group: string, label: string, key: string): void => {
+    let g = sec.groups.find((x) => x.name === group)
+    if (!g) {
+      g = { name: group, items: [] }
+      sec.groups.push(g)
+    }
+    g.items.push({ label, key, value: '', found: false, enabled: false, source: '' })
+  }
+  const sections: EnvSettingSection[] = []
   for (const [name, val] of Object.entries(data as Record<string, unknown>)) {
     if (typeof val === 'string') {
-      if (!groups[0] || groups[0].name) groups.unshift({ name: '', items: [] })
-      groups[0].items.push({ label: name, key: val, value: '', found: false, enabled: false, source: '' })
+      if (!sections[0] || sections[0].name) sections.unshift({ name: '', source: 'env', groups: [] })
+      pushItem(sections[0], '', name, val)
       continue
     }
     if (typeof val !== 'object' || val === null || Array.isArray(val)) {
-      throw new Error(`ENVIRONMENT_VARIABLE 中「${name}」的值应为字符串或对象`)
+      throw new Error(`environment_variable.json 中「${name}」的值应为字符串或对象`)
     }
-    const items: EnvSettingItem[] = []
-    for (const [label, key] of Object.entries(val as Record<string, unknown>)) {
-      if (typeof key !== 'string') throw new Error(`ENVIRONMENT_VARIABLE「${name}.${label}」的值应为环境变量 key 字符串`)
-      items.push({ label, key, value: '', found: false, enabled: false, source: '' })
+    const sec: EnvSettingSection = { name, source: 'env', groups: [] }
+    for (const [label, entry] of Object.entries(val as Record<string, unknown>)) {
+      if (typeof entry === 'string') {
+        pushItem(sec, '', label, entry)
+        continue
+      }
+      if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) {
+        throw new Error(`environment_variable.json 中「${name}.${label}」的值应为字符串或对象`)
+      }
+      for (const [l2, key] of Object.entries(entry as Record<string, unknown>)) {
+        if (typeof key !== 'string') throw new Error(`environment_variable.json「${name}.${label}.${l2}」的值应为环境变量 key 字符串`)
+        pushItem(sec, label, l2, key)
+      }
     }
-    groups.push({ name, items })
+    sections.push(sec)
   }
-  return groups
+  // 分节取值来源：第一节 = 系统/shell 环境变量（原行为），第二节 = 业务 .env 文件
+  if (sections[1]) {
+    sections[1].source = 'file'
+    sections[1].file = BUSINESS_ENV_FILE
+  }
+  return sections
+}
+
+/** 解析 .env（每行 key=value，# 注释与空行忽略）：key → value */
+function parseEnvFile(text: string): Map<string, string> {
+  const map = new Map<string, string>()
+  for (const raw of text.split('\n')) {
+    const line = raw.trim()
+    if (!line || line.startsWith('#')) continue
+    const eq = line.indexOf('=')
+    if (eq <= 0) continue
+    map.set(line.slice(0, eq).trim(), line.slice(eq + 1).trim())
+  }
+  return map
+}
+
+/** 业务 .env 写入/删除一个 key 行（value 为 null 时删除该行）：原位更新或末尾追加，本地直写 / 远程 SSH */
+async function businessEnvFileSet(key: string, value: string | null): Promise<void> {
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) throw new Error(`变量名不合法: ${key}`)
+  if (value !== null && /[\r\n]/.test(value)) throw new Error('变量值不能包含换行')
+  const ctx = getProjectCtx()
+  const abs = path.join(ctx.root, BUSINESS_ENV_FILE)
+  if (ctx.isRemote && ctx.ssh) {
+    if (value === null) {
+      await sshExec(
+        ctx.ssh,
+        `test -f '${abs}' && grep -v '^${key}=' '${abs}' > '${abs}.mzi' 2>/dev/null || true; mv '${abs}.mzi' '${abs}'`,
+        15_000
+      )
+    } else {
+      const safeVal = value.replace(/'/g, "'\\''")
+      await sshExec(
+        ctx.ssh,
+        `test -f '${abs}' && grep -v '^${key}=' '${abs}' > '${abs}.mzi' || true; echo '${key}=${safeVal}' >> '${abs}.mzi'; mv '${abs}.mzi' '${abs}'`,
+        15_000
+      )
+    }
+    return
+  }
+  if (!fs.existsSync(abs)) {
+    if (value === null) return
+    fs.writeFileSync(abs, `${key}=${value}\n`, 'utf8')
+    return
+  }
+  const lines = fs.readFileSync(abs, 'utf8').split('\n')
+  const idx = lines.findIndex((l) => l.startsWith(`${key}=`))
+  if (value === null) {
+    if (idx >= 0) lines.splice(idx, 1)
+  } else if (idx >= 0) {
+    lines[idx] = `${key}=${value}`
+  } else {
+    // 末尾追加（跳过文件尾部空行，保留原有注释与顺序）
+    let end = lines.length
+    while (end > 0 && lines[end - 1].trim() === '') end--
+    lines.splice(end, 0, `${key}=${value}`)
+  }
+  fs.writeFileSync(abs, lines.join('\n'), 'utf8')
 }
 
 /**
  * 环境变量取值：shell 配置里已启用的最优先（文件顺序即展示顺序，zshrc/bash_profile 靠前），
- * 其次当前进程环境（覆盖 launchctl setenv 场景），最后保留被注释禁用行的值
+ * 其次当前进程环境（覆盖 launchctl setenv 场景），最后保留被注释禁用行的值。
+ * 空值一律视为未设置（export KEY="" / 进程环境为空串 = 清空取值，不算已配置）
  */
 function applyEnvValues(groups: EnvSettingGroup[], vars: EnvVarEntry[], files: EnvFile[]): void {
   const fileNames = new Map(files.map((f) => [f.id, f.name]))
+  const unset = (key: string): EnvSettingItem => ({ label: '', key, value: '', found: false, enabled: false, source: '' })
   const lookup = (key: string): EnvSettingItem => {
     const enabled = vars.find((v) => v.key === key && v.enabled)
     if (enabled) {
+      if (enabled.value === '') return unset(key)
       return { label: '', key, value: enabled.value, found: true, enabled: true, source: fileNames.get(enabled.fileId) ?? '', fileId: enabled.fileId }
     }
-    if (process.env[key] !== undefined) {
+    if (process.env[key]) {
       return { label: '', key, value: process.env[key] ?? '', found: true, enabled: true, source: '进程环境' }
     }
     const disabled = vars.find((v) => v.key === key)
     if (disabled) {
+      if (disabled.value === '') return unset(key)
       return { label: '', key, value: disabled.value, found: true, enabled: false, source: fileNames.get(disabled.fileId) ?? '', fileId: disabled.fileId }
     }
-    return { label: '', key, value: '', found: false, enabled: false, source: '' }
+    return unset(key)
   }
   for (const g of groups) {
     g.items = g.items.map((it) => ({ ...it, ...lookup(it.key), label: it.label }))
@@ -536,65 +671,365 @@ function applyEnvValues(groups: EnvSettingGroup[], vars: EnvVarEntry[], files: E
 
 /** 后台前端容器（maozi-cloud-admin-distributeds）compose 目录 / 文件与容器名 */
 const ADMIN_COMPOSE_DIR =
-  'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker/maozi-cloud-distributeds-docker'
+  'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker/maozi-cloud-business-docker'
 const ADMIN_COMPOSE_FILE = 'maozi-cloud-admin-distributeds-docker.yml'
 const ADMIN_CONTAINER = 'maozi-cloud-admin-distributeds'
 
 /**
- * 应用服务（单体 / 微服务）compose 定义：每变体一个目录，含 admin 与 services 两个 compose 文件。
+ * 应用服务（单体 / 微服务）compose 定义：两变体共用 maozi-cloud-business-docker 目录，
+ * 各含 admin 与 services 两个 compose 文件。
  * 两变体互斥：启动任一变体服务前，先 down 掉另一变体的全部服务
  */
 type AppSvcVariant = 'monomer' | 'distributeds'
 
-const APP_SVC_DEFS: Record<AppSvcVariant, { label: string; dir: string; adminFile: string; servicesFile: string }> = {
+/** 变体的 compose 文件清单：统一含 nginx，全部启停/互斥关闭/状态匹配均按整组处理 */
+const appSvcFiles = (def: { servicesFile: string; adminFile: string; nginxFile: string }): string[] => [
+  def.servicesFile,
+  def.adminFile,
+  def.nginxFile
+]
+
+const APP_SVC_DEFS: Record<
+  AppSvcVariant,
+  { label: string; dir: string; adminFile: string; servicesFile: string; nginxFile: string }
+> = {
   monomer: {
     label: '单体',
-    dir: 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker/maozi-cloud-monomer-docker',
+    dir: 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker/maozi-cloud-business-docker',
     adminFile: 'maozi-cloud-admin-monomer-docker.yml',
-    servicesFile: 'maozi-cloud-services-monomer-docker.yml'
+    servicesFile: 'maozi-cloud-services-monomer-docker.yml',
+    nginxFile: 'maozi-cloud-nginx-monomer-docker.yml'
   },
   distributeds: {
     label: '微服务',
-    dir: 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker/maozi-cloud-distributeds-docker',
+    dir: 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker/maozi-cloud-business-docker',
     adminFile: 'maozi-cloud-admin-distributeds-docker.yml',
-    servicesFile: 'maozi-cloud-services-distributeds-docker.yml'
+    servicesFile: 'maozi-cloud-services-distributeds-docker.yml',
+    nginxFile: 'maozi-cloud-nginx-distributeds-docker.yml'
   }
 }
 
-/** 应用服务日志/操作上下文：'basics' 或 '<variant>:<admin|services>' */
+/** 应用服务日志/操作上下文：'basics' 或 '<variant>:<admin|services|nginx>' */
 function resolveComposeCtx(ctx: string): { dir: string; file: string } | null {
   if (ctx === 'basics') return null
-  const m = ctx.match(/^(monomer|distributeds):(admin|services)$/)
+  const m = ctx.match(/^(monomer|distributeds):(admin|services|nginx)$/)
   if (!m) return null
   const def = APP_SVC_DEFS[m[1] as AppSvcVariant]
-  return { dir: def.dir, file: m[2] === 'admin' ? def.adminFile : def.servicesFile }
+  return {
+    dir: def.dir,
+    file: m[2] === 'admin' ? def.adminFile : m[2] === 'nginx' ? def.nginxFile : def.servicesFile
+  }
 }
 
-/** 读取变体的服务清单（admin + services 两个文件合并，标记归属文件） */
-async function readAppServices(bPath: string, variant: AppSvcVariant): Promise<Array<{ name: string; file: 'admin' | 'services' }>> {
+/** ${VAR} / ${VAR:-默认} 插值（由内向外逐轮展开，支持嵌套默认值）；未定义且无默认值的变量替换为空串 */
+function interpolateTemplate(tpl: string, values: Record<string, string>): string {
+  let out = tpl
+  for (let round = 0; round < 6 && out.includes('${'); round++) {
+    out = out.replace(/\$\{([^${}]+)\}/g, (_m, expr: string) => {
+      const dm = expr.match(/^([A-Za-z_][A-Za-z0-9_]*):-(.*)$/)
+      if (dm) {
+        const v = values[dm[1]]
+        return v !== undefined && v !== '' ? v : dm[2]
+      }
+      return values[expr] ?? ''
+    })
+  }
+  return out
+}
+
+/** 应用服务名称插值取值：系统/shell 环境打底，业务 .env 覆盖（ENVIRONMENT / VERSION 等编排变量） */
+async function appSvcNameValues(): Promise<Record<string, string>> {
+  let values: Record<string, string> = {}
+  try {
+    values = buildChildEnv()
+  } catch {
+    /* 非 darwin 或读取失败：退回进程环境（buildChildEnv 内部已兜底，此处双保险） */
+  }
+  try {
+    const dotEnv = parseEnvFile(await readProjFile(BUSINESS_ENV_FILE))
+    values = { ...values, ...Object.fromEntries(dotEnv) }
+  } catch {
+    /* .env 缺失时仅用系统环境 */
+  }
+  return values
+}
+
+/** 应用服务 compose 项目名：-p maozi-cloud-business-docker-${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}-${VERSION:-${APPLICATION_VERSION:-main}}，
+ *  与部署脚本 -p 一致。compose 不对 -p 做变量插值，须在此按 yml 同款回退链展开；
+ *  取值与容器名插值同源（.env 优先，逐级回退 APPLICATION_* / dev / main） */
+async function appSvcProjectName(): Promise<string> {
+  const v = await appSvcNameValues()
+  const environment = v.ENVIRONMENT || v.APPLICATION_ENVIRONMENT || 'dev'
+  const version = v.VERSION || v.APPLICATION_VERSION || 'main'
+  return `maozi-cloud-business-docker-${environment}-${version}`
+}
+
+/** ===== 应用服务「接口不停机更新」热备（单体 / 微服务通用） ===== */
+/** 热备 compose 文件：变体 services yml 的拷贝，container_name 统一加 -backup 后缀 */
+function hotSwapBackupFile(variant: AppSvcVariant): string {
+  return variant === 'monomer'
+    ? 'maozi-cloud-services-monomer-docker-backup.yml'
+    : 'maozi-cloud-services-distributeds-docker-backup.yml'
+}
+
+/** 开关持久化在 .ui-state.json（与 Tab 记忆同存储），重启应用后仍生效 */
+function hotSwapOn(variant: AppSvcVariant): boolean {
+  const key = variant === 'monomer' ? 'monomerHotSwap' : 'distributedsHotSwap'
+  try {
+    return JSON.parse(fs.readFileSync(uiStateFile(), 'utf8'))[key] === true
+  } catch {
+    return false
+  }
+}
+
+function setHotSwap(variant: AppSvcVariant, on: boolean): void {
+  const key = variant === 'monomer' ? 'monomerHotSwap' : 'distributedsHotSwap'
+  let cur: Record<string, unknown> = {}
+  try {
+    cur = JSON.parse(fs.readFileSync(uiStateFile(), 'utf8'))
+  } catch {
+    /* 首次创建 */
+  }
+  fs.writeFileSync(uiStateFile(), JSON.stringify({ ...cur, [key]: on }, null, 2), 'utf8')
+}
+
+/** 写项目内文件（本地 fs 或 SSH base64 回传） */
+async function writeProjFile(relPath: string, content: string): Promise<void> {
+  const ctx = getProjectCtx()
+  const abs = path.join(ctx.root, relPath)
+  if (ctx.isRemote && ctx.ssh) {
+    const b64 = Buffer.from(content, 'utf8').toString('base64')
+    await sshExec(ctx.ssh, `printf '%s' '${b64}' | base64 -d > '${abs}'`, 15_000)
+    return
+  }
+  fs.writeFileSync(abs, content, 'utf8')
+}
+
+/** 删除项目内文件 */
+async function deleteProjFile(relPath: string): Promise<void> {
+  const ctx = getProjectCtx()
+  const abs = path.join(ctx.root, relPath)
+  if (ctx.isRemote && ctx.ssh) {
+    await sshExec(ctx.ssh, `rm -f '${abs}'`, 10_000)
+    return
+  }
+  if (fs.existsSync(abs)) fs.unlinkSync(abs)
+}
+
+/** 生成热备 compose：拷贝变体 services yml，所有 container_name 追加 -backup（占位符原样保留） */
+async function writeHotSwapBackupYml(variant: AppSvcVariant, sender: Electron.WebContents, sid: string): Promise<void> {
   const def = APP_SVC_DEFS[variant]
-  const out: Array<{ name: string; file: 'admin' | 'services' }> = []
-  const read = async (fileName: string, tag: 'admin' | 'services'): Promise<void> => {
+  const backupFile = hotSwapBackupFile(variant)
+  const src = await readProjFile(path.join(def.dir, def.servicesFile))
+  const out = src.replace(/^(\s*container_name:\s*\S+)$/gm, '$1-backup')
+  if (out === src) throw new Error(`未在 ${def.servicesFile} 中找到 container_name，无法生成热备文件`)
+  await writeProjFile(path.join(def.dir, backupFile), out)
+  if (!sender.isDestroyed()) {
+    sender.send('projects:scriptLog', {
+      kind: 'line',
+      text: `✓ 已生成热备文件 ${backupFile}（container_name 加 -backup 后缀）`,
+      sid
+    })
+  }
+}
+
+/** 读取（插值后）指定 compose 文件的容器名列表（未设 container_name 的服务回退服务名）；可按服务名过滤 */
+async function composeContainerNames(relFile: string, only?: string): Promise<string[]> {
+  const interp = await appSvcNameValues()
+  const content = await readProjFile(relFile)
+  const cn = parseServiceContainerNames(content)
+  const services = parseComposeServices(content).filter((s) => !only || interpolateTemplate(s, interp) === only)
+  return [...new Set(services.map((s) => interpolateTemplate(cn[s] ?? s, interp)))]
+}
+
+/**
+ * 循环等待一组容器健康（docker inspect State.Health.Status = healthy；每 3 秒一查）：
+ * 未定义健康检查的容器视为就绪；容器未出现继续等；会话被中断或超时（默认 5 分钟）
+ * 告警返回 false，不抛错（热备语义：尽力而为，不阻断主流程）
+ */
+async function waitContainersHealthy(
+  sender: Electron.WebContents,
+  sid: string,
+  names: string[],
+  what: string,
+  timeoutMs = 5 * 60_000
+): Promise<boolean> {
+  const send = (text: string): void => {
+    if (!sender.isDestroyed()) sender.send('projects:scriptLog', { kind: 'line', text, sid })
+  }
+  if (names.length === 0) return true
+  const deadline = Date.now() + timeoutMs
+  send(`⏳ [热备] 等待${what}健康（${names.length} 个容器）…`)
+  for (let round = 1; ; round++) {
+    // 每轮先查中断标记（再做 inspect）：中断时零开销秒退，不让会话多等一轮探测
+    if (runningProcs.get(sid)?.stopRequested) {
+      send(`⏹ [热备] 会话已中断，停止等待${what}健康`)
+      return false
+    }
+    const pending: string[] = []
+    for (const name of names) {
+      let st = ''
+      try {
+        const { stdout } = await projExec(
+          'docker',
+          ['inspect', '-f', '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}', name],
+          { timeout: 10_000 }
+        )
+        st = stdout.trim()
+      } catch {
+        /* 容器尚未出现：继续等 */
+      }
+      // none = 未定义健康检查，视为就绪
+      if (st !== 'healthy' && st !== 'none') pending.push(name)
+    }
+    if (pending.length === 0) {
+      send(`✓ [热备] ${what}已全部健康`)
+      return true
+    }
+    if (Date.now() > deadline) {
+      send(`⚠ [热备] 等待${what}健康超时（待就绪：${pending.join('、')}），继续后续流程`)
+      return false
+    }
+    if (round % 10 === 0) send(`⏳ [热备] 仍待就绪（${pending.length}/${names.length}）：${pending.join('、')}`)
+    await new Promise((r) => setTimeout(r, 3000))
+  }
+}
+
+/**
+ * 热备容器启停（尽力而为，失败仅告警不中断主流程）：
+ * up = 整组或单服务 up -d，完成后循环等待热备容器健康才返回；
+ * down = 先循环等待主 compose 容器健康，再整组 down 或单服务 stop + rm（优雅停机）。
+ * -p 独立项目名（主项目名加 -backup 后缀），与主 compose 容器/网络隔离
+ */
+async function hotSwapBackupAction(
+  variant: AppSvcVariant,
+  sender: Electron.WebContents,
+  sid: string,
+  kind: 'up' | 'down',
+  service?: string
+): Promise<void> {
+  const def = APP_SVC_DEFS[variant]
+  const backupFile = hotSwapBackupFile(variant)
+  const dir = projPath(def.dir)
+  const ctx = getProjectCtx()
+  const composeBinParts =
+    ctx.isRemote && ctx.ssh ? (await remoteComposeCmd(ctx.ssh)).split(' ') : ['docker', 'compose']
+  const [cmd, ...base] = composeBinParts
+  // 热备全程（compose 执行 + 健康等待）持有会话条目：中断可打 stopRequested 标记，
+  // 健康等待循环据此退出；无长驻子进程的阶段（纯 inspect 轮询）也能被中断
+  if (!runningProcs.has(sid)) runningProcs.set(sid, { stopRequested: false })
+  const projArgs = [...base, '-p', `${await appSvcProjectName()}-backup`, '-f', backupFile]
+  // pre_stop 生命周期钩子只在 stop/down/restart 时触发（rm --stop --force 强杀会跳过）：
+  // 单服务回收改为 stop（优雅停机、执行钩子）+ rm 两步（rm 的交互确认由 stdin 自动应答）
+  // 中断后的回收加 --timeout 2：仍走优雅停机（pre_stop 会执行）但只等 2 秒，让会话尽快结束；
+  // 正常流程保持 docker 默认 10 秒优雅超时
+  const fastStop = runningProcs.get(sid)?.stopRequested === true
+  const cmdsList: string[][] =
+    kind === 'up'
+      ? [[...projArgs, 'up', '-d', ...(service ? [service] : [])]]
+      : service
+        ? [
+            [...projArgs, 'stop', ...(fastStop ? ['--timeout', '2'] : []), service],
+            [...projArgs, 'rm', service]
+          ]
+        : [[...projArgs, 'down', ...(fastStop ? ['--timeout', '2'] : [])]]
+  if (!sender.isDestroyed()) {
+    for (const a of cmdsList) {
+      sender.send('projects:scriptLog', { kind: 'line', text: `▶ [热备] ${cmd} ${a.join(' ')}`, sid })
+    }
+  }
+  if (kind === 'down') {
+    // 关闭前：主 compose 对应容器健康才回收热备（热备承接的流量已由健康的主容器接管）
+    try {
+      const names = await composeContainerNames(path.join(def.dir, def.servicesFile), service)
+      await waitContainersHealthy(sender, sid, names, service ? `主服务 ${service} ` : '主服务容器')
+    } catch (err) {
+      if (!sender.isDestroyed()) {
+        sender.send('projects:scriptLog', {
+          kind: 'line',
+          text: `⚠ [热备] 读取主 compose 容器名失败，跳过健康等待：${(err as Error).message}`,
+          sid
+        })
+      }
+    }
+  }
+  try {
+    for (const a of cmdsList) {
+      // rm 不带 --force 会交互式确认，stdin 预置 y 自动应答（本地 stdinData / 远程 printf 管道）
+      await projStream(sender, 'projects:scriptLog', cmd, a, {
+        cwd: dir,
+        timeoutMs: 10 * 60_000,
+        sid,
+        stdinData: a.includes('rm') ? 'y\n' : undefined
+      })
+    }
+  } catch (err) {
+    if (!sender.isDestroyed()) {
+      sender.send('projects:scriptLog', {
+        kind: 'line',
+        text: `⚠ [热备] ${kind}${service ? ` ${service}` : ''} 失败：${(err as Error).message}（继续原流程）`,
+        sid
+      })
+    }
+    return
+  }
+  if (kind === 'up') {
+    // 启动后：热备容器健康才进入下一步（主流程重启期间由健康的热备承接流量）。
+    // streamProcess 结束会删除会话条目——补注册无 child 的标记条目，健康等待期间可被中断
+    if (!runningProcs.has(sid)) runningProcs.set(sid, { stopRequested: false })
+    try {
+      const names = await composeContainerNames(path.join(def.dir, backupFile), service)
+      await waitContainersHealthy(sender, sid, names, service ? `热备 ${service} ` : '热备容器')
+    } catch (err) {
+      if (!sender.isDestroyed()) {
+        sender.send('projects:scriptLog', {
+          kind: 'line',
+          text: `⚠ [热备] 读取热备容器名失败，跳过健康等待：${(err as Error).message}`,
+          sid
+        })
+      }
+    }
+  }
+}
+
+/** 读取变体的服务清单（admin + services 两个文件合并，标记归属文件）。
+ *  服务名可含 ${VAR} 占位（按环境/版本区分实例）：name 为插值后的真实名称
+ *  （docker compose 命令与状态匹配用），base 为占位前的静态前缀（前端展示用） */
+async function readAppServices(bPath: string, variant: AppSvcVariant): Promise<AppServiceEntry[]> {
+  const def = APP_SVC_DEFS[variant]
+  const interp = await appSvcNameValues()
+  const out: AppServiceEntry[] = []
+  const read = async (fileName: string, tag: 'admin' | 'services' | 'nginx'): Promise<void> => {
     const ymlRel = path.join(def.dir, fileName)
     try {
       const ymlContent = await readProjFileCached(ymlRel)
-      for (const name of parseComposeServices(ymlContent)) out.push({ name, file: tag })
+      for (const raw of parseComposeServices(ymlContent)) {
+        const name = interpolateTemplate(raw, interp)
+        out.push({ name, file: tag, base: raw.split('${')[0].replace(/-+$/, '') || name })
+      }
     } catch { /* 文件不存在时跳过 */ }
   }
+  // nginx 流量入口排首位，其后是 admin 前端与 services 后端
+  await read(def.nginxFile, 'nginx')
   await read(def.adminFile, 'admin')
   await read(def.servicesFile, 'services')
   return out
 }
 
-/** 变体所有服务的容器名映射（服务名 → 容器名，读取两个 yml 的 container_name） */
+/** 变体所有服务的容器名映射（插值后的服务名 → 插值后的 container_name，读取两个 yml） */
 async function appSvcContainerNames(bPath: string, variant: AppSvcVariant): Promise<Record<string, string>> {
   const def = APP_SVC_DEFS[variant]
-  const map: Record<string, string> = {}
-  for (const fileName of [def.servicesFile, def.adminFile]) {
+  const interp = await appSvcNameValues()
+  const raw: Record<string, string> = {}
+  for (const fileName of appSvcFiles(def)) {
     try {
       const content = await readProjFileCached(path.join(def.dir, fileName))
-      Object.assign(map, parseServiceContainerNames(content))
+      Object.assign(raw, parseServiceContainerNames(content))
     } catch { /* 文件不存在时跳过 */ }
+  }
+  const map: Record<string, string> = {}
+  for (const [svc, container] of Object.entries(raw)) {
+    map[interpolateTemplate(svc, interp)] = interpolateTemplate(container, interp)
   }
   // 未设 container_name 的服务回退为服务名本身（compose 默认行为）
   for (const e of await readAppServices(bPath, variant)) {
@@ -625,6 +1060,10 @@ const DEPLOY_SCRIPTS: Record<string, { file: string; label: string }> = {
   monomerAdmin: {
     file: 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-run/maozi-cloud-deploy-shell-run/maozi-cloud-deploy-admin-monomer.sh',
     label: '后台编译启动'
+  },
+  dockerClear: {
+    file: 'maozi-cloud-script/maozi-cloud-utils/docker-clear.sh',
+    label: '容器磁盘清除'
   }
 }
 const CLONE_DIR = 'maozi-cloud'
@@ -864,13 +1303,24 @@ async function dockerNetworkExists(name: string): Promise<boolean> {
     .includes(name)
 }
 
-/** 解析 INIT_MYSQL_DB：每行一个 SQL 脚本路径（相对项目根） */
+/**
+ * 解析 init_mysql_db.json：JSON 数组，每项一个 SQL 脚本路径（相对项目根）。
+ * 兼容旧格式（无 .json 后缀、每行一个路径）与解析失败时的逐行回退
+ */
 function parseInitMysqlDb(text: string): string[] {
+  try {
+    const data: unknown = JSON.parse(text)
+    if (Array.isArray(data)) {
+      return data.filter((s): s is string => typeof s === 'string' && !!s.trim()).map((s) => s.trim())
+    }
+  } catch {
+    /* 非 JSON（旧格式）：按行解析 */
+  }
   const out: string[] = []
   for (const raw of text.split(/\r?\n/)) {
     const line = raw.trim()
-    if (!line || line.startsWith('#')) continue
-    out.push(line)
+    if (!line || line.startsWith('#') || line.startsWith('[') || line.startsWith(']')) continue
+    out.push(line.replace(/",?$/, '').replace(/^"/, ''))
   }
   return out
 }
@@ -950,10 +1400,20 @@ function parseComposeServices(text: string): string[] {
     if (!inServices) continue
     // 顶级 key：services 段结束
     if (/^\S/.test(raw)) break
-    const m = raw.match(/^ {2}([A-Za-z0-9_.-]+):\s*(?:#.*)?$/)
+    // 服务名可含 ${VAR}/${VAR:-默认} 占位（按环境/版本区分实例）：
+    // 起始非空白 + 贪婪匹配到行尾冒号（占位符内也含冒号，不能截断）
+    const m = raw.match(/^ {2}(\S.*):\s*(?:#.*)?$/)
     if (m) services.push(m[1])
   }
   return services
+}
+
+/** docker ps 的 Status 文本 → 健康状态：含 (healthy)/(unhealthy)/(health: starting) 标记时返回对应值，否则空串 */
+function parseHealthMark(status: string): string {
+  if (status.includes('(healthy)')) return 'healthy'
+  if (status.includes('(unhealthy)')) return 'unhealthy'
+  if (status.includes('(health: starting)')) return 'starting'
+  return ''
 }
 
 /** 解析 docker compose ps --format json 输出为 服务名→状态 映射（兼容数组/逐行两种格式） */
@@ -1011,7 +1471,8 @@ function parseServiceContainerNames(text: string): Record<string, string> {
   let curSvc = ''
   for (const raw of text.split(/\r?\n/)) {
     if (!raw.trim() || /^\s*#/.test(raw)) continue
-    const mSvc = raw.match(/^ {2}([A-Za-z0-9_.-]+):\s*(?:#.*)?$/)
+    // 服务名可含 ${VAR} 占位（与 parseComposeServices 同规则：贪婪匹配到行尾冒号）
+    const mSvc = raw.match(/^ {2}(\S.*):\s*(?:#.*)?$/)
     if (mSvc) {
       curSvc = mSvc[1]
       continue
@@ -1233,7 +1694,11 @@ async function streamProcess(
     child.on('close', (code) => {
       clearTimeout(timer)
       const stopped = sid ? (runningProcs.get(sid)?.stopRequested ?? false) : false
-      if (sid) runningProcs.delete(sid)
+      // 被中断的会话保留 stopRequested 标记（无 child）：热备健康等待与后续流程据此中止
+      if (sid) {
+        if (stopped) runningProcs.set(sid, { stopRequested: true })
+        else runningProcs.delete(sid)
+      }
       if (carry.trim()) send('line', carry)
       if (stopped) reject(new Error('已手动中断'))
       else if (code === 0) resolve()
@@ -1519,6 +1984,26 @@ export function registerProjectHandlers(): void {
         text: `▶ [${def.label}] 执行 ${def.file}`,
         sid
       })
+      // 热备：编译启动脚本执行前先起热备容器承接流量（尽力而为），脚本真正结束后回收。
+      // 脚本 → 热备变体：单体编译启动 → 单体；微服务按需/全量编译启动 → 微服务
+      const HOT_SWAP_SCRIPT_KINDS: Record<string, AppSvcVariant> = {
+        monomerServices: 'monomer',
+        demand: 'distributeds',
+        all: 'distributeds'
+      }
+      const swapVariant = HOT_SWAP_SCRIPT_KINDS[key]
+      const hotSwap = !!swapVariant && hotSwapOn(swapVariant)
+      if (hotSwap && swapVariant) {
+        if (!(await projFileExists(path.join(APP_SVC_DEFS[swapVariant].dir, hotSwapBackupFile(swapVariant))))) {
+          await writeHotSwapBackupYml(swapVariant, event.sender, sid)
+        }
+        await hotSwapBackupAction(swapVariant, event.sender, sid, 'up')
+        // 热备阶段被中断（up 执行中或健康等待中）：跳过脚本执行，finally 仍会回收热备容器
+        if (runningProcs.get(sid)?.stopRequested) {
+          event.sender.send('projects:scriptLog', { kind: 'line', text: '⏹ 已中断，跳过脚本执行', sid })
+          return { ok: true }
+        }
+      }
       try {
         await projStream(event.sender, 'projects:scriptLog', 'bash', [script], {
           cwd: b.path,
@@ -1529,6 +2014,11 @@ export function registerProjectHandlers(): void {
       } catch (err) {
         const msg = (err as Error).message
         throw new Error(msg.startsWith('exit ') ? `脚本执行失败（${msg}），详见日志` : msg)
+      } finally {
+        if (hotSwap && swapVariant) await hotSwapBackupAction(swapVariant, event.sender, sid, 'down')
+        // 清理无子进程的标记条目（被中断会话保留的 stopRequested 存根）
+        const entry = runningProcs.get(sid)
+        if (entry && !entry.child) runningProcs.delete(sid)
       }
       return { ok: true }
     } catch (err) {
@@ -1549,8 +2039,8 @@ export function registerProjectHandlers(): void {
   })
 
   /**
-   * 基础服务启动/停止/重启：up -d <svc> / rm -sf <svc> / down，
-   * 重启 = 先 rm -sf 移除容器再 up -d 重建，日志走 projects:scriptLog
+   * 基础服务启动/停止/重启：up -d <svc> / down / stop + rm <svc>（优雅停机，触发生命周期钩子），
+   * 重启 = 先 stop + rm 移除容器再 up -d 重建，日志走 projects:scriptLog
    */
   ipcMain.handle('projects:composeAction', async (event, service: string, action: string, sidArg?: string) => {
     try {
@@ -1574,8 +2064,8 @@ export function registerProjectHandlers(): void {
         : action === 'start'
           ? [['compose', 'up', '-d', service]]
           : action === 'stop'
-            ? [['compose', 'rm', '--stop', '--force', service]]
-            : [['compose', 'rm', '--stop', '--force', service], ['compose', 'up', '-d', service]]
+            ? [['compose', 'stop', service], ['compose', 'rm', service]]
+            : [['compose', 'stop', service], ['compose', 'rm', service], ['compose', 'up', '-d', service]]
       for (const args of cmdList) {
         if (!event.sender.isDestroyed()) {
           event.sender.send('projects:scriptLog', {
@@ -1588,7 +2078,9 @@ export function registerProjectHandlers(): void {
           await projStream(event.sender, 'projects:scriptLog', 'docker', args, {
             cwd: dir,
             timeoutMs: 10 * 60_000,
-            sid
+            sid,
+            // rm 不带 --force 会交互式确认，stdin 预置 y 自动应答
+            stdinData: args.includes('rm') ? 'y\n' : undefined
           })
         } catch (err) {
           const msg = (err as Error).message
@@ -1656,8 +2148,8 @@ export function registerProjectHandlers(): void {
       }
       const args =
         action === 'start'
-          ? ['compose', '-f', ADMIN_COMPOSE_FILE, 'up', '-d']
-          : ['compose', '-f', ADMIN_COMPOSE_FILE, 'down']
+          ? ['compose', '-p', await appSvcProjectName(), '-f', ADMIN_COMPOSE_FILE, 'up', '-d']
+          : ['compose', '-p', await appSvcProjectName(), '-f', ADMIN_COMPOSE_FILE, 'down']
       if (!event.sender.isDestroyed()) {
         event.sender.send('projects:scriptLog', {
           kind: 'line',
@@ -1872,7 +2364,8 @@ export function registerProjectHandlers(): void {
       const key = String(params.key ?? '').trim()
       const value = String(params.value ?? '').trim()
       if (!key || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) throw new Error('变量名不合法')
-      if (!value) throw new Error('变量值不能为空')
+      if (/[\r\n]/.test(value)) throw new Error('变量值不能包含换行')
+      // 值允许为空：写 export KEY=''（临时清空变量、保留 key）
       const REMOTE_ENV_FILES: Record<string, string> = {
         zshrc: '~/.zshrc', zshenv: '~/.zshenv', zprofile: '~/.zprofile',
         bashrc: '~/.bashrc', bash_profile: '~/.bash_profile', profile: '~/.profile'
@@ -1953,18 +2446,26 @@ export function registerProjectHandlers(): void {
       if (!b) throw new Error('尚未绑定项目')
       if (variantArg !== 'monomer' && variantArg !== 'distributeds') throw new Error('非法的变体')
       const services = await readAppServices(b.path, variantArg)
-      return { ok: true, data: { services } }
+      // 当前编排取值（与 compose 占位符一致：业务 .env 优先、其次系统环境变量）：
+      // 用于服务/容器命名，随列表一并提供给前端展示（环境 / 灰度）
+      const interp = await appSvcNameValues()
+      const env = {
+        ENVIRONMENT: interpolateTemplate('${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}', interp),
+        VERSION: interpolateTemplate('${VERSION:-${APPLICATION_VERSION:-main}}', interp)
+      }
+      return { ok: true, data: { services, env } }
     } catch (err) {
       return { ok: false, error: (err as Error).message, data: { services: [] } }
     }
   })
 
   /**
-   * 应用服务运行状态（服务名 → State）：docker ps 一次拉全量，按容器名匹配。
+   * 应用服务运行状态（服务名 → State）+ 健康检查状态（定义了 healthcheck 的容器才有）：
+   * docker ps 一次拉全量（Names|Status，Status 含 (healthy)/(unhealthy)/(health: starting) 标记），按容器名匹配。
    * 不走 compose ps —— compose 会因自定义 log 字段校验失败
    */
   ipcMain.handle('projects:appServicesStatus', async (_e, variantArg: string) => {
-    const empty: Record<string, string> = {}
+    const empty = { states: {} as Record<string, string>, healths: {} as Record<string, string> }
     try {
       const b = getBinding()
       if (!b) throw new Error('尚未绑定项目')
@@ -1972,31 +2473,47 @@ export function registerProjectHandlers(): void {
       await checkDockerCompose()
 
       const ctx = getProjectCtx()
-      let runningNames: Set<string>
+      // 容器名 → 健康状态（healthy/unhealthy/starting；无 healthcheck 或已停止为空串）
+      const healthOf = new Map<string, string>()
 
       if (ctx.isRemote && ctx.ssh) {
-        // 远程：SSH 执行 docker ps，只取运行中容器名（最简格式，无特殊字符）
-        const out = await sshExec(ctx.ssh, 'docker ps --format {{.Names}} 2>&1', 15_000)
-        runningNames = new Set(
-          out.split(/\r?\n/).map((l) => l.trim()).filter((l) => l && !l.includes('command not found') && !l.includes('error'))
-        )
+        // 远程：SSH 执行 docker ps，取 名称|状态（Status 文本含健康检查标记）
+        const out = await sshExec(ctx.ssh, 'docker ps --format "{{.Names}}|{{.Status}}" 2>&1', 15_000)
+        for (const l of out.split(/\r?\n/)) {
+          const line = l.trim()
+          if (!line || line.includes('command not found') || line.includes('error')) continue
+          const sep = line.indexOf('|')
+          if (sep <= 0) continue
+          const name = line.slice(0, sep)
+          const status = line.slice(sep + 1)
+          healthOf.set(name, parseHealthMark(status))
+        }
       } else {
         // 本地
         const pathEnv = await getShellPath()
-        const { stdout } = await exec('docker', ['ps', '--format', '{{.Names}}'], {
+        const { stdout } = await exec('docker', ['ps', '--format', '{{.Names}}|{{.Status}}'], {
           timeout: 15_000,
           env: { ...process.env, PATH: pathEnv }
         })
-        runningNames = new Set(stdout.split(/\r?\n/).map((l) => l.trim()).filter(Boolean))
+        for (const l of stdout.split(/\r?\n/)) {
+          const line = l.trim()
+          if (!line) continue
+          const sep = line.indexOf('|')
+          if (sep <= 0) continue
+          healthOf.set(line.slice(0, sep), parseHealthMark(line.slice(sep + 1)))
+        }
       }
 
-      // 变体服务名 → 容器名 → 在运行列表中则为 running
+      // 变体服务名 → 容器名 → 在运行列表中则为 running；healthcheck 状态一并带出
       const states: Record<string, string> = {}
+      const healths: Record<string, string> = {}
       const names = await appSvcContainerNames(b.path, variantArg as AppSvcVariant)
       for (const [svc, container] of Object.entries(names)) {
-        states[svc] = runningNames.has(container) ? 'running' : 'exited'
+        const h = healthOf.get(container)
+        states[svc] = h !== undefined ? 'running' : 'exited'
+        healths[svc] = h ?? ''
       }
-      return { ok: true, data: states }
+      return { ok: true, data: { states, healths } }
     } catch (err) {
       return { ok: false, error: (err as Error).message, data: empty }
     }
@@ -2198,7 +2715,7 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
 })
 
   /**
-   * 应用服务互斥停机：docker compose -f <file> down 两个 compose 文件（与全部关闭同款语义）。
+   * 应用服务互斥停机：docker compose -p <项目名> -f <file> down 两个 compose 文件（与全部关闭同款语义）。
    * 无运行容器时跳过。日志走 projects:scriptLog
    */
   async function appServicesDown(
@@ -2240,9 +2757,10 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
       ? (await remoteComposeCmd(ctx.ssh)).split(' ') // 远程可能是 v1 docker-compose
       : ['docker', 'compose']
     const [composeCmd, ...composeArgs] = composeBinParts
+    const project = await appSvcProjectName()
     const dir = path.join(bPath, def.dir)
-    for (const fileName of [def.servicesFile, def.adminFile]) {
-      const args = [...composeArgs, '-f', fileName, 'down']
+    for (const fileName of appSvcFiles(def)) {
+      const args = [...composeArgs, '-p', project, '-f', fileName, 'down']
       send(`▶ ${[composeCmd, ...args].join(' ')}`)
       try {
         await projStream(event.sender, 'projects:scriptLog', composeCmd, args, {
@@ -2270,14 +2788,15 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
         const b = getBinding()
         if (!b) throw new Error('尚未绑定项目')
         if (variantArg !== 'monomer' && variantArg !== 'distributeds') throw new Error('非法的变体')
-        if (fileTag !== 'admin' && fileTag !== 'services') throw new Error('非法的文件标识')
+        if (fileTag !== 'admin' && fileTag !== 'services' && fileTag !== 'nginx') throw new Error('非法的文件标识')
         if (!/^[A-Za-z0-9_.-]+$/.test(String(service))) throw new Error('非法的服务名')
         if (action !== 'start' && action !== 'stop' && action !== 'restart') throw new Error('非法的操作')
         await checkDockerCompose()
         const variant = variantArg as AppSvcVariant
         const def = APP_SVC_DEFS[variant]
         const dir = path.join(b.path, def.dir)
-        const fileName = fileTag === 'admin' ? def.adminFile : def.servicesFile
+        const fileName =
+          fileTag === 'admin' ? def.adminFile : fileTag === 'nginx' ? def.nginxFile : def.servicesFile
         if (!fs.existsSync(path.join(dir, fileName))) throw new Error(`未找到 ${def.dir}/${fileName}`)
         const send = (text: string): void => {
           if (!event.sender.isDestroyed()) event.sender.send('projects:scriptLog', { kind: 'line', text, sid })
@@ -2289,31 +2808,52 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
           await appServicesDown(event, b.path, other, `启动${def.label}服务 ${service}`, sid)
         }
 
+        // 热备：services 文件的单服务重启，先起热备容器中对应服务承接流量，重启完再回收
+        const hotSwap = fileTag === 'services' && action === 'restart' && hotSwapOn(variant)
+        if (hotSwap) await hotSwapBackupAction(variant, event.sender, sid, 'up', service)
+        // 热备阶段被中断：跳过该服务重启，finally 仍会回收对应热备容器
+        if (hotSwap && runningProcs.get(sid)?.stopRequested) {
+          send(`⏹ 已中断，跳过 ${service} 重启`)
+          return { ok: true }
+        }
+
         // compose up -d 创建并启动（docker start 要求容器已存在：首次启动或 stop 回收后会 No such container）
         const pctx = getProjectCtx()
         const composeBin = pctx.isRemote && pctx.ssh
           ? (await remoteComposeCmd(pctx.ssh)).split(' ') // 远程可能是 v1 docker-compose
           : ['docker', 'compose']
         const [composeCmd, ...composeArgs] = composeBin
-        const base = [...composeArgs, '-f', fileName]
+        const base = [...composeArgs, '-p', await appSvcProjectName(), '-f', fileName]
+        // pre_stop 钩子只在 stop/down/restart 时触发（rm --stop --force 强杀会跳过）：
+        // 停止/重启改为 stop（优雅停机、执行钩子）+ rm 两步，再按需 up -d
         const cmdList: string[][] =
           action === 'start'
             ? [[...base, 'up', '-d', service]]
             : action === 'stop'
-              ? [[...base, 'rm', '--stop', '--force', service]]
-              : [[...base, 'rm', '--stop', '--force', service], [...base, 'up', '-d', service]]
-        for (const args of cmdList) {
-          send(`▶ ${[composeCmd, ...args].join(' ')}`)
-          try {
-            await projStream(event.sender, 'projects:scriptLog', composeCmd, args, {
+              ? [[...base, 'stop', service], [...base, 'rm', service]]
+              : [[...base, 'stop', service], [...base, 'rm', service], [...base, 'up', '-d', service]]
+        try {
+          for (const args of cmdList) {
+            send(`▶ ${[composeCmd, ...args].join(' ')}`)
+            try {
+              await projStream(event.sender, 'projects:scriptLog', composeCmd, args, {
               cwd: dir,
               timeoutMs: 10 * 60_000,
-              sid
+              sid,
+              // rm 不带 --force 会交互式确认，stdin 预置 y 自动应答
+              stdinData: args.includes('rm') ? 'y\n' : undefined
             })
           } catch (err) {
             const msg = (err as Error).message
             throw new Error(msg.startsWith('exit ') ? `docker 操作失败（${msg}），详见日志` : msg)
           }
+          }
+        } finally {
+          // 热备：单服务重启完成后回收对应热备容器
+          if (hotSwap) await hotSwapBackupAction(variant, event.sender, sid, 'down', service)
+          // 清理无子进程的标记条目（被中断会话保留的 stopRequested 存根）
+          const entry = runningProcs.get(sid)
+          if (entry && !entry.child) runningProcs.delete(sid)
         }
         return { ok: true }
       } catch (err) {
@@ -2336,12 +2876,12 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
       const b = getBinding()
       if (!b) throw new Error('尚未绑定项目')
       if (variantArg !== 'monomer' && variantArg !== 'distributeds') throw new Error('非法的变体')
-      if (action !== 'start' && action !== 'stop') throw new Error('非法的操作')
+      if (action !== 'start' && action !== 'stop' && action !== 'restart') throw new Error('非法的操作')
       await checkDockerCompose()
       const variant = variantArg as AppSvcVariant
       const def = APP_SVC_DEFS[variant]
       const dir = projPath(def.dir)
-      for (const fileName of [def.servicesFile, def.adminFile]) {
+      for (const fileName of appSvcFiles(def)) {
         if (!(await projFileExists(path.join(def.dir, fileName)))) throw new Error(`未找到 ${def.dir}/${fileName}`)
       }
 
@@ -2349,99 +2889,121 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
         if (!event.sender.isDestroyed()) event.sender.send('projects:scriptLog', { kind: 'line', text, sid })
       }
 
-      if (action === 'start') {
-        const other: AppSvcVariant = variant === 'monomer' ? 'distributeds' : 'monomer'
-        await appServicesDown(event, b.path, other, `启动${def.label}全部服务`, sid)
-
-        const ctx = getProjectCtx()
-        for (const fileName of [def.servicesFile, def.adminFile]) {
-          send(`▶ 启动 ${fileName}`)
-          try {
-            if (ctx.isRemote && ctx.ssh) {
-              // 远程：后台执行 compose up，轮询进度（不长时间占用 SSH 连接）
-              const composeBin = await remoteComposeCmd(ctx.ssh)
-              const stamp = `${variant}-${Date.now()}`
-              const logFile = `/tmp/maozi-compose-${stamp}.log`
-              const pidFile = `/tmp/maozi-compose-${stamp}.pid`
-              // 注册会话（无子进程）：停止按钮靠 stopRequested 中断轮询并杀远端后台进程
-              runningProcs.set(sid, { stopRequested: false })
-              try {
-                // $$ 写 PID 文件判活 —— ps/grep 按文件名匹配会被含同名参数的僵尸 ssh 会话污染
-                await sshExec(ctx.ssh, `nohup bash -c 'echo $$ > ${pidFile}; cd ${JSON.stringify(dir)} && ${composeBin} -f ${fileName} up -d' > ${logFile} 2>&1 &`, 10_000)
-                send(`⏳ ${fileName} 正在后台启动（拉镜像/创建容器可能需要几分钟）…`)
-
-                // 轮询进度（每 3 秒，最长 5 分钟）
-                let lastLines = 0
-                for (let poll = 0; poll < 100; poll++) {
-                  await new Promise((r) => setTimeout(r, 3000))
-                  if (runningProcs.get(sid)?.stopRequested) {
-                    // 手动中断：杀远端后台 compose 并终止整个操作（会话已由前端收尾，不发完成标记）
-                    void sshExec(ctx.ssh, `kill $(cat ${pidFile} 2>/dev/null) 2>/dev/null`, 5_000).catch(() => {})
-                    send(`⏹ 已中断 ${fileName}`)
-                    return
-                  }
-                  try {
-                    // 检查后台进程是否还在运行（PID 文件，不受无关进程命令行干扰）
-                    const alive = await sshExec(ctx.ssh, `kill -0 $(cat ${pidFile} 2>/dev/null) 2>/dev/null && echo RUN || echo DONE`, 5_000)
-                    // 读取新增日志
-                    const out = await sshExec(ctx.ssh, `wc -l < ${logFile} 2>/dev/null || echo 0`, 5_000)
-                    const total = parseInt(out.trim()) || 0
-                    if (total > lastLines) {
-                      const newLog = await sshExec(ctx.ssh, `tail -n ${total - lastLines} ${logFile} 2>/dev/null`, 5_000)
-                      for (const line of newLog.split('\n')) {
-                        if (line.trim()) send(line)
-                      }
-                      lastLines = total
-                    }
-                    if (alive.includes('DONE')) {
-                      send(`✓ ${fileName} 启动完成`)
-                      break
-                    }
-                  } catch { /* 轮询失败继续 */ }
-                }
-              } finally {
-                // 清理临时日志与 PID 文件
-                void sshExec(ctx.ssh, `rm -f ${logFile} ${pidFile}`, 5_000).catch(() => {})
-                runningProcs.delete(sid)
-              }
-            } else {
-              // 本地：流式执行
-              await projStream(event.sender, 'projects:scriptLog', 'docker',
-                ['compose', '-f', fileName, 'up', '-d'], {
-                  cwd: dir,
-                  timeoutMs: 10 * 60_000,
-                  sid
-                })
-              send(`✓ ${fileName} 启动完成`)
+      // 热备：全部重启前先起热备容器承接流量（尽力而为），结束后回收
+      const hotSwap = action === 'restart' && hotSwapOn(variant)
+      if (hotSwap) await hotSwapBackupAction(variant, event.sender, sid, 'up')
+      try {
+          // 热备阶段被中断：跳过本次全部重启，finally 仍会回收热备容器
+          if (hotSwap && runningProcs.get(sid)?.stopRequested) {
+            send('⏹ 已中断，跳过全部重启')
+            return
+          }
+          // 先 down：stop 与 restart 共用（restart 之后紧跟 up，等价"先 docker-compose down 再 up"全新重建）
+          if (action === 'stop' || action === 'restart') {
+          // 全部关闭：docker compose -p <项目名> -f <file> down（与全部启动的 up -d 对称，compose 文件逐个执行）
+          const pctx = getProjectCtx()
+          const composeBinParts = pctx.isRemote && pctx.ssh
+            ? (await remoteComposeCmd(pctx.ssh)).split(' ') // 远程可能是 v1 docker-compose
+            : ['docker', 'compose']
+          const [composeCmd, ...composeArgs] = composeBinParts
+          const project = await appSvcProjectName()
+          for (const fileName of appSvcFiles(def)) {
+            const args = [...composeArgs, '-p', project, '-f', fileName, 'down']
+            send(`▶ ${[composeCmd, ...args].join(' ')}`)
+            try {
+              await projStream(event.sender, 'projects:scriptLog', composeCmd, args, {
+                cwd: dir,
+                timeoutMs: 10 * 60_000,
+                sid
+              })
+              send(`✓ ${fileName} 已全部关闭`)
+            } catch (err) {
+              const msg = (err as Error).message
+              throw new Error(msg.startsWith('exit ') ? `docker compose down 失败（${msg}），详见日志` : msg)
             }
-          } catch (err) {
-            const msg = (err as Error).message
-            send(`✗ ${fileName} 启动失败：${msg}`)
-            throw new Error(`docker compose up 失败（${msg}），详见日志`)
           }
         }
-      } else {
-        // 全部关闭：docker compose -f <file> down（与全部启动的 up -d 对称，两个 compose 文件逐个执行）
-        const pctx = getProjectCtx()
-        const composeBinParts = pctx.isRemote && pctx.ssh
-          ? (await remoteComposeCmd(pctx.ssh)).split(' ') // 远程可能是 v1 docker-compose
-          : ['docker', 'compose']
-        const [composeCmd, ...composeArgs] = composeBinParts
-        for (const fileName of [def.servicesFile, def.adminFile]) {
-          const args = [...composeArgs, '-f', fileName, 'down']
-          send(`▶ ${[composeCmd, ...args].join(' ')}`)
-          try {
-            await projStream(event.sender, 'projects:scriptLog', composeCmd, args, {
-              cwd: dir,
-              timeoutMs: 10 * 60_000,
-              sid
-            })
-            send(`✓ ${fileName} 已全部关闭`)
-          } catch (err) {
-            const msg = (err as Error).message
-            throw new Error(msg.startsWith('exit ') ? `docker compose down 失败（${msg}），详见日志` : msg)
+
+        // 再 up：start 与 restart 共用（内含互斥——先 down 掉另一变体全部服务）
+        if (action === 'start' || action === 'restart') {
+          const other: AppSvcVariant = variant === 'monomer' ? 'distributeds' : 'monomer'
+          await appServicesDown(event, b.path, other, `启动${def.label}全部服务`, sid)
+
+          const ctx = getProjectCtx()
+          const project = await appSvcProjectName()
+          for (const fileName of appSvcFiles(def)) {
+            send(`▶ 启动 ${fileName}`)
+            try {
+              if (ctx.isRemote && ctx.ssh) {
+                // 远程：后台执行 compose up，轮询进度（不长时间占用 SSH 连接）
+                const composeBin = await remoteComposeCmd(ctx.ssh)
+                const stamp = `${variant}-${Date.now()}`
+                const logFile = `/tmp/maozi-compose-${stamp}.log`
+                const pidFile = `/tmp/maozi-compose-${stamp}.pid`
+                // 注册会话（无子进程）：停止按钮靠 stopRequested 中断轮询并杀远端后台进程
+                runningProcs.set(sid, { stopRequested: false })
+                try {
+                  // $$ 写 PID 文件判活 —— ps/grep 按文件名匹配会被含同名参数的僵尸 ssh 会话污染
+                  await sshExec(ctx.ssh, `nohup bash -c 'echo $$ > ${pidFile}; cd ${JSON.stringify(dir)} && ${composeBin} -p ${project} -f ${fileName} up -d' > ${logFile} 2>&1 &`, 10_000)
+                  send(`⏳ ${fileName} 正在后台启动（拉镜像/创建容器可能需要几分钟）…`)
+
+                  // 轮询进度（每 3 秒，最长 5 分钟）
+                  let lastLines = 0
+                  for (let poll = 0; poll < 100; poll++) {
+                    await new Promise((r) => setTimeout(r, 3000))
+                    if (runningProcs.get(sid)?.stopRequested) {
+                      // 手动中断：杀远端后台 compose 并终止整个操作（会话已由前端收尾，不发完成标记）
+                      void sshExec(ctx.ssh, `kill $(cat ${pidFile} 2>/dev/null) 2>/dev/null`, 5_000).catch(() => {})
+                      send(`⏹ 已中断 ${fileName}`)
+                      return
+                    }
+                    try {
+                      // 检查后台进程是否还在运行（PID 文件，不受无关进程命令行干扰）
+                      const alive = await sshExec(ctx.ssh, `kill -0 $(cat ${pidFile} 2>/dev/null) 2>/dev/null && echo RUN || echo DONE`, 5_000)
+                      // 读取新增日志
+                      const out = await sshExec(ctx.ssh, `wc -l < ${logFile} 2>/dev/null || echo 0`, 5_000)
+                      const total = parseInt(out.trim()) || 0
+                      if (total > lastLines) {
+                        const newLog = await sshExec(ctx.ssh, `tail -n ${total - lastLines} ${logFile} 2>/dev/null`, 5_000)
+                        for (const line of newLog.split('\n')) {
+                          if (line.trim()) send(line)
+                        }
+                        lastLines = total
+                      }
+                      if (alive.includes('DONE')) {
+                        send(`✓ ${fileName} 启动完成`)
+                        break
+                      }
+                    } catch { /* 轮询失败继续 */ }
+                  }
+                } finally {
+                  // 清理临时日志与 PID 文件
+                  void sshExec(ctx.ssh, `rm -f ${logFile} ${pidFile}`, 5_000).catch(() => {})
+                  runningProcs.delete(sid)
+                }
+              } else {
+                // 本地：流式执行
+                await projStream(event.sender, 'projects:scriptLog', 'docker',
+                  ['compose', '-p', project, '-f', fileName, 'up', '-d'], {
+                    cwd: dir,
+                    timeoutMs: 10 * 60_000,
+                    sid
+                  })
+                send(`✓ ${fileName} 启动完成`)
+              }
+            } catch (err) {
+              const msg = (err as Error).message
+              send(`✗ ${fileName} 启动失败：${msg}`)
+              throw new Error(`docker compose up 失败（${msg}），详见日志`)
+            }
           }
-        }
+          }
+      } finally {
+        // 热备：主流程结束后回收热备容器
+        if (hotSwap) await hotSwapBackupAction(variant, event.sender, sid, 'down')
+        // 清理无子进程的标记条目（被中断会话保留的 stopRequested 存根）
+        const entry = runningProcs.get(sid)
+        if (entry && !entry.child) runningProcs.delete(sid)
       }
     }
 
@@ -2474,13 +3036,14 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
     return { ok: true, background: true }
   })
 
-  /** 数据库初始化状态：.db-init.json 标记判定（maozi-cloud-develop-admin 应用目录，git 已忽略）；INIT_MYSQL_DB（每行一个脚本路径）不存在或为空时隐藏按钮 */
+  /** 数据库初始化状态：.db-init.json 标记判定（maozi-cloud-develop-admin 应用目录，git 已忽略）；init_mysql_db.json 不存在或为空时隐藏按钮 */
   ipcMain.handle('projects:dbInitStatus', async () => {
     try {
       const b = getBinding()
       if (!b) throw new Error('尚未绑定项目')
-      if (!(await projFileExists(INIT_MYSQL_DB_FILE))) return { ok: true, data: { count: 0, initialized: false, missing: 0 } }
-      const scripts = parseInitMysqlDb(await readProjFile(INIT_MYSQL_DB_FILE))
+      const content = await readInitMysqlDb()
+      if (content === null) return { ok: true, data: { count: 0, initialized: false, missing: 0 } }
+      const scripts = parseInitMysqlDb(content)
       if (scripts.length === 0) return { ok: true, data: { count: 0, initialized: false, missing: 0 } }
       const initialized = isDbInitialized(b.path)
       return { ok: true, data: { count: scripts.length, initialized, missing: initialized ? 0 : scripts.length } }
@@ -2490,7 +3053,7 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
   })
 
   /**
-   * 初始化数据库：按 INIT_MYSQL_DB 定义（每行一个脚本路径）逐个导入 SQL 到 mysql。
+   * 初始化数据库：按 init_mysql_db.json 定义（JSON 数组，每项一个脚本路径）逐个导入 SQL 到 mysql。
    * mysql 未运行时先 up -d 启动并等待就绪；初始化结束后仅回收本次启动的容器，
    * 点击前已在运行的容器保持原状（不 stop/rm）。日志走 projects:scriptLog，密码全程打码
    */
@@ -2499,8 +3062,9 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
       const sid = validSid(sidArg)
       const b = getBinding()
       if (!b) throw new Error('尚未绑定项目')
-      if (!(await projFileExists(INIT_MYSQL_DB_FILE))) throw new Error(`未找到 ${INIT_MYSQL_DB_FILE}`)
-      const scripts = parseInitMysqlDb(await readProjFile(INIT_MYSQL_DB_FILE))
+      const content = await readInitMysqlDb()
+      if (content === null) throw new Error(`未找到 ${INIT_MYSQL_DB_FILE}`)
+      const scripts = parseInitMysqlDb(content)
       if (scripts.length === 0) throw new Error(`${INIT_MYSQL_DB_FILE} 中没有定义初始化脚本`)
       const dir = projPath(COMPOSE_DIR)
       if (!(await projFileExists(path.join(COMPOSE_DIR, 'docker-compose.yml')))) throw new Error(`未找到 ${COMPOSE_DIR}/docker-compose.yml`)
@@ -2563,13 +3127,17 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
       markDbInitialized(b.path)
       send('✓ 已记录初始化标记 .db-init.json（maozi-cloud-develop-admin 目录，不参与 git）')
 
-      // 仅回收本次启动的容器；点击前已运行的保持原状
+      // 仅回收本次启动的容器；点击前已运行的保持原状。
+      // 优雅两步：stop（触发 pre_stop 等生命周期钩子）→ rm（交互确认由 stdin 自动应答）
       if (!wasRunning) {
-        send('▶ docker compose rm --stop --force maozi-cloud-basic-mysql（回收本次启动的容器）')
+        send('▶ docker compose stop maozi-cloud-basic-mysql && docker compose rm maozi-cloud-basic-mysql（回收本次启动的容器）')
         try {
           await projStream(event.sender, 'projects:scriptLog', 'docker', [
-            'compose', 'rm', '--stop', '--force', 'maozi-cloud-basic-mysql'
+            'compose', 'stop', 'maozi-cloud-basic-mysql'
           ], { cwd: dir, timeoutMs: 10 * 60_000, sid })
+          await projStream(event.sender, 'projects:scriptLog', 'docker', [
+            'compose', 'rm', 'maozi-cloud-basic-mysql'
+          ], { cwd: dir, timeoutMs: 10 * 60_000, sid, stdinData: 'y\n' })
         } catch (err) {
           const msg = (err as Error).message
           send(`⚠ 容器回收失败（${msg}），初始化结果已记录，可手动回收容器`)
@@ -2600,16 +3168,20 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
       const env = { ...process.env, PATH: pathEnv }
       const lowerKw = kw.toLowerCase()
 
-      // 获取分布式变体的 服务名→容器名 映射
-      const names = appSvcContainerNames(b.path, 'distributeds')
-
       // 一次性拉所有运行中容器
       const { stdout: psOut } = await exec('docker', ['ps', '--format', '{{.Names}}'], { timeout: 15_000, env })
       const runningSet = new Set(psOut.split(/\r?\n/).map((l) => l.trim()).filter(Boolean))
 
-      // 仅查 services yml 定义的容器（不含 admin），日志写到文件而非 stdout
+      // 仅查 services yml 定义的容器（不含 admin），日志写到文件而非 stdout。
+      // 服务名/容器名含 ${ENVIRONMENT}/${VERSION} 占位：须按 业务.env/系统环境 插值成真实名称，
+      // 否则与 docker ps 的实际容器名（如 maozi-cloud-gateway-service-dev-main）比对不上
       const servicesYml = path.join(b.path, APP_SVC_DEFS.distributeds.dir, APP_SVC_DEFS.distributeds.servicesFile)
-      const svcNames = parseServiceContainerNames(fs.readFileSync(servicesYml, 'utf8'))
+      const interp = await appSvcNameValues()
+      const rawNames = parseServiceContainerNames(fs.readFileSync(servicesYml, 'utf8'))
+      const svcNames: Record<string, string> = {}
+      for (const [svc, container] of Object.entries(rawNames)) {
+        svcNames[interpolateTemplate(svc, interp)] = interpolateTemplate(container, interp)
+      }
 
       // 逐容器并行 grep 日志文件
       interface HitLine {
@@ -2669,10 +3241,10 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
       if (!/^[A-Za-z0-9_.-]+$/.test(String(service))) throw new Error('非法的服务名')
       const tail = Math.min(Math.max(parseInt(String(tailArg ?? 200), 10) || 200, 1), 5000)
       await checkDockerCompose()
-      // 上下文：basics（默认）或应用服务 '<variant>:<admin|services>'（-f 指定 compose 文件）
+      // 上下文：basics（默认）或应用服务 '<variant>:<admin|services>'（-p 项目名 + -f 指定 compose 文件）
       const ctx = ctxArg ? resolveComposeCtx(ctxArg) : null
       const dir = ctx ? path.join(b.path, ctx.dir) : path.join(b.path, COMPOSE_DIR)
-      const fileArgs = ctx ? ['-f', ctx.file] : []
+      const fileArgs = ctx ? ['-p', await appSvcProjectName(), '-f', ctx.file] : []
       if (!(await projFileExists(ctx ? path.join(ctx.dir, ctx.file) : path.join(COMPOSE_DIR, 'docker-compose.yml')))) {
         throw new Error(ctx ? `未找到 ${ctx.dir}/${ctx.file}` : `未找到 ${COMPOSE_DIR}/docker-compose.yml`)
       }
@@ -2720,7 +3292,7 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
         const ctx = ctxArg ? resolveComposeCtx(ctxArg) : null
         const dir = ctx ? path.join(b.path, ctx.dir) : path.join(b.path, COMPOSE_DIR)
         const composeFile = ctx ? path.join(dir, ctx.file) : path.join(dir, 'docker-compose.yml')
-        const fileArgs = ctx ? ['-f', ctx.file] : []
+        const fileArgs = ctx ? ['-p', await appSvcProjectName(), '-f', ctx.file] : []
         if (!(await projFileExists(ctx ? path.join(ctx.dir, ctx.file) : path.join(COMPOSE_DIR, 'docker-compose.yml')))) {
           throw new Error(ctx ? `未找到 ${ctx.dir}/${ctx.file}` : `未找到 ${COMPOSE_DIR}/docker-compose.yml`)
         }
@@ -2901,12 +3473,31 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
     }
   })
 
-  /** 环境设置：解析项目 ENVIRONMENT_VARIABLE，并实时读取各环境变量当前值 */
+  /** 环境设置：解析项目 environment_variable.json（一级属性 = 分节），实时读取各节当前值 */
   ipcMain.handle('projects:envSettings', async () => {
     try {
       const b = getBinding()
       if (!b) throw new Error('尚未绑定项目')
-      const groups = parseEnvVarDefs(await readProjFile(ENV_VARS_FILE))
+      const sections = parseEnvVarDefs(await readProjFile(ENV_VARS_FILE))
+
+      // .env 分节：文件当前值填充（key 不在文件中 → 未设置）；文件缺失时整节显示未设置
+      for (const sec of sections) {
+        if (sec.source !== 'file') continue
+        let map = new Map<string, string>()
+        try {
+          map = parseEnvFile(await readProjFile(sec.file ?? BUSINESS_ENV_FILE))
+        } catch {
+          /* 远程绑定或文件缺失：保持未设置 */
+        }
+        for (const g of sec.groups) {
+          // 空值视为未设置（KEY= 行保留 key 定义但取值为空）
+          g.items = g.items.map((it) => {
+            const v = map.get(it.key) ?? ''
+            return { ...it, value: v, found: v !== '', enabled: v !== '', source: v !== '' ? '.env' : '' }
+          })
+        }
+      }
+
       const ctx2 = getProjectCtx()
       if (ctx2.isRemote && ctx2.ssh) {
         // 远程绑定：SSH 读取远程 shell 环境变量
@@ -2916,15 +3507,16 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
           const eq = line.indexOf('=')
           if (eq > 0) envMap.set(line.slice(0, eq).trim(), line.slice(eq + 1).trim())
         }
-        for (const g of groups) {
-          g.items = g.items.map((it) => ({
-            ...it,
-            value: envMap.get(it.key) ?? '',
-            found: envMap.has(it.key),
-            enabled: envMap.has(it.key),
-            source: envMap.has(it.key) ? '远程环境' : ''
-          }))
-        }
+          for (const sec of sections) {
+            if (sec.source !== 'env') continue
+            for (const g of sec.groups) {
+              // 空值视为未设置
+              g.items = g.items.map((it) => {
+                const v = envMap.get(it.key) ?? ''
+                return { ...it, value: v, found: v !== '', enabled: v !== '', source: v !== '' ? '远程环境' : '' }
+              })
+            }
+          }
         const remoteFiles = [
           { id: 'zshrc', name: '~/.zshrc', path: '', exists: true },
           { id: 'zshenv', name: '~/.zshenv', path: '', exists: true },
@@ -2940,16 +3532,219 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
           } catch { f.exists = false }
         }
         const defaultFile = remoteFiles.find((f) => f.exists) ?? remoteFiles[0]
-        return { ok: true, data: { groups, files: remoteFiles, defaultFileId: defaultFile.id, remote: true } }
+        return { ok: true, data: { sections, files: remoteFiles, defaultFileId: defaultFile.id, remote: true } }
       }
       // 本地绑定：读本地 shell 配置
       const platform = selectPlatform()
       const files = platform.listEnvFiles()
-      applyEnvValues(groups, platform.readEnvVars(), files)
+      for (const sec of sections) {
+        if (sec.source === 'env') applyEnvValues(sec.groups, platform.readEnvVars(), files)
+      }
       const defaultFile = files.find((f) => f.exists) ?? files[0]
-      return { ok: true, data: { groups, files, defaultFileId: defaultFile.id } }
+      return { ok: true, data: { sections, files, defaultFileId: defaultFile.id } }
     } catch (err) {
       return { ok: false, error: (err as Error).message, data: null }
+    }
+  })
+
+  /**
+   * 应用服务配置：按容器完整名称匹配 docker_variable.json 的一级 key（真实服务名或静态前缀，
+   * 不做去前缀/去尾段过滤），节内条目 = 配置描述 → 环境变量 key，取值读业务 .env；
+   * 未匹配到一级属性时 data 为 null
+   */
+  ipcMain.handle('projects:serviceConfig', async (_e, serviceArg: string, baseArg?: string) => {
+    try {
+      const b = getBinding()
+      if (!b) throw new Error('尚未绑定项目')
+      // 候选名（大小写不敏感）：仅完整名称——真实服务名（含环境/灰度后缀）与静态前缀
+      const cands = new Set<string>()
+      for (const raw of [serviceArg, baseArg ?? '']) {
+        const s = String(raw ?? '').trim().toLowerCase()
+        if (s) cands.add(s)
+      }
+      const sections = parseEnvVarDefs(await readProjFile(DOCKER_VARS_FILE))
+      const hit = sections.find((sec) => sec.name && cands.has(sec.name.trim().toLowerCase()))
+      if (!hit) return { ok: true, data: null }
+      // 值取业务 .env（空值视为未设置）；文件缺失时整节显示未设置
+      let map = new Map<string, string>()
+      try {
+        map = parseEnvFile(await readProjFile(BUSINESS_ENV_FILE))
+      } catch {
+        /* 缺失时全部未设置 */
+      }
+      for (const g of hit.groups) {
+        g.items = g.items.map((it) => {
+          const v = map.get(it.key) ?? ''
+          return { ...it, value: v, found: v !== '', enabled: v !== '', source: v !== '' ? '.env' : '' }
+        })
+      }
+      return { ok: true, data: { section: hit.name, groups: hit.groups, file: BUSINESS_ENV_FILE } }
+    } catch (err) {
+      return { ok: false, error: (err as Error).message, data: null }
+    }
+  })
+
+  /**
+   * 应用服务「接口不停机更新」开关（单体/微服务各一个）：
+   * 开启 = 拷贝变体 services yml 生成热备文件（container_name 加 -backup）；
+   * 关闭 = 仅删除热备文件（不动容器、不做健康等待——操作流程内的热备回收在各自会话中完成）。
+   * 状态持久化 .ui-state.json
+   */
+  ipcMain.handle('projects:hotSwap', async (event, variantArg: string, enable: boolean, sidArg?: string) => {
+    try {
+      const b = getBinding()
+      if (!b) throw new Error('尚未绑定项目')
+      if (variantArg !== 'monomer' && variantArg !== 'distributeds') throw new Error('非法的变体')
+      const variant = variantArg as AppSvcVariant
+      const sid = validSid(sidArg ?? 'app-hotswap')
+      const def = APP_SVC_DEFS[variant]
+      const rel = path.join(def.dir, hotSwapBackupFile(variant))
+      if (enable) {
+        await checkDockerCompose()
+        await writeHotSwapBackupYml(variant, event.sender, sid)
+        // 优雅更新开关仅微服务需要：写入 .env（compose 环境注入，服务据此走不停机下线逻辑）；
+        // 单体服务不需要
+        if (variant === 'distributeds') {
+          await businessEnvFileSet('GRACEFUL_UPDATE', 'true')
+          if (!event.sender.isDestroyed()) {
+            event.sender.send('projects:scriptLog', {
+              kind: 'line',
+              text: '✓ 已写入 GRACEFUL_UPDATE=true 到业务 .env',
+              sid
+            })
+          }
+        }
+        setHotSwap(variant, true)
+        return { ok: true, data: true }
+      }
+      // 关闭 = 删除热备文件（微服务并移除 .env 的 GRACEFUL_UPDATE）（不动容器、不做健康等待——
+      // 操作流程内的热备回收在各自会话中完成）
+      if (await projFileExists(rel)) {
+        await deleteProjFile(rel)
+        if (!event.sender.isDestroyed()) {
+          event.sender.send('projects:scriptLog', {
+            kind: 'line',
+            text: `✓ 已删除热备文件 ${hotSwapBackupFile(variant)}`,
+            sid
+          })
+        }
+      }
+      if (variant === 'distributeds') {
+        await businessEnvFileSet('GRACEFUL_UPDATE', null)
+        if (!event.sender.isDestroyed()) {
+          event.sender.send('projects:scriptLog', {
+            kind: 'line',
+            text: '✓ 已从业务 .env 移除 GRACEFUL_UPDATE',
+            sid
+          })
+        }
+      }
+      setHotSwap(variant, false)
+      return { ok: true, data: false }
+    } catch (err) {
+      return { ok: false, error: (err as Error).message }
+    }
+  })
+
+  /** 环境设置 .env 分节保存：原位更新 key=value 行（无则在末尾追加），本地直写 / 远程 SSH */
+  ipcMain.handle('projects:envFileSave', async (_e, params: { key: string; value: string }) => {
+    try {
+      const b = getBinding()
+      if (!b) throw new Error('尚未绑定项目')
+      const key = String(params.key ?? '').trim()
+      const value = String(params.value ?? '').trim()
+      if (!key) throw new Error('变量名不合法')
+      // 值允许为空：写 KEY= 行（清空取值、保留 key 定义）
+      await businessEnvFileSet(key, value)
+      return { ok: true }
+    } catch (err) {
+      return { ok: false, error: (err as Error).message }
+    }
+  })
+
+  /**
+   * 初始化镜像列表：解析 init_base_image.json（key = 镜像名，value = 构建目录），
+   * 对照 docker images 列出每个镜像是否已存在
+   */
+  ipcMain.handle('projects:initImages', async () => {
+    const empty = { images: [] as Array<{ name: string; dir: string; exists: boolean }> }
+    try {
+      const b = getBinding()
+      if (!b) throw new Error('尚未绑定项目')
+      await checkDockerCompose()
+      let defs: Record<string, unknown>
+      try {
+        defs = JSON.parse(await readProjFile(INIT_BASE_IMAGE_FILE))
+      } catch (err) {
+        throw new Error(`解析 ${INIT_BASE_IMAGE_FILE} 失败：${(err as Error).message}`)
+      }
+      if (typeof defs !== 'object' || defs === null || Array.isArray(defs)) {
+        throw new Error(`${INIT_BASE_IMAGE_FILE} 顶层应为 JSON 对象`)
+      }
+      // 本地（或远程）已有镜像集合
+      const ctx = getProjectCtx()
+      let existing: Set<string>
+      if (ctx.isRemote && ctx.ssh) {
+        const out = await sshExec(ctx.ssh, 'docker images --format {{.Repository}}:{{.Tag}} 2>&1', 15_000)
+        existing = new Set(
+          out.split(/\r?\n/).map((l) => l.trim()).filter((l) => l && !l.includes('command not found') && !l.includes('error'))
+        )
+      } else {
+        const pathEnv = await getShellPath()
+        const { stdout } = await exec('docker', ['images', '--format', '{{.Repository}}:{{.Tag}}'], {
+          timeout: 15_000,
+          env: { ...process.env, PATH: pathEnv }
+        })
+        existing = new Set(stdout.split(/\r?\n/).map((l) => l.trim()).filter(Boolean))
+      }
+      const images = Object.entries(defs).map(([name, dir]) => ({
+        name,
+        dir: String(dir),
+        exists: existing.has(name)
+      }))
+      return { ok: true, data: { images } }
+    } catch (err) {
+      return { ok: false, error: (err as Error).message, data: empty }
+    }
+  })
+
+  /**
+   * 构建初始化镜像：进入定义的构建目录执行 docker buildx build -f Dockerfile -t <镜像名> .
+   * 镜像名/目录必须来自 init_base_image.json 定义（防任意命令），日志走 projects:scriptLog
+   */
+  ipcMain.handle('projects:initImageBuild', async (event, nameArg: string, sidArg?: string) => {
+    try {
+      const b = getBinding()
+      if (!b) throw new Error('尚未绑定项目')
+      const sid = validSid(sidArg)
+      const name = String(nameArg ?? '')
+      let defs: Record<string, unknown> = {}
+      try {
+        defs = JSON.parse(await readProjFile(INIT_BASE_IMAGE_FILE))
+      } catch {
+        throw new Error(`读取 ${INIT_BASE_IMAGE_FILE} 失败`)
+      }
+      const dir = String(defs[name] ?? '')
+      if (!dir) throw new Error(`镜像 ${name} 不在 ${INIT_BASE_IMAGE_FILE} 定义中`)
+      await checkDockerCompose()
+      const cwdRel = path.join(DOCKER_IMAGE_DIR, dir)
+      const cwd = projPath(cwdRel)
+      if (!(await projFileExists(path.join(cwdRel, 'Dockerfile')))) {
+        throw new Error(`未找到 ${path.join(cwdRel, 'Dockerfile')}`)
+      }
+      const send = (text: string): void => {
+        if (!event.sender.isDestroyed()) {
+          event.sender.send('projects:scriptLog', { kind: 'line', text, sid })
+        }
+      }
+      send(`▶ cd ${cwdRel} && docker buildx build -f Dockerfile -t ${name} .`)
+      await projStream(event.sender, 'projects:scriptLog', 'docker', [
+        'buildx', 'build', '-f', 'Dockerfile', '-t', name, '.'
+      ], { cwd, timeoutMs: 30 * 60_000, sid })
+      send(`✓ 镜像 ${name} 构建完成`)
+      return { ok: true }
+    } catch (err) {
+      return { ok: false, error: (err as Error).message }
     }
   })
 

@@ -1,0 +1,26 @@
+version: '3.7'
+
+services:
+  maozi-cloud-nginx-monomer:
+    # OpenResty: 提供 Lua balancer 能力, 后端域名运行时动态解析,
+    # 本容器先于后端容器启动、后端重启换 IP 均可自动恢复
+    image: openresty/openresty:1.27.1.1-alpine
+    container_name: maozi-cloud-nginx-monomer-${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}-${VERSION:-${APPLICATION_VERSION:-main}}
+    restart: always
+    ports:
+      - ${GATEWAY_PORT:-80}:80
+    environment:
+      VERSION: ${VERSION:-${APPLICATION_VERSION:-main}}
+      ENVIRONMENT: ${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}
+    volumes:
+      # 主配置: env 声明 / Docker DNS resolver / Lua 模块路径
+      - ./maozi-cloud-business-nginx-config/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:ro
+      # server 配置 (无 ${} 占位符, 不再依赖官方镜像的模板渲染机制)
+      - ./maozi-cloud-business-nginx-config/monomer-services-nginx.conf.template:/etc/nginx/conf.d/default.conf:ro
+      # 动态 DNS 负载均衡 Lua 模块
+      - ./maozi-cloud-business-nginx-config/lua:/etc/nginx/lua:ro
+
+networks:
+  default:
+    external:
+      name: maozi-cloud-network

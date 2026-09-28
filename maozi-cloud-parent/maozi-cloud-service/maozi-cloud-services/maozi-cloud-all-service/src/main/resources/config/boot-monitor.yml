@@ -1,0 +1,10 @@
+management:
+  info.env.enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: ALWAYS
+      probes.enabled: true

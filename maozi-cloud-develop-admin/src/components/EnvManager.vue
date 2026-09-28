@@ -183,23 +183,16 @@
             变量名
             <span class="evd-req">*</span>
           </div>
-          <div class="evd-input-wrap" :class="{ disabled: isEdit }">
+          <div class="evd-input-wrap">
             <span class="evd-input-prefix mono">$</span>
             <input
               v-model="form.key"
               class="evd-input mono"
-              :disabled="isEdit"
               placeholder="JAVA_HOME"
               @input="form.key = form.key.toUpperCase().replace(/[^A-Z0-9_]/g, '')"
             />
-            <span v-if="isEdit" class="evd-lock" title="编辑时不可修改变量名">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
-            </span>
           </div>
-          <div v-if="!isEdit" class="evd-field-hint">仅大写字母、数字、下划线，自动转大写</div>
+          <div class="evd-field-hint">仅大写字母、数字、下划线，自动转大写；修改后保存即重命名</div>
         </div>
 
         <!-- 值：终端风格代码输入 -->
@@ -308,6 +301,8 @@ const dialogVisible = ref(false)
 const isEdit = ref(false)
 /** 编辑时原始文件 id：切换文件时需先从旧文件删除再写入新文件 */
 const editOriginFileId = ref('')
+/** 编辑时原始变量名：改名时走 rename 模式 */
+const editOriginKey = ref('')
 const saving = ref(false)
 const form = ref({ key: '', value: '', fileId: 'zshrc' })
 
@@ -380,6 +375,7 @@ function openAdd(): void {
 function openEdit(row: EnvVarEntry): void {
   isEdit.value = true
   editOriginFileId.value = row.fileId
+  editOriginKey.value = row.key
   form.value = { key: row.key, value: row.value, fileId: row.fileId }
   dialogVisible.value = true
 }
@@ -396,17 +392,21 @@ async function onSave(): Promise<void> {
   }
   saving.value = true
   try {
-    // 编辑时切换了文件：先从旧文件删除，再写入新文件
+    const renamed = isEdit.value && editOriginKey.value !== '' && editOriginKey.value !== key
+    const sameFile = !isEdit.value || editOriginFileId.value === fileId
+    // 编辑时切换了文件：先从旧文件删除旧行（含改名场景），再写入新文件
     if (isEdit.value && editOriginFileId.value && editOriginFileId.value !== fileId) {
-      const rm = await api.env.save({ mode: 'remove', key, fileId: editOriginFileId.value })
+      const rm = await api.env.save({ mode: 'remove', key: editOriginKey.value || key, fileId: editOriginFileId.value })
       if (!rm.ok) {
         ElMessage.error(`从 ${fileName(editOriginFileId.value)} 移除失败：${rm.error ?? ''}`)
         return
       }
     }
+    // 同文件内改名走 rename（保持原行位置与启用态）；改名+换文件时旧行已删，按新名 add
     const result = await api.env.save({
-      mode: isEdit.value && editOriginFileId.value === fileId ? 'update' : 'add',
-      key,
+      mode: renamed && sameFile ? 'rename' : isEdit.value && sameFile ? 'update' : 'add',
+      key: renamed && sameFile ? editOriginKey.value : key,
+      newKey: key,
       value,
       fileId
     })
@@ -415,9 +415,11 @@ async function onSave(): Promise<void> {
       return
     }
     ElMessage.success(
-      isEdit.value && editOriginFileId.value !== fileId
-        ? `已从 ${fileName(editOriginFileId.value)} 迁移到 ${fileName(fileId)}`
-        : `已写入 ${fileName(fileId)}，立即生效`
+      renamed
+        ? `已重命名 ${editOriginKey.value} → ${key}，已写入 ${fileName(fileId)}`
+        : isEdit.value && !sameFile
+          ? `已从 ${fileName(editOriginFileId.value)} 迁移到 ${fileName(fileId)}`
+          : `已写入 ${fileName(fileId)}，立即生效`
     )
     dialogVisible.value = false
     await load()

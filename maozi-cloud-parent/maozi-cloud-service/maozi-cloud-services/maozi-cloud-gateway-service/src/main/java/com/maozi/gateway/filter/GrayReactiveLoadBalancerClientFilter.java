@@ -101,7 +101,6 @@ public class GrayReactiveLoadBalancerClientFilter extends ReactiveLoadBalancerCl
 
             // 协议覆盖方案
             String overrideScheme = null;
-
             if (schemePrefix != null) {
                 overrideScheme = url.getScheme();
             }

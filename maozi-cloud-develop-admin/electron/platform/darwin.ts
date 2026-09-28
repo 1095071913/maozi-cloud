@@ -161,6 +161,20 @@ export const darwinPlatform: Platform = {
       lines[matchIndex] = params.enabled
         ? lines[matchIndex].replace(/^\s*#\s*/, '')
         : `# ${lines[matchIndex].replace(COMMENTED_EXPORT_RE, 'export $1=$2')}`
+    } else if (mode === 'rename') {
+      const newKey = params.newKey ?? ''
+      if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(newKey)) throw new Error(`非法的变量名: ${newKey}`)
+      if (matchIndex < 0) throw new Error(`未找到变量 ${key}`)
+      if (newKey !== key) {
+        const dup = lines.some((l) => {
+          const m = l.match(EXPORT_RE) ?? l.match(COMMENTED_EXPORT_RE)
+          return m?.[1] === newKey
+        })
+        if (dup) throw new Error(`${newKey} 在该文件中已存在`)
+        // 整行换名：保持原行位置、值与启用/禁用注释态；value 缺省沿用原值
+        const raw = lines[matchIndex].match(EXPORT_RE)?.[2] ?? lines[matchIndex].match(COMMENTED_EXPORT_RE)?.[2] ?? ''
+        lines[matchIndex] = (matchedCommented ? '# ' : '') + serializeEnvLine(newKey, value || parseEnvValue(raw))
+      }
     } else if (mode === 'remove') {
       if (matchIndex < 0) throw new Error(`未找到变量 ${key}`)
       lines.splice(matchIndex, 1)

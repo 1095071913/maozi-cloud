@@ -1,0 +1,65 @@
+# ============================================================
+# maozi-cloud-services-monomer-docker.yml —— 聚合服务单独拉起
+# ------------------------------------------------------------
+# 仅启动 maozi-cloud-service-monomer (all-in-one 单镜像, 源码模块为
+# maozi-cloud-all-service, 把所有业务模块打成
+# 一个 jar, 用单一端口 1000 暴露, 替代标准拆分部署的 gateway 路由).
+# ------------------------------------------------------------
+# 与本目录微服务 compose (maozi-cloud-services-distributeds-docker.yml) 互斥:
+#   monomer-service 与 gateway 都占 1100 端口, 不能同时跑.
+#   要切换到聚合部署时, 先把微服务 compose 停掉 (cd 进本目录, 由 .env / 环境变量按
+#   yml 同款回退链解析, 显式指定项目名
+#   -p maozi-cloud-business-docker-${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}-${VERSION:-${APPLICATION_VERSION:-main}}):
+#       cd maozi-cloud-business-docker
+#       docker-compose -p maozi-cloud-business-docker-${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}-${VERSION:-${APPLICATION_VERSION:-main}} -f maozi-cloud-services-distributeds-docker.yml down
+#   再起本 compose:
+#       docker-compose -p maozi-cloud-business-docker-${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}-${VERSION:-${APPLICATION_VERSION:-main}} -f maozi-cloud-services-monomer-docker.yml up -d
+# ------------------------------------------------------------
+# 启动前置:
+#   1. 先启动 maozi-cloud-basics-docker (提供 mysql / nacos / redis 等);
+#   2. 外部网络 maozi-cloud-network 必须已创建;
+#   3. monomer-service 镜像需通过 maozi-cloud-deploy-services-monomer.sh 构建.
+# ------------------------------------------------------------
+# 关于 environment.ENVIRONMENT:
+#   environment 块下传入两个环境变量:
+#     - ENVIRONMENT=dev          标识当前运行环境, 供 bootstrap.yml 决定加载哪套
+#                                Nacos 配置 (local / dev / test / prod 等);
+#     - NACOS_CONFIG_SERVER=...  指定 Nacos 配置中心地址, 避免容器内写死.
+# 宿主机日志挂载点 (/Users/maozi/Desktop/maozi-cloud-logs) 为开发者示例路径,
+# 部署环境请按需替换, 且需与 promtail 挂载保持一致以纳入日志采集.
+# ============================================================
+version: "3.7"
+services:
+
+  # ============ Monomer 聚合服务 (all-in-one) ============
+  maozi-cloud-service-monomer:
+    image: maozi-cloud-service-monomer:latest
+    container_name: maozi-cloud-service-monomer-${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}-${VERSION:-${APPLICATION_VERSION:-main}}
+    restart: always
+    ports:
+      - ${MAOZI_CLOUD_SERVICE_MONOMER_PORT:-0}:${MAOZI_CLOUD_SERVICE_MONOMER_PORT:-1100}
+    environment:
+      JVM_PARAMS: ${MAOZI_CLOUD_SERVICE_MONOMER_JVM_PARAMS:-${JVM_PARAMS:-${APPLICATION_JVM_PARAMS}}}
+      DUBBO_IP_TO_REGISTRY: ${TO_REGISTER_IP:-${APPLICATION_TO_REGISTER_IP}}
+      APPLICATION_PORT: ${MAOZI_CLOUD_SERVICE_MONOMER_PORT:-1100}
+      APPLICATION_VERSION: ${VERSION:-${APPLICATION_VERSION:-main}}
+      APPLICATION_ENVIRONMENT: ${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}
+    volumes:
+      # 日志文件挂载到宿主机共享目录, 供 promtail 采集
+      # 容器内路径与镜像 WORKDIR /application/maozi-cloud-service-monomer 对应
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-service-monomer:/application/maozi-cloud-service-monomer/logs
+    stop_grace_period: 70s
+    healthcheck:
+      # $$ 双转义: 端口取容器运行时环境变量 APPLICATION_PORT, 随各服务端口配置自动生效
+      # liveness(存活) 与 readiness(就绪) 探针均返回 200 才视为健康
+      test: [ "CMD-SHELL", "curl -sf http://localhost:$$APPLICATION_PORT/actuator/health/liveness && curl -sf http://localhost:$$APPLICATION_PORT/actuator/health/readiness" ]
+      interval: 5s      # 每 30 秒检查一次
+      timeout: 5s        # 单次检查超时时间
+      retries: 3         # 连续失败 5 次后标记 unhealthy
+      start_period: 60s # 启动宽限期(Java 服务启动较慢), 宽限期内失败不计入重试
+
+# 外部网络: 与 maozi-cloud-basics-docker 共享同一网络
+networks:
+  default:
+    external:
+      name: maozi-cloud-network

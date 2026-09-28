@@ -6,9 +6,7 @@
 # 如需调整, 改模板与 JSON 配置, 不要直接改本文件.
 # ------------------------------------------------------------
 # 基础镜像: __BASE_IMAGE__
-# 服务端口: __SERVICE_PORT____DUBBO_PORT_LINE__
 # OpenTelemetry: __OTEL_YES_NO__
-# Dubbo: __DUBBO_YES_NO__
 # ------------------------------------------------------------
 # JVM 参数 (针对小规格容器调优, 详细解释见 maozi-cloud-services.json):
 #   -Xms / -Xmx 堆内存上下限, -Xss 线程栈, -XX:MaxMetaspaceSize 元空间上限
@@ -19,17 +17,10 @@
 # OpenTelemetry Agent 参数 (启用状态: __OTEL_YES_NO__):
 #   -javaagent 挂载 OTel 字节码增强 Agent, 走 OTLP gRPC 上报至 maozi-cloud-basic-tempo
 #   仅采集 trace, 关闭 metrics / logs, 统一打 application=maozi-cloud 资源标签
-# ------------------------------------------------------------
-# Dubbo 参数 (启用状态: __DUBBO_YES_NO__):
-#   APPLICATION_DUBBO_PORT 为 RPC 端口, 注意不同服务错开
-#   -DDUBBO_IP_TO_REGISTRY 注册到注册中心的 IP, 取构建机环境变量 NACOS_REGISTER_IP,
-#   环境变量未设置时不注入 ENV DUBBO_IP_TO_REGISTRY (由 Dubbo 自动探测本机 IP)
 # ============================================================
 FROM __BASE_IMAGE__
 
 ENV APPLICATION_NAME=__SERVICE_NAME__
-ENV APPLICATION_PORT=__SERVICE_PORT__
-__DUBBO_ENV_BLOCK__
 ENV LOG_FILE=/application/${APPLICATION_NAME}/logs/${APPLICATION_NAME}.log
 
 RUN mkdir -p /application/${APPLICATION_NAME}
@@ -39,5 +30,3 @@ WORKDIR /application/${APPLICATION_NAME}
 COPY ./${APPLICATION_NAME}.jar ./
 
 __CMD_LINE__
-
-EXPOSE ${APPLICATION_PORT}__DUBBO_EXPOSE_LINE__

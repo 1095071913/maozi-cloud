@@ -1,0 +1,35 @@
+{
+    "maozi-cloud-admin-monomer": {
+        "对外暴露服务固定端口": "MAOZI_CLOUD_ADMIN_MONOMER_PORT"
+    },
+    "maozi-cloud-admin-distributeds": {
+        "对外暴露服务固定端口": "MAOZI_CLOUD_ADMIN_DISTRIBUTEDS_PORT"
+    },
+    "maozi-cloud-service-monomer": {
+        "JVM": "MAOZI_CLOUD_SERVICE_MONOMER_JVM_PARAMS",
+        "对外暴露服务固定端口": "MAOZI_CLOUD_SERVICE_MONOMER_PORT"
+    },
+    "maozi-cloud-gateway-service": {
+        "JVM": "MAOZI_CLOUD_GATEWAY_SERVICE_JVM_PARAMS",
+        "对外暴露服务固定端口": "MAOZI_CLOUD_GATEWAY_SERVICE_PORT"
+    },
+    "maozi-cloud-monitor-service": {
+        "JVM": "MAOZI_CLOUD_MONITOR_SERVICE_JVM_PARAMS",
+        "对外暴露服务固定端口": "MAOZI_CLOUD_MONITOR_SERVICE_PORT"
+    },
+    "maozi-cloud-oauth-service": {
+        "JVM": "MAOZI_CLOUD_OAUTH_SERVICE_JVM_PARAMS",
+        "对外暴露服务固定端口": "MAOZI_CLOUD_OAUTH_SERVICE_PORT",
+        "对外暴露RPC固定端口": "MAOZI_CLOUD_OAUTH_SERVICE_DUBBO_PORT"
+    },
+    "maozi-cloud-system-service": {
+        "JVM": "MAOZI_CLOUD_SYSTEM_SERVICE_JVM_PARAMS",
+        "对外暴露服务固定端口": "MAOZI_CLOUD_SYSTEM_SERVICE_PORT",
+        "对外暴露RPC固定端口": "MAOZI_CLOUD_SYSTEM_SERVICE_DUBBO_PORT"
+    },
+    "maozi-cloud-ai-service": {
+        "JVM": "MAOZI_CLOUD_AI_SERVICE_JVM_PARAMS",
+        "对外暴露服务固定端口": "MAOZI_CLOUD_AI_SERVICE_PORT",
+        "对外暴露RPC固定端口": "MAOZI_CLOUD_AI_SERVICE_DUBBO_PORT"
+    }
+}

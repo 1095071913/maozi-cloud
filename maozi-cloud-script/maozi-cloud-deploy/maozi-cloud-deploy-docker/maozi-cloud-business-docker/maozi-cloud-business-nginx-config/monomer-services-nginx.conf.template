@@ -1,0 +1,116 @@
+# ============================================================
+# monomer 业务入口 (OpenResty 动态解析版)
+# ------------------------------------------------------------
+# 本文件不再包含 ${ENVIRONMENT}/${VERSION} 占位符 (OpenResty 镜像无
+# envsubst 模板机制), 域名后缀由 Lua os.getenv() 运行时拼接。
+# 所有后端域名均不在配置加载期解析, 后端容器晚于本容器启动、或重启
+# 换 IP, 都能自动恢复, 不会永久 502/503:
+#   /api          -> upstream + balancer_by_lua 实时解析 (A/Backup 双节点容灾)
+#   /admin        -> $变量 + resolver (nginx.conf) 请求期解析
+#   /nacos/ 等    -> $变量 + resolver 请求期解析 (原样透传前缀)
+# ============================================================
+
+upstream maozi-cloud-service-monomer {
+    # 占位节点: 真实节点每次请求由 balancer_by_lua 动态解析决定
+    server 0.0.0.1:1234;
+
+    balancer_by_lua_block {
+        require("dynamic_balancer").balance()
+    }
+}
+
+server {
+    listen       80;
+    server_name  _;
+
+    location /api {
+
+        # 实时解析 A/Backup 节点域名 (balancer 阶段禁用 cosocket, DNS 查询须在 access 阶段完成)
+        access_by_lua_block {
+            local dyn = require "dynamic_balancer"
+            dyn.resolve_nodes(dyn.nodes("maozi-cloud-service-monomer", 1100))
+        }
+
+        rewrite ^/api/?(.*)$ /$1 break;
+        proxy_pass http://maozi-cloud-service-monomer;
+
+        # 失败自动切换下一节点 (A -> B), 与 balancer 内 attempt 轮转配合
+        proxy_next_upstream error timeout invalid_header http_503;
+        proxy_next_upstream_tries 2;
+        proxy_next_upstream_timeout 10s;
+        proxy_next_upstream non_idempotent;
+
+        proxy_connect_timeout 5s;
+        proxy_read_timeout 60s;
+        proxy_send_timeout 60s;
+
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+    }
+
+    # /admin 与 /admin/ 均直接服务 (vue-router base 归一去尾斜杠, /admin 解析为 / 落到 redirect)
+    location /admin {
+
+        set_by_lua_block $admin_upstream {
+            local dyn = require "dynamic_balancer"
+            return dyn.host("maozi-cloud-admin-monomer") .. ":999"
+        }
+
+        rewrite ^/admin/?(.*)$ /$1 break;
+        proxy_pass http://$admin_upstream;
+
+        proxy_connect_timeout 5s;
+        proxy_read_timeout 60s;
+        proxy_send_timeout 60s;
+
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+    }
+
+    # ---------- 中间件同源代理 (admin 前端内嵌页, 前缀原样透传) ----------
+    # 域名放入 $变量使解析延迟到请求期 (resolver 见 nginx.conf), 中间件后启动也能自动恢复
+
+    # Nacos 控制台: 改写前缀会导致 302 绝对地址跳转丢失会话, 必须原样透传
+    location /nacos/ {
+        set $mw_upstream maozi-cloud-basic-nacos:8848;
+        proxy_pass http://$mw_upstream;
+
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Grafana: 容器已配 GF_SERVER_SERVE_FROM_SUB_PATH=true, 按 /grafana 子路径服务
+    location /grafana/ {
+        set $mw_upstream maozi-cloud-basic-grafana:3000;
+        proxy_pass http://$mw_upstream;
+
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Snail-Job 控制台: 官方前端生产构建即以 /snail-job 子路径提供服务 (hash 路由)
+    location /snail-job/ {
+        set $mw_upstream maozi-cloud-basic-snailjob:8080;
+        proxy_pass http://$mw_upstream;
+
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # 其他路径返回404，可选，按需删除
+    location / {
+        return 404;
+    }
+}

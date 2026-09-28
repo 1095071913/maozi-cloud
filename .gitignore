@@ -37,6 +37,8 @@ target
 # Spring Tool Suits project environment #
 .sts4-cache
 
+.env
+
 # 临时pom文件
 .flattened-pom.xml
 
@@ -52,6 +54,8 @@ target
 
 # 自动部署临时文件
 **/maozi-cloud-deploy-services-distributed-record
+maozi-cloud-services-monomer-docker-backup.yml
+maozi-cloud-services-distributeds-docker-backup.yml
 
 # JAVA基础镜像额外依赖
 !opentelemetry-javaagent.jar

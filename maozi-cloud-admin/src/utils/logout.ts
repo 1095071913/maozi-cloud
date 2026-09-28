@@ -15,8 +15,10 @@ export async function logoutToLogin() {
   // 先同步清理本地会话（含 localStorage 令牌），避免跳转后仍被视为已登录
   userStore.resetState()
   appStore.reset()
-  if (window.location.pathname !== '/login') {
-    window.location.href = '/login'
+  // 整页跳转需拼上 vite base 前缀，否则子路径部署下会跳到根路径 404
+  const loginPath = `${import.meta.env.BASE_URL}login`
+  if (window.location.pathname !== loginPath) {
+    window.location.href = loginPath
   } else {
     // 已在登录页时补拉被重置的系统详情
     appStore.fetchSystemInfo().catch(() => {})

@@ -2,25 +2,32 @@
  * 渲染进程对 preload 暴露能力的类型化封装
  */
 import type {
-  EnvFile,
-  EnvSaveParams,
-  EnvVarEntry,
-  HostsEntry,
-  LaunchctlParams,
-  PlatformResult
+    EnvFile,
+    EnvSaveParams,
+    EnvVarEntry,
+    HostsEntry,
+    LaunchctlParams,
+    PlatformResult
 } from '../electron/platform/types'
 import type {
-  DevToolInfo,
-  GpuInfo,
-  NetInterface,
-  ProxyInfo,
-  PublicIPInfo,
-  SysDynamicInfo,
-  SysStaticInfo
+    DevToolInfo,
+    GpuInfo,
+    NetInterface,
+    ProxyInfo,
+    PublicIPInfo,
+    SysDynamicInfo,
+    SysStaticInfo
 } from '../electron/system/sysinfo'
 import type {Bookmark, PageMeta} from '../electron/bookmarks/types'
 import type {AuthType, ConfigEntry, ConfigType, ToolAvailability} from '../electron/configs/types'
-import type {ComposeServiceStats, EnvSettingGroup, EnvSettingItem, ProjectBinding} from '../electron/projects/types'
+import type {
+    AppServiceEntry,
+    ComposeServiceStats,
+    EnvSettingGroup,
+    EnvSettingItem,
+    EnvSettingSection,
+    ProjectBinding
+} from '../electron/projects/types'
 
 export type { EnvFile, EnvVarEntry, EnvSaveParams, LaunchctlParams, HostsEntry, PlatformResult }
 export type { SysStaticInfo, SysDynamicInfo, NetInterface, ProxyInfo, PublicIPInfo, GpuInfo, DevToolInfo }
@@ -34,14 +41,12 @@ export type {
   ProjectBinding,
   EnvSettingGroup,
   EnvSettingItem,
-  ComposeServiceStats
+  EnvSettingSection,
+  ComposeServiceStats,
+  AppServiceEntry
 }
 
-/** 应用服务（单体/微服务）条目：name 为服务名，file 标记归属 compose 文件（admin/services） */
-export interface AppServiceEntry {
-  name: string
-  file: 'admin' | 'services'
-}
+/** 应用服务（单体/微服务）条目：见 electron/projects/types.ts（转发保持渲染进程既有导入路径） */
 
 export interface IpcResult<T> {
   ok: boolean
@@ -100,9 +105,11 @@ export interface ElectronApi {
     /** 服务日志实时跟踪（ctx 同 composeLogs；行经 onComposeLog 推送，停止复用 stopScript） */
     composeLogsFollow: (service: string, tail: number, sid?: string, ctx?: string) => Promise<PlatformResult>
     /** 应用服务清单（variant: monomer 单体 / distributeds 微服务） */
-    appServices: (variant: string) => Promise<IpcResult<{ services: AppServiceEntry[] }>>
+    appServices: (variant: string) => Promise<IpcResult<{ services: AppServiceEntry[]; env?: { ENVIRONMENT: string; VERSION: string } }>>
     /** 应用服务运行状态（服务名 → State） */
-    appServicesStatus: (variant: string) => Promise<IpcResult<Record<string, string>>>
+    appServicesStatus: (
+      variant: string
+    ) => Promise<IpcResult<{ states: Record<string, string>; healths: Record<string, string> }>>
     /** 应用服务实时资源占用（两变体一次性快照，按服务名索引）。preferCache=首屏命中启动预取快照 */
     appServicesStats: (preferCache?: boolean) => Promise<
       IpcResult<{ stats: Record<'monomer' | 'distributeds', Record<string, ComposeServiceStats>>; cpuCount: number; hostMemTotal: number } | null>
@@ -149,19 +156,36 @@ export interface ElectronApi {
     ) => () => void
     adminContainerStatus: () => Promise<IpcResult<string>>
     adminContainerAction: (action: string, sid?: string) => Promise<PlatformResult>
-    /** 初始化 Hosts：项目 maozi-cloud-deploy-run/hosts 追加进系统 /etc/hosts，已设置的忽略 */
+    /** 初始化 Hosts：项目 maozi-cloud-deploy-run/init_hosts.json 追加进系统 /etc/hosts，已设置的忽略 */
     hostsInitStatus: () => Promise<IpcResult<{ total: number; missing: number; initialized: boolean } | null>>
     hostsInit: (sid?: string) => Promise<PlatformResult>
     /** 容器网络：解析 compose 的 networks.default.external.name 并检查 docker 中是否已存在 */
     networkStatus: () => Promise<IpcResult<{ name: string; exists: boolean }>>
     /** 创建容器网络（docker network create，已存在则幂等成功） */
     networkCreate: (sid?: string) => Promise<PlatformResult>
-    /** 数据库初始化状态：INIT_MYSQL_DB（每行一个脚本路径）是否已执行过标记（count=0 表示未定义，隐藏按钮） */
+    /** 数据库初始化状态：init_mysql_db.json（JSON 数组脚本路径）是否已执行过标记（count=0 表示未定义，隐藏按钮） */
     dbInitStatus: () => Promise<IpcResult<{ count: number; initialized: boolean; missing: number }>>
     /** 初始化数据库：按需启动 mysql、逐个导入 SQL 脚本 */
     dbInit: (sid?: string) => Promise<PlatformResult>
-    /** 环境设置：解析项目 ENVIRONMENT_VARIABLE 并实时读取环境变量当前值 */
-    envSettings: () => Promise<IpcResult<{ groups: EnvSettingGroup[]; files: EnvFile[]; defaultFileId: string; remote?: boolean } | null>>
+    /** 环境设置：解析项目 environment_variable.json 并实时读取环境变量当前值 */
+    envSettings: () => Promise<IpcResult<{ sections: EnvSettingSection[]; files: EnvFile[]; defaultFileId: string; remote?: boolean } | null>>
+    /** 环境设置 .env 分节保存：原位更新 key=value 行（无则末尾追加），本地直写 / 远程 SSH */
+    envFileSave: (input: { key: string; value: string }) => Promise<PlatformResult>
+    /** 应用服务配置：按服务名匹配 environment_variable.json 一级属性，条目值读业务 .env；未匹配返回 data:null */
+    serviceConfig: (
+      service: string,
+      base?: string
+    ) => Promise<IpcResult<{ section: string; groups: EnvSettingGroup[]; file: string } | null>>
+    /** 应用服务「接口不停机更新」开关（variant = monomer | distributeds）：开启生成热备 yml；关闭回收热备容器并删除文件（状态持久化） */
+    hotSwap: (
+      variant: string,
+      enable: boolean,
+      sid?: string
+    ) => Promise<{ ok: boolean; error?: string; data?: boolean }>
+    /** 初始化镜像列表：解析 init_base_image.json 并对照 docker images 返回存在状态 */
+    initImages: () => Promise<IpcResult<{ images: Array<{ name: string; dir: string; exists: boolean }> }>>
+    /** 构建初始化镜像：进入定义目录 docker buildx build -f Dockerfile -t <name> .（日志走会话） */
+    initImageBuild: (name: string, sid?: string) => Promise<PlatformResult>
     /** 中断当前正在执行的脚本（进程组 SIGINT/SIGKILL） */
     stopScript: (sid?: string) => Promise<PlatformResult>
     onScriptLog: (
@@ -191,4 +215,26 @@ export interface ElectronApi {
   }
 }
 
-export const api: ElectronApi = window.api
+/**
+ * Electron preload 注入的桥。__apiStub 仅浏览器调试用（可加载后任意时刻注入，
+ * 按调用时取值路由）；Electron 内恒走 window.api，代理分支不生效
+ */
+const lazyStubApi = (): ElectronApi =>
+  new Proxy({} as ElectronApi, {
+    get: (_t, section) =>
+      new Proxy(
+        {},
+        {
+          get: (_s, method) =>
+            (...args: unknown[]) => {
+              const root = (window as unknown as Record<string, unknown>)[`__apiStub_${String(section)}`] as
+                | Record<string, unknown>
+                | undefined
+              const fn = root?.[String(method)]
+              if (typeof fn === 'function') return (fn as (...a: unknown[]) => unknown)(...args)
+              return Promise.resolve({ ok: true, data: null })
+            }
+        }
+      )
+  })
+export const api: ElectronApi = window.api ?? lazyStubApi()

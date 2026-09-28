@@ -65,9 +65,7 @@ public class TraceIdFilter implements GlobalFilter, Ordered {
 
 			return chain.filter(exchange.mutate().request(mutatedRequest).build())
 				// 请求结束后清理 MDC 与链路上下文，防止线程复用导致的数据泄漏
-				.doFinally(signal -> {
-					ApplicationLinkContext.clearContext();
-				});
+				.doFinally(signal -> ApplicationLinkContext.clearContext());
 
 		}
 

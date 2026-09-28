@@ -52,6 +52,7 @@ spring:
       - classpath:config/boot-redis.yml          # Redis 缓存配置
       - classpath:config/boot-lock.yml           # 分布式锁（Redisson）配置
       - classpath:config/cloud-oauth.yml         # OAuth2 资源服务器配置
+      - classpath:config/boot-monitor.yml
   ai:
     # zhipuai:
     #   base-url: https://api.z.ai/api/paas

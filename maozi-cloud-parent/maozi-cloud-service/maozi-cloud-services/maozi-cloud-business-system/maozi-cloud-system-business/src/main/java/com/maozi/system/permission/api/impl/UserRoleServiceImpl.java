@@ -89,7 +89,7 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper,UserRole
 
 			Consumer<Long> consumer = (roleId)-> remove(Wrappers.lambdaQuery(UserRoleDo.builder().userId(userId).roleId(roleId).build()));
 
-			unbindRoleIds.parallelStream().forEach(Objects.requireNonNull(consumer));
+			unbindRoleIds.forEach(Objects.requireNonNull(consumer));
 
 		}
 

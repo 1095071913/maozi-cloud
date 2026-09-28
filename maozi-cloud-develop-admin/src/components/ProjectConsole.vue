@@ -148,7 +148,17 @@
                 {{ runningOf((a) => a.type === 'dbInit') ? '⏳ 查看运行日志' : '🗄 初始化数据库' }}
               </button>
             </template>
+            <button
+              v-if="initImagesReady"
+              class="pc-btn done"
+              disabled
+              title="init_base_image.json 定义的镜像均已构建"
+            >
+              ✅ 已初始化镜像
+            </button>
+            <button v-else class="pc-btn plain" @click="openInitImages">📦 初始化镜像</button>
             <button class="pc-btn plain" @click="openEnvSettings">🔧 环境设置</button>
+            <button class="pc-btn plain" @click="onDockerClear">🧹 容器磁盘清除</button>
           </div>
         </div>
 
@@ -189,6 +199,10 @@
               <button class="svc-all-btn" type="button" @click="onCompose('all', 'start')">
                 <svg viewBox="0 0 24 24"><path d="M8 5.6v12.8L19 12z" /></svg>
                 全部启动
+              </button>
+              <button class="svc-all-btn restart" type="button" title="先 docker compose down 再 up -d" @click="onCompose('all', 'restart')">
+                <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.73 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" /></svg>
+                全部重启
               </button>
               <button class="svc-all-btn stop" type="button" @click="onCompose('all', 'stop')">
                 <svg viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="2.2" /></svg>
@@ -498,7 +512,30 @@
                 <div class="pc-compose-desc">单体与微服务互斥运行 · 启动一侧将自动关闭另一侧全部服务</div>
               </div>
             </div>
-            <div class="pc-compose-head-ops">
+            <div class="pc-compose-head-ops pas-ops">
+              <!-- 编排取值（环境/灰度）：置于按钮行上方、贴最右，决定服务与容器的实际命名 -->
+              <span
+                class="pc-env-pill"
+                title="docker compose 编排取值：${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}} / ${VERSION:-${APPLICATION_VERSION:-main}}（业务 .env 优先，其次系统环境变量）——决定服务与容器的实际命名"
+              >
+                <span class="pc-env-ico">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                    <path d="M3.27 6.96 12 12.01l8.73-5.05" />
+                    <path d="M12 22.08V12" />
+                  </svg>
+                </span>
+                <span class="pc-env-seg">
+                  <em class="pc-env-tag env">环境</em>
+                  <b class="mono-text" :class="{ none: !appSvcEnv?.ENVIRONMENT }">{{ appSvcEnv?.ENVIRONMENT || '—' }}</b>
+                </span>
+                <i class="pc-env-div"></i>
+                <span class="pc-env-seg">
+                  <em class="pc-env-tag gray">灰度</em>
+                  <b class="mono-text" :class="{ none: !appSvcEnv?.VERSION }">{{ appSvcEnv?.VERSION || '—' }}</b>
+                </span>
+              </span>
+              <div class="pc-compose-head-btns">
               <button class="pc-compose-refresh" type="button" title="刷新运行状态" @click="loadAppSvcStatuses">
                 <span class="refresh-ico">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -512,6 +549,10 @@
               <button class="svc-all-btn" type="button" @click="onAppServiceAll('start')">
                 <svg viewBox="0 0 24 24"><path d="M8 5.6v12.8L19 12z" /></svg>
                 全部启动
+              </button>
+              <button class="svc-all-btn restart" type="button" title="先 docker compose down 再 up -d" @click="onAppServiceAll('restart')">
+                <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.73 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" /></svg>
+                全部重启
               </button>
               <button class="svc-all-btn stop" type="button" @click="onAppServiceAll('stop')">
                 <svg viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="2.2" /></svg>
@@ -527,6 +568,7 @@
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
               </button>
+              </div>
             </div>
           </div>
 
@@ -543,6 +585,19 @@
               <em class="mono-text">{{ appSvcRunningCount('distributeds') }}/{{ appServices.distributeds.length }}</em>
             </button>
             <span class="pas-tabs-hint">Tab 选中状态已本地记忆 · 两变体互斥运行</span>
+            <!-- 接口不停机更新开关（随当前 Tab 变体）：热备容器 -backup 承接流量 -->
+            <button
+              class="hotswap-toggle"
+              :class="{ on: hotSwapState[appSvcTab] }"
+              type="button"
+              :title="(hotSwapState[appSvcTab]
+                ? `已开启：${APP_SVC_LABELS[appSvcTab]}的 全部重启 / 编译启动 / 单服务重启 前会先启动 -backup 热备容器（健康后）承接流量，完成后再回收；点击关闭（仅删除热备文件，不动容器）`
+                : `开启后：生成 container_name 加 -backup 的热备 compose，${APP_SVC_LABELS[appSvcTab]}的 全部重启 / 编译启动 / 单服务重启 前先起热备容器承接流量`)"
+              @click="toggleHotSwap(appSvcTab)"
+            >
+              <span class="hotswap-dot"></span>
+              接口不停机更新
+            </button>
           </div>
 
           <!-- 汇总仪表卡：当前 Tab 变体的 总CPU / 总内存 / 服务状态（与基础服务同款环形仪表） -->
@@ -643,7 +698,7 @@
                   :key="x.name"
                   class="pc-sum-seg"
                   :class="{ on: isAppSvcRunning(appSvcTab, x.name) }"
-                  :title="`${appSvcName(x.name)} · ${isAppSvcRunning(appSvcTab, x.name) ? '运行中' : '已停止'}`"
+                  :title="`${appSvcName(x.base ?? x.name)} · ${isAppSvcRunning(appSvcTab, x.name) ? '运行中' : '已停止'}`"
                 ></span>
               </div>
             </div>
@@ -686,13 +741,24 @@
             >
               <div class="pc-svc-top" :style="svcBandStyle(s.name)">
                 <div class="pc-svc-ava" :style="svcAvaStyle(s.name)">
-                  {{ svcVisual(s.name).icon || appSvcName(s.name).charAt(0).toUpperCase() }}
+                  {{ svcVisual(s.name).icon || appSvcName(s.base ?? s.name).charAt(0).toUpperCase() }}
                 </div>
                 <div class="pc-svc-title">
-                  <span class="pc-svc-name mono-text" :title="s.name">{{ appSvcName(s.name) }}</span>
-                  <span class="pc-svc-state" :class="isAppSvcRunning(appSvcTab, s.name) ? 'on' : 'off'">
-                    <i></i>{{ isAppSvcRunning(appSvcTab, s.name) ? '运行中' : '已停止' }}
-                  </span>
+                  <span class="pc-svc-name mono-text" :title="s.name">{{ appSvcName(s.base ?? s.name) }}</span>
+                  <div class="pc-svc-badges">
+                    <span class="pc-svc-state" :class="isAppSvcRunning(appSvcTab, s.name) ? 'on' : 'off'">
+                      <i></i>{{ isAppSvcRunning(appSvcTab, s.name) ? '运行中' : '已停止' }}
+                    </span>
+                    <!-- healthcheck 状态：容器定义了健康检查时展示（健康/异常/启动中），紧跟运行状态右侧 -->
+                    <span
+                      v-if="isAppSvcRunning(appSvcTab, s.name) && appSvcHealth(appSvcTab, s.name)"
+                      class="pc-svc-health"
+                      :class="appSvcHealth(appSvcTab, s.name)"
+                      title="容器 healthcheck 当前状态"
+                    >
+                      <i></i>{{ { healthy: '健康', unhealthy: '异常', starting: '启动中' }[appSvcHealth(appSvcTab, s.name)] || appSvcHealth(appSvcTab, s.name) }}
+                    </span>
+                  </div>
                 </div>
               </div>
               <div class="pc-svc-metrics">
@@ -764,6 +830,12 @@
                 </div>
               </div>
               <div class="pc-svc-foot">
+                <button class="pc-svc-btn cfg" type="button" title="查看 / 编辑服务配置（docker_variable.json · 业务 .env）" @click="openServiceConfig(s)">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.488.488 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+                  </svg>
+                  <span>配置</span>
+                </button>
                 <button class="pc-svc-btn log" type="button" @click="openServiceLog(s.name, `${appSvcTab}:${s.file}`)">
                   <svg viewBox="0 0 24 24">
                     <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
@@ -1177,7 +1249,7 @@
             <div class="pcd-header-icon">🔧</div>
             <div>
               <div class="pcd-title">环境设置</div>
-              <div class="pcd-subtitle">ENVIRONMENT_VARIABLE · 修改写入 shell 配置文件，部署脚本下次执行即生效</div>
+              <div class="pcd-subtitle">取值优先「应用」.env，其次「全局」系统环境变量 · 应用写 .env 文件、全局写 shell 配置</div>
             </div>
           </div>
           <button class="pcd-close" type="button" @click="envVisible = false">✕</button>
@@ -1187,8 +1259,25 @@
       <div class="pcd-body">
         <div v-if="envLoading" class="pev-state"><span class="pc-env-spin"></span>正在读取环境变量…</div>
         <div v-else-if="envError" class="pev-state error"><span class="pev-state-ico">⚠️</span>{{ envError }}</div>
-        <div v-else-if="envTotalCount === 0" class="pev-state">ENVIRONMENT_VARIABLE 中没有定义变量</div>
+        <div v-else-if="envTotalCount === 0" class="pev-state">environment_variable.json 中没有定义变量</div>
         <template v-else>
+          <!-- 分节 Tab：environment_variable.json 的一级属性；>1 节时展示 -->
+          <div v-if="envSections.length > 1" class="pev-tabs">
+            <button
+              v-for="s in envSections"
+              :key="s.name"
+              class="pev-tab"
+              :class="{ active: activeEnvSection?.name === s.name }"
+              type="button"
+              @click="switchEnvTab(s.name)"
+            >
+              {{ s.name }}<em class="mono-text">{{ envSectionCount(s) }}</em>
+            </button>
+            <span class="pev-tabs-note" :title="activeEnvSection?.source === 'file' ? `读写 ${activeEnvSection.file ?? '.env'}` : '读写系统环境变量 · 写入 shell 配置'">
+              {{ activeEnvSection?.source === 'file' ? `读写 ${envFileNameOf(activeEnvSection)}` : '读写系统环境变量' }}
+            </span>
+          </div>
+
           <!-- 进度总览：环形就绪度仪表 + 状态徽标 -->
           <div class="pev-hero" :class="{ done: envProgressPct === 100 }">
             <div class="pev-ring" :style="envRingStyle">
@@ -1202,7 +1291,14 @@
                 <span v-if="envProgressPct === 100" class="pev-done-badge">✅ 全部就绪</span>
               </div>
               <div class="pev-hero-sub">
-                {{ envSetCount }} / {{ envTotalCount }} 项已配置 · {{ envRemote ? 'SSH 写入远程 shell 配置，自动备份' : '修改写入 shell 配置并自动备份' }}
+                {{ envSetCount }} / {{ envTotalCount }} 项已配置 ·
+                {{
+                  activeEnvSection?.source === 'file'
+                    ? '修改写入 .env 文件 · 容器重新编排即生效'
+                    : envRemote
+                      ? 'SSH 写入远程 shell 配置，自动备份'
+                      : '修改写入 shell 配置并自动备份'
+                }}
               </div>
               <div class="pev-hero-chips">
                 <span v-if="envMissingCount" class="pev-stat warn">⚠ {{ envMissingCount }} 未设置</span>
@@ -1258,6 +1354,47 @@
               }"
               :style="{ animationDelay: `${Math.min(ii * 0.04, 0.24)}s` }"
             >
+              <!-- 编辑态：整行展开成全宽大编辑区，长值（如 JVM 参数）完整可见 -->
+              <div v-if="envEditing === it.key" class="pev-edit">
+                <div class="pev-edit-head">
+                  <span class="pev-dot"></span>
+                  <span class="pev-name">{{ it.label }}</span>
+                  <span v-if="isSecretEnv(it)" class="pev-secret" title="敏感变量，默认打码显示">🔒</span>
+                  <span class="pev-key mono-text" :title="it.key">{{ it.key }}</span>
+                </div>
+                <el-input
+                  v-if="isSecretEnv(it)"
+                  v-model="envDraft"
+                  size="default"
+                  class="pev-input"
+                  show-password
+                  :placeholder="`输入 ${it.key} 的值`"
+                  :disabled="envSaving"
+                  @keyup.enter="saveEnvEdit(it)"
+                  @keyup.esc="envEditing = ''"
+                />
+                <el-input
+                  v-else
+                  v-model="envDraft"
+                  type="textarea"
+                  :autosize="{ minRows: 2, maxRows: 8 }"
+                  class="pev-input-lg"
+                  :placeholder="`输入 ${it.key} 的值（单行）`"
+                  :disabled="envSaving"
+                  @keydown.enter.exact.prevent="saveEnvEdit(it)"
+                  @keydown.esc="envEditing = ''"
+                />
+                <div class="pev-edit-ops">
+                  <button class="pev-save" type="button" :disabled="envSaving" @click="saveEnvEdit(it)">
+                    <span v-if="envSaving" class="pc-env-act-spin"></span>
+                    <template v-else>✓ 保存</template>
+                  </button>
+                  <button class="pev-cancel" type="button" :disabled="envSaving" @click="envEditing = ''">取消</button>
+                  <span class="pev-edit-hint">Enter 保存 · Esc 取消</span>
+                </div>
+              </div>
+
+              <template v-else>
               <div class="pev-item-main">
                 <div class="pev-item-label">
                   <span class="pev-dot"></span>
@@ -1268,24 +1405,7 @@
               </div>
 
               <div class="pev-item-side">
-                <template v-if="envEditing === it.key">
-                  <el-input
-                    v-model="envDraft"
-                    size="default"
-                    class="pev-input"
-                    :show-password="isSecretEnv(it)"
-                    :placeholder="`输入 ${it.key} 的值`"
-                    :disabled="envSaving"
-                    @keyup.enter="saveEnvEdit(it)"
-                    @keyup.esc="envEditing = ''"
-                  />
-                  <button class="pev-save" type="button" :disabled="envSaving" @click="saveEnvEdit(it)">
-                    <span v-if="envSaving" class="pc-env-act-spin"></span>
-                    <template v-else>✓ 保存</template>
-                  </button>
-                  <button class="pev-cancel" type="button" :disabled="envSaving" @click="envEditing = ''">取消</button>
-                </template>
-                <template v-else-if="it.found">
+                <template v-if="it.found">
                   <span v-if="it.source" class="pev-src">{{ it.source }}</span>
                   <span
                     class="pev-value mono-text"
@@ -1311,6 +1431,7 @@
                   <button class="pev-set" type="button" @click="startEnvEdit(it)">＋ 设置值</button>
                 </template>
               </div>
+              </template>
             </div>
             </div>
           </div>
@@ -1322,6 +1443,207 @@
       <template #footer>
         <div class="pcd-footer">
           <button class="pcd-btn primary" type="button" @click="envVisible = false">关闭</button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- ===== 初始化镜像弹窗：init_base_image.json（key=镜像名 value=构建目录）+ docker images 存在状态 + 构建 ===== -->
+    <el-dialog
+      v-model="initImagesVisible"
+      width="640px"
+      draggable
+      append-to-body
+      modal-class="pc-dlg pev-dlg"
+      :show-close="false"
+      :close-on-click-modal="false"
+    >
+      <template #header>
+        <div class="pcd-header">
+          <div class="pcd-deco pcd-deco-1"></div>
+          <div class="pcd-deco pcd-deco-2"></div>
+          <div class="pcd-header-main">
+            <div class="pcd-header-icon">📦</div>
+            <div>
+              <div class="pcd-title">初始化镜像</div>
+              <div class="pcd-subtitle">init_base_image.json · key = 镜像名 · value = 构建目录 · docker buildx build 实时输出</div>
+            </div>
+          </div>
+          <button class="pcd-close" type="button" @click="initImagesVisible = false">✕</button>
+        </div>
+      </template>
+
+      <div class="pcd-body">
+        <div v-if="initImagesLoading" class="pev-state"><span class="pc-env-spin"></span>正在读取镜像清单…</div>
+        <div v-else-if="initImagesError" class="pev-state error"><span class="pev-state-ico">⚠️</span>{{ initImagesError }}</div>
+        <div v-else-if="initImages.length === 0" class="pev-state">init_base_image.json 中没有定义镜像</div>
+        <div v-else class="pim-list">
+          <div v-for="img in initImages" :key="img.name" class="pim-row" :class="{ ok: img.exists }">
+            <div class="pim-main">
+              <span class="pim-name mono-text" :title="img.name">{{ img.name }}</span>
+              <span class="pim-dir mono-text" :title="img.dir">{{ img.dir }}</span>
+            </div>
+            <span v-if="img.exists" class="pim-tag ok">✓ 已存在</span>
+            <template v-else>
+              <span class="pim-tag miss">未构建</span>
+              <button
+                class="pim-build"
+                type="button"
+                :disabled="runningOf((a) => a.type === 'initImage' && a.image === img.name)"
+                @click="onInitImageBuild(img.name)"
+              >
+                {{ runningOf((a) => a.type === 'initImage' && a.image === img.name) ? '⏳ 构建中' : '🔨 构建' }}
+              </button>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="pcd-footer">
+          <button class="pcd-btn plain" type="button" @click="loadInitImages">⟳ 刷新</button>
+          <button class="pcd-btn primary" type="button" @click="initImagesVisible = false">关闭</button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- ===== 服务配置弹窗：environment_variable.json 一级属性（服务名）分组条目，取值/修改读写业务 .env ===== -->
+    <el-dialog
+      v-model="svcCfgVisible"
+      width="720px"
+      draggable
+      append-to-body
+      modal-class="pc-dlg pev-dlg"
+      :show-close="false"
+      :close-on-click-modal="false"
+    >
+      <template #header>
+        <div class="pcd-header">
+          <div class="pcd-deco pcd-deco-1"></div>
+          <div class="pcd-deco pcd-deco-2"></div>
+          <div class="pcd-header-main">
+            <div class="pcd-header-icon">⚙️</div>
+            <div>
+              <div class="pcd-title">服务配置 · {{ svcCfgServiceLabel }}</div>
+              <div class="pcd-subtitle">
+                docker_variable.json{{ svcCfgSection ? `「${svcCfgSection}」` : '' }} · {{ svcCfgSetCount }}/{{
+                  svcCfgEditCount
+                }} 项已配置 · 取值与修改读写业务 .env 文件
+              </div>
+            </div>
+          </div>
+          <button class="pcd-close" type="button" @click="svcCfgVisible = false">✕</button>
+        </div>
+      </template>
+
+      <div class="pcd-body">
+        <div v-if="svcCfgLoading" class="pev-state"><span class="pc-env-spin"></span>正在读取服务配置…</div>
+        <div v-else-if="svcCfgError" class="pev-state error"><span class="pev-state-ico">⚠️</span>{{ svcCfgError }}</div>
+        <div v-else-if="svcCfgEditCount === 0" class="pev-state">
+          <span class="pev-state-ico">📭</span>该服务在 docker_variable.json 中未定义配置（一级 key 需为容器完整名称，如 maozi-cloud-admin-monomer）
+        </div>
+        <template v-else>
+          <div v-for="(g, gi) in svcCfgGroups" :key="g.name || gi" class="pev-group">
+            <div v-if="g.name" class="pev-group-name">
+              <span class="pev-group-badge" :style="{ background: groupGrad(gi) }">{{ g.name.slice(0, 1) }}</span>
+              <span class="pev-group-title">{{ g.name }}</span>
+              <span class="pev-group-count mono-text">{{ g.items.length }} 项</span>
+              <span class="pev-group-line"></span>
+            </div>
+            <div class="pev-group-body">
+              <div
+                v-for="it in g.items"
+                :key="it.key"
+                class="pev-item"
+                :class="{
+                  editing: svcCfgEditing === it.key,
+                  ok: it.found && it.enabled,
+                  missing: !it.found
+                }"
+              >
+                <!-- 编辑态：整行展开成全宽大编辑区（复用环境设置的展开样式） -->
+                <div v-if="svcCfgEditing === it.key" class="pev-edit">
+                  <div class="pev-edit-head">
+                    <span class="pev-dot"></span>
+                    <span class="pev-name">{{ it.label }}</span>
+                    <span v-if="isSecretEnv(it)" class="pev-secret" title="敏感变量，默认打码显示">🔒</span>
+                    <span class="pev-key mono-text" :title="it.key">{{ it.key }}</span>
+                  </div>
+                  <el-input
+                    v-if="isSecretEnv(it)"
+                    v-model="svcCfgDraft"
+                    size="default"
+                    class="pev-input"
+                    show-password
+                    :placeholder="`输入 ${it.key} 的值`"
+                    :disabled="svcCfgSaving"
+                    @keyup.enter="saveSvcCfgEdit(it)"
+                    @keyup.esc="svcCfgEditing = ''"
+                  />
+                  <el-input
+                    v-else
+                    v-model="svcCfgDraft"
+                    type="textarea"
+                    :autosize="{ minRows: 2, maxRows: 8 }"
+                    class="pev-input-lg"
+                    :placeholder="`输入 ${it.key} 的值（单行）`"
+                    :disabled="svcCfgSaving"
+                    @keydown.enter.exact.prevent="saveSvcCfgEdit(it)"
+                    @keydown.esc="svcCfgEditing = ''"
+                  />
+                  <div class="pev-edit-ops">
+                    <button class="pev-save" type="button" :disabled="svcCfgSaving" @click="saveSvcCfgEdit(it)">
+                      <span v-if="svcCfgSaving" class="pc-env-act-spin"></span>
+                      <template v-else>✓ 保存</template>
+                    </button>
+                    <button class="pev-cancel" type="button" :disabled="svcCfgSaving" @click="svcCfgEditing = ''">取消</button>
+                    <span class="pev-edit-hint">Enter 保存 · Esc 取消 · 空值 = 未设置</span>
+                  </div>
+                </div>
+
+                <template v-else>
+                  <div class="pev-item-main">
+                    <div class="pev-item-label">
+                      <span class="pev-dot"></span>
+                      <span class="pev-name">{{ it.label }}</span>
+                      <span v-if="isSecretEnv(it)" class="pev-secret" title="敏感变量，默认打码显示">🔒</span>
+                    </div>
+                    <span class="pev-key mono-text" :title="it.key">{{ it.key }}</span>
+                  </div>
+                  <div class="pev-item-side">
+                    <template v-if="it.found">
+                      <span v-if="it.source" class="pev-src">{{ it.source }}</span>
+                      <span
+                        class="pev-value mono-text"
+                        :title="isSecretEnv(it) && !svcCfgRevealed.has(it.key) ? '敏感值已打码' : it.value"
+                        >{{ svcCfgDisplay(it) }}</span
+                      >
+                      <button
+                        v-if="isSecretEnv(it)"
+                        class="pev-ghost-btn"
+                        type="button"
+                        :title="svcCfgRevealed.has(it.key) ? '隐藏明文' : '显示明文'"
+                        @click="toggleSvcCfgReveal(it.key)"
+                      >
+                        {{ svcCfgRevealed.has(it.key) ? '🙈' : '👁' }}
+                      </button>
+                      <button class="pev-ghost-btn" type="button" title="修改值" @click="startSvcCfgEdit(it)">✏️</button>
+                    </template>
+                    <template v-else>
+                      <span class="pev-tag missing">未设置</span>
+                      <button class="pev-set" type="button" @click="startSvcCfgEdit(it)">＋ 设置值</button>
+                    </template>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <template #footer>
+        <div class="pcd-footer">
+          <button class="pcd-btn plain" type="button" @click="loadServiceConfig">⟳ 刷新</button>
+          <button class="pcd-btn primary" type="button" @click="svcCfgVisible = false">关闭</button>
         </div>
       </template>
     </el-dialog>
@@ -1360,10 +1682,10 @@
               <template #prefix>
                 <span class="plg-sel-dot" :style="{ background: svcVisual(logService).grad }"></span>
               </template>
-              <el-option v-for="opt in logServiceOptions" :key="opt.name" :label="appSvcName(opt.name)" :value="opt.name">
+              <el-option v-for="opt in logServiceOptions" :key="opt.name" :label="appSvcName(opt.base ?? opt.name)" :value="opt.name">
                 <span class="plg-opt">
                   <i class="plg-opt-dot" :style="{ background: svcVisual(opt.name).grad }"></i>
-                  <span class="mono-text">{{ appSvcName(opt.name) }}</span>
+                  <span class="mono-text">{{ appSvcName(opt.base ?? opt.name) }}</span>
                   <em v-if="logCtx === 'basics'" :class="{ run: isRunning(opt.name) }">{{ isRunning(opt.name) ? '运行' : '停止' }}</em>
                   <em v-else :class="{ run: isAppSvcRunning(logCtx.split(':')[0] as AppSvcVariant, opt.name) }">
                     {{ isAppSvcRunning(logCtx.split(':')[0] as AppSvcVariant, opt.name) ? '运行' : '停止' }}
@@ -2009,7 +2331,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onActivated, onDeactivated, onMounted, onUnmounted, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { api, type AppServiceEntry, type ComposeServiceStats, type ConfigEntry, type EnvFile, type EnvSettingGroup, type EnvSettingItem, type ProjectBinding } from '../api'
+import { api, type AppServiceEntry, type ComposeServiceStats, type ConfigEntry, type EnvFile, type EnvSettingGroup, type EnvSettingItem, type EnvSettingSection, type ProjectBinding } from '../api'
 
 // KeepAlive include 按组件名缓存，显式声明避免依赖文件名推断
 defineOptions({ name: 'ProjectConsole' })
@@ -2032,6 +2354,7 @@ async function loadState(): Promise<void> {
     loadHostsInitStatus(),
     loadNetworkStatus(),
     loadDbInitStatus(),
+    loadInitImages(),
     loadUiState(),
     loadAppServices(),
     loadAppSvcStatuses()
@@ -2114,8 +2437,11 @@ type LastAction =
   | { type: 'hostsInit' }
   | { type: 'networkCreate' }
   | { type: 'dbInit' }
-  | { type: 'appSvc'; variant: 'monomer' | 'distributeds'; file: 'admin' | 'services'; service: string; action: 'start' | 'stop' | 'restart' }
-  | { type: 'appSvcAll'; variant: 'monomer' | 'distributeds'; action: 'start' | 'stop' }
+  | { type: 'appSvc'; variant: 'monomer' | 'distributeds'; file: 'admin' | 'services' | 'nginx'; service: string; action: 'start' | 'stop' | 'restart' }
+  | { type: 'appSvcAll'; variant: 'monomer' | 'distributeds'; action: 'start' | 'stop' | 'restart' }
+  | { type: 'hotSwap'; variant: 'monomer' | 'distributeds' }
+  | { type: 'initImage'; image: string }
+  | { type: 'dockerClear' }
 
 interface LogSession {
   id: string
@@ -2287,6 +2613,9 @@ function onRerunLast(): Promise<void> {
   if (a.type === 'networkCreate') return onNetworkCreate(true)
   if (a.type === 'appSvc') return onAppService({ name: a.service, file: a.file }, a.action, true)
   if (a.type === 'appSvcAll') return onAppServiceAll(a.action, true)
+  if (a.type === 'hotSwap') return toggleHotSwap(a.variant) // 开关重放=再切一次，回到目标状态
+  if (a.type === 'initImage') return onInitImageBuild(a.image)
+  if (a.type === 'dockerClear') return onDockerClear(true)
   if (a.type === 'gitPull') return onGitPull()
   if (a.type === 'gitCheckout') return runGitCheckout(a.branch)
   if (a.type === 'sshClone') return Promise.resolve() // 克隆不可重放：目录已存在，按钮对此类会话隐藏
@@ -2358,7 +2687,7 @@ const logCtx = ref('basics')
 
 function appSvcYmlName(ctx: string): string {
   const [v, f] = ctx.split(':')
-  return APP_SVC_FILE_NAMES[v as AppSvcVariant]?.[f as 'admin' | 'services'] ?? ''
+  return APP_SVC_FILE_NAMES[v as AppSvcVariant]?.[f as 'admin' | 'services' | 'nginx'] ?? ''
 }
 
 const logCmdText = computed(() =>
@@ -2376,7 +2705,7 @@ const logCmdText = computed(() =>
 const logServiceOptions = computed(() => {
   if (logCtx.value === 'basics') return composeServices.value.map((s) => ({ name: s, file: '' }))
   const [v] = logCtx.value.split(':')
-  return appServices.value[v as AppSvcVariant].map((e) => ({ name: e.name, file: e.file }))
+  return appServices.value[v as AppSvcVariant].map((e) => ({ name: e.name, file: e.file, base: e.base }))
 })
 const logTail = ref(500)
 const logLines = ref<string[]>([])
@@ -2597,14 +2926,39 @@ const offComposeLog = api.projects.onComposeLog((p) => {
 
 onUnmounted(() => offComposeLog())
 
-/** ===== 环境设置：解析项目 ENVIRONMENT_VARIABLE（中文名称 → 环境变量 key），打开时实时读取当前值 ===== */
+/** ===== 环境设置：解析项目 environment_variable.json（一级属性 = 分节 Tab），打开时实时读取当前值 ===== */
 const envVisible = ref(false)
 const envLoading = ref(false)
-const envGroups = ref<EnvSettingGroup[]>([])
+const envSections = ref<EnvSettingSection[]>([])
+const envTab = ref('')
 const envFiles = ref<EnvFile[]>([])
 const envDefaultFileId = ref('')
 const envError = ref('')
 const envRevealed = ref(new Set<string>())
+
+/** 当前分节（Tab）：按名称命中，初始/异常时回退第一节 */
+const activeEnvSection = computed<EnvSettingSection | null>(
+  () => envSections.value.find((s) => s.name === envTab.value) ?? envSections.value[0] ?? null
+)
+
+/** 当前分节的分组：统计、搜索与渲染都只作用于当前 Tab */
+const envGroups = computed<EnvSettingGroup[]>(() => activeEnvSection.value?.groups ?? [])
+
+/** Tab 徽标计数 */
+function envSectionCount(s: EnvSettingSection): number {
+  return s.groups.reduce((n, g) => n + g.items.length, 0)
+}
+
+/** 分节来源提示只显示文件名（完整相对路径放 title 悬浮提示），避免挤变形 Tab 按钮 */
+function envFileNameOf(s: EnvSettingSection): string {
+  return s.file?.split('/').pop() ?? '.env'
+}
+
+function switchEnvTab(name: string): void {
+  if (activeEnvSection.value?.name === name) return
+  envTab.value = name
+  envEditing.value = ''
+}
 
 /** 编辑态：同一时间只编辑一条（按 key 标记） */
 const envEditing = ref('')
@@ -2701,18 +3055,52 @@ function startEnvEdit(it: EnvSettingItem): void {
 }
 
 /**
- * 保存修改：已存在的原位更新（禁用行顺带启用），新变量写入默认配置文件。
- * buildChildEnv 每次执行脚本都重新读取配置文件，保存后部署脚本下次执行即生效
+ * 保存修改：.env 分节原位更新文件行；系统环境分节已存在的原位更新（禁用行顺带启用），
+ * 新变量写入默认配置文件。buildChildEnv 每次执行脚本都重新读取配置文件，保存后部署脚本下次执行即生效
  */
+/**
+ * 环境设置保存后的联动刷新：ENVIRONMENT / VERSION（及其系统级回退 APPLICATION_*）参与
+ * 应用服务与容器的命名（如 maozi-cloud-admin-monomer-dev-main），改完即刷新列表
+ * （服务名 + 环境/灰度徽标取值）与运行状态匹配，避免面板显示旧值
+ */
+async function refreshAppSvcNaming(key: string): Promise<void> {
+  if (!/^(ENVIRONMENT|VERSION|APPLICATION_ENVIRONMENT|APPLICATION_VERSION)$/.test(key)) return
+  await loadAppServices()
+  void loadAppSvcStatuses()
+  void loadAppSvcStats()
+}
+
 async function saveEnvEdit(it: EnvSettingItem): Promise<void> {
+  // 允许空值且空值 = 未设置：.env 分节写 KEY= 行、系统环境分节写 export KEY=''（清空取值、
+  // 保留 key 定义，列表项回到「未设置」态）；如需彻底删除变量，系统环境分节仍到「环境变量」页操作
   const value = envDraft.value.trim()
-  if (!value) {
-    ElMessage.warning('变量值不能为空；如需删除变量请到「环境变量」页操作')
-    return
-  }
-  const fileId = it.fileId ?? envDefaultFileId.value
+  const isFile = activeEnvSection.value?.source === 'file'
   envSaving.value = true
   try {
+    if (isFile) {
+      const r = await api.projects.envFileSave({ key: it.key, value })
+      if (!r.ok) {
+        ElMessage.error(r.error ?? '保存失败')
+        return
+      }
+      ElMessage.success('已写入 .env 文件，容器重新编排即生效')
+      envEditing.value = ''
+      // 原位更新该变量即可：整表刷新会闪 loading 且重置已显示的密钥；
+      // 空值视为未设置（found=false，显示「未设置」标签）
+      for (const g of envGroups.value) {
+        const target = g.items.find((x) => x.key === it.key)
+        if (target) {
+          target.value = value
+          target.found = value !== ''
+          target.enabled = value !== ''
+          target.source = value !== '' ? '.env' : ''
+          break
+        }
+      }
+      await refreshAppSvcNaming(it.key)
+      return
+    }
+    const fileId = it.fileId ?? envDefaultFileId.value
     const r = envRemote.value
       ? await api.projects.sshEnvSave({ key: it.key, value, fileId })
       : await api.env.save({ mode: it.fileId ? 'update' : 'add', key: it.key, value, fileId })
@@ -2730,17 +3118,20 @@ async function saveEnvEdit(it: EnvSettingItem): Promise<void> {
           : `已写入 ${envFileName(fileId) || '配置文件'}，部署脚本下次执行即生效`
       )
     envEditing.value = ''
-    // 原位更新该变量即可：整表刷新会闪 loading 且重置已显示的密钥；需要重读时用「⟳ 刷新」
+    // 原位更新该变量即可：整表刷新会闪 loading 且重置已显示的密钥；需要重读时用「⟳ 刷新」；
+    // 空值视为未设置（found=false，显示「未设置」标签）
     for (const g of envGroups.value) {
       const target = g.items.find((x) => x.key === it.key)
       if (target) {
         target.value = value
-        target.found = true
-        target.enabled = true
+        target.found = value !== ''
+        target.enabled = value !== ''
+        target.source = value !== '' ? target.source : ''
         if (!target.fileId) target.fileId = fileId
         break
       }
     }
+    await refreshAppSvcNaming(it.key)
   } finally {
     envSaving.value = false
   }
@@ -2752,14 +3143,15 @@ async function loadEnvSettings(): Promise<void> {
   try {
     const r = await api.projects.envSettings()
     if (r.ok && r.data) {
-      envGroups.value = r.data.groups
+      envSections.value = r.data.sections
+      envTab.value = r.data.sections[0]?.name ?? ''
       envFiles.value = r.data.files
       envDefaultFileId.value = r.data.defaultFileId
       envRemote.value = !!(r.data as { remote?: boolean }).remote
       envRevealed.value = new Set()
     } else {
-      envGroups.value = []
-      envError.value = r.error ?? '读取 ENVIRONMENT_VARIABLE 失败'
+      envSections.value = []
+      envError.value = r.error ?? '读取 environment_variable.json 失败'
     }
   } finally {
     envLoading.value = false
@@ -2770,6 +3162,101 @@ function openEnvSettings(): void {
   envVisible.value = true
   envEditing.value = ''
   void loadEnvSettings()
+}
+
+/** ===== 服务配置：environment_variable.json 一级属性（key = 服务名）→ 配置描述 → 变量 key，值读写业务 .env ===== */
+const svcCfgVisible = ref(false)
+const svcCfgLoading = ref(false)
+const svcCfgError = ref('')
+const svcCfgSection = ref('')
+/** 当前查看的服务（真实名 + 静态前缀，供后端匹配一级属性） */
+const svcCfgTarget = ref<{ name: string; base?: string } | null>(null)
+const svcCfgServiceLabel = ref('')
+const svcCfgGroups = ref<EnvSettingGroup[]>([])
+const svcCfgEditing = ref('')
+const svcCfgDraft = ref('')
+const svcCfgSaving = ref(false)
+const svcCfgRevealed = ref(new Set<string>())
+
+/** 编辑展开态复用环境设置的样式（pev-edit） */
+const svcCfgEditCount = computed(() => svcCfgGroups.value.reduce((n, g) => n + g.items.length, 0))
+const svcCfgSetCount = computed(() => svcCfgGroups.value.reduce((n, g) => n + g.items.filter((i) => i.found && i.enabled).length, 0))
+
+function svcCfgDisplay(it: EnvSettingItem): string {
+  if (isSecretEnv(it) && !svcCfgRevealed.value.has(it.key)) return '••••••••••'
+  return it.value === '' ? '(空)' : it.value
+}
+
+function toggleSvcCfgReveal(key: string): void {
+  const next = new Set(svcCfgRevealed.value)
+  if (next.has(key)) next.delete(key)
+  else next.add(key)
+  svcCfgRevealed.value = next
+}
+
+function openServiceConfig(s: AppServiceEntry): void {
+  svcCfgTarget.value = { name: s.name, base: s.base }
+  svcCfgServiceLabel.value = appSvcName(s.base ?? s.name)
+  svcCfgVisible.value = true
+  svcCfgEditing.value = ''
+  void loadServiceConfig()
+}
+
+async function loadServiceConfig(): Promise<void> {
+  const t = svcCfgTarget.value
+  if (!t) return
+  svcCfgLoading.value = true
+  svcCfgError.value = ''
+  try {
+    const r = await api.projects.serviceConfig(t.name, t.base)
+    if (r.ok && r.data) {
+      svcCfgSection.value = r.data.section
+      svcCfgGroups.value = r.data.groups
+    } else if (r.ok) {
+      svcCfgGroups.value = []
+      svcCfgSection.value = ''
+    } else {
+      svcCfgGroups.value = []
+      svcCfgError.value = r.error ?? '读取服务配置失败'
+    }
+    svcCfgRevealed.value = new Set()
+    svcCfgEditing.value = ''
+  } finally {
+    svcCfgLoading.value = false
+  }
+}
+
+function startSvcCfgEdit(it: EnvSettingItem): void {
+  svcCfgEditing.value = it.key
+  svcCfgDraft.value = it.value
+}
+
+/** 保存写业务 .env（空值 = 未设置）；ENVIRONMENT/VERSION 等参与命名时联动刷新应用服务 */
+async function saveSvcCfgEdit(it: EnvSettingItem): Promise<void> {
+  const value = svcCfgDraft.value.trim()
+  svcCfgSaving.value = true
+  try {
+    const r = await api.projects.envFileSave({ key: it.key, value })
+    if (!r.ok) {
+      ElMessage.error(r.error ?? '保存失败')
+      return
+    }
+    ElMessage.success('已写入 .env 文件，容器重新编排即生效')
+    svcCfgEditing.value = ''
+    for (const g of svcCfgGroups.value) {
+      const target = g.items.find((x) => x.key === it.key)
+      if (target) {
+        target.value = value
+        target.found = value !== ''
+        target.enabled = value !== ''
+        target.source = value !== '' ? '.env' : ''
+        break
+      }
+    }
+    await refreshAppSvcNaming(it.key)
+  } finally {
+    svcCfgSaving.value = false
+  }
 }
 
 /** ===== 基础服务（docker compose） ===== */
@@ -2879,7 +3366,7 @@ const adminState = ref('unknown')
 
 const adminRunning = computed(() => adminState.value === 'running')
 
-/** ===== 初始化 Hosts（项目 maozi-cloud-deploy-run/HOSTS -> 系统 /etc/hosts） ===== */
+/** ===== 初始化 Hosts（项目 maozi-cloud-deploy-run/init_hosts.json -> 系统 /etc/hosts） ===== */
 const hostsInit = ref<{ total: number; missing: number; initialized: boolean } | null>(null)
 
 const hostsInitState = computed(() => hostsInit.value ?? { total: 0, missing: 0, initialized: false })
@@ -2896,7 +3383,7 @@ async function loadNetworkStatus(): Promise<void> {
   networkState.value = r.ok && r.data ? r.data : null
 }
 
-/** ===== 初始化数据库（INIT_MYSQL_DB：表名=SQL脚本，按需启动 mysql 导入缺失表） ===== */
+/** ===== 初始化数据库（init_mysql_db.json：SQL 脚本数组，按需启动 mysql 导入缺失表） ===== */
 const dbInitState = ref<{ count: number; initialized: boolean; missing: number }>({ count: 0, initialized: false, missing: 0 })
 
 async function loadDbInitStatus(): Promise<void> {
@@ -2916,7 +3403,7 @@ async function onDbInit(skipConfirm = false): Promise<void> {
     {
       label: '初始化数据库',
       icon: '🗄',
-      title: '数据库初始化 · INIT_MYSQL_DB',
+      title: '数据库初始化 · init_mysql_db.json',
       sub: 'MySQL 按需启动 · SQL 脚本逐个导入'
     }
   )
@@ -2938,18 +3425,27 @@ type AppSvcVariant = 'monomer' | 'distributeds'
 
 const APP_SVC_LABELS: Record<AppSvcVariant, string> = { monomer: '单体服务', distributeds: '微服务' }
 const APP_SVC_ICONS: Record<AppSvcVariant, string> = { monomer: '🧩', distributeds: '☁️' }
-const APP_SVC_FILE_NAMES: Record<AppSvcVariant, Record<'admin' | 'services', string>> = {
-  monomer: { admin: 'maozi-cloud-admin-monomer-docker.yml', services: 'maozi-cloud-services-monomer-docker.yml' },
+const APP_SVC_FILE_NAMES: Record<AppSvcVariant, Record<'admin' | 'services' | 'nginx', string>> = {
+  monomer: {
+    admin: 'maozi-cloud-admin-monomer-docker.yml',
+    services: 'maozi-cloud-services-monomer-docker.yml',
+    nginx: 'maozi-cloud-nginx-monomer-docker.yml'
+  },
   distributeds: {
     admin: 'maozi-cloud-admin-distributeds-docker.yml',
-    services: 'maozi-cloud-services-distributeds-docker.yml'
+    services: 'maozi-cloud-services-distributeds-docker.yml',
+    nginx: 'maozi-cloud-nginx-distributeds-docker.yml'
   }
 }
 const OTHER_APP_VARIANT: Record<AppSvcVariant, AppSvcVariant> = { monomer: 'distributeds', distributeds: 'monomer' }
 
 const appSvcTab = ref<AppSvcVariant>('distributeds')
 const appServices = ref<Record<AppSvcVariant, AppServiceEntry[]>>({ monomer: [], distributeds: [] })
+/** 当前 docker compose 编排取值（环境/灰度）：业务 .env 优先、其次系统环境变量，参与服务与容器命名 */
+const appSvcEnv = ref<{ ENVIRONMENT: string; VERSION: string } | null>(null)
 const appSvcStatuses = ref<Record<AppSvcVariant, Record<string, string>>>({ monomer: {}, distributeds: {} })
+/** 容器 healthcheck 状态（healthy/unhealthy/starting；无 healthcheck 或未运行为空串） */
+const appSvcHealths = ref<Record<AppSvcVariant, Record<string, string>>>({ monomer: {}, distributeds: {} })
 
 /** 展示名去掉 maozi-cloud- 前缀与最后一个 - 后缀段（gateway-service → gateway） */
 function appSvcName(s: string): string {
@@ -2958,6 +3454,11 @@ function appSvcName(s: string): string {
 
 function isAppSvcRunning(v: AppSvcVariant, s: string): boolean {
   return (appSvcStatuses.value[v][s] ?? '') === 'running'
+}
+
+/** 健康检查状态（仅运行中且定义了 healthcheck 的容器有值） */
+function appSvcHealth(v: AppSvcVariant, s: string): string {
+  return appSvcHealths.value[v][s] ?? ''
 }
 
 function appSvcRunningCount(v: AppSvcVariant): number {
@@ -3207,6 +3708,45 @@ async function loadUiState(): Promise<void> {
     if (t === 'monomer' || t === 'distributeds') appSvcTab.value = t
     if (typeof r.data.basicsCollapsed === 'boolean') basicsCollapsed.value = r.data.basicsCollapsed
     if (typeof r.data.appSvcCollapsed === 'boolean') appSvcCollapsed.value = r.data.appSvcCollapsed
+    hotSwapState.value = {
+      monomer: r.data.monomerHotSwap === true,
+      distributeds: r.data.distributedsHotSwap === true
+    }
+  }
+}
+
+/** ===== 应用服务「接口不停机更新」（单体/微服务各一个开关）：开启后 全部重启/编译启动/单服务重启 前先起 -backup 热备容器承接流量 ===== */
+const hotSwapState = ref<{ monomer: boolean; distributeds: boolean }>({ monomer: false, distributeds: false })
+
+async function toggleHotSwap(variant: AppSvcVariant): Promise<void> {
+  if (focusRunning((a) => a.type === 'hotSwap' && a.variant === variant)) return
+  const target = !hotSwapState.value[variant]
+  const s = startSession(
+    { type: 'hotSwap', variant },
+    {
+      label: `${APP_SVC_LABELS[variant]} · ${target ? '开启' : '关闭'}接口不停机更新`,
+      icon: '🔁',
+      title: `${APP_SVC_LABELS[variant]} · 接口不停机更新`,
+      sub: target
+        ? '生成热备 compose（container_name 加 -backup）· 重启/编译启动时热备容器先承接流量'
+        : '删除热备 compose 文件（不动容器）'
+    }
+  )
+  try {
+    const r = await api.projects.hotSwap(variant, target, s.id)
+    finishSession(s, r.ok)
+    if (!r.ok) {
+      ElMessage.error(r.error ?? '操作失败')
+      return
+    }
+    hotSwapState.value[variant] = r.data === true
+    ElMessage.success(
+      target
+        ? `已开启：${APP_SVC_LABELS[variant]}的 全部重启 / 编译启动 / 单服务重启 会先启动 -backup 热备容器（健康后）承接流量，完成后再回收`
+        : `已关闭：${APP_SVC_LABELS[variant]}热备文件已删除`
+    )
+  } finally {
+    s.running = false
   }
 }
 
@@ -3216,6 +3756,8 @@ async function loadAppServices(): Promise<void> {
     (['monomer', 'distributeds'] as AppSvcVariant[]).map(async (v) => {
       const r = await api.projects.appServices(v)
       appServices.value[v] = r.ok && r.data ? r.data.services : []
+      // 两个变体的编排取值相同，取任一响应
+      if (r.ok && r.data?.env) appSvcEnv.value = r.data.env
     })
   )
 }
@@ -3225,7 +3767,9 @@ async function loadAppSvcStatuses(): Promise<void> {
   await Promise.all(
     (['monomer', 'distributeds'] as AppSvcVariant[]).map(async (v) => {
       const r = await api.projects.appServicesStatus(v)
-      appSvcStatuses.value[v] = ((r.ok && r.data ? r.data : {}) ?? {}) as Record<string, string>
+      const d = r.ok && r.data ? r.data : { states: {}, healths: {} }
+      appSvcStatuses.value[v] = d.states ?? {}
+      appSvcHealths.value[v] = d.healths ?? {}
     })
   )
 }
@@ -3336,7 +3880,7 @@ async function confirmAppSvcMutex(v: AppSvcVariant, what: string, skipConfirm: b
   return await confirmMutex({
     desc: `启动「${APP_SVC_LABELS[v]} · ${what}」前，需先关闭${APP_SVC_LABELS[other]}的全部运行容器`,
     stopLabel: APP_SVC_LABELS[other],
-    stopList: otherRunning.map((x) => x.name),
+    stopList: otherRunning.map((x) => x.base ?? x.name),
     startLabel: what,
     startSub: APP_SVC_LABELS[v]
   })
@@ -3347,25 +3891,25 @@ async function onAppService(svc: AppServiceEntry, action: 'start' | 'stop' | 're
   const v = appSvcTab.value
   const verb = action === 'start' ? '启动' : action === 'stop' ? '关闭' : '重启'
   if (focusRunning((a) => a.type === 'appSvc' && a.service === svc.name && a.action === action)) return
-  if (action !== 'stop' && !(await confirmAppSvcMutex(v, `${verb} ${appSvcName(svc.name)}`, skipConfirm))) return
+  if (action !== 'stop' && !(await confirmAppSvcMutex(v, `${verb} ${appSvcName(svc.base ?? svc.name)}`, skipConfirm))) return
   const yml = APP_SVC_FILE_NAMES[v][svc.file]
   const s = startSession(
     { type: 'appSvc', variant: v, file: svc.file, service: svc.name, action },
     {
-      label: `${appSvcName(svc.name)} ${verb}`,
+      label: `${appSvcName(svc.base ?? svc.name)} ${verb}`,
       icon: APP_SVC_ICONS[v],
-      title: `${APP_SVC_LABELS[v]} · ${verb} ${appSvcName(svc.name)}`,
+      title: `${APP_SVC_LABELS[v]} · ${verb} ${appSvcName(svc.base ?? svc.name)}`,
       sub:
         action === 'restart'
-          ? `docker compose -f ${yml} rm -sf ${svc.name} && up -d · 实时输出`
-          : `docker compose -f ${yml} ${action === 'start' ? `up -d ${svc.name}` : `rm -sf ${svc.name}`} · 实时输出`
+          ? `docker compose -p <项目名> -f ${yml} stop + rm -f ${svc.name} && up -d · 实时输出`
+          : `docker compose -p <项目名> -f ${yml} ${action === 'start' ? `up -d ${svc.name}` : `stop + rm -f ${svc.name}`} · 实时输出`
     }
   )
   try {
     const r = await api.projects.appServiceAction(v, svc.file, svc.name, action, s.id)
     finishSession(s, r.ok)
     if (!r.ok && !stopRequestedSids.has(s.id)) ElMessage.error(r.error ?? 'docker 操作失败')
-    else if (r.ok && !stopRequestedSids.has(s.id)) ElMessage.success(`服务 ${appSvcName(svc.name)} 已${verb}`)
+    else if (r.ok && !stopRequestedSids.has(s.id)) ElMessage.success(`服务 ${appSvcName(svc.base ?? svc.name)} 已${verb}`)
   } finally {
     s.running = false
     stopRequestedSids.delete(s.id)
@@ -3374,18 +3918,20 @@ async function onAppService(svc: AppServiceEntry, action: 'start' | 'stop' | 're
   }
 }
 
-/** 全量启动/关闭当前 Tab 变体；启动前主进程自动 down 掉另一变体 */
-async function onAppServiceAll(action: 'start' | 'stop', skipConfirm = false): Promise<void> {
+/** 全量启动/关闭/重启当前 Tab 变体；重启 = 先 down 本变体再 up（先 docker-compose down 再 up）；
+ *  启动/重启前主进程自动 down 掉另一变体 */
+async function onAppServiceAll(action: 'start' | 'stop' | 'restart', skipConfirm = false): Promise<void> {
   const v = appSvcTab.value
   if (focusRunning((a) => a.type === 'appSvcAll' && a.variant === v && a.action === action)) return
-  if (action === 'start' && !(await confirmAppSvcMutex(v, '全部服务', skipConfirm))) return
+  if (action !== 'stop' && !(await confirmAppSvcMutex(v, '全部服务', skipConfirm))) return
+  const verb = action === 'start' ? '启动' : action === 'stop' ? '关闭' : '重启'
   const s = startSession(
     { type: 'appSvcAll', variant: v, action },
     {
-      label: `${APP_SVC_LABELS[v]}全部${action === 'start' ? '启动' : '关闭'}`,
+      label: `${APP_SVC_LABELS[v]}全部${verb}`,
       icon: APP_SVC_ICONS[v],
-      title: `${APP_SVC_LABELS[v]} · ${action === 'start' ? '全部启动' : '全部关闭'}`,
-      sub: `${APP_SVC_FILE_NAMES[v].services} + ${APP_SVC_FILE_NAMES[v].admin} · 实时输出`
+      title: `${APP_SVC_LABELS[v]} · 全部${verb}`,
+      sub: `${APP_SVC_FILE_NAMES[v].services} + ${APP_SVC_FILE_NAMES[v].admin} + ${APP_SVC_FILE_NAMES[v].nginx}${action === 'restart' ? ' · 先 down 再 up' : ' · 实时输出'}`
     }
   )
   try {
@@ -3410,6 +3956,110 @@ const prepReady = computed(
     (!networkState.value?.name || networkState.value.exists) &&
     (dbInitState.value.count === 0 || dbInitState.value.initialized)
 )
+
+/** ===== 初始化镜像：init_base_image.json（key=镜像名 value=构建目录），对照 docker images 展示与构建 ===== */
+const initImagesVisible = ref(false)
+const initImagesLoading = ref(false)
+const initImagesError = ref('')
+const initImages = ref<Array<{ name: string; dir: string; exists: boolean }>>([])
+
+/** 初始化镜像就绪：定义的镜像全部已构建（外层按钮随之切换为完成态） */
+const initImagesReady = computed(
+  () => initImages.value.length > 0 && initImages.value.every((i) => i.exists)
+)
+
+function openInitImages(): void {
+  initImagesVisible.value = true
+  void loadInitImages()
+}
+
+async function loadInitImages(): Promise<void> {
+  initImagesLoading.value = true
+  initImagesError.value = ''
+  try {
+    const r = await api.projects.initImages()
+    if (r.ok && r.data) {
+      initImages.value = r.data.images
+    } else {
+      initImages.value = []
+      initImagesError.value = r.error ?? '读取 init_base_image.json 失败'
+    }
+  } catch (err) {
+    // invoke 被 reject（如主进程未注册处理器：应用未重启 dev 加载新 IPC）时给出可见提示
+    initImages.value = []
+    initImagesError.value = `读取镜像清单失败：${(err as Error).message}`
+  } finally {
+    initImagesLoading.value = false
+  }
+}
+
+/** 构建镜像：进入定义目录 docker buildx build -f Dockerfile -t <name> .，日志走会话 */
+async function onInitImageBuild(name: string): Promise<void> {
+  if (focusRunning((a) => a.type === 'initImage' && a.image === name)) return
+  const s = startSession(
+    { type: 'initImage', image: name },
+    {
+      label: `构建镜像 ${name}`,
+      icon: '📦',
+      title: '初始化镜像 · docker buildx build',
+      sub: `${name} · 进入定义目录执行 build（实时输出）`
+    }
+  )
+  try {
+    const r = await api.projects.initImageBuild(name, s.id)
+    finishSession(s, r.ok)
+    if (!r.ok && !stopRequestedSids.has(s.id)) ElMessage.error(r.error ?? '镜像构建失败')
+    else if (r.ok && !stopRequestedSids.has(s.id)) ElMessage.success(`镜像 ${name} 构建完成`)
+    void loadInitImages()
+  } catch (err) {
+    // invoke 被 reject（如主进程未注册处理器）：会话收尾并给出可见错误，不再无感失败
+    finishSession(s, false)
+    ElMessage.error(`镜像构建发起失败：${(err as Error).message}`)
+  } finally {
+    s.running = false
+    stopRequestedSids.delete(s.id)
+  }
+}
+
+/** 容器磁盘清除：执行 maozi-cloud-utils/docker-clear.sh（truncate 容器 json 日志、清理悬空镜像等） */
+async function onDockerClear(skipConfirm = false): Promise<void> {
+  if (focusRunning((a) => a.type === 'dockerClear')) return
+  if (!skipConfirm) {
+    try {
+      await ElMessageBox.confirm(
+        '将执行 docker-clear.sh：truncate 容器 json 日志、清理无用镜像/构建缓存等，释放磁盘空间。确认执行？',
+        '容器磁盘清除',
+        { confirmButtonText: '执行', cancelButtonText: '取消', type: 'warning' }
+      )
+    } catch {
+      return
+    }
+  }
+  const s = startSession(
+    { type: 'dockerClear' },
+    {
+      label: '容器磁盘清除',
+      icon: '🧹',
+      title: '容器磁盘清除 · docker-clear.sh',
+      sub: 'maozi-cloud-utils/docker-clear.sh · 清理容器日志与无用镜像（实时输出）'
+    }
+  )
+  try {
+    const r = await api.projects.runScript('dockerClear', s.id)
+    finishSession(s, r.ok)
+    if (!r.ok && !stopRequestedSids.has(s.id)) ElMessage.error(r.error ?? '执行失败')
+    else if (r.ok && !stopRequestedSids.has(s.id)) ElMessage.success('容器磁盘清除完成')
+    // 磁盘/镜像变化后刷新资源快照
+    void loadComposeStats()
+    void loadAppSvcStats()
+  } catch (err) {
+    finishSession(s, false)
+    ElMessage.error(`执行发起失败：${(err as Error).message}`)
+  } finally {
+    s.running = false
+    stopRequestedSids.delete(s.id)
+  }
+}
 
 /** 创建容器网络：docker network create（幂等），日志走执行日志会话 */
 async function onNetworkCreate(skipConfirm = false): Promise<void> {
@@ -3452,7 +4102,7 @@ async function onHostsInit(skipConfirm = false): Promise<void> {
     const missing = hostsInit.value?.missing ?? 0
     try {
       await ElMessageBox.confirm(
-        `将把项目 maozi-cloud-deploy-run/HOSTS 中缺失的 ${missing} 条映射写入系统 /etc/hosts（已设置的忽略），需要管理员授权并自动刷新 DNS 缓存。确定继续吗？`,
+        `将把项目 maozi-cloud-deploy-run/init_hosts.json 中缺失的 ${missing} 条映射写入系统 /etc/hosts（已设置的忽略），需要管理员授权并自动刷新 DNS 缓存。确定继续吗？`,
         '初始化 Hosts',
         { type: 'warning', confirmButtonText: '初始化', cancelButtonText: '取消' }
       )
@@ -3467,7 +4117,7 @@ async function onHostsInit(skipConfirm = false): Promise<void> {
       label: '初始化Hosts',
       icon: '🌐',
       title: '初始化 Hosts · /etc/hosts',
-      sub: 'maozi-cloud-deploy-run/HOSTS · 实时输出'
+      sub: 'maozi-cloud-deploy-run/init_hosts.json · 实时输出'
     }
   )
   try {
@@ -3729,6 +4379,7 @@ onActivated(() => {
   void loadHostsInitStatus()
   void loadNetworkStatus()
   void loadDbInitStatus()
+  void loadInitImages()
   void loadAppSvcStatuses()
   // git 仓库状态同理可能已变化（如目录外删除了 .git），刷新后按需隐藏分支与拉取/切换按钮
   void loadGitInfo()
@@ -3757,6 +4408,7 @@ async function onCompose(service: string, action: 'start' | 'stop' | 'restart', 
   const isAll = service === 'all'
   const isAllStart = isAll && action === 'start'
   const isAllStop = isAll && action === 'stop'
+  const isAllRestart = isAll && action === 'restart'
   const isRestart = action === 'restart'
   if (focusRunning((a) => a.type === 'compose' && a.service === service && a.action === action)) return
   const s = startSession(
@@ -3766,20 +4418,26 @@ async function onCompose(service: string, action: 'start' | 'stop' | 'restart', 
         ? '全量启动'
         : isAllStop
           ? '全量关闭'
-          : `${svcName(service)} ${action === 'start' ? '启动' : action === 'stop' ? '关闭' : '重启'}`,
+          : isAllRestart
+            ? '全量重启'
+            : `${svcName(service)} ${action === 'start' ? '启动' : action === 'stop' ? '关闭' : '重启'}`,
       icon: '🐳',
       title: isAllStart
         ? 'Docker 服务 · 全量中间件启动'
         : isAllStop
           ? 'Docker 服务 · 全量中间件关闭'
-          : `Docker 服务 · ${action === 'start' ? '启动' : action === 'stop' ? '关闭' : '重启'} ${svcName(service)}`,
+          : isAllRestart
+            ? 'Docker 服务 · 全量中间件重启'
+            : `Docker 服务 · ${action === 'start' ? '启动' : action === 'stop' ? '关闭' : '重启'} ${svcName(service)}`,
       sub: isAllStart
         ? 'docker compose up -d · 实时输出'
         : isAllStop
           ? 'docker compose down · 实时输出'
-          : isRestart
-            ? `docker compose rm -sf ${service} && docker compose up -d ${service} · 实时输出`
-            : `docker compose ${action === 'start' ? `up -d ${service}` : `rm -sf ${service}`} · 实时输出`
+          : isAllRestart
+            ? 'docker compose down && docker compose up -d · 实时输出'
+            : isRestart
+              ? `docker compose stop + rm -f ${service} && docker compose up -d ${service} · 实时输出`
+              : `docker compose ${action === 'start' ? `up -d ${service}` : `stop + rm -f ${service}`} · 实时输出`
     }
   )
   try {
@@ -3792,11 +4450,13 @@ async function onCompose(service: string, action: 'start' | 'stop' | 'restart', 
           ? '全部基础中间件已启动'
           : isAllStop
             ? '全部基础中间件已关闭'
-            : action === 'start'
-              ? `服务 ${svcName(service)} 已启动`
-              : action === 'stop'
-                ? `服务 ${svcName(service)} 已关闭`
-                : `服务 ${svcName(service)} 已重启`
+            : isAllRestart
+              ? '全部基础中间件已重启'
+              : action === 'start'
+                ? `服务 ${svcName(service)} 已启动`
+                : action === 'stop'
+                  ? `服务 ${svcName(service)} 已关闭`
+                  : `服务 ${svcName(service)} 已重启`
       )
       await loadComposeStatuses()
     }
@@ -3822,7 +4482,7 @@ async function onRunScript(kind: DeployKind, skipConfirm = false): Promise<void>
     const go = await confirmMutex({
       desc: `执行「${meta.title}」前，需先关闭${APP_SVC_LABELS[other]}的全部运行容器`,
       stopLabel: APP_SVC_LABELS[other],
-      stopList: otherRunning().map((x) => x.name),
+      stopList: otherRunning().map((x) => x.base ?? x.name),
       startLabel: meta.title,
       startSub: '部署脚本 · 编译 + 启动'
     })
@@ -4727,6 +5387,47 @@ onMounted(loadState)
   white-space: nowrap;
 }
 
+/* 单体服务「接口不停机更新」开关：药丸滑块，开启绿色 */
+.hotswap-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 13px;
+  border: 1px solid #dbe4f0;
+  border-radius: 999px;
+  background: #fff;
+  color: #64748b;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.hotswap-toggle .hotswap-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.18);
+  transition: all 0.18s ease;
+}
+
+.hotswap-toggle.on {
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.hotswap-toggle.on .hotswap-dot {
+  background: linear-gradient(135deg, #34d399, #059669);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.16);
+}
+
+.hotswap-toggle:hover {
+  border-color: #93c5fd;
+}
+
 /* 部署栏：仅微服务 Tab —— 提示语居左，按钮组靠右（与上方仪表卡保持间距） */
 .pas-deploy {
   display: flex;
@@ -5002,6 +5703,9 @@ onMounted(loadState)
   display: flex;
   align-items: center;
   gap: 9px;
+  /* 窗口较窄时徽章折到名称下方，避免把操作按钮挤换行 */
+  flex-wrap: wrap;
+  row-gap: 6px;
   font-size: 16px;
   font-weight: 800;
   color: #0f1e30;
@@ -5045,6 +5749,121 @@ onMounted(loadState)
   white-space: nowrap;
 }
 
+/* 编排取值徽章（环境/灰度）：渐变描边药丸 + 图标圆徽 + 双色标签 + 渐变取值 */
+.pc-env-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 15px 4px 5px;
+  border-radius: 999px;
+  /* 渐变描边：白底 padding-box + 渐变 border-box */
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f7faff 100%) padding-box,
+    linear-gradient(135deg, #a5c8fc 0%, #818cf8 45%, #7dd3fc 100%) border-box;
+  border: 1px solid transparent;
+  box-shadow:
+    0 2px 10px rgba(99, 102, 241, 0.16),
+    0 1px 2px rgba(30, 58, 138, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  white-space: nowrap;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+/* 悬浮：上浮 + 光晕加深 + 一道光泽从左扫过 */
+.pc-env-pill:hover {
+  transform: translateY(-1.5px);
+  box-shadow:
+    0 6px 18px rgba(99, 102, 241, 0.28),
+    0 2px 4px rgba(30, 58, 138, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.pc-env-pill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.6) 50%, transparent 62%);
+  transform: translateX(-130%);
+  transition: transform 0.65s ease;
+  pointer-events: none;
+}
+
+.pc-env-pill:hover::after {
+  transform: translateX(130%);
+}
+
+/* 左端图标圆徽：靛蓝渐变 + 内高光 */
+.pc-env-ico {
+  width: 23px;
+  height: 23px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #818cf8 0%, #2563eb 100%);
+  color: #fff;
+  box-shadow:
+    0 2px 6px rgba(37, 99, 235, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.pc-env-ico svg {
+  width: 12px;
+  height: 12px;
+}
+
+.pc-env-seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 小标签：环境=蓝 / 灰度=紫罗兰，渐变胶囊白字 */
+.pc-env-tag {
+  padding: 1.5px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.pc-env-tag.env {
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
+}
+
+.pc-env-tag.gray {
+  background: linear-gradient(135deg, #a78bfa, #7c3aed);
+}
+
+/* 取值：等宽加粗 + 深蓝渐变文字；未取到（—）置灰 */
+.pc-env-seg b {
+  font-size: 12.5px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #1e40af, #3b82f6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.pc-env-seg b.none {
+  background: none;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* 段间细分隔线 */
+.pc-env-div {
+  width: 1px;
+  height: 14px;
+  background: linear-gradient(180deg, transparent, #c7d6f5, transparent);
+}
+
 .pc-compose-live i {
   width: 6px;
   height: 6px;
@@ -5069,6 +5888,21 @@ onMounted(loadState)
   align-items: center;
   gap: 9px;
   flex-shrink: 0;
+  /* 标题行过宽触发换行时仍贴最右（space-between 对换行后的行首元素失效） */
+  margin-left: auto;
+}
+
+/* 应用服务操作组：纵向两行——编排取值徽章（环境/灰度）在上、按钮行在下，整体贴最右 */
+.pas-ops {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.pc-compose-head-btns {
+  display: flex;
+  align-items: center;
+  gap: 9px;
 }
 
 /* 全量启停：翠绿渐变主按钮与浅红描边幽灵变体 */
@@ -5122,6 +5956,16 @@ onMounted(loadState)
 .svc-all-btn.stop:hover {
   background: #fee2e2;
   filter: none;
+}
+
+/* 全部重启：琥珀渐变，与启动（绿）/关闭（红）区分 */
+.svc-all-btn.restart {
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.svc-all-btn.restart:hover {
+  box-shadow: 0 6px 18px rgba(217, 119, 6, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 /* 刷新：方形图标按钮（加载时旋转） */
@@ -5690,6 +6534,14 @@ onMounted(loadState)
   gap: 4px;
 }
 
+/* 运行状态 + 健康状态同一横排（健康徽标紧贴运行徽标右侧） */
+.pc-svc-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .pc-svc-name {
   max-width: 100%;
   font-size: 13.5px;
@@ -5734,6 +6586,55 @@ onMounted(loadState)
   animation: pc-live-pulse 1.8s ease infinite;
 }
 
+/* healthcheck 状态徽标：健康绿 / 异常红 / 启动中琥珀（呼吸闪烁表示检测中） */
+.pc-svc-health {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #64748b;
+  background: #f1f5f9;
+}
+
+.pc-svc-health i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.pc-svc-health.healthy {
+  color: #059669;
+  background: #ecfdf5;
+}
+
+.pc-svc-health.healthy i {
+  background: #10b981;
+  animation: pc-live-pulse 1.8s ease infinite;
+}
+
+.pc-svc-health.unhealthy {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+.pc-svc-health.unhealthy i {
+  background: #ef4444;
+}
+
+.pc-svc-health.starting {
+  color: #d97706;
+  background: #fffbeb;
+}
+
+.pc-svc-health.starting i {
+  background: #f59e0b;
+  animation: pc-live-pulse 1.1s ease infinite;
+}
+
 /* 底部操作：日志 + 启动/停止 等宽双按钮 */
 .pc-svc-foot {
   display: flex;
@@ -5773,6 +6674,19 @@ onMounted(loadState)
   border-color: #93c5fd;
   color: #2563eb;
   background: #f0f7ff;
+}
+
+/* 配置：靛蓝描边悬停填充 */
+.pc-svc-btn.cfg {
+  background: #fff;
+  border-color: #dbe4f0;
+  color: #475569;
+}
+
+.pc-svc-btn.cfg:hover {
+  border-color: #a5b4fc;
+  color: #4f46e5;
+  background: #eef2ff;
 }
 
 .pc-svc-btn.start {
@@ -7837,6 +8751,163 @@ onMounted(loadState)
   width: min(780px, 94vw) !important;
 }
 
+/* ===== 分节 Tab：environment_variable.json 一级属性切换 ===== */
+/* ===== 初始化镜像弹窗（pim-）：镜像行 + 存在状态 + 构建按钮 ===== */
+.pim-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pim-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border: 1px solid #eef2f7;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(31, 45, 61, 0.03);
+}
+
+.pim-row.miss,
+.pim-row:not(.ok) {
+  background: #fffdf7;
+  border-color: #f1e5c0;
+  border-style: dashed;
+}
+
+.pim-row.ok {
+  background: #f8fdf9;
+  border-color: #d3f0dd;
+}
+
+.pim-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pim-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f2d3d;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pim-dir {
+  font-size: 11px;
+  color: #94a3b8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pim-tag {
+  flex-shrink: 0;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.pim-tag.ok {
+  color: #059669;
+  background: #ecfdf5;
+}
+
+.pim-tag.miss {
+  color: #d97706;
+  background: #fffbeb;
+}
+
+.pim-build {
+  flex-shrink: 0;
+  height: 30px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.28);
+  transition: all 0.15s ease;
+}
+
+.pim-build:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(217, 119, 6, 0.4);
+}
+
+.pim-build:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.pev-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 4px;
+  background: #f1f5f9;
+  border-radius: 11px;
+}
+
+.pev-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pev-tab em {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.14);
+  font-size: 11px;
+  font-style: normal;
+}
+
+.pev-tab.active {
+  background: #fff;
+  color: #1f2d3d;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
+}
+
+.pev-tab.active em {
+  background: rgba(37, 99, 235, 0.12);
+  color: #2563eb;
+}
+
+.pev-tabs-note {
+  margin-left: auto;
+  min-width: 0;
+  flex: 0 1 auto;
+  padding-right: 6px;
+  color: #94a3b8;
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ===== 进度总览卡：环形就绪度仪表 + 状态徽标 ===== */
 .pev-hero {
   display: flex;
@@ -8414,6 +9485,54 @@ onMounted(loadState)
 /* 编辑态输入框与保存/取消 */
 .pev-input {
   width: 250px;
+}
+
+/* 编辑态展开区：整行变纵向布局，长值在多行文本域里完整可见 */
+.pev-edit {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.pev-edit-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2d3d;
+}
+
+.pev-edit-head .pev-key {
+  font-size: 11.5px;
+}
+
+.pev-edit-ops {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pev-edit-hint {
+  margin-left: auto;
+  color: #94a3b8;
+  font-size: 11.5px;
+}
+
+.pev-input-lg .el-textarea__inner {
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: 0 0 0 1px #bfdbfe inset;
+  font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.6;
+  transition: box-shadow 0.18s ease;
+}
+
+.pev-input-lg .el-textarea__inner:focus {
+  box-shadow: 0 0 0 1px #2563eb inset, 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .pev-input .el-input__wrapper {

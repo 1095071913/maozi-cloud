@@ -1,0 +1,36 @@
+{
+    "全局": {
+        "服务": {
+            "JVM": "APPLICATION_JVM_PARAMS",
+            "环境（默认:dev）": "APPLICATION_ENVIRONMENT",
+            "灰度（默认:main）": "APPLICATION_VERSION",
+            "日志地址": "APPLICATION_LOG_PATH",
+            "基础服务向注册中心注册的地址（默认:容器地址）": "APPLICATION_TO_REGISTER_IP"
+        },
+        "百炼云": {
+            "密钥": "APPLICATION_AI_DASHSCOPE_KEY"
+        },
+        "阿里云": {
+            "标识": "APPLICATION_ALIYUN_CLIENT_ID",
+            "密钥": "APPLICATION_ALIYUN_CLIENT_SECRET"
+        }
+    },
+    "应用": {
+        "网关": {
+            "端口（默认:80）": "GATEWAY_PORT"
+        },
+        "服务": {
+            "JVM": "JVM_PARAMS",
+            "环境（默认:dev）": "ENVIRONMENT",
+            "灰度（默认:main）": "VERSION",
+            "业务服务向注册中心注册的地址（默认:容器地址）": "TO_REGISTER_IP"
+        },
+        "百炼云": {
+            "密钥": "AI_DASHSCOPE_KEY"
+        },
+        "阿里云": {
+            "标识": "ALIYUN_CLIENT_ID",
+            "密钥": "ALIYUN_CLIENT_SECRET"
+        }
+    }
+}

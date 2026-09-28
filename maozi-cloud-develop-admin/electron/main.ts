@@ -36,6 +36,17 @@ function createWindow(): void {
 
   win.once('ready-to-show', () => win.show())
 
+  // 锁定页面缩放（捏合与 Cmd/Ctrl +/-/0）：编程工具的 JSON 编辑器为"高亮层 + 透明输入层"叠加结构，
+  // 非 100% 缩放下两层的行位置各自做设备像素取整，误差随行数累积（1.1 倍时约半行、1.5 倍时大半行），
+  // 表现为光标/选区与文字错位。桌面工具无页面缩放需求，直接禁用
+  win.webContents.setVisualZoomLevelLimits(1, 1)
+  win.webContents.on('before-input-event', (event, input) => {
+    if (input.type === 'keyDown' && (input.meta || input.control) &&
+        ['+', '-', '=', '0', 'Add', 'Subtract', 'Equal', 'Digit0', 'NumpadAdd', 'NumpadSubtract'].includes(input.key)) {
+      event.preventDefault()
+    }
+  })
+
   // 外部链接交给系统默认浏览器，不在应用内跳转
   win.webContents.setWindowOpenHandler(({ url }) => {
     void shell.openExternal(url)

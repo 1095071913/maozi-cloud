@@ -11,7 +11,7 @@
 #       * grafana     指标/日志/追踪可视化
 #       * promtail    日志采集 agent，采集共享日志目录后推送至 loki
 # 注: maozi-cloud-gateway-service / maozi-cloud-monitor-service 已迁往
-#     maozi-cloud-distributeds-docker/maozi-cloud-services-distributeds-docker.yml, 与 system / oauth 同层管理.
+#     maozi-cloud-business-docker/maozi-cloud-services-distributeds-docker.yml, 与 system / oauth 同层管理.
 # ------------------------------------------------------------
 # 启动前必须先创建外部网络：
 #     docker network create maozi-cloud-network
@@ -148,10 +148,18 @@ services:
 
   maozi-cloud-basic-nacos:
     restart: always
-    image: nacos/nacos-server:2.0.4-slim
+    image: nacos/nacos-server:v2.4.2-slim
     container_name: maozi-cloud-basic-nacos
-    env_file:
-      - maozi-cloud-basic-nacos/env/nacos-mysql.env
+    environment:
+      MODE: standalone
+      PREFER_HOST_MODE: hostname
+      SPRING_DATASOURCE_PLATFORM: mysql
+      MYSQL_SERVICE_HOST: maozi-cloud-basic-mysql
+      MYSQL_SERVICE_PORT: 3306
+      MYSQL_SERVICE_DB_NAME: maozi-cloud-nacos-middleware-db
+      MYSQL_SERVICE_USER: root
+      MYSQL_SERVICE_PASSWORD: password
+      MYSQL_SERVICE_DB_PARAM: characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&serverTimezone=Asia/Shanghai
     ports:
       - 8848:8848
       - 9848:9848
@@ -168,7 +176,7 @@ services:
       - "7091:7091"
       - "8091:8091"
     environment:
-      SEATA_IP: ${NACOS_REGISTER_IP}
+      SEATA_IP: ${APPLICATION_TO_REGISTER_IP}
       SEATA_PORT: 8091
       STORE_MODE: db
     volumes:

@@ -44,6 +44,19 @@
           </div>
 
           <div class="json-editor">
+            <!-- 行号栏：号码按 .ln 块实测 offsetTop 定位（自动换行的逻辑行占多行时贴块首行），
+                 translateY 跟随滚动；当前光标行以行号变蓝加粗提示（无背景高亮条） -->
+            <div class="json-gutter" aria-hidden="true">
+              <div class="json-gutter-inner" :style="{ transform: `translateY(${-jsonScrollTop}px)` }">
+                <div
+                  v-for="n in jsonLineCount"
+                  :key="n"
+                  class="json-gutter-num"
+                  :class="{ active: n === caretLine }"
+                  :style="{ top: `${lineTops[n - 1] ?? JSON_PAD_TOP + (n - 1) * JSON_LINE_PITCH}px` }"
+                >{{ n }}</div>
+              </div>
+            </div>
             <pre ref="highlightRef" class="json-highlight" aria-hidden="true"><code v-html="highlightedJson"></code></pre>
             <el-input
               ref="jsonInputRef"
@@ -113,17 +126,17 @@
               </div>
 
               <template v-if="tsDate">
-                <div class="ts-row" title="点击复制" @click="copyText(fmtDateTime(tsDate))">
+                <div class="ts-row" title="点击复制" @click="copyText(fmtDateTime(tsDate, true))">
                   <span class="ts-row-label">本地时间</span>
-                  <span class="ts-row-value mono-cell">{{ fmtDateTime(tsDate) }}</span>
+                  <span class="ts-row-value mono-cell">{{ fmtDateTime(tsDate, true) }}</span>
                 </div>
                 <div class="ts-row" title="点击复制" @click="copyText(tsDate.toISOString())">
                   <span class="ts-row-label">ISO 8601</span>
                   <span class="ts-row-value mono-cell">{{ tsDate.toISOString() }}</span>
                 </div>
-                <div class="ts-row" title="点击复制" @click="copyText(fmtUtc(tsDate))">
+                <div class="ts-row" title="点击复制" @click="copyText(fmtUtc(tsDate, true))">
                   <span class="ts-row-label">UTC 时间</span>
-                  <span class="ts-row-value mono-cell">{{ fmtUtc(tsDate) }}</span>
+                  <span class="ts-row-value mono-cell">{{ fmtUtc(tsDate, true) }}</span>
                 </div>
                 <div class="ts-row-inline">
                   <span>星期{{ weekdayOf(tsDate) }}</span>
@@ -145,6 +158,7 @@
                 type="datetime"
                 placeholder="选择日期时间"
                 style="width: 100%"
+                format="YYYY-MM-DD HH:mm:ss.SSS"
                 :shortcuts="dateShortcuts"
               />
 
@@ -157,9 +171,9 @@
                   <span class="ts-row-label">毫秒级时间戳</span>
                   <span class="ts-row-value mono-cell">{{ pickDate.getTime() }}</span>
                 </div>
-                <div class="ts-row" title="点击复制" @click="copyText(fmtDateTime(pickDate))">
+                <div class="ts-row" title="点击复制" @click="copyText(fmtDateTime(pickDate, true))">
                   <span class="ts-row-label">本地时间</span>
-                  <span class="ts-row-value mono-cell">{{ fmtDateTime(pickDate) }}</span>
+                  <span class="ts-row-value mono-cell">{{ fmtDateTime(pickDate, true) }}</span>
                 </div>
               </template>
               <div v-else class="ts-hint" style="margin-top: 12px">请选择日期时间</div>
@@ -171,7 +185,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { api } from '../api'
 
@@ -257,6 +271,22 @@ const hasComments = computed(() => {
 
 const jsonLineCount = computed(() => jsonText.value.split('\n').length)
 
+/* 行号栏状态：滚动跟随 + 光标所在行高亮 */
+/**
+ * 统一固定行高 17px（整数）：行号栏、当前行高亮、透明 textarea、着色 pre 四者共用，
+ * 自动换行的逻辑行块高必为它的整数倍。不能用 line-height: normal——含中文的行会命中
+ * CJK 回退字体（自然行高约 18.5px，大于等宽字体的 15px），该行被撑高并推移其后所有
+ * 行，行号从首个中文行起整体错位；也不能用非整数 px——textarea 内部逐行整数量化，
+ * 约 0.3px/行的取整差会累积成文字与光标错位。行号/当前行高亮的实际定位以 .ln 块的
+ * 实测 offsetTop/offsetHeight 为准（见 lineTops），下面两个常量仅作测量前兜底
+ */
+const JSON_LINE_PITCH = 17
+const JSON_PAD_TOP = 10
+const jsonScrollTop = ref(0)
+const caretPos = ref(0)
+let jsonSelChange: (() => void) | null = null
+const caretLine = computed(() => jsonText.value.slice(0, caretPos.value).split('\n').length)
+
 const jsonStats = computed(
   () => `${jsonText.value.length} 字符 · ${jsonText.value.split('\n').length} 行`
 )
@@ -268,14 +298,28 @@ const highlightRef = ref<HTMLElement>()
 const highlightedJson = computed(() => {
   const text = jsonText.value
   const n = text.length
-  let out = ''
+  let out = '<div class="ln">'
   let i = 0
   const escHtml = (s: string): string =>
     s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-  const wrap = (cls: string, s: string): string => `<span class="tok-${cls}">${escHtml(s)}</span>`
+  // token 文本可能含换行（跨行块注释、未闭合字符串）：换行处断开 .ln 块，
+  // 让每个逻辑行独占一个块——自动换行时块随内容变高，行号按块实测位置对齐
+  const emit = (cls: string | null, raw: string): void => {
+    const parts = raw.split('\n')
+    for (let p = 0; p < parts.length; p++) {
+      if (p > 0) out += '</div><div class="ln">'
+      if (parts[p]) out += cls ? `<span class="tok-${cls}">${escHtml(parts[p])}</span>` : escHtml(parts[p])
+    }
+  }
 
   while (i < n) {
     const c = text[i]
+
+    if (c === '\n') {
+      emit(null, '\n')
+      i++
+      continue
+    }
 
     if (c === '/' && (text[i + 1] === '/' || text[i + 1] === '*')) {
       const isLine = text[i + 1] === '/'
@@ -287,7 +331,7 @@ const highlightedJson = computed(() => {
         end = text.indexOf('*/', i + 2)
         end = end < 0 ? n : end + 2
       }
-      out += wrap('comment', text.slice(i, end))
+      emit('comment', text.slice(i, end))
       i = end
       continue
     }
@@ -308,7 +352,7 @@ const highlightedJson = computed(() => {
       // 字符串后（跳过空白）跟着冒号即为 key
       let k = j
       while (k < n && /\s/.test(text[k])) k++
-      out += wrap(text[k] === ':' ? 'key' : 'string', text.slice(i, j))
+      emit(text[k] === ':' ? 'key' : 'string', text.slice(i, j))
       i = j
       continue
     }
@@ -316,7 +360,7 @@ const highlightedJson = computed(() => {
     if (/[0-9]/.test(c) || (c === '-' && /[0-9]/.test(text[i + 1] ?? ''))) {
       let j = i + 1
       while (j < n && /[0-9.eE]/.test(text[j])) j++
-      out += wrap('number', text.slice(i, j))
+      emit('number', text.slice(i, j))
       i = j
       continue
     }
@@ -325,17 +369,37 @@ const highlightedJson = computed(() => {
       let j = i
       while (j < n && /[a-z]/.test(text[j])) j++
       const word = text.slice(i, j)
-      out +=
-        word === 'true' || word === 'false' || word === 'null' ? wrap('literal', word) : escHtml(word)
+      emit(word === 'true' || word === 'false' || word === 'null' ? 'literal' : null, word)
       i = j
       continue
     }
 
-    out += escHtml(c)
+    emit(null, c)
     i++
   }
-  // 补一个换行，保证 textarea 末行为空时两层高度一致
-  return `${out}\n`
+  // 末行以块收尾：末行为空时 .ln 的 min-height 保证与 textarea 空行等高
+  return `${out}</div>`
+})
+
+/* 行号定位：按 .ln 块的实测 offsetTop。自动换行时某逻辑行占多个可视行（块高 =
+   N×17px），行号只对齐块首行；内容或宽度变化后重测（当前行不画背景高亮条，
+   仅行号变蓝加粗提示） */
+const lineTops = ref<number[]>([])
+let jsonRo: ResizeObserver | null = null
+
+function measureLines(): void {
+  const pre = highlightRef.value
+  if (!pre) return
+  const tops: number[] = []
+  pre.querySelectorAll<HTMLElement>(':scope > code > .ln').forEach(el => {
+    tops.push(el.offsetTop)
+  })
+  lineTops.value = tops
+}
+
+watch(highlightedJson, async () => {
+  await nextTick()
+  measureLines()
 })
 
 /** textarea 滚动时同步高亮层（在挂载后绑定到原生 textarea） */
@@ -345,11 +409,23 @@ onMounted(() => {
     | undefined
   const ta = inst?.textarea ?? inst?.$el?.querySelector('textarea')
   ta?.addEventListener('scroll', () => {
-    if (highlightRef.value && ta) {
-      highlightRef.value.scrollTop = ta.scrollTop
-      highlightRef.value.scrollLeft = ta.scrollLeft
-    }
+    if (highlightRef.value && ta) highlightRef.value.scrollTop = ta.scrollTop
+    jsonScrollTop.value = ta?.scrollTop ?? 0
   })
+  // 光标行号高亮：selectionchange 在 textarea 聚焦时随光标/选区变化触发
+  jsonSelChange = () => {
+    if (ta && document.activeElement === ta) caretPos.value = ta.selectionStart
+  }
+  document.addEventListener('selectionchange', jsonSelChange)
+  // 编辑器宽度变化会改变换行点（块高随之变化）→ 重测行块位置
+  if (highlightRef.value && typeof ResizeObserver !== 'undefined') {
+    jsonRo = new ResizeObserver(() => measureLines())
+    jsonRo.observe(highlightRef.value)
+  }
+  measureLines()
+})
+onMounted(() => {
+  timer = setInterval(() => (now.value = new Date()), 1000)
 })
 
 /**
@@ -526,6 +602,9 @@ function insertAtCursor(ta: HTMLTextAreaElement, text: string): void {
     const start = ta.selectionStart
     ta.value = ta.value.slice(0, start) + text + ta.value.slice(ta.selectionEnd)
     ta.dispatchEvent(new Event('input', { bubbles: true }))
+    // 兜底路径必须手动归位：给 value 赋值会把光标重置到整段文本末尾
+    const cursor = start + text.length
+    ta.setSelectionRange(cursor, cursor)
   }
 }
 
@@ -758,16 +837,20 @@ function pad(n: number): string {
   return String(n).padStart(2, '0')
 }
 
-function fmtDateTime(d: Date): string {
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+/** withMs：时间戳 → 时间卡片里精确到毫秒（其余场合秒级即可，避免无意义的 .000 抖动） */
+function fmtDateTime(d: Date, withMs = false): string {
+  const base = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+  return withMs ? `${base}.${String(d.getMilliseconds()).padStart(3, '0')}` : base
 }
 
 function fmtDay(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
-function fmtUtc(d: Date): string {
-  return `${d.toISOString().replace('T', ' ').slice(0, 19)} UTC`
+function fmtUtc(d: Date, withMs = false): string {
+  const iso = d.toISOString()
+  const base = iso.replace('T', ' ').slice(0, 19)
+  return withMs ? `${base}.${iso.slice(20, 23)} UTC` : `${base} UTC`
 }
 
 function weekdayOf(d: Date): string {
@@ -801,6 +884,8 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   if (timer) clearInterval(timer)
+  if (jsonSelChange) document.removeEventListener('selectionchange', jsonSelChange)
+  if (jsonRo) jsonRo.disconnect()
 })
 </script>
 
@@ -933,7 +1018,7 @@ onBeforeUnmount(() => {
   left: 4px;
   width: calc(50% - 4px);
   border-radius: 10px;
-  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  background: #ffffff;
   box-shadow: 0 3px 10px rgba(15, 23, 42, 0.14), 0 1px 2px rgba(15, 23, 42, 0.06),
     inset 0 0 0 1px rgba(15, 23, 42, 0.04);
   transition: transform 0.42s cubic-bezier(0.3, 1.25, 0.45, 1);
@@ -1033,8 +1118,6 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   margin-bottom: 10px;
   padding: 10px 12px;
-  background: #f8fafc;
-  border: 1px solid #eef2f7;
   border-radius: 12px;
 }
 
@@ -1058,8 +1141,10 @@ onBeforeUnmount(() => {
   border-radius: 9px;
 }
 
-/* 高亮编辑器：着色 pre 在底层，透明 textarea 叠加在上层，两层度量必须一致 */
+/* 高亮编辑器：着色 pre 在底层，透明 textarea 叠加在上层，两层度量必须一致。
+   --json-lh 为四层共用的固定行高，取整数 px 的原因见脚本里 JSON_LINE_PITCH 注释 */
 .json-editor {
+  --json-lh: 17px;
   position: relative;
   border: 1px solid #dcdfe6;
   border-radius: 10px;
@@ -1072,21 +1157,68 @@ onBeforeUnmount(() => {
   box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.25);
 }
 
+/* 行号栏：透明背景无分隔线（与正文区融为一体）；文字层左移 44px 腾出行号位
+   （两层 padding 必须同步改，保持对齐） */
+.json-gutter {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 44px;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.json-gutter-inner {
+  font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  color: #b6c0cd;
+  will-change: transform;
+}
+
+/* 号码按 .ln 块实测 top 绝对定位（见脚本 lineTops）：自动换行时逻辑行占多行，
+   号码只随块首行，不再按固定行距堆叠 */
+.json-gutter-num {
+  position: absolute;
+  right: 10px;
+  height: var(--json-lh, 17px);
+  line-height: var(--json-lh, 17px);
+  text-align: right;
+}
+
+.json-gutter-num.active {
+  color: #2563eb;
+  font-weight: 600;
+}
+
 .json-highlight {
   position: absolute;
   inset: 0;
   margin: 0;
-  padding: 10px 12px;
-  overflow: hidden auto;
+  padding: 10px 12px 10px 56px;
+  /* hidden 不出滚动条：scrollTop 由滚动同步代码赋值，跟随 textarea */
+  overflow: hidden;
   pointer-events: none;
   font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace;
   font-size: 13px;
-  line-height: 1.7;
+  /* 行高与 textarea 一致（整数 px），normal 会被含中文的行撑高导致与行号错位 */
+  line-height: var(--json-lh, 17px);
+  /* 与 textarea 同为自动换行：超长行折行显示（不出横向滚动条）；换行相关属性
+     （white-space/overflow-wrap/tab-size）与 scrollbar-gutter 必须两层完全一致，
+     否则换行点分叉、文字与光标错位 */
   white-space: pre-wrap;
   overflow-wrap: break-word;
-  word-break: normal;
+  scrollbar-gutter: stable;
   tab-size: 4;
   color: #1f2d3d;
+}
+
+/* 每个逻辑行一个块：自动换行时块高为 N×17px（行高固定整数保证整除），行号/当前行
+   高亮按块实测位置定位（脚本 measureLines） */
+.json-highlight :deep(.ln) {
+  min-height: var(--json-lh, 17px);
 }
 
 .json-highlight code {
@@ -1120,17 +1252,20 @@ onBeforeUnmount(() => {
   display: block;
   font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace;
   font-size: 13px;
-  line-height: 1.7;
-  padding: 10px 12px;
+  /* 行高取整数 px：normal 会被含中文的行撑高、非整数会逐行取整漂移，均导致与行号错位 */
+  line-height: var(--json-lh, 17px);
+  padding: 10px 12px 10px 56px;
   border: none;
   box-shadow: none;
   background: transparent;
   color: transparent;
   caret-color: #1f2d3d;
   resize: none;
+  /* 不换行的问题已改回自动换行（见 .json-highlight 注释），此处与着色层保持一致 */
   white-space: pre-wrap;
   overflow-wrap: break-word;
-  word-break: normal;
+  /* 恒定预留滚动条位：宽度不随垂直滚动条出现/消失跳动，换行点与着色层保持一致 */
+  scrollbar-gutter: stable;
   tab-size: 4;
 }
 
@@ -1181,7 +1316,7 @@ onBeforeUnmount(() => {
 }
 
 .json-status.idle {
-  background: #f8fafc;
+  background: transparent;
   color: #94a3b8;
 }
 
@@ -1301,7 +1436,7 @@ onBeforeUnmount(() => {
 }
 
 .ts-card {
-  background: #f8fafc;
+  background: #fff;
   border: 1px solid #e6edf5;
   border-radius: 14px;
   padding: 14px 16px;

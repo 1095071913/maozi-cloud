@@ -38,7 +38,11 @@
 
 - 配置管理历史记录
 
-- Maozi Cloud 开发管理工具
+- 快速开发项目控制台支持Windows（目前只支持macOS、Linux）
+
+- 快速开发项目控制台支持K8S
+
+- 快速开发项目控制台支持监听代码触发自动化部署
 
 - Spring Cloud Alibaba 版本升级
 

@@ -40,7 +40,9 @@ const routes: RouteRecordRaw[] = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  // 显式传入 vite base: createWebHistory() 无参时只读 <base> 标签并回退 '/',
+  // 子路径部署 (/admin) 下若不传会导致路由解析与资源 base 不一致, 登录后落 404 兜底
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes
 })
 

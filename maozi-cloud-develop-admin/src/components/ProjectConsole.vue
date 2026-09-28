@@ -4957,13 +4957,17 @@ onMounted(loadState)
   gap: 16px;
 }
 
-/* git 管理操作区（检测到仓库才渲染）：当前分支徽标 + 切换分支 / 拉取代码 */
+/* git 管理操作区（检测到仓库才渲染）：当前分支徽标 + 最后提交 + 新提交提示 + 切换分支 / 拉取代码。
+ * 元素增多后整体较宽：允许收缩并在窄窗口换行（靠右对齐），避免把左侧标题列挤到 0 宽导致文字重叠 */
 .pc-git-ops {
   margin-left: auto;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 8px;
-  flex-shrink: 0;
+  row-gap: 6px;
+  flex-shrink: 1;
 }
 
 .pc-git-branch {
@@ -5326,7 +5330,9 @@ onMounted(loadState)
 
 .pc-bound-title {
   min-width: 0;
-  flex: 1;
+  /* 基础宽度 240px：先保住项目名/路径的空间，超出部分再分配；空间不足时与右侧
+     git 操作栏按比例压缩（操作栏可换行），避免标题列被挤到 0 宽导致文字重叠 */
+  flex: 1 1 240px;
 }
 
 .pc-proj-name {

@@ -7,25 +7,31 @@ import os from 'node:os'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import {
-  clearBinding,
-  getBinding,
-  isDbInitialized,
-  markDbInitialized,
-  parseConfigFile,
-  saveBinding,
-  userDataStateFile
+    activateProject,
+    clearBinding,
+    createProject,
+    deactivateProject,
+    getBinding,
+    isDbInitialized,
+    listProjects,
+    markDbInitialized,
+    parseConfigFile,
+    removeProject,
+    saveBinding,
+    updateProject,
+    userDataStateFile
 } from './store'
 import {listConfigs} from '../configs/store'
 import {selectPlatform} from '../platform'
 import type {EnvFile, EnvVarEntry, HostsEntry} from '../platform/types'
 import {getShellPath} from '../system/sysinfo'
 import type {
-  AppServiceEntry,
-  ComposeServiceStats,
-  EnvSettingGroup,
-  EnvSettingItem,
-  EnvSettingSection,
-  ProjectBinding
+    AppServiceEntry,
+    ComposeServiceStats,
+    EnvSettingGroup,
+    EnvSettingItem,
+    EnvSettingSection,
+    ProjectBinding
 } from './types'
 
 const exec = promisify(execFile)
@@ -421,9 +427,11 @@ async function projStream(
   const cwd = opts.cwd ?? ctx.root
   if (ctx.isRemote && ctx.ssh) {
     // extraEnv 无法跨 SSH 生效，远程环境注入走 sshEnvPrefix（export 前缀）；
-    // stdinData 以管道前置应答（如 compose rm 不带 --force 的交互确认）
+    // stdinData 以 printf 管道应答交互确认（compose rm 不带 --force 会问 y/N）。
+    // 管道必须放在 cd 之后接住真实命令：拼在最前面会喂给 cd，rm 的确认永远等不到
+    // 应答而挂起（会话一直显示运行中）
     const pipedIn = opts.stdinData !== undefined ? `printf 'y\\n' | ` : ''
-    const full = `${opts.sshEnvPrefix ?? ''}${pipedIn}cd "${cwd}" && ${cmd} ${args.join(' ')}`
+    const full = `${opts.sshEnvPrefix ?? ''}cd "${cwd}" && ${pipedIn}${cmd} ${args.join(' ')}`
     await sshStream(sender, channel, ctx.ssh, full, { timeoutMs: opts.timeoutMs, sid: opts.sid })
     return
   }
@@ -1731,10 +1739,106 @@ async function runLogged(
   }
 }
 
+/** Maven 探测：mvn -v 解析版本与 Maven home，定位 conf/settings.xml（本地/远程绑定各自在对应机器执行） */
+async function mavenDetect(b: ProjectBinding): Promise<{ version: string; home: string; settingsFile: string }> {
+  let out: string
+  if (b.remote) {
+    const t = resolveSshTarget(b.remote.configId)
+    out = await sshExec(t, 'mvn -v 2>&1', 20_000)
+  } else {
+    const pathEnv = await getShellPath()
+    const r = await exec('mvn', ['-v'], { timeout: 20_000, env: { ...process.env, PATH: pathEnv } })
+    out = r.stdout + r.stderr
+  }
+  const version = out.match(/Apache Maven\s+(\S+)/)?.[1] ?? ''
+  // Maven home 路径可能含空格（如 IntelliJ 自带 /Applications/IntelliJ IDEA.app/...），必须整行取值
+  const home = out
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .find((l) => l.startsWith('Maven home:'))
+    ?.slice('Maven home:'.length)
+    .trim() ?? ''
+  if (!home) throw new Error('mvn -v 输出中未找到 Maven home（请确认已安装 Maven）')
+  return { version, home, settingsFile: path.posix.join(home.replace(/\/+$/, ''), 'conf/settings.xml') }
+}
+
 export function registerProjectHandlers(): void {
   ipcMain.handle('projects:state', () => {
     try {
       return { ok: true, data: getBinding() }
+    } catch (err) {
+      return { ok: false, error: (err as Error).message }
+    }
+  })
+
+  /** 项目列表（含绑定信息与当前激活项） */
+  ipcMain.handle('projects:projectsList', () => {
+    try {
+      return { ok: true, data: listProjects() }
+    } catch (err) {
+      return { ok: false, error: (err as Error).message }
+    }
+  })
+
+  /** 创建项目（名称不允许中文，仅字母数字与 . _ -）：创建后即激活，前端接着进入选择绑定方式 */
+  ipcMain.handle('projects:projectCreate', (_e, input: { name?: string; alias?: string; remark?: string }) => {
+    try {
+      const entry = createProject({
+        name: String(input?.name ?? ''),
+        alias: String(input?.alias ?? ''),
+        remark: String(input?.remark ?? '')
+      })
+      clearYmlCache()
+      return { ok: true, data: entry }
+    } catch (err) {
+      return { ok: false, error: (err as Error).message }
+    }
+  })
+
+  /** 激活项目：已绑定返回绑定信息（进入控制台），待绑定返回 null（进入绑定向导） */
+  ipcMain.handle('projects:projectActivate', (_e, id: string) => {
+    try {
+      const binding = activateProject(String(id ?? ''))
+      clearYmlCache()
+      composeOk = null
+      return { ok: true, data: binding }
+    } catch (err) {
+      return { ok: false, error: (err as Error).message }
+    }
+  })
+
+  /** 更新项目信息（名称/别名/备注）：名称校验同创建 */
+  ipcMain.handle(
+    'projects:projectUpdate',
+    (_e, id: string, patch: { name?: string; alias?: string; remark?: string }) => {
+      try {
+        const entry = updateProject(String(id ?? ''), patch ?? {})
+        return { ok: true, data: entry }
+      } catch (err) {
+        return { ok: false, error: (err as Error).message }
+      }
+    }
+  )
+
+  /** 返回项目列表：仅清空激活项 */
+  ipcMain.handle('projects:projectDeactivate', () => {
+    try {
+      deactivateProject()
+      clearYmlCache()
+      composeOk = null
+      return { ok: true }
+    } catch (err) {
+      return { ok: false, error: (err as Error).message }
+    }
+  })
+
+  /** 删除项目（项目记录与其绑定信息一并移除） */
+  ipcMain.handle('projects:projectRemove', (_e, id: string) => {
+    try {
+      removeProject(String(id ?? ''))
+      clearYmlCache()
+      composeOk = null
+      return { ok: true }
     } catch (err) {
       return { ok: false, error: (err as Error).message }
     }
@@ -1853,14 +1957,27 @@ export function registerProjectHandlers(): void {
       }
       if (b.remote) {
         const t = resolveSshTarget(b.remote.configId)
+        // 分段带标记、各自吞错：&& 链会让 git log 异常（如空仓库/旧版 git）拖垮整条命令，
+        // git 信息整体不显示；标记间取分支名，sha| 模式行取最后提交；
+        // --show-current 需 git ≥ 2.22，旧版回退 rev-parse；
+        // --format 必须引号包裹：远端经 shell 解释，裸 | 会被当管道符把输出吞进不存在的命令
         const out = await sshExec(
           t,
-          `cd ${JSON.stringify(b.path)} && git branch --show-current && git log -1 --format=%h|%ci`,
+          `cd ${JSON.stringify(b.path)} && echo __MZ_BRANCH__ && { git branch --show-current 2>/dev/null || git rev-parse --abbrev-ref HEAD 2>/dev/null; }; echo __MZ_LOG__; git log -1 --format='%h|%ci' 2>/dev/null; true`,
           10_000
         )
+        const lines = out.split(/\r?\n/).map((l) => l.trim())
+        const brIdx = lines.indexOf('__MZ_BRANCH__')
+        const logIdx = lines.indexOf('__MZ_LOG__')
+        if (brIdx >= 0) {
+          const cand = lines
+            .slice(brIdx + 1, logIdx > brIdx ? logIdx : undefined)
+            .filter((l) => l && !/^[0-9a-f]{7,}\|/.test(l))
+          data.branch = cand[0] ?? ''
+        }
+        data.isRepo = data.branch !== ''
         pickLastCommit(out)
-        const branch = out.trim().split(/\r?\n/).map((l) => l.trim()).filter(Boolean).pop() ?? ''
-        return { ok: true, data: { ...data, isRepo: branch !== '', branch } }
+        return { ok: true, data: { ...data } }
       }
       const pathEnv = await getShellPath()
       const env = { ...process.env, PATH: pathEnv }
@@ -1925,7 +2042,12 @@ export function registerProjectHandlers(): void {
       const run = async (args: string[], timeout: number): Promise<string> => {
         if (b.remote) {
           const t = resolveSshTarget(b.remote.configId)
-          return sshExec(t, `${proxy.sshEnvPrefix ?? ''}cd ${JSON.stringify(b.path)} && git ${args.join(' ')}`, timeout)
+          // 远端命令经 shell 解释：含 | { } 等元字符的参数（--format=%h|%ci、HEAD..@{u}）必须引号包裹，
+          // 否则 | 被当管道把输出吞掉（本地分支走 exec argv 无 shell，不需要也不能加引号）
+          const remoteSafe = args
+            .map((a) => (/^[\w./@:=,-]+$/.test(a) ? a : `'${a.replace(/'/g, "'\\''")}'`))
+            .join(' ')
+          return sshExec(t, `${proxy.sshEnvPrefix ?? ''}cd ${JSON.stringify(b.path)} && git ${remoteSafe}`, timeout)
         }
         const pathEnv = await getShellPath()
         const { stdout } = await exec('git', args, {
@@ -3608,6 +3730,73 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
       return { ok: true, data: { sections, files, defaultFileId: defaultFile.id } }
     } catch (err) {
       return { ok: false, error: (err as Error).message, data: null }
+    }
+  })
+
+  /**
+   * Maven 配置：mvn -v 解析安装目录（Maven home）与版本，定位 conf/settings.xml。
+   * 本地走 shell PATH 执行，远程绑定在服务器上执行
+   */
+  ipcMain.handle('projects:mavenInfo', async () => {
+    try {
+      const b = getBinding()
+      if (!b) throw new Error('尚未绑定项目')
+      const { version, home, settingsFile } = await mavenDetect(b)
+      let exists: boolean
+      if (b.remote) {
+        const t = resolveSshTarget(b.remote.configId)
+        exists = (await sshExec(t, `test -f ${JSON.stringify(settingsFile)} && echo __YES__`, 10_000)).includes('__YES__')
+      } else {
+        exists = fs.existsSync(settingsFile)
+      }
+      return { ok: true, data: { version, home, settingsFile, exists } }
+    } catch (err) {
+      const msg = (err as Error).message
+      return { ok: false, error: /ENOENT|not found|未找到/i.test(msg) ? '未检测到 mvn 命令，请先安装 Maven' : msg }
+    }
+  })
+
+  /** 读取 Maven settings.xml（本地 fs / 远程 cat） */
+  ipcMain.handle('projects:mavenConfigRead', async () => {
+    try {
+      const b = getBinding()
+      if (!b) throw new Error('尚未绑定项目')
+      const { settingsFile } = await mavenDetect(b)
+      if (b.remote) {
+        const t = resolveSshTarget(b.remote.configId)
+        return { ok: true, data: { content: await sshReadFile(t, settingsFile) } }
+      }
+      return { ok: true, data: { content: fs.readFileSync(settingsFile, 'utf8') } }
+    } catch (err) {
+      return { ok: false, error: (err as Error).message }
+    }
+  })
+
+  /** 保存 Maven settings.xml：覆盖前备份为 settings.xml.bak.<时间戳>；远程经 base64 透传避免引号转义 */
+  ipcMain.handle('projects:mavenConfigSave', async (_e, contentArg: string) => {
+    try {
+      const b = getBinding()
+      if (!b) throw new Error('尚未绑定项目')
+      const content = String(contentArg ?? '')
+      const { settingsFile: file } = await mavenDetect(b)
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+      const backup = `${file}.bak.${stamp}`
+      if (b.remote) {
+        const t = resolveSshTarget(b.remote.configId)
+        await sshExec(t, `cp -p ${JSON.stringify(file)} ${JSON.stringify(backup)}`, 10_000)
+        const b64 = Buffer.from(content, 'utf8').toString('base64')
+        await sshExec(
+          t,
+          `printf %s '${b64}' | base64 -d > ${JSON.stringify(file)}`,
+          20_000
+        )
+      } else {
+        fs.copyFileSync(file, backup)
+        fs.writeFileSync(file, content, 'utf8')
+      }
+      return { ok: true, data: { backupFile: backup } }
+    } catch (err) {
+      return { ok: false, error: (err as Error).message }
     }
   })
 

@@ -18,6 +18,20 @@ export interface ProjectBinding {
   }
 }
 
+/** 项目列表条目：创建项目时录入的基础信息 + 可选的绑定信息 */
+export interface ProjectEntry {
+  id: string
+  /** 项目名称（仅字母数字与 . _ -，不允许中文） */
+  name: string
+  /** 别名（列表展示用） */
+  alias: string
+  /** 备注 */
+  remark: string
+  createdAt: number
+  /** 绑定信息（尚未绑定目录时为 null） */
+  binding: ProjectBinding | null
+}
+
 /** 环境设置条目：environment_variable.json 中一条「中文名称 → 环境变量 key」及其当前值 */
 export interface EnvSettingItem {
   /** 中文名称（environment_variable.json 的 key） */

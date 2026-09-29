@@ -36,6 +36,14 @@ contextBridge.exposeInMainWorld('api', {
   },
   projects: {
     state: () => ipcRenderer.invoke('projects:state'),
+    projectsList: () => ipcRenderer.invoke('projects:projectsList'),
+    projectCreate: (name: string, alias: string, remark: string) =>
+      ipcRenderer.invoke('projects:projectCreate', { name, alias, remark }),
+    projectActivate: (id: string) => ipcRenderer.invoke('projects:projectActivate', id),
+    projectUpdate: (id: string, name: string, alias: string, remark: string) =>
+      ipcRenderer.invoke('projects:projectUpdate', id, { name, alias, remark }),
+    projectDeactivate: () => ipcRenderer.invoke('projects:projectDeactivate'),
+    projectRemove: (id: string) => ipcRenderer.invoke('projects:projectRemove', id),
     pickDir: () => ipcRenderer.invoke('projects:pickDir'),
     bindDir: (dir: string) => ipcRenderer.invoke('projects:bindDir', dir),
     clone: (secretId: string, destDir: string) => ipcRenderer.invoke('projects:clone', secretId, destDir),
@@ -101,6 +109,10 @@ contextBridge.exposeInMainWorld('api', {
     envSettings: () => ipcRenderer.invoke('projects:envSettings'),
     envFileSave: (input: { key: string; value: string }) => ipcRenderer.invoke('projects:envFileSave', input),
     serviceConfig: (service: string, base?: string) => ipcRenderer.invoke('projects:serviceConfig', service, base),
+    /** Maven 配置：mvn -v 解析安装目录 + settings.xml 读写（覆盖前自动备份） */
+    mavenInfo: () => ipcRenderer.invoke('projects:mavenInfo'),
+    mavenConfigRead: () => ipcRenderer.invoke('projects:mavenConfigRead'),
+    mavenConfigSave: (content: string) => ipcRenderer.invoke('projects:mavenConfigSave', content),
     hotSwap: (variant: string, enable: boolean, sid?: string) => ipcRenderer.invoke('projects:hotSwap', variant, enable, sid),
     initImages: () => ipcRenderer.invoke('projects:initImages'),
     initImageBuild: (name: string, sid?: string) => ipcRenderer.invoke('projects:initImageBuild', name, sid),

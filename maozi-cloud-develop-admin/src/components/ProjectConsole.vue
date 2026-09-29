@@ -9,13 +9,19 @@
         <div class="pc-hero-sub">maozi-cloud — 让开发者专注业务逻辑，实现高效快速开发</div>
         <div class="pc-hero-chips">
           <span class="pc-chip" :class="binding ? 'ok' : 'idle'">
-            {{ binding ? `✅ 已绑定 · ${binding.name}` : '⚡ 待绑定' }}
+            {{ binding ? `✅ 已绑定 · ${binding.name}` : projectList.length ? '📁 项目列表' : '⚡ 待绑定' }}
           </span>
           <span v-if="binding?.version" class="pc-chip ver">🏷 v{{ binding.version }}</span>
           <span class="pc-chip">🌿 GitHub 开源仓库</span>
         </div>
       </div>
       <div class="pc-hero-tools">
+        <button
+          v-if="view === 'bind'"
+          class="pc-link"
+          title="返回项目列表"
+          @click="backToProjects"
+        >📁 项目列表</button>
         <button class="pc-link" title="打开 GitHub 仓库" @click="openRepo">🌐 GitHub 仓库</button>
       </div>
     </div>
@@ -33,8 +39,8 @@
         </div>
       </div>
 
-      <!-- 已绑定 -->
-      <div v-if="binding" class="pc-bound">
+      <!-- 已绑定（项目控制台） -->
+      <div v-if="view === 'console' && binding" class="pc-bound">
         <div class="pc-bound-head">
           <div class="pc-proj-ico">🚀</div>
           <div class="pc-bound-title">
@@ -61,16 +67,22 @@
           <!-- git 管理：检测到仓库才显示（拉取代码 / 切换分支） -->
           <div v-if="gitInfo.isRepo" class="pc-git-ops">
             <span class="pc-git-branch" :title="`当前分支：${gitInfo.branch}`">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="6" y1="3" x2="6" y2="15" />
-                <circle cx="18" cy="6" r="3" />
-                <circle cx="6" cy="18" r="3" />
-                <path d="M18 9a9 9 0 0 1-9 9" />
-              </svg>
+              <span class="pc-git-bico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="6" y1="3" x2="6" y2="15" />
+                  <circle cx="18" cy="6" r="3" />
+                  <circle cx="6" cy="18" r="3" />
+                  <path d="M18 9a9 9 0 0 1-9 9" />
+                </svg>
+              </span>
               <span class="mono-text">{{ gitInfo.branch || '—' }}</span>
             </span>
             <!-- 本地最后一次提交：短 sha + 时间（随 gitInfo 即时显示） -->
             <span class="pc-git-last" :title="`本地最后一次提交：${gitLastCommit.time || '—'}`">
+              <svg class="pc-git-lico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9" />
+                <polyline points="12 7 12 12 15.5 14" />
+              </svg>
               <span class="mono-text">{{ gitLastCommit.sha || '—' }}</span>
               <em>·</em>{{ gitLastCommit.time ? fmtGitCommitTime(gitLastCommit.time) : '—' }}
             </span>
@@ -114,64 +126,65 @@
           </div>
         </div>
 
-        <!-- 环境准备卡片：环境变量 + Hosts（执行部署脚本前的前置动作，位于基础服务之前） -->
+        <!-- 环境准备卡片：头部进度 + 初始化清单瓦片 + 快捷工具行（执行部署脚本前的前置动作） -->
         <div class="pc-prep">
-          <div class="pc-prep-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-            </svg>
-          </div>
-          <div class="pc-prep-text">
-            <div class="pc-prep-title">
-              环境准备
-              <span v-if="prepReady" class="pc-prep-ok">✅ 已就绪</span>
+          <div class="pc-prep-head">
+            <div class="pc-prep-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+              </svg>
             </div>
-            <div class="pc-prep-desc">部署脚本执行前，建议先完成 hosts 初始化、容器网段创建、数据库初始化与环境变量配置</div>
+            <div class="pc-prep-text">
+              <div class="pc-prep-title">
+                环境准备
+                <span class="pc-prep-prog" :class="{ ok: prepReady }" :title="`初始化清单完成度 ${prepProgress.done}/${prepProgress.total}`">
+                  <span class="pc-prep-prog-bar"><i :style="{ width: prepProgress.pct + '%' }"></i></span>
+                  <span class="pc-prep-prog-text mono-text">{{ prepProgress.done }}/{{ prepProgress.total }}</span>
+                </span>
+                <span v-if="prepReady" class="pc-prep-ok">✅ 全部就绪</span>
+              </div>
+              <div class="pc-prep-desc">部署脚本执行前，建议先完成 hosts 初始化、容器网段创建、数据库初始化与镜像构建</div>
+            </div>
           </div>
-          <div class="pc-prep-ops">
-            <button v-if="hostsInitState.initialized" class="pc-btn done" disabled title="项目 hosts 映射已全部写入系统 /etc/hosts">
-              ✅ 已初始化Hosts
-            </button>
-            <button v-else class="pc-btn primary" @click="onHostsInit">
-              {{ runningOf((a) => a.type === 'hostsInit') ? '⏳ 查看运行日志' : '🌐 初始化Hosts' }}
-            </button>
-            <template v-if="networkState?.name">
-              <button
-                v-if="networkState.exists"
-                class="pc-btn done"
-                disabled
-                :title="`容器网络 ${networkState.name} 已存在于 docker`"
-              >
-                ✅ 已添加容器网段
-              </button>
-              <button v-else class="pc-btn primary" @click="onNetworkCreate">
-                {{ runningOf((a) => a.type === 'networkCreate') ? '⏳ 查看运行日志' : '🔗 添加容器网段' }}
-              </button>
-            </template>
-            <template v-if="dbInitState.count > 0">
-              <button
-                v-if="dbInitState.initialized"
-                class="pc-btn done"
-                disabled
-                :title="`已完成初始化（标记：maozi-cloud-develop-admin/.db-init.json，已被 git 忽略）`"
-              >
-                ✅ 已初始化数据库
-              </button>
-              <button v-else class="pc-btn primary" @click="onDbInit">
-                {{ runningOf((a) => a.type === 'dbInit') ? '⏳ 查看运行日志' : '🗄 初始化数据库' }}
-              </button>
-            </template>
+
+          <!-- 初始化清单：状态瓦片（已完成=绿、待执行=蓝、执行中=转圈点击看日志） -->
+          <div class="pci-grid">
             <button
-              v-if="initImagesReady"
-              class="pc-btn done"
-              disabled
-              title="init_base_image.json 定义的镜像均已构建"
+              v-for="t in prepTiles"
+              :key="t.key"
+              type="button"
+              class="pci-tile"
+              :class="t.done ? 'done' : 'todo'"
+              :disabled="t.done"
+              :title="t.tip"
+              @click="t.act()"
             >
-              ✅ 已初始化镜像
+              <span class="pci-ico">{{ t.icon }}</span>
+              <span class="pci-main">
+                <span class="pci-name">{{ t.name }}</span>
+                <span class="pci-sub">{{ t.sub }}</span>
+              </span>
+              <span class="pci-state">
+                <span v-if="t.running" class="pc-env-spin"></span>
+                <svg v-else-if="t.done" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </span>
             </button>
-            <button v-else class="pc-btn plain" @click="openInitImages">📦 初始化镜像</button>
-            <button class="pc-btn plain" @click="openEnvSettings">🔧 环境设置</button>
-            <button class="pc-btn plain" @click="onDockerClear">🧹 容器磁盘清除</button>
+          </div>
+
+          <!-- 快捷工具 -->
+          <div class="pc-prep-tools">
+            <span class="pc-prep-tools-label">🧰 快捷工具</span>
+            <div class="pc-prep-tools-row">
+              <button class="pc-prep-tool" type="button" @click="openMavenConfig">🪶 Maven配置</button>
+              <button class="pc-prep-tool" type="button" @click="openEnvSettings">🔧 环境设置</button>
+              <button class="pc-prep-tool" type="button" @click="onDockerClear">🧹 容器磁盘清除</button>
+            </div>
           </div>
         </div>
 
@@ -919,15 +932,107 @@
               <span class="pc-log-btn-sub">{{ logStatusText }}</span>
             </span>
           </button>
+          <button class="pc-btn plain" title="返回项目列表（解绑保留，可随时再进入）" @click="backToProjects">← 返回</button>
           <button class="pc-btn danger-ghost" @click="onUnbind">解绑</button>
         </div>
       </div>
 
-      <!-- 未绑定 -->
-      <div v-else class="pc-unbound">
-        <div class="pc-unbound-title">选择绑定方式</div>
-        <div class="pc-unbound-sub">绑定后展示项目名称与版本号，随时可解绑重新绑定</div>
-        <div class="pc-options">
+      <!-- 创建项目（向导第 1 步）：填写项目信息 -->
+      <div v-else-if="view === 'create'" class="pc-wizard">
+        <div class="pc-steps">
+          <div class="pc-step active">
+            <span class="pc-step-dot">1</span>
+            <span class="pc-step-label">填写项目信息</span>
+          </div>
+          <div class="pc-step-line"></div>
+          <div class="pc-step">
+            <span class="pc-step-dot">2</span>
+            <span class="pc-step-label">选择绑定方式</span>
+          </div>
+        </div>
+
+        <div class="pc-wz-card">
+          <div class="pc-wz-head">
+            <div class="pc-wz-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="12" y1="18" x2="12" y2="12" />
+                <polyline points="9 15 12 18 15 15" />
+              </svg>
+            </div>
+            <div>
+              <div class="pc-wz-title">创建项目</div>
+              <div class="pc-wz-sub">填写基础信息，下一步选择绑定方式接入本地或远程目录</div>
+            </div>
+          </div>
+
+          <div class="pc-wz-body">
+            <div class="pc-wz-field">
+              <div class="pc-wz-label">项目名称 <span class="pc-wz-req">*</span></div>
+              <input
+                v-model="wzName"
+                class="pc-wz-input mono-text"
+                placeholder="如 maozi-cloud-develop-admin"
+                maxlength="64"
+                spellcheck="false"
+                :class="{ err: !!wzNameError }"
+              />
+              <div v-if="wzNameError" class="pc-wz-tip err">⚠ {{ wzNameError }}</div>
+              <div v-else class="pc-wz-tip">仅支持字母、数字与 . _ - ，不允许中文</div>
+            </div>
+            <div class="pc-wz-field">
+              <div class="pc-wz-label">别名 <span class="pc-wz-req">*</span></div>
+              <input v-model="wzAlias" class="pc-wz-input" placeholder="展示在项目列表中的名称" maxlength="32" />
+            </div>
+            <div class="pc-wz-field">
+              <div class="pc-wz-label">备注</div>
+              <textarea
+                v-model="wzRemark"
+                class="pc-wz-input pc-wz-area"
+                placeholder="项目用途、环境、注意事项等（可选）"
+                maxlength="120"
+                rows="2"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="pc-wz-foot">
+            <button class="pc-wz-btn ghost" type="button" @click="wizardBack">
+              <span class="pc-wz-arrow">←</span> 返回上一步
+            </button>
+            <button class="pc-wz-btn primary" type="button" :disabled="!wizardValid || creating" @click="wizardNext">
+              <span v-if="creating" class="pc-env-spin"></span>
+              {{ creating ? '创建中…' : '下一步 · 选择绑定方式' }}
+              <span class="pc-wz-arrow">→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 选择绑定方式（向导第 2 步） -->
+      <div v-else-if="view === 'bind'" class="pc-wizard">
+        <div class="pc-steps">
+          <div class="pc-step done">
+            <span class="pc-step-dot">✓</span>
+            <span class="pc-step-label">填写项目信息</span>
+          </div>
+          <div class="pc-step-line lit"></div>
+          <div class="pc-step active">
+            <span class="pc-step-dot">2</span>
+            <span class="pc-step-label">选择绑定方式</span>
+          </div>
+        </div>
+
+        <div class="pc-unbound pc-unbound-wz">
+          <div class="pc-wz-banner" v-if="wizardProject">
+            <span class="pc-wz-banner-ico">🚀</span>
+            <span class="pc-wz-banner-text">
+              正在为 <b>{{ wizardProject.alias || wizardProject.name }}</b>
+              <span class="mono-text pc-wz-banner-name">{{ wizardProject.name }}</span> 选择绑定方式
+            </span>
+          </div>
+          <div class="pc-options">
           <!-- 步骤一：选择本地 / 远程 -->
           <template v-if="!bindMode">
             <div class="pc-option" @click="bindMode = 'local'">
@@ -1062,7 +1167,112 @@
                 <div class="pc-option-go">开始拉取 →</div>
               </div>
             </template>
-          </template>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- 初次加载（state 返回前） -->
+      <div v-else-if="!booted" class="pc-prj-empty">
+        <span class="pc-env-spin pc-prj-boot-spin"></span>
+        <div class="pc-prj-empty-title" style="margin-top: 14px">正在加载项目…</div>
+      </div>
+
+      <!-- 项目列表 -->
+      <div v-else class="pc-projects">
+        <div class="pc-prj-head">
+          <div class="pc-prj-head-main">
+            <div class="pc-prj-head-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+              </svg>
+            </div>
+            <div class="pc-prj-head-text">
+              <div class="pc-prj-title">项目列表</div>
+              <div class="pc-prj-sub">选择一个项目进入控制台，或创建新项目</div>
+            </div>
+            <span class="pc-prj-count">
+              <b>{{ projectList.length }}</b> 个项目<em v-if="unboundCount > 0"> · {{ unboundCount }} 待绑定</em>
+            </span>
+          </div>
+          <button class="pc-prj-create" type="button" @click="openCreateWizard">
+            <span class="pc-prj-create-ico">＋</span> 创建项目
+          </button>
+        </div>
+
+        <div v-if="projectList.length" class="pc-prj-grid">
+          <div
+            v-for="p in projectList"
+            :key="p.id"
+            class="pc-prj-card"
+            :class="[`hue-${avatarHue(p.name)}`, { current: p.id === activeProjectId && !!p.binding }]"
+            @click="openProject(p)"
+          >
+            <span class="pc-prj-glow" aria-hidden="true"></span>
+            <button class="pc-prj-edit" title="编辑项目信息" type="button" @click.stop="openProjectEdit(p)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                <path d="m15 5 4 4" />
+              </svg>
+            </button>
+            <button class="pc-prj-del" title="删除项目" type="button" @click.stop="removeProjectEntry(p)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+
+            <div class="pc-prj-card-top">
+              <div class="pc-prj-avatar">{{ avatarText(p) }}</div>
+              <div class="pc-prj-id">
+                <div class="pc-prj-alias">{{ p.alias || p.name }}</div>
+                <div class="pc-prj-name mono-text">{{ p.name }}</div>
+              </div>
+              <span v-if="p.binding" class="pc-prj-mode" :class="p.binding.remote ? 'ssh' : 'local'">
+                {{ p.binding.remote ? '🖥 SSH' : '💻 本地' }}
+              </span>
+              <span v-else class="pc-prj-mode none">⏳ 待绑定</span>
+            </div>
+
+            <div class="pc-prj-remark" :title="p.remark">{{ p.remark || '暂无备注' }}</div>
+
+            <div class="pc-prj-path-row">
+              <div class="pc-prj-path" :class="{ empty: !p.binding }" :title="p.binding?.path || ''">
+                <span class="pc-prj-path-ico">{{ p.binding?.remote ? '🖥️' : '📂' }}</span>
+                <span class="pc-prj-path-text mono-text">{{ p.binding?.path || '尚未绑定目录' }}</span>
+              </div>
+            </div>
+
+            <div v-if="p.binding?.remote" class="pc-prj-ssh mono-text" :title="`SSH ${p.binding.remote.user}@${p.binding.remote.host}:${p.binding.remote.port}`">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="6" rx="2" />
+                <rect x="2" y="11" width="20" height="6" rx="2" />
+                <path d="M6 6h.01M6 14h.01" stroke-width="2.4" stroke-linecap="round" />
+              </svg>
+              {{ p.binding.remote.user }}@{{ p.binding.remote.host }}:{{ p.binding.remote.port }}
+            </div>
+
+            <div class="pc-prj-meta">
+              <span>创建于 {{ fmtTime(p.createdAt) }}</span>
+              <span class="pc-prj-right">
+                <span v-if="p.id === activeProjectId && p.binding" class="pc-prj-current"><i></i>当前项目</span>
+                <span class="pc-prj-enter">{{ p.binding ? '进入控制台 →' : '去绑定 →' }}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="pc-prj-empty">
+          <span class="pc-prj-empty-blob b1" aria-hidden="true"></span>
+          <span class="pc-prj-empty-blob b2" aria-hidden="true"></span>
+          <div class="pc-prj-empty-ring">
+            <div class="pc-prj-empty-ico">🗂️</div>
+          </div>
+          <div class="pc-prj-empty-title">还没有项目</div>
+          <div class="pc-prj-empty-sub">创建一个项目，绑定本地或远程目录后开始管理</div>
+          <button class="pc-prj-create big" type="button" @click="openCreateWizard">
+            <span class="pc-prj-create-ico">＋</span> 创建项目
+          </button>
         </div>
       </div>
     </div>
@@ -1515,6 +1725,150 @@
         <div class="pcd-footer">
           <button class="pcd-btn plain" type="button" @click="loadInitImages">⟳ 刷新</button>
           <button class="pcd-btn primary" type="button" @click="initImagesVisible = false">关闭</button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- ===== Maven 配置弹窗：mvn -v 定位安装目录，编辑 conf/settings.xml（保存前自动备份） ===== -->
+    <el-dialog
+      v-model="mavenVisible"
+      width="760px"
+      draggable
+      append-to-body
+      modal-class="pc-dlg pev-dlg"
+      :show-close="false"
+      :close-on-click-modal="false"
+    >
+      <template #header>
+        <div class="pcd-header">
+          <div class="pcd-deco pcd-deco-1"></div>
+          <div class="pcd-deco pcd-deco-2"></div>
+          <div class="pcd-header-main">
+            <div class="pcd-header-icon">🪶</div>
+            <div>
+              <div class="pcd-title">Maven 配置</div>
+              <div class="pcd-subtitle">mvn -v 解析安装目录 · 编辑 conf/settings.xml · 保存前自动备份</div>
+            </div>
+          </div>
+          <button class="pcd-close" type="button" @click="mavenVisible = false">✕</button>
+        </div>
+      </template>
+
+      <div class="pcd-body">
+        <div v-if="mavenLoading" class="pev-state"><span class="pc-env-spin"></span>正在执行 mvn -v 探测安装目录…</div>
+        <div v-else-if="mavenError" class="pev-state error"><span class="pev-state-ico">⚠️</span>{{ mavenError }}</div>
+        <template v-else-if="mavenData">
+          <!-- 信息横幅：版本 + 安装目录 + 配置文件路径 -->
+          <div class="pmc-banner">
+            <div class="pmc-banner-row">
+              <span class="pmc-ver">🪶 Apache Maven {{ mavenData.version || '?' }}</span>
+              <span class="pmc-home mono-text" :title="mavenData.home">📁 {{ mavenData.home }}</span>
+            </div>
+            <div class="pmc-banner-row">
+              <span class="pmc-file mono-text" :title="mavenData.settingsFile">⚙️ {{ mavenData.settingsFile }}</span>
+              <span v-if="!mavenData.exists" class="pmc-miss">文件不存在 · 保存时新建</span>
+            </div>
+          </div>
+
+          <!-- 编辑器卡：文件头（红黄绿点 + 文件名 + XML 校验）+ 行号槽 + 编辑区 + 状态栏 -->
+          <div class="pmc-editor-card">
+            <div class="pmc-editor-head">
+              <span class="pmc-dots"><i></i><i></i><i></i></span>
+              <span class="pmc-editor-file mono-text">settings.xml</span>
+              <span v-if="xmlCheck" class="pmc-check" :class="xmlCheck.cls">{{ xmlCheck.text }}</span>
+            </div>
+            <div class="pmc-editor-wrap">
+              <div ref="pmcGutter" class="pmc-gutter mono-text"><span v-for="n in mavenLineCount" :key="n">{{ n }}</span></div>
+              <textarea
+                ref="pmcArea"
+                v-model="mavenContent"
+                class="pmc-area mono-text"
+                spellcheck="false"
+                placeholder="<settings xmlns=&quot;http://maven.apache.org/SETTINGS/1.2.0&quot;> … </settings>"
+                @scroll="syncPmcGutter"
+                @keydown.tab.prevent="onPmcTab"
+              ></textarea>
+            </div>
+            <div class="pmc-status">
+              <span>{{ mavenLineCount }} 行 · {{ fmtBytes(mavenBytes) }}{{ mavenData.exists ? '' : ' · 新文件' }}</span>
+              <span>💾 保存前自动备份为 settings.xml.bak.&lt;时间戳&gt;</span>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <template #footer>
+        <div class="pcd-footer">
+          <button class="pcd-btn plain" type="button" :disabled="mavenLoading || mavenSaving" @click="loadMavenConfig">⟳ 刷新</button>
+          <button class="pcd-btn ghost" type="button" @click="mavenVisible = false">取消</button>
+          <button
+            class="pcd-btn primary"
+            type="button"
+            :disabled="mavenLoading || mavenSaving || !!mavenError"
+            @click="saveMavenConfig"
+          >
+            {{ mavenSaving ? '保存中…' : '💾 保存（自动备份）' }}
+          </button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- ===== 编辑项目信息弹窗：更新名称 / 别名 / 备注 ===== -->
+    <el-dialog
+      v-model="editVisible"
+      width="560px"
+      draggable
+      append-to-body
+      modal-class="pc-dlg"
+      :show-close="false"
+      :close-on-click-modal="false"
+    >
+      <template #header>
+        <div class="pcd-header">
+          <div class="pcd-deco pcd-deco-1"></div>
+          <div class="pcd-deco pcd-deco-2"></div>
+          <div class="pcd-header-main">
+            <div class="pcd-header-icon">✏️</div>
+            <div>
+              <div class="pcd-title">编辑项目信息</div>
+              <div class="pcd-subtitle">更新项目名称、别名与备注（绑定关系不受影响）</div>
+            </div>
+          </div>
+          <button class="pcd-close" type="button" @click="editVisible = false">✕</button>
+        </div>
+      </template>
+
+      <div class="pcd-body">
+        <div class="pc-wz-body" style="padding: 6px 4px 0">
+          <div class="pc-wz-field">
+            <div class="pc-wz-label">项目名称 <span class="pc-wz-req">*</span></div>
+            <input
+              v-model="edName"
+              class="pc-wz-input mono-text"
+              maxlength="64"
+              spellcheck="false"
+              :class="{ err: !!edNameError }"
+            />
+            <div v-if="edNameError" class="pc-wz-tip err">⚠ {{ edNameError }}</div>
+            <div v-else class="pc-wz-tip">仅支持字母、数字与 . _ - ，不允许中文</div>
+          </div>
+          <div class="pc-wz-field">
+            <div class="pc-wz-label">别名 <span class="pc-wz-req">*</span></div>
+            <input v-model="edAlias" class="pc-wz-input" maxlength="32" />
+          </div>
+          <div class="pc-wz-field">
+            <div class="pc-wz-label">备注</div>
+            <textarea v-model="edRemark" class="pc-wz-input pc-wz-area" rows="2" maxlength="120"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="pcd-footer">
+          <button class="pcd-btn ghost" type="button" @click="editVisible = false">取消</button>
+          <button class="pcd-btn primary" type="button" :disabled="!editValid || savingEdit" @click="saveProjectEdit">
+            {{ savingEdit ? '保存中…' : '💾 保存' }}
+          </button>
         </div>
       </template>
     </el-dialog>
@@ -2120,7 +2474,7 @@
             </div>
             <div>
               <div class="pcd-title">解绑项目</div>
-              <div class="pcd-subtitle">移除本应用与项目的绑定关系</div>
+              <div class="pcd-subtitle">清空当前项目的绑定关系（项目保留在列表中）</div>
             </div>
           </div>
           <button class="pcd-close" type="button" @click="unbindVisible = false">✕</button>
@@ -2143,7 +2497,7 @@
               <div class="pub-item warn">⚠ 基础服务 / 应用服务面板将隐藏</div>
               <div class="pub-item warn">⚠ 执行日志会话与环境准备状态将清除</div>
             </div>
-            <div class="pub-hint">解绑后可随时重新绑定，选择本地目录或拉取代码即可</div>
+            <div class="pub-hint">解绑后项目保留在项目列表中，随时可重新绑定</div>
           </div>
         </div>
       </div>
@@ -2344,7 +2698,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onActivated, onDeactivated, onMounted, onUnmounted, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { api, type AppServiceEntry, type ComposeServiceStats, type ConfigEntry, type EnvFile, type EnvSettingGroup, type EnvSettingItem, type EnvSettingSection, type ProjectBinding } from '../api'
+import { api, type AppServiceEntry, type ComposeServiceStats, type ConfigEntry, type EnvFile, type EnvSettingGroup, type EnvSettingItem, type EnvSettingSection, type ProjectBinding, type ProjectEntry } from '../api'
 
 // KeepAlive include 按组件名缓存，显式声明避免依赖文件名推断
 defineOptions({ name: 'ProjectConsole' })
@@ -2353,11 +2707,195 @@ const REPO_PAGE = 'https://github.com/1095071913/maozi-cloud'
 
 const binding = ref<ProjectBinding | null>(null)
 
+/** ===== 视图状态机：projects 项目列表 / create 创建向导（填信息）/ bind 选择绑定方式 / console 控制台 ===== */
+type ConsoleView = 'projects' | 'create' | 'bind' | 'console'
+const view = ref<ConsoleView>('projects')
+/** 首次 state() 读取完成前不渲染列表，避免已绑定项目闪一下空列表 */
+const booted = ref(false)
+const projectList = ref<ProjectEntry[]>([])
+const activeProjectId = ref<string | null>(null)
+/** 待绑定项目数（头部计数细分展示） */
+const unboundCount = computed(() => projectList.value.filter((p) => !p.binding).length)
+/** 向导第 2 步顶部横幅展示的项目（新建或从列表点开的待绑定项目） */
+const wizardProject = ref<ProjectEntry | null>(null)
+
+async function reloadProjects(): Promise<void> {
+  const r = await api.projects.projectsList()
+  if (r.ok && r.data) {
+    projectList.value = r.data.projects
+    activeProjectId.value = r.data.activeId
+  }
+}
+
+/** 点击项目卡片：已绑定进入控制台，待绑定直接进入向导第 2 步 */
+async function openProject(p: ProjectEntry): Promise<void> {
+  const r = await api.projects.projectActivate(p.id)
+  if (!r.ok) {
+    ElMessage.error(r.error ?? '进入项目失败')
+    return
+  }
+  await loadState()
+  if (binding.value) return
+  wizardProject.value = p
+  bindMode.value = ''
+  sshConnected.value = false
+  view.value = 'bind'
+}
+
+/** 创建向导（第 1 步）：名称不允许中文，仅字母数字与 . _ -；别名必填，备注可选 */
+const wzName = ref('')
+const wzAlias = ref('')
+const wzRemark = ref('')
+const creating = ref(false)
+const WZ_NAME_CJK = /[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/
+const WZ_NAME_RE = /^[A-Za-z0-9][A-Za-z0-9._-]*$/
+
+const wzNameError = computed(() => {
+  const n = wzName.value.trim()
+  if (!n) return ''
+  if (WZ_NAME_CJK.test(n)) return '项目名称不允许中文'
+  if (!WZ_NAME_RE.test(n)) return '仅支持字母、数字与 . _ -'
+  if (projectList.value.some((p) => p.name === n)) return `已存在同名项目：${n}`
+  return ''
+})
+
+const wizardValid = computed(
+  () => Boolean(wzName.value.trim()) && !wzNameError.value && Boolean(wzAlias.value.trim())
+)
+
+function openCreateWizard(): void {
+  view.value = 'create'
+}
+
+/** 第 1 步返回上一步：回到项目列表（已填内容保留，再次进入不丢失） */
+function wizardBack(): void {
+  view.value = 'projects'
+}
+
+/** 第 1 步下一步：创建项目（后端校验并激活）→ 进入向导第 2 步选择绑定方式 */
+async function wizardNext(): Promise<void> {
+  if (!wizardValid.value || creating.value) return
+  creating.value = true
+  try {
+    const r = await api.projects.projectCreate(wzName.value.trim(), wzAlias.value.trim(), wzRemark.value.trim())
+    if (!r.ok || !r.data) {
+      ElMessage.error(r.error ?? '创建失败')
+      return
+    }
+    wizardProject.value = r.data
+    ElMessage.success(`项目已创建：${r.data.alias}`)
+    bindMode.value = ''
+    sshConnected.value = false
+    view.value = 'bind'
+    // 清空草稿：下次创建项目从空白开始
+    wzName.value = ''
+    wzAlias.value = ''
+    wzRemark.value = ''
+    await reloadProjects()
+  } finally {
+    creating.value = false
+  }
+}
+
+/** 控制台返回项目列表：清空激活项（绑定保留在项目记录里，随时可再进入） */
+async function backToProjects(): Promise<void> {
+  const r = await api.projects.projectDeactivate()
+  if (!r.ok) {
+    ElMessage.error(r.error ?? '返回列表失败')
+    return
+  }
+  binding.value = null
+  view.value = 'projects'
+  await reloadProjects()
+}
+
+/** ===== 编辑项目信息：卡片 ✎ 按钮打开，更新名称/别名/备注（重名校验排除自身） ===== */
+const editVisible = ref(false)
+const editingId = ref('')
+const edName = ref('')
+const edAlias = ref('')
+const edRemark = ref('')
+const savingEdit = ref(false)
+
+const edNameError = computed(() => {
+  const n = edName.value.trim()
+  if (!n) return ''
+  if (WZ_NAME_CJK.test(n)) return '项目名称不允许中文'
+  if (!WZ_NAME_RE.test(n)) return '仅支持字母、数字与 . _ -'
+  if (projectList.value.some((p) => p.name === n && p.id !== editingId.value)) return `已存在同名项目：${n}`
+  return ''
+})
+
+const editValid = computed(
+  () => Boolean(edName.value.trim()) && !edNameError.value && Boolean(edAlias.value.trim())
+)
+
+function openProjectEdit(p: ProjectEntry): void {
+  editingId.value = p.id
+  edName.value = p.name
+  edAlias.value = p.alias
+  edRemark.value = p.remark
+  editVisible.value = true
+}
+
+async function saveProjectEdit(): Promise<void> {
+  if (!editValid.value || savingEdit.value) return
+  savingEdit.value = true
+  try {
+    const r = await api.projects.projectUpdate(editingId.value, edName.value.trim(), edAlias.value.trim(), edRemark.value.trim())
+    if (!r.ok) {
+      ElMessage.error(r.error ?? '保存失败')
+      return
+    }
+    ElMessage.success('项目信息已更新')
+    editVisible.value = false
+    await reloadProjects()
+  } finally {
+    savingEdit.value = false
+  }
+}
+
+/** 删除项目：仅移除本应用中的记录与绑定信息，不动本地/远程文件 */
+async function removeProjectEntry(p: ProjectEntry): Promise<void> {
+  try {
+    await ElMessageBox.confirm(
+      `确定删除项目「${p.alias || p.name}」吗？仅移除本应用中的记录，不影响本地与远程文件。`,
+      '删除项目',
+      { type: 'warning', confirmButtonText: '删 除', cancelButtonText: '取 消' }
+    )
+  } catch {
+    return
+  }
+  const r = await api.projects.projectRemove(p.id)
+  if (!r.ok) {
+    ElMessage.error(r.error ?? '删除失败')
+    return
+  }
+  ElMessage.success('项目已删除')
+  if (p.id === activeProjectId.value) binding.value = null
+  await reloadProjects()
+}
+
+/** 项目卡片头像：取别名/名称首字母，配色按名称散列到 6 组渐变 */
+function avatarText(p: ProjectEntry): string {
+  return (p.alias || p.name).trim().slice(0, 1).toUpperCase() || '?'
+}
+
+function avatarHue(name: string): number {
+  let h = 0
+  for (const ch of name) h = (h * 31 + (ch.codePointAt(0) ?? 0)) % 997
+  return h % 6
+}
+
 async function loadState(): Promise<void> {
   const r = await api.projects.state()
   if (r.ok) binding.value = r.data ?? null
   else ElMessage.error(r.error ?? '读取绑定状态失败')
+  booted.value = true
+  void reloadProjects()
   if (!binding.value) return
+  // 绑定就绪即进入控制台（初始化 / 各种绑定成功路径 / 激活项目共用）
+  view.value = 'console'
   // 各加载互不依赖：并行发起；资源统计（CPU/内存）带 preferCache —— 命中启动预取的快照则零等待渲染
   void loadComposeStats(true)
   void loadAppSvcStats(true)
@@ -2938,6 +3476,96 @@ const offComposeLog = api.projects.onComposeLog((p) => {
 })
 
 onUnmounted(() => offComposeLog())
+
+/** ===== Maven 配置：mvn -v 定位安装目录，编辑 conf/settings.xml（本地/远程各自在对应机器执行） ===== */
+const mavenVisible = ref(false)
+const mavenData = ref<{ version: string; home: string; settingsFile: string; exists: boolean } | null>(null)
+const mavenContent = ref('')
+const mavenLoading = ref(false)
+const mavenError = ref('')
+const mavenSaving = ref(false)
+const pmcGutter = ref<HTMLElement>()
+const pmcArea = ref<HTMLTextAreaElement>()
+
+/** 行号槽与编辑区滚动同步（行号 overflow:hidden，靠 scrollTop 对齐） */
+function syncPmcGutter(): void {
+  if (pmcGutter.value && pmcArea.value) pmcGutter.value.scrollTop = pmcArea.value.scrollTop
+}
+
+/** Tab 键插入两空格缩进（XML 编辑手感） */
+function onPmcTab(e: KeyboardEvent): void {
+  const ta = e.target as HTMLTextAreaElement
+  const s = ta.selectionStart
+  const ed = ta.selectionEnd
+  mavenContent.value = ta.value.slice(0, s) + '  ' + ta.value.slice(ed)
+  void nextTick(() => {
+    ta.selectionStart = ta.selectionEnd = s + 2
+  })
+}
+
+const mavenLineCount = computed(() => mavenContent.value.split('\n').length)
+const mavenBytes = computed(() => new Blob([mavenContent.value]).size)
+
+/** XML 良构校验（DOMParser）：空内容不校验 */
+const xmlCheck = computed<{ cls: string; text: string } | null>(() => {
+  const t = mavenContent.value.trim()
+  if (!t) return null
+  try {
+    const doc = new DOMParser().parseFromString(t, 'application/xml')
+    return doc.getElementsByTagName('parsererror').length
+      ? { cls: 'bad', text: '⚠ XML 格式错误' }
+      : { cls: 'ok', text: '✓ XML 格式正确' }
+  } catch {
+    return null
+  }
+})
+
+function openMavenConfig(): void {
+  mavenVisible.value = true
+  // 已探测过则直接展示缓存（含编辑内容），刷新按钮强制重读
+  if (!mavenData.value) void loadMavenConfig()
+}
+
+async function loadMavenConfig(): Promise<void> {
+  mavenLoading.value = true
+  mavenError.value = ''
+  try {
+    const r = await api.projects.mavenInfo()
+    if (!r.ok || !r.data) {
+      mavenData.value = null
+      mavenError.value = r.error ?? 'mvn -v 执行失败'
+      return
+    }
+    mavenData.value = r.data
+    const c = await api.projects.mavenConfigRead()
+    if (c.ok && c.data) {
+      mavenContent.value = c.data.content
+    } else if (r.data.exists) {
+      mavenError.value = c.error ?? '读取 settings.xml 失败'
+    } else {
+      // 文件本就不存在：给空编辑区，保存时新建
+      mavenContent.value = ''
+    }
+  } finally {
+    mavenLoading.value = false
+  }
+}
+
+async function saveMavenConfig(): Promise<void> {
+  if (!mavenData.value || mavenSaving.value) return
+  mavenSaving.value = true
+  try {
+    const r = await api.projects.mavenConfigSave(mavenContent.value)
+    if (!r.ok) {
+      ElMessage.error(r.error ?? '保存失败')
+      return
+    }
+    ElMessage.success(`settings.xml 已保存，备份：${r.data?.backupFile ?? '—'}`)
+    mavenData.value.exists = true
+  } finally {
+    mavenSaving.value = false
+  }
+}
 
 /** ===== 环境设置：解析项目 environment_variable.json（一级属性 = 分节 Tab），打开时实时读取当前值 ===== */
 const envVisible = ref(false)
@@ -3962,13 +4590,99 @@ async function onAppServiceAll(action: 'start' | 'stop' | 'restart', skipConfirm
 
 /** 全量启动/关闭当前 Tab 变体；启动前主进程自动 down 掉另一变体 */
 
-/** 环境准备就绪：hosts 全部写入、容器网络（若定义）已存在、数据库（若定义）已初始化 */
+/** 环境准备就绪：hosts 全部写入、容器网络（若定义）已存在、数据库（若定义）已初始化、镜像（若定义）均已构建 */
 const prepReady = computed(
   () =>
     hostsInitState.value.initialized &&
     (!networkState.value?.name || networkState.value.exists) &&
-    (dbInitState.value.count === 0 || dbInitState.value.initialized)
+    (dbInitState.value.count === 0 || dbInitState.value.initialized) &&
+    initImagesReady.value
 )
+
+/** 环境准备清单瓦片：done=已完成（不可点）/ running=执行中（点击看日志）/ todo=待执行 */
+const prepTiles = computed(() => {
+  const tiles: Array<{
+    key: string
+    icon: string
+    name: string
+    done: boolean
+    running: boolean
+    sub: string
+    tip: string
+    act: () => void
+  }> = []
+  const hosts = hostsInitState.value
+  const hostsRun = runningOf((a) => a.type === 'hostsInit')
+  tiles.push({
+    key: 'hosts',
+    icon: '🌐',
+    name: 'Hosts 映射',
+    done: hosts.initialized,
+    running: hostsRun,
+    sub: hosts.initialized
+      ? '已写入系统 /etc/hosts'
+      : hostsRun
+        ? '执行中 · 点击查看日志'
+        : hosts.total
+          ? `${hosts.total - hosts.missing}/${hosts.total} 已写入`
+          : '待初始化',
+    tip: hosts.initialized ? '项目 hosts 映射已全部写入系统 /etc/hosts' : '将 init_hosts.json 的域名映射写入系统 /etc/hosts',
+    act: onHostsInit
+  })
+  if (networkState.value?.name) {
+    const n = networkState.value
+    const run = runningOf((a) => a.type === 'networkCreate')
+    tiles.push({
+      key: 'network',
+      icon: '🔗',
+      name: '容器网段',
+      done: n.exists,
+      running: run,
+      sub: n.exists ? `网络 ${n.name} 已存在` : run ? '执行中 · 点击查看日志' : '待创建 docker 网络',
+      tip: n.exists ? `容器网络 ${n.name} 已存在于 docker` : `创建 compose 引用的外部网络 ${n.name}`,
+      act: onNetworkCreate
+    })
+  }
+  if (dbInitState.value.count > 0) {
+    const d = dbInitState.value
+    const run = runningOf((a) => a.type === 'dbInit')
+    tiles.push({
+      key: 'db',
+      icon: '🗄️',
+      name: '数据库初始化',
+      done: d.initialized,
+      running: run,
+      sub: d.initialized ? `已导入 ${d.count} 个脚本` : run ? '执行中 · 点击查看日志' : `待导入 ${d.count} 个脚本`,
+      tip: d.initialized
+        ? '已完成初始化（标记：maozi-cloud-develop-admin/.db-init.json，已被 git 忽略）'
+        : '启动 MySQL 容器并导入 init_mysql_db.json 定义的数据库脚本',
+      act: onDbInit
+    })
+  }
+  const imgs = initImages.value
+  tiles.push({
+    key: 'images',
+    icon: '📦',
+    name: '初始化镜像',
+    done: initImagesReady.value,
+    running: false,
+    sub: initImagesReady.value
+      ? `${imgs.length} 个镜像均已构建`
+      : imgs.length
+        ? `${imgs.filter((i) => i.exists).length}/${imgs.length} 已构建`
+        : '待查看镜像清单',
+    tip: initImagesReady.value ? 'init_base_image.json 定义的镜像均已构建' : '打开镜像清单，按需 docker buildx build',
+    act: openInitImages
+  })
+  return tiles
+})
+
+/** 环境准备进度：可见瓦片的完成比 */
+const prepProgress = computed(() => {
+  const total = prepTiles.value.length
+  const done = prepTiles.value.filter((t) => t.done).length
+  return { done, total, pct: total ? Math.round((done / total) * 100) : 0 }
+})
 
 /** ===== 初始化镜像：init_base_image.json（key=镜像名 value=构建目录），对照 docker images 展示与构建 ===== */
 const initImagesVisible = ref(false)
@@ -4784,8 +5498,10 @@ async function confirmUnbind(): Promise<void> {
     ElMessage.error(r.error ?? '解绑失败')
     return
   }
-  ElMessage.success('已解绑')
-  await loadState()
+  ElMessage.success('已解绑，项目仍保留在列表中')
+  binding.value = null
+  view.value = 'projects'
+  await reloadProjects()
 }
 
 onMounted(loadState)
@@ -4955,6 +5671,9 @@ onMounted(loadState)
   display: flex;
   align-items: center;
   gap: 16px;
+  /* 标题列与 git 操作栏按基础宽度放不下时整体换行（操作栏掉到下一行靠右），
+     避免标题列被压缩到比路径药丸还窄、药丸溢出盖到分支徽标上 */
+  flex-wrap: wrap;
 }
 
 /* git 管理操作区（检测到仓库才渲染）：当前分支徽标 + 最后提交 + 新提交提示 + 切换分支 / 拉取代码。
@@ -4970,73 +5689,50 @@ onMounted(loadState)
   flex-shrink: 1;
 }
 
+/* ===== git 信息区：渐变描边药丸 + 图标圆徽 + 精致按钮（分支 / 最后提交 / 新提交 / 操作） ===== */
+/* 分支：翠绿渐变描边 + 圆形图标徽 + 粗体等宽分支名 */
 .pc-git-branch {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 30px;
-  padding: 0 10px;
-  border-radius: 8px;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
+  gap: 7px;
+  height: 32px;
+  padding: 0 12px 0 4px;
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f4fdf7 100%) padding-box,
+    linear-gradient(135deg, #86efac 0%, #34d399 55%, #10b981 100%) border-box;
+  border: 1px solid transparent;
+  box-shadow: 0 1px 4px rgba(16, 185, 129, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.9);
   color: #15803d;
   font-size: 12px;
-  max-width: 200px;
-}
-
-/* 本地最后一次提交：灰色小药丸（短 sha + 时间） */
-.pc-git-last {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  height: 30px;
-  padding: 0 10px;
-  border-radius: 8px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  color: #64748b;
-  font-size: 12px;
+  font-weight: 700;
+  max-width: 220px;
   white-space: nowrap;
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
 }
 
-.pc-git-last .mono-text {
-  font-weight: 600;
-  color: #334155;
+.pc-git-branch:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
-.pc-git-last em {
-  font-style: normal;
-  color: #cbd5e1;
-}
-
-/* 远程新提交提示徽标：琥珀药丸 + 呼吸圆点 */
-.pc-git-behind {
-  display: inline-flex;
+/* 分支图标圆徽：翠绿渐变托白色分支图形 */
+.pc-git-bico {
+  width: 24px;
+  height: 24px;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  height: 30px;
-  padding: 0 12px;
+  justify-content: center;
   border-radius: 8px;
-  background: #fffbeb;
-  border: 1px solid #fde68a;
-  color: #b45309;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
+  background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(5, 150, 105, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
 }
 
-.pc-git-behind i {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #f59e0b;
-  animation: pc-live-pulse 1.6s ease infinite;
-}
-
-.pc-git-branch svg {
+.pc-git-bico svg {
   width: 13px;
   height: 13px;
-  flex-shrink: 0;
 }
 
 .pc-git-branch .mono-text {
@@ -5045,35 +5741,116 @@ onMounted(loadState)
   white-space: nowrap;
 }
 
+/* 最后一次提交：靛蓝渐变描边 + 时钟图标 + 渐变 sha */
+.pc-git-last {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f7faff 100%) padding-box,
+    linear-gradient(135deg, #a5c8fc 0%, #818cf8 50%, #6366f1 100%) border-box;
+  border: 1px solid transparent;
+  box-shadow: 0 1px 4px rgba(99, 102, 241, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  color: #64748b;
+  font-size: 12px;
+  white-space: nowrap;
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.pc-git-last:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.pc-git-lico {
+  width: 13px;
+  height: 13px;
+  color: #6366f1;
+  flex-shrink: 0;
+}
+
+.pc-git-last .mono-text {
+  font-weight: 800;
+  background: linear-gradient(135deg, #4338ca, #6366f1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: 0.3px;
+}
+
+.pc-git-last em {
+  font-style: normal;
+  color: #c7d2fe;
+}
+
+/* 远程新提交提示：琥珀渐变描边 + 呼吸圆点 + 辉光 */
+.pc-git-behind {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 13px;
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, #fffdf5 0%, #fff8e6 100%) padding-box,
+    linear-gradient(135deg, #fcd34d 0%, #f59e0b 55%, #d97706 100%) border-box;
+  border: 1px solid transparent;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  color: #b45309;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pc-git-behind i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18);
+  animation: pc-live-pulse 1.6s ease infinite;
+}
+
 .pc-git-btn {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  height: 30px;
-  padding: 0 12px;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
+  height: 32px;
+  padding: 0 13px;
+  border-radius: 10px;
+  border: 1px solid #dbe4f0;
   background: #fff;
   color: #475569;
   font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(31, 45, 61, 0.05);
+  transition: all 0.16s ease;
 }
 
 .pc-git-btn:hover:not(:disabled) {
-  border-color: #94a3b8;
-  color: #1e293b;
+  border-color: #a5c3f5;
+  color: #2563eb;
+  background: #f5f9ff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.12);
 }
 
 .pc-git-btn.primary {
-  background: #2563eb;
-  border-color: #2563eb;
+  background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+  border-color: transparent;
   color: #fff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }
 
 .pc-git-btn.primary:hover:not(:disabled) {
-  background: #1d4ed8;
-  color: #fff;
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }
 
 .pc-git-btn:disabled {
@@ -5404,6 +6181,9 @@ onMounted(loadState)
   color: #475569;
   cursor: pointer;
   max-width: 100%;
+  /* 释放 flex 项的自动最小宽度：否则 min-content 大于 max-width:100% 时药丸
+     会溢出标题列、盖到右侧 git 徽标，配合内部 ellipsis 收缩截断 */
+  min-width: 0;
   transition: border-color 0.15s, background 0.15s;
 }
 
@@ -5618,24 +6398,27 @@ onMounted(loadState)
 }
 
 /* 环境准备卡片：图标 + 标题/描述 + 右侧操作（位于基础服务之前） */
+/* ===== 环境准备：头部（渐变图标 + 进度条）+ 初始化清单瓦片 + 快捷工具 ===== */
 .pc-prep {
+  margin-top: 18px;
+  padding: 18px 20px 15px;
+  background: linear-gradient(180deg, #fbfdff 0%, #fff 55%);
+  border: 1px solid #e4ecf6;
+  border-radius: 18px;
+  box-shadow: 0 2px 10px rgba(15, 30, 48, 0.04);
+}
+
+.pc-prep-head {
   display: flex;
   align-items: center;
   gap: 14px;
-  flex-wrap: wrap;
-  margin-top: 18px;
-  padding: 14px 18px;
-  background: #fff;
-  border: 1px solid #e8eef6;
-  border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05);
 }
 
 .pc-prep-icon {
-  width: 42px;
-  height: 42px;
+  width: 46px;
+  height: 46px;
   flex-shrink: 0;
-  border-radius: 13px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5647,8 +6430,8 @@ onMounted(loadState)
 }
 
 .pc-prep-icon svg {
-  width: 19px;
-  height: 19px;
+  width: 21px;
+  height: 21px;
 }
 
 .pc-prep-text {
@@ -5659,34 +6442,231 @@ onMounted(loadState)
 .pc-prep-title {
   display: flex;
   align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 15.5px;
+  font-weight: 800;
+  color: #0f1e30;
+}
+
+/* 完成度进度：迷你渐变进度条 + n/n 计数 */
+.pc-prep-prog {
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
-  font-size: 14px;
+  padding: 3px 11px 3px 5px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+}
+
+.pc-prep-prog-bar {
+  width: 76px;
+  height: 6px;
+  border-radius: 4px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.pc-prep-prog-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #60a5fa, #2563eb);
+  transition: width 0.4s ease;
+}
+
+.pc-prep-prog.ok .pc-prep-prog-bar i {
+  background: linear-gradient(90deg, #34d399, #059669);
+}
+
+.pc-prep-prog-text {
+  font-size: 11px;
   font-weight: 700;
-  color: #1f2d3d;
+  color: #64748b;
+}
+
+.pc-prep-prog.ok .pc-prep-prog-text {
+  color: #059669;
 }
 
 .pc-prep-ok {
   font-size: 10.5px;
-  font-weight: 600;
+  font-weight: 700;
   color: #059669;
   background: #ecfdf5;
   border: 1px solid #a7f3d0;
-  padding: 1px 8px;
+  padding: 2px 9px;
   border-radius: 999px;
 }
 
 .pc-prep-desc {
   margin-top: 3px;
-  font-size: 11.5px;
+  font-size: 12px;
   color: #8a94a6;
 }
 
-.pc-prep-ops {
+/* 初始化清单瓦片 */
+.pci-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.pci-tile {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 11px;
+  padding: 11px 13px;
+  border-radius: 13px;
+  border: 1px solid #dbe4f0;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: all 0.18s ease;
+}
+
+.pci-tile.todo {
+  background: linear-gradient(135deg, #f5f9ff, #ffffff 70%);
+  border-color: #c7dbfb;
+}
+
+.pci-tile.todo:hover {
+  transform: translateY(-2px);
+  border-color: #93c5fd;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.14);
+}
+
+.pci-tile.done {
+  cursor: default;
+  background: linear-gradient(135deg, #f0fdf6, #f7fef9 70%);
+  border-color: #bbf0cf;
+}
+
+.pci-ico {
+  width: 34px;
+  height: 34px;
   flex-shrink: 0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  background: #eef4ff;
+  border: 1px solid #dde9fc;
+}
+
+.pci-tile.done .pci-ico {
+  background: #ecfdf5;
+  border-color: #d1fae5;
+}
+
+.pci-main {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pci-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f2d3d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pci-sub {
+  font-size: 11px;
+  color: #8a94a6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pci-tile.done .pci-sub {
+  color: #059669;
+}
+
+.pci-state {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pci-state svg {
+  width: 12px;
+  height: 12px;
+}
+
+.pci-tile.todo .pci-state {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.32);
+}
+
+.pci-tile.done .pci-state {
+  background: linear-gradient(135deg, #34d399, #059669);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.32);
+}
+
+/* 快捷工具行：整体靠右 */
+.pc-prep-tools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
   flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 13px;
+  border-top: 1px dashed #e8eef7;
+}
+
+.pc-prep-tools-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+}
+
+.pc-prep-tools-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.pc-prep-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid #dbe4f0;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.pc-prep-tool:hover {
+  transform: translateY(-1px);
+  border-color: #93c5fd;
+  color: #2563eb;
+  background: #f0f7ff;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.12);
 }
 
 .pc-ops {
@@ -7031,22 +8011,826 @@ onMounted(loadState)
   font-size: 11.5px;
   color: #8a94a6;
 }
-/* 未绑定 */
+/* ===== 创建/绑定向导与项目列表 ===== */
+/* 绑定方式选择（向导第 2 步容器） */
 .pc-unbound {
   margin-top: 18px;
   text-align: center;
 }
 
-.pc-unbound-title {
-  font-size: 17px;
+.pc-unbound-wz {
+  margin-top: 0;
+}
+
+.pc-unbound-wz .pc-options {
+  margin-top: 16px;
+}
+
+/* 向导步骤条：① 填写项目信息 → ② 选择绑定方式 */
+.pc-wizard {
+  margin-top: 18px;
+}
+
+.pc-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 10px 0 22px;
+}
+
+.pc-step {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.pc-step-dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  background: #eef2f7;
+  color: #94a3b8;
+  border: 1.5px solid #e2e8f0;
+  transition: all 0.25s ease;
+}
+
+.pc-step.active .pc-step-dot {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.pc-step.done .pc-step-dot {
+  background: #ecfdf5;
+  color: #059669;
+  border-color: #a7f3d0;
+}
+
+.pc-step-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #8a94a6;
+}
+
+.pc-step.active .pc-step-label {
+  color: #1f2d3d;
   font-weight: 700;
+}
+
+.pc-step.done .pc-step-label {
+  color: #059669;
+}
+
+.pc-step-line {
+  width: 92px;
+  height: 2px;
+  border-radius: 2px;
+  background: #e2e8f0;
+}
+
+.pc-step-line.lit {
+  background: linear-gradient(90deg, #34d399, #3b82f6);
+}
+
+/* 向导第 2 步：当前正在绑定的项目横幅 */
+.pc-wz-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 9px 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #eff6ff, #f0f9ff);
+  border: 1px solid #dbeafe;
+  color: #334155;
+  font-size: 12.5px;
+}
+
+.pc-wz-banner-ico {
+  font-size: 15px;
+}
+
+.pc-wz-banner b {
+  color: #1d4ed8;
+}
+
+.pc-wz-banner-name {
+  margin-left: 2px;
+  padding: 1px 8px;
+  border-radius: 6px;
+  background: #e0ecff;
+  color: #1d4ed8;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+/* 向导第 1 步：项目信息卡片 */
+.pc-wz-card {
+  max-width: 640px;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid #e6edf5;
+  border-radius: 18px;
+  padding: 26px 28px 22px;
+  box-shadow: 0 6px 24px rgba(15, 30, 48, 0.05);
+}
+
+.pc-wz-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 18px;
+  border-bottom: 1px dashed #e8eef7;
+  margin-bottom: 20px;
+}
+
+.pc-wz-ico {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #dbeafe, #eff6ff);
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pc-wz-ico svg {
+  width: 22px;
+  height: 22px;
+}
+
+.pc-wz-title {
+  font-size: 16.5px;
+  font-weight: 800;
+  color: #0f1e30;
+}
+
+.pc-wz-sub {
+  margin-top: 3px;
+  font-size: 12.5px;
+  color: #8a94a6;
+}
+
+.pc-wz-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pc-wz-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 7px;
+}
+
+.pc-wz-req {
+  color: #ef4444;
+}
+
+.pc-wz-input {
+  /* border-box：width:100% 必须包含 padding/边框，否则输入框比容器宽约 30px，
+     弹窗（编辑项目信息 / 创建向导）出现横向滚动条 */
+  box-sizing: border-box;
+  width: 100%;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 11px;
+  border: 1px solid #dbe4f0;
+  background: #f8fafc;
+  font-size: 13px;
+  color: #1f2d3d;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.pc-wz-input:focus {
+  border-color: #60a5fa;
+  background: #fff;
+  box-shadow: 0 0 0 3.5px rgba(59, 130, 246, 0.13);
+}
+
+.pc-wz-input.err {
+  border-color: #f87171;
+  background: #fffdff;
+}
+
+.pc-wz-input.err:focus {
+  box-shadow: 0 0 0 3.5px rgba(239, 68, 68, 0.12);
+}
+
+.pc-wz-area {
+  height: auto;
+  padding: 10px 14px;
+  resize: none;
+  line-height: 1.6;
+}
+
+.pc-wz-tip {
+  margin-top: 6px;
+  font-size: 11.5px;
+  color: #94a3b8;
+}
+
+.pc-wz-tip.err {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.pc-wz-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px dashed #e8eef7;
+}
+
+.pc-wz-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.18s ease;
+}
+
+.pc-wz-btn.ghost {
+  background: #fff;
+  border-color: #dbe4f0;
+  color: #475569;
+}
+
+.pc-wz-btn.ghost:hover {
+  border-color: #93c5fd;
+  color: #2563eb;
+  background: #f0f7ff;
+  transform: translateY(-1px);
+}
+
+.pc-wz-btn.primary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.32);
+}
+
+.pc-wz-btn.primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 18px rgba(37, 99, 235, 0.4);
+}
+
+.pc-wz-btn.primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.pc-wz-arrow {
+  font-size: 14px;
+}
+
+/* ===== 项目列表 ===== */
+.pc-projects {
+  margin-top: 18px;
+}
+
+.pc-prj-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.pc-prj-head-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.pc-prj-head-ico {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #eff6ff, #e0f2fe);
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 4px 10px rgba(37, 99, 235, 0.1);
+}
+
+.pc-prj-head-ico svg {
+  width: 23px;
+  height: 23px;
+}
+
+.pc-prj-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f1e30;
+}
+
+.pc-prj-sub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #8a94a6;
+}
+
+.pc-prj-count {
+  margin-left: 4px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pc-prj-count b {
+  color: #2563eb;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.pc-prj-count em {
+  font-style: normal;
+  color: #b45309;
+  font-weight: 700;
+}
+
+.pc-prj-create {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.32);
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+}
+
+.pc-prj-create:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 18px rgba(37, 99, 235, 0.42);
+}
+
+.pc-prj-create-ico {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.pc-prj-create.big {
+  height: 44px;
+  padding: 0 26px;
+  font-size: 13.5px;
+}
+
+.pc-prj-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 16px;
+}
+
+/* 项目卡片：主题色（--pg1/--pg2 渐变端点、--psh 辉光影）按项目名散列到 6 组，
+   头像 / 顶部色带 / 悬停辉光 / 当前描边共用同一组变量，整套卡片色彩自洽 */
+.pc-prj-card.hue-0 { --pg1: #60a5fa; --pg2: #2563eb; --psh: rgba(37, 99, 235, 0.16); }
+.pc-prj-card.hue-1 { --pg1: #34d399; --pg2: #059669; --psh: rgba(5, 150, 105, 0.16); }
+.pc-prj-card.hue-2 { --pg1: #a78bfa; --pg2: #7c3aed; --psh: rgba(124, 58, 237, 0.16); }
+.pc-prj-card.hue-3 { --pg1: #fbbf24; --pg2: #d97706; --psh: rgba(217, 119, 6, 0.18); }
+.pc-prj-card.hue-4 { --pg1: #fb7185; --pg2: #e11d48; --psh: rgba(225, 29, 72, 0.15); }
+.pc-prj-card.hue-5 { --pg1: #22d3ee; --pg2: #0891b2; --psh: rgba(8, 145, 178, 0.16); }
+
+.pc-prj-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid #e6edf5;
+  border-radius: 16px;
+  padding: 18px 18px 13px;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 顶部主题色带：悬停 / 当前项目时点亮 */
+.pc-prj-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--pg1), var(--pg2));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* 右上角色彩光晕装饰 */
+.pc-prj-glow {
+  position: absolute;
+  top: -46px;
+  right: -46px;
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--psh), transparent 72%);
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.pc-prj-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--pg1);
+  box-shadow: 0 14px 30px var(--psh), 0 3px 8px rgba(15, 30, 48, 0.04);
+}
+
+.pc-prj-card:hover::before {
+  opacity: 1;
+}
+
+.pc-prj-card:hover .pc-prj-glow {
+  opacity: 1;
+}
+
+.pc-prj-card.current {
+  border-color: var(--pg2);
+  background: linear-gradient(180deg, #fbfdff 0%, #fff 45%);
+  box-shadow: 0 0 0 3px var(--psh);
+}
+
+.pc-prj-card.current::before {
+  opacity: 1;
+}
+
+.pc-prj-del {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #b6c2d4;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.16s ease;
+}
+
+/* 编辑项目信息：悬停浮现，位于删除按钮左侧 */
+.pc-prj-edit {
+  position: absolute;
+  top: 10px;
+  right: 42px;
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #b6c2d4;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.16s ease;
+}
+
+.pc-prj-card:hover .pc-prj-del,
+.pc-prj-card:hover .pc-prj-edit {
+  opacity: 1;
+}
+
+.pc-prj-edit:hover {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.pc-prj-edit svg {
+  width: 13px;
+  height: 13px;
+}
+
+.pc-prj-del:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.pc-prj-del svg {
+  width: 13px;
+  height: 13px;
+}
+
+.pc-prj-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  /* 右上角悬停浮现「编辑 / 删除」两个小按钮，预留其宽度 */
+  padding-right: 58px;
+}
+
+.pc-prj-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 800;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--pg1), var(--pg2));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 6px 14px var(--psh);
+  text-shadow: 0 1px 2px rgba(15, 30, 48, 0.18);
+}
+
+.pc-prj-id {
+  min-width: 0;
+  flex: 1;
+}
+
+.pc-prj-alias {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f1e30;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pc-prj-name {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pc-prj-mode {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pc-prj-mode.local {
+  color: #1d4ed8;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+}
+
+.pc-prj-mode.ssh {
+  color: #0f766e;
+  background: #f0fdfa;
+  border: 1px solid #ccfbf1;
+}
+
+.pc-prj-mode.none {
+  color: #b45309;
+  background: #fffbeb;
+  border: 1px dashed #fde68a;
+}
+
+.pc-prj-remark {
+  font-size: 12.5px;
+  color: #64748b;
+  line-height: 1.55;
+  min-height: 20px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pc-prj-path-row {
+  margin-top: auto;
+}
+
+.pc-prj-path {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
+  font-size: 11.5px;
+  color: #475569;
+  min-width: 0;
+}
+
+.pc-prj-path.empty {
+  background: #fffbeb;
+  border: 1px dashed #fde68a;
+  color: #b45309;
+}
+
+.pc-prj-path-ico {
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+.pc-prj-path-text {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pc-prj-ssh {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: #0f766e;
+  background: #f0fdfa;
+  border: 1px solid #ccfbf1;
+  border-radius: 8px;
+  padding: 4px 10px;
+  width: fit-content;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.pc-prj-ssh svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+/* 卡片底栏：虚线分隔，右侧悬停浮出「进入控制台 →」邀请动作 */
+.pc-prj-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 2px;
+  padding-top: 10px;
+  border-top: 1px dashed #edf2f8;
+  font-size: 10.5px;
+  color: #9aa7b8;
+}
+
+.pc-prj-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.pc-prj-current {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--pg2);
+  font-weight: 700;
+}
+
+.pc-prj-current i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--pg2);
+  box-shadow: 0 0 0 3px var(--psh);
+}
+
+.pc-prj-enter {
+  color: var(--pg2);
+  font-weight: 700;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all 0.2s ease;
+}
+
+.pc-prj-card:hover .pc-prj-enter {
+  opacity: 1;
+  transform: none;
+}
+
+/* 项目列表空状态：渐变光环 + 漂浮光斑 */
+.pc-prj-empty {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 74px 20px 64px;
+  text-align: center;
+  border: 1.5px dashed #dbe4f0;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fbfdff, #f6f9fc);
+}
+
+.pc-prj-empty-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(2px);
+  pointer-events: none;
+  animation: pc-prj-drift 7s ease-in-out infinite alternate;
+}
+
+.pc-prj-empty-blob.b1 {
+  width: 120px;
+  height: 120px;
+  left: 12%;
+  bottom: -34px;
+  background: radial-gradient(closest-side, rgba(59, 130, 246, 0.1), transparent);
+}
+
+.pc-prj-empty-blob.b2 {
+  width: 96px;
+  height: 96px;
+  right: 14%;
+  top: -22px;
+  background: radial-gradient(closest-side, rgba(167, 139, 250, 0.12), transparent);
+  animation-delay: -3.5s;
+}
+
+@keyframes pc-prj-drift {
+  from { transform: translateY(0) scale(1); }
+  to { transform: translateY(-14px) scale(1.06); }
+}
+
+.pc-prj-empty-ring {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  background: radial-gradient(closest-side, rgba(59, 130, 246, 0.14), transparent 75%);
+  animation: pc-prj-drift 5.5s ease-in-out infinite alternate;
+}
+
+.pc-prj-empty-ico {
+  font-size: 46px;
+  filter: drop-shadow(0 12px 20px rgba(37, 99, 235, 0.2));
+}
+
+.pc-prj-empty-title {
+  font-size: 16.5px;
+  font-weight: 800;
   color: #1f2d3d;
 }
 
-.pc-unbound-sub {
-  margin-top: 6px;
+.pc-prj-empty-sub {
   font-size: 12.5px;
   color: #8a94a6;
+  margin: 4px 0 18px;
+}
+
+.pc-prj-boot-spin {
+  width: 26px;
+  height: 26px;
+  border-width: 3px;
 }
 
 .pc-options {
@@ -9001,6 +10785,198 @@ onMounted(loadState)
 .pim-build:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+/* ===== Maven 配置弹窗：信息横幅 + 代码编辑器卡（行号 / XML 校验 / 状态栏） ===== */
+.pmc-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+  border: 1px solid #dbeafe;
+  margin-bottom: 12px;
+}
+
+.pmc-banner-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pmc-ver {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #dbeafe;
+  color: #1d4ed8;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.1);
+}
+
+.pmc-home {
+  min-width: 0;
+  flex: 1 1 200px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid #e3edfb;
+  color: #475569;
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pmc-file {
+  min-width: 0;
+  flex: 1 1 200px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: #f0fdfa;
+  border: 1px solid #ccfbf1;
+  color: #0f766e;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pmc-miss {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #fffbeb;
+  border: 1px dashed #fde68a;
+  color: #b45309;
+  font-size: 10.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 编辑器卡 */
+.pmc-editor-card {
+  border: 1px solid #dbe4f0;
+  border-radius: 13px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(15, 30, 48, 0.05);
+}
+
+.pmc-editor-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 13px;
+  background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+  border-bottom: 1px solid #e6edf5;
+}
+
+.pmc-dots {
+  display: inline-flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.pmc-dots i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.pmc-dots i:nth-child(1) { background: #f87171; }
+.pmc-dots i:nth-child(2) { background: #fbbf24; }
+.pmc-dots i:nth-child(3) { background: #34d399; }
+
+.pmc-editor-file {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.pmc-check {
+  margin-left: auto;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pmc-check.ok {
+  color: #059669;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+}
+
+.pmc-check.bad {
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+/* 行号槽 + 编辑区：行高严格一致（20px）保证对齐 */
+.pmc-editor-wrap {
+  display: flex;
+  height: 44vh;
+  min-height: 260px;
+  max-height: 420px;
+}
+
+.pmc-gutter {
+  width: 46px;
+  flex-shrink: 0;
+  overflow: hidden;
+  padding: 10px 0;
+  text-align: right;
+  background: #f8fafc;
+  border-right: 1px solid #eef2f7;
+  color: #a8b6c8;
+  font-size: 11.5px;
+  line-height: 20px;
+  user-select: none;
+}
+
+.pmc-gutter span {
+  display: block;
+  padding-right: 12px;
+}
+
+.pmc-area {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px;
+  border: none;
+  outline: none;
+  resize: none;
+  background: #fff;
+  color: #1f2d3d;
+  font-size: 12px;
+  line-height: 20px;
+  white-space: pre;
+  overflow: auto;
+  tab-size: 2;
+}
+
+.pmc-area::placeholder {
+  color: #b6c2d4;
+}
+
+.pmc-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 7px 13px;
+  background: #f8fafc;
+  border-top: 1px solid #eef2f7;
+  color: #94a3b8;
+  font-size: 10.5px;
 }
 
 .pev-tabs {

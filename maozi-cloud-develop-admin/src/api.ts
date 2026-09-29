@@ -26,7 +26,8 @@ import type {
     EnvSettingGroup,
     EnvSettingItem,
     EnvSettingSection,
-    ProjectBinding
+    ProjectBinding,
+    ProjectEntry
 } from '../electron/projects/types'
 
 export type { EnvFile, EnvVarEntry, EnvSaveParams, LaunchctlParams, HostsEntry, PlatformResult }
@@ -39,6 +40,7 @@ export type {
   AuthType,
   ToolAvailability,
   ProjectBinding,
+  ProjectEntry,
   EnvSettingGroup,
   EnvSettingItem,
   EnvSettingSection,
@@ -86,6 +88,18 @@ export interface ElectronApi {
   }
   projects: {
     state: () => Promise<IpcResult<ProjectBinding | null>>
+    /** 项目列表（含绑定信息与当前激活项 id） */
+    projectsList: () => Promise<IpcResult<{ projects: ProjectEntry[]; activeId: string | null }>>
+    /** 创建项目（名称不允许中文，仅字母数字与 . _ -），创建后即激活并进入选择绑定方式 */
+    projectCreate: (name: string, alias: string, remark: string) => Promise<IpcResult<ProjectEntry>>
+    /** 激活项目：已绑定返回绑定信息，待绑定返回 null */
+    projectActivate: (id: string) => Promise<IpcResult<ProjectBinding | null>>
+    /** 更新项目信息（名称/别名/备注），名称校验同创建 */
+    projectUpdate: (id: string, name: string, alias: string, remark: string) => Promise<IpcResult<ProjectEntry>>
+    /** 返回项目列表：清空激活项（绑定保留在项目记录中） */
+    projectDeactivate: () => Promise<IpcResult<null>>
+    /** 删除项目（含其绑定信息） */
+    projectRemove: (id: string) => Promise<IpcResult<null>>
     pickDir: () => Promise<IpcResult<string | null>>
     bindDir: (dir: string) => Promise<IpcResult<ProjectBinding>>
     clone: (secretId: string, destDir: string) => Promise<IpcResult<ProjectBinding>>
@@ -171,6 +185,12 @@ export interface ElectronApi {
     envSettings: () => Promise<IpcResult<{ sections: EnvSettingSection[]; files: EnvFile[]; defaultFileId: string; remote?: boolean } | null>>
     /** 环境设置 .env 分节保存：原位更新 key=value 行（无则末尾追加），本地直写 / 远程 SSH */
     envFileSave: (input: { key: string; value: string }) => Promise<PlatformResult>
+    /** Maven 配置：mvn -v 解析安装目录与版本，定位 conf/settings.xml */
+    mavenInfo: () => Promise<IpcResult<{ version: string; home: string; settingsFile: string; exists: boolean }>>
+    /** 读取 Maven settings.xml 内容 */
+    mavenConfigRead: () => Promise<IpcResult<{ content: string }>>
+    /** 保存 Maven settings.xml（覆盖前备份为 settings.xml.bak.<时间戳>） */
+    mavenConfigSave: (content: string) => Promise<IpcResult<{ backupFile: string }>>
     /** 应用服务配置：按服务名匹配 environment_variable.json 一级属性，条目值读业务 .env；未匹配返回 data:null */
     serviceConfig: (
       service: string,

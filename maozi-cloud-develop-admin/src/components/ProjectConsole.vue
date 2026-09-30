@@ -182,6 +182,7 @@
             <span class="pc-prep-tools-label">🧰 快捷工具</span>
             <div class="pc-prep-tools-row">
               <button class="pc-prep-tool" type="button" @click="openMavenConfig">🪶 Maven配置</button>
+              <button class="pc-prep-tool" type="button" @click="openDockerConfig">🐳 Docker配置</button>
               <button class="pc-prep-tool" type="button" @click="openEnvSettings">🔧 环境设置</button>
               <button class="pc-prep-tool" type="button" @click="onDockerClear">🧹 容器磁盘清除</button>
             </div>
@@ -1808,6 +1809,90 @@
             @click="saveMavenConfig"
           >
             {{ mavenSaving ? '保存中…' : '💾 保存（自动备份）' }}
+          </button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- ===== Docker 配置弹窗：daemon.json 按平台解析（mac/Win=~/.docker，Linux=/etc/docker 优先），编辑保存（自动备份） ===== -->
+    <el-dialog
+      v-model="dockerVisible"
+      width="760px"
+      draggable
+      append-to-body
+      modal-class="pc-dlg pev-dlg"
+      :show-close="false"
+      :close-on-click-modal="false"
+    >
+      <template #header>
+        <div class="pcd-header">
+          <div class="pcd-deco pcd-deco-1"></div>
+          <div class="pcd-deco pcd-deco-2"></div>
+          <div class="pcd-header-main">
+            <div class="pcd-header-icon">🐳</div>
+            <div>
+              <div class="pcd-title">Docker 配置</div>
+              <div class="pcd-subtitle">daemon.json 按平台解析 · 编辑保存（自动备份）· 重启 Docker 后生效</div>
+            </div>
+          </div>
+          <button class="pcd-close" type="button" @click="dockerVisible = false">✕</button>
+        </div>
+      </template>
+
+      <div class="pcd-body">
+        <div v-if="dockerLoading" class="pev-state"><span class="pc-env-spin"></span>正在解析 daemon.json 路径…</div>
+        <div v-else-if="dockerError" class="pev-state error"><span class="pev-state-ico">⚠️</span>{{ dockerError }}</div>
+        <template v-else-if="dockerData">
+          <!-- 信息横幅：版本 + 平台 + 配置文件路径 -->
+          <div class="pmc-banner">
+            <div class="pmc-banner-row">
+              <span class="pmc-ver">🐳 Docker {{ dockerData.version || '?' }}</span>
+              <span class="pmc-plat">🖥 {{ dockerData.platform }}</span>
+              <span class="pmc-home mono-text" :title="dockerData.configFile">📁 {{ dockerData.configFile }}</span>
+            </div>
+            <div v-if="!dockerData.exists" class="pmc-banner-row">
+              <span class="pmc-miss">daemon.json 不存在 · 保存时新建（Linux 的 /etc/docker 需要 root 权限）</span>
+            </div>
+          </div>
+
+          <!-- 编辑器卡：文件头（红黄绿点 + 文件名 + JSON 校验）+ 行号槽 + 编辑区 + 状态栏 -->
+          <div class="pmc-editor-card">
+            <div class="pmc-editor-head">
+              <span class="pmc-dots"><i></i><i></i><i></i></span>
+              <span class="pmc-editor-file mono-text">daemon.json</span>
+              <span v-if="jsonCheck" class="pmc-check" :class="jsonCheck.cls">{{ jsonCheck.text }}</span>
+            </div>
+            <div class="pmc-editor-wrap">
+              <div ref="dcxGutter" class="pmc-gutter mono-text"><span v-for="n in dockerLineCount" :key="n">{{ n }}</span></div>
+              <textarea
+                ref="dcxArea"
+                v-model="dockerContent"
+                class="pmc-area mono-text"
+                spellcheck="false"
+                placeholder='{ "registry-mirrors": ["https://docker.mirrors.example.com"] }'
+                @scroll="syncDcxGutter"
+                @keydown.tab.prevent="onDcxTab"
+              ></textarea>
+            </div>
+            <div class="pmc-status">
+              <span>{{ dockerLineCount }} 行 · {{ fmtBytes(dockerBytes) }}{{ dockerData.exists ? '' : ' · 新文件' }}</span>
+              <span>💾 保存前自动备份 · 重启 Docker 后生效</span>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <template #footer>
+        <div class="pcd-footer">
+          <button class="pcd-btn plain" type="button" :disabled="dockerLoading || dockerSaving" @click="loadDockerConfig">⟳ 刷新</button>
+          <button class="pcd-btn ghost" type="button" @click="dockerVisible = false">取消</button>
+          <button
+            class="pcd-btn primary"
+            type="button"
+            :disabled="dockerLoading || dockerSaving || !!dockerError"
+            @click="saveDockerConfig"
+          >
+            {{ dockerSaving ? '保存中…' : '💾 保存（自动备份）' }}
           </button>
         </div>
       </template>
@@ -3564,6 +3649,92 @@ async function saveMavenConfig(): Promise<void> {
     mavenData.value.exists = true
   } finally {
     mavenSaving.value = false
+  }
+}
+
+/** ===== Docker 配置：daemon.json 按平台解析（mac/Windows=~/.docker，Linux=/etc/docker 优先，远程按 Linux 语义） ===== */
+const dockerVisible = ref(false)
+const dockerData = ref<{ version: string; platform: string; configFile: string; exists: boolean } | null>(null)
+const dockerContent = ref('')
+const dockerLoading = ref(false)
+const dockerError = ref('')
+const dockerSaving = ref(false)
+const dcxGutter = ref<HTMLElement>()
+const dcxArea = ref<HTMLTextAreaElement>()
+
+function syncDcxGutter(): void {
+  if (dcxGutter.value && dcxArea.value) dcxGutter.value.scrollTop = dcxArea.value.scrollTop
+}
+
+/** Tab 键插入两空格缩进（JSON 编辑手感） */
+function onDcxTab(e: KeyboardEvent): void {
+  const ta = e.target as HTMLTextAreaElement
+  const s = ta.selectionStart
+  const ed = ta.selectionEnd
+  dockerContent.value = ta.value.slice(0, s) + '  ' + ta.value.slice(ed)
+  void nextTick(() => {
+    ta.selectionStart = ta.selectionEnd = s + 2
+  })
+}
+
+const dockerLineCount = computed(() => dockerContent.value.split('\n').length)
+const dockerBytes = computed(() => new Blob([dockerContent.value]).size)
+
+/** JSON 良构校验：空内容不校验 */
+const jsonCheck = computed<{ cls: string; text: string } | null>(() => {
+  const t = dockerContent.value.trim()
+  if (!t) return null
+  try {
+    JSON.parse(t)
+    return { cls: 'ok', text: '✓ JSON 格式正确' }
+  } catch {
+    return { cls: 'bad', text: '⚠ JSON 格式错误' }
+  }
+})
+
+function openDockerConfig(): void {
+  dockerVisible.value = true
+  if (!dockerData.value) void loadDockerConfig()
+}
+
+async function loadDockerConfig(): Promise<void> {
+  dockerLoading.value = true
+  dockerError.value = ''
+  try {
+    const r = await api.projects.dockerInfo()
+    if (!r.ok || !r.data) {
+      dockerData.value = null
+      dockerError.value = r.error ?? 'docker -v 执行失败'
+      return
+    }
+    dockerData.value = r.data
+    const c = await api.projects.dockerConfigRead()
+    if (c.ok && c.data) {
+      dockerContent.value = c.data.content
+    } else if (r.data.exists) {
+      dockerError.value = c.error ?? '读取 daemon.json 失败'
+    } else {
+      // 文件本就不存在：给空编辑区，保存时新建
+      dockerContent.value = ''
+    }
+  } finally {
+    dockerLoading.value = false
+  }
+}
+
+async function saveDockerConfig(): Promise<void> {
+  if (!dockerData.value || dockerSaving.value) return
+  dockerSaving.value = true
+  try {
+    const r = await api.projects.dockerConfigSave(dockerContent.value)
+    if (!r.ok) {
+      ElMessage.error(r.error ?? '保存失败')
+      return
+    }
+    ElMessage.success(`daemon.json 已保存，备份：${r.data?.backupFile ?? '—'}；重启 Docker 后生效`)
+    dockerData.value.exists = true
+  } finally {
+    dockerSaving.value = false
   }
 }
 
@@ -10817,6 +10988,18 @@ onMounted(loadState)
   font-weight: 700;
   white-space: nowrap;
   box-shadow: 0 1px 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Docker 弹窗：运行平台胶囊 */
+.pmc-plat {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .pmc-home {

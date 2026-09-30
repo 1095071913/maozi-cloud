@@ -8,6 +8,9 @@ server:
   port: ${APPLICATION_PORT:${application.port:0}}
   error.path: /application/error
   shutdown: graceful # graceful=优雅停机 / immediate=立刻关闭
+  undertow:
+    # 单个请求超时时间，单位毫秒
+    request-timeout: 30000
   # compression:                               # 响应压缩（按需开启）
   #   enabled: true
   #   min-response-size: 1024

@@ -1762,6 +1762,27 @@ async function mavenDetect(b: ProjectBinding): Promise<{ version: string; home: 
   return { version, home, settingsFile: path.posix.join(home.replace(/\/+$/, ''), 'conf/settings.xml') }
 }
 
+/** Docker daemon.json 路径：远程按 Linux 语义（/etc/docker 优先，回退 $HOME/.docker）；本地按平台（mac/Windows 为 ~/.docker） */
+async function dockerConfigPath(b: ProjectBinding): Promise<string> {
+  if (b.remote) {
+    const t = resolveSshTarget(b.remote.configId)
+    const home = ((await sshExec(t, 'echo $HOME', 10_000)).trim().split('\n').pop() ?? '').replace(/\/+$/, '')
+    const homeDaemon = home ? `${home}/.docker/daemon.json` : '~/.docker/daemon.json'
+    const probe = await sshExec(
+      t,
+      'test -f /etc/docker/daemon.json && echo __ETC__; test -f "$HOME/.docker/daemon.json" && echo __HOME__; true',
+      10_000
+    )
+    if (probe.includes('__ETC__')) return '/etc/docker/daemon.json'
+    if (probe.includes('__HOME__')) return homeDaemon
+    return '/etc/docker/daemon.json'
+  }
+  const homeDaemon = path.join(os.homedir(), '.docker', 'daemon.json')
+  const etcDaemon = '/etc/docker/daemon.json'
+  const candidates = process.platform === 'linux' ? [etcDaemon, homeDaemon] : [homeDaemon]
+  return candidates.find((f) => fs.existsSync(f)) ?? candidates[0]
+}
+
 export function registerProjectHandlers(): void {
   ipcMain.handle('projects:state', () => {
     try {
@@ -3797,6 +3818,100 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
       return { ok: true, data: { backupFile: backup } }
     } catch (err) {
       return { ok: false, error: (err as Error).message }
+    }
+  })
+
+  /**
+   * Docker 配置探测：docker -v 取版本；daemon.json 按平台解析——
+   * mac / Windows（Docker Desktop）在 ~/.docker/daemon.json，
+   * Linux 原生在 /etc/docker/daemon.json（不存在时回退 ~/.docker/）；
+   * 远程绑定固定按 Linux 语义在服务器上解析
+   */
+  ipcMain.handle('projects:dockerInfo', async () => {
+    try {
+      const b = getBinding()
+      if (!b) throw new Error('尚未绑定项目')
+      let version = ''
+      if (b.remote) {
+        const t = resolveSshTarget(b.remote.configId)
+        try {
+          const out = await sshExec(t, 'docker -v 2>&1', 20_000)
+          version = out.match(/Docker version\s+(\S+)/)?.[1] ?? ''
+        } catch {
+          version = ''
+        }
+      } else {
+        const pathEnv = await getShellPath()
+        try {
+          const r = await exec('docker', ['-v'], { timeout: 20_000, env: { ...process.env, PATH: pathEnv } })
+          version = (r.stdout + r.stderr).match(/Docker version\s+(\S+)/)?.[1] ?? ''
+        } catch {
+          version = ''
+        }
+      }
+      const platform = b.remote
+        ? 'Linux（远程）'
+        : process.platform === 'darwin'
+          ? 'macOS（Docker Desktop）'
+          : process.platform === 'win32'
+            ? 'Windows（Docker Desktop）'
+            : 'Linux'
+      const configFile = await dockerConfigPath(b)
+      let exists: boolean
+      if (b.remote) {
+        const t = resolveSshTarget(b.remote.configId)
+        exists = (await sshExec(t, `test -f ${JSON.stringify(configFile)} && echo __YES__; true`, 10_000)).includes('__YES__')
+      } else {
+        exists = fs.existsSync(configFile)
+      }
+      return { ok: true, data: { version, platform, configFile, exists } }
+    } catch (err) {
+      return { ok: false, error: (err as Error).message }
+    }
+  })
+
+  /** 读取 Docker daemon.json（本地 fs / 远程 cat） */
+  ipcMain.handle('projects:dockerConfigRead', async () => {
+    try {
+      const b = getBinding()
+      if (!b) throw new Error('尚未绑定项目')
+      const file = await dockerConfigPath(b)
+      if (b.remote) {
+        const t = resolveSshTarget(b.remote.configId)
+        return { ok: true, data: { content: await sshReadFile(t, file) } }
+      }
+      return { ok: true, data: { content: fs.readFileSync(file, 'utf8') } }
+    } catch (err) {
+      return { ok: false, error: (err as Error).message }
+    }
+  })
+
+  /** 保存 Docker daemon.json：覆盖前备份；远程经 base64 透传（/etc/docker 普通用户写入失败时如实报错） */
+  ipcMain.handle('projects:dockerConfigSave', async (_e, contentArg: string) => {
+    try {
+      const b = getBinding()
+      if (!b) throw new Error('尚未绑定项目')
+      const content = String(contentArg ?? '')
+      const file = await dockerConfigPath(b)
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+      const backup = `${file}.bak.${stamp}`
+      if (b.remote) {
+        const t = resolveSshTarget(b.remote.configId)
+        await sshExec(t, `cp -p ${JSON.stringify(file)} ${JSON.stringify(backup)} 2>/dev/null; test ! -f ${JSON.stringify(file)} || test -f ${JSON.stringify(backup)} || echo __BAK_FAIL__`, 10_000)
+        const b64 = Buffer.from(content, 'utf8').toString('base64')
+        await sshExec(
+          t,
+          `printf %s '${b64}' | base64 -d > ${JSON.stringify(file)}`,
+          20_000
+        )
+      } else {
+        fs.mkdirSync(path.dirname(file), { recursive: true })
+        if (fs.existsSync(file)) fs.copyFileSync(file, backup)
+        fs.writeFileSync(file, content, 'utf8')
+      }
+      return { ok: true, data: { backupFile: backup } }
+    } catch (err) {
+      return { ok: false, error: `保存失败（Linux 下 /etc/docker 通常需要 root 权限）：${(err as Error).message}` }
     }
   })
 

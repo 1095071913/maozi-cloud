@@ -113,6 +113,10 @@ contextBridge.exposeInMainWorld('api', {
     mavenInfo: () => ipcRenderer.invoke('projects:mavenInfo'),
     mavenConfigRead: () => ipcRenderer.invoke('projects:mavenConfigRead'),
     mavenConfigSave: (content: string) => ipcRenderer.invoke('projects:mavenConfigSave', content),
+    /** Docker 配置：docker -v + daemon.json 按平台解析（mac/Win=~/.docker，Linux=/etc/docker 优先），读写自动备份 */
+    dockerInfo: () => ipcRenderer.invoke('projects:dockerInfo'),
+    dockerConfigRead: () => ipcRenderer.invoke('projects:dockerConfigRead'),
+    dockerConfigSave: (content: string) => ipcRenderer.invoke('projects:dockerConfigSave', content),
     hotSwap: (variant: string, enable: boolean, sid?: string) => ipcRenderer.invoke('projects:hotSwap', variant, enable, sid),
     initImages: () => ipcRenderer.invoke('projects:initImages'),
     initImageBuild: (name: string, sid?: string) => ipcRenderer.invoke('projects:initImageBuild', name, sid),

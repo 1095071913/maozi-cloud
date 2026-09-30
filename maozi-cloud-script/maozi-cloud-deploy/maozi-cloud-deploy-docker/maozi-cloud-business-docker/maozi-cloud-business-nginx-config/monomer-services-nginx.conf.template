@@ -41,8 +41,8 @@ server {
         proxy_next_upstream non_idempotent;
 
         proxy_connect_timeout 5s;
-        proxy_read_timeout 60s;
-        proxy_send_timeout 60s;
+        proxy_read_timeout 30s;
+        proxy_send_timeout 30s;
 
         proxy_set_header Host              $host;
         proxy_set_header X-Real-IP         $remote_addr;
@@ -63,8 +63,8 @@ server {
         proxy_pass http://$admin_upstream;
 
         proxy_connect_timeout 5s;
-        proxy_read_timeout 60s;
-        proxy_send_timeout 60s;
+        proxy_read_timeout 30s;
+        proxy_send_timeout 30s;
 
         proxy_set_header Host              $host;
         proxy_set_header X-Real-IP         $remote_addr;

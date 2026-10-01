@@ -32,10 +32,10 @@
 cd "$(dirname "$0")"
 current_directory="$(pwd)"
 
-# 源码仓库根目录: 由脚本所在位置推导 (maozi-cloud-deploy-shell-run 向上四级);
+# 源码仓库根目录: 由脚本所在位置推导 (maozi-cloud-deploy-docker-run 向上三级);
 # 当前结构下脚本位于 maozi-cloud-script/maozi-cloud-deploy 内, 源码仓库 maozi-cloud-parent 是 maozi-cloud-script 的同级目录,
-# 向上四级无 pom.xml 时进入 maozi-cloud-parent (兼容脚本位于仓库内部的旧结构)
-repo_candidate="$(cd "$current_directory/../../../.." && pwd)"
+# 向上三级无 pom.xml 时进入 maozi-cloud-parent (兼容脚本位于仓库内部的旧结构)
+repo_candidate="$(cd "$current_directory/../../.." && pwd)"
 if [ -f "$repo_candidate/pom.xml" ]; then
 	repo_directory="$repo_candidate"
 else
@@ -55,7 +55,7 @@ services_subdir="maozi-cloud-service/maozi-cloud-services"
 #   其他（含 gateway-service / monitor-service / system / oauth）-> maozi-cloud-services-image
 route_image_dir() {
     local service_name="$1"
-    local base="$current_directory/../../maozi-cloud-deploy-docker-image"
+    local base="$current_directory/../maozi-cloud-deploy-docker-image"
     case "$service_name" in
         maozi-cloud-basics-*) echo "$base/maozi-cloud-basics-image" ;;
         *)                    echo "$base/maozi-cloud-services-image" ;;
@@ -65,7 +65,7 @@ route_image_dir() {
 # 根据服务名前缀路由 docker-compose 目录
 route_docker_dir() {
     local service_name="$1"
-    local base="$current_directory/../../maozi-cloud-deploy-docker"
+    local base="$current_directory/../maozi-cloud-deploy-docker"
     case "$service_name" in
         maozi-cloud-basics-*) echo "$base/maozi-cloud-basics-docker" ;;
         *)                    echo "$base/maozi-cloud-business-docker" ;;
@@ -74,7 +74,7 @@ route_docker_dir() {
 
 # 镜像渲染器: 模板 + JSON -> ${service_name}-image, 然后 buildx + compose, 最后清理
 # 必须在 route_image_dir / route_docker_dir 定义之后再 source (渲染器内部会调用它们)
-source "$current_directory/maozi-cloud-deploy-shell-util/maozi-cloud-render-image.sh"
+source "$current_directory/maozi-cloud-render-image-utils.sh"
 
 # ============================================================
 # 1. 全量 Maven 构建 (不做 -pl / -amd 增量, 直接整个 reactor)
@@ -119,7 +119,7 @@ while IFS= read -r -d '' jarfile; do
     module_dir="$(dirname "$(dirname "$jarfile")")"
     service_name="$(basename "$module_dir")"
 
-    # 渲染 + 构建 + 清理统一交给 maozi-cloud-render-image.sh:
+    # 渲染 + 构建 + 清理统一交给 maozi-cloud-render-image-utils.sh:
     #   - 读 maozi-cloud-services.json 取该服务的端口 / Dubbo / OTel / JVM / base_image
     #   - 按模板渲染出 ${service_name}-image, buildx 构建, compose 启动, rm 镜像文件
     # 服务不在 JSON 配置里时, 渲染器返回非零并打印 skip, 不阻塞其他服务

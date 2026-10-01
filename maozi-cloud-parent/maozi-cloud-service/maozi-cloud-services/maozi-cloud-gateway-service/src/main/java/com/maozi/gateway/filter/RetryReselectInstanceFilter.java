@@ -33,12 +33,14 @@ public class RetryReselectInstanceFilter implements GlobalFilter, Ordered {
         if (url != null && "lb".equals(url.getScheme())) {
             // 首次尝试：LB 还没解析，记录 lb 地址
             exchange.getAttributes().put(ORIGINAL_LB_URL_ATTR, url);
-        }
-        else if (url != null && exchange.getAttribute(ORIGINAL_LB_URL_ATTR) != null) {
+
+        } else if (url != null && exchange.getAttribute(ORIGINAL_LB_URL_ATTR) != null) {
             // 重试：地址已被 LB 替换成具体节点(http://A)，恢复成 lb://，
             // 后续 LB 过滤器会重新 choose() → RoundRobin 轮到下一个节点
-            exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR,
-                    exchange.getAttribute(ORIGINAL_LB_URL_ATTR));
+            exchange.getAttributes().put(
+                    ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR,
+                    exchange.getAttribute(ORIGINAL_LB_URL_ATTR)
+            );
         }
         return chain.filter(exchange);
     }

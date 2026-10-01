@@ -79,7 +79,7 @@ write_snapshot() {
 #   其他 (含 gateway / monitor / system / oauth 等业务服务) -> maozi-cloud-services-image
 route_image_dir() {
     local service_name="$1"
-    local base="$current_directory/../../maozi-cloud-deploy-docker-image"
+    local base="$current_directory/../maozi-cloud-deploy-docker-image"
     case "$service_name" in
         maozi-cloud-basics-*) echo "$base/maozi-cloud-basics-image" ;;
         *)                    echo "$base/maozi-cloud-services-image" ;;
@@ -89,7 +89,7 @@ route_image_dir() {
 # 根据服务名前缀路由 docker-compose 目录
 route_docker_dir() {
     local service_name="$1"
-    local base="$current_directory/../../maozi-cloud-deploy-docker"
+    local base="$current_directory/../maozi-cloud-deploy-docker"
     case "$service_name" in
         maozi-cloud-basics-*) echo "$base/maozi-cloud-basics-docker" ;;
         *)                    echo "$base/maozi-cloud-business-docker" ;;
@@ -106,11 +106,11 @@ modules_file="$(mktemp -t maozi-modules)"
 trap 'rm -f "$before_manifest" "$after_manifest" "$changed_jars_list" "$modules_file"' EXIT
 
 # ---- A. 比对 git 状态 ----
-# 工具脚本位于入口脚本目录下的 maozi-cloud-deploy-shell-util 子目录,
-# current_directory 由调用方传入, 指向入口脚本目录 (maozi-cloud-deploy-shell-run)
-source "$current_directory/maozi-cloud-deploy-shell-util/maozi-cloud-scan-file-utils.sh"
+# 工具脚本与入口脚本同目录 (maozi-cloud-deploy-docker-run),
+# current_directory 由调用方传入, 指向入口脚本目录
+source "$current_directory/maozi-cloud-scan-file-utils.sh"
 # 镜像渲染器: 模板 + JSON -> ${service_name}-image, 然后 buildx + compose, 最后清理
-source "$current_directory/maozi-cloud-deploy-shell-util/maozi-cloud-render-image.sh"
+source "$current_directory/maozi-cloud-render-image-utils.sh"
 
 echo "[build] mode=$build_mode"
 
@@ -233,7 +233,7 @@ while IFS= read -r jarfile; do
     module_dir="$(dirname "$(dirname "$jarfile")")"
     service_name="$(basename "$module_dir")"
 
-    # 渲染 + 构建 + 清理统一交给 maozi-cloud-render-image.sh:
+    # 渲染 + 构建 + 清理统一交给 maozi-cloud-render-image-utils.sh:
     #   - 读 maozi-cloud-services.json 取该服务的端口 / Dubbo / OTel / JVM / base_image
     #   - 按模板渲染出 ${service_name}-image, buildx 构建, compose 启动, rm 镜像文件
     # 服务不在 JSON 配置里时, 渲染器返回非零并打印 skip, 不阻塞其他服务

@@ -170,7 +170,7 @@ export interface ElectronApi {
     ) => () => void
     adminContainerStatus: () => Promise<IpcResult<string>>
     adminContainerAction: (action: string, sid?: string) => Promise<PlatformResult>
-    /** 初始化 Hosts：项目 maozi-cloud-deploy-run/init_hosts.json 追加进系统 /etc/hosts，已设置的忽略 */
+    /** 初始化 Hosts：项目 maozi-cloud-utils/init_hosts.json 追加进系统 /etc/hosts，已设置的忽略 */
     hostsInitStatus: () => Promise<IpcResult<{ total: number; missing: number; initialized: boolean } | null>>
     hostsInit: (sid?: string) => Promise<PlatformResult>
     /** 容器网络：解析 compose 的 networks.default.external.name 并检查 docker 中是否已存在 */

@@ -476,14 +476,14 @@ function projFileExistsSync(relPath: string): boolean {
 }
 
 /** 项目内置 hosts 映射文件：JSON，key = ip，value = 域名（可逗号/空格分隔多个或字符串数组） */
-const HOSTS_FILE = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-run/init_hosts.json'
+const HOSTS_FILE = 'maozi-cloud-script/maozi-cloud-utils/init_hosts.json'
 
 /** 项目环境变量定义文件：JSON，key 为中文名称，value 为环境变量 key；value 为对象时表示分组 */
 /** 项目环境变量定义文件：JSON，一级属性为分节（Tab），节内中文名称 → 环境变量 key，可再嵌套一层分组 */
-const ENV_VARS_FILE = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-run/environment_variable.json'
+const ENV_VARS_FILE = 'maozi-cloud-script/maozi-cloud-utils/environment_variable.json'
 
 /** 服务级 docker 配置定义文件：JSON，一级 key = 容器完整名称（如 maozi-cloud-admin-monomer），节内 配置描述 → 变量 key */
-const DOCKER_VARS_FILE = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-run/docker_variable.json'
+const DOCKER_VARS_FILE = 'maozi-cloud-script/maozi-cloud-utils/docker_variable.json'
 
 /** 业务 docker 编排 .env 文件（每行 key=value）：环境设置第二个分节（Tab）的读写目标 */
 const BUSINESS_ENV_FILE = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker/maozi-cloud-business-docker/.env'
@@ -493,8 +493,8 @@ const BUSINESS_ENV_FILE = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-dep
  * 初始化标记为 .db-init.json（见 store.ts，位于 maozi-cloud-develop-admin 应用目录，git 已忽略）。
  * 兼容尚未改名的旧文件 init_mysql_db（按行）
  */
-const INIT_MYSQL_DB_FILE = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-run/init_mysql_db.json'
-const INIT_MYSQL_DB_FILE_LEGACY = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-run/init_mysql_db'
+const INIT_MYSQL_DB_FILE = 'maozi-cloud-script/maozi-cloud-utils/init_mysql_db.json'
+const INIT_MYSQL_DB_FILE_LEGACY = 'maozi-cloud-script/maozi-cloud-utils/init_mysql_db'
 
 /** 读取初始化脚本定义：优先 init_mysql_db.json，缺失时回退旧 init_mysql_db；均无返回 null */
 async function readInitMysqlDb(): Promise<string | null> {
@@ -503,8 +503,8 @@ async function readInitMysqlDb(): Promise<string | null> {
   return null
 }
 
-/** 初始化镜像定义文件：JSON，key = 镜像名（含 tag），value = 构建目录（相对本文件所在目录） */
-const INIT_BASE_IMAGE_FILE = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker-image/init_base_image.json'
+/** 初始化镜像定义文件：JSON，key = 镜像名（含 tag），value = 构建目录（相对 DOCKER_IMAGE_DIR） */
+const INIT_BASE_IMAGE_FILE = 'maozi-cloud-script/maozi-cloud-utils/init_base_image.json'
 const DOCKER_IMAGE_DIR = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker-image'
 
 interface HostsDef {
@@ -841,161 +841,68 @@ async function writeHotSwapBackupYml(variant: AppSvcVariant, sender: Electron.We
   }
 }
 
-/** 读取（插值后）指定 compose 文件的容器名列表（未设 container_name 的服务回退服务名）；可按服务名过滤 */
-async function composeContainerNames(relFile: string, only?: string): Promise<string[]> {
-  const interp = await appSvcNameValues()
-  const content = await readProjFile(relFile)
-  const cn = parseServiceContainerNames(content)
-  const services = parseComposeServices(content).filter((s) => !only || interpolateTemplate(s, interp) === only)
-  return [...new Set(services.map((s) => interpolateTemplate(cn[s] ?? s, interp)))]
-}
-
-/**
- * 循环等待一组容器健康（docker inspect State.Health.Status = healthy；每 3 秒一查）：
- * 未定义健康检查的容器视为就绪；容器未出现继续等；会话被中断或超时（默认 5 分钟）
- * 告警返回 false，不抛错（热备语义：尽力而为，不阻断主流程）
- */
-async function waitContainersHealthy(
-  sender: Electron.WebContents,
-  sid: string,
-  names: string[],
-  what: string,
-  timeoutMs = 5 * 60_000
-): Promise<boolean> {
-  const send = (text: string): void => {
-    if (!sender.isDestroyed()) sender.send('projects:scriptLog', { kind: 'line', text, sid })
-  }
-  if (names.length === 0) return true
-  const deadline = Date.now() + timeoutMs
-  send(`⏳ [热备] 等待${what}健康（${names.length} 个容器）…`)
-  for (let round = 1; ; round++) {
-    // 每轮先查中断标记（再做 inspect）：中断时零开销秒退，不让会话多等一轮探测
-    if (runningProcs.get(sid)?.stopRequested) {
-      send(`⏹ [热备] 会话已中断，停止等待${what}健康`)
-      return false
-    }
-    const pending: string[] = []
-    for (const name of names) {
-      let st = ''
-      try {
-        const { stdout } = await projExec(
-          'docker',
-          ['inspect', '-f', '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}', name],
-          { timeout: 10_000 }
-        )
-        st = stdout.trim()
-      } catch {
-        /* 容器尚未出现：继续等 */
-      }
-      // none = 未定义健康检查，视为就绪
-      if (st !== 'healthy' && st !== 'none') pending.push(name)
-    }
-    if (pending.length === 0) {
-      send(`✓ [热备] ${what}已全部健康`)
-      return true
-    }
-    if (Date.now() > deadline) {
-      send(`⚠ [热备] 等待${what}健康超时（待就绪：${pending.join('、')}），继续后续流程`)
-      return false
-    }
-    if (round % 10 === 0) send(`⏳ [热备] 仍待就绪（${pending.length}/${names.length}）：${pending.join('、')}`)
-    await new Promise((r) => setTimeout(r, 3000))
+/** ===== 应用服务「接口不停机更新」优雅更新钩子（单体 / 微服务各一对前置/后置脚本） ===== */
+const GRACEFUL_UPDATE_HOOKS: Record<AppSvcVariant, { before: string; after: string }> = {
+  monomer: {
+    before: 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker-run/maozi-cloud-deploy-services-monomer-graceful-update-before.sh',
+    after: 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker-run/maozi-cloud-deploy-services-monomer-graceful-update-after.sh'
+  },
+  distributeds: {
+    before: 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker-run/maozi-cloud-deploy-services-distributed-graceful-update-before.sh',
+    after: 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker-run/maozi-cloud-deploy-services-distributed-graceful-update-after.sh'
   }
 }
 
 /**
- * 热备容器启停（尽力而为，失败仅告警不中断主流程）：
- * up = 整组或单服务 up -d，完成后循环等待热备容器健康才返回；
- * down = 先循环等待主 compose 容器健康，再整组 down 或单服务 stop + rm（优雅停机）。
- * -p 独立项目名（主项目名加 -backup 后缀），与主 compose 容器/网络隔离
+ * 优雅更新前置/后置钩子（尽力而为，失败仅告警不中断主流程）：
+ * before 拉起 -backup 热备组（独立 compose 项目）并等全部健康，主组才可安全停机更新；
+ * after 等主组全部恢复健康后 down 热备组，流量回到主组。
+ * 可选 service 只热备/回收该服务（脚本接受 compose 服务名或容器名，控制台传服务名），
+ * 不传处理整组（编译启动 / 全部重启）。
+ * 脚本返回值约定：1 = 成功，2 = 失败；projStream 非零退出即抛错，捕获后按 exit 1 判定成功
  */
-async function hotSwapBackupAction(
+async function gracefulUpdateHook(
   variant: AppSvcVariant,
   sender: Electron.WebContents,
   sid: string,
-  kind: 'up' | 'down',
+  kind: 'before' | 'after',
   service?: string
 ): Promise<void> {
-  const def = APP_SVC_DEFS[variant]
-  const backupFile = hotSwapBackupFile(variant)
-  const dir = projPath(def.dir)
-  const ctx = getProjectCtx()
-  const composeBinParts =
-    ctx.isRemote && ctx.ssh ? (await remoteComposeCmd(ctx.ssh)).split(' ') : ['docker', 'compose']
-  const [cmd, ...base] = composeBinParts
-  // 热备全程（compose 执行 + 健康等待）持有会话条目：中断可打 stopRequested 标记，
-  // 健康等待循环据此退出；无长驻子进程的阶段（纯 inspect 轮询）也能被中断
-  if (!runningProcs.has(sid)) runningProcs.set(sid, { stopRequested: false })
-  const projArgs = [...base, '-p', `${await appSvcProjectName()}-backup`, '-f', backupFile]
-  // pre_stop 生命周期钩子只在 stop/down/restart 时触发（rm --stop --force 强杀会跳过）：
-  // 单服务回收改为 stop（优雅停机、执行钩子）+ rm 两步（rm 的交互确认由 stdin 自动应答）
-  // 中断后的回收加 --timeout 2：仍走优雅停机（pre_stop 会执行）但只等 2 秒，让会话尽快结束；
-  // 正常流程保持 docker 默认 10 秒优雅超时
-  const fastStop = runningProcs.get(sid)?.stopRequested === true
-  const cmdsList: string[][] =
-    kind === 'up'
-      ? [[...projArgs, 'up', '-d', ...(service ? [service] : [])]]
-      : service
-        ? [
-            [...projArgs, 'stop', ...(fastStop ? ['--timeout', '2'] : []), service],
-            [...projArgs, 'rm', service]
-          ]
-        : [[...projArgs, 'down', ...(fastStop ? ['--timeout', '2'] : [])]]
-  if (!sender.isDestroyed()) {
-    for (const a of cmdsList) {
-      sender.send('projects:scriptLog', { kind: 'line', text: `▶ [热备] ${cmd} ${a.join(' ')}`, sid })
-    }
+  const script = GRACEFUL_UPDATE_HOOKS[variant][kind]
+  const send = (text: string): void => {
+    if (!sender.isDestroyed()) sender.send('projects:scriptLog', { kind: 'line', text, sid })
   }
-  if (kind === 'down') {
-    // 关闭前：主 compose 对应容器健康才回收热备（热备承接的流量已由健康的主容器接管）
-    try {
-      const names = await composeContainerNames(path.join(def.dir, def.servicesFile), service)
-      await waitContainersHealthy(sender, sid, names, service ? `主服务 ${service} ` : '主服务容器')
-    } catch (err) {
-      if (!sender.isDestroyed()) {
-        sender.send('projects:scriptLog', {
-          kind: 'line',
-          text: `⚠ [热备] 读取主 compose 容器名失败，跳过健康等待：${(err as Error).message}`,
-          sid
-        })
-      }
-    }
+  // 热备 compose 缺失时现生成（开关开启时已生成，兜底分支切换/文件被删场景），脚本依赖它拉起热备组
+  if (!(await projFileExists(path.join(APP_SVC_DEFS[variant].dir, hotSwapBackupFile(variant))))) {
+    await writeHotSwapBackupYml(variant, sender, sid)
   }
-  try {
-    for (const a of cmdsList) {
-      // rm 不带 --force 会交互式确认，stdin 预置 y 自动应答（本地 stdinData / 远程 printf 管道）
-      await projStream(sender, 'projects:scriptLog', cmd, a, {
-        cwd: dir,
-        timeoutMs: 10 * 60_000,
-        sid,
-        stdinData: a.includes('rm') ? 'y\n' : undefined
-      })
-    }
-  } catch (err) {
-    if (!sender.isDestroyed()) {
-      sender.send('projects:scriptLog', {
-        kind: 'line',
-        text: `⚠ [热备] ${kind}${service ? ` ${service}` : ''} 失败：${(err as Error).message}（继续原流程）`,
-        sid
-      })
-    }
+  if (!(await projFileExists(script))) {
+    send(`⚠ [优雅更新] 未找到${kind === 'before' ? '前置' : '后置'}脚本 ${script}，跳过热备${kind === 'before' ? '拉起' : '回收'}`)
     return
   }
-  if (kind === 'up') {
-    // 启动后：热备容器健康才进入下一步（主流程重启期间由健康的热备承接流量）。
-    // streamProcess 结束会删除会话条目——补注册无 child 的标记条目，健康等待期间可被中断
-    if (!runningProcs.has(sid)) runningProcs.set(sid, { stopRequested: false })
-    try {
-      const names = await composeContainerNames(path.join(def.dir, backupFile), service)
-      await waitContainersHealthy(sender, sid, names, service ? `热备 ${service} ` : '热备容器')
-    } catch (err) {
-      if (!sender.isDestroyed()) {
-        sender.send('projects:scriptLog', {
-          kind: 'line',
-          text: `⚠ [热备] 读取热备容器名失败，跳过健康等待：${(err as Error).message}`,
-          sid
-        })
-      }
+  send(
+    `▶ [优雅更新] ${kind === 'before' ? '前置：拉起热备承接流量' : '后置：等主组健康后回收热备'}（${service ? `服务：${service}` : '整组'}）bash ${script}${service ? ` ${service}` : ''}`
+  )
+  const okLine =
+    kind === 'before'
+      ? `✓ [优雅更新] ${service ? `服务 ${service} 热备已启动且健康` : '热备组已全部启动且健康'}`
+      : `✓ [优雅更新] ${service ? `主服务 ${service} 已恢复健康，热备已回收` : '主组已恢复健康，热备组已回收'}`
+  try {
+    // 脚本内部健康等待最长 300s、down 超时最长 150s，整体上限放宽到 10 分钟
+    await projStream(sender, 'projects:scriptLog', 'bash', service ? [script, service] : [script], {
+      timeoutMs: 10 * 60_000,
+      sid
+    })
+    send(okLine)
+  } catch (err) {
+    const msg = (err as Error).message
+    if (msg === '已手动中断') {
+      // 中断不算失败：调用方据 stopRequested 标记跳过主流程（热备组回收见各调用点）
+      send(`⏹ [优雅更新] ${kind === 'before' ? '前置' : '后置'}脚本已中断`)
+    } else if (msg === 'exit 1') {
+      send(okLine)
+    } else {
+      send(`⚠ [优雅更新] ${kind === 'before' ? '前置' : '后置'}脚本失败（${msg}），继续原流程`)
     }
   }
 }
@@ -1050,23 +957,23 @@ async function appSvcContainerNames(bPath: string, variant: AppSvcVariant): Prom
 /** 项目内可执行脚本（相对项目根目录） */
 const DEPLOY_SCRIPTS: Record<string, { file: string; label: string }> = {
   demand: {
-    file: 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-run/maozi-cloud-deploy-shell-run/maozi-cloud-deploy-services-distributed.sh',
+    file: 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker-run/maozi-cloud-deploy-services-distributed.sh',
     label: '微服务按需编译启动'
   },
   all: {
-    file: 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-run/maozi-cloud-deploy-shell-run/maozi-cloud-deploy-services-distributed-force.sh',
+    file: 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker-run/maozi-cloud-deploy-services-distributed-force.sh',
     label: '微服务全量启动'
   },
   admin: {
-    file: 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-run/maozi-cloud-deploy-shell-run/maozi-cloud-deploy-admin-distributed.sh',
+    file: 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker-run/maozi-cloud-deploy-admin-distributed.sh',
     label: '后台启动'
   },
   monomerServices: {
-    file: 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-run/maozi-cloud-deploy-shell-run/maozi-cloud-deploy-services-monomer.sh',
+    file: 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker-run/maozi-cloud-deploy-services-monomer.sh',
     label: '单体服务编译启动'
   },
   monomerAdmin: {
-    file: 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-run/maozi-cloud-deploy-shell-run/maozi-cloud-deploy-admin-monomer.sh',
+    file: 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker-run/maozi-cloud-deploy-admin-monomer.sh',
     label: '后台编译启动'
   },
   dockerClear: {
@@ -2191,7 +2098,7 @@ export function registerProjectHandlers(): void {
         text: `▶ [${def.label}] 执行 ${def.file}`,
         sid
       })
-      // 热备：编译启动脚本执行前先起热备容器承接流量（尽力而为），脚本真正结束后回收。
+      // 优雅更新：编译启动脚本执行前先跑前置钩子拉起热备组承接流量（尽力而为），脚本真正结束后后置回收。
       // 脚本 → 热备变体：单体编译启动 → 单体；微服务按需/全量编译启动 → 微服务
       const HOT_SWAP_SCRIPT_KINDS: Record<string, AppSvcVariant> = {
         monomerServices: 'monomer',
@@ -2201,11 +2108,8 @@ export function registerProjectHandlers(): void {
       const swapVariant = HOT_SWAP_SCRIPT_KINDS[key]
       const hotSwap = !!swapVariant && hotSwapOn(swapVariant)
       if (hotSwap && swapVariant) {
-        if (!(await projFileExists(path.join(APP_SVC_DEFS[swapVariant].dir, hotSwapBackupFile(swapVariant))))) {
-          await writeHotSwapBackupYml(swapVariant, event.sender, sid)
-        }
-        await hotSwapBackupAction(swapVariant, event.sender, sid, 'up')
-        // 热备阶段被中断（up 执行中或健康等待中）：跳过脚本执行，finally 仍会回收热备容器
+        await gracefulUpdateHook(swapVariant, event.sender, sid, 'before')
+        // 前置钩子被中断：跳过脚本执行（此路径不走 finally，热备组保持运行，下次操作时回收）
         if (runningProcs.get(sid)?.stopRequested) {
           event.sender.send('projects:scriptLog', { kind: 'line', text: '⏹ 已中断，跳过脚本执行', sid })
           return { ok: true }
@@ -2222,7 +2126,7 @@ export function registerProjectHandlers(): void {
         const msg = (err as Error).message
         throw new Error(msg.startsWith('exit ') ? `脚本执行失败（${msg}），详见日志` : msg)
       } finally {
-        if (hotSwap && swapVariant) await hotSwapBackupAction(swapVariant, event.sender, sid, 'down')
+        if (hotSwap && swapVariant) await gracefulUpdateHook(swapVariant, event.sender, sid, 'after')
         // 清理无子进程的标记条目（被中断会话保留的 stopRequested 存根）
         const entry = runningProcs.get(sid)
         if (entry && !entry.child) runningProcs.delete(sid)
@@ -3015,10 +2919,10 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
           await appServicesDown(event, b.path, other, `启动${def.label}服务 ${service}`, sid)
         }
 
-        // 热备：services 文件的单服务重启，先起热备容器中对应服务承接流量，重启完再回收
+        // 优雅更新：services 文件的单服务重启，前置钩子拉起该服务的热备容器承接流量，重启完事后置回收
         const hotSwap = fileTag === 'services' && action === 'restart' && hotSwapOn(variant)
-        if (hotSwap) await hotSwapBackupAction(variant, event.sender, sid, 'up', service)
-        // 热备阶段被中断：跳过该服务重启，finally 仍会回收对应热备容器
+        if (hotSwap) await gracefulUpdateHook(variant, event.sender, sid, 'before', service)
+        // 前置钩子被中断：跳过该服务重启（此路径不走 finally，热备保持运行，下次操作时回收）
         if (hotSwap && runningProcs.get(sid)?.stopRequested) {
           send(`⏹ 已中断，跳过 ${service} 重启`)
           return { ok: true }
@@ -3056,8 +2960,8 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
           }
           }
         } finally {
-          // 热备：单服务重启完成后回收对应热备容器
-          if (hotSwap) await hotSwapBackupAction(variant, event.sender, sid, 'down', service)
+          // 优雅更新：单服务重启完成后回收该服务的热备容器
+          if (hotSwap) await gracefulUpdateHook(variant, event.sender, sid, 'after', service)
           // 清理无子进程的标记条目（被中断会话保留的 stopRequested 存根）
           const entry = runningProcs.get(sid)
           if (entry && !entry.child) runningProcs.delete(sid)
@@ -3096,11 +3000,11 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
         if (!event.sender.isDestroyed()) event.sender.send('projects:scriptLog', { kind: 'line', text, sid })
       }
 
-      // 热备：全部重启前先起热备容器承接流量（尽力而为），结束后回收
+      // 优雅更新：全部重启前先跑前置钩子拉起热备组承接流量（尽力而为），结束后后置回收
       const hotSwap = action === 'restart' && hotSwapOn(variant)
-      if (hotSwap) await hotSwapBackupAction(variant, event.sender, sid, 'up')
+      if (hotSwap) await gracefulUpdateHook(variant, event.sender, sid, 'before')
       try {
-          // 热备阶段被中断：跳过本次全部重启，finally 仍会回收热备容器
+          // 前置钩子被中断：跳过本次全部重启，finally 仍会回收热备组
           if (hotSwap && runningProcs.get(sid)?.stopRequested) {
             send('⏹ 已中断，跳过全部重启')
             return
@@ -3206,8 +3110,8 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
           }
           }
       } finally {
-        // 热备：主流程结束后回收热备容器
-        if (hotSwap) await hotSwapBackupAction(variant, event.sender, sid, 'down')
+        // 优雅更新：主流程结束后回收热备组
+        if (hotSwap) await gracefulUpdateHook(variant, event.sender, sid, 'after')
         // 清理无子进程的标记条目（被中断会话保留的 stopRequested 存根）
         const entry = runningProcs.get(sid)
         if (entry && !entry.child) runningProcs.delete(sid)

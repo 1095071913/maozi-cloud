@@ -217,7 +217,7 @@ public class BaseApplication {
         properties.put("spring.main.allow-circular-references",true);
 
         properties.put("logging.level.root", "ERROR");
-        properties.put("logging.level.com.maozi", "INFO");
+        properties.put("logging.level.com.maozi", "ERROR");
         if(!Objects.equals(environment, EnvironmentType.LOCAL.getDesc())){
             properties.put("logging.appender","ASYNC_FILE");
             properties.put("logging.file.name","logs/${spring.application.name}.log");

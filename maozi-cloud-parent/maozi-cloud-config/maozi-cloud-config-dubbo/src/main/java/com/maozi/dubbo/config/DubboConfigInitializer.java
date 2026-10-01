@@ -44,7 +44,10 @@ public class DubboConfigInitializer implements ConfigInitializer {
 
         properties.put("logging.level." + WELCOME_LOGO_LOGGER, "OFF");
 
+        properties.put("dubbo.module.keepRunningOnSpringClosed",true);
+
         BaseApplication.addBannerFilter(BANNER_FLAG);
+
     }
 
     /** 空实现，Dubbo 配置初始化无需向启动日志追加诊断信息。 */

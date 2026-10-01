@@ -16,7 +16,7 @@
 #     用单 __CMD_LINE__ 占位符整段替换, OTel 关闭时不会遗留孤立反斜杠
 #   - 渲染产物 ${service_name}-image 由生成的 build-docker.sh 在构建后 rm 删除
 # ------------------------------------------------------------
-# 单独运行时 (./maozi-cloud-render-image.sh <service_name>) 进入 dry-run:
+# 单独运行时 (./maozi-cloud-render-image-utils.sh <service_name>) 进入 dry-run:
 # 把渲染结果打到 stdout, 不构建, 不写文件, 便于人工核对模板渲染是否正确.
 # ============================================================
 
@@ -37,7 +37,7 @@ render_and_build_image() {
     local service_name="$1"
     local module_dir="$2"
 
-    local image_root="$current_directory/../../maozi-cloud-deploy-docker-image/maozi-cloud-services-image"
+    local image_root="$current_directory/../maozi-cloud-deploy-docker-image/maozi-cloud-services-image"
     local config_file="$image_root/maozi-cloud-services.json"
     local template_file="$image_root/maozi-cloud-service-image.template"
 
@@ -207,7 +207,7 @@ PYEOF
 # 依赖调用方已设: current_directory
 # ============================================================
 cleanup_image_dirs() {
-    local image_root="$current_directory/../../maozi-cloud-deploy-docker-image"
+    local image_root="$current_directory/../maozi-cloud-deploy-docker-image"
     local d
     for d in "$image_root/maozi-cloud-services-image" "$image_root/maozi-cloud-basics-image"; do
         if rmdir "$d" 2>/dev/null; then
@@ -217,7 +217,7 @@ cleanup_image_dirs() {
 }
 
 # ============================================================
-# 单独运行 (./maozi-cloud-render-image.sh <service_name>): dry-run 模式
+# 单独运行 (./maozi-cloud-render-image-utils.sh <service_name>): dry-run 模式
 # 把渲染结果打到 stdout, 不写文件, 不构建. 用于人工核对模板渲染.
 # source 调用时不执行此分支.
 # ============================================================
@@ -233,9 +233,9 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     repo_root="$(pwd)"
 
     # 复用 render_and_build_image 里的 python 渲染, 但输出到 stdout (传 "-" 作为 out_path)
-    # 独立运行时 current_directory 是本脚本所在目录 (maozi-cloud-deploy-shell-util, 比入口
-    # 脚本深一层), 故向上三级才到 maozi-cloud-deploy; source 调用时走函数内 ../../ 逻辑
-    image_root="$current_directory/../../../maozi-cloud-deploy-docker-image/maozi-cloud-services-image"
+    # 独立运行时 current_directory 是本脚本所在目录 (与入口脚本同目录, maozi-cloud-deploy-docker-run),
+    # 向上一级即到 maozi-cloud-deploy, 与函数内 ../ 逻辑一致
+    image_root="$current_directory/../maozi-cloud-deploy-docker-image/maozi-cloud-services-image"
     config_file="$image_root/maozi-cloud-services.json"
     template_file="$image_root/maozi-cloud-service-image.template"
 

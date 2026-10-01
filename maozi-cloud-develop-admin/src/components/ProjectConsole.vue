@@ -1237,13 +1237,6 @@
 
             <div class="pc-prj-remark" :title="p.remark">{{ p.remark || '暂无备注' }}</div>
 
-            <div class="pc-prj-path-row">
-              <div class="pc-prj-path" :class="{ empty: !p.binding }" :title="p.binding?.path || ''">
-                <span class="pc-prj-path-ico">{{ p.binding?.remote ? '🖥️' : '📂' }}</span>
-                <span class="pc-prj-path-text mono-text">{{ p.binding?.path || '尚未绑定目录' }}</span>
-              </div>
-            </div>
-
             <div v-if="p.binding?.remote" class="pc-prj-ssh mono-text" :title="`SSH ${p.binding.remote.user}@${p.binding.remote.host}:${p.binding.remote.port}`">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="2" y="3" width="20" height="6" rx="2" />
@@ -1251,6 +1244,13 @@
                 <path d="M6 6h.01M6 14h.01" stroke-width="2.4" stroke-linecap="round" />
               </svg>
               {{ p.binding.remote.user }}@{{ p.binding.remote.host }}:{{ p.binding.remote.port }}
+            </div>
+
+            <div class="pc-prj-path-row">
+              <div class="pc-prj-path" :class="{ empty: !p.binding }" :title="p.binding?.path || ''">
+                <span class="pc-prj-path-ico">{{ p.binding?.remote ? '🖥️' : '📂' }}</span>
+                <span class="pc-prj-path-text mono-text">{{ p.binding?.path || '尚未绑定目录' }}</span>
+              </div>
             </div>
 
             <div class="pc-prj-meta">
@@ -4178,7 +4178,7 @@ const adminState = ref('unknown')
 
 const adminRunning = computed(() => adminState.value === 'running')
 
-/** ===== 初始化 Hosts（项目 maozi-cloud-deploy-run/init_hosts.json -> 系统 /etc/hosts） ===== */
+/** ===== 初始化 Hosts（项目 maozi-cloud-utils/init_hosts.json -> 系统 /etc/hosts） ===== */
 const hostsInit = ref<{ total: number; missing: number; initialized: boolean } | null>(null)
 
 const hostsInitState = computed(() => hostsInit.value ?? { total: 0, missing: 0, initialized: false })
@@ -5000,7 +5000,7 @@ async function onHostsInit(skipConfirm = false): Promise<void> {
     const missing = hostsInit.value?.missing ?? 0
     try {
       await ElMessageBox.confirm(
-        `将把项目 maozi-cloud-deploy-run/init_hosts.json 中缺失的 ${missing} 条映射写入系统 /etc/hosts（已设置的忽略），需要管理员授权并自动刷新 DNS 缓存。确定继续吗？`,
+        `将把项目 maozi-cloud-utils/init_hosts.json 中缺失的 ${missing} 条映射写入系统 /etc/hosts（已设置的忽略），需要管理员授权并自动刷新 DNS 缓存。确定继续吗？`,
         '初始化 Hosts',
         { type: 'warning', confirmButtonText: '初始化', cancelButtonText: '取消' }
       )
@@ -5015,7 +5015,7 @@ async function onHostsInit(skipConfirm = false): Promise<void> {
       label: '初始化Hosts',
       icon: '🌐',
       title: '初始化 Hosts · /etc/hosts',
-      sub: 'maozi-cloud-deploy-run/init_hosts.json · 实时输出'
+      sub: 'maozi-cloud-utils/init_hosts.json · 实时输出'
     }
   )
   try {
@@ -8818,6 +8818,15 @@ onMounted(loadState)
 
 .pc-prj-path-row {
   margin-top: auto;
+}
+
+/* SSH 地址在目录地址上方：底部留白由先出现的元素吃掉（本地卡无 SSH 行，仍由 path-row 顶底） */
+.pc-prj-ssh {
+  margin-top: auto;
+}
+
+.pc-prj-ssh + .pc-prj-path-row {
+  margin-top: 0;
 }
 
 .pc-prj-path {

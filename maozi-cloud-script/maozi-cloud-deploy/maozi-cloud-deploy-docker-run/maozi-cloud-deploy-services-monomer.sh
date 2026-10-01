@@ -27,10 +27,10 @@
 
 cd "$(dirname "$0")"
 current_directory="$(pwd)"
-# 源码仓库根目录: 由脚本所在位置推导 (maozi-cloud-deploy-shell-run 向上四级);
+# 源码仓库根目录: 由脚本所在位置推导 (maozi-cloud-deploy-docker-run 向上三级);
 # 当前结构下脚本位于 maozi-cloud-script/maozi-cloud-deploy 内, 源码仓库 maozi-cloud-parent 是 maozi-cloud-script 的同级目录,
-# 向上四级无 pom.xml 时进入 maozi-cloud-parent (兼容脚本位于仓库内部的旧结构)
-repo_candidate="$(cd "$current_directory/../../../.." && pwd)"
+# 向上三级无 pom.xml 时进入 maozi-cloud-parent (兼容脚本位于仓库内部的旧结构)
+repo_candidate="$(cd "$current_directory/../../.." && pwd)"
 if [ -f "$repo_candidate/pom.xml" ]; then
 	repo_root="$repo_candidate"
 else
@@ -53,7 +53,7 @@ BASE_IMAGE="maozi-cloud-base-jdk:1.0.0"
 JVM_PARAMS="-Xms256m -Xmx256m -Xss256k -XX:MaxMetaspaceSize=192m -XX:+UseSerialGC -XX:CompressedClassSpaceSize=32m -XX:ReservedCodeCacheSize=32m -XX:MaxDirectMemorySize=32m"
 IMAGE_TAG="${SERVICE_NAME}:latest"
 # 部署用的 compose 文件 (端口 / 网络 / 日志挂载都在里面, 改部署参数改这里)
-COMPOSE_FILE="$current_directory/../../maozi-cloud-deploy-docker/maozi-cloud-business-docker/maozi-cloud-services-monomer-docker.yml"
+COMPOSE_FILE="$current_directory/../maozi-cloud-deploy-docker/maozi-cloud-business-docker/maozi-cloud-services-monomer-docker.yml"
 
 # ============================================================
 # 1. Maven 构建 (可选)

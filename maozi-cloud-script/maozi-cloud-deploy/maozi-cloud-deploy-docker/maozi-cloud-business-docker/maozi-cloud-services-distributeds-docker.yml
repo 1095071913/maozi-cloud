@@ -10,7 +10,7 @@
 # 启动前置：
 #   1. 先启动 maozi-cloud-basics-docker（提供 mysql / nacos / redis 等）；
 #   2. 外部网络 maozi-cloud-network 必须已创建；
-#   3. 业务镜像需通过 maozi-cloud-deploy-docker-run 流程构建并 tag 为 laster（注：当前 compose
+#   3. 业务镜像需通过 maozi-cloud-deploy-run 流程构建并 tag 为 laster（注：当前 compose
 #   4. healthcheck 依赖 Actuator 探针端点，需在 Nacos 配置中开启（K8s 外环境默认不暴露）：
 #      management.endpoint.health.probes.enabled=true
 #   5. 停止前钩子(pre_stop)三步下线：先 POST /actuator/serviceregistry 将实例置为 DOWN
@@ -55,8 +55,8 @@ services:
       - command: |
           sh -c '
             if [ "${GRACEFUL_UPDATE:-false}" = "true" ]; then
-              sleep 40
-              curl -sf -X POST -H "Content-Type: application/json" -d "{\"status\":\"DOWN\"}" http://localhost:${APPLICATION_PORT}/actuator/serviceregistry || true
+              sleep 40;
+              curl -sf -X POST -H "Content-Type: application/json" -d '\''{"status":"DOWN"}'\'' http://localhost:$${APPLICATION_PORT}/actuator/serviceregistry || true;
               sleep 40
             fi
           '
@@ -94,8 +94,8 @@ services:
       - command: |
           sh -c '
             if [ "${GRACEFUL_UPDATE:-false}" = "true" ]; then
-              sleep 40
-              curl -sf -X POST -H "Content-Type: application/json" -d "{\"status\":\"DOWN\"}" http://localhost:${APPLICATION_PORT}/actuator/serviceregistry || true
+              sleep 40;
+              curl -sf -X POST -H "Content-Type: application/json" -d '\''{"status":"DOWN"}'\'' http://localhost:$${APPLICATION_PORT}/actuator/serviceregistry || true;
               sleep 40
             fi
           '
@@ -136,8 +136,8 @@ services:
       - command: |
           sh -c '
             if [ "${GRACEFUL_UPDATE:-false}" = "true" ]; then
-              sleep 40
-              curl -sf -X POST -H "Content-Type: application/json" -d "{\"status\":\"DOWN\"}" http://localhost:${APPLICATION_PORT}/actuator/serviceregistry || true
+              sleep 40;
+              curl -sf -X POST -H "Content-Type: application/json" -d '\''{"status":"DOWN"}'\'' http://localhost:$${APPLICATION_PORT}/actuator/serviceregistry || true;
               sleep 40
             fi
           '
@@ -178,8 +178,8 @@ services:
       - command: |
           sh -c '
             if [ "${GRACEFUL_UPDATE:-false}" = "true" ]; then
-              sleep 40
-              curl -sf -X POST -H "Content-Type: application/json" -d "{\"status\":\"DOWN\"}" http://localhost:${APPLICATION_PORT}/actuator/serviceregistry || true
+              sleep 40;
+              curl -sf -X POST -H "Content-Type: application/json" -d '\''{"status":"DOWN"}'\'' http://localhost:$${APPLICATION_PORT}/actuator/serviceregistry || true;
               sleep 40
             fi
           '
@@ -220,8 +220,8 @@ services:
       - command: |
           sh -c '
             if [ "${GRACEFUL_UPDATE:-false}" = "true" ]; then
-              sleep 40
-              curl -sf -X POST -H "Content-Type: application/json" -d "{\"status\":\"DOWN\"}" http://localhost:${APPLICATION_PORT}/actuator/serviceregistry || true
+              sleep 40;
+              curl -sf -X POST -H "Content-Type: application/json" -d '\''{"status":"DOWN"}'\'' http://localhost:$${APPLICATION_PORT}/actuator/serviceregistry || true;
               sleep 40
             fi
           '

@@ -2504,7 +2504,7 @@
       </template>
     </el-dialog>
 
-    <!-- ===== 切换分支弹窗：远程分支列表（当前分支置顶） ===== -->
+    <!-- ===== 切换分支弹窗：本地 + 远程分支列表（当前分支置顶） ===== -->
     <el-dialog
       v-model="branchVisible"
       width="440px"
@@ -2523,7 +2523,7 @@
             <div class="pcd-header-icon">🌿</div>
             <div>
               <div class="pcd-title">切换分支</div>
-              <div class="pcd-subtitle">从远程分支列表选择 · 切换前自动 fetch 目标分支</div>
+              <div class="pcd-subtitle">本地与远程分支 · 选定后确认切换</div>
             </div>
           </div>
           <button class="pcd-close" type="button" @click="branchVisible = false">✕</button>
@@ -2532,14 +2532,14 @@
 
       <div class="pcd-body">
         <div v-if="branchError" class="plg-error">⚠️ {{ branchError }}</div>
-        <div v-if="branchLoading" class="pbr-loading"><span class="pc-env-spin"></span>获取远程分支中…</div>
+        <div v-if="branchLoading" class="pbr-loading"><span class="pc-env-spin"></span>获取分支列表中…</div>
         <div v-else class="pbr-list">
           <div
             v-for="b in branchList"
-            :key="b"
+            :key="b.name"
             class="pbr-item"
-            :class="{ current: b === gitInfo.branch }"
-            @click="onPickBranch(b)"
+            :class="{ current: b.name === gitInfo.branch }"
+            @click="onPickBranch(b.name)"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="6" y1="3" x2="6" y2="15" />
@@ -2547,13 +2547,14 @@
               <circle cx="6" cy="18" r="3" />
               <path d="M18 9a9 9 0 0 1-9 9" />
             </svg>
-            <span class="mono-text">{{ b }}</span>
-            <span v-if="b === gitInfo.branch" class="pbr-cur">当前</span>
+            <span class="mono-text">{{ b.name }}</span>
+            <span class="pbr-tag" :class="b.local ? 'local' : 'remote'">{{ b.local ? '本地' : '远程' }}</span>
+            <span v-if="b.name === gitInfo.branch" class="pbr-cur">当前</span>
             <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pbr-arrow">
               <path d="m9 18 6-6-6-6" />
             </svg>
           </div>
-          <div v-if="branchList.length === 0" class="pbr-empty">未获取到远程分支</div>
+          <div v-if="branchList.length === 0" class="pbr-empty">未获取到分支</div>
         </div>
       </div>
 
@@ -2613,13 +2614,18 @@
           </div>
         </div>
 
-        <!-- 执行流程 -->
+        <!-- 执行流程：本地分支直接切换，远程分支需先取回（检测代理 + 拉取） -->
         <div class="pbc-steps">
-          <div class="pbc-step"><span class="pbc-dot">1</span>检测代理</div>
-          <span class="pbc-line"></span>
-          <div class="pbc-step"><span class="pbc-dot">2</span>拉取分支</div>
-          <span class="pbc-line"></span>
-          <div class="pbc-step"><span class="pbc-dot">3</span>切换分支</div>
+          <template v-if="branchConfirmLocal">
+            <div class="pbc-step"><span class="pbc-dot">1</span>切换分支</div>
+          </template>
+          <template v-else>
+            <div class="pbc-step"><span class="pbc-dot">1</span>检测代理</div>
+            <span class="pbc-line"></span>
+            <div class="pbc-step"><span class="pbc-dot">2</span>拉取分支</div>
+            <span class="pbc-line"></span>
+            <div class="pbc-step"><span class="pbc-dot">3</span>切换分支</div>
+          </template>
         </div>
 
         <!-- 风险提示 -->
@@ -5894,14 +5900,14 @@ async function onGitPull(): Promise<void> {
 const branchVisible = ref(false)
 const branchLoading = ref(false)
 const branchError = ref('')
-const branchList = ref<string[]>([])
+const branchList = ref<Array<{ name: string; local: boolean }>>([])
 
 function openBranchDialog(): void {
   branchError.value = ''
   branchVisible.value = true
 }
 
-/** 远程分支列表（ls-remote，当前分支置顶） */
+/** 分支列表：本地在前、远程仅列出本地没有的，当前分支置顶 */
 async function loadGitBranches(): Promise<void> {
   branchLoading.value = true
   branchError.value = ''
@@ -5909,9 +5915,16 @@ async function loadGitBranches(): Promise<void> {
     const r = await api.projects.gitBranches()
     if (r.ok && r.data) {
       const cur = gitInfo.value.branch
-      branchList.value = [...r.data.branches.filter((b) => b === cur), ...r.data.branches.filter((b) => b !== cur)]
+      const locals = r.data.locals ?? []
+      const remoteOnly = (r.data.branches ?? []).filter((b) => !locals.includes(b))
+      const merged = [...locals, ...remoteOnly]
+      branchList.value = [
+        ...merged.filter((b) => b === cur),
+        ...merged.filter((b) => b !== cur)
+      ].map((name) => ({ name, local: locals.includes(name) }))
+      if (r.data.remoteError) branchError.value = `远程分支获取失败：${r.data.remoteError}，仅显示本地分支`
     } else {
-      branchError.value = r.error ?? '获取远程分支失败'
+      branchError.value = r.error ?? '获取分支列表失败'
     }
   } finally {
     branchLoading.value = false
@@ -5920,6 +5933,7 @@ async function loadGitBranches(): Promise<void> {
 
 const branchConfirmVisible = ref(false)
 const branchConfirmTarget = ref('')
+const branchConfirmLocal = ref(false)
 
 /** 选中分支：弹确认框（当前 → 目标流转展示），确认后执行切换 */
 function onPickBranch(b: string): void {
@@ -5928,6 +5942,7 @@ function onPickBranch(b: string): void {
     return
   }
   branchConfirmTarget.value = b
+  branchConfirmLocal.value = branchList.value.some((x) => x.name === b && x.local)
   branchConfirmVisible.value = true
 }
 
@@ -5946,7 +5961,7 @@ async function runGitCheckout(b: string): Promise<void> {
     label: `切换分支 → ${b}`,
     icon: '🌿',
     title: '切换分支',
-    sub: `git fetch + checkout ${b}`
+    sub: branchConfirmLocal.value ? `git checkout ${b}` : `git fetch + checkout ${b}`
   })
   try {
     const r = await api.projects.gitCheckout(b, s.id)
@@ -6383,6 +6398,23 @@ onMounted(loadState)
   border-radius: 999px;
   background: #dcfce7;
   color: #15803d;
+}
+
+.pbr-tag {
+  flex-shrink: 0;
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 999px;
+}
+
+.pbr-tag.local {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.pbr-tag.remote {
+  background: #f1f5f9;
+  color: #64748b;
 }
 
 .pbr-arrow {

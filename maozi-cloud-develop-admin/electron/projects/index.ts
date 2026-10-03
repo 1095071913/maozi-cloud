@@ -1931,14 +1931,28 @@ export function registerProjectHandlers(): void {
     }
   })
 
-  /** 远程分支列表（git ls-remote --heads，需网络；浅克隆本地无其他分支引用也能列出全部） */
+  /** 分支列表：本地（git branch，离线）+ 远程（git ls-remote --heads，需网络；浅克隆本地无其他分支引用也能列出全部） */
   ipcMain.handle('projects:gitBranches', async () => {
+    const data = { branches: [] as string[], locals: [] as string[], remoteError: '' }
     try {
       const b = getBinding()
       if (!b) throw new Error('尚未绑定项目')
-      let stdout = ''
-      // ls-remote 同样访问 GitHub：先解析 VPN 代理（静默不打日志），可用则注入
+      // 本地分支不走网络；--format 输出不带当前分支 * 前缀，逐行即分支名
+      if (b.remote) {
+        const out = await sshExec(resolveSshTarget(b.remote.configId), `cd ${JSON.stringify(b.path)} && git branch --format='%(refname:short)'`, 30_000)
+        data.locals = out.split(/\r?\n/).map((l) => l.trim().replace(/^\* ?/, '')).filter(Boolean)
+      } else {
+        const pathEnv = await getShellPath()
+        const r = await exec('git', ['branch', '--format=%(refname:short)'], {
+          cwd: b.path,
+          timeout: 30_000,
+          env: { ...process.env, PATH: pathEnv }
+        })
+        data.locals = r.stdout.split(/\r?\n/).map((l) => l.trim().replace(/^\* ?/, '')).filter(Boolean)
+      }
+      // 远程分支：ls-remote 同样访问 GitHub，先解析 VPN 代理（静默不打日志），可用则注入
       const proxy = await resolveGitProxy(b)
+      let stdout = ''
       if (b.remote) {
         const t = resolveSshTarget(b.remote.configId)
         stdout = await sshExec(t, `${proxy.sshEnvPrefix ?? ''}cd ${JSON.stringify(b.path)} && git ls-remote --heads origin`, 30_000)
@@ -1951,16 +1965,21 @@ export function registerProjectHandlers(): void {
         })
         stdout = r.stdout
       }
-      const branches = stdout
+      data.branches = stdout
         .split(/\r?\n/)
         .map((l) => l.split('\t')[1] ?? '')
         .filter((ref) => ref.startsWith('refs/heads/'))
         .map((ref) => ref.slice('refs/heads/'.length))
         .filter(Boolean)
-      return { ok: true, data: { branches } }
     } catch (err) {
-      return { ok: false, error: (err as Error).message, data: { branches: [] } }
+      // 本地分支已到手则不算整体失败：远程不可达（超时/断网）时降级为仅本地列表
+      if (data.locals.length > 0) {
+        data.remoteError = (err as Error).message
+        return { ok: true, data }
+      }
+      return { ok: false, error: (err as Error).message, data }
     }
+    return { ok: true, data }
   })
 
   /**
@@ -2043,31 +2062,52 @@ export function registerProjectHandlers(): void {
       if (!/^[A-Za-z0-9._/-]{1,100}$/.test(branch) || branch.includes('..') || branch.startsWith('/') || branch.endsWith('/')) {
         throw new Error('非法的分支名')
       }
-      // 克隆带 --depth 1 --single-branch，refspec 只含主分支：目标分支不在 refspec 内时，
-      // fetch 不建远端跟踪引用，checkout 的 DWIM/--track/pull 又都按 refspec 反查而落空，
-      // 便报 pathspec 不匹配。先把 refspec 放开为全分支（幂等，此后任意分支可切、pull 可用），
-      // 再显式 refspec 取回目标分支后普通 checkout：已有本地分支等价普通切换（不动本地提交），
-      // 首次切换 DWIM 建分支并自动设上游
-      const fullRefspec = '+refs/heads/*:refs/remotes/origin/*'
-      if (b.remote) {
-        await sshExec(resolveSshTarget(b.remote.configId), `cd ${JSON.stringify(b.path)} && git config remote.origin.fetch ${JSON.stringify(fullRefspec)}`, 15_000)
-      } else {
-        const pathEnv = await getShellPath()
-        await exec('git', ['config', 'remote.origin.fetch', fullRefspec], {
+      // 本地已有该分支（含仅存在于本地的分支）时直接 checkout 即可，无需联网 fetch；
+      // fetch 仅为首次切换远程分支时建立本地/远端跟踪引用服务
+      let isLocal = false
+      try {
+        if (b.remote) {
+          const out = await sshExec(resolveSshTarget(b.remote.configId), `cd ${JSON.stringify(b.path)} && git branch --list ${JSON.stringify(branch)} --format='%(refname:short)'`, 15_000)
+          isLocal = out.trim() === branch
+        } else {
+          const pathEnv = await getShellPath()
+          const r = await exec('git', ['branch', '--list', branch, '--format=%(refname:short)'], {
+            cwd: b.path,
+            timeout: 15_000,
+            env: { ...process.env, PATH: pathEnv }
+          })
+          isLocal = r.stdout.trim() === branch
+        }
+      } catch {
+        isLocal = false
+      }
+      if (!isLocal) {
+        // 克隆带 --depth 1 --single-branch，refspec 只含主分支：目标分支不在 refspec 内时，
+        // fetch 不建远端跟踪引用，checkout 的 DWIM/--track/pull 又都按 refspec 反查而落空，
+        // 便报 pathspec 不匹配。先把 refspec 放开为全分支（幂等，此后任意分支可切、pull 可用），
+        // 再显式 refspec 取回目标分支后普通 checkout：已有本地分支等价普通切换（不动本地提交），
+        // 首次切换 DWIM 建分支并自动设上游
+        const fullRefspec = '+refs/heads/*:refs/remotes/origin/*'
+        if (b.remote) {
+          await sshExec(resolveSshTarget(b.remote.configId), `cd ${JSON.stringify(b.path)} && git config remote.origin.fetch ${JSON.stringify(fullRefspec)}`, 15_000)
+        } else {
+          const pathEnv = await getShellPath()
+          await exec('git', ['config', 'remote.origin.fetch', fullRefspec], {
+            cwd: b.path,
+            timeout: 15_000,
+            env: { ...process.env, PATH: pathEnv }
+          })
+        }
+        // 取回目标分支走 GitHub：先看 VPN 代理是否可用，可用则注入 git 代理环境（checkout 本身无网络）
+        const proxy = await prepareGitProxy(event.sender, 'projects:scriptLog', sid, b)
+        await projStream(event.sender, 'projects:scriptLog', 'git', [...GIT_STALL_ARGS, 'fetch', '--progress', '--depth', '1', 'origin', `+refs/heads/${branch}:refs/remotes/origin/${branch}`], {
           cwd: b.path,
-          timeout: 15_000,
-          env: { ...process.env, PATH: pathEnv }
+          timeoutMs: 10 * 60_000,
+          sid,
+          extraEnv: proxy.extraEnv,
+          sshEnvPrefix: proxy.sshEnvPrefix
         })
       }
-      // 取回目标分支走 GitHub：先看 VPN 代理是否可用，可用则注入 git 代理环境（checkout 本身无网络）
-      const proxy = await prepareGitProxy(event.sender, 'projects:scriptLog', sid, b)
-      await projStream(event.sender, 'projects:scriptLog', 'git', [...GIT_STALL_ARGS, 'fetch', '--progress', '--depth', '1', 'origin', `+refs/heads/${branch}:refs/remotes/origin/${branch}`], {
-        cwd: b.path,
-        timeoutMs: 10 * 60_000,
-        sid,
-        extraEnv: proxy.extraEnv,
-        sshEnvPrefix: proxy.sshEnvPrefix
-      })
       await projStream(event.sender, 'projects:scriptLog', 'git', ['checkout', '--progress', branch], {
         cwd: b.path,
         timeoutMs: 60_000,

@@ -113,6 +113,9 @@ contextBridge.exposeInMainWorld('api', {
     mavenInfo: () => ipcRenderer.invoke('projects:mavenInfo'),
     mavenConfigRead: () => ipcRenderer.invoke('projects:mavenConfigRead'),
     mavenConfigSave: (content: string) => ipcRenderer.invoke('projects:mavenConfigSave', content),
+    /** Git 配置：项目 .git/config 查看与修改（直接覆盖保存，不备份） */
+    gitConfigRead: () => ipcRenderer.invoke('projects:gitConfigRead'),
+    gitConfigSave: (content: string) => ipcRenderer.invoke('projects:gitConfigSave', content),
     /** Docker 配置：docker -v + daemon.json 按平台解析（mac/Win=~/.docker，Linux=/etc/docker 优先），保存直接覆盖（不备份） */
     dockerInfo: () => ipcRenderer.invoke('projects:dockerInfo'),
     dockerConfigRead: () => ipcRenderer.invoke('projects:dockerConfigRead'),

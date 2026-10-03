@@ -181,6 +181,7 @@
           <div class="pc-prep-tools">
             <span class="pc-prep-tools-label">🧰 快捷工具</span>
             <div class="pc-prep-tools-row">
+              <button class="pc-prep-tool" type="button" @click="openGitConfig">🌿 Git配置</button>
               <button class="pc-prep-tool" type="button" @click="openMavenConfig">🪶 Maven配置</button>
               <button class="pc-prep-tool" type="button" @click="openDockerConfig">🐳 Docker配置</button>
               <button class="pc-prep-tool" type="button" @click="openEnvSettings">🔧 环境设置</button>
@@ -1002,9 +1003,8 @@
             <button class="pc-wz-btn ghost" type="button" @click="wizardBack">
               <span class="pc-wz-arrow">←</span> 返回上一步
             </button>
-            <button class="pc-wz-btn primary" type="button" :disabled="!wizardValid || creating" @click="wizardNext">
-              <span v-if="creating" class="pc-env-spin"></span>
-              {{ creating ? '创建中…' : '下一步 · 选择绑定方式' }}
+            <button class="pc-wz-btn primary" type="button" :disabled="!wizardValid" @click="wizardNext">
+              下一步 · 选择绑定方式
               <span class="pc-wz-arrow">→</span>
             </button>
           </div>
@@ -1026,11 +1026,11 @@
         </div>
 
         <div class="pc-unbound pc-unbound-wz">
-          <div class="pc-wz-banner" v-if="wizardProject">
+          <div class="pc-wz-banner" v-if="wizardProject || pendingCreate">
             <span class="pc-wz-banner-ico">🚀</span>
             <span class="pc-wz-banner-text">
-              正在为 <b>{{ wizardProject.alias || wizardProject.name }}</b>
-              <span class="mono-text pc-wz-banner-name">{{ wizardProject.name }}</span> 选择绑定方式
+              正在为 <b>{{ wizardProject ? (wizardProject.alias || wizardProject.name) : (wzAlias.trim() || wzName.trim()) }}</b>
+              <span class="mono-text pc-wz-banner-name">{{ wizardProject ? wizardProject.name : wzName.trim() }}</span> 选择绑定方式
             </span>
           </div>
           <div class="pc-options">
@@ -1836,6 +1836,85 @@
             @click="saveMavenConfig"
           >
             {{ mavenSaving ? '保存中…' : '💾 保存' }}
+          </button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- ===== Git 配置弹窗：查看/修改绑定项目的 .git/config（保存直接覆盖，不备份） ===== -->
+    <el-dialog
+      v-model="gitVisible"
+      width="760px"
+      draggable
+      append-to-body
+      modal-class="pc-dlg pev-dlg"
+      :show-close="false"
+      :close-on-click-modal="false"
+    >
+      <template #header>
+        <div class="pcd-header">
+          <div class="pcd-deco pcd-deco-1"></div>
+          <div class="pcd-deco pcd-deco-2"></div>
+          <div class="pcd-header-main">
+            <div class="pcd-header-icon">🌿</div>
+            <div>
+              <div class="pcd-title">Git 配置</div>
+              <div class="pcd-subtitle">绑定项目 .git/config · 查看与修改 · 直接保存</div>
+            </div>
+          </div>
+          <button class="pcd-close" type="button" @click="gitVisible = false">✕</button>
+        </div>
+      </template>
+
+      <div class="pcd-body">
+        <div v-if="gitLoading" class="pev-state"><span class="pc-env-spin"></span>正在读取 .git/config…</div>
+        <div v-else-if="gitError" class="pev-state error"><span class="pev-state-ico">⚠️</span>{{ gitError }}</div>
+        <template v-else>
+          <!-- 信息横幅：配置文件路径（远端用户、remote 地址等核心配置都在这个文件里） -->
+          <div class="pmc-banner">
+            <div class="pmc-banner-row">
+              <span class="pmc-file mono-text" :title="gitFile">📄 {{ gitFile }}</span>
+              <span class="pmc-home">remote / user / credential 等仓库配置</span>
+            </div>
+          </div>
+
+          <!-- 编辑器卡：文件头（红黄绿点 + 文件名）+ 行号槽 + 编辑区 + 状态栏 -->
+          <div class="pmc-editor-card">
+            <div class="pmc-editor-head">
+              <span class="pmc-dots"><i></i><i></i><i></i></span>
+              <span class="pmc-editor-file mono-text">.git/config</span>
+            </div>
+            <div class="pmc-editor-wrap">
+              <div ref="gcxGutter" class="pmc-gutter mono-text"><span v-for="n in gitLineCount" :key="n">{{ n }}</span></div>
+              <textarea
+                ref="gcxArea"
+                v-model="gitContent"
+                class="pmc-area mono-text"
+                spellcheck="false"
+                placeholder="[core]&#10;\trepositoryformatversion = 0&#10; …"
+                @scroll="syncGcxGutter"
+                @keydown.tab.prevent="onGcxTab"
+              ></textarea>
+            </div>
+            <div class="pmc-status">
+              <span>{{ gitLineCount }} 行 · {{ fmtBytes(gitBytes) }}</span>
+              <span>💾 直接保存（不备份）· 修改 remote 后下次拉取生效</span>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <template #footer>
+        <div class="pcd-footer">
+          <button class="pcd-btn plain" type="button" :disabled="gitLoading || gitSaving" @click="loadGitConfig">⟳ 刷新</button>
+          <button class="pcd-btn ghost" type="button" @click="gitVisible = false">取消</button>
+          <button
+            class="pcd-btn primary"
+            type="button"
+            :disabled="gitLoading || gitSaving || !!gitError"
+            @click="saveGitConfig"
+          >
+            {{ gitSaving ? '保存中…' : '💾 保存' }}
           </button>
         </div>
       </template>
@@ -2857,6 +2936,7 @@ async function openProject(p: ProjectEntry): Promise<void> {
   await loadState()
   if (binding.value) return
   wizardProject.value = p
+  pendingCreate.value = false
   bindMode.value = ''
   sshConnected.value = false
   view.value = 'bind'
@@ -2866,7 +2946,6 @@ async function openProject(p: ProjectEntry): Promise<void> {
 const wzName = ref('')
 const wzAlias = ref('')
 const wzRemark = ref('')
-const creating = ref(false)
 const WZ_NAME_CJK = /[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/
 const WZ_NAME_RE = /^[A-Za-z0-9][A-Za-z0-9._-]*$/
 
@@ -2892,29 +2971,37 @@ function wizardBack(): void {
   view.value = 'projects'
 }
 
-/** 第 1 步下一步：创建项目（后端校验并激活）→ 进入向导第 2 步选择绑定方式 */
-async function wizardNext(): Promise<void> {
-  if (!wizardValid.value || creating.value) return
-  creating.value = true
-  try {
-    const r = await api.projects.projectCreate(wzName.value.trim(), wzAlias.value.trim(), wzRemark.value.trim())
-    if (!r.ok || !r.data) {
-      ElMessage.error(r.error ?? '创建失败')
-      return
-    }
-    wizardProject.value = r.data
-    ElMessage.success(`项目已创建：${r.data.alias}`)
-    bindMode.value = ''
-    sshConnected.value = false
-    view.value = 'bind'
-    // 清空草稿：下次创建项目从空白开始
-    wzName.value = ''
-    wzAlias.value = ''
-    wzRemark.value = ''
-    await reloadProjects()
-  } finally {
-    creating.value = false
+/** 第 1 步下一步：仅暂存项目信息进入第 2 步——选定绑定方式并执行绑定时才真正创建项目（中途放弃不落库） */
+function wizardNext(): void {
+  if (!wizardValid.value) return
+  pendingCreate.value = true
+  wizardProject.value = null
+  bindMode.value = ''
+  sshConnected.value = false
+  view.value = 'bind'
+}
+
+/** 向导第 2 步待创建标记：项目信息已填但未创建；从列表进入的既有待绑定项目不置位 */
+const pendingCreate = ref(false)
+
+/** 执行绑定动作前确保项目已存在：pendingCreate 时此刻创建（projectCreate 后端校验并激活，
+ *  saveBinding 会把绑定写到激活项目上）；失败返回 false 中止绑定 */
+async function ensureWizardProject(): Promise<boolean> {
+  if (wizardProject.value || !pendingCreate.value) return true
+  const r = await api.projects.projectCreate(wzName.value.trim(), wzAlias.value.trim(), wzRemark.value.trim())
+  if (!r.ok || !r.data) {
+    ElMessage.error(r.error ?? '创建项目失败')
+    return false
   }
+  wizardProject.value = r.data
+  pendingCreate.value = false
+  ElMessage.success(`项目已创建：${r.data.alias}`)
+  // 清空草稿：下次创建项目从空白开始
+  wzName.value = ''
+  wzAlias.value = ''
+  wzRemark.value = ''
+  await reloadProjects()
+  return true
 }
 
 /** 控制台返回项目列表：清空激活项（绑定保留在项目记录里，随时可再进入） */
@@ -3056,6 +3143,8 @@ async function onPickDir(): Promise<void> {
     return
   }
   if (!picked.data) return
+  // 绑定动作执行时才创建项目（saveBinding 写到激活项目上，须先创建并激活）
+  if (!(await ensureWizardProject())) return
   const r = await api.projects.bindDir(picked.data)
   if (!r.ok || !r.data) {
     ElMessage.error(r.error ?? '绑定失败')
@@ -3756,6 +3845,72 @@ async function saveMavenConfig(): Promise<void> {
     mavenData.value.exists = true
   } finally {
     mavenSaving.value = false
+  }
+}
+
+/** ===== Git 配置：查看/修改绑定项目的 .git/config（本地/远程各自在对应机器读写，直接保存不备份） ===== */
+const gitVisible = ref(false)
+const gitFile = ref('')
+const gitContent = ref('')
+const gitLoading = ref(false)
+const gitError = ref('')
+const gitSaving = ref(false)
+const gcxGutter = ref<HTMLElement>()
+const gcxArea = ref<HTMLTextAreaElement>()
+
+function syncGcxGutter(): void {
+  if (gcxGutter.value && gcxArea.value) gcxGutter.value.scrollTop = gcxArea.value.scrollTop
+}
+
+/** Tab 键插入制表符（.git/config 惯用 tab 缩进） */
+function onGcxTab(e: KeyboardEvent): void {
+  const ta = e.target as HTMLTextAreaElement
+  const s = ta.selectionStart
+  const ed = ta.selectionEnd
+  gitContent.value = ta.value.slice(0, s) + '\t' + ta.value.slice(ed)
+  void nextTick(() => {
+    ta.selectionStart = ta.selectionEnd = s + 1
+  })
+}
+
+const gitLineCount = computed(() => gitContent.value.split('\n').length)
+const gitBytes = computed(() => new Blob([gitContent.value]).size)
+
+function openGitConfig(): void {
+  gitVisible.value = true
+  // 读到过内容则直接展示缓存（含未保存编辑），刷新按钮强制重读
+  if (!gitFile.value) void loadGitConfig()
+}
+
+async function loadGitConfig(): Promise<void> {
+  gitLoading.value = true
+  gitError.value = ''
+  try {
+    const r = await api.projects.gitConfigRead()
+    if (!r.ok || !r.data) {
+      gitFile.value = ''
+      gitError.value = r.error ?? '读取 .git/config 失败'
+      return
+    }
+    gitFile.value = r.data.file
+    gitContent.value = r.data.content
+  } finally {
+    gitLoading.value = false
+  }
+}
+
+async function saveGitConfig(): Promise<void> {
+  if (gitSaving.value) return
+  gitSaving.value = true
+  try {
+    const r = await api.projects.gitConfigSave(gitContent.value)
+    if (!r.ok) {
+      ElMessage.error(r.error ?? '保存失败')
+      return
+    }
+    ElMessage.success('.git/config 已保存')
+  } finally {
+    gitSaving.value = false
   }
 }
 
@@ -4570,6 +4725,8 @@ async function confirmSshBind(): Promise<void> {
   }
   sshError.value = ''
   try {
+    // 绑定动作执行时才创建项目（远程绑定/远程 clone 的 saveBinding 写到激活项目上，须先创建并激活）
+    if (!(await ensureWizardProject())) return
     const r = await api.projects.sshBindDir(sshConfigId.value, sshCwd.value)
     if (r.ok && r.data) {
       ElMessage.success(`远程绑定成功：${r.data.name}`)
@@ -4589,6 +4746,8 @@ async function confirmSshClone(): Promise<void> {
     ElMessage.warning('请选择用于拉取代码的 Git 密钥')
     return
   }
+  // 绑定动作执行时才创建项目（clone 完成的 saveBinding 写到激活项目上，须先创建并激活）
+  if (!(await ensureWizardProject())) return
   if (focusRunning((a) => a.type === 'sshClone')) return
   const s = startSession({ type: 'sshClone' }, {
     label: `远程拉取 → ${sshCwd.value}/maozi-cloud`,
@@ -5595,6 +5754,8 @@ async function startClone(): Promise<void> {
   cloneLogs.value = []
   cloning.value = true
   try {
+    // 绑定动作执行时才创建项目（clone 完成的 saveBinding 写到激活项目上，须先创建并激活）
+    if (!(await ensureWizardProject())) return
     const r = await api.projects.clone(cloneSecretId.value, cloneDest.value)
     if (!r.ok || !r.data) {
       ElMessage.error(r.error ?? '拉取失败')

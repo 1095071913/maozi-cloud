@@ -191,6 +191,10 @@ export interface ElectronApi {
     mavenConfigRead: () => Promise<IpcResult<{ content: string }>>
     /** 保存 Maven settings.xml（直接覆盖保存，不备份） */
     mavenConfigSave: (content: string) => Promise<IpcResult<void>>
+    /** 读取项目 .git/config（非 Git 仓库时报错） */
+    gitConfigRead: () => Promise<IpcResult<{ content: string; file: string }>>
+    /** 保存项目 .git/config（直接覆盖保存，不备份） */
+    gitConfigSave: (content: string) => Promise<IpcResult<void>>
     /** Docker 配置：版本 + daemon.json 按平台解析（mac/Windows=~/.docker，Linux=/etc/docker 优先，远程按 Linux） */
     dockerInfo: () => Promise<IpcResult<{ version: string; platform: string; configFile: string; exists: boolean }>>
     /** 读取 Docker daemon.json 内容 */

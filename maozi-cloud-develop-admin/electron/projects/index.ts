@@ -7,31 +7,31 @@ import os from 'node:os'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import {
-    activateProject,
-    clearBinding,
-    createProject,
-    deactivateProject,
-    getBinding,
-    isDbInitialized,
-    listProjects,
-    markDbInitialized,
-    parseConfigFile,
-    removeProject,
-    saveBinding,
-    updateProject,
-    userDataStateFile
+  activateProject,
+  clearBinding,
+  createProject,
+  deactivateProject,
+  getBinding,
+  isDbInitialized,
+  listProjects,
+  markDbInitialized,
+  parseConfigFile,
+  removeProject,
+  saveBinding,
+  updateProject,
+  userDataStateFile
 } from './store'
 import {listConfigs} from '../configs/store'
 import {selectPlatform} from '../platform'
 import type {EnvFile, EnvVarEntry, HostsEntry} from '../platform/types'
 import {getShellPath} from '../system/sysinfo'
 import type {
-    AppServiceEntry,
-    ComposeServiceStats,
-    EnvSettingGroup,
-    EnvSettingItem,
-    EnvSettingSection,
-    ProjectBinding
+  AppServiceEntry,
+  ComposeServiceStats,
+  EnvSettingGroup,
+  EnvSettingItem,
+  EnvSettingSection,
+  ProjectBinding
 } from './types'
 
 const exec = promisify(execFile)
@@ -3719,6 +3719,44 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
           20_000
         )
       } else {
+        fs.writeFileSync(file, content, 'utf8')
+      }
+      return { ok: true }
+    } catch (err) {
+      return { ok: false, error: (err as Error).message }
+    }
+  })
+
+  /** 读取项目 .git/config（本地 fs / 远程 cat）；非 Git 仓库（.git/config 不存在）如实报错 */
+  ipcMain.handle('projects:gitConfigRead', async () => {
+    try {
+      const b = getBinding()
+      if (!b) throw new Error('尚未绑定项目')
+      const file = path.join(b.path, '.git', 'config')
+      if (b.remote) {
+        const t = resolveSshTarget(b.remote.configId)
+        return { ok: true, data: { content: await sshReadFile(t, file), file } }
+      }
+      if (!fs.existsSync(file)) throw new Error(`未找到 ${file}（项目不是 Git 仓库）`)
+      return { ok: true, data: { content: fs.readFileSync(file, 'utf8'), file } }
+    } catch (err) {
+      return { ok: false, error: (err as Error).message }
+    }
+  })
+
+  /** 保存项目 .git/config：直接覆盖保存（不备份）；远程经 base64 透传 */
+  ipcMain.handle('projects:gitConfigSave', async (_e, contentArg: string) => {
+    try {
+      const b = getBinding()
+      if (!b) throw new Error('尚未绑定项目')
+      const content = String(contentArg ?? '')
+      const file = path.join(b.path, '.git', 'config')
+      if (b.remote) {
+        const t = resolveSshTarget(b.remote.configId)
+        const b64 = Buffer.from(content, 'utf8').toString('base64')
+        await sshExec(t, `printf %s '${b64}' | base64 -d > ${JSON.stringify(file)}`, 20_000)
+      } else {
+        if (!fs.existsSync(path.join(b.path, '.git'))) throw new Error('项目不是 Git 仓库，无法保存 .git/config')
         fs.writeFileSync(file, content, 'utf8')
       }
       return { ok: true }

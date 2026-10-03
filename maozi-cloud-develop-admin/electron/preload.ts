@@ -140,8 +140,8 @@ contextBridge.exposeInMainWorld('api', {
     gitRemoteCheck: () => ipcRenderer.invoke('projects:gitRemoteCheck'),
     /** 远程分支列表（git ls-remote --heads，需网络） */
     gitBranches: () => ipcRenderer.invoke('projects:gitBranches'),
-    /** 拉取代码（git pull），日志走 onScriptLog */
-    gitPull: (sid?: string) => ipcRenderer.invoke('projects:gitPull', sid),
+    /** 拉取代码（git pull；mode：缺省普通 / rebase 变基 / merge 合并 / reset 硬重置到远程），日志走 onScriptLog */
+    gitPull: (mode?: string, sid?: string) => ipcRenderer.invoke('projects:gitPull', mode, sid),
     /** 切换分支（fetch 目标分支后 checkout），日志走 onScriptLog */
     gitCheckout: (branch: string, sid?: string) => ipcRenderer.invoke('projects:gitCheckout', branch, sid),
     onCloneLog: (cb: (payload: { kind: 'line' | 'update'; text: string }) => void) => {

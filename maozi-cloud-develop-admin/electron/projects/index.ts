@@ -223,6 +223,18 @@ async function sshExec(t: SshTarget, command: string, timeoutMs = 30_000): Promi
   return sshExecRaw(t, fullCmd, timeoutMs)
 }
 
+/** 项目内快捷 git 查询/设置（离线命令）：本地绑定走 exec argv；SSH 绑定拼远端命令，
+ * 含 ( ) { } 等元字符的参数（--format=%(refname:short)、@{u} 等）须引号包裹，否则远端 shell 解释报语法错误 */
+async function gitQuiet(b: ProjectBinding, args: string[], timeoutMs = 15_000): Promise<string> {
+  if (b.remote) {
+    const remoteSafe = args.map((a) => (/^[\w./@:=,-]+$/.test(a) ? a : `'${a.replace(/'/g, "'\\''")}'`)).join(' ')
+    return sshExec(resolveSshTarget(b.remote.configId), `cd ${JSON.stringify(b.path)} && git ${remoteSafe}`, timeoutMs)
+  }
+  const pathEnv = await getShellPath()
+  const { stdout } = await exec('git', args, { cwd: b.path, timeout: timeoutMs, env: { ...process.env, PATH: pathEnv } })
+  return stdout
+}
+
 
 /** 检测远程服务器可用的 compose 命令（v2 插件 docker compose / v1 独立 docker-compose）。
  * 服务器的 compose 形态会话内不会变，按目标缓存，避免每次轮询都多一次 SSH 往返 */
@@ -1983,11 +1995,11 @@ export function registerProjectHandlers(): void {
   })
 
   /**
-   * 定时检测远程新提交：git fetch 后统计本地落后上游的提交数（behind）。
-   * 非仓库 / 无上游 / 网络失败一律静默返回 behind=0（探测语义，不报错）
+   * 定时检测远程新提交：git fetch 后统计本地落后/领先上游的提交数（behind/ahead，双向均有即分叉）。
+   * 非仓库 / 无上游 / 网络失败一律静默返回 behind=0 ahead=0（探测语义，不报错）
    */
   ipcMain.handle('projects:gitRemoteCheck', async () => {
-    const data = { isRepo: false, branch: '', behind: 0, lastSha: '', lastTime: '' }
+    const data = { isRepo: false, branch: '', behind: 0, ahead: 0, lastSha: '', lastTime: '' }
     try {
       const b = getBinding()
       if (!b) throw new Error('尚未绑定项目')
@@ -2024,31 +2036,56 @@ export function registerProjectHandlers(): void {
       await run(['fetch', 'origin', '--quiet', '--prune'], 30_000)
       const cnt = (await run(['rev-list', '--count', 'HEAD..@{u}'], 10_000)).trim()
       data.behind = parseInt(cnt, 10) || 0
+      const aheadCnt = (await run(['rev-list', '--count', '@{u}..HEAD'], 10_000)).trim()
+      data.ahead = parseInt(aheadCnt, 10) || 0
       return { ok: true, data }
     } catch {
       return { ok: true, data }
     }
   })
 
-  /** 拉取代码（git pull），输出走 projects:scriptLog（带 sid） */
-  ipcMain.handle('projects:gitPull', async (event, sidArg?: string) => {
+  /** 拉取代码（git pull）：mode 缺省普通拉取；rebase=变基 / merge=合并（分叉时的策略）/ reset=硬重置到远程（丢弃本地独有提交），输出走 projects:scriptLog（带 sid） */
+  ipcMain.handle('projects:gitPull', async (event, modeArg?: string, sidArg?: string) => {
     try {
       const sid = validSid(sidArg)
       const b = getBinding()
       if (!b) throw new Error('尚未绑定项目')
+      const mode = modeArg === 'rebase' || modeArg === 'merge' || modeArg === 'reset' ? modeArg : ''
       // GitHub 直连易链路假死：拉取前先看 VPN 代理是否可用，可用则注入 git 代理环境
       const proxy = await prepareGitProxy(event.sender, 'projects:scriptLog', sid, b)
-      await projStream(event.sender, 'projects:scriptLog', 'git', [...GIT_STALL_ARGS, 'pull', '--progress'], {
+      const streamOpts = {
         cwd: b.path,
         timeoutMs: 10 * 60_000,
         sid,
         extraEnv: proxy.extraEnv,
         sshEnvPrefix: proxy.sshEnvPrefix
-      })
+      }
+      if (mode === 'reset') {
+        // 硬重置到远程：取回当前分支最新后 reset --hard，本地独有提交与未提交改动全部丢弃（前端弹窗已二次确认）
+        const branch = (await gitQuiet(b, ['branch', '--show-current'])).trim()
+        if (!branch || !/^[A-Za-z0-9._/-]{1,100}$/.test(branch) || branch.includes('..')) throw new Error('无法确定当前分支')
+        let upstream = ''
+        try {
+          upstream = (await gitQuiet(b, ['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}'])).trim()
+        } catch {
+          upstream = ''
+        }
+        if (!upstream || upstream === 'HEAD') throw new Error('当前分支未关联上游，无法重置')
+        await projStream(event.sender, 'projects:scriptLog', 'git', [...GIT_STALL_ARGS, 'fetch', '--progress', '--depth', '1', 'origin', `+refs/heads/${branch}:refs/remotes/origin/${branch}`], streamOpts)
+        await projStream(event.sender, 'projects:scriptLog', 'git', ['reset', '--hard', upstream], { ...streamOpts, timeoutMs: 60_000 })
+        return { ok: true }
+      }
+      const strategy = mode === 'rebase' ? ['--rebase'] : mode === 'merge' ? ['--no-rebase'] : []
+      await projStream(event.sender, 'projects:scriptLog', 'git', [...GIT_STALL_ARGS, 'pull', '--progress', ...strategy], streamOpts)
       return { ok: true }
     } catch (err) {
       const msg = (err as Error).message
-      return { ok: false, error: msg === '已手动中断' ? msg : `git pull 失败：${msg}，详见日志` }
+      if (msg === '已手动中断') return { ok: false, error: msg }
+      // 分叉时普通 pull 被拒（新 git 提示 divergent branches / 旧版 fast-forward aborting）——指引回策略选择
+      if (/divergent|fast-forward/i.test(msg)) {
+        return { ok: false, error: '本地与远程分支已分叉，无法直接拉取：请重新点击「拉取代码」选择处理策略' }
+      }
+      return { ok: false, error: modeArg === 'reset' ? `重置失败：${msg}，详见日志` : `git pull 失败：${msg}，详见日志` }
     }
   })
 
@@ -2065,16 +2102,8 @@ export function registerProjectHandlers(): void {
       const send = (text: string): void => {
         if (!event.sender.isDestroyed()) event.sender.send('projects:scriptLog', { kind: 'line', text, sid })
       }
-      // 快捷 git 查询/设置（离线）：本地绑定走 exec argv；SSH 绑定拼远端命令，含 ( ) 等元字符的参数须引号包裹
-      const quiet = async (args: string[], timeout = 15_000): Promise<string> => {
-        if (b.remote) {
-          const remoteSafe = args.map((a) => (/^[\w./@:=,-]+$/.test(a) ? a : `'${a.replace(/'/g, "'\\''")}'`)).join(' ')
-          return sshExec(resolveSshTarget(b.remote.configId), `cd ${JSON.stringify(b.path)} && git ${remoteSafe}`, timeout)
-        }
-        const pathEnv = await getShellPath()
-        const { stdout } = await exec('git', args, { cwd: b.path, timeout, env: { ...process.env, PATH: pathEnv } })
-        return stdout
-      }
+      // 快捷 git 查询/设置（离线）：见 gitQuiet
+      const quiet = (args: string[], timeout = 15_000): Promise<string> => gitQuiet(b, args, timeout)
       // 克隆带 --depth 1 --single-branch，refspec 只含主分支：目标分支不在 refspec 内时，
       // fetch 不建远端跟踪引用，checkout 的 DWIM/--track/pull 又都按 refspec 反查而落空，
       // 便报 pathspec 不匹配。先把 refspec 放开为全分支（幂等，此后任意分支可切、pull 可用）

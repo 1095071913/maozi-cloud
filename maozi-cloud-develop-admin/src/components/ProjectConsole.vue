@@ -86,9 +86,17 @@
               <span class="mono-text">{{ gitLastCommit.sha || '—' }}</span>
               <em>·</em>{{ gitLastCommit.time ? fmtGitCommitTime(gitLastCommit.time) : '—' }}
             </span>
+            <!-- 分叉提示：本地与远程各有新提交，点击「拉取代码」选择处理策略 -->
+            <span
+              v-if="gitRemoteBehind > 0 && gitRemoteAhead > 0"
+              class="pc-git-diverge"
+              title="本地与远程各有新提交（已分叉），点击右侧「拉取代码」选择处理策略"
+            >
+              <i></i>已分叉 · 本地 {{ gitRemoteAhead }} / 远程 {{ gitRemoteBehind }}
+            </span>
             <!-- 远程新提交提示：定时 git fetch 检测到落后时显示，点击拉取代码即更新 -->
             <span
-              v-if="gitRemoteBehind > 0"
+              v-else-if="gitRemoteBehind > 0"
               class="pc-git-behind"
               title="定时检测到远程有新提交，点击右侧「拉取代码」更新"
             >
@@ -2650,6 +2658,91 @@
               <path d="M18 9a9 9 0 0 1-9 9" />
             </svg>
             确认切换
+          </button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- ===== 分叉处理弹窗：本地与远程各有新提交，选择拉取策略（变基 / 合并 / 重置） ===== -->
+    <el-dialog
+      v-model="pullDivergeVisible"
+      width="480px"
+      draggable
+      append-to-body
+      modal-class="pc-dlg pvd-dlg"
+      :show-close="false"
+      :close-on-click-modal="false"
+    >
+      <template #header>
+        <div class="pcd-header pvd-header">
+          <div class="pcd-deco pcd-deco-1"></div>
+          <div class="pcd-deco pcd-deco-2"></div>
+          <div class="pcd-header-main">
+            <div class="pcd-header-icon">🔀</div>
+            <div>
+              <div class="pcd-title">分支已分叉</div>
+              <div class="pcd-subtitle">本地与远程各有新提交 · 选择拉取策略</div>
+            </div>
+          </div>
+          <button class="pcd-close" type="button" @click="pullDivergeVisible = false">✕</button>
+        </div>
+      </template>
+
+      <div class="pcd-body">
+        <!-- 分叉状态：本地独有 ↔ 远程新增 -->
+        <div class="pvd-stat">
+          <div class="pvd-side local">
+            <span class="pvd-num">{{ gitRemoteAhead }}</span>
+            <span class="pvd-label">本地独有提交</span>
+          </div>
+          <svg class="pvd-vs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 3 4 7l4 4" />
+            <path d="M4 7h16" />
+            <path d="m16 21 4-4-4-4" />
+            <path d="M20 17H4" />
+          </svg>
+          <div class="pvd-side remote">
+            <span class="pvd-num">{{ gitRemoteBehind }}</span>
+            <span class="pvd-label">远程新增提交</span>
+          </div>
+        </div>
+
+        <!-- 策略选择 -->
+        <div class="pvd-opts">
+          <div class="pvd-opt" :class="{ active: pullDivergeMode === 'rebase' }" @click="pullDivergeMode = 'rebase'">
+            <span class="pvd-radio"></span>
+            <div class="pvd-opt-main">
+              <div class="pvd-opt-title">变基拉取 <em>推荐</em></div>
+              <div class="pvd-opt-desc">本地提交移到远程新提交之上，保持历史线性；遇冲突会自动中止，解决后可重试</div>
+            </div>
+          </div>
+          <div class="pvd-opt" :class="{ active: pullDivergeMode === 'merge' }" @click="pullDivergeMode = 'merge'">
+            <span class="pvd-radio"></span>
+            <div class="pvd-opt-main">
+              <div class="pvd-opt-title">合并拉取</div>
+              <div class="pvd-opt-desc">生成一个合并提交，同时保留本地与远程双方的提交历史</div>
+            </div>
+          </div>
+          <div class="pvd-opt danger" :class="{ active: pullDivergeMode === 'reset' }" @click="pullDivergeMode = 'reset'">
+            <span class="pvd-radio"></span>
+            <div class="pvd-opt-main">
+              <div class="pvd-opt-title">重置本地 <em>危险</em></div>
+              <div class="pvd-opt-desc">丢弃本地 {{ gitRemoteAhead }} 个提交与全部未提交改动，与远程完全一致（不可恢复）</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="pcd-footer">
+          <button class="pcd-btn ghost" type="button" @click="pullDivergeVisible = false">取消</button>
+          <button
+            class="pcd-btn"
+            :class="pullDivergeMode === 'reset' ? 'danger' : 'primary'"
+            type="button"
+            @click="confirmPullDiverge"
+          >
+            {{ pullDivergeMode === 'reset' ? '确认重置（不可恢复）' : '开始拉取' }}
           </button>
         </div>
       </template>
@@ -5808,6 +5901,8 @@ async function loadGitInfo(): Promise<void> {
 
 /** ===== 远程新提交检测：定时 git fetch 统计落后提交数，有新提交则提示拉取 ===== */
 const gitRemoteBehind = ref(0)
+/** 本地领先远程的提交数（与 behind 同时 >0 即本地与远程分叉，拉取需选策略） */
+const gitRemoteAhead = ref(0)
 /** 本地最后一次提交：短 sha + 提交时间（原始串形如 2026-09-29 14:30:25 +0800） */
 const gitLastCommit = ref<{ sha: string; time: string }>({ sha: '', time: '' })
 let gitCheckTimer: ReturnType<typeof setInterval> | null = null
@@ -5820,8 +5915,9 @@ function fmtGitCommitTime(t: string): string {
   return m ? `${m[2]}-${m[3]} ${m[4]}` : t
 }
 
-async function checkGitRemote(): Promise<void> {
-  if (!binding.value || !gitInfo.value.isRepo || gitPulling.value) return
+/** 即时检测远程状态（git fetch 网络）：更新落后/领先/最后提交与分支显示，返回 ahead/behind 供调用方判定分叉 */
+async function probeGitRemote(): Promise<{ ahead: number; behind: number }> {
+  let probed = false
   try {
     const r = await api.projects.gitRemoteCheck()
     if (r.ok && r.data && r.data.isRepo) {
@@ -5832,11 +5928,20 @@ async function checkGitRemote(): Promise<void> {
         gitBehindNotified = false
       }
       gitRemoteBehind.value = r.data.behind
+      gitRemoteAhead.value = r.data.ahead ?? 0
       gitLastCommit.value = { sha: r.data.lastSha, time: r.data.lastTime }
+      probed = true
     } else {
       gitRemoteBehind.value = 0
+      gitRemoteAhead.value = 0
+      probed = true
     }
-    const behind = gitRemoteBehind.value
+  } catch {
+    /* 网络失败静默：下次轮询再试 */
+  }
+  const behind = gitRemoteBehind.value
+  const ahead = gitRemoteAhead.value
+  if (probed) {
     if (behind > 0 && !gitBehindNotified) {
       gitBehindNotified = true
       ElMessage({
@@ -5847,9 +5952,14 @@ async function checkGitRemote(): Promise<void> {
       })
     }
     if (behind === 0) gitBehindNotified = false
-  } catch {
-    /* 网络失败静默：下次轮询再试 */
   }
+  return { ahead, behind }
+}
+
+/** 定时/回页轮询入口：拉取进行中跳过，其余交给 probeGitRemote */
+async function checkGitRemote(): Promise<void> {
+  if (!binding.value || !gitInfo.value.isRepo || gitPulling.value) return
+  await probeGitRemote()
 }
 
 let gitCheckWatchStop: (() => void) | null = null
@@ -5895,27 +6005,62 @@ function stopGitRemoteWatch(): void {
 
 onUnmounted(stopGitRemoteWatch)
 
-/** 拉取代码（git pull）：日志走脚本日志会话，成功后刷新分支与项目版本 */
+/** 拉取代码：先即时 fetch 检测，本地与远程分叉时弹窗选策略（变基/合并/重置），否则直接拉取 */
 async function onGitPull(): Promise<void> {
+  if (gitPulling.value) return
+  if (focusRunning((a) => a.type === 'gitPull' || a.type === 'gitCheckout')) return
+  gitPulling.value = true
+  try {
+    const st = await probeGitRemote()
+    if (st.ahead > 0 && st.behind > 0) {
+      openPullDiverge()
+      return
+    }
+  } finally {
+    gitPulling.value = false
+  }
+  await runGitPull()
+}
+
+/** ===== 分叉处理弹窗：本地与远程各有新提交，选择拉取策略 ===== */
+const pullDivergeVisible = ref(false)
+const pullDivergeMode = ref<'rebase' | 'merge' | 'reset'>('rebase')
+
+function openPullDiverge(): void {
+  // 每次打开重置为推荐策略，避免上次选择残留
+  pullDivergeMode.value = 'rebase'
+  pullDivergeVisible.value = true
+}
+
+async function confirmPullDiverge(): Promise<void> {
+  const mode = pullDivergeMode.value
+  pullDivergeVisible.value = false
+  await runGitPull(mode)
+}
+
+/** 执行拉取（git pull / 变基 / 合并 / 硬重置到远程），日志走脚本日志会话，成功后刷新分支与项目版本 */
+async function runGitPull(mode: '' | 'rebase' | 'merge' | 'reset' = ''): Promise<void> {
   if (focusRunning((a) => a.type === 'gitPull' || a.type === 'gitCheckout')) return
   const s = startSession({ type: 'gitPull' }, {
-    label: '拉取代码',
-    icon: '⬇️',
+    label: mode === 'reset' ? '重置到远程' : mode === 'rebase' ? '变基拉取' : mode === 'merge' ? '合并拉取' : '拉取代码',
+    icon: mode === 'reset' ? '⚠️' : '⬇️',
     title: '拉取代码',
-    sub: `git pull · ${binding.value?.path ?? ''}`
+    sub: `${mode === 'reset' ? 'git fetch + reset --hard @{u}' : `git pull${mode === 'rebase' ? ' --rebase' : ''}`} · ${binding.value?.path ?? ''}`
   })
   gitPulling.value = true
   try {
-    const r = await api.projects.gitPull(s.id)
+    const r = await api.projects.gitPull(mode, s.id)
     finishSession(s, r.ok)
     if (r.ok) {
-      ElMessage.success('代码已更新到最新')
+      ElMessage.success(mode === 'reset' ? '已重置到远程分支' : '代码已更新到最新')
       // 拉取后重置新提交提示并立即复测
       gitRemoteBehind.value = 0
+      gitRemoteAhead.value = 0
       gitBehindNotified = false
       await loadGitInfo()
       void loadState()
-      void checkGitRemote()
+      // 直接探测（checkGitRemote 会因 gitPulling 守卫跳过）：拉取完成后立即复测最新落后/领先状态
+      void probeGitRemote()
     } else if (r.error !== '已手动中断') {
       ElMessage.error(r.error ?? '拉取失败')
     }
@@ -6616,6 +6761,193 @@ onMounted(loadState)
 @keyframes pbc-arrow-move {
   0%, 100% { transform: translateX(-2.5px); opacity: 0.65; }
   50% { transform: translateX(2.5px); opacity: 1; }
+}
+
+/* 分叉提示（状态栏，红色系区别于普通“远程有新提交”） */
+.pc-git-diverge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 13px;
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, #fff5f6 0%, #ffeced 100%) padding-box,
+    linear-gradient(135deg, #fda4af 0%, #f43f5e 55%, #be123c 100%) border-box;
+  border: 1px solid transparent;
+  box-shadow: 0 2px 8px rgba(190, 18, 60, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  color: #be123c;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pc-git-diverge i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fb7185, #be123c);
+}
+
+/* 分叉处理弹窗 */
+.pvd-stat {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+  border: 1px solid #eef2f7;
+}
+
+.pvd-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 12px 8px;
+  border-radius: 10px;
+}
+
+.pvd-side.local {
+  background: #fff;
+  border: 1px dashed #94a3b8;
+}
+
+.pvd-side.remote {
+  background: linear-gradient(135deg, #fff1f2, #ffe4e6);
+  border: 1px solid #fecdd3;
+}
+
+.pvd-num {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1;
+}
+
+.pvd-side.remote .pvd-num {
+  color: #be123c;
+}
+
+.pvd-label {
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+.pvd-vs {
+  align-self: center;
+  width: 20px;
+  height: 20px;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.pvd-opts {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 12px;
+}
+
+.pvd-opt {
+  display: flex;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.pvd-opt:hover {
+  border-color: #93c5fd;
+}
+
+.pvd-opt.active {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.pvd-opt.danger:hover {
+  border-color: #fda4af;
+}
+
+.pvd-opt.danger.active {
+  border-color: #e11d48;
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.12);
+}
+
+.pvd-radio {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  flex-shrink: 0;
+  transition: border-color 0.15s;
+}
+
+.pvd-opt.active .pvd-radio {
+  border-color: #2563eb;
+}
+
+.pvd-opt.active .pvd-radio::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: #2563eb;
+}
+
+.pvd-opt.danger.active .pvd-radio {
+  border-color: #e11d48;
+}
+
+.pvd-opt.danger.active .pvd-radio::after {
+  background: #e11d48;
+}
+
+.pvd-opt-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.pvd-opt-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.pvd-opt.danger .pvd-opt-title {
+  color: #be123c;
+}
+
+.pvd-opt-title em {
+  font-style: normal;
+  font-size: 10.5px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.pvd-opt.danger .pvd-opt-title em {
+  background: #ffe4e6;
+  color: #be123c;
+}
+
+.pvd-opt-desc {
+  margin-top: 3px;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.5;
 }
 
 @keyframes pbc-in-left {
@@ -12797,6 +13129,17 @@ onMounted(loadState)
 .pcd-btn.primary:hover {
   transform: translateY(-1px);
   box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
+}
+
+.pcd-btn.danger {
+  background: linear-gradient(135deg, #f43f5e, #be123c);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(190, 18, 60, 0.35);
+}
+
+.pcd-btn.danger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(190, 18, 60, 0.45);
 }
 
 .pcd-btn.primary:disabled {

@@ -226,12 +226,12 @@ export interface ElectronApi {
     openDir: () => Promise<PlatformResult>
     /** 项目 git 管理：仓库检测（含当前分支与本地最后一次提交短 sha/时间） */
     gitInfo: () => Promise<IpcResult<{ isRepo: boolean; branch: string; lastSha: string; lastTime: string }>>
-    /** 定时检测远程新提交：fetch 后统计本地落后上游的提交数（失败静默返回 behind=0）；附带本地最后一次提交短 sha 与时间 */
-    gitRemoteCheck: () => Promise<IpcResult<{ isRepo: boolean; branch: string; behind: number; lastSha: string; lastTime: string }>>
+    /** 定时检测远程新提交：fetch 后统计本地落后/领先上游的提交数（双向均有即分叉）；附带本地最后一次提交短 sha 与时间 */
+    gitRemoteCheck: () => Promise<IpcResult<{ isRepo: boolean; branch: string; behind: number; ahead: number; lastSha: string; lastTime: string }>>
     /** 分支列表：locals 本地分支（离线）+ branches 远程分支（需网络；获取失败时 remoteError 携带原因并降级仅本地） */
     gitBranches: () => Promise<IpcResult<{ branches: string[]; locals: string[]; remoteError?: string }>>
-    /** 拉取代码（git pull），日志走 onScriptLog */
-    gitPull: (sid?: string) => Promise<PlatformResult>
+    /** 拉取代码（git pull；mode：缺省普通 / rebase 变基 / merge 合并 / reset 硬重置到远程），日志走 onScriptLog */
+    gitPull: (mode?: string, sid?: string) => Promise<PlatformResult>
     /** 切换分支，日志走 onScriptLog */
     gitCheckout: (branch: string, sid?: string) => Promise<PlatformResult>
     /** 订阅 git clone 实时日志；返回取消订阅函数 */

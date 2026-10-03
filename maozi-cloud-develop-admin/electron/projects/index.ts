@@ -2052,7 +2052,7 @@ export function registerProjectHandlers(): void {
     }
   })
 
-  /** 切换分支：先 fetch 目标分支（浅克隆兼容）再 checkout；输出走 projects:scriptLog */
+  /** 切换分支：远程分支先 fetch（浅克隆兼容）再 checkout，并确保关联上游；输出走 projects:scriptLog */
   ipcMain.handle('projects:gitCheckout', async (event, branchArg: string, sidArg?: string) => {
     try {
       const sid = validSid(sidArg)
@@ -2062,43 +2062,25 @@ export function registerProjectHandlers(): void {
       if (!/^[A-Za-z0-9._/-]{1,100}$/.test(branch) || branch.includes('..') || branch.startsWith('/') || branch.endsWith('/')) {
         throw new Error('非法的分支名')
       }
-      // 本地已有该分支（含仅存在于本地的分支）时直接 checkout 即可，无需联网 fetch；
-      // fetch 仅为首次切换远程分支时建立本地/远端跟踪引用服务
-      let isLocal = false
-      try {
-        if (b.remote) {
-          const out = await sshExec(resolveSshTarget(b.remote.configId), `cd ${JSON.stringify(b.path)} && git branch --list ${JSON.stringify(branch)} --format='%(refname:short)'`, 15_000)
-          isLocal = out.trim() === branch
-        } else {
-          const pathEnv = await getShellPath()
-          const r = await exec('git', ['branch', '--list', branch, '--format=%(refname:short)'], {
-            cwd: b.path,
-            timeout: 15_000,
-            env: { ...process.env, PATH: pathEnv }
-          })
-          isLocal = r.stdout.trim() === branch
-        }
-      } catch {
-        isLocal = false
+      const send = (text: string): void => {
+        if (!event.sender.isDestroyed()) event.sender.send('projects:scriptLog', { kind: 'line', text, sid })
       }
-      if (!isLocal) {
-        // 克隆带 --depth 1 --single-branch，refspec 只含主分支：目标分支不在 refspec 内时，
-        // fetch 不建远端跟踪引用，checkout 的 DWIM/--track/pull 又都按 refspec 反查而落空，
-        // 便报 pathspec 不匹配。先把 refspec 放开为全分支（幂等，此后任意分支可切、pull 可用），
-        // 再显式 refspec 取回目标分支后普通 checkout：已有本地分支等价普通切换（不动本地提交），
-        // 首次切换 DWIM 建分支并自动设上游
-        const fullRefspec = '+refs/heads/*:refs/remotes/origin/*'
+      // 快捷 git 查询/设置（离线）：本地绑定走 exec argv；SSH 绑定拼远端命令，含 ( ) 等元字符的参数须引号包裹
+      const quiet = async (args: string[], timeout = 15_000): Promise<string> => {
         if (b.remote) {
-          await sshExec(resolveSshTarget(b.remote.configId), `cd ${JSON.stringify(b.path)} && git config remote.origin.fetch ${JSON.stringify(fullRefspec)}`, 15_000)
-        } else {
-          const pathEnv = await getShellPath()
-          await exec('git', ['config', 'remote.origin.fetch', fullRefspec], {
-            cwd: b.path,
-            timeout: 15_000,
-            env: { ...process.env, PATH: pathEnv }
-          })
+          const remoteSafe = args.map((a) => (/^[\w./@:=,-]+$/.test(a) ? a : `'${a.replace(/'/g, "'\\''")}'`)).join(' ')
+          return sshExec(resolveSshTarget(b.remote.configId), `cd ${JSON.stringify(b.path)} && git ${remoteSafe}`, timeout)
         }
-        // 取回目标分支走 GitHub：先看 VPN 代理是否可用，可用则注入 git 代理环境（checkout 本身无网络）
+        const pathEnv = await getShellPath()
+        const { stdout } = await exec('git', args, { cwd: b.path, timeout, env: { ...process.env, PATH: pathEnv } })
+        return stdout
+      }
+      // 克隆带 --depth 1 --single-branch，refspec 只含主分支：目标分支不在 refspec 内时，
+      // fetch 不建远端跟踪引用，checkout 的 DWIM/--track/pull 又都按 refspec 反查而落空，
+      // 便报 pathspec 不匹配。先把 refspec 放开为全分支（幂等，此后任意分支可切、pull 可用）
+      const ensureRefspec = (): Promise<string> => quiet(['config', 'remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*'])
+      // 取回目标分支走 GitHub：先看 VPN 代理是否可用，可用则注入 git 代理环境（checkout 本身无网络）
+      const fetchBranch = async (): Promise<void> => {
         const proxy = await prepareGitProxy(event.sender, 'projects:scriptLog', sid, b)
         await projStream(event.sender, 'projects:scriptLog', 'git', [...GIT_STALL_ARGS, 'fetch', '--progress', '--depth', '1', 'origin', `+refs/heads/${branch}:refs/remotes/origin/${branch}`], {
           cwd: b.path,
@@ -2108,11 +2090,55 @@ export function registerProjectHandlers(): void {
           sshEnvPrefix: proxy.sshEnvPrefix
         })
       }
+      // 本地已有该分支（含仅存在于本地的分支）时无需联网取回：直接 checkout 等价普通切换（不动本地提交）；
+      // 远程分支首次切换才 fetch 建远端跟踪引用，checkout 的 DWIM 随之建本地分支并自动设上游
+      let isLocal = false
+      try {
+        isLocal = (await quiet(['branch', '--list', branch, '--format=%(refname:short)'])).trim() === branch
+      } catch {
+        isLocal = false
+      }
+      if (!isLocal) {
+        await ensureRefspec()
+        await fetchBranch()
+      }
       await projStream(event.sender, 'projects:scriptLog', 'git', ['checkout', '--progress', branch], {
         cwd: b.path,
         timeoutMs: 60_000,
         sid
       })
+      // ===== 关联远程分支：远程分支 DWIM 首切已自动设上游，但切到本地已有分支（终端自建 /
+      // push 未带 -u / 早期版本切换产物）不会补关联，pull 与落后检测（HEAD..@{u}）随之失效——
+      // 统一检测，缺关联则补设 origin/<branch>；关联失败不影响切换结果
+      try {
+        const upstream = (await quiet(['for-each-ref', '--format=%(upstream:short)', `refs/heads/${branch}`])).trim()
+        if (!upstream) {
+          let remoteRef = (await quiet(['for-each-ref', '--format=%(refname:short)', `refs/remotes/origin/${branch}`])).trim()
+          let fetchOk = true
+          if (!remoteRef) {
+            // 远端跟踪引用缺失（本地分支路径此前没 fetch 过）：取回一次再补设
+            try {
+              await ensureRefspec()
+              await fetchBranch()
+              remoteRef = (await quiet(['for-each-ref', '--format=%(refname:short)', `refs/remotes/origin/${branch}`])).trim()
+            } catch (e) {
+              remoteRef = ''
+              // "couldn't find remote ref" = 远程确实没有该分支（纯本地分支），不算取回失败
+              fetchOk = !/couldn'?t find remote ref/i.test((e as Error).message)
+            }
+          }
+          if (remoteRef) {
+            await quiet(['branch', `--set-upstream-to=origin/${branch}`, branch])
+            send(`✓ 已关联远程分支 origin/${branch}`)
+          } else if (fetchOk) {
+            send(`ℹ 远程不存在分支 ${branch}，跳过上游关联（纯本地分支）`)
+          } else {
+            send(`⚠ 取回远程分支失败，本次未关联上游（不影响切换，可稍后重试）`)
+          }
+        }
+      } catch (err) {
+        send(`⚠ 关联远程分支失败：${(err as Error).message}（不影响切换）`)
+      }
       return { ok: true }
     } catch (err) {
       const msg = (err as Error).message

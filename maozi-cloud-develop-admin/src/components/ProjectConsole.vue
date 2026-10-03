@@ -5594,6 +5594,11 @@ onActivated(() => {
   void loadAppSvcStatuses()
   // git 仓库状态同理可能已变化（如目录外删除了 .git），刷新后按需隐藏分支与拉取/切换按钮
   void loadGitInfo()
+  // 窗口聚焦/回到前台即刷新：终端里切分支等外部变更切回即感知（监听幂等，重复激活先移除再挂）
+  window.removeEventListener('focus', refreshGitOnFocus)
+  document.removeEventListener('visibilitychange', refreshGitOnFocus)
+  window.addEventListener('focus', refreshGitOnFocus)
+  document.addEventListener('visibilitychange', refreshGitOnFocus)
   // 定时探测远程新提交（仅 git 仓库时实际生效）
   startGitRemoteWatch()
   // 回页首拉带 preferCache：1 分钟内的快照直接渲染，随后由轮询刷新
@@ -5606,6 +5611,8 @@ onDeactivated(() => {
     clearInterval(statsTimer)
     statsTimer = undefined
   }
+  window.removeEventListener('focus', refreshGitOnFocus)
+  document.removeEventListener('visibilitychange', refreshGitOnFocus)
   // 切走导航停止远程提交探测
   stopGitRemoteWatch()
   stopLogFollow()
@@ -5617,6 +5624,8 @@ onDeactivated(() => {
 
 onUnmounted(() => {
   if (statsTimer) clearInterval(statsTimer)
+  window.removeEventListener('focus', refreshGitOnFocus)
+  document.removeEventListener('visibilitychange', refreshGitOnFocus)
 })
 
 async function onCompose(service: string, action: 'start' | 'stop' | 'restart', skipConfirm = false): Promise<void> {
@@ -5816,6 +5825,12 @@ async function checkGitRemote(): Promise<void> {
   try {
     const r = await api.projects.gitRemoteCheck()
     if (r.ok && r.data && r.data.isRepo) {
+      // 分支可能被外部（终端等）切换：gitRemoteCheck 每次都会读当前分支（本地读取，不依赖网络），
+      // 轮询顺带同步显示，控制台无需任何操作即可追上外部变更
+      if (r.data.branch && r.data.branch !== gitInfo.value.branch) {
+        gitInfo.value = { ...gitInfo.value, isRepo: true, branch: r.data.branch }
+        gitBehindNotified = false
+      }
       gitRemoteBehind.value = r.data.behind
       gitLastCommit.value = { sha: r.data.lastSha, time: r.data.lastTime }
     } else {
@@ -5838,6 +5853,18 @@ async function checkGitRemote(): Promise<void> {
 }
 
 let gitCheckWatchStop: (() => void) | null = null
+
+/** 窗口聚焦/回到前台即刷新 git 状态：在终端等外部切换分支后切回应用可立刻感知（5s 节流防频繁切换） */
+let gitFocusRefreshAt = 0
+function refreshGitOnFocus(): void {
+  if (document.visibilityState !== 'visible') return
+  const now = Date.now()
+  if (now - gitFocusRefreshAt < 5_000) return
+  gitFocusRefreshAt = now
+  if (!binding.value) return
+  void loadGitInfo()
+  void checkGitRemote()
+}
 
 function startGitRemoteWatch(): void {
   if (gitCheckTimer) return
@@ -5912,6 +5939,8 @@ async function loadGitBranches(): Promise<void> {
   branchLoading.value = true
   branchError.value = ''
   try {
+    // 先刷新当前分支：外部（终端）可能已切换，置顶与“当前”标记要以最新为准（本地读取，很快）
+    await loadGitInfo()
     const r = await api.projects.gitBranches()
     if (r.ok && r.data) {
       const cur = gitInfo.value.branch

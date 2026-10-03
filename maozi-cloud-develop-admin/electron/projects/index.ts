@@ -2071,7 +2071,10 @@ export function registerProjectHandlers(): void {
           upstream = ''
         }
         if (!upstream || upstream === 'HEAD') throw new Error('当前分支未关联上游，无法重置')
-        await projStream(event.sender, 'projects:scriptLog', 'git', [...GIT_STALL_ARGS, 'fetch', '--progress', '--depth', '1', 'origin', `+refs/heads/${branch}:refs/remotes/origin/${branch}`], streamOpts)
+        // 不带 --depth：--depth 1 会把分支掐成无父提交的孤岛（合并/变基报 refusing to merge unrelated
+        // histories）；普通 fetch 在浅仓库只前移边界不新增孤岛（历史补全由切换分支时的 --unshallow 负责），
+        // 完整仓库则为常规增量取回
+        await projStream(event.sender, 'projects:scriptLog', 'git', [...GIT_STALL_ARGS, 'fetch', '--progress', 'origin', `+refs/heads/${branch}:refs/remotes/origin/${branch}`], streamOpts)
         await projStream(event.sender, 'projects:scriptLog', 'git', ['reset', '--hard', upstream], { ...streamOpts, timeoutMs: 60_000 })
         return { ok: true }
       }
@@ -2109,9 +2112,25 @@ export function registerProjectHandlers(): void {
       // 便报 pathspec 不匹配。先把 refspec 放开为全分支（幂等，此后任意分支可切、pull 可用）
       const ensureRefspec = (): Promise<string> => quiet(['config', 'remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*'])
       // 取回目标分支走 GitHub：先看 VPN 代理是否可用，可用则注入 git 代理环境（checkout 本身无网络）
+      // 历史完整性：逐分支 --depth 1 取回会让每个分支只剩一个 graft 边界提交（.git/shallow 掐断父提交边），
+      // 分支间互为「无关历史」，合并/变基即报 refusing to merge unrelated histories（完整仓库取新分支同样
+      // 会被掐出孤岛）。浅仓库改走 --unshallow 一次性补全全部历史（refspec 已放开为全分支，补全后不再
+      // 变浅），完整仓库取回单分支也不带 --depth，杜绝新孤岛
       const fetchBranch = async (): Promise<void> => {
         const proxy = await prepareGitProxy(event.sender, 'projects:scriptLog', sid, b)
-        await projStream(event.sender, 'projects:scriptLog', 'git', [...GIT_STALL_ARGS, 'fetch', '--progress', '--depth', '1', 'origin', `+refs/heads/${branch}:refs/remotes/origin/${branch}`], {
+        let shallow = false
+        try {
+          shallow = (await quiet(['rev-parse', '--is-shallow-repository'])).trim() === 'true'
+        } catch {
+          shallow = false
+        }
+        if (shallow) send('ℹ 检测到浅克隆仓库，本次取回将补全完整历史（--unshallow），大仓库耗时较长')
+        await projStream(event.sender, 'projects:scriptLog', 'git', [
+          ...GIT_STALL_ARGS,
+          'fetch',
+          '--progress',
+          ...(shallow ? ['--unshallow', 'origin'] : ['origin', `+refs/heads/${branch}:refs/remotes/origin/${branch}`])
+        ], {
           cwd: b.path,
           timeoutMs: 10 * 60_000,
           sid,

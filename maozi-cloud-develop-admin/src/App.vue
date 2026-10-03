@@ -77,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, computed, defineComponent, h, type Component } from 'vue'
+import { onMounted, ref, computed, watch, defineComponent, h, type Component } from 'vue'
 import { api } from './api'
 import EnvManager from './components/EnvManager.vue'
 import HostsManager from './components/HostsManager.vue'
@@ -164,6 +164,29 @@ function restoreMenuOrder(base: MenuItem[]): MenuItem[] {
 
 const menus = ref<MenuItem[]>(restoreMenuOrder(DEFAULT_MENUS))
 
+/** 当前导航持久化：页面整体重载（开发模式 HMR 整页刷新等）后回到原页面，而非跳回默认的系统信息 */
+const NAV_ACTIVE_KEY = 'maozi-cloud-develop-admin:nav-active'
+
+function restoreActiveNav(): MenuKey {
+  try {
+    const saved = localStorage.getItem(NAV_ACTIVE_KEY)
+    if (saved && DEFAULT_MENUS.some((m) => m.key === saved)) return saved as MenuKey
+  } catch {
+    /* 损坏值忽略，回落默认 */
+  }
+  return 'sys'
+}
+
+const active = ref<MenuKey>(restoreActiveNav())
+
+watch(active, (k) => {
+  try {
+    localStorage.setItem(NAV_ACTIVE_KEY, k)
+  } catch {
+    /* 存储不可用时静默 */
+  }
+})
+
 /** ===== 菜单拖拽排序 ===== */
 const dragMenuKey = ref('')
 const dragOverMenuKey = ref('')
@@ -206,7 +229,6 @@ function onMenuDrop(target: MenuItem, e: DragEvent): void {
   localStorage.setItem(MENU_ORDER_KEY, JSON.stringify(list.map((m) => m.key)))
 }
 
-const active = ref<MenuKey>('sys')
 const platform = ref('')
 
 const platformLabel = computed(() => {

@@ -5903,6 +5903,8 @@ async function loadGitInfo(): Promise<void> {
 const gitRemoteBehind = ref(0)
 /** 本地领先远程的提交数（与 behind 同时 >0 即本地与远程分叉，拉取需选策略） */
 const gitRemoteAhead = ref(0)
+/** 探测代际：切换分支成功时自增，作废在途旧分支的探测响应（其分支/分叉数据回来后不得覆盖新分支状态） */
+let gitProbeEpoch = 0
 /** 本地最后一次提交：短 sha + 提交时间（原始串形如 2026-09-29 14:30:25 +0800） */
 const gitLastCommit = ref<{ sha: string; time: string }>({ sha: '', time: '' })
 let gitCheckTimer: ReturnType<typeof setInterval> | null = null
@@ -5917,24 +5919,28 @@ function fmtGitCommitTime(t: string): string {
 
 /** 即时检测远程状态（git fetch 网络）：更新落后/领先/最后提交与分支显示，返回 ahead/behind 供调用方判定分叉 */
 async function probeGitRemote(): Promise<{ ahead: number; behind: number }> {
+  const epoch = gitProbeEpoch
   let probed = false
   try {
     const r = await api.projects.gitRemoteCheck()
-    if (r.ok && r.data && r.data.isRepo) {
-      // 分支可能被外部（终端等）切换：gitRemoteCheck 每次都会读当前分支（本地读取，不依赖网络），
-      // 轮询顺带同步显示，控制台无需任何操作即可追上外部变更
-      if (r.data.branch && r.data.branch !== gitInfo.value.branch) {
-        gitInfo.value = { ...gitInfo.value, isRepo: true, branch: r.data.branch }
-        gitBehindNotified = false
+    // 等待期间发生了分支切换：本次响应是旧分支的数据，丢弃（分支名/分叉状态都已按新分支更新）
+    if (epoch === gitProbeEpoch) {
+      if (r.ok && r.data && r.data.isRepo) {
+        // 分支可能被外部（终端等）切换：gitRemoteCheck 每次都会读当前分支（本地读取，不依赖网络），
+        // 轮询顺带同步显示，控制台无需任何操作即可追上外部变更
+        if (r.data.branch && r.data.branch !== gitInfo.value.branch) {
+          gitInfo.value = { ...gitInfo.value, isRepo: true, branch: r.data.branch }
+          gitBehindNotified = false
+        }
+        gitRemoteBehind.value = r.data.behind
+        gitRemoteAhead.value = r.data.ahead ?? 0
+        gitLastCommit.value = { sha: r.data.lastSha, time: r.data.lastTime }
+        probed = true
+      } else {
+        gitRemoteBehind.value = 0
+        gitRemoteAhead.value = 0
+        probed = true
       }
-      gitRemoteBehind.value = r.data.behind
-      gitRemoteAhead.value = r.data.ahead ?? 0
-      gitLastCommit.value = { sha: r.data.lastSha, time: r.data.lastTime }
-      probed = true
-    } else {
-      gitRemoteBehind.value = 0
-      gitRemoteAhead.value = 0
-      probed = true
     }
   } catch {
     /* 网络失败静默：下次轮询再试 */
@@ -6142,8 +6148,15 @@ async function runGitCheckout(b: string): Promise<void> {
     finishSession(s, r.ok)
     if (r.ok) {
       ElMessage.success(`已切换到分支 ${b}`)
+      // 作废在途的远程探测响应（测的是旧分支），并清掉旧分支的落后/领先状态
+      // （残留的分叉徽标会误以为新分支也分叉），再按新分支实测
+      gitProbeEpoch++
+      gitRemoteBehind.value = 0
+      gitRemoteAhead.value = 0
+      gitBehindNotified = false
       await loadGitInfo()
       void loadState()
+      void probeGitRemote()
     } else if (r.error !== '已手动中断') {
       ElMessage.error(r.error ?? '切换分支失败')
     }

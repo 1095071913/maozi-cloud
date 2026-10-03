@@ -5,22 +5,22 @@
 spring:
   data:
     redis:
-      host: maozi-cloud-basic-redis      # Redis 主机地址
-      port: 6379                         # Redis 端口
-      password: 812840531zhang           # Redis 密码
+      host: ${APPLICATION_REDIS_SERVER:maozi-cloud-basic-redis}
+      port: ${APPLICATION_REDIS_PORT:6379}
+      # 密码从环境变量读取，禁止硬编码
+      password: ${APPLICATION_REDIS_SERVER_PASSWORD:password}
+      database: ${APPLICATION_REDIS_SERVER_DATABASE:0}
+      # 可选，客户端标识，方便redis client list排查
+      client-name: ${spring.application.name}
       lettuce:
-        shutdown-timeout: 300ms          # 关闭超时时间
+        # 命令超时，建议500ms，根据业务微调，不要超过1s
+        timeout: 500ms
+        shutdown-timeout: 300ms
         pool:
-          max-active: 600                # 连接池最大连接数
-          max-wait: 1000                 # 获取连接最大等待时间（毫秒）
-          max-idle: 300                  # 连接池最大空闲连接数
-          min-idle: 0                    # 连接池最小空闲连接数
-        timeout: 60000                   # 命令执行超时时间（毫秒）
-#    cluster:                             # Redis 集群配置（按需开启）
-#      nodes:
-#        - 192.168.1.111:7001
-#        - 192.168.1.112:7001
-#        - 192.168.1.110:7002
-#        - 192.168.1.110:7001
-#        - 192.168.1.111:7002
-#        - 192.168.1.112:7001
+          # 最大活跃连接，根据单实例QPS，一般80~200
+          max-active: 120
+          # 获取连接最大等待时间1s
+          max-wait: 1000ms
+          max-idle: 60
+          # 维持少量预热连接
+          min-idle: 10

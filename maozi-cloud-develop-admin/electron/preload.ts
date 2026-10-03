@@ -109,14 +109,16 @@ contextBridge.exposeInMainWorld('api', {
     envSettings: () => ipcRenderer.invoke('projects:envSettings'),
     envFileSave: (input: { key: string; value: string }) => ipcRenderer.invoke('projects:envFileSave', input),
     serviceConfig: (service: string, base?: string) => ipcRenderer.invoke('projects:serviceConfig', service, base),
-    /** Maven 配置：mvn -v 解析安装目录 + settings.xml 读写（覆盖前自动备份） */
+    /** Maven 配置：mvn -v 解析安装目录 + settings.xml 读写（保存直接覆盖，不备份） */
     mavenInfo: () => ipcRenderer.invoke('projects:mavenInfo'),
     mavenConfigRead: () => ipcRenderer.invoke('projects:mavenConfigRead'),
     mavenConfigSave: (content: string) => ipcRenderer.invoke('projects:mavenConfigSave', content),
-    /** Docker 配置：docker -v + daemon.json 按平台解析（mac/Win=~/.docker，Linux=/etc/docker 优先），读写自动备份 */
+    /** Docker 配置：docker -v + daemon.json 按平台解析（mac/Win=~/.docker，Linux=/etc/docker 优先），保存直接覆盖（不备份） */
     dockerInfo: () => ipcRenderer.invoke('projects:dockerInfo'),
     dockerConfigRead: () => ipcRenderer.invoke('projects:dockerConfigRead'),
     dockerConfigSave: (content: string) => ipcRenderer.invoke('projects:dockerConfigSave', content),
+    /** 重启 Docker（Docker Desktop 安装用 docker desktop restart，直装用 systemctl），各阶段进度推送执行日志会话 */
+    dockerRestart: (sid?: string) => ipcRenderer.invoke('projects:dockerRestart', sid),
     hotSwap: (variant: string, enable: boolean, sid?: string) => ipcRenderer.invoke('projects:hotSwap', variant, enable, sid),
     initImages: () => ipcRenderer.invoke('projects:initImages'),
     initImageBuild: (name: string, sid?: string) => ipcRenderer.invoke('projects:initImageBuild', name, sid),

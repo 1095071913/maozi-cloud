@@ -32,6 +32,11 @@ WHITE_LIST=(
     "maozi-cloud-*-service:*"
 )
 
+# 网络白名单，保留不删除
+NETWORK_WHITE_LIST=(
+    "maozi-cloud-network"
+)
+
 info() {
     echo "[$(date +'%Y-%m-%d %H:%M:%S')] $*"
 }
@@ -56,6 +61,16 @@ build_white_regex() {
         regex_parts+=("$escaped")
     done
     # 拼接 |
+    echo "${regex_parts[*]}" | sed 's/ /|/g'
+}
+
+# 构建网络白名单正则
+build_network_white_regex() {
+    local regex_parts=()
+    for net in "${NETWORK_WHITE_LIST[@]}"; do
+        escaped=$(echo "$net" | sed -e 's/\./\\./g')
+        regex_parts+=("$escaped")
+    done
     echo "${regex_parts[*]}" | sed 's/ /|/g'
 }
 
@@ -91,9 +106,25 @@ else
     info ">>> Unknown OS: ${OS}, skip log cleaning"
 fi
 
-# 1. prune 清理停止容器、无用网络（不清理镜像）
-info -e "\n>>> Run docker system prune (stopped containers, dangling images, unused networks)"
-docker system prune -f || info "WARN: docker system prune failed"
+# ========== 替换原来 docker system prune -f，拆分执行 ==========
+info -e "\n>>> Clean stopped containers & dangling images (skip network prune)"
+# 删除停止的容器
+docker container prune -f || info "WARN: docker container prune failed"
+# 删除悬空镜像
+docker image prune -f || info "WARN: docker image prune failed"
+
+# 单独清理闲置网络，过滤网络白名单，不删除 maozi-cloud-network
+info -e "\n>>> Clean unused networks (keep network white list)"
+NET_WHITE_REGEX=$(build_network_white_regex)
+# 拿到所有未使用网络名称，排除白名单
+unused_nets=$(docker network ls --filter "dangling=true" --format "{{.Name}}" | grep -vE "(${NET_WHITE_REGEX})")
+if [[ -n "${unused_nets}" ]]; then
+    info "Networks to delete:"
+    echo "${unused_nets}"
+    echo "${unused_nets}" | xargs -r docker network rm || info "WARN: docker network rm some networks failed"
+else
+    info "No unused networks to delete or all networks in white list."
+fi
 
 # 2. 自定义删除未使用镜像，过滤白名单（支持 maozi-cloud-*-service:*）
 WHITE_REGEX=$(build_white_regex)

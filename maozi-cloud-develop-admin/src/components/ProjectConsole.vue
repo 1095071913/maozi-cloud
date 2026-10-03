@@ -1365,10 +1365,10 @@
     <!-- ===== 微服务全量启动弹窗 ===== -->
     <el-dialog
       v-model="scriptVisible"
-      width="760px"
+      width="92%"
       draggable
       append-to-body
-      modal-class="pc-dlg"
+      modal-class="pc-dlg pc-slg-dlg"
       :show-close="false"
       :close-on-click-modal="false"
       :before-close="onBeforeScriptClose"
@@ -1388,41 +1388,68 @@
         </div>
       </template>
 
-      <div v-if="sessions.length > 1" class="pcd-tabs">
-        <button
-          v-for="s in sessions"
-          :key="s.id"
-          type="button"
-          class="pcd-tab"
-          :class="{ active: s.id === activeSid }"
-          @click="focusSession(s.id)"
-        >
-          <span class="pcd-tab-dot" :class="{ running: s.running, ok: !s.running && s.status === 'ok', fail: !s.running && s.status === 'fail' }"></span>
-          <span class="pcd-tab-label">{{ s.icon }} {{ s.label }}</span>
-          <span v-if="!s.running" class="pcd-tab-x" title="移除该日志" @click.stop="removeSession(s.id)">✕</span>
-        </button>
-      </div>
-
       <div class="pcd-body">
-        <div class="pcd-log-box">
-          <div class="pcd-log-head">
-            <span class="pcd-log-dot" :class="{ running: scriptRunning }"></span>
-            <span>脚本输出</span>
-            <span class="pcd-log-status">
-              {{
-                scriptRunning
-                  ? `运行中 · 已 ${scriptElapsedText}`
-                  : scriptStatus === 'ok'
-                    ? `已结束 · 成功 · 耗时 ${scriptElapsedText}`
-                    : scriptStatus === 'fail'
-                      ? `已结束 · 失败 · 耗时 ${scriptElapsedText}`
-                      : '待执行'
-              }}
-            </span>
+        <div class="pcd-sess-wrap">
+          <!-- 左：执行历史列表（名字 / 状态 / 耗时 / 开始时间），点击行切换右侧日志详情 -->
+          <div class="pcd-sess-list">
+            <div class="pcd-sess-head">
+              <span class="pcd-sess-head-title">执行历史</span>
+              <span class="pcd-sess-head-info">
+                <span v-if="runningSessionCount" class="pcd-sess-head-run">{{ runningSessionCount }} 运行中</span>
+                <button v-if="hasEndedSessions" class="pcd-sess-clear" type="button" @click="clearEndedSessions">清空</button>
+              </span>
+            </div>
+            <div class="pcd-sess-rows">
+              <button
+                v-for="s in sessionList"
+                :key="s.id"
+                type="button"
+                class="pcd-sess-row"
+                :class="{ active: s.id === activeSid }"
+                @click="focusSession(s.id)"
+              >
+                <span class="pcd-sess-ico">{{ s.icon }}</span>
+                <span class="pcd-sess-main">
+                  <span class="pcd-sess-name" :title="s.label">{{ s.label }}</span>
+                  <span class="pcd-sess-meta">
+                    <span class="pcd-sess-st" :class="sessionState(s)"><i class="pcd-sess-st-dot"></i>{{ sessionStateText(s) }}</span>
+                    <span class="pcd-sess-start">{{ fmtSessionStart(s.startedAt) }}</span>
+                  </span>
+                </span>
+                <span class="pcd-sess-side">
+                  <span class="pcd-sess-dur" :class="{ run: s.running }">{{ sessionDuration(s) }}</span>
+                  <span v-if="!s.running" class="pcd-sess-x" title="移除该记录" @click.stop="removeSession(s.id)">✕</span>
+                </span>
+              </button>
+              <div v-if="sessions.length === 0" class="pcd-sess-empty">
+                <span class="pcd-sess-empty-ico">🗂️</span>
+                <span class="pcd-sess-empty-text">暂无执行记录</span>
+                <span class="pcd-sess-empty-tip">操作执行后在此展示历史</span>
+              </div>
+            </div>
           </div>
-          <div class="pcd-log pcd-log-tall" ref="scriptLogBox">
-            <div v-for="(l, i) in scriptLogs" :key="i" class="pcd-log-line">{{ l }}</div>
-            <div v-if="scriptLogs.length === 0" class="pcd-log-empty">等待脚本输出…</div>
+
+          <!-- 右：当前选中会话的日志详情 -->
+          <div class="pcd-log-box">
+            <div class="pcd-log-head">
+              <span class="pcd-log-dot" :class="{ running: scriptRunning }"></span>
+              <span>脚本输出</span>
+              <span class="pcd-log-status">
+                {{
+                  scriptRunning
+                    ? `运行中 · 已 ${scriptElapsedText}`
+                    : scriptStatus === 'ok'
+                      ? `已结束 · 成功 · 耗时 ${scriptElapsedText}`
+                      : scriptStatus === 'fail'
+                        ? `已结束 · 失败 · 耗时 ${scriptElapsedText}`
+                        : '待执行'
+                }}
+              </span>
+            </div>
+            <div class="pcd-log pcd-log-tall" ref="scriptLogBox">
+              <div v-for="(l, i) in scriptLogs" :key="i" class="pcd-log-line">{{ l }}</div>
+              <div v-if="scriptLogs.length === 0" class="pcd-log-empty">等待脚本输出…</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1730,7 +1757,7 @@
       </template>
     </el-dialog>
 
-    <!-- ===== Maven 配置弹窗：mvn -v 定位安装目录，编辑 conf/settings.xml（保存前自动备份） ===== -->
+    <!-- ===== Maven 配置弹窗：mvn -v 定位安装目录，编辑 conf/settings.xml（保存直接覆盖，不备份） ===== -->
     <el-dialog
       v-model="mavenVisible"
       width="760px"
@@ -1748,7 +1775,7 @@
             <div class="pcd-header-icon">🪶</div>
             <div>
               <div class="pcd-title">Maven 配置</div>
-              <div class="pcd-subtitle">mvn -v 解析安装目录 · 编辑 conf/settings.xml · 保存前自动备份</div>
+              <div class="pcd-subtitle">mvn -v 解析安装目录 · 编辑 conf/settings.xml · 直接保存</div>
             </div>
           </div>
           <button class="pcd-close" type="button" @click="mavenVisible = false">✕</button>
@@ -1792,7 +1819,7 @@
             </div>
             <div class="pmc-status">
               <span>{{ mavenLineCount }} 行 · {{ fmtBytes(mavenBytes) }}{{ mavenData.exists ? '' : ' · 新文件' }}</span>
-              <span>💾 保存前自动备份为 settings.xml.bak.&lt;时间戳&gt;</span>
+              <span>💾 直接保存</span>
             </div>
           </div>
         </template>
@@ -1808,13 +1835,13 @@
             :disabled="mavenLoading || mavenSaving || !!mavenError"
             @click="saveMavenConfig"
           >
-            {{ mavenSaving ? '保存中…' : '💾 保存（自动备份）' }}
+            {{ mavenSaving ? '保存中…' : '💾 保存' }}
           </button>
         </div>
       </template>
     </el-dialog>
 
-    <!-- ===== Docker 配置弹窗：daemon.json 按平台解析（mac/Win=~/.docker，Linux=/etc/docker 优先），编辑保存（自动备份） ===== -->
+    <!-- ===== Docker 配置弹窗：daemon.json 按平台解析（mac/Win=~/.docker，Linux=/etc/docker 优先），编辑保存（不备份） ===== -->
     <el-dialog
       v-model="dockerVisible"
       width="760px"
@@ -1832,7 +1859,7 @@
             <div class="pcd-header-icon">🐳</div>
             <div>
               <div class="pcd-title">Docker 配置</div>
-              <div class="pcd-subtitle">daemon.json 按平台解析 · 编辑保存（自动备份）· 重启 Docker 后生效</div>
+              <div class="pcd-subtitle">daemon.json 按平台解析 · 编辑保存 · 重启 Docker 后生效</div>
             </div>
           </div>
           <button class="pcd-close" type="button" @click="dockerVisible = false">✕</button>
@@ -1876,7 +1903,7 @@
             </div>
             <div class="pmc-status">
               <span>{{ dockerLineCount }} 行 · {{ fmtBytes(dockerBytes) }}{{ dockerData.exists ? '' : ' · 新文件' }}</span>
-              <span>💾 保存前自动备份 · 重启 Docker 后生效</span>
+              <span>💾 直接保存 · 重启 Docker 后生效</span>
             </div>
           </div>
         </template>
@@ -1884,15 +1911,23 @@
 
       <template #footer>
         <div class="pcd-footer">
-          <button class="pcd-btn plain" type="button" :disabled="dockerLoading || dockerSaving" @click="loadDockerConfig">⟳ 刷新</button>
+          <button class="pcd-btn" type="button" :disabled="dockerLoading || dockerSaving || dockerRestarting" @click="loadDockerConfig">⟳ 刷新</button>
           <button class="pcd-btn ghost" type="button" @click="dockerVisible = false">取消</button>
+          <button
+            class="pcd-btn"
+            type="button"
+            :disabled="dockerLoading || dockerSaving || dockerRestarting || !!dockerError"
+            @click="restartDocker"
+          >
+            {{ dockerRestarting ? '🔄 重启中…' : '🔄 重启 Docker' }}
+          </button>
           <button
             class="pcd-btn primary"
             type="button"
-            :disabled="dockerLoading || dockerSaving || !!dockerError"
+            :disabled="dockerLoading || dockerSaving || dockerRestarting || !!dockerError"
             @click="saveDockerConfig"
           >
-            {{ dockerSaving ? '保存中…' : '💾 保存（自动备份）' }}
+            {{ dockerSaving ? '保存中…' : '💾 保存' }}
           </button>
         </div>
       </template>
@@ -2781,7 +2816,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onActivated, onDeactivated, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onActivated, onDeactivated, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { api, type AppServiceEntry, type ComposeServiceStats, type ConfigEntry, type EnvFile, type EnvSettingGroup, type EnvSettingItem, type EnvSettingSection, type ProjectBinding, type ProjectEntry } from '../api'
 
@@ -3078,6 +3113,7 @@ type LastAction =
   | { type: 'hotSwap'; variant: 'monomer' | 'distributeds' }
   | { type: 'initImage'; image: string }
   | { type: 'dockerClear' }
+  | { type: 'dockerRestart' }
 
 interface LogSession {
   id: string
@@ -3110,10 +3146,38 @@ function finishSession(s: LogSession, okFlag: boolean): void {
   s.logs.push(`── ${okFlag ? '✓ 执行成功' : '✗ 执行失败'} · 耗时 ${fmtDuration(s.endedAt - s.startedAt)} ──`)
 }
 
-const sessions = ref<LogSession[]>([])
+/** 会话按项目隔离：projectId → 该项目自己的执行历史（切换项目互不可见，后台照常收日志） */
+const sessionsByProject = reactive<Record<string, LogSession[]>>({})
+
 const activeSid = ref('')
 
+/** 当前项目的会话桶（不存在时惰性创建，仅用于写操作）：新增/移除/清空都落在当前项目 */
+function projectSessions(): LogSession[] {
+  const key = activeProjectId.value ?? '_none'
+  return (sessionsByProject[key] ??= [])
+}
+
+const EMPTY_SESSIONS: LogSession[] = []
+
+const sessions = computed<LogSession[]>(() => sessionsByProject[activeProjectId.value ?? '_none'] ?? EMPTY_SESSIONS)
+
 const activeSession = computed(() => sessions.value.find((s) => s.id === activeSid.value) ?? null)
+
+/** 全项目查找会话：其他项目后台运行的会话也要持续接收日志行与完成标记（只是不在当前视图展示） */
+function findSession(sid?: string): LogSession | undefined {
+  if (!sid) return undefined
+  for (const arr of Object.values(sessionsByProject)) {
+    const hit = arr.find((x) => x.id === sid)
+    if (hit) return hit
+  }
+  return undefined
+}
+
+// 项目切换：聚焦新项目自己的首条记录并收起日志弹窗（弹窗内容切到新项目的历史）
+watch(activeProjectId, () => {
+  activeSid.value = projectSessions()[0]?.id ?? ''
+  scriptVisible.value = false
+})
 
 const runningSessionCount = computed(() => sessions.value.filter((s) => s.running).length)
 
@@ -3146,6 +3210,46 @@ const scriptElapsedText = computed(() => {
   const end = s.running ? nowTick.value : (s.endedAt ?? s.startedAt)
   return fmtDuration(end - s.startedAt)
 })
+
+/** ===== 执行历史列表（左栏）：名字 / 状态 / 耗时 / 开始时间，点击行切换右侧日志详情 ===== */
+/** 列表按开始时间倒序（最新在上） */
+const sessionList = computed(() => [...sessions.value].reverse())
+
+/** 会话耗时：运行中依赖 nowTick 心跳每秒刷新，结束后用 endedAt 定格 */
+function sessionDuration(s: LogSession): string {
+  const end = s.running ? nowTick.value : (s.endedAt ?? s.startedAt)
+  return fmtDuration(end - s.startedAt)
+}
+
+/** 状态文案与样式类：运行中 / 成功 / 失败 / 待执行 */
+function sessionStateText(s: LogSession): string {
+  if (s.running) return '运行中'
+  return s.status === 'ok' ? '成功' : s.status === 'fail' ? '失败' : '待执行'
+}
+
+function sessionState(s: LogSession): string {
+  if (s.running) return 'running'
+  return s.status === 'ok' ? 'ok' : s.status === 'fail' ? 'fail' : ''
+}
+
+/** 开始时间：同年 MM-dd HH:mm:ss，跨年补年份 */
+function fmtSessionStart(ts: number): string {
+  const d = new Date(ts)
+  const p = (n: number): string => String(n).padStart(2, '0')
+  const base = `${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
+  return d.getFullYear() === new Date().getFullYear() ? base : `${d.getFullYear()}-${base}`
+}
+
+/** 是否存在已结束的记录（决定「清空」按钮显隐） */
+const hasEndedSessions = computed(() => sessions.value.some((s) => !s.running))
+
+/** 清空已结束的执行记录（保留运行中会话）；当前选中被清掉时回退到首条 */
+function clearEndedSessions(): void {
+  const arr = projectSessions()
+  const keep = arr.filter((s) => s.running)
+  arr.splice(0, arr.length, ...keep)
+  if (!keep.some((s) => s.id === activeSid.value)) activeSid.value = keep[0]?.id ?? ''
+}
 
 /* 模板兼容视图（绑定到当前活动会话） */
 const scriptRunning = computed(() => activeSession.value?.running ?? false)
@@ -3209,11 +3313,12 @@ function startSession(
 ): LogSession {
   const id = `s${Date.now().toString(36)}_${++sidSeq}`
   const session: LogSession = { id, action, ...meta, logs: [], status: '', running: true, startedAt: Date.now() }
-  sessions.value.push(session)
+  const arr = projectSessions()
+  arr.push(session)
   activeSid.value = id
   scriptVisible.value = true
   // 必须取数组中的代理对象：直接返回 session 原始对象时，对其属性的写入不会触发响应式更新
-  return sessions.value[sessions.value.length - 1]
+  return arr[arr.length - 1]
 }
 
 /** 同一操作已在运行：聚焦既有会话（返回 true 表示已处理） */
@@ -3252,6 +3357,7 @@ function onRerunLast(): Promise<void> {
   if (a.type === 'hotSwap') return toggleHotSwap(a.variant) // 开关重放=再切一次，回到目标状态
   if (a.type === 'initImage') return onInitImageBuild(a.image)
   if (a.type === 'dockerClear') return onDockerClear(true)
+  if (a.type === 'dockerRestart') return restartDocker(true)
   if (a.type === 'gitPull') return onGitPull()
   if (a.type === 'gitCheckout') return runGitCheckout(a.branch)
   if (a.type === 'sshClone') return Promise.resolve() // 克隆不可重放：目录已存在，按钮对此类会话隐藏
@@ -3283,7 +3389,8 @@ function onBeforeScriptClose(done: () => void): void {
 }
 
 const offScriptLog = api.projects.onScriptLog((p) => {
-  const s = sessions.value.find((x) => x.id === p.sid)
+  // 跨项目路由：后台运行的其他项目会话同样接收日志与完成标记（视图层只展示当前项目）
+  const s = findSession(p.sid)
   if (!s) return
 
   // 后台任务完成标记：结束会话并刷新状态
@@ -3645,7 +3752,7 @@ async function saveMavenConfig(): Promise<void> {
       ElMessage.error(r.error ?? '保存失败')
       return
     }
-    ElMessage.success(`settings.xml 已保存，备份：${r.data?.backupFile ?? '—'}`)
+    ElMessage.success('settings.xml 已保存')
     mavenData.value.exists = true
   } finally {
     mavenSaving.value = false
@@ -3659,6 +3766,7 @@ const dockerContent = ref('')
 const dockerLoading = ref(false)
 const dockerError = ref('')
 const dockerSaving = ref(false)
+const dockerRestarting = ref(false)
 const dcxGutter = ref<HTMLElement>()
 const dcxArea = ref<HTMLTextAreaElement>()
 
@@ -3731,10 +3839,50 @@ async function saveDockerConfig(): Promise<void> {
       ElMessage.error(r.error ?? '保存失败')
       return
     }
-    ElMessage.success(`daemon.json 已保存，备份：${r.data?.backupFile ?? '—'}；重启 Docker 后生效`)
+    ElMessage.success('daemon.json 已保存，重启 Docker 后生效')
     dockerData.value.exists = true
   } finally {
     dockerSaving.value = false
+  }
+}
+
+/** 重启 Docker（会停止当前所有运行中的容器）：确认后执行，执行过程实时输出到执行日志会话 */
+async function restartDocker(skipConfirm = false): Promise<void> {
+  if (dockerRestarting.value) return
+  if (focusRunning((a) => a.type === 'dockerRestart')) return
+  if (!skipConfirm) {
+    try {
+      await ElMessageBox.confirm(
+        '重启 Docker 会停止当前所有运行中的容器（带 restart 策略的会自动恢复），Docker Desktop 启动可能需要几分钟。确定重启？',
+        '重启 Docker',
+        { confirmButtonText: '重启', cancelButtonText: '取消', type: 'warning' }
+      )
+    } catch {
+      return
+    }
+  }
+  const s = startSession(
+    { type: 'dockerRestart' },
+    {
+      label: '重启 Docker',
+      icon: '🔄',
+      title: '重启 Docker',
+      sub: 'Docker Desktop 安装 → docker desktop restart · 服务器直装 → systemctl · 实时输出'
+    }
+  )
+  dockerRestarting.value = true
+  try {
+    const r = await api.projects.dockerRestart(s.id)
+    finishSession(s, r.ok)
+    if (!r.ok && !stopRequestedSids.has(s.id)) ElMessage.error(r.error ?? '重启 Docker 失败')
+    else if (r.ok && !stopRequestedSids.has(s.id)) ElMessage.success('Docker 已重启并恢复就绪')
+  } catch (err) {
+    finishSession(s, false)
+    ElMessage.error(`重启发起失败：${(err as Error).message}`)
+  } finally {
+    dockerRestarting.value = false
+    s.running = false
+    stopRequestedSids.delete(s.id)
   }
 }
 
@@ -9806,7 +9954,7 @@ onMounted(loadState)
 }
 
 .pcd-log-tall {
-  height: 340px;
+  height: 52vh;
 }
 
 .pcd-log-empty {
@@ -12080,80 +12228,272 @@ onMounted(loadState)
   color: #dc2626;
 }
 
-/** 多会话标签页 */
-.pcd-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 10px 20px 0;
-  background: #fff;
+/** 执行历史列表（左栏）+ 日志详情（右栏）双栏布局 */
+/* 执行日志弹窗专属（pc-slg-dlg）：pc-dlg 统一规则把宽度 !important 钉死在 min(640px, 94vw)，
+   width 属性设置无效——用双类名更高优先级覆盖，按窗口自适应放大并放宽高度限制 */
+.pc-slg-dlg.pc-dlg .el-dialog {
+  width: min(920px, 76vw) !important;
+  max-height: 92vh;
+  margin-top: 4vh !important;
+  margin-bottom: 4vh !important;
 }
 
-.pcd-tab {
-  display: inline-flex;
+.pcd-sess-wrap {
+  display: flex;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.pcd-sess-wrap .pcd-log-box {
+  flex: 1;
+  min-width: 0;
+  margin-top: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pcd-sess-wrap .pcd-log {
+  /* 固定高度 40vh：flex:1 的基准(0)会覆盖 height，日志随内容撑高导致滚动条外溢到弹窗 body */
+  flex: none;
+}
+
+.pcd-sess-list {
+  width: 300px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  background: #0b1220;
+  overflow: hidden;
+}
+
+.pcd-sess-head {
+  display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 6px 12px;
-  border: 1px solid #e4eaf2;
-  border-radius: 999px;
-  background: #f8fafc;
-  color: #64748b;
-  font-size: 12px;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid #1e293b;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.pcd-sess-head-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #7dd3fc;
+}
+
+.pcd-sess-head-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pcd-sess-head-run {
+  font-size: 10px;
   font-weight: 600;
+  color: #93c5fd;
+  background: rgba(37, 99, 235, 0.22);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.pcd-sess-clear {
+  border: 1px solid rgba(125, 211, 252, 0.22);
+  background: transparent;
+  color: #64748b;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.pcd-tab:hover {
-  border-color: #bfdbfe;
-  color: #1d4ed8;
+.pcd-sess-clear:hover {
+  color: #fca5a5;
+  border-color: rgba(252, 165, 165, 0.4);
+  background: rgba(239, 68, 68, 0.08);
 }
 
-.pcd-tab.active {
-  background: #eff6ff;
-  border-color: #93c5fd;
-  color: #1d4ed8;
+.pcd-sess-rows {
+  flex: 1;
+  overflow-y: auto;
+  max-height: calc(52vh + 32px);
+  padding: 6px;
 }
 
-.pcd-tab-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #cbd5e1;
+.pcd-sess-rows::-webkit-scrollbar {
+  width: 5px;
+}
+
+.pcd-sess-rows::-webkit-scrollbar-thumb {
+  background: #1e3a5f;
+  border-radius: 3px;
+}
+
+.pcd-sess-rows::-webkit-scrollbar-thumb:hover {
+  background: #2d4f7f;
+}
+
+.pcd-sess-rows::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pcd-sess-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 9px 10px;
+  margin-bottom: 4px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.pcd-sess-row:hover {
+  background: rgba(56, 189, 248, 0.07);
+  border-color: rgba(56, 189, 248, 0.14);
+}
+
+.pcd-sess-row.active {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.18), rgba(56, 189, 248, 0.08));
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.pcd-sess-row.active::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #38bdf8, #2563eb);
+}
+
+.pcd-sess-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
 }
 
-.pcd-tab-dot.running {
-  background: #2563eb;
-  animation: pcd-tab-pulse 1.2s ease infinite;
+.pcd-sess-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.pcd-tab-dot.ok {
-  background: #10b981;
-}
-
-.pcd-tab-dot.fail {
-  background: #ef4444;
-}
-
-@keyframes pcd-tab-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0);
-  }
-}
-
-.pcd-tab-label {
-  max-width: 160px;
+.pcd-sess-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #e2e8f0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.pcd-tab-x {
+.pcd-sess-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.pcd-sess-st {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1.5px 7px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.14);
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.pcd-sess-st-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.pcd-sess-st.running {
+  background: rgba(37, 99, 235, 0.22);
+  color: #93c5fd;
+}
+
+.pcd-sess-st.running .pcd-sess-st-dot {
+  animation: pcd-sess-pulse 1.1s ease infinite;
+}
+
+.pcd-sess-st.ok {
+  background: rgba(16, 185, 129, 0.16);
+  color: #6ee7b7;
+}
+
+.pcd-sess-st.fail {
+  background: rgba(239, 68, 68, 0.16);
+  color: #fca5a5;
+}
+
+@keyframes pcd-sess-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.pcd-sess-start {
+  font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  color: #64748b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pcd-sess-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.pcd-sess-dur {
+  font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.pcd-sess-dur.run {
+  color: #38bdf8;
+}
+
+.pcd-sess-x {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -12161,13 +12501,36 @@ onMounted(loadState)
   height: 15px;
   border-radius: 50%;
   font-size: 10px;
-  color: #94a3b8;
+  color: #475569;
   transition: all 0.15s ease;
 }
 
-.pcd-tab-x:hover {
-  background: #fee2e2;
-  color: #dc2626;
+.pcd-sess-x:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+
+.pcd-sess-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 30px 0;
+}
+
+.pcd-sess-empty-ico {
+  font-size: 22px;
+  opacity: 0.7;
+}
+
+.pcd-sess-empty-text {
+  font-size: 12px;
+  color: #475569;
+}
+
+.pcd-sess-empty-tip {
+  font-size: 10px;
+  color: #334155;
 }
 
 .pcd-footer {

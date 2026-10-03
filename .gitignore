@@ -54,6 +54,7 @@ target
 
 # 自动部署临时文件
 **/maozi-cloud-deploy-services-distributed-record
+**/maozi-cloud-utils/maozi-cloud-deploy-services-distributed-record.json
 maozi-cloud-services-monomer-docker-backup.yml
 maozi-cloud-services-distributeds-docker-backup.yml
 

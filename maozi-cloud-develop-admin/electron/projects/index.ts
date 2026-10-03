@@ -127,10 +127,12 @@ function sshBaseArgs(t: SshTarget, kp?: string, mux = true): string[] {
 /**
  * 远端命令统一环境前缀：补齐 PATH + source 远端 shell 配置（mvn/docker 等工具链常在用户配置里）。
  * POSIX sh（bash POSIX 模式）下 source 不存在的文件会中止整个命令，必须先 test -f 守卫；
- * 且不能写 [ -f ]——方括号会被 expect 的 Tcl 双引号串当命令替换
+ * 且不能写 [ -f ]——方括号会被 expect 的 Tcl 双引号串当命令替换。
+ * rc 配置可能整串替换 PATH（丢掉 /usr/bin 等系统目录，systemctl 等会 command not found），
+ * source 后再补一次系统目录兜底
  */
 const REMOTE_PATH_SETUP =
-  'export PATH=$PATH:/usr/local/bin:/usr/bin:/usr/sbin:/usr/local/sbin:/opt/homebrew/bin:$HOME/.local/bin:$HOME/bin; test -f ~/.zshenv && . ~/.zshenv >/dev/null 2>&1; test -f ~/.zshrc && . ~/.zshrc >/dev/null 2>&1; test -f ~/.bashrc && . ~/.bashrc >/dev/null 2>&1; test -f ~/.profile && . ~/.profile >/dev/null 2>&1; true'
+  'export PATH=$PATH:/usr/local/bin:/usr/bin:/usr/sbin:/usr/local/sbin:/opt/homebrew/bin:$HOME/.local/bin:$HOME/bin; test -f ~/.zshenv && . ~/.zshenv >/dev/null 2>&1; test -f ~/.zshrc && . ~/.zshrc >/dev/null 2>&1; test -f ~/.bashrc && . ~/.bashrc >/dev/null 2>&1; test -f ~/.profile && . ~/.profile >/dev/null 2>&1; export PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin; true'
 
 /**
  * 远端环境快照缓存（user@host → export 块）：
@@ -152,7 +154,9 @@ async function sshExecRaw(t: SshTarget, command: string, timeoutMs = 30_000): Pr
   // $ 会被 Tcl 替换、[] 是 Tcl 命令替换，均需转义（JSON.stringify 已处理 " 与 \）
   const tclSafeCmd = JSON.stringify(command).replace(/\$/g, '\\$').replace(/\[/g, '\\[').replace(/\]/g, '\\]')
   const esc = `spawn ssh ${sshOptsStr(t)} ${t.user}@${t.host} ${tclSafeCmd}`
-  const script = `set timeout ${Math.ceil(timeoutMs / 1000)}\n${esc}\nexpect {\n  "password:" { send "$env(SSH_PASS)\\r"; exp_continue }\n  "Password:" { send "$env(SSH_PASS)\\r"; exp_continue }\n  "yes/no" { send "yes\\r"; exp_continue }\n  eof\n}\ncatch wait result\nexit [lindex $result 3]`
+  // "assword for " 覆盖 sudo 提示语（[sudo] password for <user>:，sudo -S 写到 stderr），
+  // 以同一份 SSH 密码自动应答（sudo 密码与登录密码通常一致）
+  const script = `set timeout ${Math.ceil(timeoutMs / 1000)}\n${esc}\nexpect {\n  "password:" { send "$env(SSH_PASS)\\r"; exp_continue }\n  "Password:" { send "$env(SSH_PASS)\\r"; exp_continue }\n  "assword for " { send "$env(SSH_PASS)\\r"; exp_continue }\n  "yes/no" { send "yes\\r"; exp_continue }\n  eof\n}\ncatch wait result\nexit [lindex $result 3]`
   let stdout: string
   try {
     ;({ stdout } = await exec('expect', ['-c', script], {
@@ -165,7 +169,7 @@ async function sshExecRaw(t: SshTarget, command: string, timeoutMs = 30_000): Pr
     const tail = String(e.stdout ?? '')
       .split('\n')
       .map((l) => l.replace(/\r/g, ''))
-      .filter((l) => l && !l.startsWith('spawn ') && !l.includes('assword:'))
+      .filter((l) => l && !l.startsWith('spawn ') && !l.includes('assword:') && !l.includes('assword for'))
       .slice(-3)
       .join('；')
       .slice(0, 200)
@@ -174,7 +178,7 @@ async function sshExecRaw(t: SshTarget, command: string, timeoutMs = 30_000): Pr
   return stdout
     .split('\n')
     .map((l) => l.replace(/\r/g, ''))
-    .filter((l) => !l.startsWith('spawn ') && !l.includes('password:') && !l.includes('Password:') && !isSshNoise(l))
+    .filter((l) => !l.startsWith('spawn ') && !l.includes('password:') && !l.includes('Password:') && !l.includes('assword for') && !isSshNoise(l))
     .join('\n')
 }
 
@@ -268,8 +272,9 @@ async function sshStream(
   const fullCmd = `${await remoteEnvSetup(t)} && ${command}`
   const send = (kind: 'line' | 'update', text: string): void => {
     const clean = text.replace(/\x1b\[[0-9;]*[A-Za-z]/g, '').replace(/\s+$/, '')
-    // 过滤 SSH 密码提示行（(user@host) Password:）——expect 自动应答的提示不应出现在业务日志里
-    if (clean && !isSshNoise(clean) && !/[Pp]assword:\s*$/.test(clean) && !sender.isDestroyed())
+    // 过滤 SSH 密码提示行（(user@host) Password:）与 sudo 提示行（[sudo] password for <user>:）
+    // ——expect 自动应答的提示不应出现在业务日志里
+    if (clean && !isSshNoise(clean) && !/([Pp]assword:|assword for [^:]*:)\s*$/.test(clean) && !sender.isDestroyed())
       sender.send(channel, { kind, text: clean, sid: opts.sid })
   }
   try {
@@ -283,8 +288,9 @@ async function sshStream(
       bin = 'expect'
       const tclSafe = JSON.stringify(fullCmd).replace(/\$/g, '\\$').replace(/\[/g, '\\[').replace(/\]/g, '\\]')
       const esc = `spawn ssh ${sshOptsStr(t, false)} ${t.user}@${t.host} ${tclSafe}`
-      // catch wait + exit：把 ssh 的真实退出码透传出来，命令失败不再假成功
-      args = ['-c', `set timeout -1\n${esc}\nexpect {\n  "password:" { send "$env(SSH_PASS)\\r"; exp_continue }\n  "Password:" { send "$env(SSH_PASS)\\r"; exp_continue }\n  "yes/no" { send "yes\\r"; exp_continue }\n  eof\n}\ncatch wait result\nexit [lindex $result 3]`]
+      // catch wait + exit：把 ssh 的真实退出码透传出来，命令失败不再假成功；
+      // "assword for " 同 sshExecRaw：sudo -S 的提示语用 SSH 密码自动应答
+      args = ['-c', `set timeout -1\n${esc}\nexpect {\n  "password:" { send "$env(SSH_PASS)\\r"; exp_continue }\n  "Password:" { send "$env(SSH_PASS)\\r"; exp_continue }\n  "assword for " { send "$env(SSH_PASS)\\r"; exp_continue }\n  "yes/no" { send "yes\\r"; exp_continue }\n  eof\n}\ncatch wait result\nexit [lindex $result 3]`]
       env = { SSH_PASS: t.password }
     }
     await new Promise<void>((resolve, reject) => {
@@ -3697,18 +3703,15 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
     }
   })
 
-  /** 保存 Maven settings.xml：覆盖前备份为 settings.xml.bak.<时间戳>；远程经 base64 透传避免引号转义 */
+  /** 保存 Maven settings.xml：直接覆盖保存（不备份）；远程经 base64 透传避免引号转义 */
   ipcMain.handle('projects:mavenConfigSave', async (_e, contentArg: string) => {
     try {
       const b = getBinding()
       if (!b) throw new Error('尚未绑定项目')
       const content = String(contentArg ?? '')
       const { settingsFile: file } = await mavenDetect(b)
-      const stamp = new Date().toISOString().replace(/[:.]/g, '-')
-      const backup = `${file}.bak.${stamp}`
       if (b.remote) {
         const t = resolveSshTarget(b.remote.configId)
-        await sshExec(t, `cp -p ${JSON.stringify(file)} ${JSON.stringify(backup)}`, 10_000)
         const b64 = Buffer.from(content, 'utf8').toString('base64')
         await sshExec(
           t,
@@ -3716,10 +3719,9 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
           20_000
         )
       } else {
-        fs.copyFileSync(file, backup)
         fs.writeFileSync(file, content, 'utf8')
       }
-      return { ok: true, data: { backupFile: backup } }
+      return { ok: true }
     } catch (err) {
       return { ok: false, error: (err as Error).message }
     }
@@ -3790,18 +3792,15 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
     }
   })
 
-  /** 保存 Docker daemon.json：覆盖前备份；远程经 base64 透传（/etc/docker 普通用户写入失败时如实报错） */
+  /** 保存 Docker daemon.json：直接覆盖保存（不备份）；远程经 base64 透传（/etc/docker 普通用户写入失败时如实报错） */
   ipcMain.handle('projects:dockerConfigSave', async (_e, contentArg: string) => {
     try {
       const b = getBinding()
       if (!b) throw new Error('尚未绑定项目')
       const content = String(contentArg ?? '')
       const file = await dockerConfigPath(b)
-      const stamp = new Date().toISOString().replace(/[:.]/g, '-')
-      const backup = `${file}.bak.${stamp}`
       if (b.remote) {
         const t = resolveSshTarget(b.remote.configId)
-        await sshExec(t, `cp -p ${JSON.stringify(file)} ${JSON.stringify(backup)} 2>/dev/null; test ! -f ${JSON.stringify(file)} || test -f ${JSON.stringify(backup)} || echo __BAK_FAIL__`, 10_000)
         const b64 = Buffer.from(content, 'utf8').toString('base64')
         await sshExec(
           t,
@@ -3810,12 +3809,162 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
         )
       } else {
         fs.mkdirSync(path.dirname(file), { recursive: true })
-        if (fs.existsSync(file)) fs.copyFileSync(file, backup)
         fs.writeFileSync(file, content, 'utf8')
       }
-      return { ok: true, data: { backupFile: backup } }
+      return { ok: true }
     } catch (err) {
       return { ok: false, error: `保存失败（Linux 下 /etc/docker 通常需要 root 权限）：${(err as Error).message}` }
+    }
+  })
+
+  /**
+   * 重启 Docker：Docker Desktop 安装的用官方 CLI docker desktop restart（阻塞至引擎恢复）；
+   * 服务器直装的用 systemctl restart docker（远程 root 直可，普通用户 sudo -S，expect 自动应答密码）；
+   * Windows = 重启 com.docker.service 服务（需管理员权限，失败如实报错）。
+   * 各阶段进度（探测/分流/命令输出/健康等待）实时推送 projects:scriptLog，可中断
+   */
+  ipcMain.handle('projects:dockerRestart', async (event, sidArg?: string) => {
+    const sid = validSid(sidArg)
+    const send = (text: string): void => {
+      if (!event.sender.isDestroyed()) event.sender.send('projects:scriptLog', { kind: 'line', text, sid })
+    }
+    try {
+      const b = getBinding()
+      if (!b) throw new Error('尚未绑定项目')
+      // 全程持有会话条目（无 child 的标记条目）：纯轮询阶段（docker info 探测）也能被中断
+      const keepAlive = (): void => {
+        if (!runningProcs.has(sid)) runningProcs.set(sid, { stopRequested: false })
+      }
+      keepAlive()
+      const daemonUp = async (): Promise<boolean> => {
+        try {
+          if (b.remote) {
+            await sshExec(resolveSshTarget(b.remote.configId), 'docker info >/dev/null 2>&1', 15_000)
+          } else {
+            const pathEnv = await getShellPath()
+            await exec('docker', ['info'], { timeout: 15_000, env: { ...process.env, PATH: pathEnv } })
+          }
+          return true
+        } catch {
+          return false
+        }
+      }
+      // 轮询等待 daemon 状态：每 3 秒一查，每 15 秒播报一次已等待时长；中断即抛
+      const waitDaemon = async (want: boolean, timeoutMs: number, what: string): Promise<boolean> => {
+        const startTs = Date.now()
+        const deadline = startTs + timeoutMs
+        let lastLog = -15
+        while (Date.now() < deadline) {
+          if (runningProcs.get(sid)?.stopRequested) throw new Error('已手动中断')
+          if ((await daemonUp()) === want) return true
+          const elapsed = Math.floor((Date.now() - startTs) / 1000)
+          if (elapsed - lastLog >= 15) {
+            send(`⏳ ${what}（已等 ${elapsed}s）`)
+            lastLog = elapsed
+          }
+          await new Promise((r) => setTimeout(r, 3000))
+        }
+        return false
+      }
+      if (b.remote) {
+        const t = resolveSshTarget(b.remote.configId)
+        // Docker Desktop 安装的（有 desktop CLI 插件）用官方 CLI 重启；服务器直装的走 systemctl。
+        // docker/systemctl 均解析绝对路径执行：rc 配置整串替换 PATH 时按名查找会 command not found
+        send('▶ 检测安装方式：docker desktop version …')
+        const dockerAbs = '$(command -v docker 2>/dev/null || echo /usr/bin/docker)'
+        const hasDesktop = await (async (): Promise<boolean> => {
+          try {
+            await sshExec(t, `"${dockerAbs}" desktop version >/dev/null 2>&1`, 20_000)
+            return true
+          } catch {
+            return false
+          }
+        })()
+        keepAlive()
+        if (hasDesktop) {
+          send('✓ 检测到 Docker Desktop 安装：执行 docker desktop restart（阻塞至引擎恢复，可能需 1-2 分钟）')
+          await sshStream(event.sender, 'projects:scriptLog', t, `"${dockerAbs}" desktop restart`, {
+            timeoutMs: 180_000,
+            sid
+          })
+        } else {
+          send('· 非 Docker Desktop 安装：systemctl restart docker（普通用户 sudo 自动应答密码）')
+          await sshStream(
+            event.sender,
+            'projects:scriptLog',
+            t,
+            'SYSTEMCTL="$(command -v systemctl 2>/dev/null || echo /usr/bin/systemctl)"; systemctl restart docker 2>/dev/null || sudo -S "$SYSTEMCTL" restart docker',
+            { timeoutMs: 180_000, sid }
+          )
+        }
+        keepAlive()
+        if (!(await waitDaemon(true, 90_000, '等待远程 Docker daemon 恢复')))
+          throw new Error('docker info 90 秒内未恢复，请手动检查')
+        send('✓ Docker 已重启，daemon 恢复就绪')
+        return { ok: true }
+      }
+      const pathEnv = await getShellPath()
+      const env = { ...process.env, PATH: pathEnv }
+      if (process.platform === 'darwin') {
+        // 优先 Docker Desktop 官方 CLI（docker desktop restart 阻塞至引擎恢复）；
+        // 旧版无 desktop 插件时回退 osascript 退出 Docker Desktop 后重新拉起
+        send('▶ 检测安装方式：docker desktop version …')
+        let hasDesktopCli = false
+        try {
+          await exec('docker', ['desktop', 'version'], { timeout: 15_000, env })
+          hasDesktopCli = true
+        } catch {
+          hasDesktopCli = false
+        }
+        keepAlive()
+        if (hasDesktopCli) {
+          send('✓ 检测到 Docker Desktop 安装：执行 docker desktop restart（阻塞至引擎恢复，可能需 1-2 分钟）')
+          await streamProcess(event.sender, 'projects:scriptLog', 'docker', ['desktop', 'restart'], {
+            timeoutMs: 240_000,
+            sid
+          })
+          keepAlive()
+          if (!(await waitDaemon(true, 120_000, '等待 Docker daemon 恢复')))
+            throw new Error('Docker Desktop 2 分钟内未就绪，请手动检查')
+          send('✓ Docker 已重启，daemon 恢复就绪')
+          return { ok: true }
+        }
+        send('· 旧版 Docker Desktop（无 desktop 插件）：退出后重新拉起')
+        try {
+          await exec('osascript', ['-e', 'quit app "Docker"'], { timeout: 20_000, env })
+        } catch {
+          /* 未运行时 quit 报错，忽略 */
+        }
+        if (!(await waitDaemon(false, 60_000, '等待 Docker Desktop 退出')))
+          throw new Error('Docker Desktop 60 秒内未退出，请手动检查')
+        send('▶ open -a Docker 重新拉起 …')
+        await exec('open', ['-a', 'Docker'], { timeout: 20_000, env })
+        keepAlive()
+        if (!(await waitDaemon(true, 180_000, '等待 Docker daemon 恢复')))
+          throw new Error('Docker Desktop 3 分钟内未就绪，请手动检查')
+        send('✓ Docker 已重启，daemon 恢复就绪')
+        return { ok: true }
+      }
+      if (process.platform === 'linux') {
+        send('▶ systemctl restart docker …')
+        await exec('systemctl', ['restart', 'docker'], { timeout: 60_000, env })
+        if (!(await waitDaemon(true, 90_000, '等待 Docker daemon 恢复')))
+          throw new Error('docker info 90 秒内未恢复，请手动检查')
+        send('✓ Docker 已重启，daemon 恢复就绪')
+        return { ok: true }
+      }
+      send('▶ PowerShell: Restart-Service com.docker.service …')
+      await exec('powershell.exe', ['-Command', 'Restart-Service com.docker.service'], { timeout: 120_000, env })
+      if (!(await waitDaemon(true, 180_000, '等待 Docker daemon 恢复')))
+        throw new Error('Docker 3 分钟内未就绪，请手动检查')
+      send('✓ Docker 已重启，daemon 恢复就绪')
+      return { ok: true }
+    } catch (err) {
+      return { ok: false, error: `重启 Docker 失败：${(err as Error).message}` }
+    } finally {
+      // 清理无子进程的标记条目（被中断会话保留的 stopRequested 存根）
+      const entry = runningProcs.get(sid)
+      if (entry && !entry.child) runningProcs.delete(sid)
     }
   })
 

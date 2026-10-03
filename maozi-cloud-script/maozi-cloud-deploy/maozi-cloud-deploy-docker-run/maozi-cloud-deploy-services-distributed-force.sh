@@ -4,7 +4,7 @@
 # 强制全量部署入口 (单一 git 仓库版)
 # ------------------------------------------------------------
 # 与 maozi-cloud-deploy-services-distributed.sh 的区别:
-#   - 不读取 / 写入 maozi-cloud-deploy-services-distributed-record 状态 (分支 / SHA)
+#   - 不读取 / 写入 maozi-cloud-utils/maozi-cloud-deploy-services-distributed-record.json 状态 (分支 / SHA)
 #   - 不做 git diff 增量比对
 #   - 不做 jar mtime 前后快照对比
 #   - 无条件: 全量 mvn 构建 + 所有在 JSON 配置里登记的服务全部重建并重启

@@ -189,14 +189,16 @@ export interface ElectronApi {
     mavenInfo: () => Promise<IpcResult<{ version: string; home: string; settingsFile: string; exists: boolean }>>
     /** 读取 Maven settings.xml 内容 */
     mavenConfigRead: () => Promise<IpcResult<{ content: string }>>
-    /** 保存 Maven settings.xml（覆盖前备份为 settings.xml.bak.<时间戳>） */
-    mavenConfigSave: (content: string) => Promise<IpcResult<{ backupFile: string }>>
+    /** 保存 Maven settings.xml（直接覆盖保存，不备份） */
+    mavenConfigSave: (content: string) => Promise<IpcResult<void>>
     /** Docker 配置：版本 + daemon.json 按平台解析（mac/Windows=~/.docker，Linux=/etc/docker 优先，远程按 Linux） */
     dockerInfo: () => Promise<IpcResult<{ version: string; platform: string; configFile: string; exists: boolean }>>
     /** 读取 Docker daemon.json 内容 */
     dockerConfigRead: () => Promise<IpcResult<{ content: string }>>
-    /** 保存 Docker daemon.json（覆盖前自动备份；修改后需重启 Docker 生效） */
-    dockerConfigSave: (content: string) => Promise<IpcResult<{ backupFile: string }>>
+    /** 保存 Docker daemon.json（直接覆盖保存，不备份；修改后需重启 Docker 生效） */
+    dockerConfigSave: (content: string) => Promise<IpcResult<void>>
+    /** 重启 Docker（Docker Desktop 安装用 docker desktop restart，直装用 systemctl）；进度实时推送执行日志会话 */
+    dockerRestart: (sid?: string) => Promise<IpcResult<void>>
     /** 应用服务配置：按服务名匹配 environment_variable.json 一级属性，条目值读业务 .env；未匹配返回 data:null */
     serviceConfig: (
       service: string,

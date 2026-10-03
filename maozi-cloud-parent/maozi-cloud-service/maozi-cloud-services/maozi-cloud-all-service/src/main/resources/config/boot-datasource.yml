@@ -4,17 +4,20 @@
 # ============================================================
 spring:
   datasource:
-    type: com.zaxxer.hikari.HikariDataSource               # 连接池实现
-    driver-class-name: com.mysql.cj.jdbc.Driver             # MySQL 8 驱动
-    # JDBC 连接地址，默认指向 Docker 网络中的 maozi-cloud-basic-mysql:3306
-    # 数据库名默认规则：${应用名}-${环境}-db
-    url: jdbc:mysql://${application-datasource-jdbc-url:maozi-cloud-basic-mysql:3306}/${application-datasource-db-name:${spring.application.name}-${application.environment}-db}?useSSL=false&serverTimezone=UTC&characterEncoding=utf8&nullCatalogMeansCurrent=true
-    username: ${application-datasource-jdbc-username:root}  # 数据库用户名
-    password: ${application-datasource-jdbc-password:password}  # 数据库密码
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${application-datasource-jdbc-url:maozi-cloud-basic-mysql:3306}/${application-datasource-db-name:${spring.application.name}-${application.environment}-db}?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&nullCatalogMeansCurrent=true
+    username: ${application-datasource-jdbc-username:root}
+    password: ${application-datasource-jdbc-password:password}
     hikari:
-      maximum-pool-size: 12         # 连接池最大连接数
-      connection-timeout: 16000      # 获取连接超时时间（毫秒）
-      minimum-idle: 12              # 最小空闲连接数
-      idle-timeout: 500000          # 空闲连接超时时间（毫秒）
-      max-lifetime: 540000          # 连接最大存活时间（毫秒）
-      connection-test-query: SELECT 1  # 连接有效性检测 SQL
+      # 最大连接，根据业务压测调整，默认推荐10~20，不要直接50
+      maximum-pool-size: 15
+      # 获取连接等待超时时间
+      connection-timeout: 6000
+      # 不配置minimum-idle，Hikari官方推荐，最小空闲连接等于最大连接
+      # minimum-idle: 10
+      # 空闲连接超时，注意必须小于max-lifetime
+      idle-timeout: 300000
+      # 连接最大存活时间，比mysql wait_timeout小至少60s，示例540s=9min
+      max-lifetime: 540000
+      # 删掉 connection-test-query，Hikari用JDBC4 isValid校验

@@ -314,8 +314,8 @@ export interface DevToolInfo {
  *
  * GUI 应用不继承登录 shell 的 PATH（Finder/启动台启动只有系统默认路径），
  * nvm / homebrew / IDEA 内置 maven 等都会探测不到。
- * 此处先通过交互式登录 shell（zsh -i，加载 ~/.zshrc）取回用户真实 PATH，
- * 失败时回退到常见安装目录拼接
+ * 此处先通过登录 shell（zsh -l -i，与真实终端一致）取回用户真实 PATH，
+ * 失败时退登录非交互（规避 .zshrc 交互组件挂起），最后回退常见安装目录拼接
  */
 let cachedShellPath: string | null = null
 
@@ -324,24 +324,30 @@ export async function getShellPath(): Promise<string> {
   if (cachedShellPath) return cachedShellPath
   const base = process.env.PATH ?? ''
   if (process.platform === 'darwin') {
-    try {
-      const { stdout } = await exec('zsh', ['-i', '-c', 'echo __PATH__$PATH'], { timeout: 8000 })
-      const line = stdout.split('\n').find((l) => l.includes('__PATH__'))
-      const p = line?.replace('__PATH__', '').trim()
-      if (p && p.includes('/')) {
-        cachedShellPath = [p, base].filter(Boolean).join(':')
-        return cachedShellPath
+    // 必须带 -l（登录 shell）：/usr/local/bin、/opt/homebrew/bin 由 /etc/zprofile 的 path_helper
+    // 注入，仅 -i（交互非登录）不加载，而 .zshrc 只在继承值前追加——打包应用从 Finder/启动台
+    // 启动时 PATH 只有系统最小集，取回的 PATH 将不含 /usr/local/bin（Docker Desktop 的 docker
+    // 就在那），本地绑定的容器网段/初始化镜像等 docker 流程随之全部失效
+    for (const flags of [['-l', '-i'], ['-l']] as const) {
+      try {
+        const { stdout } = await exec('zsh', [...flags, '-c', 'echo __PATH__$PATH'], { timeout: 8000 })
+        const line = stdout.split('\n').find((l) => l.includes('__PATH__'))
+        const p = line?.replace('__PATH__', '').trim()
+        if (p && p.includes('/')) {
+          cachedShellPath = [p, base].filter(Boolean).join(':')
+          return cachedShellPath
+        }
+      } catch {
+        /* 该方式失败换下一种 */
       }
-    } catch {
-      /* .zshrc 加载失败时走回退 */
     }
   }
   const extra = [
     '/opt/homebrew/bin',
     '/usr/local/bin',
-    `${homedir()}/.nvm/versions/node/latest/bin`,
-    `${homedir()}/.sdkman/candidates/maven/current/bin`,
-    `${homedir()}/.sdkman/candidates/java/current/bin`
+    `${os.homedir()}/.nvm/versions/node/latest/bin`,
+    `${os.homedir()}/.sdkman/candidates/maven/current/bin`,
+    `${os.homedir()}/.sdkman/candidates/java/current/bin`
   ]
   cachedShellPath = [...new Set([base, ...extra].filter(Boolean))].join(':')
   return cachedShellPath

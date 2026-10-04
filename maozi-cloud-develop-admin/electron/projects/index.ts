@@ -7,31 +7,31 @@ import os from 'node:os'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import {
-  activateProject,
-  clearBinding,
-  createProject,
-  deactivateProject,
-  getBinding,
-  isDbInitialized,
-  listProjects,
-  markDbInitialized,
-  parseConfigFile,
-  removeProject,
-  saveBinding,
-  updateProject,
-  userDataStateFile
+    activateProject,
+    clearBinding,
+    createProject,
+    deactivateProject,
+    getBinding,
+    isDbInitialized,
+    listProjects,
+    markDbInitialized,
+    parseConfigFile,
+    removeProject,
+    saveBinding,
+    updateProject,
+    userDataStateFile
 } from './store'
 import {listConfigs} from '../configs/store'
 import {selectPlatform} from '../platform'
 import type {EnvFile, EnvVarEntry, HostsEntry} from '../platform/types'
 import {getShellPath} from '../system/sysinfo'
 import type {
-  AppServiceEntry,
-  ComposeServiceStats,
-  EnvSettingGroup,
-  EnvSettingItem,
-  EnvSettingSection,
-  ProjectBinding
+    AppServiceEntry,
+    ComposeServiceStats,
+    EnvSettingGroup,
+    EnvSettingItem,
+    EnvSettingSection,
+    ProjectBinding
 } from './types'
 
 const exec = promisify(execFile)
@@ -1508,9 +1508,13 @@ async function checkDockerCompose(): Promise<void> {
       throw new Error('远程服务器 docker / docker-compose 不可用，请先安装')
     }
   } else {
-    // 本地绑定：检测本机 docker
+    // 本地绑定：检测本机 docker（失败给出可定位的提示而非裸 spawn ENOENT）
     const pathEnv = await getShellPath()
-    await exec('docker', ['compose', 'version'], { timeout: 10_000, env: { ...process.env, PATH: pathEnv } })
+    try {
+      await exec('docker', ['compose', 'version'], { timeout: 10_000, env: { ...process.env, PATH: pathEnv } })
+    } catch (err) {
+      throw new Error(`本机 docker / docker-compose 不可用：${(err as Error).message}`)
+    }
   }
   composeOk = true
 }

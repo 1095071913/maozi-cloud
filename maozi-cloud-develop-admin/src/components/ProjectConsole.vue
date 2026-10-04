@@ -3538,7 +3538,7 @@ function onRerunLast(): Promise<void> {
   if (a.type === 'script') return onRunScript(a.kind)
   if (a.type === 'compose') return onCompose(a.service, a.action, true)
   if (a.type === 'adminStop') return onAdminStop(true)
-  if (a.type === 'hostsInit') return onHostsInit(true)
+  if (a.type === 'hostsInit') return onHostsInit()
   if (a.type === 'networkCreate') return onNetworkCreate(true)
   if (a.type === 'appSvc') return onAppService({ name: a.service, file: a.file }, a.action, true)
   if (a.type === 'appSvcAll') return onAppServiceAll(a.action, true)
@@ -5401,19 +5401,8 @@ async function loadHostsInitStatus(): Promise<void> {
   hostsInit.value = r.ok && r.data ? r.data : null
 }
 
-async function onHostsInit(skipConfirm = false): Promise<void> {
-  if (!skipConfirm) {
-    const missing = hostsInit.value?.missing ?? 0
-    try {
-      await ElMessageBox.confirm(
-        `将把项目 maozi-cloud-utils/init_hosts.json 中缺失的 ${missing} 条映射写入系统 /etc/hosts（已设置的忽略），需要管理员授权并自动刷新 DNS 缓存。确定继续吗？`,
-        '初始化 Hosts',
-        { type: 'warning', confirmButtonText: '初始化', cancelButtonText: '取消' }
-      )
-    } catch {
-      return
-    }
-  }
+/** 初始化 Hosts：只写入缺失映射、幂等可重复执行，无需弹框确认 */
+async function onHostsInit(): Promise<void> {
   if (focusRunning((a) => a.type === 'hostsInit')) return
   const s = startSession(
     { type: 'hostsInit' },

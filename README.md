@@ -76,6 +76,7 @@
 
 ### 快速开始
 
+- [项目开始前准备](maozi-cloud-doc/项目开始前准备)
 - [基础服务部署](maozi-cloud-doc/基础服务部署.md)
 - [本地业务服务容器化部署](maozi-cloud-doc/本地业务服务容器化部署.md)
 - [Idea业务服务启动](maozi-cloud-doc/Idea业务服务启动.md)

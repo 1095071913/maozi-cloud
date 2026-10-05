@@ -4,7 +4,7 @@
             "JVM": "APPLICATION_JVM_PARAMS",
             "环境（默认:dev）": "APPLICATION_ENVIRONMENT",
             "灰度（默认:main）": "APPLICATION_VERSION",
-            "日志地址": "APPLICATION_LOG_PATH",
+            "容器业务服务日志映射宿主机地址": "APPLICATION_LOG_PATH",
             "基础服务向注册中心注册的地址（默认:容器地址）": "APPLICATION_TO_REGISTER_IP"
         },
         "百炼云": {

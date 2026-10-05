@@ -20741,9 +20741,9 @@
       ],
       "advancedSettings": {},
       "id": "42554209",
-      "baseUrl": "http://localhost:1000",
+      "baseUrl": "http://localhost:1100",
       "baseUrls": {
-        "7130572": "http://localhost:1000"
+        "7130572": "http://localhost:1100"
       },
       "socketioBaseUrls": {},
       "websocketBaseUrls": {}
@@ -20767,6 +20767,20 @@
           "description": "",
           "initialValue": "",
           "isSync": true
+        },
+        {
+          "name": "oauth_refresh_token",
+          "value": "",
+          "description": "",
+          "initialValue": "",
+          "isSync": true
+        },
+        {
+          "name": "oauth_access_token",
+          "value": "",
+          "description": "",
+          "initialValue": "",
+          "isSync": true
         }
       ],
       "parameters": {
@@ -20786,9 +20800,9 @@
       ],
       "advancedSettings": {},
       "id": "48825947",
-      "baseUrl": "http://localhost:1100",
+      "baseUrl": "http://localhost/api",
       "baseUrls": {
-        "7130572": "http://localhost:1100"
+        "7130572": "http://localhost/api"
       },
       "socketioBaseUrls": {},
       "websocketBaseUrls": {}

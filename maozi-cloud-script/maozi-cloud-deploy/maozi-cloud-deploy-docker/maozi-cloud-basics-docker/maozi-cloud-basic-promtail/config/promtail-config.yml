@@ -34,7 +34,7 @@ scrape_configs:
       # multiline: 以 [ yyyy-MM-dd HH:mm:ss ] 开头的行视为新日志条目首行,
       # 后续的堆栈跟踪行(java.lang.Xxx / at com.xxx...)被合并到上一条
       - multiline:
-          firstline: '^\[ \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \]'
+          firstline: '^\[ \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}:\d{3} \]'
           max_wait_time: 1s
 
       # 解析 logback 日志行,在前缀字段之外,把 %m 整段(含外层 [ ] 包装、AOP 字段、可能的堆栈)都吃进 message
@@ -43,7 +43,7 @@ scrape_configs:
       #   的所有内容包括异常堆栈(multiline 已把堆栈行合并进来),统一塞进 message 字段
       # - 不再单独抽 stack_trace,JSON 里只有一个 message 字段
       - regex:
-          expression: '^\[ (?P<logtime>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) \]  \[ Level：(?P<level>\w+) \]  \[ TID：(?P<tid>[^\]]*) \]  \[ Service：(?P<service>[^\]]*) \]  \[ Environment：(?P<environment>[^\]]*) \]  (?P<message>\[ [\s\S]*)\s*$'
+          expression: '^\[ (?P<logtime>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}:\d{3}) \]  \[ Level：(?P<level>\w+) \]  \[ TID：(?P<tid>[^\]]*) \]  \[ Service：(?P<service>[^\]]*) \]  \[ Environment：(?P<environment>[^\]]*) \]  (?P<message>\[ [\s\S]*)\s*$'
 
       # 把 level/service/environment 提升为 Loki 标签
       # (注意: Promtail 不会把它们写进日志正文,因此 JSON 行里需要再次显式写入)

@@ -56,8 +56,10 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
 
     private static final Logger logger = LoggerFactory.getLogger(JdbcMetricsRepository.class);
 
+    /** Max rows deleted per statement, to keep each DELETE short. */
     private static final long MAX_BATCH_DELETE_ROWS = 5000;
 
+    /** Inserts a metric row, or updates the metric columns on duplicate key (app+resource+timestamp). */
     private static final String UPSERT_SQL =
         "INSERT INTO sentinel_metric (gmt_create, gmt_modified, app, `timestamp`, resource, "
             + "pass_qps, success_qps, block_qps, exception_qps, rt, `count`) "
@@ -66,20 +68,24 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
             + "success_qps = VALUES(success_qps), block_qps = VALUES(block_qps), "
             + "exception_qps = VALUES(exception_qps), rt = VALUES(rt), `count` = VALUES(`count`)";
 
+    /** Loads the metrics of one app+resource within a timestamp range, ascending by timestamp. */
     private static final String QUERY_SQL =
         "SELECT id, gmt_create, gmt_modified, app, `timestamp`, resource, "
             + "pass_qps, success_qps, block_qps, exception_qps, rt, `count` "
             + "FROM sentinel_metric WHERE app = ? AND resource = ? AND `timestamp` BETWEEN ? AND ? "
             + "ORDER BY `timestamp` ASC";
 
+    /** Sums block/pass QPS per resource of one app in a window, most blocked resources first. */
     private static final String LIST_RESOURCES_SQL =
         "SELECT resource, SUM(block_qps) AS block_qps_total, SUM(pass_qps) AS pass_qps_total "
             + "FROM sentinel_metric WHERE app = ? AND `timestamp` >= ? AND `timestamp` <= ? "
             + "GROUP BY resource ORDER BY block_qps_total DESC, pass_qps_total DESC";
 
+    /** Deletes at most {@link #MAX_BATCH_DELETE_ROWS} rows older than a timestamp per execution. */
     private static final String DELETE_EXPIRED_SQL =
         "DELETE FROM sentinel_metric WHERE `timestamp` < ? LIMIT " + MAX_BATCH_DELETE_ROWS;
 
+    /** Spring JDBC accessor used for all statements against the metric table. */
     private final JdbcTemplate jdbcTemplate;
 
     /**
@@ -129,10 +135,14 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
      * a race-free "dirty" test so each batch of new seconds triggers exactly one write.
      */
     private static final class BucketAccumulator {
+        /** Running totals of the bucket, kept in a metric entity whose timestamp is the bucket start. */
         final MetricEntity entity;
+        /** Seconds (ms, trimmed) already folded into the totals; also guards against duplicates. */
         final Set<Long> foldedSeconds = ConcurrentHashMap.newKeySet();
+        /** Number of seconds of the totals that have already been persisted. */
         volatile int flushedSeconds;
 
+        /** Creates an accumulator around an initialized (all-zero) bucket entity. */
         BucketAccumulator(MetricEntity entity) {
             this.entity = entity;
         }
@@ -144,10 +154,13 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
      */
     private final ConcurrentHashMap<String, BucketAccumulator> bucketBuffer = new ConcurrentHashMap<>();
 
+    /** Scheduler of the daily cleanup of expired metric rows; null when retention is disabled. */
     private ScheduledExecutorService cleanerScheduler;
 
+    /** Scheduler of the periodic tail flush of aggregation buckets; null when aggregation is off. */
     private ScheduledExecutorService bucketFlushScheduler;
 
+    /** Maps one row of the sentinel_metric table to a {@link MetricEntity}. */
     private final RowMapper<MetricEntity> metricRowMapper = new RowMapper<MetricEntity>() {
         @Override
         public MetricEntity mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -172,6 +185,10 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    /**
+     * Starts the background schedulers: the bucket tail flush when aggregation is enabled,
+     * and the daily expired-metric cleanup when retentionDays is positive.
+     */
     @PostConstruct
     public void init() {
         if (aggregateSeconds > 1) {
@@ -198,6 +215,7 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         cleanerScheduler.scheduleAtFixedRate(this::cleanExpiredMetrics, 5, 1440, TimeUnit.MINUTES);
     }
 
+    /** Shuts down the schedulers and best-effort flushes the aggregation buckets still in memory. */
     @PreDestroy
     public void destroy() {
         if (cleanerScheduler != null) {
@@ -216,6 +234,7 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         }
     }
 
+    /** Saves a single metric entity via {@link #saveAll}; null or blank-app input is ignored. */
     @Override
     public void save(MetricEntity metric) {
         if (metric == null || StringUtil.isBlank(metric.getApp())) {
@@ -226,6 +245,11 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         saveAll(metrics);
     }
 
+    /**
+     * Persists the given metrics: filters out null entities and entities with a blank app
+     * or null timestamp, then either folds them into N-second buckets or upserts them
+     * directly, depending on {@link #aggregateSeconds}.
+     */
     @Override
     public void saveAll(Iterable<MetricEntity> metrics) {
         if (metrics == null) {
@@ -298,12 +322,12 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
 
     /**
      * Persist the buckets that have unflushed seconds (both the still-open one and the
-     * closed ones), then evict the stale ones. Runs inline after every folding and on the
+     * closed ones) and evict the stale ones. Runs inline after every folding and on the
      * background flush schedule, so tail data still lands in MySQL after traffic stops
      * and {@link #saveAll} is no longer invoked.
      * <p>
      * The persisted row of a bucket is the upsert snapshot of what has been folded so far
-     * (QPS normalized to per-second average over the folded seconds), so the values grow
+     * (QPS fields carrying the request totals of the folded seconds), so the values grow
      * in near real time while the bucket is still collecting, and each batch of new
      * seconds triggers exactly one write (races between the inline flush and the schedule
      * only cost an idempotent extra write, never a lost one).
@@ -338,6 +362,10 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         }
     }
 
+    /**
+     * {@link #flushDirtyBuckets} wrapper for the flush schedule: swallows and logs
+     * exceptions so the schedule never breaks.
+     */
     private void flushDirtyBucketsQuietly() {
         try {
             flushDirtyBuckets();
@@ -375,6 +403,10 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         return normalized;
     }
 
+    /**
+     * Batch upserts the given entities with {@link #UPSERT_SQL}; database errors are
+     * caught and logged so the metric fetching loop is never broken.
+     */
     private void doUpsert(List<MetricEntity> validMetrics) {
         try {
             jdbcTemplate.batchUpdate(UPSERT_SQL, new BatchPreparedStatementSetter() {
@@ -407,6 +439,11 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         }
     }
 
+    /**
+     * Loads the metrics of one app+resource with timestamp in [startTime, endTime] (both
+     * inclusive), ordered by timestamp ascending; returns an empty list for blank input
+     * or on database error.
+     */
     @Override
     public List<MetricEntity> queryByAppAndResourceBetween(String app, String resource,
                                                            long startTime, long endTime) {
@@ -422,6 +459,11 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         }
     }
 
+    /**
+     * Lists the resources of the app that have metrics within [startTime, endTime], ordered
+     * by summed block QPS then summed pass QPS descending; returns an empty list for a
+     * blank app or on database error.
+     */
     @Override
     public List<String> listResourcesOfApp(String app, long startTime, long endTime) {
         List<String> results = new ArrayList<>();
@@ -437,6 +479,10 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         }
     }
 
+    /**
+     * Deletes metric rows older than {@link #retentionDays} days in batches of
+     * {@link #MAX_BATCH_DELETE_ROWS} until fewer rows than the batch limit are affected.
+     */
     private void cleanExpiredMetrics() {
         try {
             long expireTime = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(retentionDays);

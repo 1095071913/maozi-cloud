@@ -17,7 +17,7 @@ import java.util.Properties;
 public class GatewayConfigInitializer implements ConfigInitializer {
 
     /** 网关 Nacos 共享配置文件导入清单（optional 前缀保证文件不存在时不阻断启动） */
-    private static final String NACOS_IMPORTS = "optional:nacos:cloud-nacos.yml,optional:nacos:boot-monitor.yml,optional:nacos:boot-arthas.yml,optional:nacos:cloud-default.yml";
+    private static final String NACOS_IMPORTS = "optional:nacos:cloud-nacos.yml,optional:nacos:boot-monitor.yml,optional:nacos:cloud-default.yml";
 
     /**
      * 初始化网关运行时配置

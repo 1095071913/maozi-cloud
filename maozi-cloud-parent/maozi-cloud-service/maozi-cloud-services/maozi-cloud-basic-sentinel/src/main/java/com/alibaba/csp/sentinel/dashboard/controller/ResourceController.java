@@ -38,8 +38,10 @@ import java.util.stream.Collectors;
 @RequestMapping(value = "/resource")
 public class ResourceController {
 
+    /** The logger of this controller. */
     private static Logger logger = LoggerFactory.getLogger(ResourceController.class);
 
+    /** The client used to fetch resource node info from Sentinel clients via HTTP. */
     @Autowired
     private SentinelApiClient httpFetcher;
 

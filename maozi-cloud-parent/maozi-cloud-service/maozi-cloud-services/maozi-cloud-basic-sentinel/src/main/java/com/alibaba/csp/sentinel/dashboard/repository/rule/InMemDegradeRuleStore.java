@@ -21,11 +21,14 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
+ * In-memory storage for degrade rules.
+ *
  * @author leyou
  */
 @Component
 public class InMemDegradeRuleStore extends InMemoryRuleRepositoryAdapter<DegradeRuleEntity> {
 
+    /** Static id generator for stored entities. */
     private static AtomicLong ids = new AtomicLong(0);
 
     @Override

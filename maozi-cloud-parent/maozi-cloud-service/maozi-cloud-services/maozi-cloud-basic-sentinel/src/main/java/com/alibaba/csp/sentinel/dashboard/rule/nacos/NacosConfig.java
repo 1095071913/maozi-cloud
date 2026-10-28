@@ -32,6 +32,11 @@ import java.util.Properties;
 @Configuration
 public class NacosConfig {
 
+    /**
+     * Create the shared Nacos {@link ConfigService} from the configured connection
+     * properties. The server address is always set; namespace is only set when
+     * non-blank, and username/password are only set when the username is non-blank.
+     */
     @Bean
     public ConfigService nacosConfigService(NacosProperties nacosProperties) throws Exception {
         Properties properties = new Properties();

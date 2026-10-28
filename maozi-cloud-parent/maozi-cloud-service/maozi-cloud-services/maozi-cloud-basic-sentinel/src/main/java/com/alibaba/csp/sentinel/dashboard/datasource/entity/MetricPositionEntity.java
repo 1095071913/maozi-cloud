@@ -21,10 +21,15 @@ import java.util.Date;
  * @author leyou
  */
 public class MetricPositionEntity {
+    /** The entity id. */
     private long id;
+    /** The create time. */
     private Date gmtCreate;
+    /** The last modify time. */
     private Date gmtModified;
+    /** The application name. */
     private String app;
+    /** The IP address of the machine. */
     private String ip;
     /**
      * Sentinel在该应用上使用的端口

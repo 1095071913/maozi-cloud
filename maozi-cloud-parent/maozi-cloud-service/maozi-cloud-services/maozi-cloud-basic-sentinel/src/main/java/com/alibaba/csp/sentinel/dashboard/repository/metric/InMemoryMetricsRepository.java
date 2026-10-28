@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
  */
 public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity> {
 
+    /** Max time in ms a metric entity is kept in the in-memory cache. */
     private static final long MAX_METRIC_LIVE_TIME_MS = 1000 * 60 * 5;
 
     /**
@@ -47,9 +48,14 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
      */
     private Map<String, Map<String, LinkedHashMap<Long, MetricEntity>>> allMetrics = new ConcurrentHashMap<>();
 
+    /** Read-write lock guarding the access to {@link #allMetrics}. */
     private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
 
+    /**
+     * Saves one metric entity under its app/resource/timestamp, ignoring null input and
+     * entities with a blank app; the write lock is held while the maps are updated.
+     */
     @Override
     public void save(MetricEntity entity) {
         if (entity == null || StringUtil.isBlank(entity.getApp())) {
@@ -71,6 +77,10 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
 
     }
 
+    /**
+     * Saves all given entities one by one via {@link #save}, holding the write lock
+     * across the whole batch; null input is ignored.
+     */
     @Override
     public void saveAll(Iterable<MetricEntity> metrics) {
         if (metrics == null) {
@@ -84,6 +94,11 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
         }
     }
 
+    /**
+     * Queries the cached metrics of the given app and resource whose timestamp is within
+     * [startTime, endTime] (both inclusive); returns an empty list for a blank app or an
+     * unknown app/resource.
+     */
     @Override
     public List<MetricEntity> queryByAppAndResourceBetween(String app, String resource,
                                                            long startTime, long endTime) {
@@ -112,6 +127,11 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
         }
     }
 
+    /**
+     * Lists the resources of the given app that have metrics within [startTime, endTime],
+     * aggregated over the query window and sorted by block QPS descending (pass QPS
+     * descending as the tie-breaker); returns an empty list for a blank or unknown app.
+     */
     @Override
     public List<String> listResourcesOfApp(String app, long startTime, long endTime) {
         List<String> results = new ArrayList<>();

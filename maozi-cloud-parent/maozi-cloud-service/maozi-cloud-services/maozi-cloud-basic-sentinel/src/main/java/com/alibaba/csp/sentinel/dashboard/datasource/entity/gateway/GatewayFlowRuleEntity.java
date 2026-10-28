@@ -41,29 +41,49 @@ public class GatewayFlowRuleEntity implements RuleEntity {
     /**3-天*/
     public static final int INTERVAL_UNIT_DAY = 3;
 
+    /** The entity id. */
     private Long id;
+    /** The application name. */
     private String app;
+    /** The IP address of the machine. */
     private String ip;
+    /** The port of the machine. */
     private Integer port;
 
+    /** The create time. */
     private Date gmtCreate;
+    /** The last modify time. */
     private Date gmtModified;
 
+    /** The resource name the rule applies to (route ID or API name depending on resourceMode). */
     private String resource;
+    /** Whether the resource is a route ID (0) or a custom API name (1). */
     private Integer resourceMode;
 
+    /** The threshold type: 0 for thread count and 1 for QPS. */
     private Integer grade;
+    /** The threshold count. */
     private Double count;
+    /** The statistic interval, in the unit of intervalUnit. */
     private Long interval;
+    /** The unit of the statistic interval: 0-second, 1-minute, 2-hour, 3-day. */
     private Integer intervalUnit;
 
+    /** The control behavior: 0 default and 2 rate limiter. */
     private Integer controlBehavior;
+    /** The burst count allowed when the threshold is exceeded. */
     private Integer burst;
 
+    /** The max queueing timeout in milliseconds for rate limiter behavior. */
     private Integer maxQueueingTimeoutMs;
 
+    /** The parameter flow item for parameter-based control, null if not parameter-based. */
     private GatewayParamFlowItemEntity paramItem;
 
+    /**
+     * Convert the given interval and unit (0-second, 1-minute, 2-hour, 3-day) to the
+     * interval in seconds, throwing IllegalArgumentException for an unknown unit.
+     */
     public static Long calIntervalSec(Long interval, Integer intervalUnit) {
         switch (intervalUnit) {
             case INTERVAL_UNIT_SECOND:
@@ -81,6 +101,10 @@ public class GatewayFlowRuleEntity implements RuleEntity {
         throw new IllegalArgumentException("Invalid intervalUnit: " + intervalUnit);
     }
 
+    /**
+     * Parse the interval in seconds into an array of [interval, intervalUnit], preferring
+     * the largest unit that divides it evenly (day, then hour, minute and second).
+     */
     public static Object[] parseIntervalSec(Long intervalSec) {
         if (intervalSec % (60 * 60 * 24) == 0) {
             return new Object[] {intervalSec / (60 * 60 * 24), INTERVAL_UNIT_DAY};
@@ -97,6 +121,11 @@ public class GatewayFlowRuleEntity implements RuleEntity {
         return new Object[] {intervalSec, INTERVAL_UNIT_SECOND};
     }
 
+    /**
+     * Convert to a {@link GatewayFlowRule}, deriving intervalSec from interval and
+     * intervalUnit, and only setting burst, maxQueueingTimeoutMs and the matchStrategy of
+     * paramItem when they are not null.
+     */
     public GatewayFlowRule toGatewayFlowRule() {
         GatewayFlowRule rule = new GatewayFlowRule();
         rule.setResource(resource);
@@ -131,6 +160,10 @@ public class GatewayFlowRuleEntity implements RuleEntity {
         return rule;
     }
 
+    /**
+     * Build an entity from the given GatewayFlowRule, parsing intervalSec into interval
+     * and intervalUnit.
+     */
     public static GatewayFlowRuleEntity fromGatewayFlowRule(String app, String ip, Integer port, GatewayFlowRule rule) {
         GatewayFlowRuleEntity entity = new GatewayFlowRuleEntity();
         entity.setApp(app);
@@ -209,6 +242,7 @@ public class GatewayFlowRuleEntity implements RuleEntity {
         this.gmtCreate = gmtCreate;
     }
 
+    /** Always return null, as a gateway flow rule is not a common Sentinel rule. */
     @Override
     public Rule toRule() {
         return null;

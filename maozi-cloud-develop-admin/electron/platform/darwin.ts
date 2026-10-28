@@ -194,7 +194,7 @@ export const darwinPlatform: Platform = {
     const content = cleanupEmptyManagedBlock(lines).join('\n')
     // 行级精确写入（只动托管区块/匹配行）不做 .maozi.bak 备份，避免已删除的密钥明文残留
     backupAndWrite(filePath, `${content}\n`, { backup: false })
-    // 已打开的终端经 precmd 钩子自动同步，无需重开
+    // 已打开的终端经 preexec/precmd 钩子自动同步，无需重开
     installLiveHook()
     syncLiveEnv()
   },
@@ -243,7 +243,7 @@ const HELPER_PATH = '/usr/local/bin/maozi-hosts-helper'
 const SUDOERS_PATH = '/etc/sudoers.d/maozi-hosts-helper'
 const SUDOERS_LINE = '%admin ALL=(root) NOPASSWD: /usr/local/bin/maozi-hosts-helper'
 
-/** 助手脚本内容：仅接受 /tmp 等临时目录下 maozi-hosts-* 前缀文件，写入后刷新 DNS（不备份） */
+/** 助手脚本内容：仅接受文件名以 maozi-hosts-* 开头的文件（按 basename 校验），写入后刷新 DNS（不备份） */
 const HELPER_VERSION = 'v2'
 function helperScript(): string {
   return [
@@ -313,14 +313,14 @@ async function writeHostsText(text: string): Promise<void> {
   }
 }
 
-/** 将新行写入托管区块（不存在时在文件末尾创建） */
+/** 实时环境同步：环境文件与 ~/.zshrc 钩子区块的标记（live-env） */
 const LIVE_ENV_FILE = '.maozi-cloud-develop-admin-env.sh'
 const LIVE_BEGIN = '# >>> maozi-cloud-develop-admin (live-env) >>>'
 const LIVE_END = '# <<< maozi-cloud-develop-admin (live-env) <<<'
 
 /**
  * 生成实时环境文件：启用的变量 export、禁用的 unset。
- * ~/.zshrc 的 precmd 钩子按 mtime 检测变化并 source 它，已打开的终端无需重开即可生效。
+ * ~/.zshrc 的 preexec/precmd 钩子按文件内容 md5 检测变化并 source 它，已打开的终端无需重开即可生效。
  * 文件内容全量生成、可随时重建，不做 .maozi.bak 备份（避免已删除的密钥明文残留）。
  */
 function syncLiveEnv(): void {
@@ -372,6 +372,7 @@ function installLiveHook(): void {
   backupAndWrite(zshrc, `${lines.join('\n')}\n`, { backup: false })
 }
 
+/** 将新行写入托管区块（不存在时在文件末尾创建） */
 function appendManaged(lines: string[], newLine: string): void {
   const beginIdx = lines.findIndex((l) => l.trim() === MANAGED_BEGIN)
   if (beginIdx < 0) {

@@ -160,8 +160,9 @@ export interface ElectronApi {
     sshCheckGit: (configId: string) => Promise<IpcResult<boolean>>
     /** 远程拉取代码（SSH git clone），日志走 onScriptLog */
     sshClone: (configId: string, gitSecretId: string, destDir: string, sid?: string) => Promise<IpcResult<ProjectBinding>>
-    /** UI 状态（Tab 选中 等）：.ui-state.json 持久化 */
+    /** 远程环境变量保存：写入远程 shell 配置 / 实时环境文件 */
     sshEnvSave: (params: { key: string; value: string; fileId: string }) => Promise<PlatformResult>
+    /** UI 状态（Tab 选中 等）：.ui-state.json 持久化 */
     uiStateGet: () => Promise<IpcResult<Record<string, unknown>>>
     uiStateSave: (patch: Record<string, unknown>) => Promise<PlatformResult>
     /** 订阅基础服务日志跟踪输出；返回取消订阅函数 */
@@ -203,7 +204,7 @@ export interface ElectronApi {
     dockerConfigSave: (content: string) => Promise<IpcResult<void>>
     /** 重启 Docker（Docker Desktop 安装用 docker desktop restart，直装用 systemctl）；进度实时推送执行日志会话 */
     dockerRestart: (sid?: string) => Promise<IpcResult<void>>
-    /** 应用服务配置：按服务名匹配 environment_variable.json 一级属性，条目值读业务 .env；未匹配返回 data:null */
+    /** 应用服务配置：按服务名匹配 docker_variable.json 一级属性，条目值读业务 .env；未匹配返回 data:null */
     serviceConfig: (
       service: string,
       base?: string

@@ -33,11 +33,18 @@ import java.util.Set;
 @Component("flowRuleDefaultPublisher")
 public class FlowRuleApiPublisher implements DynamicRulePublisher<List<FlowRuleEntity>> {
 
+    /** Client for talking to the Sentinel transport endpoints of machines. */
     @Autowired
     private SentinelApiClient sentinelApiClient;
+    /** Registry that provides machine information per application. */
     @Autowired
     private AppManagement appManagement;
 
+    /**
+     * Push the given flow rules to every healthy machine of the application through the
+     * Sentinel transport API. Does nothing when the app name is blank or rules is
+     * {@code null}.
+     */
     @Override
     public void publish(String app, List<FlowRuleEntity> rules) throws Exception {
         if (StringUtil.isBlank(app)) {

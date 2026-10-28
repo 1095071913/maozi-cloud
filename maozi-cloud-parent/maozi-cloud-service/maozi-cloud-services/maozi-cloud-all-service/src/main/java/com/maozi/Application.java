@@ -22,7 +22,8 @@ package com.maozi;
  * <p>
  * 继承 {@link BaseApplicationDB}，将 OAuth 认证、系统管理等业务模块聚合为
  * 单一可执行 JAR，通过单体部署插件（maozi-cloud-service-monomer）在单进程内
- * 完成本地 Bean 装配，默认以端口 1000 对外提供服务（可经 application-dev-port 覆盖）。
+ * 完成本地 Bean 装配，默认以端口 1000 对外提供服务（可经环境变量 APPLICATION_PORT
+ * 或 application.port 配置覆盖）。
  * </p>
  *
  * @author maozi

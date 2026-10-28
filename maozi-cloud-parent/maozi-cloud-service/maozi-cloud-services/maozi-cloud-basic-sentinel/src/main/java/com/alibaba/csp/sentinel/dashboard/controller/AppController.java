@@ -34,20 +34,25 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
+ * Controller for app and machine queries and machine removal on the dashboard.
+ *
  * @author Carpenter Lee
  */
 @RestController
 @RequestMapping(value = "/app")
 public class AppController {
 
+    /** Registry of apps and machines. */
     @Autowired
     private AppManagement appManagement;
 
+    /** Get the names of all registered apps. */
     @GetMapping("/names.json")
     public Result<List<String>> queryApps(HttpServletRequest request) {
         return Result.ofSuccess(appManagement.getAppNames());
     }
 
+    /** Get brief infos of all apps, sorted by app name. */
     @GetMapping("/briefinfos.json")
     public Result<List<AppInfo>> queryAppInfos(HttpServletRequest request) {
         List<AppInfo> list = new ArrayList<>(appManagement.getBriefApps());
@@ -55,6 +60,7 @@ public class AppController {
         return Result.ofSuccess(list);
     }
 
+    /** Gets machines of the given app sorted by app/ip/port; an unknown app returns success with null data. */
     @GetMapping(value = "/{app}/machines.json")
     public Result<List<MachineInfoVo>> getMachinesByApp(@PathVariable("app") String app) {
         AppInfo appInfo = appManagement.getDetailApp(app);
@@ -66,6 +72,10 @@ public class AppController {
         return Result.ofSuccess(MachineInfoVo.fromMachineInfoList(list));
     }
     
+    /**
+     * Removes the machine identified by app/ip/port from the registry. An unknown app
+     * returns success with null data, while a failed removal returns code 1.
+     */
     @RequestMapping(value = "/{app}/machine/remove.json")
     public Result<String> removeMachineById(
             @PathVariable("app") String app,

@@ -24,22 +24,36 @@ import java.util.Date;
  */
 public class DegradeRuleEntity implements RuleEntity {
 
+    /** The entity id. */
     private Long id;
+    /** The application name. */
     private String app;
 
+    /** The IP address of the machine. */
     private String ip;
+    /** The port of the machine. */
     private Integer port;
 
+    /** The resource name. */
     private String resource;
+    /** The caller that the rule applies to. */
     private String limitApp;
+    /** The threshold, whose meaning depends on grade (RT in ms, exception ratio or exception count). */
     private Double count;
+    /** The degrade time window in seconds. */
     private Integer timeWindow;
+    /** The circuit breaking strategy: 0 RT, 1 exception ratio and 2 exception count. */
     private Integer grade;
+    /** The min request amount that triggers degrading. */
     private Integer minRequestAmount;
+    /** The slow call ratio threshold of the rule. */
     private Double slowRatioThreshold;
+    /** The statistic interval in milliseconds. */
     private Integer statIntervalMs;
 
+    /** The create time. */
     private Date gmtCreate;
+    /** The last modify time. */
     private Date gmtModified;
 
     public static DegradeRuleEntity fromDegradeRule(String app, String ip, Integer port, DegradeRule rule) {
@@ -179,6 +193,10 @@ public class DegradeRuleEntity implements RuleEntity {
         this.gmtModified = gmtModified;
     }
 
+    /**
+     * Convert to a {@link DegradeRule}, only setting minRequestAmount, slowRatioThreshold
+     * and statIntervalMs when they are not null.
+     */
     @Override
     public DegradeRule toRule() {
         DegradeRule rule = new DegradeRule();

@@ -25,15 +25,22 @@ import java.util.Date;
  */
 public abstract class AbstractRuleEntity<T extends AbstractRule> implements RuleEntity {
 
+    /** The entity id. */
     protected Long id;
 
+    /** The application name. */
     protected String app;
+    /** The IP address of the machine. */
     protected String ip;
+    /** The port of the machine. */
     protected Integer port;
 
+    /** The wrapped rule object. */
     protected T rule;
 
+    /** The create time. */
     private Date gmtCreate;
+    /** The last modify time. */
     private Date gmtModified;
 
     @Override

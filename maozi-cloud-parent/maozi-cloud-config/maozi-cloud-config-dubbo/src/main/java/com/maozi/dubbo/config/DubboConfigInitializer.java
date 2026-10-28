@@ -9,7 +9,9 @@ import java.util.Properties;
 /**
  * Dubbo 运行时配置初始化器
  * <p>
- * 通过 SPI 机制被 {@code BaseApplication} 加载，屏蔽 Dubbo 启动 banner 输出。
+ * 通过 SPI 机制被 {@code BaseApplication} 加载，将 Dubbo 共享配置文件
+ * {@code cloud-dubbo.yml} 前插到 {@code spring.config.import} 导入列表，
+ * 并屏蔽 Dubbo 启动 banner 输出。
  * Dubbo 的 {@code WelcomeLogoApplicationListener} 无官方关闭开关，输出逻辑为：
  * INFO 级别可用时走日志框架输出，否则回退为 {@code System.out.print} 直写标准输出。
  * 本初始化器将 banner 日志记录器级别设为 OFF，强制统一走标准输出回退路径
@@ -22,7 +24,7 @@ import java.util.Properties;
  */
 public class DubboConfigInitializer implements ConfigInitializer {
 
-    /** 定时任务相关的 Nacos 共享配置文件导入（optional 前缀保证文件不存在时不阻断启动） */
+    /** Dubbo 相关的 Nacos 共享配置文件导入（optional 前缀保证文件不存在时不阻断启动） */
     private static final String IMPORTS = "optional:nacos:cloud-dubbo.yml";
 
     /** Dubbo banner 输出类的全路径，该类仅有 banner 一处日志输出，整类关闭无副作用 */
@@ -32,9 +34,10 @@ public class DubboConfigInitializer implements ConfigInitializer {
     private static final String BANNER_FLAG = ":: Dubbo (v";
 
     /**
-     * 屏蔽 Dubbo 启动 banner 输出。
+     * 导入 Dubbo 共享配置文件，并屏蔽 Dubbo 启动 banner 输出。
      * <p>
-     * 写入日志记录器关闭属性：Spring Boot 在环境准备阶段
+     * 先将 {@code cloud-dubbo.yml} 以 optional 前缀合并到
+     * {@code spring.config.import} 导入列表；再写入日志记录器关闭属性：Spring Boot 在环境准备阶段
      * （早于 banner 输出监听器执行）应用 {@code logging.level.*} 属性，
      * 使 banner 记录器 INFO 级别不可用，强制走标准输出回退路径。
      * 同时将 banner 特征注册到 {@code BaseApplication} 的统一过滤列表。

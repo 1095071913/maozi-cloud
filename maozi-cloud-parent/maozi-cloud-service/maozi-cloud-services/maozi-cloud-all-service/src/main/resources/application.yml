@@ -38,11 +38,11 @@ oss:
     #domain:                  # 可选，CDN 自定义域名
 
 spring:
-  # 上传文件大小限制（图片上传接口，单文件 10MB、单次请求合计 50MB）
+  # 上传文件大小限制（图片上传接口）
   servlet:
     multipart:
-      max-file-size: 1MB
-      max-request-size: 5MB
+      max-file-size: 1MB        # 单个文件大小上限
+      max-request-size: 5MB     # 单次请求所有文件合计大小上限
   config:
     # 导入各组件子配置文件（classpath 下的 config/ 目录）
     import:
@@ -53,32 +53,36 @@ spring:
       - classpath:config/boot-lock.yml           # 分布式锁（Redisson）配置
       - classpath:config/cloud-oauth.yml         # OAuth2 资源服务器配置
       - classpath:config/boot-monitor.yml
+  # AI 大模型接入配置（Spring AI），当前启用阿里云百炼，其余供应商注释备用
   ai:
+    # 智谱 AI 配置（按需取消注释启用）
     # zhipuai:
-    #   base-url: https://api.z.ai/api/paas
-    #   api-key:
+    #   base-url: https://api.z.ai/api/paas          # 智谱开放平台地址
+    #   api-key:                                     # API 密钥
     #   chat:
     #     options:
-    #       model: glm-5.2
+    #       model: glm-5.2                           # 对话模型
     #   embedding:
-    #     enabled: false
+    #     enabled: false                             # 是否启用向量嵌入
+    # 阿里云百炼（DashScope）配置
     dashscope:
-      api-key: ${AI_DASHSCOPE_KEY}
+      api-key: ${AI_DASHSCOPE_KEY}                   # API 密钥（从环境变量注入）
       chat:
-        enabled: true
+        enabled: true                                # 启用对话模型
         options:
-          model: qwen-max
-          text_image_model: qwen-vl-max
+          model: qwen-max                            # 文本对话模型
+          text_image_model: qwen-vl-max              # 图像理解多模态模型
       embedding:
-        enabled: false
+        enabled: false                               # 暂不启用向量嵌入
         options:
-          model: text-embedding-v3
-          dimensions: 1024
+          model: text-embedding-v3                   # 向量嵌入模型
+          dimensions: 1024                           # 向量输出维度
+    # OpenAI 配置（按需取消注释启用）
     # openai:
-    #   base-url:
-    #   api-key:
+    #   base-url:                                    # API 地址
+    #   api-key:                                     # API 密钥
     #   chat:
     #     options:
-    #       model: gpt
+    #       model: gpt                               # 对话模型
     #   embedding:
-    #     enabled: false
+    #     enabled: false                             # 是否启用向量嵌入

@@ -20,9 +20,13 @@ package com.alibaba.csp.sentinel.dashboard.datasource.entity;
  * @since 0.2.1
  */
 public class SentinelVersion {
+    /** The major version number. */
     private int majorVersion;
+    /** The minor version number. */
     private int minorVersion;
+    /** The fix version number. */
     private int fixVersion;
+    /** The postfix of the version, may be null. */
     private String postfix;
     
     public SentinelVersion() {
@@ -83,6 +87,10 @@ public class SentinelVersion {
         return this;
     }
 
+    /**
+     * Check whether this version is greater than the given one; a null version is treated
+     * as the smallest one.
+     */
     public boolean greaterThan(SentinelVersion version) {
         if (version == null) {
             return true;
@@ -90,6 +98,10 @@ public class SentinelVersion {
         return getFullVersion() > version.getFullVersion();
     }
 
+    /**
+     * Check whether this version is greater than or equal to the given one; a null version
+     * is treated as the smallest one.
+     */
     public boolean greaterOrEqual(SentinelVersion version) {
         if (version == null) {
             return true;

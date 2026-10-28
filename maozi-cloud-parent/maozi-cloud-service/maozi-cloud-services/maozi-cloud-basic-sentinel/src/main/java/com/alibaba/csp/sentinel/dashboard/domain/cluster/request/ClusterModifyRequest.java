@@ -21,11 +21,15 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.request;
  */
 public interface ClusterModifyRequest {
 
+    /** Get the application name of the target machine. */
     String getApp();
 
+    /** Get the IP of the target machine. */
     String getIp();
 
+    /** Get the command port of the target machine. */
     Integer getPort();
 
+    /** Get the target cluster mode of the machine (client or server). */
     Integer getMode();
 }

@@ -24,19 +24,22 @@ import com.alibaba.csp.sentinel.dashboard.domain.cluster.ClusterClientInfoVO;
 public class ClusterClientStateVO {
 
     /**
-     * Cluster token client state.
+     * Cluster token client config info (server address, client state and request timeout).
      */
     private ClusterClientInfoVO clientConfig;
 
+    /** Get the cluster client config info. */
     public ClusterClientInfoVO getClientConfig() {
         return clientConfig;
     }
 
+    /** Set the cluster client config info and return this. */
     public ClusterClientStateVO setClientConfig(ClusterClientInfoVO clientConfig) {
         this.clientConfig = clientConfig;
         return this;
     }
 
+    /** Return a string representation of this VO. */
     @Override
     public String toString() {
         return "ClusterClientStateVO{" +

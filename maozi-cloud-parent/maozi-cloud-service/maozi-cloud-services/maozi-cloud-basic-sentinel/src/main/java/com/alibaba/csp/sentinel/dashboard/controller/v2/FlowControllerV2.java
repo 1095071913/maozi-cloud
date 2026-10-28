@@ -51,18 +51,23 @@ import java.util.List;
 @RequestMapping(value = "/v2/flow")
 public class FlowControllerV2 {
 
+    /** The logger of this controller. */
     private final Logger logger = LoggerFactory.getLogger(FlowControllerV2.class);
 
+    /** The in-memory repository that stores flow rule entities. */
     @Autowired
     private InMemoryRuleRepositoryAdapter<FlowRuleEntity> repository;
 
+    /** The Nacos provider that pulls flow rules for a given app. */
     @Autowired
     @Qualifier("flowRuleNacosProvider")
     private DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider;
+    /** The Nacos publisher that pushes flow rules to a given app. */
     @Autowired
     @Qualifier("flowRuleNacosPublisher")
     private DynamicRulePublisher<List<FlowRuleEntity>> rulePublisher;
 
+    /** Fetches the app's flow rules from Nacos, restoring the entity id from the cluster flow id, persists them and returns them. */
     @GetMapping("/rules")
     @AuthAction(PrivilegeType.READ_RULE)
     public Result<List<FlowRuleEntity>> apiQueryMachineRules(@RequestParam String app) {
@@ -88,6 +93,7 @@ public class FlowControllerV2 {
         }
     }
 
+    /** Validates the rule entity field by field; returns the first error or null. */
     private <R> Result<R> checkEntityInternal(FlowRuleEntity entity) {
         if (entity == null) {
             return Result.ofFail(-1, "invalid body");
@@ -132,6 +138,7 @@ public class FlowControllerV2 {
         return null;
     }
 
+    /** Adds a new flow rule after validation (id reset for generation) and publishes the app's rules. */
     @PostMapping("/rule")
     @AuthAction(value = AuthService.PrivilegeType.WRITE_RULE)
     public Result<FlowRuleEntity> apiAddFlowRule(@RequestBody FlowRuleEntity entity) {
@@ -156,6 +163,7 @@ public class FlowControllerV2 {
         return Result.ofSuccess(entity);
     }
 
+    /** Updates the rule of the given id (app/ip/port/gmtCreate inherited from the old entity) and publishes the app's rules. */
     @PutMapping("/rule/{id}")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
 
@@ -197,6 +205,7 @@ public class FlowControllerV2 {
         return Result.ofSuccess(entity);
     }
 
+    /** Deletes the rule of the given id and publishes the app's rules; an unknown id returns success with null data. */
     @DeleteMapping("/rule/{id}")
     @AuthAction(PrivilegeType.DELETE_RULE)
     public Result<Long> apiDeleteRule(@PathVariable("id") Long id) {
@@ -217,6 +226,7 @@ public class FlowControllerV2 {
         return Result.ofSuccess(id);
     }
 
+    /** Publishes all local rules of the app to Nacos. */
     private void publishRules(/*@NonNull*/ String app) throws Exception {
         List<FlowRuleEntity> rules = repository.findAllByApp(app);
         rulePublisher.publish(app, rules);

@@ -50,20 +50,26 @@ import java.util.List;
 @RequestMapping(value = "/v1/flow")
 public class FlowControllerV1 {
 
+    /** The logger of this controller. */
     private final Logger logger = LoggerFactory.getLogger(FlowControllerV1.class);
 
+    /** The in-memory repository that stores flow rule entities. */
     @Autowired
     private InMemoryRuleRepositoryAdapter<FlowRuleEntity> repository;
+    /** The app management service used to validate machine-to-app relationship. */
     @Autowired
     private AppManagement appManagement;
 
+    /** The Nacos provider that pulls flow rules for a given app. */
     @Autowired
     @Qualifier("flowRuleNacosProvider")
     private DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider;
+    /** The Nacos publisher that pushes flow rules to a given app. */
     @Autowired
     @Qualifier("flowRuleNacosPublisher")
     private DynamicRulePublisher<List<FlowRuleEntity>> rulePublisher;
 
+    /** Fetches the app's flow rules from Nacos, stamps each with the machine info, persists them and returns them. */
     @GetMapping("/rules")
     @AuthAction(PrivilegeType.READ_RULE)
     public Result<List<FlowRuleEntity>> apiQueryMachineRules(@RequestParam String app,
@@ -96,6 +102,7 @@ public class FlowControllerV1 {
         }
     }
 
+    /** Validates the rule entity field by field (incl. strategy/control-behavior dependent fields); returns the first error or null. */
     private <R> Result<R> checkEntityInternal(FlowRuleEntity entity) {
         if (StringUtil.isBlank(entity.getApp())) {
             return Result.ofFail(-1, "app can't be null or empty");
@@ -146,6 +153,7 @@ public class FlowControllerV1 {
         return null;
     }
 
+    /** Adds a new flow rule after validation (id reset so the repository generates one) and publishes the app's rules. */
     @PostMapping("/rule")
     @AuthAction(PrivilegeType.WRITE_RULE)
     public Result<FlowRuleEntity> apiAddFlowRule(@RequestBody FlowRuleEntity entity) {
@@ -170,6 +178,11 @@ public class FlowControllerV1 {
         }
     }
 
+    /**
+     * Updates the rule of the given id by applying only the non-blank/non-null parameters,
+     * then publishes the app's rules to Nacos. refResource is required when strategy != 0,
+     * and warmUpPeriodSec / maxQueueingTimeMs when controlBehavior is 1 / 2.
+     */
     @PutMapping("/save.json")
     @AuthAction(PrivilegeType.WRITE_RULE)
     public Result<FlowRuleEntity> apiUpdateFlowRule(Long id, String app,
@@ -249,6 +262,7 @@ public class FlowControllerV1 {
         }
     }
 
+    /** Deletes the rule of the given id and publishes the app's rules; an unknown id returns success with null data. */
     @DeleteMapping("/delete.json")
     @AuthAction(PrivilegeType.WRITE_RULE)
     public Result<Long> apiDeleteFlowRule(Long id) {
@@ -276,6 +290,7 @@ public class FlowControllerV1 {
         }
     }
 
+    /** Publishes all local rules of the app to Nacos. */
     private void publishRules(String app) throws Exception {
         List<FlowRuleEntity> rules = repository.findAllByApp(app);
         rulePublisher.publish(app, rules);

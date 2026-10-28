@@ -54,20 +54,29 @@ import java.util.Optional;
 @RequestMapping(value = "/paramFlow")
 public class ParamFlowRuleController {
 
+    /** The logger of this controller. */
     private final Logger logger = LoggerFactory.getLogger(ParamFlowRuleController.class);
 
+    /** The app management service used to validate machine-to-app relationship. */
     @Autowired
     private AppManagement appManagement;
+    /** The repository that stores parameter flow rule entities in memory. */
     @Autowired
     private RuleRepository<ParamFlowRuleEntity, Long> repository;
 
+    /** The Nacos provider that pulls parameter flow rules for a given app. */
     @Autowired
     @Qualifier("paramFlowRuleNacosProvider")
     private DynamicRuleProvider<List<ParamFlowRuleEntity>> ruleProvider;
+    /** The Nacos publisher that pushes parameter flow rules to a given app. */
     @Autowired
     @Qualifier("paramFlowRuleNacosPublisher")
     private DynamicRulePublisher<List<ParamFlowRuleEntity>> rulePublisher;
 
+    /**
+     * Whether the machine's client version supports parameter flow control (>= 0.2.0);
+     * returns true when the machine info is unavailable or an error occurs.
+     */
     private boolean checkIfSupported(String app, String ip, int port) {
         try {
             return Optional.ofNullable(appManagement.getDetailApp(app))
@@ -81,6 +90,7 @@ public class ParamFlowRuleController {
         }
     }
 
+    /** Fetches the app's parameter flow rules from Nacos, stamps machine info, persists them and returns them. */
     @GetMapping("/rules")
     @AuthAction(PrivilegeType.READ_RULE)
     public Result<List<ParamFlowRuleEntity>> apiQueryAllRulesForMachine(@RequestParam String app,
@@ -116,6 +126,7 @@ public class ParamFlowRuleController {
         }
     }
 
+    /** Adds a new rule after validation and publishes the app's rules to Nacos. */
     @PostMapping("/rule")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
     public Result<ParamFlowRuleEntity> apiAddParamFlowRule(@RequestBody ParamFlowRuleEntity entity) {
@@ -141,6 +152,7 @@ public class ParamFlowRuleController {
         }
     }
 
+    /** Validates the rule entity field by field; returns the first error or null. */
     private <R> Result<R> checkEntityInternal(ParamFlowRuleEntity entity) {
         if (entity == null) {
             return Result.ofFail(-1, "bad rule body");
@@ -178,6 +190,7 @@ public class ParamFlowRuleController {
         return null;
     }
 
+    /** Updates the rule of the given id (gmtCreate inherited from the old entity) and publishes the app's rules. */
     @PutMapping("/rule/{id}")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
     public Result<ParamFlowRuleEntity> apiUpdateParamFlowRule(@PathVariable("id") Long id,
@@ -211,6 +224,7 @@ public class ParamFlowRuleController {
         }
     }
 
+    /** Deletes the rule of the given id and publishes the app's rules; an unknown id returns success with null data. */
     @DeleteMapping("/rule/{id}")
     @AuthAction(PrivilegeType.DELETE_RULE)
     public Result<Long> apiDeleteRule(@PathVariable("id") Long id) {
@@ -232,15 +246,18 @@ public class ParamFlowRuleController {
         }
     }
 
+    /** Publishes all local rules of the app to Nacos. */
     private void publishRules(String app) throws Exception {
         List<ParamFlowRuleEntity> rules = repository.findAllByApp(app);
         rulePublisher.publish(app, rules);
     }
 
+    /** Build the error result returned when the client version does not support parameter flow control. */
     private <R> Result<R> unsupportedVersion() {
         return Result.ofFail(4041,
             "Sentinel client not supported for parameter flow control (unsupported version or dependency absent)");
     }
 
+    /** The minimum Sentinel client version (0.2.x) that supports parameter flow control. */
     private final SentinelVersion version020 = new SentinelVersion().setMinorVersion(2);
 }

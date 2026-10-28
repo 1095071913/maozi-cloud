@@ -18,7 +18,7 @@ import java.util.Properties;
 public class MonitorConfigInitializer implements ConfigInitializer {
 
     /** 监控服务 Nacos 共享配置文件导入清单（optional 前缀保证文件不存在时不阻断启动） */
-    private static final String NACOS_IMPORTS = "optional:nacos:cloud-nacos.yml,optional:nacos:boot-monitor.yml,optional:nacos:boot-arthas.yml,optional:nacos:cloud-default.yml";
+    private static final String NACOS_IMPORTS = "optional:nacos:cloud-nacos.yml,optional:nacos:boot-monitor.yml,optional:nacos:cloud-default.yml";
 
     /**
      * 追加监控服务的 Nacos 共享配置文件清单（前插合并，保证应用自身

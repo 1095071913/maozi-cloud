@@ -33,11 +33,19 @@ import java.util.stream.Collectors;
 @Component("paramFlowRuleNacosPublisher")
 public class ParamFlowRuleNacosPublisher implements DynamicRulePublisher<List<ParamFlowRuleEntity>> {
 
+    /** Nacos config service used to write rule configs. */
     @Autowired
     private ConfigService configService;
+    /** Nacos connection properties, supplies the rule config group. */
     @Autowired
     private NacosProperties nacosProperties;
 
+    /**
+     * Push the parameter flow control rules of an app to the Nacos config
+     * {@code appName + PARAM_FLOW_DATA_ID_POSTFIX} in the configured group, after
+     * converting the entities to {@link ParamFlowRule} objects. Does nothing when rules
+     * is {@code null}.
+     */
     @Override
     public void publish(String app, List<ParamFlowRuleEntity> rules) throws Exception {
         if (rules == null) {

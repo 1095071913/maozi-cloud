@@ -97,9 +97,10 @@ contextBridge.exposeInMainWorld('api', {
     sshCheckGit: (configId: string) => ipcRenderer.invoke('projects:sshCheckGit', configId),
     sshClone: (configId: string, gitSecretId: string, destDir: string, sid?: string) =>
       ipcRenderer.invoke('projects:sshClone', configId, gitSecretId, destDir, sid),
-    /** UI 状态持久化（Tab 选中 等，.ui-state.json） */
+    /** 远程环境变量保存：写入远程 shell 配置 / 实时环境文件 */
     sshEnvSave: (params: { key: string; value: string; fileId: string }) =>
       ipcRenderer.invoke('projects:sshEnvSave', params),
+    /** UI 状态持久化（Tab 选中 等，.ui-state.json） */
     uiStateGet: () => ipcRenderer.invoke('projects:uiStateGet'),
     uiStateSave: (patch: Record<string, unknown>) => ipcRenderer.invoke('projects:uiStateSave', patch),
     /** 数据库初始化状态：init_mysql_db 定义的表是否均已存在 */

@@ -52,20 +52,29 @@ import java.util.List;
 @RequestMapping("/degrade")
 public class DegradeController {
 
+    /** The logger of this controller. */
     private final Logger logger = LoggerFactory.getLogger(DegradeController.class);
 
+    /** The repository that stores degrade rule entities in memory. */
     @Autowired
     private RuleRepository<DegradeRuleEntity, Long> repository;
+    /** The app management service used to validate machine-to-app relationship. */
     @Autowired
     private AppManagement appManagement;
 
+    /** The Nacos provider that pulls degrade rules for a given app. */
     @Autowired
     @Qualifier("degradeRuleNacosProvider")
     private DynamicRuleProvider<List<DegradeRuleEntity>> ruleProvider;
+    /** The Nacos publisher that pushes degrade rules to a given app. */
     @Autowired
     @Qualifier("degradeRuleNacosPublisher")
     private DynamicRulePublisher<List<DegradeRuleEntity>> rulePublisher;
 
+    /**
+     * Fetches the app's degrade rules from Nacos, stamps each rule with the given machine
+     * info, persists them into the repository and returns them.
+     */
     @GetMapping("/rules.json")
     @AuthAction(PrivilegeType.READ_RULE)
     public Result<List<DegradeRuleEntity>> apiQueryMachineRules(String app, String ip, Integer port) {
@@ -96,6 +105,7 @@ public class DegradeController {
         }
     }
 
+    /** Adds a new degrade rule after validation and publishes the app's rules to Nacos. */
     @PostMapping("/rule")
     @AuthAction(PrivilegeType.WRITE_RULE)
     public Result<DegradeRuleEntity> apiAddRule(@RequestBody DegradeRuleEntity entity) {
@@ -118,6 +128,7 @@ public class DegradeController {
         return Result.ofSuccess(entity);
     }
 
+    /** Updates the rule of the given id (app/ip/port/id/gmtCreate inherited from the old entity) and publishes the app's rules. */
     @PutMapping("/rule/{id}")
     @AuthAction(PrivilegeType.WRITE_RULE)
     public Result<DegradeRuleEntity> apiUpdateRule(@PathVariable("id") Long id,
@@ -152,6 +163,7 @@ public class DegradeController {
         return Result.ofSuccess(entity);
     }
 
+    /** Deletes the rule of the given id and publishes the app's rules; an unknown id returns success with null data. */
     @DeleteMapping("/rule/{id}")
     @AuthAction(PrivilegeType.DELETE_RULE)
     public Result<Long> delete(@PathVariable("id") Long id) {
@@ -176,6 +188,7 @@ public class DegradeController {
         return Result.ofSuccess(id);
     }
 
+    /** Publishes all local rules of the app to Nacos; returns false on error. */
     private boolean publishRules(String app) {
         try {
             List<DegradeRuleEntity> rules = repository.findAllByApp(app);
@@ -187,6 +200,7 @@ public class DegradeController {
         }
     }
 
+    /** Validates the rule entity field by field, including strategy-specific threshold ranges; returns the first error or null. */
     private <R> Result<R> checkEntityInternal(DegradeRuleEntity entity) {
         if (StringUtil.isBlank(entity.getApp())) {
             return Result.ofFail(-1, "app can't be blank");

@@ -26,7 +26,7 @@ public enum QueryType {
     /** 等于 */
     EQ(QueryBaseType.EQ, new QueryEqPlugin()),
 
-    /** 模糊匹配（右模糊） */
+    /** 全模糊匹配 */
     LIKE(QueryBaseType.LIKE, new QueryLikePlugin()),
 
     /** IN 查询 */

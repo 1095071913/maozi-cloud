@@ -41,11 +41,14 @@ import java.util.Set;
 @RequestMapping("/cluster/assign")
 public class ClusterAssignController {
 
+    /** The logger of this controller. */
     private final Logger logger = LoggerFactory.getLogger(ClusterAssignController.class);
 
+    /** The service that applies or unbinds cluster role assignments for machines. */
     @Autowired
     private ClusterAssignService clusterAssignService;
 
+    /** Applies a full cluster assignment (server map plus remaining client list) to all machines of the app. */
     @PostMapping("/all_server/{app}")
     public Result<ClusterAppAssignResultVO> apiAssignAllClusterServersOfApp(@PathVariable String app,
                                                                             @RequestBody
@@ -66,6 +69,7 @@ public class ClusterAssignController {
         }
     }
 
+    /** Applies the assignment for a single cluster server, wrapping its clusterMap entry into a list. */
     @PostMapping("/single_server/{app}")
     public Result<ClusterAppAssignResultVO> apiAssignSingleClusterServersOfApp(@PathVariable String app,
                                                                                @RequestBody ClusterAppSingleServerAssignRequest assignRequest) {
@@ -84,6 +88,7 @@ public class ClusterAssignController {
         }
     }
 
+    /** Unbinds the cluster servers of the app identified by the given machine ids. */
     @PostMapping("/unbind_server/{app}")
     public Result<ClusterAppAssignResultVO> apiUnbindClusterServersOfApp(@PathVariable String app,
                                                                          @RequestBody Set<String> machineIds) {

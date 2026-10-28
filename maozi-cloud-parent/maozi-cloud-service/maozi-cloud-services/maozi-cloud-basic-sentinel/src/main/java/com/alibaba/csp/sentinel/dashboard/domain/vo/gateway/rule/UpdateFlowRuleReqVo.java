@@ -23,102 +23,132 @@ package com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule;
  */
 public class UpdateFlowRuleReqVo {
 
+    /** ID of the gateway flow rule to update. */
     private Long id;
 
+    /** Name of the target application. */
     private String app;
 
+    /** Metric grade of the rule, 0 means QPS (see RuleConstant). */
     private Integer grade;
 
+    /** Threshold of the flow rule. */
     private Double count;
 
+    /** Stat interval of the flow rule, in the unit given by intervalUnit. */
     private Long interval;
 
+    /** Time unit of the stat interval (second, minute, hour or day). */
     private Integer intervalUnit;
 
+    /** Control behavior when the threshold is exceeded, e.g. reject or uniform queueing. */
     private Integer controlBehavior;
 
+    /** Number of extra requests allowed to pass in a burst when the threshold is exceeded. */
     private Integer burst;
 
+    /** Max queueing timeout in milliseconds when control behavior is uniform queueing. */
     private Integer maxQueueingTimeoutMs;
 
+    /** Hotspot parameter item of the rule, null for a plain gateway flow rule. */
     private GatewayParamFlowItemVo paramItem;
 
+    /** Returns the ID of the gateway flow rule to update. */
     public Long getId() {
         return id;
     }
 
+    /** Sets the ID of the gateway flow rule to update. */
     public void setId(Long id) {
         this.id = id;
     }
 
+    /** Returns the name of the target application. */
     public String getApp() {
         return app;
     }
 
+    /** Sets the name of the target application. */
     public void setApp(String app) {
         this.app = app;
     }
 
+    /** Returns the metric grade of the rule. */
     public Integer getGrade() {
         return grade;
     }
 
+    /** Sets the metric grade of the rule. */
     public void setGrade(Integer grade) {
         this.grade = grade;
     }
 
+    /** Returns the threshold of the flow rule. */
     public Double getCount() {
         return count;
     }
 
+    /** Sets the threshold of the flow rule. */
     public void setCount(Double count) {
         this.count = count;
     }
 
+    /** Returns the stat interval of the flow rule. */
     public Long getInterval() {
         return interval;
     }
 
+    /** Sets the stat interval of the flow rule. */
     public void setInterval(Long interval) {
         this.interval = interval;
     }
 
+    /** Returns the time unit of the stat interval. */
     public Integer getIntervalUnit() {
         return intervalUnit;
     }
 
+    /** Sets the time unit of the stat interval. */
     public void setIntervalUnit(Integer intervalUnit) {
         this.intervalUnit = intervalUnit;
     }
 
+    /** Returns the control behavior of the flow rule. */
     public Integer getControlBehavior() {
         return controlBehavior;
     }
 
+    /** Sets the control behavior of the flow rule. */
     public void setControlBehavior(Integer controlBehavior) {
         this.controlBehavior = controlBehavior;
     }
 
+    /** Returns the allowed burst size above the threshold. */
     public Integer getBurst() {
         return burst;
     }
 
+    /** Sets the allowed burst size above the threshold. */
     public void setBurst(Integer burst) {
         this.burst = burst;
     }
 
+    /** Returns the max queueing timeout in milliseconds. */
     public Integer getMaxQueueingTimeoutMs() {
         return maxQueueingTimeoutMs;
     }
 
+    /** Sets the max queueing timeout in milliseconds. */
     public void setMaxQueueingTimeoutMs(Integer maxQueueingTimeoutMs) {
         this.maxQueueingTimeoutMs = maxQueueingTimeoutMs;
     }
 
+    /** Returns the hotspot parameter item of the rule. */
     public GatewayParamFlowItemVo getParamItem() {
         return paramItem;
     }
 
+    /** Sets the hotspot parameter item of the rule. */
     public void setParamItem(GatewayParamFlowItemVo paramItem) {
         this.paramItem = paramItem;
     }

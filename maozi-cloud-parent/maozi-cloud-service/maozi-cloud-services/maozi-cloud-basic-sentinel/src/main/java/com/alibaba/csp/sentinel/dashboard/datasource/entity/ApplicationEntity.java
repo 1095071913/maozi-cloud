@@ -24,12 +24,19 @@ import java.util.Date;
  */
 public class ApplicationEntity {
 
+    /** The primary key id. */
     private Long id;
+    /** The create time. */
     private Date gmtCreate;
+    /** The last modified time. */
     private Date gmtModified;
+    /** The app name. */
     private String app;
+    /** The type of the application. */
     private Integer appType;
+    /** The active console address of the application. */
     private String activeConsole;
+    /** The last fetch time. */
     private Date lastFetch;
 
     public long getId() {

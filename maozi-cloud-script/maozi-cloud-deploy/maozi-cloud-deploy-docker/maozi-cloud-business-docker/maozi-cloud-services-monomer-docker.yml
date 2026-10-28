@@ -47,7 +47,11 @@ services:
     volumes:
       # 日志文件挂载到宿主机共享目录, 供 promtail 采集
       # 容器内路径与镜像 WORKDIR /application/maozi-cloud-service-monomer 对应
+      # hs / gc / heapdump 为 JVM 诊断产物目录 (崩溃日志 / GC 日志 / 堆转储), 单独挂载持久化
       - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-service-monomer:/application/maozi-cloud-service-monomer/logs
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-service-monomer/hs:/application/maozi-cloud-service-monomer/logs/hs
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-service-monomer/gc:/application/maozi-cloud-service-monomer/logs/gc
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-service-monomer/heapdump:/application/maozi-cloud-service-monomer/logs/heapdump
     stop_grace_period: 70s
     healthcheck:
       # $$ 双转义: 端口取容器运行时环境变量 APPLICATION_PORT, 随各服务端口配置自动生效

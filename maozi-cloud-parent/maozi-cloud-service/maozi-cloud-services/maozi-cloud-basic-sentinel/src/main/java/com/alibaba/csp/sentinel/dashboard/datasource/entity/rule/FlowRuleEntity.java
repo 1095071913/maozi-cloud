@@ -25,39 +25,51 @@ import java.util.Date;
  */
 public class FlowRuleEntity implements RuleEntity {
 
+    /** The entity id. */
     private Long id;
+    /** The application name. */
     private String app;
+    /** The IP address of the machine. */
     private String ip;
+    /** The port of the machine. */
     private Integer port;
+    /** The caller that the rule applies to. */
     private String limitApp;
+    /** The resource name. */
     private String resource;
     /**
      * 0为线程数;1为qps
      */
     private Integer grade;
+    /** The threshold count of the rule. */
     private Double count;
     /**
      * 0为直接限流;1为关联限流;2为链路限流
      ***/
     private Integer strategy;
+    /** The related resource for association and chain strategy. */
     private String refResource;
     /**
      * 0. default, 1. warm up, 2. rate limiter
      */
     private Integer controlBehavior;
+    /** The warm up period in seconds for warm up behavior. */
     private Integer warmUpPeriodSec;
     /**
      * max queueing time in rate limiter behavior
      */
     private Integer maxQueueingTimeMs;
 
+    /** Whether the rule works in cluster mode. */
     private boolean clusterMode;
     /**
      * Flow rule config for cluster mode.
      */
     private ClusterFlowConfig clusterConfig;
 
+    /** The create time. */
     private Date gmtCreate;
+    /** The last modify time. */
     private Date gmtModified;
 
     public static FlowRuleEntity fromFlowRule(String app, String ip, Integer port, FlowRule rule) {
@@ -223,6 +235,10 @@ public class FlowRuleEntity implements RuleEntity {
         this.gmtModified = gmtModified;
     }
 
+    /**
+     * Convert to a {@link FlowRule}, only setting controlBehavior, warmUpPeriodSec and
+     * maxQueueingTimeMs when they are not null.
+     */
     @Override
     public FlowRule toRule() {
         FlowRule flowRule = new FlowRule();

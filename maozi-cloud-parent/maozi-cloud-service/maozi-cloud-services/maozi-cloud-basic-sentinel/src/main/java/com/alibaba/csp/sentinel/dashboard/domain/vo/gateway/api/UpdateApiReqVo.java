@@ -25,32 +25,41 @@ import java.util.List;
  */
 public class UpdateApiReqVo {
 
+    /** ID of the gateway API definition to update. */
     private Long id;
 
+    /** Name of the target application. */
     private String app;
 
+    /** New predicate items (URL match conditions) of the gateway API definition. */
     private List<ApiPredicateItemVo> predicateItems;
 
+    /** Returns the ID of the gateway API definition to update. */
     public Long getId() {
         return id;
     }
 
+    /** Sets the ID of the gateway API definition to update. */
     public void setId(Long id) {
         this.id = id;
     }
 
+    /** Returns the name of the target application. */
     public String getApp() {
         return app;
     }
 
+    /** Sets the name of the target application. */
     public void setApp(String app) {
         this.app = app;
     }
 
+    /** Returns the new predicate items of the gateway API definition. */
     public List<ApiPredicateItemVo> getPredicateItems() {
         return predicateItems;
     }
 
+    /** Sets the new predicate items of the gateway API definition. */
     public void setPredicateItems(List<ApiPredicateItemVo> predicateItems) {
         this.predicateItems = predicateItems;
     }

@@ -112,6 +112,7 @@ public class WebUtil {
      * 获取当前请求的客户端真实 IP 地址
      * <p>
      * 无参重载，自动从 {@link #getRequest()} 取当前请求后委托给
+     * Hutool 的 {@code JakartaServletUtil#getClientIP} 解析客户端 IP。
      * </p>
      *
      * @return 客户端真实 IP 地址字符串

@@ -21,37 +21,49 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.state;
  */
 public class ClusterRequestLimitVO {
 
+    /** The namespace of the cluster request limit. */
     private String namespace;
+
+    /** The current QPS of cluster requests in the namespace. */
     private Double currentQps;
+
+    /** The max allowed QPS of cluster requests in the namespace. */
     private Double maxAllowedQps;
 
+    /** Get the namespace. */
     public String getNamespace() {
         return namespace;
     }
 
+    /** Set the namespace and return this. */
     public ClusterRequestLimitVO setNamespace(String namespace) {
         this.namespace = namespace;
         return this;
     }
 
+    /** Get the current QPS. */
     public Double getCurrentQps() {
         return currentQps;
     }
 
+    /** Set the current QPS and return this. */
     public ClusterRequestLimitVO setCurrentQps(Double currentQps) {
         this.currentQps = currentQps;
         return this;
     }
 
+    /** Get the max allowed QPS. */
     public Double getMaxAllowedQps() {
         return maxAllowedQps;
     }
 
+    /** Set the max allowed QPS and return this. */
     public ClusterRequestLimitVO setMaxAllowedQps(Double maxAllowedQps) {
         this.maxAllowedQps = maxAllowedQps;
         return this;
     }
 
+    /** Return a string representation of this VO. */
     @Override
     public String toString() {
         return "ClusterRequestLimitVO{" +

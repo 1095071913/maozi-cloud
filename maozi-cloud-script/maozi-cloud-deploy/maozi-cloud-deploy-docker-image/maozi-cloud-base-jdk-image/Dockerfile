@@ -3,12 +3,12 @@
 # ------------------------------------------------------------
 # Tag 命名：maozi-cloud-base-jdk:1.0.0
 # ------------------------------------------------------------
-# 上游被两类镜像 FROM:
-#   1. maozi-cloud-business-jdk:1.0.0
-#        本镜像 + OpenTelemetry Agent, 供启用 OTel 的服务 FROM
-#        (system / oauth / gateway 等). 见 maozi-cloud-business-jdk-image/Dockerfile
-#   2. 不启用 OTel 的服务直接 FROM 本镜像 (如 maozi-cloud-monitor-service),
-#      镜像体积更小, 不携带 OTel Agent jar.
+# 上游 FROM 方:
+#   不启用 OTel 的服务直接 FROM 本镜像 (maozi-cloud-basic-monitor /
+#   maozi-cloud-basic-sentinel, 见 maozi-cloud-services.json 的 base_image 覆盖),
+#   镜像体积更小, 不携带 OTel Agent jar.
+#   注: maozi-cloud-business-jdk 已改为直接基于 eclipse-temurin 构建,
+#   不再 FROM 本镜像 (见 maozi-cloud-business-jdk-image/Dockerfile).
 # ------------------------------------------------------------
 # 基础镜像选择（按目标部署主机的 Linux 发行版/架构组合切换）:
 #   - 当前启用 eclipse-temurin:17-jre-jammy (基于 Ubuntu 22.04, 当前部署目标是 ARM 主机);

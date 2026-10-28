@@ -28,11 +28,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class DashboardApplication {
 
+    /** Entry point: trigger Sentinel init functions asynchronously, then boot the Spring application. */
     public static void main(String[] args) {
         triggerSentinelInit();
         SpringApplication.run(DashboardApplication.class, args);
     }
 
+    /** Run Sentinel {@link InitExecutor} init functions in a separate thread so they do not block startup. */
     private static void triggerSentinelInit() {
         new Thread(() -> InitExecutor.doInit()).start();
     }

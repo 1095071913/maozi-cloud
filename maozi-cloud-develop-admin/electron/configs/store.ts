@@ -72,6 +72,7 @@ const LEGACY_DEFAULT_NAMES: Record<string, string[]> = {
   'default-helm': ['默认Helm仓库配置', '默认Helm仓库密钥']
 }
 
+/** 读取密钥列表：兼做历史数据迁移（补 authType、归一默认名、清理废弃默认项）与默认密钥播种，有变更则回写 */
 export function listConfigs(): ConfigEntry[] {
   const list = readStore()
   let seeded = false
@@ -127,6 +128,7 @@ export function listConfigs(): ConfigEntry[] {
   return list.map(toDomain).sort((a, b) => (a.sortOrder ?? a.createdAt) - (b.sortOrder ?? b.createdAt))
 }
 
+/** 新增或更新密钥：更新按 id 合并原字段（isDefault 不允许经保存篡改），密码加密后落盘 */
 export function upsertConfig(input: Partial<ConfigEntry> & { id?: string }): ConfigEntry {
   const list = readStore()
   const now = Date.now()

@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 public class InMemApiDefinitionStore extends InMemoryRuleRepositoryAdapter<ApiDefinitionEntity> {
 
+    /** Static id generator for stored entities. */
     private static AtomicLong ids = new AtomicLong(0);
 
     @Override

@@ -23,13 +23,21 @@ import java.util.Date;
  * @author leyou
  */
 public class MachineEntity {
+    /** The entity id. */
     private Long id;
+    /** The create time. */
     private Date gmtCreate;
+    /** The last modify time. */
     private Date gmtModified;
+    /** The application name. */
     private String app;
+    /** The IP address of the machine. */
     private String ip;
+    /** The hostname of the machine. */
     private String hostname;
+    /** The heartbeat timestamp of the machine. */
     private Date timestamp;
+    /** The port of the machine. */
     private Integer port;
 
     public long getId() {
@@ -96,6 +104,10 @@ public class MachineEntity {
         this.port = port;
     }
 
+    /**
+     * Convert to a {@link MachineInfo}, using the timestamp of this entity as both
+     * lastHeartbeat and heartbeatVersion.
+     */
     public MachineInfo toMachineInfo() {
         MachineInfo machineInfo = new MachineInfo();
 

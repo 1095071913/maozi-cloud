@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 public class InMemGatewayFlowRuleStore extends InMemoryRuleRepositoryAdapter<GatewayFlowRuleEntity> {
 
+    /** Static id generator for stored entities. */
     private static AtomicLong ids = new AtomicLong(0);
 
     @Override

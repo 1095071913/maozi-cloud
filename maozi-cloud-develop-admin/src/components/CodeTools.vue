@@ -245,6 +245,7 @@ function stripComments(text: string): string {
   return out
 }
 
+/** 校验（剥注释后 JSON.parse）：把报错 position 换算成行/列（行号按剥离注释后的文本计算） */
 const jsonError = computed<JsonError | null>(() => {
   const text = jsonText.value
   if (!text.trim()) return null

@@ -193,6 +193,7 @@
               <button class="pc-prep-tool" type="button" @click="openMavenConfig">🪶 Maven配置</button>
               <button class="pc-prep-tool" type="button" @click="openDockerConfig">🐳 Docker配置</button>
               <button class="pc-prep-tool" type="button" @click="openEnvSettings">🔧 环境设置</button>
+              <button class="pc-prep-tool" type="button" @click="openJvmTuning">☕ JVM调优</button>
               <button class="pc-prep-tool" type="button" @click="onDockerClear">🧹 容器磁盘清除</button>
             </div>
           </div>
@@ -2033,6 +2034,193 @@
       </template>
     </el-dialog>
 
+    <!-- ===== JVM 参数调优弹窗：小内存容器参数逐项设置，实时生成完整启动参数（一键复制 / 写入业务 .env） ===== -->
+    <el-dialog
+      v-model="jvmVisible"
+      width="820px"
+      draggable
+      append-to-body
+      modal-class="pc-dlg pjvm-dlg"
+      :show-close="false"
+      :close-on-click-modal="false"
+    >
+      <template #header>
+        <div class="pcd-header">
+          <div class="pcd-deco pcd-deco-1"></div>
+          <div class="pcd-deco pcd-deco-2"></div>
+          <div class="pcd-header-main">
+            <div class="pcd-header-icon">☕</div>
+            <div>
+              <div class="pcd-title">JVM 参数调优</div>
+              <div class="pcd-subtitle">堆 / 栈 / 元空间 / GC 逐项设置 · 实时生成完整启动参数 · 一键复制</div>
+            </div>
+          </div>
+          <button class="pcd-close" type="button" @click="jvmVisible = false">✕</button>
+        </div>
+      </template>
+
+      <div class="pcd-body">
+        <!-- 内存构成仪表盘：环形占比图（堆/元空间/代码缓存/直接内存，填线程数时附加线程栈段）+ 图例 + 合计 -->
+        <div class="pjvm-hero">
+          <div class="pjvm-hero-glow g1"></div>
+          <div class="pjvm-hero-glow g2"></div>
+          <div
+            class="pjvm-donut"
+            :style="{ background: jvmSegs.gradient }"
+            :title="jvmThreadsTotalMb > 0 ? `固定占用 ${jvmFixedTotalText} + 线程栈 ${Math.round(jvmThreadsTotalMb)}m（${jvmThreadsCount} 线程 × ${jvmUnitText('xss')}）` : `固定占用 ${jvmFixedTotalText}（未填线程数，不含线程栈）`"
+          >
+            <div class="pjvm-donut-core">
+              <span class="pjvm-donut-val mono-text">{{ jvmMemTotalText }}</span>
+              <span class="pjvm-donut-cap">总预估</span>
+            </div>
+          </div>
+          <div class="pjvm-hero-main">
+            <div class="pjvm-hero-title">
+              内存构成预估
+              <span class="pjvm-tag" :class="{ bad: jvmHeapWarn }">{{ jvmHeapWarn ? '⚠ Xms 大于 Xmx' : '✓ 参数有效' }}</span>
+            </div>
+            <div class="pjvm-legend">
+              <span v-for="s in jvmSegs.parts" :key="s.key" class="pjvm-legend-item">
+                <i class="pjvm-legend-dot" :style="{ background: s.color }"></i>
+                {{ s.label }}
+                <b class="mono-text">{{ jvmUnitText(s.key) }}</b>
+                <em class="mono-text">{{ jvmSegs.total > 0 ? Math.round((s.mb / jvmSegs.total) * 100) + '%' : '' }}</em>
+              </span>
+              <span class="pjvm-legend-item pjvm-legend-threads">
+                <i class="pjvm-legend-dot" style="background: #cbd5e1"></i>
+                线程栈
+                <b class="mono-text">{{ jvmUnitText('xss') }}</b>
+                ×
+                <input
+                  v-model="jvmThreads"
+                  type="number"
+                  class="pjvm-threads-input mono-text"
+                  min="0"
+                  title="填写线程数，按 线程数 × Xss 预估线程栈总占用"
+                />
+                线程
+                <em class="mono-text" :title="jvmThreadsTotalMb > 0 ? `占总预估 ${Math.round((jvmThreadsTotalMb / jvmSegs.total) * 100)}%` : ''">{{ jvmThreadsMbText }}</em>
+              </span>
+            </div>
+            <div class="pjvm-hero-sub">压缩类空间计入元空间 · 直接内存不设置时默认约等于 Xmx · 容器内存配额建议 ≥ 总预估</div>
+          </div>
+        </div>
+
+        <!-- 推荐方案：一键套用整组模板（内存数值 + GC + bool 开关） -->
+        <div class="pjvm-presets">
+          <span class="pjvm-presets-label">🎛 推荐方案</span>
+          <div class="pjvm-presets-row">
+            <button
+              v-for="ps in JVM_PRESETS"
+              :key="ps.key"
+              type="button"
+              class="pjvm-preset"
+              :class="{ active: jvmActivePreset === ps.key }"
+              :title="ps.tip"
+              @click="applyJvmPreset(ps)"
+            >
+              {{ ps.icon }} {{ ps.label }}<em class="mono-text">{{ jvmPresetTotalText(ps) }}</em>
+            </button>
+          </div>
+        </div>
+
+        <!-- 参数清单：紧凑图标卡 = 图标 + 名称 + 数值单位组合框（GC 为选项）+ 开关 + 描述两行 -->
+        <div class="pjvm-grid">
+          <div
+            v-for="(p, pi) in jvmParams"
+            :key="p.key"
+            class="pjvm-item"
+            :class="{ off: !jvmState.on[p.key], warn: p.key === 'xms' && jvmHeapWarn }"
+            :style="{ animationDelay: `${Math.min(pi * 0.04, 0.28)}s` }"
+          >
+            <div class="pjvm-item-top">
+              <span class="pjvm-ico" :style="{ background: p.grad }">{{ p.icon }}</span>
+              <div class="pjvm-item-name">{{ p.name }}</div>
+              <template v-if="p.kind === 'gc'">
+                <el-select v-model="jvmState.gc" class="pjvm-sel" :disabled="!jvmState.on[p.key]">
+                  <el-option v-for="g in JVM_GC_OPTIONS" :key="g.value" :label="g.label" :value="g.value" />
+                </el-select>
+              </template>
+              <!-- bool 型参数（预触 / 显式 GC 等）无输入控件，仅由右上角滑块开关控制 -->
+              <template v-else-if="p.kind === 'bool'"></template>
+              <template v-else-if="p.kind === 'pause'">
+                <div class="pjvm-inputgrp">
+                  <input
+                    v-model="jvmState.val[p.key]"
+                    type="number"
+                    class="pjvm-num mono-text"
+                    :min="p.min"
+                    :disabled="!jvmState.on[p.key]"
+                  />
+                  <span class="pjvm-unit-fix mono-text">ms</span>
+                </div>
+              </template>
+              <template v-else>
+                <div class="pjvm-inputgrp">
+                  <input
+                    v-model="jvmState.val[p.key]"
+                    type="number"
+                    class="pjvm-num mono-text"
+                    :min="p.min"
+                    :disabled="!jvmState.on[p.key]"
+                  />
+                  <el-select v-model="jvmState.unit[p.key]" class="pjvm-unit-sel" :disabled="!jvmState.on[p.key]">
+                    <el-option v-for="u in p.units" :key="u" :label="u" :value="u" />
+                  </el-select>
+                </div>
+              </template>
+              <label
+                class="pjvm-item-switch"
+                :title="(p.key === 'gcPause' || p.needConcurrentGc) && !jvmGcSupportsPause ? '当前收集器不支持该参数（需 G1 / ZGC / CMS）' : p.needG1 && !jvmGcIsG1 ? '仅 G1 支持该参数' : jvmState.on[p.key] ? '包含该参数' : '未包含'"
+              >
+                <input
+                  v-model="jvmState.on[p.key]"
+                  type="checkbox"
+                  :disabled="((p.key === 'gcPause' || p.needConcurrentGc) && !jvmGcSupportsPause) || (p.needG1 && !jvmGcIsG1)"
+                />
+                <span class="pjvm-switch-track"><span class="pjvm-switch-dot"></span></span>
+              </label>
+            </div>
+            <div class="pjvm-item-desc" :title="p.desc">
+              <template v-if="(p.key === 'gcPause' || p.needConcurrentGc) && !jvmGcSupportsPause">
+                <span class="pjvm-pause-warn">⚠ 当前收集器不支持该参数（需 G1 / ZGC / CMS）· 已自动移除，切换后恢复</span>
+              </template>
+              <template v-else-if="p.needG1 && !jvmGcIsG1">
+                <span class="pjvm-pause-warn">⚠ 仅 G1 支持该参数 · 已自动移除，切换 G1 后恢复</span>
+              </template>
+              <template v-else>
+                <span class="pjvm-item-flag mono-text">{{ p.flag }}</span>{{ p.desc }}
+              </template>
+            </div>
+          </div>
+        </div>
+
+        <!-- 生成结果：终端风代码卡 + 一键复制 -->
+        <div class="pjvm-result">
+          <div class="pjvm-result-head">
+            <span class="pjvm-dots"><i></i><i></i><i></i></span>
+            <span class="pjvm-result-file mono-text">JAVA_OPTS</span>
+            <span class="pjvm-result-note mono-text">{{ jvmArgs.split(' ').filter(Boolean).length }} 项</span>
+          </div>
+          <div class="pjvm-result-box mono-text" title="双击也可复制" @dblclick="copyJvmArgs">{{ jvmArgs || '尚未勾选任何参数' }}</div>
+          <div class="pjvm-result-ops">
+            <span class="pjvm-result-hint">复制后粘贴到启动脚本 / JAVA_OPTS / 容器环境变量</span>
+            <button class="pcd-btn" type="button" @click="resetJvmDefaults">↺ 恢复默认</button>
+            <button class="pcd-btn" type="button" @click="copyJvmArgs">⧉ 复制完整参数</button>
+            <button
+              class="pcd-btn primary"
+              type="button"
+              title="写入业务 .env 的 JVM_PARAMS，应用服务下次 docker compose 编排生效"
+              :disabled="jvmApplying"
+              @click="applyJvmToServices"
+            >
+              {{ jvmApplying ? '写入中…' : '🚀 设置应用服务参数' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </el-dialog>
+
     <!-- ===== 编辑项目信息弹窗：更新名称 / 别名 / 备注 ===== -->
     <el-dialog
       v-model="editVisible"
@@ -2093,7 +2281,7 @@
       </template>
     </el-dialog>
 
-    <!-- ===== 服务配置弹窗：environment_variable.json 一级属性（服务名）分组条目，取值/修改读写业务 .env ===== -->
+    <!-- ===== 服务配置弹窗：docker_variable.json 一级属性（服务名）分组条目，取值/修改读写业务 .env ===== -->
     <el-dialog
       v-model="svcCfgVisible"
       width="720px"
@@ -4153,6 +4341,338 @@ async function restartDocker(skipConfirm = false): Promise<void> {
   }
 }
 
+/** ===== JVM 参数调优：小内存容器参数逐项设置，实时拼接完整启动参数，可一键复制或写入业务 .env ===== */
+const jvmVisible = ref(false)
+
+/** GC 选项：value 为 -XX: 后的写法（如 +UseG1GC 拼成 -XX:+UseG1GC） */
+const JVM_GC_OPTIONS = [
+  { value: '+UseSerialGC', label: 'Serial 串行（单线程·小内存）' },
+  { value: '+UseParallelGC', label: 'Parallel 并行（吞吐优先）' },
+  { value: '+UseConcMarkSweepGC', label: 'CMS 并发标记清除（低停顿·JDK8）' },
+  { value: '+UseG1GC', label: 'G1（均衡·大堆）' },
+  { value: '+UseZGC', label: 'ZGC（低延迟·JDK11+）' }
+] as const
+
+/** 各收集器是否支持停顿目标与并发收集（CMS/G1/ZGC 支持，Serial/Parallel 不支持）：停顿目标与并发显式 GC 参数的可用性共用此表 */
+const JVM_GC_PAUSE_SUPPORT: Record<string, boolean> = {
+  '+UseSerialGC': false,
+  '+UseParallelGC': false,
+  '+UseConcMarkSweepGC': true,
+  '+UseG1GC': true,
+  '+UseZGC': true
+}
+
+interface JvmParamDef {
+  key: string
+  flag: string
+  name: string
+  desc: string
+  /** mem = 数值 + 单位；gc = 收集器选项；pause = 毫秒数值（无单位后缀）；bool = 仅开关（勾选输出 arg） */
+  kind: 'mem' | 'gc' | 'pause' | 'bool'
+  /** bool 类型勾选时输出的完整参数 */
+  arg?: string
+  /** 仅并发收集器（G1/ZGC/CMS）下有效，Serial/Parallel 时自动移除 */
+  needConcurrentGc?: boolean
+  /** 仅 G1 下有效（字符串去重 / Region 大小），其他收集器时自动移除 */
+  needG1?: boolean
+  units?: string[]
+  min?: number
+  /** 卡片图标及其渐变底色 */
+  icon: string
+  grad: string
+}
+
+/** 参数定义顺序即生成顺序 */
+const JVM_PARAM_DEFS: JvmParamDef[] = [
+  { key: 'gc', flag: '-XX:±UseXXXGC', name: '垃圾收集器', desc: '小内存容器推荐 Serial（单线程、开销最小）；吞吐场景选 Parallel，大堆选 G1', kind: 'gc', icon: '♻️', grad: 'linear-gradient(135deg, #d1fae5, #a7f3d0)' },
+  { key: 'gcPause', flag: '-XX:MaxGCPauseMillis', name: 'GC 停顿目标', desc: 'GC 单次停顿时间目标（毫秒），仅 G1/ZGC 等收集器生效；调小降低延迟但牺牲吞吐', kind: 'pause', min: 10, icon: '⏱️', grad: 'linear-gradient(135deg, #ccfbf1, #99f6e4)' },
+  { key: 'preTouch', flag: '-XX:+AlwaysPreTouch', name: '内存预触', desc: 'JVM 启动时预触全部内存页，消除运行期缺页抖动、启动即占满配额；代价是启动变慢', kind: 'bool', arg: '-XX:+AlwaysPreTouch', icon: '🖐️', grad: 'linear-gradient(135deg, #e0f2fe, #e0ecfe)' },
+  { key: 'explicitGc', flag: '-XX:+ExplicitGCInvokesConcurrent', name: '并发显式 GC', desc: '调用 System.gc() 时触发并发收集而非 Full GC，避免显式回收引发长时间停顿', kind: 'bool', arg: '-XX:+ExplicitGCInvokesConcurrent', needConcurrentGc: true, icon: '📞', grad: 'linear-gradient(135deg, #fefce8, #fef08a)' },
+  { key: 'parallelRef', flag: '-XX:+ParallelRefProcEnabled', name: '并行引用处理', desc: 'GC 停顿阶段并行处理 Soft/Weak/Phantom 引用，引用密集的服务可明显缩短停顿', kind: 'bool', arg: '-XX:+ParallelRefProcEnabled', icon: '🔗', grad: 'linear-gradient(135deg, #f0fdfa, #ccfbf1)' },
+  { key: 'stringDedup', flag: '-XX:+UseStringDeduplication', name: '字符串去重', desc: 'G1 特性：堆内重复字符串仅存一份，显著降低内存占用；大量重复文本的服务收益最大', kind: 'bool', arg: '-XX:+UseStringDeduplication', needG1: true, icon: '🔤', grad: 'linear-gradient(135deg, #fdf4ff, #fae8ff)' },
+  { key: 'g1Region', flag: '-XX:G1HeapRegionSize', name: 'G1 Region 大小', desc: 'G1 分区粒度（1~32m 且为 2 的幂）：小堆选 1m 减少碎片，大堆选更大值降低记忆集开销', kind: 'mem', units: ['m'], min: 1, needG1: true, icon: '🧱', grad: 'linear-gradient(135deg, #f5f3ff, #ede9fe)' },
+  { key: 'xms', flag: '-Xms', name: '初始堆内存', desc: 'JVM 启动时向操作系统申请的堆大小；与 Xmx 设成相同可避免运行期扩容抖动', kind: 'mem', units: ['m', 'g'], min: 16, icon: '🌱', grad: 'linear-gradient(135deg, #dcfce7, #bbf7d0)' },
+  { key: 'xmx', flag: '-Xmx', name: '最大堆内存', desc: '堆可增长的上限，超过触发 OOM；容器部署建议不超过容器内存配额的一半', kind: 'mem', units: ['m', 'g'], min: 16, icon: '📦', grad: 'linear-gradient(135deg, #fef3c7, #fde68a)' },
+  { key: 'xss', flag: '-Xss', name: '线程栈大小', desc: '每个线程私有的栈空间；调小可支撑更多线程，过深递归会 StackOverflow', kind: 'mem', units: ['k', 'm'], min: 128, icon: '🧵', grad: 'linear-gradient(135deg, #ede9fe, #ddd6fe)' },
+  { key: 'metaspaceInit', flag: '-XX:MetaspaceSize', name: '初始元空间', desc: '类元数据首次触发 GC 的高水位线；与上限设成相同可避免运行期扩容抖动', kind: 'mem', units: ['m', 'g'], min: 32, icon: '📐', grad: 'linear-gradient(135deg, #eef2ff, #e0e7ff)' },
+  { key: 'metaspace', flag: '-XX:MaxMetaspaceSize', name: '元空间上限', desc: '类元数据存放区（取代永久代）；限制上限防止动态加载类把内存吃穿', kind: 'mem', units: ['m', 'g'], min: 32, icon: '🏛️', grad: 'linear-gradient(135deg, #e0e7ff, #c7d2fe)' },
+  { key: 'ccs', flag: '-XX:CompressedClassSpaceSize', name: '压缩类空间', desc: '元空间中存放压缩指针类结构的部分，计入元空间总量', kind: 'mem', units: ['m', 'g'], min: 16, icon: '📚', grad: 'linear-gradient(135deg, #ffe4e6, #fecdd3)' },
+  { key: 'codeCache', flag: '-XX:ReservedCodeCacheSize', name: '代码缓存上限', desc: 'JIT 编译后的本地代码缓存；缓存写满后会退化为解释执行', kind: 'mem', units: ['m', 'g'], min: 16, icon: '⚡', grad: 'linear-gradient(135deg, #ffedd5, #fed7aa)' },
+  { key: 'direct', flag: '-XX:MaxDirectMemorySize', name: '直接内存上限', desc: 'NIO DirectBuffer 使用的堆外内存；不设置时默认约等于 Xmx', kind: 'mem', units: ['m', 'g'], min: 16, icon: '🚀', grad: 'linear-gradient(135deg, #e0f2fe, #bae6fd)' },
+  { key: 'perfDisable', flag: '-XX:+PerfDisableSharedMem', name: '禁用 Perf 共享内存', desc: '不写 hsperfdata 共享内存文件，避免 jstat 等工具轮询造成的 IO 开销与进程退出卡顿', kind: 'bool', arg: '-XX:+PerfDisableSharedMem', icon: '📊', grad: 'linear-gradient(135deg, #f8fafc, #eef2f7)' }
+]
+
+/** 推荐默认值（= 测试环境方案）：-Xms256m -Xmx256m -Xss256k -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=256m -XX:+UseSerialGC -XX:CompressedClassSpaceSize=32m -XX:ReservedCodeCacheSize=48m -XX:MaxDirectMemorySize=96m */
+const JVM_DEFAULTS = { xms: { v: 256, u: 'm' }, xmx: { v: 256, u: 'm' }, xss: { v: 256, u: 'k' }, metaspace: { v: 256, u: 'm' }, metaspaceInit: { v: 256, u: 'm' }, gcPause: { v: 200, u: '' }, ccs: { v: 32, u: 'm' }, codeCache: { v: 48, u: 'm' }, direct: { v: 96, u: 'm' } } as const
+type JvmValues = Record<string, { v: number; u: string }>
+
+/** 推荐方案：一键套用整组参数（含 GC 与 bool 开关，见 applyJvmPreset）；total 为固定内存合计（堆+元空间+代码缓存+直接内存），徽标实际用 jvmPresetTotalText 实时计算（含线程栈） */
+const JVM_PRESETS: { key: string; icon: string; label: string; total: string; tip: string; gc: string; preTouch: boolean; explicitGc: boolean; parallelRef: boolean; stringDedup: boolean; g1Region: boolean; perfDisable: boolean; values: JvmValues }[] = [
+  {
+    key: 'test',
+    icon: '🧪',
+    label: '测试环境',
+    total: '656m',
+    gc: '+UseSerialGC',
+    preTouch: false,
+    explicitGc: false,
+    parallelRef: false,
+    stringDedup: false,
+    g1Region: false,
+    perfDisable: false,
+    tip: '256m 堆 + 256m 元空间 + Serial GC，固定内存合计 656m，适配 768m 内存配额的测试容器',
+    values: { ...JVM_DEFAULTS }
+  },
+  {
+    key: 'prod',
+    icon: '🏭',
+    label: '生产环境',
+    total: '3008m',
+    gc: '+UseG1GC',
+    preTouch: true,
+    explicitGc: true,
+    parallelRef: true,
+    stringDedup: true,
+    g1Region: true,
+    perfDisable: true,
+    tip: '2048m 堆 + 384m 元空间 + 512m 直接内存 + G1 + 内存预触，固定内存合计 3072m，适配 4g 及以上内存配额',
+    values: { xms: { v: 2048, u: 'm' }, xmx: { v: 2048, u: 'm' }, xss: { v: 512, u: 'k' }, metaspace: { v: 384, u: 'm' }, metaspaceInit: { v: 256, u: 'm' }, gcPause: { v: 100, u: '' }, g1Region: { v: 1, u: 'm' }, ccs: { v: 128, u: 'm' }, codeCache: { v: 128, u: 'm' }, direct: { v: 512, u: 'm' } }
+  }
+]
+
+const jvmParams = JVM_PARAM_DEFS
+
+/** 表单状态：on = 参数勾选，val/unit = 数值与单位，gc = 当前收集器 */
+const jvmState = reactive({
+  on: Object.fromEntries(JVM_PARAM_DEFS.map((p) => [p.key, true])) as Record<string, boolean>,
+  val: Object.fromEntries(Object.entries(JVM_DEFAULTS).map(([k, d]) => [k, d.v])) as Record<string, number>,
+  unit: Object.fromEntries(Object.entries(JVM_DEFAULTS).map(([k, d]) => [k, d.u])) as Record<string, string>,
+  gc: '+UseSerialGC' as string
+})
+
+/** 当前 GC 是否可设置停顿目标 */
+const jvmGcSupportsPause = computed(() => JVM_GC_PAUSE_SUPPORT[jvmState.gc] ?? true)
+
+/** 当前 GC 是否为 G1（字符串去重 / Region 大小仅 G1 有效） */
+const jvmGcIsG1 = computed(() => jvmState.gc === '+UseG1GC')
+
+/** 仅 G1 参数在切走 G1 时的勾选备份：切回 G1 恢复用户/预设意图 */
+const jvmG1OnlyBackup = ref<{ stringDedup: boolean; g1Region: boolean } | null>(null)
+
+/** 切换 GC：停顿目标与并发显式 GC 勾选随支持性自动关/开；G1 专属参数切走时备份关闭，切回时恢复 */
+watch(
+  () => jvmState.gc,
+  (g) => {
+    const ok = JVM_GC_PAUSE_SUPPORT[g] ?? true
+    jvmState.on.gcPause = ok
+    jvmState.on.explicitGc = ok
+    if (g === '+UseG1GC') {
+      // 切回 G1：恢复备份的勾选意图（预设切换已显式设置，此处主要服务手动切回）
+      if (jvmG1OnlyBackup.value) {
+        jvmState.on.stringDedup = jvmG1OnlyBackup.value.stringDedup
+        jvmState.on.g1Region = jvmG1OnlyBackup.value.g1Region
+        jvmG1OnlyBackup.value = null
+      }
+    } else {
+      if (!jvmG1OnlyBackup.value) {
+        jvmG1OnlyBackup.value = { stringDedup: jvmState.on.stringDedup, g1Region: jvmState.on.g1Region }
+      }
+      jvmState.on.stringDedup = false
+      jvmState.on.g1Region = false
+    }
+  }
+)
+
+function openJvmTuning(): void {
+  jvmVisible.value = true
+}
+
+/** 套用推荐方案：覆盖内存数值与单位、GC 选择及全部 bool 开关；内存参数的勾选状态不动 */
+function applyJvmPreset(ps: (typeof JVM_PRESETS)[number]): void {
+  for (const [k, d] of Object.entries(ps.values)) {
+    jvmState.val[k] = d.v
+    jvmState.unit[k] = d.u
+  }
+  jvmState.gc = ps.gc
+  jvmState.on.preTouch = ps.preTouch
+  jvmState.on.gcPause = JVM_GC_PAUSE_SUPPORT[ps.gc] ?? true
+  jvmState.on.explicitGc = ps.explicitGc && (JVM_GC_PAUSE_SUPPORT[ps.gc] ?? true)
+  jvmState.on.parallelRef = ps.parallelRef
+  jvmState.on.perfDisable = ps.perfDisable
+  const isG1 = ps.gc === '+UseG1GC'
+  jvmState.on.stringDedup = ps.stringDedup && isG1
+  jvmState.on.g1Region = ps.g1Region && isG1
+  jvmG1OnlyBackup.value = null
+}
+
+// 初始状态 = 测试环境方案（内存项保持勾选，bool 开关与停顿目标按方案及 GC 支持性关闭）
+applyJvmPreset(JVM_PRESETS[0])
+
+/** 当前取值命中的推荐方案（内存项、GC 与 bool 开关全部一致才算命中，无命中返回空串） */
+const jvmActivePreset = computed(() => {
+  const hit = JVM_PRESETS.find(
+    (ps) =>
+      jvmState.gc === ps.gc &&
+      jvmState.on.preTouch === ps.preTouch &&
+      jvmState.on.explicitGc === ps.explicitGc &&
+      jvmState.on.parallelRef === ps.parallelRef &&
+      jvmState.on.stringDedup === ps.stringDedup &&
+      jvmState.on.g1Region === ps.g1Region &&
+      jvmState.on.perfDisable === ps.perfDisable &&
+      Object.entries(ps.values).every(([k, d]) => Number(jvmState.val[k]) === d.v && jvmState.unit[k] === d.u)
+  )
+  return hit?.key ?? ''
+})
+
+/** 恢复默认：全部参数重新勾选，再套用测试环境方案 */
+function resetJvmDefaults(): void {
+  for (const p of JVM_PARAM_DEFS) jvmState.on[p.key] = true
+  applyJvmPreset(JVM_PRESETS[0])
+}
+
+/** 数值统一换算成 MB（单位丢失/非法输入按 0 处理，仅用于汇总展示） */
+function jvmMb(key: string): number {
+  const v = Number(jvmState.val[key]) || 0
+  return jvmState.unit[key] === 'k' ? v / 1024 : jvmState.unit[key] === 'g' ? v * 1024 : v
+}
+
+function jvmUnitText(key: string): string {
+  const v = jvmState.val[key]
+  return `${Number.isFinite(v) && v > 0 ? v : '?'}${jvmState.unit[key] ?? ''}`
+}
+
+/** ===== 线程栈预估：填写线程数，按 线程数 × Xss 估算线程栈合计，并叠加进总预估 ===== */
+const jvmThreads = ref<number | string>(400)
+
+/** 线程数取值：非法/空/负数按 0（不参与预估） */
+const jvmThreadsCount = computed(() => {
+  const n = Number(jvmThreads.value)
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : 0
+})
+
+/** 线程栈合计（MB）= 线程数 × 每线程栈大小 */
+const jvmThreadsTotalMb = computed(() => jvmThreadsCount.value * jvmMb('xss'))
+
+const jvmThreadsMbText = computed(() =>
+  jvmThreadsTotalMb.value > 0 ? `≈ ${Math.round(jvmThreadsTotalMb.value)}m` : '/ 线程另计'
+)
+
+/** 内存构成环形图：图例 = 固定四段（堆/元空间/代码缓存/直接内存）；环形图另有线程数时的线程栈第五段，零值段剔除 */
+const jvmSegs = computed(() => {
+  const parts = [
+    { key: 'xmx', label: '堆', color: '#f59e0b', mb: jvmMb('xmx') },
+    { key: 'metaspace', label: '元空间', color: '#a78bfa', mb: jvmMb('metaspace') },
+    { key: 'codeCache', label: '代码缓存', color: '#34d399', mb: jvmMb('codeCache') },
+    { key: 'direct', label: '直接内存', color: '#38bdf8', mb: jvmMb('direct') }
+  ].filter((s) => s.mb > 0)
+  const ringParts =
+    jvmThreadsTotalMb.value > 0
+      ? [...parts, { key: 'xss', label: '线程栈', color: '#94a3b8', mb: jvmThreadsTotalMb.value }]
+      : parts
+  const total = ringParts.reduce((n, s) => n + s.mb, 0)
+  let acc = 0
+  const stops = total > 0
+    ? ringParts.map((s) => {
+        const from = (acc / total) * 100
+        acc += s.mb
+        return `${s.color} ${from.toFixed(2)}% ${((acc / total) * 100).toFixed(2)}%`
+      })
+    : []
+  return {
+    parts,
+    total,
+    gradient: stops.length ? `conic-gradient(from -90deg, ${stops.join(', ')})` : 'conic-gradient(from -90deg, #e8eef6 0% 100%)'
+  }
+})
+
+/** 总预估（具体 m 数，随线程数联动）：固定占用（堆+元空间+代码缓存+直接内存，压缩类空间计入元空间）+ 线程栈合计 */
+const jvmMemTotalText = computed(() => `${Math.round(jvmSegs.value.total)}m`)
+
+/** 固定占用（不含线程栈）：用于中心环悬停明细 */
+const jvmFixedTotalText = computed(
+  () => `${Math.round(jvmSegs.value.total - jvmThreadsTotalMb.value)}m`
+)
+
+/** 推荐方案徽标（随线程数联动）：方案固定内存合计 + 按该方案 Xss 估算的线程栈（即"切到该方案后的总预估"） */
+function jvmPresetTotalText(ps: (typeof JVM_PRESETS)[number]): string {
+  const toMb = (d: { v: number; u: string }) => (d.u === 'k' ? d.v / 1024 : d.u === 'g' ? d.v * 1024 : d.v)
+  const fixed =
+    toMb(ps.values.xmx) + toMb(ps.values.metaspace) + toMb(ps.values.codeCache) + toMb(ps.values.direct)
+  const threadsMb = jvmThreadsCount.value * toMb(ps.values.xss)
+  return `${Math.round(fixed + threadsMb)}m`
+}
+
+/** Xms 应不大于 Xmx（允许不同单位书写） */
+const jvmHeapWarn = computed(() => jvmMb('xms') > jvmMb('xmx'))
+
+/** 完整参数拼接：按定义顺序，仅含已勾选项；数值非法或当前 GC 不适用（停顿目标 / G1 专属）的项跳过 */
+const jvmArgs = computed(() => {
+  const parts: string[] = []
+  for (const p of JVM_PARAM_DEFS) {
+    if (!jvmState.on[p.key]) continue
+    if (p.kind === 'gc') {
+      if (jvmState.gc) parts.push(`-XX:${jvmState.gc}`)
+      continue
+    }
+    if (p.kind === 'bool') {
+      if (p.arg && !(p.needConcurrentGc && !jvmGcSupportsPause.value) && !(p.needG1 && !jvmGcIsG1.value)) parts.push(p.arg)
+      continue
+    }
+    const v = Number(jvmState.val[p.key])
+    if (!Number.isFinite(v) || v <= 0) continue
+    if (p.kind === 'pause' && !jvmGcSupportsPause.value) continue
+    if (p.needG1 && !jvmGcIsG1.value) continue
+    // -XX: 形式为 Key=value（-XX:MaxMetaspaceSize=256m）；-X 形式直接连写（-Xms256m）；毫秒参数无单位后缀（-XX:MaxGCPauseMillis=100）
+    const eq = p.flag.startsWith('-XX:') ? '=' : ''
+    const u = p.kind === 'pause' ? '' : jvmState.unit[p.key]
+    parts.push(`${p.flag}${eq}${v}${u}`)
+  }
+  return parts.join(' ')
+})
+
+async function copyJvmArgs(): Promise<void> {
+  if (!jvmArgs.value) {
+    ElMessage.warning('尚未勾选任何参数')
+    return
+  }
+  await api.util.copy(jvmArgs.value)
+  ElMessage.success('完整 JVM 参数已复制到剪贴板')
+}
+
+/** 业务 .env 相对路径：应用服务（单体/微服务 compose）共用的 JVM_PARAMS 所在文件 */
+const JVM_ENV_FILE = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker/maozi-cloud-business-docker/.env'
+
+/** 把当前完整参数写入业务 .env 的 JVM_PARAMS=（复用环境设置的 envFileSave：本地直写 / 远程 SSH，原位更新或追加） */
+const jvmApplying = ref(false)
+
+async function applyJvmToServices(): Promise<void> {
+  if (!jvmArgs.value) {
+    ElMessage.warning('尚未勾选任何参数')
+    return
+  }
+  if (jvmApplying.value) return
+  try {
+    await ElMessageBox.confirm(
+      `将把以下参数写入业务 .env 的 JVM_PARAMS，应用服务下次 docker compose 编排即生效：\n\n${jvmArgs.value}`,
+      '设置应用服务 JVM 参数',
+      { confirmButtonText: '写入', cancelButtonText: '取消', type: 'info', customStyle: { whiteSpace: 'pre-wrap', maxWidth: '640px' } }
+    )
+  } catch {
+    return
+  }
+  jvmApplying.value = true
+  try {
+    const r = await api.projects.envFileSave({ key: 'JVM_PARAMS', value: jvmArgs.value })
+    if (!r.ok) {
+      ElMessage.error(r.error ?? '写入失败')
+      return
+    }
+    ElMessage.success(`JVM_PARAMS 已写入 ${JVM_ENV_FILE}，应用服务重新编排即生效`)
+  } finally {
+    jvmApplying.value = false
+  }
+}
+
 /** ===== 环境设置：解析项目 environment_variable.json（一级属性 = 分节 Tab），打开时实时读取当前值 ===== */
 const envVisible = ref(false)
 const envLoading = ref(false)
@@ -4282,10 +4802,6 @@ function startEnvEdit(it: EnvSettingItem): void {
 }
 
 /**
- * 保存修改：.env 分节原位更新文件行；系统环境分节已存在的原位更新（禁用行顺带启用），
- * 新变量写入默认配置文件。buildChildEnv 每次执行脚本都重新读取配置文件，保存后部署脚本下次执行即生效
- */
-/**
  * 环境设置保存后的联动刷新：ENVIRONMENT / VERSION（及其系统级回退 APPLICATION_*）参与
  * 应用服务与容器的命名（如 maozi-cloud-admin-monomer-dev-main），改完即刷新列表
  * （服务名 + 环境/灰度徽标取值）与运行状态匹配，避免面板显示旧值
@@ -4297,6 +4813,10 @@ async function refreshAppSvcNaming(key: string): Promise<void> {
   void loadAppSvcStats()
 }
 
+/**
+ * 保存修改：.env 分节原位更新文件行；系统环境分节已存在的原位更新（禁用行顺带启用），
+ * 新变量写入默认配置文件。buildChildEnv 每次执行脚本都重新读取配置文件，保存后部署脚本下次执行即生效
+ */
 async function saveEnvEdit(it: EnvSettingItem): Promise<void> {
   // 允许空值且空值 = 未设置：.env 分节写 KEY= 行、系统环境分节写 export KEY=''（清空取值、
   // 保留 key 定义，列表项回到「未设置」态）；如需彻底删除变量，系统环境分节仍到「环境变量」页操作
@@ -4391,7 +4911,7 @@ function openEnvSettings(): void {
   void loadEnvSettings()
 }
 
-/** ===== 服务配置：environment_variable.json 一级属性（key = 服务名）→ 配置描述 → 变量 key，值读写业务 .env ===== */
+/** ===== 服务配置：docker_variable.json 一级属性（key = 服务名）→ 配置描述 → 变量 key，值读写业务 .env ===== */
 const svcCfgVisible = ref(false)
 const svcCfgLoading = ref(false)
 const svcCfgError = ref('')
@@ -5133,7 +5653,7 @@ async function onAppService(svc: AppServiceEntry, action: 'start' | 'stop' | 're
       sub:
         action === 'restart'
           ? `docker compose -p <项目名> -f ${yml} stop + rm -f ${svc.name} && up -d · 实时输出`
-          : `docker compose -p <项目名> -f ${yml} ${action === 'start' ? `up -d ${svc.name}` : `stop + rm -f ${svc.name}`} · 实时输出`
+          : `docker compose -p <项目名> -f ${yml} ${action === 'start' ? `up -d ${svc.name}` : `down ${svc.name}`} · 实时输出`
     }
   )
   try {
@@ -5177,8 +5697,6 @@ async function onAppServiceAll(action: 'start' | 'stop' | 'restart', skipConfirm
     finishSession(s, false)
   }
 }
-
-/** 全量启动/关闭当前 Tab 变体；启动前主进程自动 down 掉另一变体 */
 
 /** 环境准备就绪：hosts 全部写入、容器网络（若定义）已存在、数据库（若定义）已初始化、镜像（若定义）均已构建 */
 const prepReady = computed(
@@ -5449,7 +5967,7 @@ async function loadAdminStatus(): Promise<void> {
   adminState.value = r.ok && r.data ? r.data : 'unknown'
 }
 
-/** 关闭后台前端容器：docker compose stop（容器保留可随时重启） */
+/** 关闭后台前端容器：docker compose down（镜像保留，重新启动自动重建容器） */
 async function onAdminStop(skipConfirm = false): Promise<void> {
   if (!skipConfirm) {
     try {
@@ -5497,7 +6015,7 @@ async function doLoadComposeStatuses(): Promise<void> {
   }
 }
 
-/** ===== 实时资源占用：docker stats 一次性快照，前端每 3 秒轮询 ===== */
+/** ===== 实时资源占用：docker stats 一次性快照，前端定时轮询（本地 3s / 远程 10s） ===== */
 const composeStats = ref<Record<string, ComposeServiceStats>>({})
 const hostCpuCount = ref(1)
 const hostMemTotal = ref(0)
@@ -5670,7 +6188,7 @@ function fmtBytes(n: number): string {
 
 /**
  * 资源轮询生命周期（组件被 KeepAlive 缓存）：
- * - 首次挂载与每次回到页面：onActivated 启动 3s 轮询并刷新运行状态
+ * - 首次挂载与每次回到页面：onActivated 启动轮询（本地 3s / 远程 10s）并刷新运行状态
  * - 切走导航：onDeactivated 暂停轮询并收起弹窗（会话与日志订阅保留，数据继续累积）
  */
 onActivated(() => {
@@ -5680,8 +6198,9 @@ onActivated(() => {
       void loadAppSvcStats()
       void loadAppSvcStatuses()
     }, binding.value?.remote ? 10000 : 3000)
-  void loadComposeStatuses()
-  // 回到页面时刷新准备态：hosts 与容器网段可能已变化（如用户改了 docker-compose.yml 网段名）
+  // 回到页面时刷新准备态：docker-compose.yml 可能已被外部修改（新增/删除服务、改网段名），
+  // 服务列表需重读（loadComposeServices 内部连带刷新运行状态），hosts 与容器网段同理
+  void loadComposeServices()
   void loadHostsInitStatus()
   void loadNetworkStatus()
   void loadDbInitStatus()
@@ -7223,7 +7742,7 @@ onMounted(loadState)
   white-space: nowrap;
 }
 
-/* 单体服务「接口不停机更新」开关：药丸滑块，开启绿色 */
+/* 「接口不停机更新」开关（单体/微服务各一）：药丸滑块，开启绿色 */
 .hotswap-toggle {
   display: inline-flex;
   align-items: center;
@@ -7264,7 +7783,7 @@ onMounted(loadState)
   border-color: #93c5fd;
 }
 
-/* 部署栏：仅微服务 Tab —— 提示语居左，按钮组靠右（与上方仪表卡保持间距） */
+/* 部署栏（单体/微服务 Tab 均展示，按钮随变体切换）—— 提示语居左，按钮组靠右（与上方仪表卡保持间距） */
 .pas-deploy {
   display: flex;
   align-items: center;
@@ -11988,6 +12507,698 @@ onMounted(loadState)
   border-top: 1px solid #eef2f7;
   color: #94a3b8;
   font-size: 10.5px;
+}
+
+/* ===== JVM 参数调优弹窗 ===== */
+/* 弹窗体：比常规配置弹窗更宽，参数卡描述更从容；顶部一抹蓝调渐变 */
+.pjvm-dlg .el-dialog {
+  width: min(860px, 94vw) !important;
+  margin-top: 4vh !important;
+  margin-bottom: 4vh !important;
+}
+
+/* 92vh 高度上限：提升特异性压过全局 styles.css 的 .el-dialog:not(.is-fullscreen){max-height:84vh} */
+.el-overlay.pjvm-dlg .el-dialog {
+  max-height: 92vh;
+}
+
+.pjvm-dlg .pcd-body {
+  background: linear-gradient(180deg, #fafcff 0%, #ffffff 180px);
+}
+
+.pjvm-dlg .pcd-header {
+  padding: 13px 20px;
+}
+
+.pjvm-dlg .pcd-header-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  font-size: 19px;
+}
+
+.pjvm-dlg .pcd-body {
+  padding: 12px 20px 7px;
+}
+
+/* 仪表盘横幅：白卡 + 光斑装饰 + 构成环形图 + 图例 */
+.pjvm-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 16px;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #ffffff 0%, #f5f8ff 55%, #eef4ff 100%);
+  border: 1px solid #e2eaf6;
+  box-shadow: 0 2px 10px rgba(15, 30, 48, 0.05), inset 0 1px 0 #fff;
+  margin-bottom: 11px;
+  overflow: hidden;
+}
+
+.pjvm-hero-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(28px);
+  pointer-events: none;
+}
+
+.pjvm-hero-glow.g1 {
+  width: 150px;
+  height: 150px;
+  right: -34px;
+  top: -64px;
+  background: rgba(96, 165, 250, 0.22);
+}
+
+.pjvm-hero-glow.g2 {
+  width: 120px;
+  height: 120px;
+  left: 108px;
+  bottom: -70px;
+  background: rgba(167, 139, 250, 0.16);
+}
+
+.pjvm-donut {
+  width: 78px;
+  height: 78px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 22px -8px rgba(37, 99, 235, 0.45), 0 0 0 4px rgba(255, 255, 255, 0.7);
+}
+
+.pjvm-donut-core {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 1px 3px rgba(16, 24, 40, 0.08);
+}
+
+.pjvm-donut-val {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0f1e30;
+  letter-spacing: -0.4px;
+  line-height: 1.1;
+}
+
+.pjvm-donut-cap {
+  font-size: 9px;
+  font-weight: 600;
+  color: #8a94a6;
+  margin-top: 1px;
+}
+
+.pjvm-hero-main {
+  position: relative;
+  min-width: 0;
+  flex: 1;
+}
+
+.pjvm-hero-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #1f2d3d;
+  margin-bottom: 6px;
+}
+
+.pjvm-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 11px;
+  border-radius: 999px;
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  color: #059669;
+  font-size: 10.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pjvm-tag.bad {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+  animation: pjvm-pulse 1.4s ease infinite;
+}
+
+@keyframes pjvm-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.25); }
+  50% { box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); }
+}
+
+/* 图例：彩色圆点 + 名称 + 取值 + 占比 */
+.pjvm-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px 10px;
+  flex-wrap: wrap;
+  margin-bottom: 5px;
+}
+
+.pjvm-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.pjvm-legend-item b {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #1f2d3d;
+}
+
+.pjvm-legend-item em {
+  font-style: normal;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #8a94a6;
+}
+
+.pjvm-legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.2);
+}
+
+/* 线程栈图例：内联线程数输入，实时按 线程数 × Xss 预估 */
+.pjvm-legend-threads {
+  gap: 5px;
+}
+
+.pjvm-threads-input {
+  width: 46px;
+  height: 21px;
+  padding: 0 6px;
+  border: 1px solid #d6dfeb;
+  border-radius: 7px;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: right;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pjvm-threads-input:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.18);
+}
+
+.pjvm-threads-input::placeholder {
+  color: #b6c2d4;
+  font-weight: 500;
+}
+
+.pjvm-threads-input::-webkit-outer-spin-button,
+.pjvm-threads-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.pjvm-threads-input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.pjvm-hero-sub {
+  font-size: 10.8px;
+  color: #76839a;
+  line-height: 1.55;
+}
+
+/* 推荐方案：一键套用模板 */
+.pjvm-presets {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.pjvm-presets-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.pjvm-presets-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pjvm-preset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 13px;
+  border-radius: 999px;
+  border: 1px solid #dbe4f0;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.16s ease;
+}
+
+.pjvm-preset em {
+  font-style: normal;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #64748b;
+  transition: all 0.16s ease;
+}
+
+.pjvm-preset:hover {
+  transform: translateY(-1px);
+  border-color: #93c5fd;
+  color: #2563eb;
+  background: #f0f7ff;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.12);
+}
+
+.pjvm-preset.active {
+  border-color: #2563eb;
+  color: #1d4ed8;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  box-shadow: 0 3px 9px rgba(37, 99, 235, 0.18);
+}
+
+.pjvm-preset.active em {
+  background: #2563eb;
+  color: #fff;
+}
+
+/* 参数清单：两列卡片网格，GC 行横跨，逐卡入场 */
+.pjvm-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.pjvm-item {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px 7px;
+  border: 1px solid #dbe4f0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(15, 30, 48, 0.04);
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease, opacity 0.16s ease;
+  animation: pjvm-in 0.35s cubic-bezier(0.25, 0.8, 0.35, 1) both;
+}
+
+@keyframes pjvm-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pjvm-item:hover {
+  transform: translateY(-2px);
+  border-color: #93c5fd;
+  box-shadow: 0 8px 20px -6px rgba(37, 99, 235, 0.18);
+}
+
+.pjvm-item.off {
+  opacity: 0.55;
+}
+
+.pjvm-item.off .pjvm-ico {
+  filter: grayscale(1);
+}
+
+.pjvm-item.off:hover {
+  transform: none;
+  border-color: #dbe4f0;
+  box-shadow: 0 2px 8px rgba(15, 30, 48, 0.04);
+}
+
+/* Xms 大于 Xmx：对应卡片红色描边提醒 */
+.pjvm-item.warn {
+  border-color: #fca5a5;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
+}
+
+.pjvm-item-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pjvm-ico {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 2px 5px rgba(15, 30, 48, 0.08);
+}
+
+.pjvm-item-name {
+  flex-shrink: 0;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.pjvm-pause-warn {
+  display: inline-block;
+  padding: 1px 9px;
+  border-radius: 7px;
+  background: #fff7ed;
+  border: 1px dashed #fdba74;
+  color: #c2410c;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.pjvm-item-flag {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0.5px 7px;
+  border-radius: 6px;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  color: #1d4ed8;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+
+.pjvm-item-desc {
+  margin-top: 5px;
+  min-height: 33px;
+  font-size: 10.8px;
+  color: #64748b;
+  line-height: 1.48;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 开关：原生 checkbox 藏起来，滑块自己画 */
+.pjvm-item-switch {
+  flex-shrink: 0;
+  display: inline-flex;
+  cursor: pointer;
+  padding: 4px;
+  /* -4px 外扩点击热区；左 auto 把开关统一推到行尾（含无输入控件的内存预触卡） */
+  margin: -4px;
+  margin-left: auto;
+  border-radius: 999px;
+}
+
+.pjvm-item-switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pjvm-item-switch input:focus-visible + .pjvm-switch-track {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+}
+
+.pjvm-switch-track {
+  display: block;
+  width: 34px;
+  height: 19px;
+  border-radius: 999px;
+  background: #cbd5e1;
+  position: relative;
+  transition: background 0.16s ease;
+}
+
+.pjvm-switch-dot {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 30, 48, 0.3);
+  transition: transform 0.16s ease;
+}
+
+.pjvm-item-switch input:checked + .pjvm-switch-track {
+  background: linear-gradient(135deg, #34d399, #10b981);
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.35);
+}
+
+.pjvm-item-switch input:checked + .pjvm-switch-track .pjvm-switch-dot {
+  transform: translateX(15px);
+}
+
+/* 数值 + 单位融合组合框（名称行内右侧，margin-left:auto 右贴开关前） */
+.pjvm-inputgrp {
+  display: flex;
+  align-items: stretch;
+  flex: 0 1 168px;
+  min-width: 132px;
+  border: 1px solid #d6dfeb;
+  border-radius: 11px;
+  background: #f8fafc;
+  overflow: hidden;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.pjvm-inputgrp:focus-within {
+  border-color: #60a5fa;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.18);
+}
+
+.pjvm-num {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  padding: 6px 9px;
+  border: none;
+  background: transparent;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0f172a;
+  text-align: right;
+  outline: none;
+}
+
+.pjvm-num:disabled {
+  opacity: 0.55;
+}
+
+.pjvm-num::-webkit-outer-spin-button,
+.pjvm-num::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.pjvm-num[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* 组合框内的单位下拉定宽：提升特异性压过全局 .pc-dlg .el-select { width:100% } */
+.pjvm-inputgrp .pjvm-unit-sel {
+  flex: 0 0 60px;
+  width: 60px;
+}
+
+/* 毫秒参数（GC 停顿目标）的固定单位后缀 */
+.pjvm-unit-fix {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  background: #eef2f7;
+  border-left: 1px solid #e2e8f0;
+  font-size: 11px;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.pjvm-unit-sel .el-select__wrapper {
+  box-shadow: none;
+  border-radius: 0;
+  background: #eef2f7;
+  min-height: 32px;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.pjvm-unit-sel .el-select__wrapper.is-disabled {
+  background: #eef2f7;
+}
+
+.pjvm-unit-sel .el-select__caret {
+  color: #94a3b8;
+}
+
+/* GC 选择器：占满名称与开关之间的剩余宽度 */
+.pjvm-sel {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-left: 2px;
+}
+
+.pjvm-sel .el-select__wrapper {
+  border-radius: 11px;
+  background: #f8fafc;
+  min-height: 33px;
+}
+
+/* 生成结果卡：终端风代码区 + 操作行 */
+.pjvm-result {
+  border: 1px solid #c7d7f5;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 6px 20px -6px rgba(37, 99, 235, 0.16);
+}
+
+.pjvm-result-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 13px;
+  background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+  border-bottom: 1px solid #e6edf5;
+}
+
+.pjvm-dots {
+  display: inline-flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.pjvm-dots i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.pjvm-dots i:nth-child(1) { background: #f87171; }
+.pjvm-dots i:nth-child(2) { background: #fbbf24; }
+.pjvm-dots i:nth-child(3) { background: #34d399; }
+
+.pjvm-result-file {
+  font-size: 12px;
+  font-weight: 800;
+  color: #334155;
+  letter-spacing: 0.8px;
+}
+
+.pjvm-result-note {
+  margin-left: auto;
+  font-size: 10.5px;
+  color: #94a3b8;
+}
+
+.pjvm-result-box {
+  padding: 9px 14px;
+  background:
+    radial-gradient(120% 140% at 85% -20%, rgba(56, 189, 248, 0.14) 0%, transparent 55%),
+    linear-gradient(180deg, #0b1220 0%, #101a30 100%);
+  color: #7dd3fc;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  line-height: 1.6;
+  word-break: break-all;
+  min-height: 40px;
+  cursor: text;
+  user-select: all;
+  transition: color 0.16s ease;
+}
+
+.pjvm-result-box:hover {
+  color: #bae6fd;
+}
+
+.pjvm-result-ops {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 13px;
+  background: #f8fafc;
+  border-top: 1px solid #eef2f7;
+}
+
+.pjvm-result-hint {
+  margin-right: auto;
+  font-size: 10.5px;
+  color: #94a3b8;
+}
+
+.pjvm-dlg .pcd-btn {
+  padding: 7px 18px;
+  font-size: 12.5px;
+}
+
+.pcd-btn.pjvm-copy:hover {
+  transform: translateY(-1px);
+}
+
+/* 窄屏：单列 + 仪表盘纵排 */
+@media (max-width: 760px) {
+  .pjvm-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pjvm-hero {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .pjvm-hero-title {
+    justify-content: center;
+  }
+
+  .pjvm-legend {
+    justify-content: center;
+  }
+
 }
 
 .pev-tabs {

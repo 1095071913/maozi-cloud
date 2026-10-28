@@ -31,6 +31,8 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 
 /**
+ * Controller for dashboard login, logout and login-state checking.
+ *
  * @author cdfive
  * @since 1.6.0
  */
@@ -38,17 +40,25 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping("/auth")
 public class AuthController {
 
+    /** Logger of this controller. */
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
 
+    /** Login username from the auth.username property, default "sentinel". */
     @Value("${auth.username:sentinel}")
     private String authUsername;
 
+    /** Login password from the auth.password property, default "sentinel". */
     @Value("${auth.password:sentinel}")
     private String authPassword;
 
+    /** The auth service used to check the login state. */
     @Autowired
     private AuthService<HttpServletRequest> authService;
 
+    /**
+     * Logs the user in, preferring sentinel.dashboard.auth.* (env or system property) over the
+     * auth.username/auth.password properties, and stores the auth user in the web session.
+     */
     @PostMapping("/login")
     public Result<AuthService.AuthUser> login(HttpServletRequest request, String username, String password) {
         if (StringUtils.isNotBlank(DashboardConfig.getAuthUsername())) {
@@ -75,12 +85,14 @@ public class AuthController {
         return Result.ofSuccess(authUser);
     }
 
+    /** Invalidate the current session to log out. */
     @PostMapping(value = "/logout")
     public Result<?> logout(HttpServletRequest request) {
         request.getSession().invalidate();
         return Result.ofSuccess(null);
     }
 
+    /** Returns the logged-in user of the current session, or a fail result if not logged in. */
     @PostMapping(value = "/check")
     public Result<?> check(HttpServletRequest request) {
         AuthService.AuthUser authUser = authService.getAuthUser(request);

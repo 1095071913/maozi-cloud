@@ -6,7 +6,7 @@ import com.maozi.base.plugin.QueryBasePlugin;
 /**
  * 模糊匹配查询条件插件
  * <p>
- * 实现 {@code WHERE field LIKE 'data%'} 的 SQL 条件拼接（右模糊匹配）。
+ * 实现 {@code WHERE field LIKE '%data%'} 的 SQL 条件拼接（全模糊匹配）。
  * </p>
  *
  * @author maozi
@@ -14,7 +14,7 @@ import com.maozi.base.plugin.QueryBasePlugin;
 public class QueryLikePlugin extends QueryBasePlugin{
 
     /**
-     * 应用右模糊匹配条件
+     * 应用全模糊匹配条件
      *
      * @param wrapper MyBatis-Plus-Join Lambda 包装器
      * @param field 字段名

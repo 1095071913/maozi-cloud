@@ -36,11 +36,19 @@ import java.util.stream.Collectors;
 @Component("degradeRuleNacosProvider")
 public class DegradeRuleNacosProvider implements DynamicRuleProvider<List<DegradeRuleEntity>> {
 
+    /** Nacos config service used to read rule configs. */
     @Autowired
     private ConfigService configService;
+    /** Nacos connection properties, supplies the rule config group. */
     @Autowired
     private NacosProperties nacosProperties;
 
+    /**
+     * Load the degrade rules of an app from the Nacos config
+     * {@code appName + DEGRADE_DATA_ID_POSTFIX} in the configured group, parse the JSON
+     * content and convert it to entities (ip and port left {@code null}). Returns an
+     * empty list when the config is empty or absent.
+     */
     @Override
     public List<DegradeRuleEntity> getRules(String appName) throws Exception {
         String rules = NacosConfigUtil.readFreshConfig(configService, appName,

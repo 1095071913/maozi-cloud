@@ -41,17 +41,27 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
+ * Service for querying the cluster state of app machines and modifying cluster
+ * client/server configuration via the Sentinel command API.
+ *
  * @author Eric Zhao
  * @since 1.4.0
  */
 @Service
 public class ClusterConfigService {
 
+    /** Client for sending cluster state/config requests to machines. */
     @Autowired
     private SentinelApiClient sentinelApiClient;
+    /** Registry providing the applications and their machines. */
     @Autowired
     private AppManagement appManagement;
 
+    /**
+     * Modifies the cluster client config of the requesting machine and then switches
+     * the machine to token-client mode. Throws {@link IllegalArgumentException} when
+     * the request is invalid.
+     */
     public CompletableFuture<Void> modifyClusterClientConfig(ClusterClientModifyRequest request) {
         if (notClientRequestValid(request)) {
             throw new IllegalArgumentException("Invalid request");
@@ -63,6 +73,11 @@ public class ClusterConfigService {
             .thenCompose(v -> sentinelApiClient.modifyClusterMode(ip, port, ClusterStateManager.CLUSTER_CLIENT));
     }
 
+    /**
+     * Returns whether the client request is invalid, i.e. the client config is null,
+     * its serverHost is blank, or its serverPort or requestTimeout is missing or
+     * non-positive.
+     */
     private boolean notClientRequestValid(/*@NonNull */ ClusterClientModifyRequest request) {
         ClusterClientConfig config = request.getClientConfig();
         return config == null || StringUtil.isEmpty(config.getServerHost())
@@ -70,6 +85,12 @@ public class ClusterConfigService {
             || config.getRequestTimeout() == null || config.getRequestTimeout() <= 0;
     }
 
+    /**
+     * Modifies the cluster server config of the requesting machine: namespace set,
+     * transport config and flow config are pushed in sequence, then the machine is
+     * switched to token-server mode. Throws {@link IllegalArgumentException} when any
+     * config is invalid or the namespace set is null.
+     */
     public CompletableFuture<Void> modifyClusterServerConfig(ClusterServerModifyRequest request) {
         ServerTransportConfig transportConfig = request.getTransportConfig();
         ServerFlowConfig flowConfig = request.getFlowConfig();
@@ -117,6 +138,12 @@ public class ClusterConfigService {
         return AsyncUtils.sequenceSuccessFuture(futures);
     }
 
+    /**
+     * Gets the cluster group that the given machine (machineId in {@code ip@commandPort}
+     * form) belongs to as a token server of the app, derived from the cluster state of
+     * the app's healthy machines. The future fails when the machine does not exist, is
+     * disconnected, or is not a token server.
+     */
     public CompletableFuture<ClusterGroupEntity> getClusterUniversalStateForAppMachine(String app, String machineId) {
         if (StringUtil.isBlank(app)) {
             return AsyncUtils.newFailedFuture(new IllegalArgumentException("app cannot be empty"));
@@ -144,6 +171,11 @@ public class ClusterConfigService {
             );
     }
 
+    /**
+     * Fetches the cluster mode of a single machine and enriches the state VO with the
+     * client config (when the token client is available) and the server state (when
+     * the token server is available).
+     */
     public CompletableFuture<ClusterUniversalStateVO> getClusterUniversalState(String app, String ip, int port) {
         return sentinelApiClient.fetchClusterMode(ip, port)
             .thenApply(e -> new ClusterUniversalStateVO().setStateInfo(e))
@@ -164,11 +196,20 @@ public class ClusterConfigService {
             });
     }
 
+    /**
+     * Returns whether the transport config is null or its port/idleSeconds is missing
+     * or non-positive.
+     */
     private boolean invalidTransportConfig(ServerTransportConfig transportConfig) {
         return transportConfig == null || transportConfig.getPort() == null || transportConfig.getPort() <= 0
             || transportConfig.getIdleSeconds() == null || transportConfig.getIdleSeconds() <= 0;
     }
 
+    /**
+     * Returns whether the flow config is null, its sampleCount or intervalMs is missing
+     * or non-positive, its intervalMs is not divisible by sampleCount, or its
+     * maxAllowedQps is missing or negative.
+     */
     private boolean invalidFlowConfig(ServerFlowConfig flowConfig) {
         return flowConfig == null || flowConfig.getSampleCount() == null || flowConfig.getSampleCount() <= 0
             || flowConfig.getIntervalMs() == null || flowConfig.getIntervalMs() <= 0

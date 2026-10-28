@@ -25,8 +25,8 @@
 #   ./maozi-cloud-deploy-services-monomer-graceful-update-before.sh [服务名]
 #   可选参数为目标服务 (compose 服务名或容器名均可), 只启动并检测该服务;
 #   不传则处理 yml 内全部服务
-# 可调参数 (环境变量覆盖):
-#   HEALTH_TIMEOUT=300  等待全部健康的最长秒数 (Java 服务启动较慢)
+# 可调参数 (环境变量覆盖, 冒号后为脚本内默认值):
+#   HEALTH_TIMEOUT=1000 等待全部健康的最长秒数 (Java 服务启动较慢)
 #   CHECK_INTERVAL=5    每轮检测间隔秒数
 # ============================================================
 

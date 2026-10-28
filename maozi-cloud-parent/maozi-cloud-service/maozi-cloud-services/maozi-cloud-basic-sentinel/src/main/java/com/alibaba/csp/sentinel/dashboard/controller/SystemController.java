@@ -42,20 +42,26 @@ import java.util.List;
 @RequestMapping("/system")
 public class SystemController {
 
+    /** The logger of this controller. */
     private final Logger logger = LoggerFactory.getLogger(SystemController.class);
 
+    /** The repository that stores system rule entities in memory. */
     @Autowired
     private RuleRepository<SystemRuleEntity, Long> repository;
+    /** The app management service used to validate machine-to-app relationship. */
     @Autowired
     private AppManagement appManagement;
 
+    /** The Nacos provider that pulls system rules for a given app. */
     @Autowired
     @Qualifier("systemRuleNacosProvider")
     private DynamicRuleProvider<List<SystemRuleEntity>> ruleProvider;
+    /** The Nacos publisher that pushes system rules to a given app. */
     @Autowired
     @Qualifier("systemRuleNacosPublisher")
     private DynamicRulePublisher<List<SystemRuleEntity>> rulePublisher;
 
+    /** Validates app/ip/port and that the ip belongs to the given app; returns the first error or null. */
     private <R> Result<R> checkBasicParams(String app, String ip, Integer port) {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(-1, "app can't be null or empty");
@@ -75,6 +81,7 @@ public class SystemController {
         return null;
     }
 
+    /** Fetches the app's system rules from Nacos, stamps each with the machine info, persists them and returns them. */
     @GetMapping("/rules.json")
     @AuthAction(PrivilegeType.READ_RULE)
     public Result<List<SystemRuleEntity>> apiQueryMachineRules(String app, String ip,
@@ -98,6 +105,7 @@ public class SystemController {
         }
     }
 
+    /** Counts how many of the given values are non-null and not negative. */
     private int countNotNullAndNotNegative(Number... values) {
         int notNullCount = 0;
         for (int i = 0; i < values.length; i++) {
@@ -108,6 +116,10 @@ public class SystemController {
         return notNullCount;
     }
 
+    /**
+     * Adds a system rule requiring exactly one threshold; unset thresholds are persisted
+     * as -1 (fake value meaning "not enabled"), then the app's rules are published to Nacos.
+     */
     @RequestMapping("/new.json")
     @AuthAction(PrivilegeType.WRITE_RULE)
     public Result<SystemRuleEntity> apiAdd(String app, String ip, Integer port,
@@ -174,6 +186,7 @@ public class SystemController {
         return Result.ofSuccess(entity);
     }
 
+    /** Updates the rule of the given id by applying only non-null params (negative thresholds rejected) and publishes the app's rules. */
     @GetMapping("/save.json")
     @AuthAction(PrivilegeType.WRITE_RULE)
     public Result<SystemRuleEntity> apiUpdateIfNotNull(Long id, String app, Double highestSystemLoad,
@@ -236,6 +249,7 @@ public class SystemController {
         return Result.ofSuccess(entity);
     }
 
+    /** Deletes the rule of the given id and publishes the app's rules; an unknown id returns success with null data. */
     @RequestMapping("/delete.json")
     @AuthAction(PrivilegeType.DELETE_RULE)
     public Result<?> delete(Long id) {
@@ -258,6 +272,7 @@ public class SystemController {
         return Result.ofSuccess(id);
     }
 
+    /** Publishes all local rules of the app to Nacos; returns false on error. */
     private boolean publishRules(String app) {
         try {
             List<SystemRuleEntity> rules = repository.findAllByApp(app);

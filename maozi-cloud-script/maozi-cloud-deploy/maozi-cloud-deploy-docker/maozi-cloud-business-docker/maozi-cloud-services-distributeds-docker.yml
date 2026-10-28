@@ -47,7 +47,11 @@ services:
       APPLICATION_ENVIRONMENT: ${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}
     volumes:
       # 日志文件挂载到宿主机共享目录,供 promtail 采集
+      # hs / gc / heapdump 为 JVM 诊断产物目录 (崩溃日志 / GC 日志 / 堆转储), 单独挂载持久化
       - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-gateway-service:/application/maozi-cloud-gateway-service/logs
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-gateway-service/hs:/application/maozi-cloud-gateway-service/logs/hs
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-gateway-service/gc:/application/maozi-cloud-gateway-service/logs/gc
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-gateway-service/heapdump:/application/maozi-cloud-gateway-service/logs/heapdump
     stop_grace_period: 150s
     # 停止前钩子: docker compose stop/down/restart 时, 在发送 SIGTERM 前依次执行:
     #   1. POST /actuator/serviceregistry 将实例置为 DOWN, 先从 Nacos 摘流(进程仍正常服务)
@@ -92,7 +96,11 @@ services:
       APPLICATION_ENVIRONMENT: ${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}
     volumes:
       # 日志文件挂载到宿主机共享目录,供 promtail 采集
+      # hs / gc / heapdump 为 JVM 诊断产物目录 (崩溃日志 / GC 日志 / 堆转储), 单独挂载持久化
       - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-oauth-service:/application/maozi-cloud-oauth-service/logs
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-oauth-service/hs:/application/maozi-cloud-oauth-service/logs/hs
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-oauth-service/gc:/application/maozi-cloud-oauth-service/logs/gc
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-oauth-service/heapdump:/application/maozi-cloud-oauth-service/logs/heapdump
     stop_grace_period: 150s
     # 停止前钩子: docker compose stop/down/restart 时, 在发送 SIGTERM 前依次执行:
     #   1. POST /actuator/serviceregistry 将实例置为 DOWN, 先从 Nacos 摘流(进程仍正常服务)
@@ -134,7 +142,11 @@ services:
       APPLICATION_ENVIRONMENT: ${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}
     volumes:
       # 日志文件挂载到宿主机共享目录,供 promtail 采集
+      # hs / gc / heapdump 为 JVM 诊断产物目录 (崩溃日志 / GC 日志 / 堆转储), 单独挂载持久化
       - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-system-service:/application/maozi-cloud-system-service/logs
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-system-service/hs:/application/maozi-cloud-system-service/logs/hs
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-system-service/gc:/application/maozi-cloud-system-service/logs/gc
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-system-service/heapdump:/application/maozi-cloud-system-service/logs/heapdump
     stop_grace_period: 150s
     # 停止前钩子: docker compose stop/down/restart 时, 在发送 SIGTERM 前依次执行:
     #   1. POST /actuator/serviceregistry 将实例置为 DOWN, 先从 Nacos 摘流(进程仍正常服务)
@@ -176,7 +188,11 @@ services:
       APPLICATION_ENVIRONMENT: ${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}
     volumes:
       # 日志文件挂载到宿主机共享目录,供 promtail 采集
+      # hs / gc / heapdump 为 JVM 诊断产物目录 (崩溃日志 / GC 日志 / 堆转储), 单独挂载持久化
       - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-ai-service:/application/maozi-cloud-ai-service/logs
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-ai-service/hs:/application/maozi-cloud-ai-service/logs/hs
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-ai-service/gc:/application/maozi-cloud-ai-service/logs/gc
+      - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-ai-service/heapdump:/application/maozi-cloud-ai-service/logs/heapdump
     stop_grace_period: 150s
     # 停止前钩子: docker compose stop/down/restart 时, 在发送 SIGTERM 前依次执行:
     #   1. POST /actuator/serviceregistry 将实例置为 DOWN, 先从 Nacos 摘流(进程仍正常服务)

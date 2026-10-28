@@ -25,27 +25,34 @@ import java.util.Set;
  */
 public class ClusterAppSingleServerAssignRequest {
 
+    /** The assignment of the single token server with its bound clients. */
     private ClusterAppAssignMap clusterMap;
+    /** The set of machines that remain unassigned to the server. */
     private Set<String> remainingList;
 
+    /** Get the assignment of the single token server. */
     public ClusterAppAssignMap getClusterMap() {
         return clusterMap;
     }
 
+    /** Set the assignment of the token server and return this. */
     public ClusterAppSingleServerAssignRequest setClusterMap(ClusterAppAssignMap clusterMap) {
         this.clusterMap = clusterMap;
         return this;
     }
 
+    /** Get the set of machines that remain unassigned. */
     public Set<String> getRemainingList() {
         return remainingList;
     }
 
+    /** Set the set of unassigned machines and return this. */
     public ClusterAppSingleServerAssignRequest setRemainingList(Set<String> remainingList) {
         this.remainingList = remainingList;
         return this;
     }
 
+    /** Get the string representation of this request. */
     @Override
     public String toString() {
         return "ClusterAppSingleServerAssignRequest{" +

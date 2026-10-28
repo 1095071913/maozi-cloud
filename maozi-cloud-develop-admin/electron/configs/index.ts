@@ -9,7 +9,7 @@ const exec = promisify(execFile)
 
 /**
  * 密钥管理 IPC：
- * - CLI 工具探测（git/docker/helm），缺失时对应类型密钥在前端禁用编辑
+ * - CLI 工具探测（Git/Docker/Helm/Linux 分别探测 git/docker/helm/ssh），缺失时对应类型密钥在前端禁用编辑
  * - Docker / Helm：一键登录（docker login / helm registry login，密码走 stdin）
  */
 

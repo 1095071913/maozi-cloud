@@ -20,12 +20,18 @@ import java.util.Set;
 
 public interface MachineDiscovery {
 
+    /**
+     * App name placeholder for machines whose application has not been registered (cluster not started).
+     */
     String UNKNOWN_APP_NAME = "CLUSTER_NOT_STARTED";
 
+    /** List the names of all discovered applications. */
     List<String> getAppNames();
 
+    /** Get brief information of all discovered applications. */
     Set<AppInfo> getBriefApps();
 
+    /** Get detailed information of the given application. */
     AppInfo getDetailApp(String app);
 
     /**
@@ -36,6 +42,10 @@ public interface MachineDiscovery {
      */
     void removeApp(String app);
 
+    /**
+     * Register a machine to the application registry. The default in-memory
+     * implementation always returns 1.
+     */
     long addMachine(MachineInfo machineInfo);
 
     /**

@@ -20,7 +20,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebSecurityConfig implements WebMvcConfigurer {
 
-    /** 应用链路上下文过滤器 */
+    /** 应用用户上下文拦截器 */
     @Resource
     private ApplicationUserContextFilter applicationUserContextFilter;
 

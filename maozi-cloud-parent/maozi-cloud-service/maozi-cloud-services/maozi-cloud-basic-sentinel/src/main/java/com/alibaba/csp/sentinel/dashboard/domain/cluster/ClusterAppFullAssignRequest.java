@@ -26,28 +26,35 @@ import java.util.Set;
  */
 public class ClusterAppFullAssignRequest {
 
+    /** The list of token server assignments with their bound clients. */
     private List<ClusterAppAssignMap> clusterMap;
+    /** The set of machines that remain unassigned in the cluster map. */
     private Set<String> remainingList;
 
+    /** Get the list of token server assignments. */
     public List<ClusterAppAssignMap> getClusterMap() {
         return clusterMap;
     }
 
+    /** Set the list of token server assignments and return this. */
     public ClusterAppFullAssignRequest setClusterMap(
         List<ClusterAppAssignMap> clusterMap) {
         this.clusterMap = clusterMap;
         return this;
     }
 
+    /** Get the set of machines that remain unassigned. */
     public Set<String> getRemainingList() {
         return remainingList;
     }
 
+    /** Set the set of unassigned machines and return this. */
     public ClusterAppFullAssignRequest setRemainingList(Set<String> remainingList) {
         this.remainingList = remainingList;
         return this;
     }
 
+    /** Get the string representation of this request. */
     @Override
     public String toString() {
         return "ClusterAppFullAssignRequest{" +

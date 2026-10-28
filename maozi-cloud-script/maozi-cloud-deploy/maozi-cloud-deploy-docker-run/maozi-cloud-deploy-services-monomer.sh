@@ -17,7 +17,8 @@
 # ------------------------------------------------------------
 # 前置:
 #   1. maozi-cloud-basics-docker 已启动 (nacos / mysql / redis)
-#   2. maozi-cloud-base-jdk:1.0.0 已构建 (由 maozi-cloud-deploy-services-distributed-force.sh 完成)
+#   2. maozi-cloud-base-jdk:1.0.0 已构建 (需手动用 maozi-cloud-deploy-docker-image/
+#      maozi-cloud-base-jdk-image/Dockerfile 构建好, 本脚本与 distributed-force 均只消费不构建)
 #   3. 外部网络 maozi-cloud-network 已创建
 #   4. 如 services-docker 里的 gateway 在跑, 先停掉 (端口 1100 冲突):
 #      cd .../maozi-cloud-business-docker && \
@@ -39,7 +40,9 @@ fi
 cd "$repo_root"
 
 # ============================================================
-# 配置 (与 maozi-cloud-services.json defaults 保持一致, 方便维护)
+# 配置 (结构参考 maozi-cloud-services.json defaults; JVM_PARAMS 与 business-docker/.env
+# 里分布式服务的 JVM_PARAMS 取值保持一致, ExitOnOutOfMemoryError / 堆转储 / GC 日志
+# 参数由下方 ENTRYPOINT 追加)
 # ============================================================
 # SERVICE_NAME: 容器 / 镜像 / compose 服务名 (与 maozi-cloud-business-docker 对应)
 # MODULE_NAME:  Maven artifactId, 决定源码模块目录与产物 jar 文件名,
@@ -50,7 +53,7 @@ MODULE_NAME="maozi-cloud-all-service"
 MODULE_DIR="maozi-cloud-service/maozi-cloud-services/${MODULE_NAME}"
 BASE_IMAGE="maozi-cloud-base-jdk:1.0.0"
 # OTel=false: 用 base-jdk 即可, 不需要 business-jdk 里的 OTel agent
-JVM_PARAMS="-Xms256m -Xmx256m -Xss256k -XX:MaxMetaspaceSize=192m -XX:+UseSerialGC -XX:CompressedClassSpaceSize=32m -XX:ReservedCodeCacheSize=32m -XX:MaxDirectMemorySize=32m"
+JVM_PARAMS="-XX:+UseSerialGC -Xms256m -Xmx256m -Xss256k -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=256m -XX:CompressedClassSpaceSize=32m -XX:ReservedCodeCacheSize=48m -XX:MaxDirectMemorySize=96m"
 IMAGE_TAG="${SERVICE_NAME}:latest"
 # 部署用的 compose 文件 (端口 / 网络 / 日志挂载都在里面, 改部署参数改这里)
 COMPOSE_FILE="$current_directory/../maozi-cloud-deploy-docker/maozi-cloud-business-docker/maozi-cloud-services-monomer-docker.yml"
@@ -126,7 +129,7 @@ WORKDIR /application/\${APPLICATION_NAME}
 COPY ./${SERVICE_NAME}.jar ./
 
 ENTRYPOINT ["/bin/sh", "-c", "exec java -server \\
-  $JVM_PARAMS \\
+  $JVM_PARAMS -XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/application/\${APPLICATION_NAME}/logs/heapdump/heapdump_${HOSTNAME}_$(date +%Y%m%d%H%M%S).hprof -XX:ErrorFile=/application/\${APPLICATION_NAME}/logs/hs/hs_err_${HOSTNAME}_$(date +%Y%m%d%H%M%S).log -Xlog:gc*:file=/application/\${APPLICATION_NAME}/logs/gc/gc_${HOSTNAME}_$(date +%Y%m%d%H%M%S).log:time,uptime,level,tags:filecount=10,filesize=20M \\
   --add-opens java.base/java.math=ALL-UNNAMED \\
   --add-opens java.base/java.lang=ALL-UNNAMED \\
   --add-opens java.base/java.lang.reflect=ALL-UNNAMED \\

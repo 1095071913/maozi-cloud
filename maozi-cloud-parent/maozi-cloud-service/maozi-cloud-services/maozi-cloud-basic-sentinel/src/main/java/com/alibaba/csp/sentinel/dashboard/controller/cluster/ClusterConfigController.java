@@ -56,16 +56,24 @@ import java.util.concurrent.ExecutionException;
 @RequestMapping(value = "/cluster")
 public class ClusterConfigController {
 
+    /** The logger of this controller. */
     private final Logger logger = LoggerFactory.getLogger(ClusterConfigController.class);
 
+    /** The minimum Sentinel client version (1.4.0) that supports cluster flow control. */
     private final SentinelVersion version140 = new SentinelVersion().setMajorVersion(1).setMinorVersion(4);
 
+    /** The app management service used to look up machines of an app. */
     @Autowired
     private AppManagement appManagement;
 
+    /** The service that fetches cluster states and modifies cluster configs. */
     @Autowired
     private ClusterConfigService clusterConfigService;
 
+    /**
+     * Modifies the cluster config of a single machine: the raw JSON payload is dispatched
+     * by its "mode" field to a client or server {@link ClusterModifyRequest}, then applied.
+     */
     @PostMapping("/config/modify_single")
     public Result<Boolean> apiModifyClusterConfig(@RequestBody String payload) {
         if (StringUtil.isBlank(payload)) {
@@ -107,6 +115,7 @@ public class ClusterConfigController {
         }
     }
 
+    /** Converts the ExecutionException into an unsupported-version result or the cause's error result. */
     private <T> Result<T> errorResponse(ExecutionException ex) {
         if (isNotSupported(ex.getCause())) {
             return unsupportedVersion();
@@ -115,6 +124,7 @@ public class ClusterConfigController {
         }
     }
 
+    /** Fetches the universal cluster state of a single machine of the app. */
     @GetMapping("/state_single")
     public Result<ClusterUniversalStateVO> apiGetClusterState(@RequestParam String app,
                                                               @RequestParam String ip,
@@ -144,6 +154,7 @@ public class ClusterConfigController {
         }
     }
 
+    /** Fetches the cluster server states of all machines of the app. */
     @GetMapping("/server_state/{app}")
     public Result<List<AppClusterServerStateWrapVO>> apiGetClusterServerStateOfApp(@PathVariable String app) {
         if (StringUtil.isEmpty(app)) {
@@ -163,6 +174,7 @@ public class ClusterConfigController {
         }
     }
 
+    /** Fetches the cluster token client states of all machines of the app. */
     @GetMapping("/client_state/{app}")
     public Result<List<AppClusterClientStateWrapVO>> apiGetClusterClientStateOfApp(@PathVariable String app) {
         if (StringUtil.isEmpty(app)) {
@@ -182,6 +194,7 @@ public class ClusterConfigController {
         }
     }
 
+    /** Fetches the universal cluster states (server and client) of all machines of the app. */
     @GetMapping("/state/{app}")
     public Result<List<ClusterUniversalStatePairVO>> apiGetClusterStateOfApp(@PathVariable String app) {
         if (StringUtil.isEmpty(app)) {
@@ -200,10 +213,15 @@ public class ClusterConfigController {
         }
     }
 
+    /** Whether the throwable means the command is not supported by the target Sentinel client. */
     private boolean isNotSupported(Throwable ex) {
         return ex instanceof CommandNotFoundException;
     }
 
+    /**
+     * Whether the machine's client version supports cluster flow control (>= 1.4.0);
+     * returns true when the machine info is unavailable or an error occurs.
+     */
     private boolean checkIfSupported(String app, String ip, int port) {
         try {
             return Optional.ofNullable(appManagement.getDetailApp(app))
@@ -217,6 +235,7 @@ public class ClusterConfigController {
         }
     }
 
+    /** Validates the modify request (app/ip/port/mode and version support); returns the first error or null. */
     private Result<Boolean> checkValidRequest(ClusterModifyRequest request) {
         if (StringUtil.isEmpty(request.getApp())) {
             return Result.ofFail(-1, "app cannot be empty");
@@ -236,9 +255,11 @@ public class ClusterConfigController {
         return null;
     }
 
+    /** Build the error result returned when the client version does not support cluster flow control. */
     private <R> Result<R> unsupportedVersion() {
         return Result.ofFail(4041, "Sentinel client not supported for cluster flow control (unsupported version or dependency absent)");
     }
 
+    /** The JSON field name of the cluster mode in the modify request payload. */
     private static final String KEY_MODE = "mode";
 }

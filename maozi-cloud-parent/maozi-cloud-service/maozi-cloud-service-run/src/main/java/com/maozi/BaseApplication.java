@@ -173,8 +173,8 @@ public class BaseApplication {
     /**
      * 初始化系统属性
      * <p>
-     * 解析运行环境（优先取系统属性 environment，其次取环境变量 ENVIRONMENT，
-     * 均未设置时默认本地环境），推导应用名与项目简称，并设置应用名称、
+     * 解析运行环境（优先取系统属性 application.environment，其次取环境变量
+     * APPLICATION_ENVIRONMENT，均未设置时默认本地环境），推导应用名与项目简称，并设置应用名称、
      * 允许循环依赖、日志级别等 Spring Boot 启动参数。非本地环境使用异步文件日志
      * 输出到 {@code logs/应用名.log}，本地环境使用异步控制台日志。
      * 应用名称读取失败时抛出异常，终止启动。

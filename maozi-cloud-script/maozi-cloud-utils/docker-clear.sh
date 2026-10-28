@@ -49,8 +49,8 @@ show_disk() {
 }
 
 # 构建grep正则
-# 白名单中的 * 替换成正则 [^:]+ （不跨越冒号，只匹配仓库名）
-# :* 替换成 :.+ 匹配任意tag
+# 白名单中的 * 统一替换成正则 [^:]+（不跨越冒号，仓库段与 tag 段同一条规则，
+# 如 maozi-cloud-*-service:* -> maozi-cloud-[^:]+-service:[^:]+，tag 匹配任意单段）
 build_white_regex() {
     local regex_parts=()
     for item in "${WHITE_LIST[@]}"; do
@@ -58,7 +58,7 @@ build_white_regex() {
         escaped=$(echo "$item" | sed -e 's/\//\\\//g' -e 's/\./\\./g')
         # 仓库部分的 * 替换成 [^:]+
         escaped=${escaped//\*/[^:]+}
-        # :* 替换成 :.+
+        # 兜底: 结尾孤立 : 补成 :. (可匹配单字符 tag); 结尾 :* 规则经上一步 * 全量替换后已不会命中
         escaped=$(echo "$escaped" | sed 's/:$/:./;s/:\*$/:+/')
         regex_parts+=("$escaped")
     done
@@ -145,7 +145,7 @@ else
     info "No unused images to delete after filter white list."
 fi
 
-# 清除15天未使用过的镜像
+# 清除创建超过15天(360h)且未被容器使用的镜像
 docker image prune -a --filter "until=360h" -f
 
 # 3. 清理无用volume

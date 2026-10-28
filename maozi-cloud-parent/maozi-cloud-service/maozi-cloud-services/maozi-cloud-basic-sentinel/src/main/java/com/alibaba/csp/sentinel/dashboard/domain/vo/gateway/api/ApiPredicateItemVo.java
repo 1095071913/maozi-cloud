@@ -29,7 +29,7 @@ public class ApiPredicateItemVo {
     private String pattern;
 
     /**
-     * The matching Strategy in url. Constants are defined in class SentinelGatewayConstants.\
+     * The matching Strategy in url. Constants are defined in class SentinelGatewayConstants.
      *
      * <ul>
      *     <li>0(URL_MATCH_STRATEGY_EXACT): exact match mode</li>
@@ -39,18 +39,22 @@ public class ApiPredicateItemVo {
      */
     private Integer matchStrategy;
 
+    /** Returns the pattern for matching url. */
     public String getPattern() {
         return pattern;
     }
 
+    /** Sets the pattern for matching url. */
     public void setPattern(String pattern) {
         this.pattern = pattern;
     }
 
+    /** Returns the url matching strategy. */
     public Integer getMatchStrategy() {
         return matchStrategy;
     }
 
+    /** Sets the url matching strategy. */
     public void setMatchStrategy(Integer matchStrategy) {
         this.matchStrategy = matchStrategy;
     }

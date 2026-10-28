@@ -289,6 +289,18 @@ services:
       maozi-cloud-basic-nacos:
         condition: service_healthy
 
+  # Arthas Tunnel Server —— 在线诊断中心: 聚合各业务进程的 Arthas 会话,
+  # 通过 Web UI 远程连接业务容器诊断 (watch/trace/jad 等);
+  # 业务镜像由 -Darthas.tunnelServer 指向 ws://maozi-cloud-basic-arthas:7777/ws
+  maozi-cloud-basic-arthas:
+    restart: always
+    image: supernpc/arthas-tunnel-server:4.3.4
+    container_name: maozi-cloud-basic-arthas
+    ports:
+      - 9100:8080   # Web 管理页 (HTTP)
+      - 7777:7777   # Arthas Agent 注册通道
+    command: "--arthas.enable-detail-pages=true"
+
 # 外部网络：所有 Compose 通过该网络互通，启动前需先手动创建
 networks:
   default:

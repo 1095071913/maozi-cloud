@@ -36,11 +36,19 @@ import java.util.stream.Collectors;
 @Component("flowRuleNacosProvider")
 public class FlowRuleNacosProvider implements DynamicRuleProvider<List<FlowRuleEntity>> {
 
+    /** Nacos config service used to read rule configs. */
     @Autowired
     private ConfigService configService;
+    /** Nacos connection properties, supplies the rule config group. */
     @Autowired
     private NacosProperties nacosProperties;
 
+    /**
+     * Load the flow rules of an app from the Nacos config
+     * {@code appName + FLOW_DATA_ID_POSTFIX} in the configured group, parse the JSON
+     * content and convert it to entities (ip and port left {@code null}). Returns an
+     * empty list when the config is empty or absent.
+     */
     @Override
     public List<FlowRuleEntity> getRules(String appName) throws Exception {
         String rules = NacosConfigUtil.readFreshConfig(configService, appName,

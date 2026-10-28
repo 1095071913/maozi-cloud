@@ -16,17 +16,22 @@
 package com.alibaba.csp.sentinel.dashboard.client;
 
 /**
+ * Exception thrown when the command is not supported (not found) by the Sentinel client.
+ *
  * @author Eric Zhao
  * @since 0.2.1
  */
 public class CommandNotFoundException extends Exception {
 
+    /** Create the exception without a message. */
     public CommandNotFoundException() { }
 
+    /** Creates the exception with the given message. */
     public CommandNotFoundException(String message) {
         super(message);
     }
 
+    /** {@inheritDoc} Returns this exception directly without filling in the stack trace. */
     @Override
     public synchronized Throwable fillInStackTrace() {
         return this;

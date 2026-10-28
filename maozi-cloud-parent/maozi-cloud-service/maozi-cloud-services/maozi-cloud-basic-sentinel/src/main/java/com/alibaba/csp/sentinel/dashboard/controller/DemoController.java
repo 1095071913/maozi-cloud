@@ -30,17 +30,24 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Demo controller that provides sample endpoints for testing Sentinel resources,
+ * call links and traffic generation.
+ */
 @Controller
 @RequestMapping(value = "/demo", produces = MediaType.APPLICATION_JSON_VALUE)
 public class DemoController {
 
+    /** The logger, created with MachineRegistryController.class as its name. */
     Logger logger = LoggerFactory.getLogger(MachineRegistryController.class);
 
+    /** Return the "index" view name. */
     @RequestMapping("/greeting")
     public String greeting() {
         return "index";
     }
 
+    /** Creates a four-level nested call link (head1 -> head2 -> head3 -> head4) with Sentinel entries. */
     @RequestMapping("/link")
     @ResponseBody
     public String link() throws BlockException {
@@ -58,6 +65,7 @@ public class DemoController {
         return "successfully create a call link";
     }
 
+    /** Starts 10 threads that keep entering the given resource for the given seconds. */
     @RequestMapping("/loop")
     @ResponseBody
     public String loop(String name, int time) throws BlockException {
@@ -69,6 +77,7 @@ public class DemoController {
         return "successfully create a loop thread";
     }
 
+    /** Starts 10 threads that keep entering the given resource for the given seconds, sleeping 3s per entry. */
     @RequestMapping("/slow")
     @ResponseBody
     public String slow(String name, int time) throws BlockException {
@@ -80,12 +89,18 @@ public class DemoController {
         return "successfully create a loop thread";
     }
 
+    /** Task that keeps entering a Sentinel resource in a dedicated context until the duration elapses. */
     static class RunTask implements Runnable {
+        /** Duration in seconds for the task to keep running. */
         int time;
+        /** Flag that stops the run loop when set to true. */
         boolean stop = false;
+        /** Name of the Sentinel resource to enter. */
         String name;
+        /** Whether to sleep 3 seconds after each entry to simulate a slow call. */
         boolean slow = false;
 
+        /** Creates a task entering the given resource for the given seconds, sleeping 3s per entry in slow mode. */
         public RunTask(String name, int time, boolean slow) {
             super();
             this.time = time;
@@ -93,6 +108,7 @@ public class DemoController {
             this.slow = slow;
         }
 
+        /** Enters a context named by the start timestamp, loops entering the resource (3s sleep in slow mode, up to 200ms pause between iterations) until the duration elapses. */
         @Override
         public void run() {
             long startTime = System.currentTimeMillis();

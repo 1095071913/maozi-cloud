@@ -31,7 +31,8 @@
 #   F. 对每个变化的 jar:
 #        - 按模块名前缀路由镜像目录 (basics-* -> maozi-cloud-basics-image 等)
 #        - 调用 render-image 渲染器: 读 maozi-cloud-services.json, 按模板渲染
-#          ${service_name}-image, buildx 构建, compose up -d, 最后 rm 镜像文件
+#          ${service_name}-image, buildx 构建, compose down+up -d (先停旧容器
+#          再启新), 最后 rm 镜像文件
 #        - 服务不在 JSON 配置里时, 渲染器自动 skip, 不阻塞其他服务
 #        - 后台执行, 最后 wait 等待所有部署完成
 # ------------------------------------------------------------

@@ -24,18 +24,29 @@ import java.util.Date;
  */
 public class SystemRuleEntity implements RuleEntity {
 
+    /** The entity id. */
     private Long id;
 
+    /** The application name. */
     private String app;
+    /** The IP address of the machine. */
     private String ip;
+    /** The port of the machine. */
     private Integer port;
+    /** The highest system load threshold. */
     private Double highestSystemLoad;
+    /** The average RT (ms) threshold for all inbound requests. */
     private Long avgRt;
+    /** The max concurrent thread count threshold. */
     private Long maxThread;
+    /** The max total QPS of all inbound requests. */
     private Double qps;
+    /** The highest CPU usage threshold. */
     private Double highestCpuUsage;
 
+    /** The create time. */
     private Date gmtCreate;
+    /** The last modify time. */
     private Date gmtModified;
 
     public static SystemRuleEntity fromSystemRule(String app, String ip, Integer port, SystemRule rule) {

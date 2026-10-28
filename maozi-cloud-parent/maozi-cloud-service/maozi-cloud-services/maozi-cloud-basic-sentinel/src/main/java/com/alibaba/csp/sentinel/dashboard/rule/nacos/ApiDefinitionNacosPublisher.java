@@ -33,11 +33,19 @@ import java.util.stream.Collectors;
 @Component("apiDefinitionNacosPublisher")
 public class ApiDefinitionNacosPublisher implements DynamicRulePublisher<List<ApiDefinitionEntity>> {
 
+    /** Nacos config service used to write rule configs. */
     @Autowired
     private ConfigService configService;
+    /** Nacos connection properties, supplies the rule config group. */
     @Autowired
     private NacosProperties nacosProperties;
 
+    /**
+     * Push the gateway API definitions of an app to the Nacos config
+     * {@code appName + GATEWAY_API_DATA_ID_POSTFIX} in the configured group, after
+     * converting the entities to {@link ApiDefinition} objects. Does nothing when rules
+     * is {@code null}.
+     */
     @Override
     public void publish(String app, List<ApiDefinitionEntity> rules) throws Exception {
         if (rules == null) {

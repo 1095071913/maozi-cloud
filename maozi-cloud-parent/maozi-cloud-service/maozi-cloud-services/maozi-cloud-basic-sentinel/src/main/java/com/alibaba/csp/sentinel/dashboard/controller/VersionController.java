@@ -29,11 +29,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class VersionController {
 
+    /** The separator used to trim the version string: only the part before it is returned. */
     private static final String VERSION_PATTERN = "-";
 
+    /** The dashboard version injected from the sentinel.dashboard.version property. */
     @Value("${sentinel.dashboard.version:}")
     private String sentinelDashboardVersion;
 
+    /** Returns the dashboard version truncated at the first "-", or an error result if it is not configured. */
     @GetMapping("/version")
     public Result<String> apiGetVersion() {
         if (StringUtil.isNotBlank(sentinelDashboardVersion)) {

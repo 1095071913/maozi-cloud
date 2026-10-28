@@ -59,18 +59,23 @@ import static com.alibaba.csp.sentinel.adapter.gateway.common.SentinelGatewayCon
 @RequestMapping(value = "/gateway/api")
 public class GatewayApiController {
 
+    /** The logger of this controller. */
     private final Logger logger = LoggerFactory.getLogger(GatewayApiController.class);
 
+    /** The in-memory store that keeps gateway API definitions. */
     @Autowired
     private InMemApiDefinitionStore repository;
 
+    /** The Nacos provider that pulls gateway API definitions for a given app. */
     @Autowired
     @Qualifier("apiDefinitionNacosProvider")
     private DynamicRuleProvider<List<ApiDefinitionEntity>> ruleProvider;
+    /** The Nacos publisher that pushes gateway API definitions to a given app. */
     @Autowired
     @Qualifier("apiDefinitionNacosPublisher")
     private DynamicRulePublisher<List<ApiDefinitionEntity>> rulePublisher;
 
+    /** Fetches the app's gateway API definitions from Nacos, stamps machine info, persists them and returns them. */
     @GetMapping("/list.json")
     @AuthAction(AuthService.PrivilegeType.READ_RULE)
     public Result<List<ApiDefinitionEntity>> queryApis(String app, String ip, Integer port) {
@@ -100,6 +105,7 @@ public class GatewayApiController {
         }
     }
 
+    /** Adds a new API definition after validation (duplicate apiName within the app rejected), then publishes the app's APIs to Nacos. */
     @PostMapping("/new.json")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
     public Result<ApiDefinitionEntity> addApi(HttpServletRequest request, @RequestBody AddApiReqVo reqVo) {
@@ -183,6 +189,7 @@ public class GatewayApiController {
         return Result.ofSuccess(entity);
     }
 
+    /** Updates the predicate items of the API definition with the given id, then publishes the app's APIs to Nacos. */
     @PostMapping("/save.json")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
     public Result<ApiDefinitionEntity> updateApi(@RequestBody UpdateApiReqVo reqVo) {
@@ -246,6 +253,7 @@ public class GatewayApiController {
         return Result.ofSuccess(entity);
     }
 
+    /** Deletes the API definition of the given id and publishes the app's APIs; an unknown id returns success with null data. */
     @PostMapping("/delete.json")
     @AuthAction(AuthService.PrivilegeType.DELETE_RULE)
 
@@ -273,6 +281,7 @@ public class GatewayApiController {
         return Result.ofSuccess(id);
     }
 
+    /** Publishes all local API definitions of the app to Nacos; returns false on error. */
     private boolean publishApis(String app) {
         try {
             List<ApiDefinitionEntity> apis = repository.findAllByApp(app);

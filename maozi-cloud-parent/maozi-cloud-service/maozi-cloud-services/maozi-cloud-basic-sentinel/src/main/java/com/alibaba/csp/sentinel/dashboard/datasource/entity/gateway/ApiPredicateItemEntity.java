@@ -27,8 +27,10 @@ import java.util.Objects;
  */
 public class ApiPredicateItemEntity {
 
+    /** The pattern to match the request path. */
     private String pattern;
 
+    /** The strategy to match the pattern. */
     private Integer matchStrategy;
 
     public ApiPredicateItemEntity() {

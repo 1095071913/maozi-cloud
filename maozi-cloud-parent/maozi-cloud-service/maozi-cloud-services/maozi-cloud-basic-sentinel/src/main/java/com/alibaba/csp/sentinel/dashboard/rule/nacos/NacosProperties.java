@@ -27,15 +27,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class NacosProperties {
 
+    /** Nacos server address, defaults to {@code localhost:8848}. */
     @Value("${nacos.server-addr:localhost:8848}")
     private String serverAddr;
 
+    /** Nacos namespace, empty string means the default namespace. */
     @Value("${nacos.namespace:}")
     private String namespace;
 
+    /** Nacos username for authentication, empty when auth is disabled. */
     @Value("${nacos.username:}")
     private String username;
 
+    /** Nacos password for authentication, empty when auth is disabled. */
     @Value("${nacos.password:}")
     private String password;
 
@@ -62,6 +66,7 @@ public class NacosProperties {
         return password;
     }
 
+    /** Returns the configured group, or {@link NacosConfigUtil#GROUP_ID} when it is blank. */
     public String getGroup() {
         // Fall back to SENTINEL_GROUP when the property is absent or blank,
         // so rules are never published to an empty/default group by accident.

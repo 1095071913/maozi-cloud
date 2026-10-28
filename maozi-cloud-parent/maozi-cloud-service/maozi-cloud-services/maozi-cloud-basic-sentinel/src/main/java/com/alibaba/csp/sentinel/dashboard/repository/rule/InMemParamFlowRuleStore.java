@@ -22,12 +22,15 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
+ * In-memory storage for parameter (hotspot) flow rules.
+ *
  * @author Eric Zhao
  * @since 0.2.1
  */
 @Component
 public class InMemParamFlowRuleStore extends InMemoryRuleRepositoryAdapter<ParamFlowRuleEntity> {
 
+    /** Static id generator for stored entities. */
     private static AtomicLong ids = new AtomicLong(0);
 
     @Override
@@ -35,6 +38,11 @@ public class InMemParamFlowRuleStore extends InMemoryRuleRepositoryAdapter<Param
         return ids.incrementAndGet();
     }
 
+    /**
+     * Sets the rule id as the cluster flow id on the entity's cluster config when the rule
+     * runs in cluster mode; a config created here because the entity had none is not
+     * attached back to the entity.
+     */
     @Override
     protected ParamFlowRuleEntity preProcess(ParamFlowRuleEntity entity) {
         if (entity != null && entity.isClusterMode()) {

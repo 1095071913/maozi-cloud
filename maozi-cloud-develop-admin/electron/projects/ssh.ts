@@ -118,7 +118,7 @@ export async function sshExec(target: SshTarget, command: string, timeoutMs = 30
     timeout: timeoutMs + 10_000,
     env: { ...process.env, SSH_PASS: target.password }
   })
-  // expect 的 spawn 输出包含命令回显，去掉第一行和最后一行
+  // expect 的 spawn 输出包含命令回显，须过滤后返回
   const lines = stdout.split('\n')
   // 去掉 spawn 行和密码提示行
   const cleanLines = lines.filter(
@@ -169,7 +169,7 @@ export async function sshStream(
   }
 }
 
-/** 内部：流式执行子进程 */
+/** 内部：流式执行子进程（输出清洗：URL 凭据打码、去 ANSI 控制符，按行/覆盖式推进度推送） */
 async function streamSshProcess(
   sender: Electron.WebContents,
   channel: string,

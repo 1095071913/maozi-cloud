@@ -68,30 +68,49 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 public class MetricFetcher {
 
+    /** Body prefix returned by the client when no metric exists in the requested window. */
     public static final String NO_METRICS = "No metrics";
+    /** HTTP status code that marks a successful fetch. */
     private static final int HTTP_OK = 200;
+    /** Max look-back window used when no valid last fetch time is recorded for an app. */
     private static final long MAX_LAST_FETCH_INTERVAL_MS = 1000 * 15;
+    /** Length in seconds of each fetch time window. */
     private static final long FETCH_INTERVAL_SECOND = 6;
+    /** Charset used to decode the response body when it declares none. */
     private static final Charset DEFAULT_CHARSET = Charset.forName(SentinelConfig.charset());
+    /** Path of the metric command on the Sentinel client. */
     private final static String METRIC_URL_PATH = "metric";
+    /** Logger of this class. */
     private static Logger logger = LoggerFactory.getLogger(MetricFetcher.class);
+    /** Period in seconds of the scheduled fetch-all task. */
     private final long intervalSecond = 1;
 
+    /** End time (ms) of the latest fetch window per app name, used to compute the next window. */
     private Map<String, AtomicLong> appLastFetchTime = new ConcurrentHashMap<>();
 
+    /** Metric repository used to persist the fetched metric entities. */
     @Autowired
     private MetricsRepository<MetricEntity> metricStore;
+    /** Registry of applications and machines, used to enumerate the fetch targets. */
     @Autowired
     private AppManagement appManagement;
 
+    /** Shared async HTTP client used to pull metrics from the Sentinel clients. */
     private CloseableHttpAsyncClient httpclient;
 
+    /** Scheduler that periodically triggers metric fetching of all apps. */
     @SuppressWarnings("PMD.ThreadPoolCreationRule")
     private ScheduledExecutorService fetchScheduleService = Executors.newScheduledThreadPool(1,
         new NamedThreadFactory("sentinel-dashboard-metrics-fetch-task", true));
+    /** Executor that runs the per-app metric fetch dispatch tasks. */
     private ExecutorService fetchService;
+    /** Executor that runs the actual per-app fetch tasks (HTTP round trips). */
     private ExecutorService fetchWorker;
 
+    /**
+     * Creates the fetch executors and the shared async HTTP client,
+     * then starts the periodic fetch-all schedule.
+     */
     public MetricFetcher() {
         int cores = Runtime.getRuntime().availableProcessors() * 2;
         long keepAliveTime = 0;
@@ -111,6 +130,7 @@ public class MetricFetcher {
 
         httpclient = HttpAsyncClients.custom()
             .setRedirectStrategy(new DefaultRedirectStrategy() {
+                /** Never follow redirects when fetching metrics. */
                 @Override
                 protected boolean isRedirectable(final String method) {
                     return false;
@@ -123,6 +143,7 @@ public class MetricFetcher {
         start();
     }
 
+    /** Schedules {@link #fetchAllApp} every {@link #intervalSecond} seconds after a 10-second initial delay. */
     private void start() {
         fetchScheduleService.scheduleAtFixedRate(() -> {
             try {
@@ -133,6 +154,7 @@ public class MetricFetcher {
         }, 10, intervalSecond, TimeUnit.SECONDS);
     }
 
+    /** Stamps gmtCreate/gmtModified with now and persists the metrics in batch; empty input is ignored. */
     private void writeMetric(Map<String, MetricEntity> map) {
         if (map.isEmpty()) {
             return;
@@ -207,6 +229,7 @@ public class MetricFetcher {
             final HttpGet httpGet = new HttpGet(url);
             httpGet.setHeader(HTTP.CONN_DIRECTIVE, HTTP.CONN_CLOSE);
             httpclient.execute(httpGet, new FutureCallback<HttpResponse>() {
+                /** Hands the successful response to handleResponse and counts down the latch. */
                 @Override
                 public void completed(final HttpResponse response) {
                     try {
@@ -219,6 +242,7 @@ public class MetricFetcher {
                     }
                 }
 
+                /** Counts down the latch, aborts the request and logs the failure by exception type. */
                 @Override
                 public void failed(final Exception ex) {
                     latch.countDown();
@@ -233,6 +257,7 @@ public class MetricFetcher {
                     }
                 }
 
+                /** Counts down the latch, aborts the request and records it as a failure. */
                 @Override
                 public void cancelled() {
                     latch.countDown();
@@ -253,6 +278,11 @@ public class MetricFetcher {
         writeMetric(metricMap);
     }
 
+    /**
+     * Computes the next fetch window from the recorded last fetch time (bounded by
+     * {@link #MAX_LAST_FETCH_INTERVAL_MS}) and submits the fetch to {@link #fetchWorker};
+     * a window ending less than 2 seconds ago is skipped and left to the next round.
+     */
     private void doFetchAppMetric(final String app) {
         long now = System.currentTimeMillis();
         long lastFetchMs = now - MAX_LAST_FETCH_INTERVAL_MS;
@@ -284,6 +314,11 @@ public class MetricFetcher {
         }
     }
 
+    /**
+     * Handles one fetch response: ignores non-200, decodes with the Content-Type charset
+     * (falling back to {@link #DEFAULT_CHARSET}), skips empty or {@link #NO_METRICS}
+     * bodies, and parses the remaining lines via {@link #handleBody}.
+     */
     private void handleResponse(final HttpResponse response, MachineInfo machine,
                                 Map<String, MetricEntity> metricMap) throws Exception {
         int code = response.getStatusLine().getStatusCode();
@@ -310,6 +345,11 @@ public class MetricFetcher {
         handleBody(lines, machine, metricMap);
     }
 
+    /**
+     * Parses each metric line into a {@link MetricNode}, skips excluded resources and
+     * aggregates the values into the map keyed by app__resource__timeSecond, merging
+     * the metrics of all machines of the app (ignoring ip and port).
+     */
     private void handleBody(String[] lines, MachineInfo machine, Map<String, MetricEntity> map) {
         //logger.info("handleBody() lines=" + lines.length + ", machine=" + machine);
         if (lines.length < 1) {
@@ -350,14 +390,17 @@ public class MetricFetcher {
         }
     }
 
+    /** Returns the aggregation key in the form {@code app__resource__timestampInSecond}. */
     private String buildMetricKey(String app, String resource, long timestamp) {
         return app + "__" + resource + "__" + (timestamp / 1000);
     }
 
+    /** Returns whether the resource is in the exclusion set and should be skipped. */
     private boolean shouldFilterOut(String resource) {
         return RES_EXCLUSION_SET.contains(resource);
     }
 
+    /** Resources excluded from aggregation: total inbound requests, system load and CPU usage. */
     private static final Set<String> RES_EXCLUSION_SET = new HashSet<String>() {{
        add(Constants.TOTAL_IN_RESOURCE_NAME);
        add(Constants.SYSTEM_LOAD_RESOURCE_NAME);

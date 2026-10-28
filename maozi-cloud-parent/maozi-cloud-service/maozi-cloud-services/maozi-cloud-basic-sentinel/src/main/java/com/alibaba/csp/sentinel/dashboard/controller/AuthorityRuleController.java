@@ -43,6 +43,9 @@ import java.util.Date;
 import java.util.List;
 
 /**
+ * Controller for authority (black/white list) rule management, fetching rules from
+ * and publishing rules to Nacos via the dynamic rule provider/publisher.
+ *
  * @author Eric Zhao
  * @since 0.2.1
  */
@@ -50,20 +53,29 @@ import java.util.List;
 @RequestMapping(value = "/authority")
 public class AuthorityRuleController {
 
+    /** Logger of this controller. */
     private final Logger logger = LoggerFactory.getLogger(AuthorityRuleController.class);
 
+    /** Local storage of authority rule entities. */
     @Autowired
     private RuleRepository<AuthorityRuleEntity, Long> repository;
+    /** Registry of apps and machines, used for machine validity check. */
     @Autowired
     private AppManagement appManagement;
 
+    /** Nacos-based dynamic provider of authority rules. */
     @Autowired
     @Qualifier("authorityRuleNacosProvider")
     private DynamicRuleProvider<List<AuthorityRuleEntity>> ruleProvider;
+    /** Nacos-based dynamic publisher of authority rules. */
     @Autowired
     @Qualifier("authorityRuleNacosPublisher")
     private DynamicRulePublisher<List<AuthorityRuleEntity>> rulePublisher;
 
+    /**
+     * Queries the app's authority rules from the dynamic provider, stamps each entity
+     * with the given machine info and persists them into the local repository.
+     */
     @GetMapping("/rules")
     @AuthAction(PrivilegeType.READ_RULE)
     public Result<List<AuthorityRuleEntity>> apiQueryAllRulesForMachine(@RequestParam String app,
@@ -96,6 +108,7 @@ public class AuthorityRuleController {
         }
     }
 
+    /** Validates the rule entity (app/ip/port, rule object, resource, limitApp, strategy); returns the first error or null. */
     private <R> Result<R> checkEntityInternal(AuthorityRuleEntity entity) {
         if (entity == null) {
             return Result.ofFail(-1, "bad rule body");
@@ -125,6 +138,7 @@ public class AuthorityRuleController {
         return null;
     }
 
+    /** Adds a new rule after validation and publishes the app's rules to Nacos. */
     @PostMapping("/rule")
     @AuthAction(PrivilegeType.WRITE_RULE)
     public Result<AuthorityRuleEntity> apiAddAuthorityRule(@RequestBody AuthorityRuleEntity entity) {
@@ -148,6 +162,7 @@ public class AuthorityRuleController {
         return Result.ofSuccess(entity);
     }
 
+    /** Updates the rule of the given id (gmtCreate cleared) and publishes the app's rules to Nacos. */
     @PutMapping("/rule/{id}")
     @AuthAction(PrivilegeType.WRITE_RULE)
     public Result<AuthorityRuleEntity> apiUpdateParamFlowRule(@PathVariable("id") Long id,
@@ -178,6 +193,7 @@ public class AuthorityRuleController {
         return Result.ofSuccess(entity);
     }
 
+    /** Deletes the rule of the given id and publishes the app's rules; an unknown id returns success with null data. */
     @DeleteMapping("/rule/{id}")
     @AuthAction(PrivilegeType.DELETE_RULE)
     public Result<Long> apiDeleteRule(@PathVariable("id") Long id) {
@@ -199,6 +215,7 @@ public class AuthorityRuleController {
         return Result.ofSuccess(id);
     }
 
+    /** Publishes all local rules of the app to Nacos; returns false on error. */
     private boolean publishRules(String app) {
         try {
             List<AuthorityRuleEntity> rules = repository.findAllByApp(app);

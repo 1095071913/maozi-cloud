@@ -33,11 +33,20 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * Utility class for wrapping cluster universal state VOs into app-level server/client
+ * state and cluster group entities.
+ *
  * @author Eric Zhao
  * @since 1.4.1
  */
 public final class ClusterEntityUtils {
 
+    /**
+     * Wraps the machine states into app-level token server states: first the token
+     * servers running on machines of the current app (with their connection counts),
+     * then foreign token servers inferred from client configs (marked as not belonging
+     * to the app).
+     */
     public static List<AppClusterServerStateWrapVO> wrapToAppClusterServerState(
         List<ClusterUniversalStatePairVO> list) {
         if (list == null || list.isEmpty()) {
@@ -94,6 +103,10 @@ public final class ClusterEntityUtils {
         return new ArrayList<>(map.values());
     }
 
+    /**
+     * Wraps the machine states into app-level token client states, one entry per
+     * machine running in token client mode.
+     */
     public static List<AppClusterClientStateWrapVO> wrapToAppClusterClientState(
         List<ClusterUniversalStatePairVO> list) {
         if (list == null || list.isEmpty()) {
@@ -118,6 +131,12 @@ public final class ClusterEntityUtils {
         return new ArrayList<>(map.values());
     }
 
+    /**
+     * Groups the machine states into cluster groups keyed by token server address:
+     * each server machine creates a group, then every token client is added to the
+     * group of the server it points to (implicitly creating a group for servers that
+     * are absent from the machine list).
+     */
     public static List<ClusterGroupEntity> wrapToClusterGroup(List<ClusterUniversalStatePairVO> list) {
         if (list == null || list.isEmpty()) {
             return new ArrayList<>();
@@ -157,6 +176,7 @@ public final class ClusterEntityUtils {
         return new ArrayList<>(map.values());
     }
 
+    /** Returns the ip part of an {@code ip:port} string, or the whole string when it has no colon. */
     private static String getIp(String str) {
         if (str.contains(":")) {
             return str.split(":")[0];
@@ -164,5 +184,6 @@ public final class ClusterEntityUtils {
         return str;
     }
 
+    /** Private constructor to prevent instantiation. */
     private ClusterEntityUtils() {}
 }

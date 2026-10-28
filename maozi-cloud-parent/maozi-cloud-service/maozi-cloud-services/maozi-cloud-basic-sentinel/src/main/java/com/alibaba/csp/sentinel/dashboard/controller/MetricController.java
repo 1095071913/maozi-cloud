@@ -45,6 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequestMapping(value = "/metric", produces = MediaType.APPLICATION_JSON_VALUE)
 public class MetricController {
 
+    /** The logger of this controller. */
     private static Logger logger = LoggerFactory.getLogger(MetricController.class);
 
     /**
@@ -52,16 +53,22 @@ public class MetricController {
      */
     private static final long DEFAULT_QUERY_INTERVAL_MS = 1000 * 60 * 5;
 
+    /** The repository that stores and queries metric entities. */
     @Autowired
     private MetricsRepository<MetricEntity> metricStore;
 
     /**
      * Same configuration as {@code JdbcMetricsRepository}: the metric aggregation
-     * granularity N in seconds, used to align query start times to the bucket grid.
+     * granularity N in seconds, used to align query time boundaries to the bucket grid.
      */
     @Value("${sentinel.metric.aggregate-seconds:1}")
     private int aggregateSeconds;
 
+    /**
+     * Queries the top resources of the app within the time range (only those with data points
+     * in range), optionally filtered by searchKey and paginated; each resource on the current
+     * page is returned with its sorted, de-duplicated metric data.
+     */
     @ResponseBody
     @RequestMapping("/queryTopResourceMetric.json")
     public Result<?> queryTopResourceMetric(final String app,
@@ -146,6 +153,7 @@ public class MetricController {
         return Result.ofSuccess(resultMap);
     }
 
+    /** Queries the metric data of the given resource of the app in the time range, sorted and de-duplicated by timestamp. */
     @ResponseBody
     @RequestMapping("/queryByAppAndResource.json")
     public Result<?> queryByAppAndResource(String app, String identity, Long startTime, Long endTime) {
@@ -194,6 +202,7 @@ public class MetricController {
         return (endTime / bucketMs + 1) * bucketMs;
     }
 
+    /** Sorts the VOs by timestamp ascending, keeping only the most recently created VO per duplicated timestamp. */
     private Iterable<MetricVo> sortMetricVoAndDistinct(List<MetricVo> vos) {
         if (vos == null) {
             return null;

@@ -33,11 +33,19 @@ import java.util.stream.Collectors;
 @Component("gatewayFlowRuleNacosPublisher")
 public class GatewayFlowRuleNacosPublisher implements DynamicRulePublisher<List<GatewayFlowRuleEntity>> {
 
+    /** Nacos config service used to write rule configs. */
     @Autowired
     private ConfigService configService;
+    /** Nacos connection properties, supplies the rule config group. */
     @Autowired
     private NacosProperties nacosProperties;
 
+    /**
+     * Push the gateway flow rules of an app to the Nacos config
+     * {@code appName + GATEWAY_FLOW_DATA_ID_POSTFIX} in the configured group, after
+     * converting the entities to {@link GatewayFlowRule} objects. Does nothing when
+     * rules is {@code null}.
+     */
     @Override
     public void publish(String app, List<GatewayFlowRuleEntity> rules) throws Exception {
         if (rules == null) {

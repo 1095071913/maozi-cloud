@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 public class InMemSystemRuleStore extends InMemoryRuleRepositoryAdapter<SystemRuleEntity> {
 
+    /** Static generator producing sequential ids for system rule entities. */
     private static AtomicLong ids = new AtomicLong(0);
 
     @Override

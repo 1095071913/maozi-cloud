@@ -34,17 +34,29 @@ import java.util.Set;
  */
 public class ApiDefinitionEntity implements RuleEntity {
 
+    /** The entity id. */
     private Long id;
+    /** The application name. */
     private String app;
+    /** The IP address of the machine. */
     private String ip;
+    /** The port of the machine. */
     private Integer port;
 
+    /** The create time. */
     private Date gmtCreate;
+    /** The last modify time. */
     private Date gmtModified;
 
+    /** The name of the API. */
     private String apiName;
+    /** The predicate items of the API. */
     private Set<ApiPredicateItemEntity> predicateItems;
 
+    /**
+     * Build an entity from the given {@link ApiDefinition}, taking the pattern and
+     * matchStrategy of each {@link ApiPathPredicateItem} as predicate items.
+     */
     public static ApiDefinitionEntity fromApiDefinition(String app, String ip, Integer port, ApiDefinition apiDefinition) {
         ApiDefinitionEntity entity = new ApiDefinitionEntity();
         entity.setApp(app);
@@ -69,6 +81,10 @@ public class ApiDefinitionEntity implements RuleEntity {
         return entity;
     }
 
+    /**
+     * Convert to an {@link ApiDefinition}, with each predicate item converted to an
+     * {@link ApiPathPredicateItem}.
+     */
     public ApiDefinition toApiDefinition() {
         ApiDefinition apiDefinition = new ApiDefinition();
         apiDefinition.setApiName(apiName);
@@ -167,6 +183,7 @@ public class ApiDefinitionEntity implements RuleEntity {
         this.gmtModified = gmtModified;
     }
 
+    /** Always return null, as an API definition is not a common Sentinel rule. */
     @Override
     public Rule toRule() {
         return null;

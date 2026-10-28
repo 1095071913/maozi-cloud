@@ -25,52 +25,67 @@ import java.util.List;
  */
 public class AddApiReqVo {
 
+    /** Name of the target application. */
     private String app;
 
+    /** IP of the Sentinel client machine that the API definition belongs to. */
     private String ip;
 
+    /** Port of the Sentinel client machine that the API definition belongs to. */
     private Integer port;
 
+    /** Name of the gateway API definition. */
     private String apiName;
 
+    /** Predicate items (URL match conditions) of the gateway API definition. */
     private List<ApiPredicateItemVo> predicateItems;
 
+    /** Returns the name of the target application. */
     public String getApp() {
         return app;
     }
 
+    /** Sets the name of the target application. */
     public void setApp(String app) {
         this.app = app;
     }
 
+    /** Returns the IP of the Sentinel client machine. */
     public String getIp() {
         return ip;
     }
 
+    /** Sets the IP of the Sentinel client machine. */
     public void setIp(String ip) {
         this.ip = ip;
     }
 
+    /** Returns the port of the Sentinel client machine. */
     public Integer getPort() {
         return port;
     }
 
+    /** Sets the port of the Sentinel client machine. */
     public void setPort(Integer port) {
         this.port = port;
     }
 
+    /** Returns the name of the gateway API definition. */
     public String getApiName() {
         return apiName;
     }
 
+    /** Sets the name of the gateway API definition. */
     public void setApiName(String apiName) {
         this.apiName = apiName;
     }
 
+    /** Returns the predicate items of the gateway API definition. */
     public List<ApiPredicateItemVo> getPredicateItems() {
         return predicateItems;
     }
 
+    /** Sets the predicate items of the gateway API definition. */
     public void setPredicateItems(List<ApiPredicateItemVo> predicateItems) {
         this.predicateItems = predicateItems;
     }

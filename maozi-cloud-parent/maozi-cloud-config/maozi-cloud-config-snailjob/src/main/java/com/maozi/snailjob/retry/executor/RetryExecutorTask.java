@@ -112,7 +112,7 @@ public class RetryExecutorTask implements ExecutorMethod {
             // 记录异常堆栈日志，便于排查问题
             LogUtil.error(log, ex);
 
-            // 收集系统错误相关的日志信息
+            // 异常时补充记录请求参数（生产环境同样记录），并收集错误描述信息
             logs.put(LogTag.PARAM, Arrays.toString(retryParam.getData()));
 
             logs.put(LogTag.ERROR_DESC, ex.getLocalizedMessage());

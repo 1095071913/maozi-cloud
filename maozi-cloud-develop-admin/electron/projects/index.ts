@@ -224,6 +224,7 @@ async function remoteEnvSetup(t: SshTarget): Promise<string> {
   return build
 }
 
+/** 带远端环境前缀的 SSH 执行：常规远程命令统一入口（环境前缀见 remoteEnvSetup） */
 async function sshExec(t: SshTarget, command: string, timeoutMs = 30_000): Promise<string> {
   const fullCmd = `${await remoteEnvSetup(t)} && ${command}`
   return sshExecRaw(t, fullCmd, timeoutMs)
@@ -411,7 +412,8 @@ async function projFileExists(relPath: string): Promise<boolean> {
   if (ctx.isRemote && ctx.ssh) {
     try {
       await sshExec(ctx.ssh, `test -f "${abs}" && echo YES || echo NO`, 10_000)
-      return true // sshReadFile 会 throw 如果不存在
+      // 远程：仅当 SSH 执行本身失败（连接/认证异常）才视为不存在；test -f 输出的 YES/NO 未参与判断
+      return true
     } catch {
       return false
     }
@@ -468,14 +470,14 @@ async function projStream(
   })
 }
 
-/** 项目内目录的绝对路径 */
-/** yml 文件内容缓存（key=绝对路径，远程绑定时避免反复 SSH cat）；绑定切换时清空 */
+/** yml 文件内容缓存（key=项目内相对路径，远程绑定时避免反复 SSH cat）；绑定切换时清空 */
 const ymlCache = new Map<string, string>()
 
 function clearYmlCache(): void {
   ymlCache.clear()
 }
 
+/** 读取项目内文件（命中 yml 缓存直接返回） */
 function readProjFileCached(relPath: string): Promise<string> {
   const key = relPath
   const cached = ymlCache.get(key)
@@ -486,6 +488,7 @@ function readProjFileCached(relPath: string): Promise<string> {
   })
 }
 
+/** 项目内目录的绝对路径 */
 function projPath(relPath: string): string {
   const ctx = getProjectCtx()
   return path.join(ctx.root, relPath)
@@ -502,7 +505,6 @@ function projFileExistsSync(relPath: string): boolean {
 /** 项目内置 hosts 映射文件：JSON，key = ip，value = 域名（可逗号/空格分隔多个或字符串数组） */
 const HOSTS_FILE = 'maozi-cloud-script/maozi-cloud-utils/init_hosts.json'
 
-/** 项目环境变量定义文件：JSON，key 为中文名称，value 为环境变量 key；value 为对象时表示分组 */
 /** 项目环境变量定义文件：JSON，一级属性为分节（Tab），节内中文名称 → 环境变量 key，可再嵌套一层分组 */
 const ENV_VARS_FILE = 'maozi-cloud-script/maozi-cloud-utils/environment_variable.json'
 
@@ -514,7 +516,7 @@ const BUSINESS_ENV_FILE = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-dep
 
 /**
  * 数据库初始化定义文件：init_mysql_db.json（JSON 数组，每项一个 SQL 脚本路径，相对项目根）。
- * 初始化标记为 .db-init.json（见 store.ts，位于 maozi-cloud-develop-admin 应用目录，git 已忽略）。
+ * 初始化标记为 .db-init.json（见 store.ts，落在应用 userData 目录，仓库之外）。
  * 兼容尚未改名的旧文件 init_mysql_db（按行）
  */
 const INIT_MYSQL_DB_FILE = 'maozi-cloud-script/maozi-cloud-utils/init_mysql_db.json'
@@ -1204,7 +1206,6 @@ async function streamClone(
   }
 }
 
-/** 解析 docker-compose.yml 的 services 段服务名（两空格缩进的一级 key） */
 /**
  * 解析 docker-compose.yml 的 networks.default 外部网络名：
  * 兼容 `external: true` + `name: xx` 与 `external: { name: xx }` 两种写法
@@ -1327,6 +1328,7 @@ async function mysqlServiceRunning(dir: string): Promise<boolean> {
   return parseComposePs(stdout)['maozi-cloud-basic-mysql'] === 'running'
 }
 
+/** 解析 docker-compose.yml 的 services 段服务名（两空格缩进的一级 key，可含 ${VAR} 占位） */
 function parseComposeServices(text: string): string[] {
   const services: string[] = []
   let inServices = false
@@ -1718,6 +1720,7 @@ async function dockerConfigPath(b: ProjectBinding): Promise<string> {
   return candidates.find((f) => fs.existsSync(f)) ?? candidates[0]
 }
 
+/** 注册项目控制台全部 IPC 处理器；末尾做启动预取（回填落盘资源快照 + 后台拉新 + 预热 yml 缓存） */
 export function registerProjectHandlers(): void {
   ipcMain.handle('projects:state', () => {
     try {
@@ -2204,7 +2207,7 @@ export function registerProjectHandlers(): void {
     }
   })
 
-  /** 执行项目内脚本（all=微服务全量启动 / admin=后台启动），日志实时推送 projects:scriptLog */
+  /** 执行项目内脚本（key 对应 DEPLOY_SCRIPTS：微服务按需/全量、后台启动（分布式/单体）、单体服务编译启动、容器磁盘清除），日志实时推送 projects:scriptLog */
   ipcMain.handle('projects:runScript', async (event, key: string, sidArg?: string) => {
     try {
       const def = DEPLOY_SCRIPTS[key]
@@ -2623,7 +2626,7 @@ export function registerProjectHandlers(): void {
     }
   })
 
-  /** UI 状态（Tab 选中 等）：userData/.ui-state.json 持久化 */
+  /** 远程环境变量保存：写入远程 shell 配置 / 实时环境文件（仅远程绑定可用），并使远端环境快照失效 */
   ipcMain.handle('projects:sshEnvSave', async (_e, params: { key: string; value: string; fileId: string }) => {
     try {
       const b = getBinding()
@@ -2686,6 +2689,7 @@ export function registerProjectHandlers(): void {
     }
   })
 
+  /** UI 状态读取：userData/.ui-state.json（无文件返回空对象） */
   ipcMain.handle('projects:uiStateGet', () => {
     try {
       return { ok: true, data: JSON.parse(fs.readFileSync(uiStateFile(), 'utf8')) }
@@ -2694,6 +2698,7 @@ export function registerProjectHandlers(): void {
     }
   })
 
+  /** UI 状态保存：浅合并 patch 到 userData/.ui-state.json */
   ipcMain.handle('projects:uiStateSave', (_e, patch: Record<string, unknown>) => {
     try {
       let cur: Record<string, unknown> = {}
@@ -2709,7 +2714,7 @@ export function registerProjectHandlers(): void {
     }
   })
 
-  /** 应用服务清单（单体/微服务）：读取变体两个 compose 文件的服务定义 */
+  /** 应用服务清单（单体/微服务）：读取变体全部 compose 文件（nginx/admin/services）的服务定义 */
   ipcMain.handle('projects:appServices', async (_e, variantArg: string) => {
     try {
       const b = getBinding()
@@ -2789,10 +2794,6 @@ export function registerProjectHandlers(): void {
     }
   })
 
-  /**
-   * 应用服务实时资源占用（单体+微服务一次性快照）：各变体 compose ps 取服务→容器映射，
-   * 汇总后单次 docker stats + inspect（与基础服务 composeStats 同源逻辑）
-   */
 /** 远程主机规格（CPU 核数 / 物理内存）：机器规格几乎不变，按目标缓存一次即可 */
 const remoteHostSpecCache = new Map<string, { cpus: number; memTotal: number }>()
 async function remoteHostSpecs(t: SshTarget): Promise<{ cpus: number; memTotal: number }> {
@@ -2968,6 +2969,10 @@ function freshAppSvcStats(): Promise<AppSvcStatsData> {
   return appSvcStatsJob
 }
 
+/**
+ * 应用服务实时资源占用（单体+微服务一次性快照）：从各变体 yml 解析服务→容器映射，
+ * 汇总后单次 docker stats + inspect（与基础服务 composeStats 同源逻辑；preferCache 命中 10 分钟内快照）
+ */
 ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean) => {
   try {
     if (
@@ -3094,13 +3099,14 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
           : ['docker', 'compose']
         const [composeCmd, ...composeArgs] = composeBin
         const base = [...composeArgs, '-p', await appSvcProjectName(), '-f', fileName]
-        // pre_stop 钩子只在 stop/down/restart 时触发（rm --stop --force 强杀会跳过）：
-        // 停止/重启改为 stop（优雅停机、执行钩子）+ rm 两步，再按需 up -d
+        // pre_stop 钩子在 stop/down 时触发（rm --stop --force 强杀会跳过）：
+        // 停止 = down 单服务（优雅停机、执行钩子并回收容器与网络，需 Compose v2.17+），
+        // 重启保持 stop + rm 两步再 up -d 重建
         const cmdList: string[][] =
           action === 'start'
             ? [[...base, 'up', '-d', service]]
             : action === 'stop'
-              ? [[...base, 'stop', service], [...base, 'rm', service]]
+              ? [[...base, 'down', service]]
               : [[...base, 'stop', service], [...base, 'rm', service], [...base, 'up', '-d', service]]
         try {
           for (const args of cmdList) {
@@ -3133,8 +3139,8 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
   )
 
   /**
-   * 应用服务全量操作（单体/微服务）：start（先互斥关闭另一变体，再 up 两个文件）/ stop（down 两个文件）。
-   * 日志走 projects:scriptLog
+   * 应用服务全量操作（单体/微服务）：start（先互斥关闭另一变体，再逐个 up 全部 compose 文件）/ stop（逐个 down），
+   * restart = 两者依次执行。日志走 projects:scriptLog
    */
   ipcMain.handle('projects:appServiceAll', async (event, variantArg: string, action: string, sidArg?: string, opts?: { foreground?: boolean }) => {
     const sid = validSid(sidArg)
@@ -3306,7 +3312,7 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
     return { ok: true, background: true }
   })
 
-  /** 数据库初始化状态：.db-init.json 标记判定（maozi-cloud-develop-admin 应用目录，git 已忽略）；init_mysql_db.json 不存在或为空时隐藏按钮 */
+  /** 数据库初始化状态：.db-init.json 标记判定（标记文件在应用 userData 目录）；init_mysql_db.json 不存在或为空时隐藏按钮 */
   ipcMain.handle('projects:dbInitStatus', async () => {
     try {
       const b = getBinding()
@@ -3392,7 +3398,7 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
       }
       send(`✓ 初始化完成：共导入 ${scripts.length} 个脚本`)
 
-      // 导入已全部完成即写入初始化标记（maozi-cloud-develop-admin/.db-init.json，git 已忽略）；
+      // 导入已全部完成即写入初始化标记（应用 userData 目录下的 .db-init.json，仓库之外）；
       // 放在容器回收之前：回收失败不影响初始化成功的记录
       markDbInitialized(b.path)
       send('✓ 已记录初始化标记 .db-init.json（maozi-cloud-develop-admin 目录，不参与 git）')
@@ -3423,7 +3429,7 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
 
   /**
    * 全链路日志查询：按链路 ID（trace ID）检索分布式变体所有运行容器的日志，
-   * 逐容器 docker logs --tail N + 子串匹配，返回每个服务命中的日志行
+   * 逐容器在容器内各服务 logs 目录的 *.log（/application/<服务名>/logs/）grep 匹配、仅取最近 N 行，返回每个服务命中的日志行
    */
   ipcMain.handle('projects:traceLogQuery', async (_e, traceId: string, tailArg?: number) => {
     try {
@@ -3727,6 +3733,7 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
     return { stats, cpuCount: specs.cpus, hostMemTotal: specs.memTotal }
   }
 
+  /** 基础服务实时资源占用（preferCache 且 10 分钟内快照有效时直接返回，否则拉新） */
   ipcMain.handle('projects:composeStats', async (_e, preferCacheArg?: boolean) => {
     try {
       if (
@@ -4199,7 +4206,8 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
   /**
    * 应用服务「接口不停机更新」开关（单体/微服务各一个）：
    * 开启 = 拷贝变体 services yml 生成热备文件（container_name 加 -backup）；
-   * 关闭 = 仅删除热备文件（不动容器、不做健康等待——操作流程内的热备回收在各自会话中完成）。
+   * 关闭 = 删除热备文件、并清理微服务的 .env GRACEFUL_UPDATE（不动容器、不做健康等待——
+   * 操作流程内的热备回收在各自会话中完成）。
    * 状态持久化 .ui-state.json
    */
   ipcMain.handle('projects:hotSwap', async (event, variantArg: string, enable: boolean, sidArg?: string) => {
@@ -4360,7 +4368,6 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
     }
   })
 
-  /** 中断指定会话正在执行的脚本/命令：向进程组发 SIGINT，1.5s 后仍存活则 SIGKILL */
   /** ===== 远程服务器（SSH）绑定与操作 ===== */
 
   /** 获取可用的 Linux 密钥列表 */
@@ -4543,6 +4550,7 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
     }
   })
 
+  /** 中断指定会话正在执行的脚本/命令：向进程组发 SIGINT，1.5s 后仍存活则 SIGKILL */
   ipcMain.handle('projects:stopScript', (_e, sidArg?: string) => {
     try {
       const sid = validSid(sidArg)

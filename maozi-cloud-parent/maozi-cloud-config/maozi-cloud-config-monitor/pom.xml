@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 监控配置模块，集成 OpenTelemetry 链路追踪、Spring Boot Admin、Prometheus 指标及 Arthas 在线诊断实现应用可观测性 -->
+<!-- 监控配置模块，集成 OpenTelemetry 链路追踪、Spring Boot Admin、Prometheus 指标实现应用可观测性 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -43,13 +43,6 @@
 		<dependency>
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-registry-prometheus</artifactId>
-		</dependency>
-
-		<!-- Arthas 在线诊断工具，提供运行时类加载、方法监控、热更新等诊断能力 -->
-		<dependency>
-			<groupId>com.taobao.arthas</groupId>
-			<artifactId>arthas-spring-boot-starter</artifactId>
-			<version>${arthas.version}</version>
 		</dependency>
 
   </dependencies>

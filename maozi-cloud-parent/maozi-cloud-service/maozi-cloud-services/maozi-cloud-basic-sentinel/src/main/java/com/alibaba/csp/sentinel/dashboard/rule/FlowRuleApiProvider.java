@@ -33,11 +33,19 @@ import java.util.stream.Collectors;
 @Component("flowRuleDefaultProvider")
 public class FlowRuleApiProvider implements DynamicRuleProvider<List<FlowRuleEntity>> {
 
+    /** Client for talking to the Sentinel transport endpoints of machines. */
     @Autowired
     private SentinelApiClient sentinelApiClient;
+    /** Registry that provides machine information per application. */
     @Autowired
     private AppManagement appManagement;
 
+    /**
+     * Fetch the current flow rules of an application from its Sentinel clients. Healthy
+     * machines are sorted by last heartbeat and the rules are read from the machine with
+     * the most recent heartbeat. Returns an empty list when the app name is blank or the
+     * app has no healthy machine.
+     */
     @Override
     public List<FlowRuleEntity> getRules(String appName) throws Exception {
         if (StringUtil.isBlank(appName)) {

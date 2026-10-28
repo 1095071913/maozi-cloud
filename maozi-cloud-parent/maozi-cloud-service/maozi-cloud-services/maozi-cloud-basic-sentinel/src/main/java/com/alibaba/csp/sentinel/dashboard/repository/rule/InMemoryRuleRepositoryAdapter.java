@@ -33,12 +33,21 @@ public abstract class InMemoryRuleRepositoryAdapter<T extends RuleEntity> implem
      * {@code <machine, <id, rule>>}
      */
     private Map<MachineInfo, Map<Long, T>> machineRules = new ConcurrentHashMap<>(16);
+    /** All stored rules keyed by rule id ({@code <id, rule>}). */
     private Map<Long, T> allRules = new ConcurrentHashMap<>(16);
 
+    /** Rules grouped by application name ({@code <app, <id, rule>>}). */
     private Map<String, Map<Long, T>> appRules = new ConcurrentHashMap<>(16);
 
+    /** Maximum number of rules this repository may hold; not enforced by the current code. */
     private static final int MAX_RULES_SIZE = 10000;
 
+    /**
+     * Save the given entity, assigning it a generated id when it has none. The entity is
+     * first passed to {@link #preProcess}; when the processed entity is non-null it is put
+     * into all three indexes (by id, by machine and by app), otherwise nothing is stored
+     * and {@code null} is returned.
+     */
     @Override
     public T save(T entity) {
         if (entity.getId() == null) {
@@ -57,6 +66,11 @@ public abstract class InMemoryRuleRepositoryAdapter<T extends RuleEntity> implem
         return processedEntity;
     }
 
+    /**
+     * Replace all stored rules with the given list: every existing rule in all three
+     * indexes is cleared first, then each rule is saved one by one via {@link #save};
+     * returns {@code null} when the given list is {@code null}.
+     */
     @Override
     public List<T> saveAll(List<T> rules) {
         // TODO: check here.
@@ -74,6 +88,10 @@ public abstract class InMemoryRuleRepositoryAdapter<T extends RuleEntity> implem
         return savedRules;
     }
 
+    /**
+     * Remove the rule with the given id from all three indexes and return it, or
+     * {@code null} if no rule with the id exists.
+     */
     @Override
     public T delete(Long id) {
         T entity = allRules.remove(id);
@@ -86,11 +104,13 @@ public abstract class InMemoryRuleRepositoryAdapter<T extends RuleEntity> implem
         return entity;
     }
 
+    /** Returns the rule with the given id, or {@code null} if it does not exist. */
     @Override
     public T findById(Long id) {
         return allRules.get(id);
     }
 
+    /** Returns all rules bound to the given machine, or an empty list if none exist. */
     @Override
     public List<T> findAllByMachine(MachineInfo machineInfo) {
         Map<Long, T> entities = machineRules.get(machineInfo);
@@ -100,6 +120,10 @@ public abstract class InMemoryRuleRepositoryAdapter<T extends RuleEntity> implem
         return new ArrayList<>(entities.values());
     }
 
+    /**
+     * Returns all rules of the given application, or an empty list if the app is unknown;
+     * appName must not be empty.
+     */
     @Override
     public List<T> findAllByApp(String appName) {
         AssertUtil.notEmpty(appName, "appName cannot be empty");
@@ -110,12 +134,18 @@ public abstract class InMemoryRuleRepositoryAdapter<T extends RuleEntity> implem
         return new ArrayList<>(entities.values());
     }
 
+    /** Removes all rules from all three indexes. */
     public void clearAll() {
         allRules.clear();
         machineRules.clear();
         appRules.clear();
     }
 
+    /**
+     * Hook for subclasses to transform or validate an entity before it is stored;
+     * returning {@code null} skips storing it. The default implementation returns the
+     * entity unchanged.
+     */
     protected T preProcess(T entity) {
         return entity;
     }

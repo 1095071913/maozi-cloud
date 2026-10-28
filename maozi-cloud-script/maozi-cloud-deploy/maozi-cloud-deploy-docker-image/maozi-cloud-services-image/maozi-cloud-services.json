@@ -1,7 +1,7 @@
 {
   "defaults": {
     "base_image": "maozi-cloud-business-jdk:1.0.0",
-    "jvm_params": "${JVM_PARAMS}",
+    "jvm_params": "${JVM_PARAMS:--XX:+UseSerialGC -Xms256m -Xmx256m -Xss256k -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=256m -XX:CompressedClassSpaceSize=32m -XX:ReservedCodeCacheSize=48m -XX:MaxDirectMemorySize=96m} -XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/application/${APPLICATION_NAME}/logs/heapdump/heapdump_${HOSTNAME}_$(date +%Y%m%d%H%M%S).hprof -XX:ErrorFile=/application/${APPLICATION_NAME}/logs/hs/hs_err_${HOSTNAME}_$(date +%Y%m%d%H%M%S).log -Xlog:gc*:file=/application/${APPLICATION_NAME}/logs/gc/gc_${HOSTNAME}_$(date +%Y%m%d%H%M%S).log:time,uptime,level,tags:filecount=10,filesize=20M",
     "add_opens": [
       "--add-opens java.base/java.math=ALL-UNNAMED",
       "--add-opens java.base/java.lang=ALL-UNNAMED",
@@ -19,16 +19,23 @@
       "-Dotel.logs.exporter=none",
       "-Dotel.resource.attributes=application=maozi-cloud",
       "-Dotel.exporter.otlp.insecure=true"
+    ],
+    "arthas_flags": [
+      "-javaagent:/opt/arthas/arthas-agent.jar",
+      "-Darthas.tunnelServer=ws://maozi-cloud-basic-arthas:7777/ws",
+      "-Darthas.appName=${APPLICATION_NAME}-${APPLICATION_ENVIRONMENT}"
     ]
   },
   "services": [
     {
       "service_name": "maozi-cloud-gateway-service",
-      "opentelemetry": true
+      "opentelemetry": true,
+      "arthas": true
     },
     {
       "service_name": "maozi-cloud-basic-monitor",
       "opentelemetry": false,
+      "arthas": false,
       "base_image": "maozi-cloud-base-jdk:1.0.0",
       "is_middleware": true,
       "is_log_file": false
@@ -36,21 +43,25 @@
     {
       "service_name": "maozi-cloud-basic-sentinel",
       "opentelemetry": false,
+      "arthas": false,
       "base_image": "maozi-cloud-base-jdk:1.0.0",
       "is_middleware": true,
       "is_log_file": false
     },
     {
       "service_name": "maozi-cloud-oauth-service",
-      "opentelemetry": true
+      "opentelemetry": true,
+      "arthas": true
     },
     {
       "service_name": "maozi-cloud-system-service",
-      "opentelemetry": true
+      "opentelemetry": true,
+      "arthas": true
     },
     {
       "service_name": "maozi-cloud-ai-service",
-      "opentelemetry": true
+      "opentelemetry": true,
+      "arthas": true
     }
   ]
 }

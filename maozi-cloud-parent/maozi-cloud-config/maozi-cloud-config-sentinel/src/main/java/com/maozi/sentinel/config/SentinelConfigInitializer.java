@@ -7,34 +7,33 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * Dubbo 运行时配置初始化器
+ * Sentinel 运行时配置初始化器
  * <p>
- * 通过 SPI 机制被 {@code BaseApplication} 加载，屏蔽 Dubbo 启动 banner 输出。
- * Dubbo 的 {@code WelcomeLogoApplicationListener} 无官方关闭开关，输出逻辑为：
- * INFO 级别可用时走日志框架输出，否则回退为 {@code System.out.print} 直写标准输出。
- * 本初始化器将 banner 日志记录器级别设为 OFF，强制统一走标准输出回退路径
- * （避免 banner 以 INFO 日志形式进入控制台与日志文件），并将 banner 特征
- * 注册到 {@code BaseApplication} 的统一过滤列表，由其启动时安装的标准输出
- * 包装器丢弃对应输出。
+ * 通过 SPI 机制被 {@code BaseApplication} 加载，将 Sentinel 共享配置文件
+ * {@code cloud-sentinel.yml} 前插到 {@code spring.config.import} 导入列表，
+ * 并屏蔽 Sentinel 初始化日志输出。
+ * Sentinel 初始化时通过标准输出直写形如 {@code INFO: Sentinel log ...} 的提示信息，
+ * 无官方关闭开关，本初始化器将该特征注册到 {@code BaseApplication} 的统一
+ * 过滤列表，由其启动时安装的标准输出包装器丢弃对应输出。
  * </p>
  *
  * @author maozi
  */
 public class SentinelConfigInitializer implements ConfigInitializer {
 
-    /** 定时任务相关的 Nacos 共享配置文件导入（optional 前缀保证文件不存在时不阻断启动） */
+    /** Sentinel 相关的 Nacos 共享配置文件导入（optional 前缀保证文件不存在时不阻断启动） */
     private static final String IMPORTS = "optional:nacos:cloud-sentinel.yml";
 
-    /** Dubbo 启动 banner 特征片段，用于识别并丢弃 banner 输出 */
+    /** Sentinel 初始化日志特征片段，用于识别并丢弃对应的标准输出 */
     private static final String BANNER_FLAG = "INFO: Sentinel log";
 
     /**
-     * 屏蔽 Dubbo 启动 banner 输出。
+     * 导入 Sentinel 共享配置文件，并屏蔽 Sentinel 初始化日志输出。
      * <p>
-     * 写入日志记录器关闭属性：Spring Boot 在环境准备阶段
-     * （早于 banner 输出监听器执行）应用 {@code logging.level.*} 属性，
-     * 使 banner 记录器 INFO 级别不可用，强制走标准输出回退路径。
-     * 同时将 banner 特征注册到 {@code BaseApplication} 的统一过滤列表。
+     * 先将 {@code cloud-sentinel.yml} 以 optional 前缀合并到
+     * {@code spring.config.import} 导入列表；再将 Sentinel 初始化日志特征
+     * 注册到 {@code BaseApplication} 的统一过滤列表，由其启动时安装的
+     * 标准输出包装器丢弃对应输出。
      * </p>
      *
      * @param properties 系统属性容器
@@ -49,7 +48,7 @@ public class SentinelConfigInitializer implements ConfigInitializer {
         BaseApplication.addBannerFilter(BANNER_FLAG);
     }
 
-    /** 空实现，Dubbo 配置初始化无需向启动日志追加诊断信息。 */
+    /** 空实现，Sentinel 配置初始化无需向启动日志追加诊断信息。 */
     @Override
     public void appendLogs(Map<String, String> logs) {}
 

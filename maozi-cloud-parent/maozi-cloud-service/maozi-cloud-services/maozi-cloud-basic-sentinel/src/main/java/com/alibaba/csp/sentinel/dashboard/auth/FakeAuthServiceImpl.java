@@ -28,41 +28,50 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class FakeAuthServiceImpl implements AuthService<HttpServletRequest> {
 
+    /** Logger that warns about the missing real auth implementation. */
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    /** Logs a warning that this fake implementation bypasses all auth checking. */
     public FakeAuthServiceImpl() {
         this.logger.warn("there is no auth, use {} by implementation {}", AuthService.class, this.getClass());
     }
 
+    /** {@inheritDoc} Always returns a fake user that passes all auth checking. */
     @Override
     public AuthUser getAuthUser(HttpServletRequest request) {
         return new AuthUserImpl();
     }
 
+    /** Fake auth user that passes all privilege checking with fixed fake identity values. */
     static final class AuthUserImpl implements AuthUser {
 
+        /** {@inheritDoc} Always returns true, ignoring the target and privilege. */
         @Override
         public boolean authTarget(String target, PrivilegeType privilegeType) {
             // fake implementation, always return true
             return true;
         }
 
+        /** {@inheritDoc} Always returns true. */
         @Override
         public boolean isSuperUser() {
             // fake implementation, always return true
             return true;
         }
 
+        /** Get the fixed fake nick name. */
         @Override
         public String getNickName() {
             return "FAKE_NICK_NAME";
         }
 
+        /** Get the fixed fake login name. */
         @Override
         public String getLoginName() {
             return "FAKE_LOGIN_NAME";
         }
 
+        /** Get the fixed fake user id. */
         @Override
         public String getId() {
             return "FAKE_EMP_ID";

@@ -21,18 +21,27 @@ import java.util.Date;
  * @author leyou
  */
 public class MetricEntity {
+    /** The entity id. */
     private Long id;
+    /** The create time. */
     private Date gmtCreate;
+    /** The last modify time. */
     private Date gmtModified;
+    /** The application name. */
     private String app;
     /**
      * 监控信息的时间戳
      */
     private Date timestamp;
+    /** The resource name. */
     private String resource;
+    /** The passed QPS. */
     private Long passQps;
+    /** The success QPS. */
     private Long successQps;
+    /** The blocked QPS. */
     private Long blockQps;
+    /** The exception QPS. */
     private Long exceptionQps;
 
     /**
@@ -45,6 +54,7 @@ public class MetricEntity {
      */
     private int count;
 
+    /** The hash code of the resource name, updated when the resource is set. */
     private int resourceCode;
 
     public static MetricEntity copyOf(MetricEntity oldEntity) {
@@ -80,6 +90,9 @@ public class MetricEntity {
         this.count += count;
     }
 
+    /**
+     * Accumulate the total rt by {@code avgRt * successQps} and add the given success QPS.
+     */
     public synchronized void addRtAndSuccessQps(double avgRt, Long successQps) {
         this.rt += avgRt * successQps;
         this.successQps += successQps;
@@ -140,6 +153,7 @@ public class MetricEntity {
         return resource;
     }
 
+    /** Set the resource name and update resourceCode to its hash code. */
     public void setResource(String resource) {
         this.resource = resource;
         this.resourceCode = resource.hashCode();

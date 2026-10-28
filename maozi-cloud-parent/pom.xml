@@ -57,7 +57,7 @@
 		<!-- Apache Dubbo RPC 通信框架版本 -->
 		<dubbo.version>3.2.6</dubbo.version>
 		<!-- Arthas Java 在线诊断工具版本 -->
-		<arthas.version>3.6.7</arthas.version>
+		<arthas.version>4.0.5</arthas.version>
 		<!-- Hutool Java 工具类库版本 -->
 		<hutool.version>5.8.28</hutool.version>
 		<!-- EasyPOI Excel 导入导出工具版本 -->

@@ -23,7 +23,7 @@ import java.util.List;
  * 继承自 ConfigServiceImpl，实现 RestConfigService 接口，
  * 提供全局配置模块的 RESTful API 接口实现，包括配置的
  * 分页查询、新增、详情查询、删除、更新、状态变更、
- * 下拉列表以及按名称获取配置值等功能。
+ * 下拉列表以及按名称获取配置等功能。
  * </p>
  *
  * @author maozi

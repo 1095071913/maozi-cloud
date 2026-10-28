@@ -94,13 +94,15 @@ if skip_middleware and svc.get("is_middleware"):
     sys.exit(3)
 
 otel      = bool(svc.get("opentelemetry"))
+arthas    = bool(svc.get("arthas"))
 jvm       = svc.get("jvm_params")  or d.get("jvm_params", "")
 base      = svc.get("base_image")  or d.get("base_image", "maozi-cloud-base-jdk:1.0.0")
 
-# OTel / add-opens 标志全部从 JSON 读, 改参数不用动部署脚本
+# OTel / Arthas / add-opens 标志全部从 JSON 读, 改参数不用动部署脚本
 # 服务块里同名键会整体覆盖 defaults 里的列表 (不合并)
-otel_flags = svc.get("otel_flags") or d.get("otel_flags", [])
-add_opens  = svc.get("add_opens")  or d.get("add_opens", [])
+otel_flags   = svc.get("otel_flags")   or d.get("otel_flags", [])
+arthas_flags = svc.get("arthas_flags") or d.get("arthas_flags", [])
+add_opens    = svc.get("add_opens")    or d.get("add_opens", [])
 
 # is_log_file: 默认 true (缺省 / null 均视为 true);
 # true -> 渲染 ENV LOG_FILE 行, false -> 模板 __LOG_FILE_ENV__ 整行不渲染
@@ -118,6 +120,8 @@ if is_log_file is None:
 cmd_parts = ["java -server"]
 if otel and otel_flags:
     cmd_parts.extend(otel_flags)
+if arthas and arthas_flags:
+    cmd_parts.extend(arthas_flags)
 cmd_parts.append(jvm)
 if add_opens:
     cmd_parts.extend(add_opens)
@@ -195,7 +199,7 @@ render_and_build_image() {
     mkdir -p "$image_directory"
 
     # 渲染统一交给 render_image_dockerfile:
-    #   - 读 maozi-cloud-services.json 取该服务的 OTel / JVM / base_image 配置
+    #   - 读 maozi-cloud-services.json 取该服务的 OTel / Arthas / JVM / base_image 配置
     #   - 传 skip-middleware: is_middleware=true 的服务退出码 3 (由 basics-all 编排)
     # 退出码区分: 3 = is_middleware=true 跳过, 其他非零 = 不在 JSON 里 / 渲染失败
     render_image_dockerfile "$service_name" "$image_file" "skip-middleware"
@@ -209,7 +213,8 @@ render_and_build_image() {
         return 1
     fi
 
-    # 生成临时 build-docker.sh: cp jar / buildx / compose up -d / rm jar / rm Dockerfile / rm 自身
+    # 生成临时 build-docker.sh: cp jar / buildx / compose down+up -d / rm jar / rm Dockerfile / rm 自身
+    # (compose down+up 均只针对本服务: 先停旧容器再启新容器)
     # 顺序: 必须先 buildx 再 compose, rm Dockerfile 必须在 buildx 之后 (否则构建找不到文件)
     # business 服务 compose 前先 cd 进 compose 目录 (v1 只从工作目录读 .env) 并带 -p 项目名
     local build_script="$image_directory/${service_name}-build-docker.sh"

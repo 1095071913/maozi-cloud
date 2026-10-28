@@ -26,8 +26,8 @@ import java.util.concurrent.ConcurrentMap;
  * <p>Dashboard local config support.</p>
  * <p>
  * Dashboard supports configuration loading by several ways by order:<br>
- * 1. System.properties<br>
- * 2. Env
+ * 1. Env<br>
+ * 2. System properties
  * </p>
  *
  * @author jason
@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class DashboardConfig {
 
+    /** Default timeout in millisecond to regard a machine as unhealthy. */
     public static final int DEFAULT_MACHINE_HEALTHY_TIMEOUT_MS = 60_000;
 
     /**
@@ -56,12 +57,14 @@ public class DashboardConfig {
      */
     public static final String CONFIG_REMOVE_APP_NO_MACHINE_MILLIS = "sentinel.dashboard.removeAppNoMachineMillis";
     /**
-     * Timeout
+     * Timeout in millisecond to regard a machine as unhealthy.
      */
     public static final String CONFIG_UNHEALTHY_MACHINE_MILLIS = "sentinel.dashboard.unhealthyMachineMillis";
 
+    /** Cache of resolved config values, keyed by config name. */
     private static final ConcurrentMap<String, Object> cacheMap = new ConcurrentHashMap<>();
     
+    /** Returns the raw config value, checking env first and then system properties; empty string if unset. */
     @NonNull
     private static String getConfig(String name) {
         // env
@@ -77,6 +80,7 @@ public class DashboardConfig {
         return "";
     }
 
+    /** Returns the cached config string value, or null if unset or blank (blank values are not cached). */
     protected static String getConfigStr(String name) {
         if (cacheMap.containsKey(name)) {
             return (String) cacheMap.get(name);
@@ -92,6 +96,10 @@ public class DashboardConfig {
         return val;
     }
 
+    /**
+     * Returns the cached config int value: an unparsable or zero value falls back to
+     * the default, and values below minVal are raised to minVal.
+     */
     protected static int getConfigInt(String name, int defaultVal, int minVal) {
         if (cacheMap.containsKey(name)) {
             return (int)cacheMap.get(name);
@@ -106,26 +114,32 @@ public class DashboardConfig {
         return val;
     }
 
+    /** Get the configured login username, or null if unset. */
     public static String getAuthUsername() {
         return getConfigStr(CONFIG_AUTH_USERNAME);
     }
 
+    /** Get the configured login password, or null if unset. */
     public static String getAuthPassword() {
         return getConfigStr(CONFIG_AUTH_PASSWORD);
     }
 
+    /** Get the hide-app-no-machine period in millisecond (default 0, min 60000). */
     public static int getHideAppNoMachineMillis() {
         return getConfigInt(CONFIG_HIDE_APP_NO_MACHINE_MILLIS, 0, 60000);
     }
     
+    /** Get the remove-app-no-machine period in millisecond (default 0, min 120000). */
     public static int getRemoveAppNoMachineMillis() {
         return getConfigInt(CONFIG_REMOVE_APP_NO_MACHINE_MILLIS, 0, 120000);
     }
 
+    /** Get the unhealthy machine timeout in millisecond (default 60000, min 30000). */
     public static int getUnhealthyMachineMillis() {
         return getConfigInt(CONFIG_UNHEALTHY_MACHINE_MILLIS, DEFAULT_MACHINE_HEALTHY_TIMEOUT_MS, 30000);
     }
     
+    /** Clear the cache of resolved config values. */
     public static void clearCache() {
         cacheMap.clear();
     }

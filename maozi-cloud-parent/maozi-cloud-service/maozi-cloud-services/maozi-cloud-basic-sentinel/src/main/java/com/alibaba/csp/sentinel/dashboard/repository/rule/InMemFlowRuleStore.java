@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 public class InMemFlowRuleStore extends InMemoryRuleRepositoryAdapter<FlowRuleEntity> {
 
+    /** Static id generator for stored entities. */
     private static AtomicLong ids = new AtomicLong(0);
 
     @Override
@@ -36,6 +37,10 @@ public class InMemFlowRuleStore extends InMemoryRuleRepositoryAdapter<FlowRuleEn
         return ids.incrementAndGet();
     }
 
+    /**
+     * Ensures a cluster flow config exists on the entity when it runs in cluster mode,
+     * then sets the rule id into the config as the cluster flow id.
+     */
     @Override
     protected FlowRuleEntity preProcess(FlowRuleEntity entity) {
         if (entity != null && entity.isClusterMode()) {

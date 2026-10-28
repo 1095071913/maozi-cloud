@@ -1,10 +1,20 @@
+# ============================================================
+# maozi-cloud-all-service 监控端点配置（Spring Boot Actuator）
+# 本文件配置 Actuator 管理端点的暴露范围与健康检查详情，
+# 用于服务运行状态监控及 Kubernetes 探针对接。
+# ============================================================
+
 management:
+  # 在 /actuator/info 端点中展示环境信息
   info.env.enabled: true
   endpoints:
     web:
       exposure:
+        # 暴露全部 Actuator 端点（生产环境建议按需收敛，避免敏感信息泄露）
         include: '*'
   endpoint:
     health:
+      # 健康检查端点始终展示组件级详情（数据源、Redis、磁盘等）
       show-details: ALWAYS
+      # 启用存活（liveness）与就绪（readiness）探针端点，供 K8s 容器探针调用
       probes.enabled: true

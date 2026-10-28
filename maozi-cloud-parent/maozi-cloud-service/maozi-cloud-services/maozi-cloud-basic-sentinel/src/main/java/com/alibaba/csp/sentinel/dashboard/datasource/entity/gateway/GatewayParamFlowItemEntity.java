@@ -27,12 +27,16 @@ import java.util.Objects;
  */
 public class GatewayParamFlowItemEntity {
 
+    /** The strategy of parsing the parameter value from the request. */
     private Integer parseStrategy;
 
+    /** The name of the header or parameter to parse, depending on parseStrategy. */
     private String fieldName;
 
+    /** The pattern to match the parsed value. */
     private String pattern;
 
+    /** The strategy to match the pattern. */
     private Integer matchStrategy;
 
     public Integer getParseStrategy() {

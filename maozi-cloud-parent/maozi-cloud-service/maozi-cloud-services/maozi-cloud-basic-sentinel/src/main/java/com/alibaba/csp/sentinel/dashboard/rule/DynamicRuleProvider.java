@@ -21,5 +21,6 @@ package com.alibaba.csp.sentinel.dashboard.rule;
  */
 public interface DynamicRuleProvider<T> {
 
+    /** Get the rules of the given application from the remote rule repository. */
     T getRules(String appName) throws Exception;
 }

@@ -91,49 +91,80 @@ import java.util.stream.Collectors;
  */
 @Component
 public class SentinelApiClient {
+    /** Logger of this API client. */
     private static Logger logger = LoggerFactory.getLogger(SentinelApiClient.class);
 
+    /** Default charset for encoding request params and decoding response bodies. */
     private static final Charset DEFAULT_CHARSET = Charset.forName(SentinelConfig.charset());
+    /** Name of the HTTP Content-Type header. */
     private static final String HTTP_HEADER_CONTENT_TYPE = "Content-Type";
+    /** Plain urlencoded Content-Type, used when the target client does not support the enhanced form. */
     private static final String HTTP_HEADER_CONTENT_TYPE_URLENCODED = ContentType.create(URLEncodedUtils.CONTENT_TYPE).toString();
 
+    /** Command path of fetching the resource tree in JSON. */
     private static final String RESOURCE_URL_PATH = "jsonTree";
+    /** Command path of fetching the cluster node list. */
     private static final String CLUSTER_NODE_PATH = "clusterNode";
+    /** Command path of fetching common rules (flow/degrade/system/authority). */
     private static final String GET_RULES_PATH = "getRules";
+    /** Command path of modifying common rules (flow/degrade/system/authority). */
     private static final String SET_RULES_PATH = "setRules";
+    /** Command path of fetching parameter flow rules. */
     private static final String GET_PARAM_RULE_PATH = "getParamFlowRules";
+    /** Command path of modifying parameter flow rules. */
     private static final String SET_PARAM_RULE_PATH = "setParamFlowRules";
 
+    /** Command path of fetching the cluster mode. */
     private static final String FETCH_CLUSTER_MODE_PATH = "getClusterMode";
+    /** Command path of modifying the cluster mode. */
     private static final String MODIFY_CLUSTER_MODE_PATH = "setClusterMode";
+    /** Command path of fetching the cluster client config. */
     private static final String FETCH_CLUSTER_CLIENT_CONFIG_PATH = "cluster/client/fetchConfig";
+    /** Command path of modifying the cluster client config. */
     private static final String MODIFY_CLUSTER_CLIENT_CONFIG_PATH = "cluster/client/modifyConfig";
 
+    /** Command path of fetching the cluster server basic info. */
     private static final String FETCH_CLUSTER_SERVER_BASIC_INFO_PATH = "cluster/server/info";
 
+    /** Command path of modifying the cluster server transport config. */
     private static final String MODIFY_CLUSTER_SERVER_TRANSPORT_CONFIG_PATH = "cluster/server/modifyTransportConfig";
+    /** Command path of modifying the cluster server flow config. */
     private static final String MODIFY_CLUSTER_SERVER_FLOW_CONFIG_PATH = "cluster/server/modifyFlowConfig";
+    /** Command path of modifying the cluster server namespace set. */
     private static final String MODIFY_CLUSTER_SERVER_NAMESPACE_SET_PATH = "cluster/server/modifyNamespaceSet";
 
+    /** Command path of fetching the gateway api definitions. */
     private static final String FETCH_GATEWAY_API_PATH = "gateway/getApiDefinitions";
+    /** Command path of modifying the gateway api definitions. */
     private static final String MODIFY_GATEWAY_API_PATH = "gateway/updateApiDefinitions";
 
+    /** Command path of fetching the gateway flow rules. */
     private static final String FETCH_GATEWAY_FLOW_RULE_PATH = "gateway/getRules";
+    /** Command path of modifying the gateway flow rules. */
     private static final String MODIFY_GATEWAY_FLOW_RULE_PATH = "gateway/updateRules";
 
+    /** Rule type name of flow rules. */
     private static final String FLOW_RULE_TYPE = "flow";
+    /** Rule type name of degrade rules. */
     private static final String DEGRADE_RULE_TYPE = "degrade";
+    /** Rule type name of system rules. */
     private static final String SYSTEM_RULE_TYPE = "system";
+    /** Rule type name of authority rules. */
     private static final String AUTHORITY_TYPE = "authority";
 
+    /** The underlying async HTTP client used to talk to Sentinel clients. */
     private CloseableHttpAsyncClient httpClient;
 
+    /** Sentinel version 1.6.0, from which command POST is supported. */
     private static final SentinelVersion version160 = new SentinelVersion(1, 6, 0);
+    /** Sentinel version 1.7.1, from which the enhanced Content-Type form is supported. */
     private static final SentinelVersion version171 = new SentinelVersion(1, 7, 1);
     
+    /** Registry of apps and machines, used for machine validity and version checks. */
     @Autowired
     private AppManagement appManagement;
 
+    /** Creates and starts the underlying async HTTP client, with redirects disabled. */
     public SentinelApiClient() {
         IOReactorConfig ioConfig = IOReactorConfig.custom().setConnectTimeout(3000).setSoTimeout(10000)
             .setIoThreadCount(Runtime.getRuntime().availableProcessors() * 2).build();
@@ -146,14 +177,17 @@ public class SentinelApiClient {
         httpClient.start();
     }
 
+    /** Check whether the given HTTP status code stands for success (2xx). */
     private boolean isSuccess(int statusCode) {
         return statusCode >= 200 && statusCode < 300;
     }
     
+    /** Whether the failed response means the command is unknown to the client (status 400 with the unknown-command message). */
     private boolean isCommandNotFound(int statusCode, String body) {
         return statusCode == 400 && StringUtil.isNotEmpty(body) && body.contains(CommandConstants.MSG_UNKNOWN_COMMAND_PREFIX);
     }
     
+    /** Whether the registered machine's client version supports receiving commands via POST (>= 1.6.0). */
     protected boolean isSupportPost(String app, String ip, int port) {
         return StringUtil.isNotEmpty(app) && Optional.ofNullable(appManagement.getDetailApp(app))
                 .flatMap(e -> e.getMachine(ip, port))
@@ -178,6 +212,7 @@ public class SentinelApiClient {
                 .orElse(false);
     }
     
+    /** Builds a url-encoded query string (no leading '?' or '&'), skipping entries with empty or unencodable key/value. */
     private StringBuilder queryString(Map<String, String> params) {
         StringBuilder queryStringBuilder = new StringBuilder();
         for (Entry<String, String> entry : params.entrySet()) {
@@ -219,6 +254,7 @@ public class SentinelApiClient {
         return httpPost;
     }
     
+    /** Url-encodes the string with the default charset, or null if encoding fails. */
     private String urlEncode(String str) {
         try {
             return URLEncoder.encode(str, DEFAULT_CHARSET.name());
@@ -228,6 +264,7 @@ public class SentinelApiClient {
         }
     }
     
+    /** Reads the response body using the charset parsed from the Content-Type header, falling back to the default charset. */
     private String getBody(HttpResponse response) throws Exception {
         Charset charset = null;
         try {
@@ -314,6 +351,11 @@ public class SentinelApiClient {
         }
     }
     
+    /**
+     * Executes the request asynchronously: a 2xx response completes the future with the body,
+     * other statuses fail it with {@link CommandNotFoundException} (unknown command) or
+     * {@link CommandFailedException}, and a cancelled request completes it with null.
+     */
     private CompletableFuture<String> executeCommand(HttpUriRequest request) {
         CompletableFuture<String> future = new CompletableFuture<>();
         httpClient.execute(request, new FutureCallback<HttpResponse>() {
@@ -352,10 +394,12 @@ public class SentinelApiClient {
         return future;
     }
     
+    /** Close the underlying async HTTP client. */
     public void close() throws Exception {
         httpClient.close();
     }
     
+    /** Fetches the JSON array returned by the given command (via GET) and parses each item into the given type. */
     @Nullable
     private <T> CompletableFuture<List<T>> fetchItemsAsync(String ip, int port, String api, String type, Class<T> ruleType) {
         AssertUtil.notEmpty(ip, "Bad machine IP");
@@ -369,6 +413,7 @@ public class SentinelApiClient {
                 .thenApply(json -> JSON.parseArray(json, ruleType));
     }
     
+    /** Synchronous variant of {@link #fetchItemsAsync}; returns null instead of failing on error. */
     @Nullable
     private <T> List<T> fetchItems(String ip, int port, String api, String type, Class<T> ruleType) {
         try {
@@ -389,10 +434,12 @@ public class SentinelApiClient {
         }
     }
     
+    /** Fetch rules of the given type from the getRules api. */
     private <T extends Rule> List<T> fetchRules(String ip, int port, String type, Class<T> ruleType) {
         return fetchItems(ip, port, GET_RULES_PATH, type, ruleType);
     }
     
+    /** Pushes rules of the given type via the setRules api; a null list is a no-op returning true. */
     private boolean setRules(String app, String ip, int port, String type, List<? extends RuleEntity> entities) {
         if (entities == null) {
             return true;
@@ -421,6 +468,7 @@ public class SentinelApiClient {
         }
     }
 
+    /** Async variant of {@link #setRules}; requires a "success" reply, and a null rules list fails the future. */
     private CompletableFuture<Void> setRulesAsync(String app, String ip, int port, String type, List<? extends RuleEntity> entities) {
         try {
             AssertUtil.notNull(entities, "rules cannot be null");
@@ -445,6 +493,7 @@ public class SentinelApiClient {
         }
     }
 
+    /** Fetches the resource tree (jsonTree) of the machine, optionally filtered by the given resource type. */
     public List<NodeVo> fetchResourceOfMachine(String ip, int port, String type) {
         return fetchItems(ip, port, RESOURCE_URL_PATH, type, NodeVo.class);
     }
@@ -455,7 +504,7 @@ public class SentinelApiClient {
      * @param ip          ip to fetch
      * @param port        port of the ip
      * @param includeZero whether zero value should in the result list.
-     * @return
+     * @return the fetched cluster node list, or null if fetching fails
      */
     public List<NodeVo> fetchClusterNodeOfMachine(String ip, int port, boolean includeZero) {
         String type = "notZero";
@@ -465,6 +514,7 @@ public class SentinelApiClient {
         return fetchItems(ip, port, CLUSTER_NODE_PATH, type, NodeVo.class);
     }
 
+    /** Fetches all flow rules of the machine and converts them to entities, or null if fetching fails. */
     public List<FlowRuleEntity> fetchFlowRuleOfMachine(String app, String ip, int port) {
         List<FlowRule> rules = fetchRules(ip, port, FLOW_RULE_TYPE, FlowRule.class);
         if (rules != null) {
@@ -475,6 +525,7 @@ public class SentinelApiClient {
         }
     }
 
+    /** Fetches all degrade rules of the machine and converts them to entities, or null if fetching fails. */
     public List<DegradeRuleEntity> fetchDegradeRuleOfMachine(String app, String ip, int port) {
         List<DegradeRule> rules = fetchRules(ip, port, DEGRADE_RULE_TYPE, DegradeRule.class);
         if (rules != null) {
@@ -485,6 +536,7 @@ public class SentinelApiClient {
         }
     }
 
+    /** Fetches all system rules of the machine and converts them to entities, or null if fetching fails. */
     public List<SystemRuleEntity> fetchSystemRuleOfMachine(String app, String ip, int port) {
         List<SystemRule> rules = fetchRules(ip, port, SYSTEM_RULE_TYPE, SystemRule.class);
         if (rules != null) {
@@ -556,6 +608,7 @@ public class SentinelApiClient {
         return setRules(app, ip, port, FLOW_RULE_TYPE, rules);
     }
 
+    /** Asynchronously pushes flow rules via {@link #setRulesAsync}; a null rules list fails the future. */
     public CompletableFuture<Void> setFlowRuleOfMachineAsync(String app, String ip, int port, List<FlowRuleEntity> rules) {
         return setRulesAsync(app, ip, port, FLOW_RULE_TYPE, rules);
     }
@@ -588,10 +641,17 @@ public class SentinelApiClient {
         return setRules(app, ip, port, SYSTEM_RULE_TYPE, rules);
     }
 
+    /**
+     * set rules of the machine. rules == null will return immediately;
+     * rules.isEmpty() means setting the rules to empty.
+     *
+     * @return whether successfully set the rules.
+     */
     public boolean setAuthorityRuleOfMachine(String app, String ip, int port, List<AuthorityRuleEntity> rules) {
         return setRules(app, ip, port, AUTHORITY_TYPE, rules);
     }
 
+    /** Asynchronously pushes parameter flow rules; a null list completes the future immediately without pushing. */
     public CompletableFuture<Void> setParamFlowRuleOfMachine(String app, String ip, int port, List<ParamFlowRuleEntity> rules) {
         if (rules == null) {
             return CompletableFuture.completedFuture(null);
@@ -622,6 +682,7 @@ public class SentinelApiClient {
 
     // Cluster related
 
+    /** Fetches the current cluster mode state of the machine. */
     public CompletableFuture<ClusterStateSimpleEntity> fetchClusterMode(String ip, int port) {
         if (StringUtil.isBlank(ip) || port <= 0) {
             return AsyncUtils.newFailedFuture(new IllegalArgumentException("Invalid parameter"));
@@ -635,6 +696,7 @@ public class SentinelApiClient {
         }
     }
 
+    /** Modifies the cluster mode (client or server) of the machine. */
     public CompletableFuture<Void> modifyClusterMode(String ip, int port, int mode) {
         if (StringUtil.isBlank(ip) || port <= 0) {
             return AsyncUtils.newFailedFuture(new IllegalArgumentException("Invalid parameter"));
@@ -657,6 +719,7 @@ public class SentinelApiClient {
         }
     }
 
+    /** Fetches the cluster client info and config of the machine. */
     public CompletableFuture<ClusterClientInfoVO> fetchClusterClientInfoAndConfig(String ip, int port) {
         if (StringUtil.isBlank(ip) || port <= 0) {
             return AsyncUtils.newFailedFuture(new IllegalArgumentException("Invalid parameter"));
@@ -670,6 +733,7 @@ public class SentinelApiClient {
         }
     }
 
+    /** Modifies the cluster client config of the machine. */
     public CompletableFuture<Void> modifyClusterClientConfig(String app, String ip, int port, ClusterClientConfig config) {
         if (StringUtil.isBlank(ip) || port <= 0) {
             return AsyncUtils.newFailedFuture(new IllegalArgumentException("Invalid parameter"));
@@ -692,6 +756,7 @@ public class SentinelApiClient {
         }
     }
 
+    /** Modifies the cluster server flow config of the machine. */
     public CompletableFuture<Void> modifyClusterServerFlowConfig(String app, String ip, int port, ServerFlowConfig config) {
         if (StringUtil.isBlank(ip) || port <= 0) {
             return AsyncUtils.newFailedFuture(new IllegalArgumentException("Invalid parameter"));
@@ -714,6 +779,7 @@ public class SentinelApiClient {
         }
     }
 
+    /** Modifies the cluster server transport config (port and idle seconds) of the machine. */
     public CompletableFuture<Void> modifyClusterServerTransportConfig(String app, String ip, int port, ServerTransportConfig config) {
         if (StringUtil.isBlank(ip) || port <= 0) {
             return AsyncUtils.newFailedFuture(new IllegalArgumentException("Invalid parameter"));
@@ -737,6 +803,7 @@ public class SentinelApiClient {
         }
     }
 
+    /** Modifies the cluster server namespace set of the machine. */
     public CompletableFuture<Void> modifyClusterServerNamespaceSet(String app, String ip, int port, Set<String> set) {
         if (StringUtil.isBlank(ip) || port <= 0) {
             return AsyncUtils.newFailedFuture(new IllegalArgumentException("Invalid parameter"));
@@ -759,6 +826,7 @@ public class SentinelApiClient {
         }
     }
 
+    /** Fetches the cluster server basic info (all config and state) of the machine. */
     public CompletableFuture<ClusterServerStateVO> fetchClusterServerBasicInfo(String ip, int port) {
         if (StringUtil.isBlank(ip) || port <= 0) {
             return AsyncUtils.newFailedFuture(new IllegalArgumentException("Invalid parameter"));
@@ -772,6 +840,7 @@ public class SentinelApiClient {
         }
     }
 
+    /** Fetches the gateway api definitions of the machine, filling app/ip/port into each entity. */
     public CompletableFuture<List<ApiDefinitionEntity>> fetchApis(String app, String ip, int port) {
         if (StringUtil.isBlank(ip) || port <= 0) {
             return AsyncUtils.newFailedFuture(new IllegalArgumentException("Invalid parameter"));
@@ -796,6 +865,7 @@ public class SentinelApiClient {
         }
     }
 
+    /** Pushes gateway api definitions to the machine; a null list is a no-op returning true. */
     public boolean modifyApis(String app, String ip, int port, List<ApiDefinitionEntity> apis) {
         if (apis == null) {
             return true;
@@ -818,6 +888,7 @@ public class SentinelApiClient {
         }
     }
 
+    /** Fetches the gateway flow rules of the machine and converts them to entities. */
     public CompletableFuture<List<GatewayFlowRuleEntity>> fetchGatewayFlowRules(String app, String ip, int port) {
         if (StringUtil.isBlank(ip) || port <= 0) {
             return AsyncUtils.newFailedFuture(new IllegalArgumentException("Invalid parameter"));
@@ -836,6 +907,7 @@ public class SentinelApiClient {
         }
     }
 
+    /** Pushes gateway flow rules to the machine; a null list is a no-op returning true. */
     public boolean modifyGatewayFlowRules(String app, String ip, int port, List<GatewayFlowRuleEntity> rules) {
         if (rules == null) {
             return true;

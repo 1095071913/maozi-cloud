@@ -27,7 +27,7 @@
 # 用法:
 #   ./maozi-cloud-deploy-basics-all.sh
 #       全量: 补齐缺失的中间件镜像后启动整个 basics compose
-#   ./maozi-cloud-deploy-basics-all.sh maozi-cloud-monitor-service maozi-cloud-basic-mysql
+#   ./maozi-cloud-deploy-basics-all.sh maozi-cloud-basic-monitor maozi-cloud-basic-mysql
 #       定向: 仅处理指定服务; 参数须为 compose 里的服务名
 #       (可用 docker-compose -f docker-compose.yml config --services 查看)
 # ============================================================

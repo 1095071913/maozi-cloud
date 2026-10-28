@@ -16,10 +16,10 @@
     <artifactId>maozi-cloud-service-monomer</artifactId>
 
     <dependencies>
+        <!-- Spring Boot Actuator，提供健康检查与监控端点（供容器探针及运行状态监控使用） -->
         <dependency>
-            <groupId>com.maozi</groupId>
-            <artifactId>maozi-cloud-config-monitor</artifactId>
-            <version>${maozi-cloud-config-monitor.version}</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
     </dependencies>
 

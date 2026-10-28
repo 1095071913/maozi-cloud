@@ -399,7 +399,7 @@ async function onConfirm(): Promise<void> {
     const index = entries.value.findIndex((e) => e.id === editRowId)
     if (index >= 0) entries.value[index] = entry
     dialogVisible.value = false
-    // 编辑确定后立即写入系统（失败时保留未保存标记，可经「保存到系统」重试）
+    // 编辑确定后立即写入系统（失败时保留未保存标记，可经「重试保存」按钮重试）
     if (await saveToSystem()) {
       ElMessage.success('修改已写入系统 hosts，DNS 缓存已刷新')
     }
@@ -415,7 +415,7 @@ async function onConfirm(): Promise<void> {
 async function onRemove(row: HostsEntry): Promise<void> {
   const index = entries.value.findIndex((e) => e.id === row.id)
   if (index >= 0) entries.value.splice(index, 1)
-  // 删除后立即写入系统（失败时保留未保存标记，可经「保存到系统」重试）
+  // 删除后立即写入系统（失败时保留未保存标记，可经「重试保存」按钮重试）
   if (await saveToSystem()) {
     ElMessage.success('已删除并写入系统 hosts，DNS 缓存已刷新')
   }

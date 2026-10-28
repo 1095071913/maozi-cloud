@@ -67,6 +67,7 @@ export function listBookmarks(): Bookmark[] {
     .sort((a, b) => (a.sortOrder ?? a.createdAt) - (b.sortOrder ?? b.createdAt))
 }
 
+/** 新增或更新书签：更新按 id 合并原字段；新增时补默认分类，sortOrder 取当前最大值 +1 */
 export function upsertBookmark(input: Partial<Bookmark> & { id?: string }): Bookmark {
   const list = readStore()
   const now = Date.now()

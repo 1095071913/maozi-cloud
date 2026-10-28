@@ -35,12 +35,20 @@ import java.lang.reflect.Method;
  */
 public class DefaultAuthorizationInterceptor implements AuthorizationInterceptor {
 
+    /** The authentication service used to resolve the current user from the request. */
     private final AuthService<HttpServletRequest> authService;
 
+    /** Creates the interceptor with the given authentication service. */
     public DefaultAuthorizationInterceptor(AuthService<HttpServletRequest> authService) {
         this.authService = authService;
     }
 
+    /**
+     * Authorize handler methods annotated with {@link AuthAction}: resolve the current user
+     * from the request and check the target parameter named by the annotation; requests
+     * without an annotation pass through, unauthenticated or unauthorized ones are rejected
+     * with a JSON error message.
+     */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
@@ -66,6 +74,7 @@ public class DefaultAuthorizationInterceptor implements AuthorizationInterceptor
         return true;
     }
 
+    /** Writes the given failure message to the response as a JSON body. */
     private void responseNoPrivilegeMsg(HttpServletResponse response, String message) throws IOException {
         Result result = Result.ofFail(-1, message);
         response.addHeader("Content-Type", "application/json;charset=UTF-8");

@@ -21,10 +21,16 @@ import com.alibaba.csp.sentinel.util.function.Tuple2;
 import java.util.Optional;
 
 /**
+ * Utility class for parsing machine IDs in the {@code ip@commandPort} form.
+ *
  * @author Eric Zhao
  */
 public final class MachineUtils {
 
+    /**
+     * Parses the command port from a machine ID in {@code ip@commandPort} form,
+     * returning empty when the ID has no port or cannot be parsed.
+     */
     public static Optional<Integer> parseCommandPort(String machineIp) {
         try {
             if (!machineIp.contains("@")) {
@@ -40,6 +46,10 @@ public final class MachineUtils {
         }
     }
 
+    /**
+     * Parses the ip and command port from a machine ID in {@code ip@commandPort} form,
+     * returning empty when the ID is blank, has no port or cannot be parsed.
+     */
     public static Optional<Tuple2<String, Integer>> parseCommandIpAndPort(String machineIp) {
         try {
             if (StringUtil.isEmpty(machineIp) || !machineIp.contains("@")) {
@@ -55,5 +65,6 @@ public final class MachineUtils {
         }
     }
 
+    /** Private constructor to prevent instantiation. */
     private MachineUtils() {}
 }

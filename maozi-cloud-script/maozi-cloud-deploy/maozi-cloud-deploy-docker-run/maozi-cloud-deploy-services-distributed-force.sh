@@ -16,7 +16,8 @@
 #   4. 对每个 jar:
 #        - 按服务名前缀路由镜像 / docker-compose 目录
 #        - 调用 render-image 渲染器: 读 maozi-cloud-services.json + 模板渲染
-#          ${service_name}-image, buildx 构建, compose up -d, rm 镜像文件
+#          ${service_name}-image, buildx 构建, compose down+up -d (先停旧容器
+#          再启新), rm 镜像文件
 #        - 服务不在 JSON 配置里时, 渲染器自动 skip, 不阻塞其他服务
 #        - 后台并行执行
 #   5. wait 等所有后台部署完成

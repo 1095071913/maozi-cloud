@@ -36,11 +36,19 @@ import java.util.stream.Collectors;
 @Component("authorityRuleNacosProvider")
 public class AuthorityRuleNacosProvider implements DynamicRuleProvider<List<AuthorityRuleEntity>> {
 
+    /** Nacos config service used to read rule configs. */
     @Autowired
     private ConfigService configService;
+    /** Nacos connection properties, supplies the rule config group. */
     @Autowired
     private NacosProperties nacosProperties;
 
+    /**
+     * Load the authority rules of an app from the Nacos config
+     * {@code appName + AUTHORITY_DATA_ID_POSTFIX} in the configured group, parse the
+     * JSON content and convert it to entities (ip and port left {@code null}). Returns
+     * an empty list when the config is empty or absent.
+     */
     @Override
     public List<AuthorityRuleEntity> getRules(String appName) throws Exception {
         String rules = NacosConfigUtil.readFreshConfig(configService, appName,

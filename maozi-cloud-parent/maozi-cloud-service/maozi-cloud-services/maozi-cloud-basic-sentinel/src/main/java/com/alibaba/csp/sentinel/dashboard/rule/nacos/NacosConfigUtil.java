@@ -46,10 +46,17 @@ public final class NacosConfigUtil {
      */
     private static final long SNAPSHOT_TTL_MS = 5000;
 
+    /**
+     * Recently published config contents keyed by {@code dataId@group}, served by
+     * {@link #readFreshConfig} within {@link #SNAPSHOT_TTL_MS} after a publish.
+     */
     private static final Map<String, PublishSnapshot> PUBLISH_SNAPSHOTS = new ConcurrentHashMap<>();
 
+    /** Immutable record of a config content that has just been published. */
     private static final class PublishSnapshot {
+        /** The published config content. */
         private final String content;
+        /** Wall-clock timestamp (in ms) of the publish. */
         private final long publishTime;
 
         private PublishSnapshot(String content, long publishTime) {
@@ -58,15 +65,24 @@ public final class NacosConfigUtil {
         }
     }
 
+    /** Default Nacos config group for all Sentinel rule configs. */
     public static final String GROUP_ID = "SENTINEL_GROUP";
 
+    /** DataId postfix of flow rules. */
     public static final String FLOW_DATA_ID_POSTFIX = "-flow-rules.json";
+    /** DataId postfix of degrade rules. */
     public static final String DEGRADE_DATA_ID_POSTFIX = "-degrade-rules.json";
+    /** DataId postfix of parameter flow control rules. */
     public static final String PARAM_FLOW_DATA_ID_POSTFIX = "-param-rules.json";
+    /** DataId postfix of system rules. */
     public static final String SYSTEM_DATA_ID_POSTFIX = "-system-rules.json";
+    /** DataId postfix of authority rules. */
     public static final String AUTHORITY_DATA_ID_POSTFIX = "-authority-rules.json";
+    /** DataId postfix of gateway flow rules. */
     public static final String GATEWAY_FLOW_DATA_ID_POSTFIX = "-gw-flow-rules.json";
+    /** DataId postfix of gateway API definitions. */
     public static final String GATEWAY_API_DATA_ID_POSTFIX = "-gw-api-rules.json";
+    /** DataId postfix of the cluster assignment map (no {@code .json} suffix). */
     public static final String CLUSTER_MAP_DATA_ID_POSTFIX = "-cluster-map";
 
     /**
@@ -77,7 +93,9 @@ public final class NacosConfigUtil {
      * cs for `cluster-server`
      */
     public static final String SERVER_TRANSPORT_CONFIG_DATA_ID_POSTFIX = "-cs-transport-config";
+    /** DataId postfix of the cluster-server flow config. */
     public static final String SERVER_FLOW_CONFIG_DATA_ID_POSTFIX = "-cs-flow-config";
+    /** DataId postfix of the cluster-server namespace set. */
     public static final String SERVER_NAMESPACE_SET_DATA_ID_POSTFIX = "-cs-namespace-set";
 
     /**
@@ -109,9 +127,11 @@ public final class NacosConfigUtil {
         return configService.getConfig(dataId, group, timeoutMs);
     }
 
+    /** Builds the snapshot cache key in the form {@code dataId@group}. */
     private static String snapshotKey(String dataId, String group) {
         return dataId + "@" + group;
     }
 
+    /** Private constructor to prevent instantiation. */
     private NacosConfigUtil() {}
 }

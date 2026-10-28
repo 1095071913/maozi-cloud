@@ -352,6 +352,7 @@ interface CatNode {
   children: CatNode[]
 }
 
+/** 三层分类树：归宿 → 环境 → 类型（嵌套 Map 聚合，含各级计数） */
 const categoryTree = computed<CatNode[]>(() => {
   const root = new Map<string, Map<string, Map<string, number>>>()
   for (const b of bookmarks.value) {

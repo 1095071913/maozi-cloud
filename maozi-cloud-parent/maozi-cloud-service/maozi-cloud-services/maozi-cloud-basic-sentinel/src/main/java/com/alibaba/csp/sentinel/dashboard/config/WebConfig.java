@@ -39,24 +39,33 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Web MVC configuration: registers the authorization interceptor, the login
+ * authentication filter and the Sentinel {@link CommonFilter}, and maps static
+ * resources and the index view.
+ *
  * @author leyou
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    /** Logger of this configuration. */
     private final Logger logger = LoggerFactory.getLogger(WebConfig.class);
 
+    /** The login authentication filter to register. */
     @Autowired
     private LoginAuthenticationFilter loginAuthenticationFilter;
 
+    /** The authorization interceptor to register. */
     @Autowired
     private AuthorizationInterceptor authorizationInterceptor;
 
+    /** Register the authorization interceptor for all paths. */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authorizationInterceptor).addPathPatterns("/**");
     }
 
+    /** Serves static resources under classpath:/resources/, forcing revalidation (no-cache) on each request. */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // 前端为 SPA 懒加载(视图模板/控制器脚本经 XHR 拉取), 若被浏览器缓存,
@@ -67,6 +76,7 @@ public class WebConfig implements WebMvcConfigurer {
             .setCacheControl(CacheControl.noCache());
     }
 
+    /** Map the root path "/" to forward to /index.htm. */
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         registry.addViewController("/").setViewName("forward:/index.htm");
@@ -92,6 +102,7 @@ public class WebConfig implements WebMvcConfigurer {
         return registration;
     }
 
+    /** Registers a UrlCleaner that excludes common static resource urls (by suffix) from Sentinel web statistics. */
     @PostConstruct
     public void doInit() {
         Set<String> suffixSet = new HashSet<>(Arrays.asList(".js", ".css", ".html", ".ico", ".txt",
@@ -108,6 +119,7 @@ public class WebConfig implements WebMvcConfigurer {
         });
     }
 
+    /** Registers the login authentication filter for all urls at order 0, ahead of the Sentinel CommonFilter. */
     @Bean
     public FilterRegistrationBean authenticationFilterRegistration() {
         FilterRegistrationBean<Filter> registration = new FilterRegistrationBean<>();

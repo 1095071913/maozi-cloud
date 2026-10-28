@@ -23,38 +23,48 @@ import java.util.List;
  */
 public class ConnectionGroupVO {
 
+    /** The namespace of the connection group. */
     private String namespace;
+    /** The list of connections in the group. */
     private List<ConnectionDescriptorVO> connectionSet;
+    /** The count of connected clients. */
     private Integer connectedCount;
 
+    /** Get the namespace of the connection group. */
     public String getNamespace() {
         return namespace;
     }
 
+    /** Set the namespace of the connection group and return this. */
     public ConnectionGroupVO setNamespace(String namespace) {
         this.namespace = namespace;
         return this;
     }
 
+    /** Get the list of connections in the group. */
     public List<ConnectionDescriptorVO> getConnectionSet() {
         return connectionSet;
     }
 
+    /** Set the list of connections and return this. */
     public ConnectionGroupVO setConnectionSet(
         List<ConnectionDescriptorVO> connectionSet) {
         this.connectionSet = connectionSet;
         return this;
     }
 
+    /** Get the count of connected clients. */
     public Integer getConnectedCount() {
         return connectedCount;
     }
 
+    /** Set the count of connected clients and return this. */
     public ConnectionGroupVO setConnectedCount(Integer connectedCount) {
         this.connectedCount = connectedCount;
         return this;
     }
 
+    /** Get the string representation of this VO. */
     @Override
     public String toString() {
         return "ConnectionGroupVO{" +

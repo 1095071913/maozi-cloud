@@ -43,23 +43,43 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
+ * Default implementation of {@link ClusterAssignService} that assigns token servers
+ * and token clients for an application and unbinds cluster machines via the
+ * Sentinel command API.
+ *
  * @author Eric Zhao
  * @since 1.4.1
  */
 @Service
 public class ClusterAssignServiceImpl implements ClusterAssignService {
 
+    /** Logger of this class. */
     private final Logger LOGGER = LoggerFactory.getLogger(ClusterAssignServiceImpl.class);
 
+    /** Client for sending cluster mode/config modifications to machines. */
     @Autowired
     private SentinelApiClient sentinelApiClient;
+    /** Service for querying the cluster state of app machines. */
     @Autowired
     private ClusterConfigService clusterConfigService;
 
+    /**
+     * Whether the machineId is an {@code ip:port} address, which refers to a token
+     * server not registered as a machine of this app (in-app machine IDs use the
+     * {@code ip@commandPort} form). Note that despite the method name, {@code true}
+     * here actually means "not in app".
+     */
     private boolean isMachineInApp(/*@NonEmpty*/ String machineId) {
         return machineId.contains(":");
     }
 
+    /**
+     * Unbinds a token server that is not a machine of this app (the dashboard cannot
+     * reach it directly): finds all token clients of the app whose client config points
+     * at the given {@code ip:port} server and resets them to NOT-STARTED mode. Failures
+     * are collected in the failed client set of the result (the server address itself
+     * when the state query fails).
+     */
     private ClusterAppAssignResultVO handleUnbindClusterServerNotInApp(String app, String machineId) {
         Set<String> failedSet = new HashSet<>();
         try {
@@ -83,6 +103,10 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
             .setFailedServerSet(new HashSet<>());
     }
 
+    /**
+     * Resets every machine in {@code toModifySet} (IDs in {@code ip@commandPort} form)
+     * to NOT-STARTED cluster mode in parallel, recording failures in {@code failedSet}.
+     */
     private void modifyToNonStarted(Set<String> toModifySet, Set<String> failedSet) {
         toModifySet.parallelStream()
             .map(MachineUtils::parseCommandIpAndPort)
@@ -95,6 +119,12 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
             .forEach(f -> handleFutureSync(f, failedSet));
     }
 
+    /**
+     * Unbinds the given machine from the cluster by resetting it and all token clients
+     * assigned to it to NOT-STARTED mode. When the machineId is an {@code ip:port}
+     * address of a foreign token server, only its in-app token clients are reset.
+     * Failed machine IDs are collected in the failed client set of the result.
+     */
     @Override
     public ClusterAppAssignResultVO unbindClusterServer(String app, String machineId) {
         AssertUtil.assertNotBlank(app, "app cannot be blank");
@@ -124,6 +154,10 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
             .setFailedServerSet(new HashSet<>());
     }
 
+    /**
+     * Unbinds each machine in the set one by one and merges the failed sets of all
+     * individual unbind operations into one result.
+     */
     @Override
     public ClusterAppAssignResultVO unbindClusterServers(String app, Set<String> machineIdSet) {
         AssertUtil.assertNotBlank(app, "app cannot be blank");
@@ -139,6 +173,13 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
         return result;
     }
 
+    /**
+     * Applies the cluster assignment map to the app in three steps: entries belonging
+     * to the app are switched to token-server mode and receive transport/flow/namespace
+     * config; the client set of every entry is switched to token-client mode pointing
+     * at that entry's server; the remaining unassigned machines are reset to NOT-STARTED.
+     * Failed server IDs and client IDs are collected in the result.
+     */
     @Override
     public ClusterAppAssignResultVO applyAssignToApp(String app, List<ClusterAppAssignMap> clusterMap,
                                                      Set<String> remainingSet) {
@@ -173,6 +214,11 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
             .setFailedServerSet(failedServerSet);
     }
 
+    /**
+     * Resets all remaining (unassigned) machines in {@code remainingSet} to NOT-STARTED
+     * mode in parallel, recording failures in {@code failedSet}; does nothing when the
+     * set is null or empty.
+     */
     private void applyAllRemainingMachineSet(String app, Set<String> remainingSet, Set<String> failedSet) {
         if (remainingSet == null || remainingSet.isEmpty()) {
             return;
@@ -191,6 +237,11 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
             .forEach(t -> handleFutureSync(t, failedSet));
     }
 
+    /**
+     * Switches every machine in the assign map's client set to token-client mode and
+     * points it at the assign map's server (with a fixed 20ms request timeout),
+     * recording failures in {@code failedSet}.
+     */
     private void applyAllClientConfigChange(String app, ClusterAppAssignMap assignMap,
                                             Set<String> failedSet) {
         Set<String> clientSet = assignMap.getClientSet();
@@ -216,6 +267,10 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
             .forEach(t -> handleFutureSync(t, failedSet));
     }
 
+    /**
+     * Waits up to 10 seconds for the given future to complete; on failure logs the
+     * error and records the machine ID in {@code failedSet}.
+     */
     private void handleFutureSync(Tuple2<String, CompletableFuture<Void>> t, Set<String> failedSet) {
         try {
             t.r2.get(10, TimeUnit.SECONDS);
@@ -229,6 +284,10 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
         }
     }
 
+    /**
+     * Applies the token server config of an assigned server in sequence: transport
+     * config (with a fixed 600s idle time), then flow config, then namespace set.
+     */
     private CompletableFuture<Void> applyServerConfigChange(String app, String ip, int commandPort,
                                                             ClusterAppAssignMap assignMap) {
         ServerTransportConfig transportConfig = new ServerTransportConfig()
@@ -239,6 +298,10 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
             .thenCompose(v -> applyServerNamespaceSetConfig(app, ip, commandPort, assignMap));
     }
 
+    /**
+     * Applies the max allowed QPS flow config to the token server, skipped when the
+     * value is absent, non-positive or greater than 200000.
+     */
     private CompletableFuture<Void> applyServerFlowConfigChange(String app, String ip, int commandPort,
                                                                 ClusterAppAssignMap assignMap) {
         Double maxAllowedQps = assignMap.getMaxAllowedQps();
@@ -249,6 +312,9 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
             new ServerFlowConfig().setMaxAllowedQps(maxAllowedQps));
     }
 
+    /**
+     * Applies the namespace set to the token server, skipped when it is null or empty.
+     */
     private CompletableFuture<Void> applyServerNamespaceSetConfig(String app, String ip, int commandPort,
                                                                   ClusterAppAssignMap assignMap) {
         Set<String> namespaceSet = assignMap.getNamespaceSet();
@@ -258,10 +324,15 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
         return sentinelApiClient.modifyClusterServerNamespaceSet(app, ip, commandPort, namespaceSet);
     }
 
+    /** Modifies the cluster mode of the machine reachable at the given command port. */
     private CompletableFuture<Void> modifyMode(String ip, int port, int mode) {
         return sentinelApiClient.modifyClusterMode(ip, port, mode);
     }
 
+    /**
+     * Parses the command port from the assign map's machine ID, falling back to
+     * {@link ServerTransportConfig#DEFAULT_PORT} when it cannot be parsed.
+     */
     private int parsePort(ClusterAppAssignMap assignMap) {
         return MachineUtils.parseCommandPort(assignMap.getMachineId())
             .orElse(ServerTransportConfig.DEFAULT_PORT);

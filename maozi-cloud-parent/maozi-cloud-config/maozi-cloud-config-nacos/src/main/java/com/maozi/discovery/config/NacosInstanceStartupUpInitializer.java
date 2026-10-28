@@ -27,11 +27,19 @@ public class NacosInstanceStartupUpInitializer {
     /** 本实例的注册信息（IP / 端口 / 服务名） */
     private final Registration registration;
 
+    /** 构造注入注册中心操作入口与本实例注册信息 */
     public NacosInstanceStartupUpInitializer(ServiceRegistry<Registration> serviceRegistry, Registration registration) {
         this.serviceRegistry = serviceRegistry;
         this.registration = registration;
     }
 
+    /**
+     * 应用就绪后将本实例在注册中心的状态强制置为上线
+     * <p>
+     * ApplicationReadyEvent 触发时注册流程已经结束，此处无条件覆盖一次状态，
+     * 保证每次启动后的最终状态一定是 UP。
+     * </p>
+     */
     @EventListener(ApplicationReadyEvent.class)
     public void forceUp() {
         serviceRegistry.setStatus(registration, "UP");

@@ -78,6 +78,7 @@ public class JacksonUtil {
 		objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
 		objectMapper.setTimeZone(TimeZone.getTimeZone("GMT+8"));
+		// java.util.Date 的序列化/反序列化日期格式
 		objectMapper.setDateFormat(new java.text.SimpleDateFormat("yyyy‑MM‑dd HH:mm:ss.SSS"));
 		objectMapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
 		objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
@@ -93,6 +94,8 @@ public class JacksonUtil {
 		module.addSerializer(Long.TYPE, ToStringSerializer.instance);
 		// 空字符串反序列化为 null
 		module.addDeserializer(String.class, new StdDeserializer<>(String.class) {
+
+			/** 先按默认逻辑反序列化字符串，结果为空字符串时归一为 null */
 			@Override
 			public String deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
 				String result = StringDeserializer.instance.deserialize(jsonParser, deserializationContext);

@@ -21,39 +21,52 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.config;
  */
 public class ServerTransportConfig {
 
+    /** The default port of the cluster server transport. */
     public static final int DEFAULT_PORT = 18730;
+
+    /** The default idle time in seconds of the cluster server transport. */
     public static final int DEFAULT_IDLE_SECONDS = 600;
 
+    /** The port of the cluster server transport. */
     private Integer port;
+
+    /** The idle time in seconds of the cluster server transport. */
     private Integer idleSeconds;
 
+    /** Create a config with the default port and idle seconds. */
     public ServerTransportConfig() {
         this(DEFAULT_PORT, DEFAULT_IDLE_SECONDS);
     }
 
+    /** Create a config with the given port and idle seconds. */
     public ServerTransportConfig(Integer port, Integer idleSeconds) {
         this.port = port;
         this.idleSeconds = idleSeconds;
     }
 
+    /** Get the port. */
     public Integer getPort() {
         return port;
     }
 
+    /** Set the port and return this. */
     public ServerTransportConfig setPort(Integer port) {
         this.port = port;
         return this;
     }
 
+    /** Get the idle seconds. */
     public Integer getIdleSeconds() {
         return idleSeconds;
     }
 
+    /** Set the idle seconds and return this. */
     public ServerTransportConfig setIdleSeconds(Integer idleSeconds) {
         this.idleSeconds = idleSeconds;
         return this;
     }
 
+    /** Return a string representation of this config. */
     @Override
     public String toString() {
         return "ServerTransportConfig{" +

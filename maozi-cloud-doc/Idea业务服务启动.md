@@ -21,14 +21,15 @@ mvn clean install -T 16C
 ## 启动前需要设置JVM参数
 
 ```
--Xms256m
--Xmx256m
--Xss256k
--XX:MaxMetaspaceSize=192m
--XX:+UseSerialGC
--XX:CompressedClassSpaceSize=32m
--XX:ReservedCodeCacheSize=32m
--XX:MaxDirectMemorySize=64m
+-XX:+UseSerialGC 
+-Xms256m 
+-Xmx256m 
+-Xss256k 
+-XX:MetaspaceSize=256m 
+-XX:MaxMetaspaceSize=256m 
+-XX:CompressedClassSpaceSize=32m 
+-XX:ReservedCodeCacheSize=48m 
+-XX:MaxDirectMemorySize=96m
 --add-opens java.base/java.math=ALL-UNNAMED
 --add-opens java.base/java.lang=ALL-UNNAMED
 --add-opens java.base/java.lang.reflect=ALL-UNNAMED

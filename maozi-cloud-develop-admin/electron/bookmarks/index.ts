@@ -3,6 +3,7 @@ import {listBookmarks, removeBookmark, reorderBookmarks, upsertBookmark} from '.
 import {fetchPageMeta} from './meta'
 import type {Bookmark} from './types'
 
+/** 注册书签 IPC 处理器；通用工具（剪贴板复制 app:copy / 外链打开 app:openUrl）也在此注册 */
 export function registerBookmarkHandlers(): void {
   ipcMain.handle('bookmarks:list', () => {
     try {

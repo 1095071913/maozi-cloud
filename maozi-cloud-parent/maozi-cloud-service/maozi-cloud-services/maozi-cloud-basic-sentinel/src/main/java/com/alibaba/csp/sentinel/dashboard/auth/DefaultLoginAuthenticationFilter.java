@@ -48,8 +48,10 @@ import java.util.List;
  */
 public class DefaultLoginAuthenticationFilter implements LoginAuthenticationFilter {
 
+    /** Matcher used to test servlet paths against the configured exclude-url patterns. */
     private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
 
+    /** Dot prefix prepended to a configured url suffix so the property value needn't include it. */
     private static final String URL_SUFFIX_DOT = ".";
 
     /**
@@ -69,15 +71,22 @@ public class DefaultLoginAuthenticationFilter implements LoginAuthenticationFilt
      */
     private final AuthService<HttpServletRequest> authService;
 
+    /** Creates the filter with the given authentication service. */
     public DefaultLoginAuthenticationFilter(AuthService<HttpServletRequest> authService) {
         this.authService = authService;
     }
 
+    /** {@inheritDoc} No-op: nothing to initialize. */
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
 
     }
 
+    /**
+     * Let requests matching the configured exclude-url patterns or suffixes pass without auth;
+     * for the rest, resolve the user via {@link AuthService} and continue the chain, or reply
+     * with 401 when authentication fails.
+     */
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
@@ -121,6 +130,7 @@ public class DefaultLoginAuthenticationFilter implements LoginAuthenticationFilt
         }
     }
 
+    /** {@inheritDoc} No-op: no resources to release. */
     @Override
     public void destroy() {
 

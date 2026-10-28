@@ -29,15 +29,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+/**
+ * Controller that receives heartbeat requests from Sentinel clients and
+ * registers or updates the corresponding machines.
+ */
 @Controller
 @RequestMapping(value = "/registry", produces = MediaType.APPLICATION_JSON_VALUE)
 public class MachineRegistryController {
 
+    /** The logger of this controller. */
     private final Logger logger = LoggerFactory.getLogger(MachineRegistryController.class);
 
+    /** The app management service that keeps track of registered machines. */
     @Autowired
     private AppManagement appManagement;
 
+    /**
+     * Receives a heartbeat from a Sentinel client, validates the reported app/ip/port
+     * and registers or updates the machine. A port of -1 means the client port is not
+     * set yet, and the heartbeat is rejected with an error result.
+     */
     @ResponseBody
     @RequestMapping("/machine")
     public Result<?> receiveHeartBeat(String app,

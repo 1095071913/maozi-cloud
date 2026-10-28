@@ -23,13 +23,13 @@
 #   ./maozi-cloud-deploy-services-monomer-graceful-update-after.sh [服务名]
 #   可选参数为目标服务 (compose 服务名或容器名均可), 只检测主组该服务并只
 #   下线热备组该服务; 不传则处理 yml 内全部服务
-# 可调参数 (环境变量覆盖):
-#   HEALTH_TIMEOUT=300  等待主组全部健康的最长秒数 (Java 服务启动较慢)
+# 可调参数 (环境变量覆盖, 冒号后为脚本内默认值):
+#   HEALTH_TIMEOUT=1000 等待主组全部健康的最长秒数 (Java 服务启动较慢)
 #   CHECK_INTERVAL=5    每轮检测间隔秒数
-#   STOP_TIMEOUT=70     backup 组 down 的停机超时秒数 (与 monomer yml
-#                       stop_grace_period 70s 对齐; monomer yml 无 pre_stop 钩子,
+#   STOP_TIMEOUT=1000   backup 组 down 的停机超时秒数 (需不小于 monomer yml
+#                       stop_grace_period 70s; monomer yml 无 pre_stop 钩子,
 #                       SIGTERM 直达 JVM (exec java 为 PID 1) 触发 Spring 优雅停机,
-#                       默认 10s 超时会 SIGKILL 中断优雅停机)
+#                       不显式给足超时时 docker 默认 10s, 会 SIGKILL 中断优雅停机)
 # ============================================================
 
 cd "$(dirname "$0")"
@@ -161,7 +161,8 @@ done
 # ============================================================
 # 2. down 掉 backup 组容器 (指定目标服务时只下线该服务)
 # ------------------------------------------------------------
-# --timeout 与 monomer yml stop_grace_period(70s) 对齐: monomer yml 无 pre_stop
+# --timeout 取 STOP_TIMEOUT (默认 1000s), 需不小于 monomer yml stop_grace_period(70s):
+# monomer yml 无 pre_stop
 # 钩子, SIGTERM 直达 JVM (exec java 为 PID 1) 触发 Spring 优雅停机,
 # 不给足超时会被 SIGKILL 中断优雅停机; down 会移除容器与网络
 # (外部网络 maozi-cloud-network 不受影响)

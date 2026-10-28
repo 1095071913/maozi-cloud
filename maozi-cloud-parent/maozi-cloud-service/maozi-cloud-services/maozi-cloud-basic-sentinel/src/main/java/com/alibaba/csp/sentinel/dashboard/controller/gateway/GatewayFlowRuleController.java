@@ -71,18 +71,23 @@ import static com.alibaba.csp.sentinel.slots.block.RuleConstant.FLOW_GRADE_THREA
 @RequestMapping(value = "/gateway/flow")
 public class GatewayFlowRuleController {
 
+    /** The logger of this controller. */
     private final Logger logger = LoggerFactory.getLogger(GatewayFlowRuleController.class);
 
+    /** The in-memory store that keeps gateway flow rules. */
     @Autowired
     private InMemGatewayFlowRuleStore repository;
 
+    /** The Nacos provider that pulls gateway flow rules for a given app. */
     @Autowired
     @Qualifier("gatewayFlowRuleNacosProvider")
     private DynamicRuleProvider<List<GatewayFlowRuleEntity>> ruleProvider;
+    /** The Nacos publisher that pushes gateway flow rules to a given app. */
     @Autowired
     @Qualifier("gatewayFlowRuleNacosPublisher")
     private DynamicRulePublisher<List<GatewayFlowRuleEntity>> rulePublisher;
 
+    /** Fetches the app's gateway flow rules from Nacos, stamps machine info, persists them and returns them. */
     @GetMapping("/list.json")
     @AuthAction(AuthService.PrivilegeType.READ_RULE)
     public Result<List<GatewayFlowRuleEntity>> queryFlowRules(String app, String ip, Integer port) {
@@ -112,6 +117,7 @@ public class GatewayFlowRuleController {
         }
     }
 
+    /** Adds a new gateway flow rule after full field validation, then publishes the app's rules to Nacos. */
     @PostMapping("/new.json")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
     public Result<GatewayFlowRuleEntity> addFlowRule(@RequestBody AddFlowRuleReqVo reqVo) {
@@ -250,7 +256,7 @@ public class GatewayFlowRuleController {
             }
             entity.setBurst(burst);
         } else if (CONTROL_BEHAVIOR_RATE_LIMITER == controlBehavior) {
-            // 1-匀速排队, 则超时时间必填
+            // 2-匀速排队, 则超时时间必填
             Integer maxQueueingTimeoutMs = reqVo.getMaxQueueingTimeoutMs();
             if (maxQueueingTimeoutMs == null) {
                 return Result.ofFail(-1, "maxQueueingTimeoutMs can't be null");
@@ -279,6 +285,7 @@ public class GatewayFlowRuleController {
         return Result.ofSuccess(entity);
     }
 
+    /** Updates the rule of the given id (param item replaced, or cleared when absent) after validation, then publishes the app's rules. */
     @PostMapping("/save.json")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
     public Result<GatewayFlowRuleEntity> updateFlowRule(@RequestBody UpdateFlowRuleReqVo reqVo) {
@@ -426,6 +433,7 @@ public class GatewayFlowRuleController {
     }
 
 
+    /** Deletes the rule of the given id and publishes the app's rules; an unknown id returns success with null data. */
     @PostMapping("/delete.json")
     @AuthAction(AuthService.PrivilegeType.DELETE_RULE)
     public Result<Long> deleteFlowRule(Long id) {
@@ -453,6 +461,7 @@ public class GatewayFlowRuleController {
         return Result.ofSuccess(id);
     }
 
+    /** Publishes all local rules of the app to Nacos; returns false on error. */
     private boolean publishRules(String app) {
         try {
             List<GatewayFlowRuleEntity> rules = repository.findAllByApp(app);

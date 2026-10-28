@@ -24,60 +24,76 @@ import java.util.Set;
  */
 public class ClusterGroupEntity {
 
+    /** The machine id of the token server. */
     private String machineId;
 
+    /** The ip of the token server. */
     private String ip;
+    /** The port of the token server. */
     private Integer port;
 
+    /** The set of machine ids of the clients bound to the token server. */
     private Set<String> clientSet = new HashSet<>();
 
+    /** Whether the token server belongs to the current application. */
     private Boolean belongToApp;
 
+    /** Get the machine id of the token server. */
     public String getMachineId() {
         return machineId;
     }
 
+    /** Set the machine id of the token server and return this. */
     public ClusterGroupEntity setMachineId(String machineId) {
         this.machineId = machineId;
         return this;
     }
 
+    /** Get the ip of the token server. */
     public String getIp() {
         return ip;
     }
 
+    /** Set the ip of the token server and return this. */
     public ClusterGroupEntity setIp(String ip) {
         this.ip = ip;
         return this;
     }
 
+    /** Get the port of the token server. */
     public Integer getPort() {
         return port;
     }
 
+    /** Set the port of the token server and return this. */
     public ClusterGroupEntity setPort(Integer port) {
         this.port = port;
         return this;
     }
 
+    /** Get the set of machine ids of the bound clients. */
     public Set<String> getClientSet() {
         return clientSet;
     }
 
+    /** Set the set of bound clients and return this. */
     public ClusterGroupEntity setClientSet(Set<String> clientSet) {
         this.clientSet = clientSet;
         return this;
     }
 
+    /** Whether the token server belongs to the current application. */
     public Boolean getBelongToApp() {
         return belongToApp;
     }
 
+    /** Set whether the token server belongs to the application and return this. */
     public ClusterGroupEntity setBelongToApp(Boolean belongToApp) {
         this.belongToApp = belongToApp;
         return this;
     }
 
+    /** Get the string representation of this entity. */
     @Override
     public String toString() {
         return "ClusterGroupEntity{" +

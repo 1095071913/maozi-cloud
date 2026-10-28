@@ -43,7 +43,7 @@ public enum LockTimeoutStrategy implements LockTimeoutHandler {
         /** 默认重试间隔 100ms */
         private static final Long DEFAULT_INTERVAL = 100L;
 
-        /** 默认最大重试间隔 3 分钟（单次重试等待的上限） */
+        /** 默认最大重试间隔 3 分钟（重试间隔超过该阈值后停止重试并抛出限流异常） */
         private static final Long DEFAULT_MAX_INTERVAL = 3L * 60L * 1000L;
 
         /**

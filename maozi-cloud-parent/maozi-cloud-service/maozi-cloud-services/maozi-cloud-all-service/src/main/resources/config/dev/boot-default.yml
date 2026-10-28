@@ -8,13 +8,6 @@ server:
   port: ${APPLICATION_PORT:${application.port:0}}
   error.path: /application/error
   shutdown: graceful # graceful=优雅停机 / immediate=立刻关闭
-  undertow:
-    # 单个请求超时时间，单位毫秒
-    request-timeout: 30000
-  # compression:                               # 响应压缩（按需开启）
-  #   enabled: true
-  #   min-response-size: 1024
-  #   mime-types: application/json,application/xml,text/html,text/xml,text/plain
 
 spring:
   lifecycle:
@@ -62,7 +55,3 @@ logging:
   level:
     root: ERROR                                                                       # 根日志级别
     com.maozi: INFO                                                                   # 项目业务代码日志
-    org.apache.dubbo.registry: OFF                                                    # 关闭 Dubbo 注册中心心跳日志
-    org.apache.dubbo.remoting: OFF                                                    # 关闭 Dubbo 远程通信日志
-    com.xxl.job.core.handler.impl.MethodJobHandler: INFO                              # XXL-JOB 任务处理器日志
-    org.springframework.cloud.stream.binding.StreamListenerMessageHandler: INFO        # Stream 消息处理日志

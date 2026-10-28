@@ -4,14 +4,23 @@
 # 聚合各组件子配置文件，并定义项目元信息与端口。
 # ============================================================
 
+spring:
+  config:
+    # 导入各组件子配置文件（classpath 下的 config/ 目录）
+    import:
+      - classpath:config/${application.environment:local}/application.yml
+      - classpath:config/${application.environment:local}/boot-default.yml       # 通用默认配置（服务器、Jackson、日志级别等）
+      - classpath:config/${application.environment:local}/boot-db.yml             # 数据库配置（MyBatis-Plus、Flyway）
+      - classpath:config/${application.environment:local}/boot-redis.yml          # Redis 缓存配置
+      - classpath:config/${application.environment:local}/boot-lock.yml           # 分布式锁（Redisson）配置
+      - classpath:config/${application.environment:local}/cloud-oauth.yml         # OAuth2 资源服务器配置
+      - classpath:config/${application.environment:local}/boot-monitor.yml
+
 # 项目展示信息（用于 Swagger 文档、日志等）
 application:
-  port: 1000
+  port: 1100
   title: 单体全量业务服务
   details: 所有服务功能
-
-# 数据库名称覆盖（注释掉则使用默认规则：${应用名}-${环境}-db）
-#application-datasource-db-name: maozi-cloud-all-service-local-db
 
 # 接口白名单（不需要认证的路径，注释掉则全部接口需认证）
 application-project-whitelist: /config/system/get
@@ -24,65 +33,3 @@ application-project-system:
   environment: ${application.environment}
   description: 基于 Spring Cloud Alibaba + Dubbo 的一站式分布式解决方案开源封装，内置分布式应用开发所需全套组件，统一团队代码风格，保障代码质量，让开发者专注业务逻辑，实现高效快速开发。
   copyright: 本网站所有权归《${application-project-system.corporationName}》所有，请勿抄袭和抄袭
-
-# 图片存储配置（store-type 决定上传路由到的存储处理器，取值见 ImageStorageType 枚举 code）
-oss:
-  # 路由到阿里云处理器
-  store-type: aliyun
-  aliyun:
-    access-key-id: ${ALIYUN_CLIENT_ID}
-    access-key-secret: ${ALIYUN_CLIENT_SECRET}
-    region: cn-beijing
-    endpoint: https://oss-cn-beijing.aliyuncs.com
-    bucket: maozi-cloud-bucket
-    #domain:                  # 可选，CDN 自定义域名
-
-spring:
-  # 上传文件大小限制（图片上传接口）
-  servlet:
-    multipart:
-      max-file-size: 1MB        # 单个文件大小上限
-      max-request-size: 5MB     # 单次请求所有文件合计大小上限
-  config:
-    # 导入各组件子配置文件（classpath 下的 config/ 目录）
-    import:
-      - classpath:config/boot-default.yml       # 通用默认配置（服务器、Jackson、日志级别等）
-      - classpath:config/boot-datasource.yml     # 数据源配置（Hikari 连接池）
-      - classpath:config/boot-db.yml             # 数据库配置（MyBatis-Plus、Flyway）
-      - classpath:config/boot-redis.yml          # Redis 缓存配置
-      - classpath:config/boot-lock.yml           # 分布式锁（Redisson）配置
-      - classpath:config/cloud-oauth.yml         # OAuth2 资源服务器配置
-      - classpath:config/boot-monitor.yml
-  # AI 大模型接入配置（Spring AI），当前启用阿里云百炼，其余供应商注释备用
-  ai:
-    # 智谱 AI 配置（按需取消注释启用）
-    # zhipuai:
-    #   base-url: https://api.z.ai/api/paas          # 智谱开放平台地址
-    #   api-key:                                     # API 密钥
-    #   chat:
-    #     options:
-    #       model: glm-5.2                           # 对话模型
-    #   embedding:
-    #     enabled: false                             # 是否启用向量嵌入
-    # 阿里云百炼（DashScope）配置
-    dashscope:
-      api-key: ${AI_DASHSCOPE_KEY}                   # API 密钥（从环境变量注入）
-      chat:
-        enabled: true                                # 启用对话模型
-        options:
-          model: qwen-max                            # 文本对话模型
-          text_image_model: qwen-vl-max              # 图像理解多模态模型
-      embedding:
-        enabled: false                               # 暂不启用向量嵌入
-        options:
-          model: text-embedding-v3                   # 向量嵌入模型
-          dimensions: 1024                           # 向量输出维度
-    # OpenAI 配置（按需取消注释启用）
-    # openai:
-    #   base-url:                                    # API 地址
-    #   api-key:                                     # API 密钥
-    #   chat:
-    #     options:
-    #       model: gpt                               # 对话模型
-    #   embedding:
-    #     enabled: false                             # 是否启用向量嵌入

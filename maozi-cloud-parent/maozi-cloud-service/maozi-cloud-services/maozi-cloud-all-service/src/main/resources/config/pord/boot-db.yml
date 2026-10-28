@@ -1,0 +1,116 @@
+spring:
+  # MYSQL 生产环境 2C4G 配置
+  datasource:
+    # 连接池实现类，HikariCP 是 Spring Boot 2.x 起的默认连接池，主打轻量高性能
+    type: com.zaxxer.hikari.HikariDataSource
+    # MySQL 8.x 驱动（Connector/J 8+ 类名带 cj，5.x 是 com.mysql.jdbc.Driver）
+    # 连接参数说明：
+    #   useSSL=false                内网直连关闭 SSL，避免自签证书告警
+    #   serverTimezone=Asia/Shanghai 指定时区，不配可能报时区无法识别或时间偏差8小时
+    #   characterEncoding=utf8      字符编码（Connector/J 8 实际按 utf8mb4 建连）
+    #   nullCatalogMeansCurrent=true 元数据查询只查当前库，避免按 catalog 查表时扫出所有库
+    url: jdbc:mysql://${APPLICATION_MYSQL_SERVER:maozi-cloud-basic-mysql:3306}/${APPLICATION_MYSQL_SERVER_DB:${spring.application.name}-${application.environment}-db}?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&nullCatalogMeansCurrent=true
+    # 账号密码，生产环境通过配置中心/环境变量覆盖，这里仅本地默认值
+    username: ${APPLICATION_MYSQL_SERVER_USERNAME:root}
+    password: ${APPLICATION_MYSQL_SERVER_PASSWORD:password}
+    # Hikari 连接池参数
+    hikari:
+      # 连接池名称：日志、JMX、Micrometer 指标（hikaricp_*）都会带这个名字，
+      # 多服务共用监控平台时能区分是哪个应用的池，生产必配
+      pool-name: ${spring.application.name}-HikariPool
+      # 最大连接数：官方公式 cores*2+磁盘数≈5 是纯 CPU 压测场景；社交/电商存在大量
+      # 等待 DB IO 与下游调用的并发，2C4G 单 Pod 生产经验值 10~20，瓶颈在 DB 而非连接数，
+      # 压测后再精调，禁止直接上 50
+      maximum-pool-size: 15
+      # 显式声明固定大小池（min=max 是 HikariCP 官方推荐，不配置 minimum-idle 时默认也相等）：
+      # 池大小恒定，对突发流量响应更快，且避免 k8s 扩缩容/流量波动时频繁建连
+      minimum-idle: 15
+      # 获取连接超时（3s）：池耗尽时最多等这么久，快速失败交给上游熔断/重试兜底，
+      # 避免请求线程在池上排队进而拖垮 tomcat 线程池（社交/电商要求 fail-fast）
+      connection-timeout: 3000
+      # isValid 校验超时（2s）：必须小于 connection-timeout，
+      # 默认值 5000 大于上面的 3000 会触发告警/被钳制，所以要显式声明
+      validation-timeout: 2000
+      # 连接最大存活（540s=9min）：必须比 mysql wait_timeout 小至少 60s，到期异步滚动重建
+      # （HikariCP 自带 ±2% 抖动，不会所有连接同时失效）
+      max-lifetime: 540000
+      # 空闲保活（30s 一次轻量 ping，最小允许值 30s，须小于 max-lifetime）：
+      # k8s 环境下 NAT/网络策略/LB 会静默掐掉空闲 TCP，MySQL wait_timeout 也会单方面断连，
+      # keepalive 让空闲连接始终有应用层流量，配合下方 tcpKeepAlive 双保险
+      keepalive-time: 30000
+      # 连接泄漏检测（60s）：连接借出超过 60s 未归还，打印借用人堆栈告警。
+      # 上线后日志出现该告警基本就是代码未关闭或长事务；注意合法的分钟级大事务也会触发，
+      # 是告警不是报错，若噪声大可调大或关闭
+      leak-detection-threshold: 60000
+      # 不配置 idle-timeout：min=max 固定大小池下该参数被 HikariCP 忽略（仅在 min<max 时生效）
+      # 不配置 connection-test-query：使用 JDBC4 isValid 校验，性能优于 SQL 探测
+      # 不配置 initialization-fail-timeout：默认 1（启动即校验），DB 不可用时启动失败，
+      # k8s 下配合 CrashLoopBackOff + 就绪探针自动恢复
+      #
+      # ---------- 驱动层调优（Connector/J 8 属性，属性名大小写不敏感） ----------
+      data-source-properties:
+        # 服务端预编译 + 客户端语句缓存：池化连接复用 prepare 结果，省去重复 parse/prepare 的网络往返
+        cachePrepStmts: true
+        prepStmtCacheSize: 250
+        prepStmtCacheSqlLimit: 2048
+        useServerPrepStmts: true
+        # 会话状态本地化：autocommit/隔离级别与驱动缓存一致时不再发 SET，
+        # 显著减少高 QPS 下的无谓往返（直连 MySQL 适用；未来若走分库分表/读写分离代理需去掉这两项）
+        useLocalSessionState: true
+        elideSetAutoCommits: true
+        # 缓存 server 配置与 ResultSet 元数据，减少元数据类往返
+        cacheServerConfiguration: true
+        cacheResultSetMetadata: true
+        # 不维护驱动内部时间统计，消除高频时间戳锁竞争（官方 wiki 吞吐优化项）
+        maintainTimeStats: false
+        # 批量改写：多条 INSERT 合并为多值语句，电商批量下单/导入吞吐可提升一个数量级。
+        # 注意 updateCounts 会合并计数、getGeneratedKeys 语义随改写变化，相关代码需自测
+        rewriteBatchedStatements: true
+        # TCP 建连超时（2s）：默认 0 跟随 OS 可能挂到分钟级，k8s 网络故障下必须快速失败
+        connectTimeout: 2000
+        # 网络读超时（60s）：网络分区/DB hang 时线程最多阻塞 60s，不会无限挂起拖垮线程池。
+        # 必须大于线上最慢 SQL，超时的报表类大 SQL 走独立数据源单独设置，或先治慢查询
+        socketTimeout: 60000
+        # OS 层 TCP keepalive，与 hikari keepalive-time 双保险对抗容器网络静默断连
+        tcpKeepAlive: true
+  # Flyway 自动建表迁移：启动时按版本号执行 classpath:db 下脚本
+  flyway:
+    enabled: true                                            # 启用 Flyway
+    table: system_table_flyway                               # 迁移历史记录表名
+    clean-disabled: true                                     # 禁用 clean 命令（防止误删数据）
+    out-of-order: true                                       # 允许乱序迁移
+    baseline-on-migrate: true                                # 已有库首次迁移时自动打基线
+    baseline-version: 0                                      # 基线版本号
+    locations: classpath:db                                  # 迁移脚本目录
+    encoding: UTF-8                                          # 脚本编码
+
+# MyBatis-Plus 增强版 ORM 配置
+mybatis-plus:
+  mapper-locations: classpath:com/maozi/*/*/mapper/*.xml   # Mapper XML 扫描路径
+  # typeEnumsPackage: com.maozi.${application-project-abbreviation}.*.enums  # 枚举包路径（按需开启）
+  configuration:
+    map-underscore-to-camel-case: true                     # 下划线转驼峰
+    log-impl: com.maozi.db.config.MybatisPlusLog           # 自定义 SQL 日志输出（集成链路日志）
+    default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler  # 枚举类型处理器
+    # log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 控制台输出 SQL（调试用）
+  global-config:
+    refresh: false                                          # 关闭配置热刷新
+    banner: false                                           # 关闭 MyBatis-Plus Banner
+    db-config:
+      db-type: mysql                                        # 数据库类型
+      id-type: AUTO                                         # 主键策略：数据库自增
+      field-strategy: NOT_NULL                              # 字段插入/更新策略：非空才操作
+      column-like: false                                    # 关闭自动 LIKE
+      capital-mode: true                                    # 开启大写命名识别
+      logic-delete-value: 1                                 # 逻辑删除标记值
+      logic-not-delete-value: 0                             # 未删除标记值
+
+# MyBatis-Plus-Join 多表连接查询插件配置
+mybatis-plus-join:
+  banner: false                                              # 关闭 Banner
+  table-alias: main                                          # 默认主表别名（用于排序字段前缀）
+
+# 原生 MyBatis 配置
+mybatis:
+  configuration:
+    cache-enabled: false                                     # 关闭二级缓存（由业务层 Redis 缓存替代）

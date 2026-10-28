@@ -1,0 +1,57 @@
+# ============================================================
+# 通用默认配置（所有服务共享）
+# 包含项目环境标识、服务器基础配置、Spring MVC/Jackson、
+# Feign 远程调用、日志级别等通用设置。
+# ============================================================
+
+server:
+  port: ${APPLICATION_PORT:${application.port:0}}
+  error.path: /application/error
+  shutdown: graceful # graceful=优雅停机 / immediate=立刻关闭
+
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 65s # 优雅停机等待最大超时时间，按需调整，一般10~30s
+  main:
+    banner-mode: off                           # 关闭 Spring Boot Banner（由 BaseApplication 自定义输出）
+    log-startup-info: false                    # 关闭启动信息日志（由 BaseApplication 统一记录）
+  web:
+    resources:
+      add-mappings: false                      # 禁用默认静态资源映射（由自定义 WebMvc 配置接管）
+  mvc:
+    throw-exception-if-no-handler-found: true  # 404 时抛出 NoHandlerFoundException，交由全局异常处理器
+    pathmatch.matching-strategy: ant_path_matcher  # 路径匹配策略（兼容 Swagger 等组件）
+  jackson:
+    time-zone: GMT+8                           # Jackson 序列化时区
+    date-format: yyyy-MM-dd HH:mm:ss           # 日期格式
+    default-property-inclusion: NON_NULL        # 序列化时忽略 null 字段
+
+# Feign 远程调用配置（用于 REST 风格的声明式 HTTP 调用）
+feign:
+  sentinel:
+    enabled: true                              # 启用 Sentinel 对 Feign 的熔断降级适配
+  okhttp:
+    enabled: true                              # 使用 OkHttp 作为底层 HTTP 客户端（替代默认 HttpURLConnection）
+  httpclient:
+    enabled: false                             # 禁用默认 HttpClient
+  client:
+    config:
+      default:
+        connectTimeout: 30000                  # 连接超时 30 秒
+        readTimeout: 30000                     # 读取超时 30 秒
+  compression:
+    request:
+      # 开启请求数据的压缩功能
+      enabled: true
+      # 最小压缩值标准，当数据大于 1024 才会进行压缩
+      min-request-size: 1024
+      # 压缩类型
+      mime-types: text/xml,application/xml,application/json
+    response:
+      enabled: true                            # 开启响应数据压缩
+
+# 日志级别配置
+logging:
+  level:
+    root: ERROR                                                                       # 根日志级别
+    com.maozi: INFO                                                                   # 项目业务代码日志

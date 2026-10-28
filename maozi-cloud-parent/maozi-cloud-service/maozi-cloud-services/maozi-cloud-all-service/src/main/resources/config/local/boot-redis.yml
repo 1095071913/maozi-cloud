@@ -1,0 +1,26 @@
+# ============================================================
+# Redis 缓存配置（Lettuce 客户端 + 连接池）
+# 默认指向 Docker 网络中的 maozi-cloud-basic-redis。
+# ============================================================
+spring:
+  data:
+    redis:
+      host: ${APPLICATION_REDIS_SERVER:maozi-cloud-basic-redis}
+      port: ${APPLICATION_REDIS_PORT:6379}
+      # 密码从环境变量读取，禁止硬编码
+      password: ${APPLICATION_REDIS_SERVER_PASSWORD:password}
+      database: ${APPLICATION_REDIS_SERVER_DATABASE:0}
+      # 可选，客户端标识，方便redis client list排查
+      client-name: ${spring.application.name}
+      lettuce:
+        # 命令超时，建议500ms，根据业务微调，不要超过1s
+        timeout: 500ms
+        shutdown-timeout: 300ms
+        pool:
+          # 最大活跃连接，根据单实例QPS，一般80~200
+          max-active: 120
+          # 获取连接最大等待时间1s
+          max-wait: 1000ms
+          max-idle: 60
+          # 维持少量预热连接
+          min-idle: 10

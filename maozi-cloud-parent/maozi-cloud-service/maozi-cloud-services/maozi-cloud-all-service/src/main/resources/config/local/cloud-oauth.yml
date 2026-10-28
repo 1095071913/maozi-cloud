@@ -1,0 +1,17 @@
+# ============================================================
+# OAuth2 资源服务器配置
+# 资源服务通过不透明令牌（Opaque Token）内省方式校验访问令牌，
+# 单体模式下令牌内省在本地进程内完成，分布式模式下通过 Dubbo RPC 远程调用。
+# ============================================================
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        opaquetoken:
+          # 令牌内省模式：http（HTTP 调用 introspection 端点）或 rpc（Dubbo RPC 本地内省）
+          # 当前默认使用 rpc 模式（由 maozi-cloud-config-oauth 模块提供 OpaqueTokenIntrospector 实现）
+#          mode: http
+          # 客户端id
+          client-id: system
+          # 客户端秘钥
+          client-secret: 123456

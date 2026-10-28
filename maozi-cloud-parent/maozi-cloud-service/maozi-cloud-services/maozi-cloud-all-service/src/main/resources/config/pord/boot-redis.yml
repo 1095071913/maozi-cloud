@@ -1,0 +1,40 @@
+# ============================================================
+# Redis 生产环境 2C4G 配置
+# ============================================================
+spring:
+  data:
+    redis:
+      # 地址/端口/密码/逻辑库：全部支持环境变量覆盖，禁止硬编码
+      host: ${APPLICATION_REDIS_SERVER:maozi-cloud-basic-redis}
+      port: ${APPLICATION_REDIS_PORT:6379}
+      # 密码从环境变量读取，禁止硬编码
+      password: ${APPLICATION_REDIS_SERVER_PASSWORD:password}
+      # 逻辑库编号（0~15），按环境/业务做数据隔离
+      database: ${APPLICATION_REDIS_SERVER_DATABASE:0}
+      # 可选，客户端标识，方便 redis client list 排查（注意确认 application.version 占位符有值，否则启动报错）
+      client-name: ${spring.application.name}-${application.environment}-${application.version}
+
+      # ★ 命令超时：必须放在 spring.data.redis.timeout
+      #   lettuce 节点下没有 timeout 属性，原配置不生效，实际是 Lettuce 默认 60s
+      #   同 K8s 集群内网小命令 500ms 足够（正常 p99 < 10ms）；
+      #   存在大 MGET / pipeline / 大 Lua 场景可放宽到 1s，不建议超过 1s
+      timeout: 500ms
+      # ★ TCP 建连超时：不配置默认 10s，故障时线程长时间卡在建连；内网 2s 足够
+      connect-timeout: 2s
+
+      lettuce:
+        # 滚动发布 SIGTERM 后等待在途命令排空的时间，1s 远小于 K8s terminationGracePeriod
+        shutdown-timeout: 1s
+        pool:
+          # Lettuce 普通命令全程复用一条共享线程安全连接，连接池只服务于
+          # 阻塞命令(BLPOP)/事务(MULTI)/订阅；当前工程无此类用法，池是兜底
+          # 按阿里连接数公式（峰值QPS × 单命令平均耗时）2C4G 单 pod 余量 30 倍以上，
+          # 同时约束无限扩容下的总连接数，避免逼近 Redis 服务端 maxclients(默认10000)
+          max-active: 64
+          # 借不到连接 1s 内快速失败；注意：此项不配置时默认 -1 = 无限等待，生产禁止
+          max-wait: 1000ms
+          max-idle: 32
+          # 维持少量预热连接
+          min-idle: 8
+          # 后台驱逐检测周期：维持 min-idle、回收失效/泄漏连接
+          time-between-eviction-runs: 30s

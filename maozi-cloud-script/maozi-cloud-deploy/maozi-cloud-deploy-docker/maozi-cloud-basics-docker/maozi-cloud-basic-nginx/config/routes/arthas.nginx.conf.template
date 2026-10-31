@@ -1,0 +1,108 @@
+# ============================================================
+# Arthas 控制台 (arthas-tunnel-server, 在线诊断中心)
+# ------------------------------------------------------------
+# 未登录 302 -> /_auth/login.html (登录机制与凭据写法详见
+# form-auth.conf.template 顶部说明)。
+#
+# 注意: 带变量的 proxy_pass 一旦带 URI (如 .../apps.html) 会替换整个
+# 请求路径, apps.html 内 ./static/... 相对资源将全部拿到 HTML 而白屏,
+# 故拆成多个 location:
+#   入口 = /arthas/        精确匹配, 转发到后端 /apps.html (应用列表页)
+#   其余 /arthas/*         去前缀透传 (页面资源的基准目录是 /arthas/)
+#   console = /arthas/console  诊断页入口 (后端页面挂在 /(根)+query)
+#
+# ==================== 应用级登录凭据 (server 级, 自动注册) ====================
+# 本文件被主配置 include 于 server 级, 故下方三行仍在 server 上下文,
+# 必须保持在 location 之外; 登录端点 /_auth/login 按应用 key 读取这些
+# 变量, 写进 location 内会读不到 -> 登录失败。
+# 删除三行 = 该应用登录一律拒绝 (改完重启 nginx 容器生效)。
+# 密码直接写原文 (特殊字符/空格建议加引号); 本文件含明文密码勿公开。
+# ttl 支持 "8h"/"45m"/"30s"/"7d"/纯秒数, 登录页"会话有效期"自动同步。
+
+# ---- Arthas 应用 (作用域: /arthas/*, 即下方各 arthas location) ----
+set $form_auth_arthas_user          arthas;
+set $form_auth_arthas_password      arthas;
+set $form_auth_arthas_ttl           4h;
+
+location = /arthas/ {
+    # 显式声明本 location 准入使用 arthas 凭据组 (上方三行);
+    # 不写此行时 guard 按前缀 /arthas/ 自动推导, 效果相同
+    set $form_auth_app arthas;
+    access_by_lua_block {
+        require("form_auth").guard()
+    }
+
+    set $mw_upstream maozi-cloud-basic-arthas:8080;
+    proxy_pass http://$mw_upstream/apps.html;
+
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+location /arthas/ {
+    # 显式声明本 location 准入使用 arthas 凭据组 (上方三行)
+    set $form_auth_app arthas;
+    access_by_lua_block {
+        require("form_auth").guard()
+    }
+
+    # set 必须在 rewrite ... break 之前: break 会终止本 location 内
+    # rewrite 模块的后续指令 (含 set), 否则 $mw_upstream 为空 -> 500
+    set $mw_upstream maozi-cloud-basic-arthas:8080;
+    rewrite ^/arthas/(.*)$ /$1 break;
+    proxy_pass http://$mw_upstream;
+
+    # ---- 前端根路径改写 (arthas 前端把后端地址写死为站点根绝对路径) ----
+    # 打包 JS 里写死 "/api/xxx"、"`/api/xxx" 等 (前导 /, 浏览器按站点根
+    # 解析), 会落到业务网关 location /api 而非本 location。把响应中这些
+    # 字符串改写为 /arthas/ 前缀 -> 请求回到本 location, 被上方 rewrite
+    # 去前缀转发到后端原路径。
+    # 已实测出现的写法: 双引号 "/api/(apps-*.js) 与模板字符串 `/api/
+    # (agents-*.js); 单引号变体为保险项。arthas 升级换打包方式需复核
+    proxy_set_header Accept-Encoding "";
+    sub_filter_types text/html application/javascript text/javascript;
+    sub_filter_once off;
+    sub_filter '"/api/' '"/arthas/api/';
+    sub_filter '`/api/' '`/arthas/api/';
+    sub_filter "'/api/" "'/arthas/api/";
+    sub_filter '"/ws'   '"/arthas/ws';
+    sub_filter '`/ws'   '`/arthas/ws';
+    sub_filter "'/ws"   "'/arthas/ws";
+    # agents 页跳 console 的链接写死为 "/?targetServer=..."(站点根),
+    # 改写为下方 console location 的路径, query 参数原样保留
+    sub_filter '`/?targetServer' '`/arthas/console?targetServer';
+    sub_filter '"?targetServer'  '"/arthas/console?targetServer';
+
+    # WebSocket 通道 (console 诊断页); map 见主配置文件顶部
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade    $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+# Arthas Console 诊断页入口: 后端页面挂在 /(根)+query, 资源为 ./static
+# 相对路径 -> 挂在本路径下资源基准目录为 /arthas/, 由上方透传 location
+# 提供服务; 页内 ws 由浏览器按 location.hostname + port 参数直连 tunnel
+# 的 7777 端口(已映射宿主机), 不经 nginx
+location = /arthas/console {
+    # 显式声明本 location 准入使用 arthas 凭据组 (上方三行)
+    set $form_auth_app arthas;
+    access_by_lua_block {
+        require("form_auth").guard()
+    }
+
+    set $mw_upstream maozi-cloud-basic-arthas:8080;
+    rewrite ^ / break;
+    proxy_pass http://$mw_upstream;
+
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}

@@ -1,0 +1,35 @@
+# ============================================================
+# API 服务网关 (去 /api 前缀, A/Backup 双节点动态解析容灾)
+# ------------------------------------------------------------
+# upstream 见主配置 maozi-cloud-gateway-service: 真实节点每次请求由
+# balancer_by_lua 动态解析决定, 后端容器晚于本容器启动、重启换 IP
+# 均可自动恢复。
+# ============================================================
+
+location /api {
+
+    # 实时解析 A/Backup 节点域名 (balancer 阶段禁用 cosocket, DNS 查询须在 access 阶段完成)
+    access_by_lua_block {
+        local dyn = require "dynamic_balancer"
+        dyn.resolve_nodes(dyn.nodes("maozi-cloud-gateway-service", 1100))
+    }
+
+    rewrite ^/api/?(.*)$ /$1 break;
+    proxy_pass http://maozi-cloud-service-api;
+
+    # 失败自动切换下一节点 (A -> B), 与 balancer 内 attempt 轮转配合
+    proxy_next_upstream error timeout invalid_header http_503;
+    proxy_next_upstream_tries 2;
+    proxy_next_upstream_timeout 10s;
+    proxy_next_upstream non_idempotent;
+
+    proxy_connect_timeout 1s;
+    proxy_read_timeout 30s;
+    proxy_send_timeout 30s;
+
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+}

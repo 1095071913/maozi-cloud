@@ -1,0 +1,17 @@
+# ============================================================
+# Nacos 控制台 (服务注册与配置中心, admin 前端内嵌页)
+# ------------------------------------------------------------
+# 域名放入 $变量使解析延迟到请求期 (resolver 见 nginx.conf),
+# nacos 容器晚于本容器启动、重启换 IP 均可自动恢复。
+# 改写前缀会导致 302 绝对地址跳转丢失会话, 必须原样透传。
+# ============================================================
+
+location /nacos/ {
+    set $mw_upstream maozi-cloud-basic-nacos:8848;
+    proxy_pass http://$mw_upstream;
+
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}

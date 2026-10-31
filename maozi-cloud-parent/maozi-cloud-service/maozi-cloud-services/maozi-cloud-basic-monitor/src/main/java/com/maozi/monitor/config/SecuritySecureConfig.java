@@ -19,6 +19,7 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.util.StringUtils;
 
 import java.util.UUID;
 
@@ -66,7 +67,14 @@ public class SecuritySecureConfig {
 		// 登录成功后重定向处理器
 		SavedRequestAwareAuthenticationSuccessHandler successHandler = new SavedRequestAwareAuthenticationSuccessHandler();
 		successHandler.setTargetUrlParameter("redirectTo");
-		successHandler.setDefaultTargetUrl(this.adminServer.path("/"));
+		// 首页 UiController 的映射经前缀化后是去尾斜杠的 "/monitor" (Spring 6
+		// PathPattern 不再将 "/monitor/" 归一到 "/monitor"), 而 adminServer.path("/")
+		// 在配置了 context-path 时返回 "/monitor/" —— 直接作默认落点会 404, 需去掉尾斜杠
+		String defaultTargetUrl = this.adminServer.path("/");
+		if (!"/".equals(defaultTargetUrl)) {
+			defaultTargetUrl = StringUtils.trimTrailingCharacter(defaultTargetUrl, '/');
+		}
+		successHandler.setDefaultTargetUrl(defaultTargetUrl);
 
 		// Spring Security 6.1+ 默认使用 XorCsrfTokenRequestAttributeHandler（BREACH 保护），
 		// 会将表单里的 _csrf 做 XOR 编码；而 SBA 的 Vue 前端是从 XSRF-TOKEN cookie 读明文 token 放到请求 header，

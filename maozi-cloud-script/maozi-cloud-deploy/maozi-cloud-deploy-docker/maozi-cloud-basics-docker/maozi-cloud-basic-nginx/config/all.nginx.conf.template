@@ -1,0 +1,64 @@
+# ============================================================
+# distributeds 业务入口 (OpenResty 动态解析版) —— server 骨架
+# ------------------------------------------------------------
+# 本文件不再包含 ${ENVIRONMENT}/${VERSION} 占位符 (OpenResty 镜像无
+# envsubst 模板机制), 域名后缀由 Lua os.getenv() 运行时拼接。
+# 所有后端域名均不在配置加载期解析, 后端容器晚于本容器启动、或重启
+# 换 IP, 都能自动恢复, 不会永久 502/503:
+#   /nacos/ 等    -> $变量 + resolver (nginx.conf) 请求期解析 (原样透传前缀)
+#   /arthas/*     -> $变量 + resolver 请求期解析 (去前缀透传 + 表单登录)
+#
+# 路由按应用拆分为独立模板 (compose 挂载到 /etc/nginx/conf.d/routes/),
+# 由下方 server 内 include 文本级引入 —— 片段内可写 server 级 set 凭据
+# 与 location, 语义与写在同一个文件里完全相同:
+#   arthas.nginx.conf.template    /arthas/*     Arthas 在线诊断 (表单登录保护)
+#   grafana.nginx.conf.template   /grafana/     Grafana 可视化 (子路径服务)
+#   monitor.nginx.conf.template   /monitor/     Spring Boot Admin 监控台 (原样透传)
+#   nacos.nginx.conf.template     /nacos/       Nacos 控制台 (原样透传)
+#   sentinel.nginx.conf.template  /sentinel/    Sentinel 控制台 (去前缀透传 + sub_filter 改写绝对路径)
+#   snailjob.nginx.conf.template  /snailjob/    Snail-Job 控制台 (hash 路由)
+#   xxljob.nginx.conf.template    /xxljob/      XXL-Job 控制台 (原样透传)
+# /_auth/* 通用表单登录端点 (登录页/提交/登出) 直接内置于本文件下方。
+# 新增应用 = 在 routes/ 新增一个 *.nginx.conf.template, 本文件零改动;
+# 根路径 "/" 导航页由 lua/routes_page.lua 扫描片段自动生成, 同样零改动
+# (片段首行注释约定: "# 标题 (简介)", 供导航页提取)。
+# ============================================================
+
+# WebSocket 升级头映射: 带 Upgrade 头的请求透传 upgrade, 普通请求保持 close
+# (arthas console 诊断页的 ws 通道需要; 不能无条件 upgrade)
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+server {
+    listen       80;
+    server_name  _;
+
+    # ---------- 各应用路由片段 (include 为文本级展开, 片段内为 server 级指令) ----------
+    include /etc/nginx/conf.d/routes/*.nginx.conf.template;
+
+    # 根路径 "/" 服务导航页: lua/routes_page.lua 扫描 routes/ 片段自动
+    # 生成入口列表 (标题取片段首行注释 "# 标题 (简介)"), 新增片段后
+    # 重启容器即自动出现, 无需改任何代码
+    location = / {
+        content_by_lua_block { require("routes_page").render() }
+        add_header Cache-Control "no-store, must-revalidate" always;
+    }
+
+    location = /_auth/login.html {
+        alias /usr/local/openresty/nginx/html/login.html;
+        add_header Cache-Control "no-store, must-revalidate" always;
+    }
+
+    # 通用登录提交 (POST 校验账号密码, 成功签发会话 Cookie 并回跳)
+    location = /_auth/login {
+        content_by_lua_block { require("form_auth").login() }
+    }
+
+    # 通用登出 (服务端吊销 + 清除会话 Cookie, 回登录页)
+    location = /_auth/logout {
+        content_by_lua_block { require("form_auth").logout() }
+    }
+
+}

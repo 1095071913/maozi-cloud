@@ -1,0 +1,26 @@
+# ============================================================
+# 后台管理 (去 /admin 前缀透传, $变量请求期 DNS 解析)
+# ------------------------------------------------------------
+# 域名放入 $变量使解析延迟到请求期 (resolver 见 nginx.conf),
+# 前端容器晚于本容器启动、重启换 IP 均可自动恢复。
+# /admin 与 /admin/ 均直接服务 (vue-router base 归一去尾斜杠,
+# /admin 解析为 / 落到 redirect)。
+# ============================================================
+
+location /admin {
+
+    set $admin_upstream maozi-cloud-admin-monomer:999;
+
+    rewrite ^/admin/?(.*)$ /$1 break;
+    proxy_pass http://$admin_upstream;
+
+    proxy_connect_timeout 5s;
+    proxy_read_timeout 30s;
+    proxy_send_timeout 30s;
+
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+}

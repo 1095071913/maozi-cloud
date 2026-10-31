@@ -1,0 +1,17 @@
+# ============================================================
+# Snail-Job 控制台 (分布式任务调度, admin 前端内嵌页)
+# ------------------------------------------------------------
+# 域名放入 $变量使解析延迟到请求期 (resolver 见 nginx.conf),
+# snail-job 容器晚于本容器启动、重启换 IP 均可自动恢复。
+# 官方前端生产构建即以 /snail-job 子路径提供服务 (hash 路由)。
+# ============================================================
+
+location /snail-job/ {
+    set $mw_upstream maozi-cloud-basic-snailjob:8080;
+    proxy_pass http://$mw_upstream;
+
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}

@@ -1,0 +1,17 @@
+# ============================================================
+# Grafana 控制台 (监控面板与指标图表, admin 前端内嵌页)
+# ------------------------------------------------------------
+# 域名放入 $变量使解析延迟到请求期 (resolver 见 nginx.conf),
+# grafana 容器晚于本容器启动、重启换 IP 均可自动恢复。
+# 容器已配 GF_SERVER_SERVE_FROM_SUB_PATH=true, 按 /grafana 子路径服务。
+# ============================================================
+
+location /grafana/ {
+    set $mw_upstream maozi-cloud-basic-grafana:3000;
+    proxy_pass http://$mw_upstream;
+
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}

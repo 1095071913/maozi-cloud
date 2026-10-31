@@ -3987,7 +3987,7 @@ CREATE TABLE `system_user` (
 -- Records of system_user
 -- ----------------------------
 BEGIN;
-INSERT INTO `system_user` (`username`, `password`, `icon`, `client_id`, `name`, `id`, `deleted`, `status`, `version`, `create_time`) VALUES ('admin', '{bcrypt}$2a$10$G34gqCkAIq6Ar6zMVTRIq.X2ttQ9tp4Xz4S3PipVY9cAGHiPOq1xW', 'http://dummyimage.com/100x100', 1, '小猫子', 1, 0, 1, 0, '2026-06-04 03:25:58');
+INSERT INTO `system_user` (`username`, `password`, `icon`, `client_id`, `name`, `id`, `deleted`, `status`, `version`, `create_time`) VALUES ('admin', '{bcrypt}$2a$10$pTvtE2olTSE/2gU58CF0mOl/qaDXfhnx9y/4UOhhaEdznVhyXHVla', 'http://dummyimage.com/100x100', 1, 'admin', 1, 0, 1, 0, '2026-06-04 03:25:58');
 COMMIT;
 
 -- ----------------------------

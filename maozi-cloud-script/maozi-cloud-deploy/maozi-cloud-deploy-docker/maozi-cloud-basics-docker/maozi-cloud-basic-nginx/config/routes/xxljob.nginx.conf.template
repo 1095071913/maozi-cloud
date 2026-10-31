@@ -1,0 +1,24 @@
+# ============================================================
+# XXL-Job 控制台 (分布式任务调度平台, 自带登录)
+# ------------------------------------------------------------
+# 前缀 /xxljob/ 原样透传: 服务端已配 server.servlet.context-path=
+# /xxljob (compose PARAMS), xxl-job 前端模板/页面 JS 全部基于
+# ${request.contextPath} 生成资源与接口地址, 改写前缀会全部断裂。
+# 执行器 (业务服务) 不走本路由, 直连容器地址并已同步带 /xxljob
+# 后缀 (nacos: boot-xxljob.yml)。
+# Tomcat 对 context 根路径自动归一 /xxljob <-> /xxljob/, 无需尾斜杠跳转。
+# 域名放入 $变量使解析延迟到请求期 (resolver 见 nginx.conf),
+# xxljob 容器晚于本容器启动、重启换 IP 均可自动恢复。
+# 登录由 XXL-Job 自带登录页处理 (默认 admin/123456, 见官方文档),
+# 不叠加 nginx 层 form_auth, 避免双重登录。
+# ============================================================
+
+location /xxljob {
+    set $mw_upstream maozi-cloud-basic-xxljob:8080;
+    proxy_pass http://$mw_upstream;
+
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}

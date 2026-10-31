@@ -24,6 +24,9 @@ ENV APPLICATION_NAME=__SERVICE_NAME__
 __LOG_FILE_ENV__
 
 RUN mkdir -p /application/${APPLICATION_NAME}
+RUN mkdir -p /application/${APPLICATION_NAME}/logs/gc
+RUN mkdir -p /application/${APPLICATION_NAME}/logs/hs
+RUN mkdir -p /application/${APPLICATION_NAME}/logs/heapdump
 
 WORKDIR /application/${APPLICATION_NAME}
 

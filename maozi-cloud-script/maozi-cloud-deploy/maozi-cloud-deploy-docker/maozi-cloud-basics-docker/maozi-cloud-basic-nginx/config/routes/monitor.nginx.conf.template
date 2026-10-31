@@ -1,0 +1,36 @@
+# ============================================================
+# Spring Boot Admin 监控台 (Spring Boot 应用运行状态监控, admin 前端内嵌页)
+# ------------------------------------------------------------
+# 前缀 /monitor/ 原样透传: 服务端已配 spring.boot.admin.context-path:
+# /monitor (nacos: maozi-cloud-basic-monitor.yml), 控制台/实例注册端点/
+# 登录跳转全部挂在该前缀下, 改写前缀会导致 302 绝对地址跳转与前端
+# 资源路径断裂 (各服务注册地址见 nacos: boot-monitor.yml)。
+# 域名放入 $变量使解析延迟到请求期 (resolver 见 nginx.conf),
+# monitor 容器晚于本容器启动、重启换 IP 均可自动恢复。
+# 登录由 SBA 自带 spring-security 表单登录处理 (账号见 nacos 配置),
+# 不再叠加 nginx 层 form_auth, 避免双重登录。
+# ============================================================
+
+# 首页实际映射在 /monitor (无尾斜杠): SBA 的 UiController @GetMapping("/")
+# 经前缀化得到 /monitor, Spring 6 PathPattern 不再做尾斜杠归一,
+# /monitor/ (带斜杠, 含登录成功后 adminServer.path("/") 的默认落点) 会 404,
+# 在入口统一 301 去掉尾斜杠 (查询参数原样保留)
+location = /monitor/ {
+    return 301 /monitor$is_args$args;
+}
+
+# 无尾斜杠前缀: 同时覆盖 /monitor (首页) 与 /monitor/* (静态资源/端点/SPA 路由)
+location /monitor {
+    set $mw_upstream maozi-cloud-basic-monitor:2000;
+    proxy_pass http://$mw_upstream;
+
+    # /monitor/applications 为 SSE 长连接: 关闭响应缓冲并拉长读超时,
+    # 避免事件被 nginx 攒批滞后/空闲连接被掐断
+    proxy_buffering    off;
+    proxy_read_timeout 1h;
+
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}

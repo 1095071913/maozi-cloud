@@ -38,6 +38,7 @@ public class SentinelConfigInitializer implements ConfigInitializer {
     @Override
     public void initialize(Properties properties) {
         properties.setProperty("csp.sentinel.app.type", ConfigConstants.APP_TYPE_SCG_GATEWAY);
+        properties.put("csp.sentinel.heartbeat.api.path","/sentinel/registry/machine");
         BaseApplication.addBannerFilter(BANNER_FLAG);
     }
 

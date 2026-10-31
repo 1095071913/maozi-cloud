@@ -40,6 +40,7 @@ public class SentinelConfigInitializer implements ConfigInitializer {
      */
     @Override
     public void initialize(Properties properties) {
+        properties.put("csp.sentinel.heartbeat.api.path","/sentinel/registry/machine");
         properties.merge(
                 "spring.config.import",
                 IMPORTS,

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 账号管理页：用户分页查询、新增/编辑（含角色绑定）、启用禁用与删除
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import {
@@ -157,6 +158,7 @@ async function handleSubmit() {
     submitting.value = true
     try {
       if (isEdit.value) {
+        // 与打开弹窗时的角色做差集：取消勾选的角色走解绑
         const current = new Set(form.bindRoleIds)
         const bindRoleIds = form.bindRoleIds
         const unbindRoleIds = originRoleIds.value.filter((id) => !current.has(id))

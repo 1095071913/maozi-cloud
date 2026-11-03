@@ -81,7 +81,7 @@ async function handleDisable() {
   align-items: center;
 }
 
-/** 标识与按钮统一宽度，与环境标识外观一致 */
+// 标识与按钮统一宽度，与环境标识外观一致
 .gray-tag,
 .gray-release :deep(.el-button) {
   justify-content: center;
@@ -89,7 +89,7 @@ async function handleDisable() {
 }
 
 .gray-tag {
-  /** 与 large 按钮同高（el-tag large 默认 32px） */
+  // 与 large 按钮同高（el-tag large 默认 32px）
   height: 40px;
   max-width: 220px;
   font-weight: 600;

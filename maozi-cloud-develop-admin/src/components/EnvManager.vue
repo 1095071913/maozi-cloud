@@ -287,6 +287,7 @@
 </template>
 
 <script setup lang="ts">
+// 环境变量页：shell 配置文件（.zshrc 等）变量的查看、增删改、排序、启停与 launchctl 同步
 import { computed, onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { api, type EnvFile, type EnvVarEntry } from '../api'

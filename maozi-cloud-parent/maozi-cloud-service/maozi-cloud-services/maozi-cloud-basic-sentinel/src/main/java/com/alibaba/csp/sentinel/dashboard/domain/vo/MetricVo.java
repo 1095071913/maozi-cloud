@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.List;
 
 /**
+ * View object of one metric record sent to the frontend.
+ *
  * @author leyou
  */
 public class MetricVo implements Comparable<MetricVo> {
@@ -51,9 +53,7 @@ public class MetricVo implements Comparable<MetricVo> {
 
     /** The QPS of exceptions. */
     private Long exceptionQps;
-    /**
-     * average rt
-     */
+    /** The average rt. */
     private Double rt;
 
     /** The total number of aggregated entries in this record. */
@@ -75,11 +75,11 @@ public class MetricVo implements Comparable<MetricVo> {
     }
 
     /**
-     * 保留资源名为identity的结果。
+     * Convert only the entities whose resource name equals the given identity.
      *
-     * @param entities 通过hashCode查找到的MetricEntities
-     * @param identity 真正需要查找的资源名
-     * @return
+     * @param entities metric entities found by resource hash code
+     * @param identity the exact resource name to match
+     * @return VOs of the matching entities
      */
     public static List<MetricVo> fromMetricEntities(Collection<MetricEntity> entities, String identity) {
         List<MetricVo> list = new ArrayList<>();

@@ -33,6 +33,7 @@ public class InMemParamFlowRuleStore extends InMemoryRuleRepositoryAdapter<Param
     /** Static id generator for stored entities. */
     private static AtomicLong ids = new AtomicLong(0);
 
+    /** Generates the next sequential id with the static counter. */
     @Override
     protected long nextId() {
         return ids.incrementAndGet();

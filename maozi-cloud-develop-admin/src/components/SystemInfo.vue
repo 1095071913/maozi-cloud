@@ -288,6 +288,7 @@
 </template>
 
 <script setup lang="ts">
+// 系统信息页：设备概览、CPU/GPU/内存/磁盘实时指标与趋势、网络与代理、开发工具链版本
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { api, type SysStaticInfo, type SysDynamicInfo, type NetInterface, type ProxyInfo, type PublicIPInfo, type GpuInfo, type DevToolInfo } from '../api'
 import RingProgress from './RingProgress.vue'

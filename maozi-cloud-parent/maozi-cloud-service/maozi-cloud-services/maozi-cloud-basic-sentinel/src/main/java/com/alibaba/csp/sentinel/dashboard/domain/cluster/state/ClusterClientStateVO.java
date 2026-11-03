@@ -18,6 +18,8 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.state;
 import com.alibaba.csp.sentinel.dashboard.domain.cluster.ClusterClientInfoVO;
 
 /**
+ * Cluster token client state of a machine.
+ *
  * @author Eric Zhao
  * @since 1.4.0
  */

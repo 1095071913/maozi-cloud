@@ -233,11 +233,11 @@ public class SentinelApiClient {
     
     /**
      * Build an `HttpUriRequest` in POST way.
-     * 
-     * @param url
-     * @param params
+     *
+     * @param url                        the request url
+     * @param params                     the form parameters to send
      * @param supportEnhancedContentType see {@link #isSupportEnhancedContentType(String, String, int)}
-     * @return
+     * @return the built POST request
      */
     protected static HttpUriRequest postRequest(String url, Map<String, String> params, boolean supportEnhancedContentType) {
         HttpPost httpPost = new HttpPost(url);
@@ -280,11 +280,11 @@ public class SentinelApiClient {
     
     /**
      * With no param
-     * 
-     * @param ip
-     * @param port
-     * @param api
-     * @return
+     *
+     * @param ip   machine IP
+     * @param port machine command port
+     * @param api  the command name
+     * @return the future completed with the response body
      */
     private CompletableFuture<String> executeCommand(String ip, int port, String api, boolean useHttpPost) {
         return executeCommand(ip, port, api, null, useHttpPost);
@@ -292,12 +292,12 @@ public class SentinelApiClient {
     
     /**
      * No app specified, force to GET
-     * 
-     * @param ip
-     * @param port
-     * @param api
-     * @param params
-     * @return
+     *
+     * @param ip     machine IP
+     * @param port   machine command port
+     * @param api    the command name
+     * @param params the query parameters
+     * @return the future completed with the response body
      */
     private CompletableFuture<String> executeCommand(String ip, int port, String api, Map<String, String> params, boolean useHttpPost) {
         return executeCommand(null, ip, port, api, params, useHttpPost);
@@ -305,13 +305,13 @@ public class SentinelApiClient {
 
     /**
      * Prefer to execute request using POST
-     * 
-     * @param app
-     * @param ip
-     * @param port
-     * @param api
-     * @param params
-     * @return
+     *
+     * @param app    application name the machine belongs to
+     * @param ip     machine IP
+     * @param port   machine command port
+     * @param api    the command name
+     * @param params the request parameters
+     * @return the future completed with the response body
      */
     private CompletableFuture<String> executeCommand(String app, String ip, int port, String api, Map<String, String> params, boolean useHttpPost) {
         CompletableFuture<String> future = new CompletableFuture<>();
@@ -598,10 +598,10 @@ public class SentinelApiClient {
      * set rules of the machine. rules == null will return immediately;
      * rules.isEmpty() means setting the rules to empty.
      *
-     * @param app
-     * @param ip
-     * @param port
-     * @param rules
+     * @param app   application name
+     * @param ip    machine IP
+     * @param port  machine command port
+     * @param rules the rules to set
      * @return whether successfully set the rules.
      */
     public boolean setFlowRuleOfMachine(String app, String ip, int port, List<FlowRuleEntity> rules) {
@@ -617,10 +617,10 @@ public class SentinelApiClient {
      * set rules of the machine. rules == null will return immediately;
      * rules.isEmpty() means setting the rules to empty.
      *
-     * @param app
-     * @param ip
-     * @param port
-     * @param rules
+     * @param app   application name
+     * @param ip    machine IP
+     * @param port  machine command port
+     * @param rules the rules to set
      * @return whether successfully set the rules.
      */
     public boolean setDegradeRuleOfMachine(String app, String ip, int port, List<DegradeRuleEntity> rules) {
@@ -631,10 +631,10 @@ public class SentinelApiClient {
      * set rules of the machine. rules == null will return immediately;
      * rules.isEmpty() means setting the rules to empty.
      *
-     * @param app
-     * @param ip
-     * @param port
-     * @param rules
+     * @param app   application name
+     * @param ip    machine IP
+     * @param port  machine command port
+     * @param rules the rules to set
      * @return whether successfully set the rules.
      */
     public boolean setSystemRuleOfMachine(String app, String ip, int port, List<SystemRuleEntity> rules) {
@@ -645,6 +645,10 @@ public class SentinelApiClient {
      * set rules of the machine. rules == null will return immediately;
      * rules.isEmpty() means setting the rules to empty.
      *
+     * @param app   application name
+     * @param ip    machine IP
+     * @param port  machine command port
+     * @param rules the rules to set
      * @return whether successfully set the rules.
      */
     public boolean setAuthorityRuleOfMachine(String app, String ip, int port, List<AuthorityRuleEntity> rules) {

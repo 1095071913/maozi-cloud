@@ -27,6 +27,7 @@ RUN npm run build
 # ---------- 阶段二: nginx 托管 ----------
 FROM nginx:alpine
 
+# 安装时区数据并固定为 Asia/Shanghai (与后端日志时间对齐)
 RUN apk add --no-cache tzdata && \
     ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo 'Asia/Shanghai' > /etc/timezone
@@ -37,6 +38,8 @@ RUN apk add --no-cache tzdata && \
 ENV API_BASE_PATH=http://maozi-cloud-gateway-service:1000
 COPY maozi-cloud-admin-nginx.conf /etc/nginx/templates/default.conf.template
 
+# 前端构建产物 (dist) 交给 nginx 托管
 COPY --from=builder /build/dist /usr/share/nginx/html
 
+# 后台前端访问端口
 EXPOSE 999

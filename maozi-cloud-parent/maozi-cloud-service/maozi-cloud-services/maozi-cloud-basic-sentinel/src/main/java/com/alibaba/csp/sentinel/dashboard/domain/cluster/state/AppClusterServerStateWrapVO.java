@@ -16,6 +16,8 @@
 package com.alibaba.csp.sentinel.dashboard.domain.cluster.state;
 
 /**
+ * App-level cluster token server state of one machine, keyed by machine id.
+ *
  * @author Eric Zhao
  * @since 1.4.1
  */

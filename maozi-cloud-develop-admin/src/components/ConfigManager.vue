@@ -277,6 +277,7 @@
 </template>
 
 <script setup lang="ts">
+// 密钥管理页：Git/Docker/Helm/Linux 凭据的分组管理，Docker/Helm 支持一键登录
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { api, type ConfigEntry, type ConfigType, type AuthType, type ToolAvailability } from '../api'

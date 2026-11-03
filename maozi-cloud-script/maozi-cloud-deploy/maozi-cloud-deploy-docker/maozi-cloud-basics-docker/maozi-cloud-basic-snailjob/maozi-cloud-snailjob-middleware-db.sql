@@ -1,3 +1,10 @@
+-- ============================================================
+-- Snail-Job 分布式任务调度初始化库 maozi-cloud-snailjob-middleware-db
+-- 含 sj_* 组/任务/重试/告警等表及种子数据 (默认账号 admin/admin),
+-- 供 maozi-cloud-basic-snailjob 容器使用
+-- (compose 环境变量 SPRING_DATASOURCE_URL 指向本库)。
+-- 需手动导入 maozi-cloud-basic-mysql 后再启动 snail-job。
+-- ============================================================
 /*
  Navicat Premium Dump SQL
 

@@ -18,6 +18,8 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.request;
 import java.util.Set;
 
 /**
+ * Assignment of one cluster token server: the server machine with the clients, namespaces and max QPS bound to it.
+ *
  * @author Eric Zhao
  * @since 1.4.1
  */

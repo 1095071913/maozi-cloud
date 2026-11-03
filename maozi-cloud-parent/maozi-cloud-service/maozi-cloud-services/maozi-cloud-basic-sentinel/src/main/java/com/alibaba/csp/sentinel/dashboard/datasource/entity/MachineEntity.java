@@ -20,6 +20,8 @@ import com.alibaba.csp.sentinel.dashboard.discovery.MachineInfo;
 import java.util.Date;
 
 /**
+ * Persistent entity of a machine (application instance) registered to the dashboard.
+ *
  * @author leyou
  */
 public class MachineEntity {

@@ -23,12 +23,9 @@ import java.util.Set;
  */
 public class ValidatorUtil {
 
-    /**
-     * 校验器（线程安全，全局单例）
-     */
+    /** 校验器（线程安全，全局单例） */
     private static final Validator VALIDATOR;
 
-    // 类加载时构建默认 ValidatorFactory 并获取线程安全的 Validator 实例
     static {
 
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
@@ -55,19 +52,16 @@ public class ValidatorUtil {
             throw new BusinessResultException(SystemErrorCode.PARAM_ERROR, "参数不能为空");
         }
 
-        // 集合自动包装
         Object target = data;
         if (data instanceof Collection<?> collection) {
             target = ValidCollectionParam.builder().data(collection).build();
         }
 
-        // 执行校验
         Set<ConstraintViolation<Object>> violations = VALIDATOR.validate(target);
         if (ObjectUtil.isNullEmpty(violations)) {
             return;
         }
 
-        // 组装错误信息
         Map<String, String> errorMap = CollectionUtil.newHashMap();
         for (ConstraintViolation<Object> v : violations) {
             errorMap.put(v.getPropertyPath().toString(), v.getMessage());

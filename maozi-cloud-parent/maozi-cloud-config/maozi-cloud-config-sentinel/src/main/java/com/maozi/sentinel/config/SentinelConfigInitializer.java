@@ -11,7 +11,7 @@ import java.util.Properties;
  * <p>
  * 通过 SPI 机制被 {@code BaseApplication} 加载，将 Sentinel 共享配置文件
  * {@code cloud-sentinel.yml} 前插到 {@code spring.config.import} 导入列表，
- * 并屏蔽 Sentinel 初始化日志输出。
+ * 设置心跳上报接口路径，并屏蔽 Sentinel 初始化日志输出。
  * Sentinel 初始化时通过标准输出直写形如 {@code INFO: Sentinel log ...} 的提示信息，
  * 无官方关闭开关，本初始化器将该特征注册到 {@code BaseApplication} 的统一
  * 过滤列表，由其启动时安装的标准输出包装器丢弃对应输出。
@@ -28,11 +28,12 @@ public class SentinelConfigInitializer implements ConfigInitializer {
     private static final String BANNER_FLAG = "INFO: Sentinel log";
 
     /**
-     * 导入 Sentinel 共享配置文件，并屏蔽 Sentinel 初始化日志输出。
+     * 导入 Sentinel 共享配置文件，设置心跳上报路径，并屏蔽 Sentinel 初始化日志输出。
      * <p>
      * 先将 {@code cloud-sentinel.yml} 以 optional 前缀合并到
-     * {@code spring.config.import} 导入列表；再将 Sentinel 初始化日志特征
-     * 注册到 {@code BaseApplication} 的统一过滤列表，由其启动时安装的
+     * {@code spring.config.import} 导入列表；再设置 Sentinel 客户端
+     * 心跳上报接口路径；最后将 Sentinel 初始化日志特征注册到
+     * {@code BaseApplication} 的统一过滤列表，由其启动时安装的
      * 标准输出包装器丢弃对应输出。
      * </p>
      *
@@ -40,6 +41,7 @@ public class SentinelConfigInitializer implements ConfigInitializer {
      */
     @Override
     public void initialize(Properties properties) {
+        // 设置 Sentinel 客户端向控制台上报心跳的接口路径
         properties.put("csp.sentinel.heartbeat.api.path","/sentinel/registry/machine");
         properties.merge(
                 "spring.config.import",

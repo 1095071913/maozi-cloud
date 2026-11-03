@@ -27,6 +27,9 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Default flow rule publisher that pushes rules to every healthy machine of the
+ * application through the Sentinel transport API.
+ *
  * @author Eric Zhao
  * @since 1.4.0
  */

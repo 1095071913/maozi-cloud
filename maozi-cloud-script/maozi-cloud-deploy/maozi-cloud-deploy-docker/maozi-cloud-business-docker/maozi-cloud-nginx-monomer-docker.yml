@@ -10,6 +10,7 @@ services:
     ports:
       - ${GATEWAY_PORT:-999}:80
     environment:
+      # 传递部署标识给容器内 Lua (os.getenv 拼接后端容器域名)
       VERSION: ${VERSION:-${APPLICATION_VERSION:-main}}
       ENVIRONMENT: ${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}
     volumes:

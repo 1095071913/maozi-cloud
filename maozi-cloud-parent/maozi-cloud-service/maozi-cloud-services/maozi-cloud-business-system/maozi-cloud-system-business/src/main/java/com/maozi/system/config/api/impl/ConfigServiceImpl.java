@@ -107,8 +107,7 @@ public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper,ConfigDo,Voi
 	/**
 	 * 保存/更新配置（REST 层入口）
 	 * <p>
-	 * 新增时各字段必填（由基类触发参数校验），更新时为动态更新，
-	 * 仅更新传入的字段，未传入的字段保持原值不变。
+	 * 新增时各字段必填（由基类触发参数校验），更新时仅更新传入的字段；
 	 * 传入配置名称时校验其唯一性（更新时排除自身记录），未传入则跳过校验。
 	 * </p>
 	 *

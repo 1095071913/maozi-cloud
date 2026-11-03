@@ -1,3 +1,10 @@
+-- ============================================================
+-- XXL-Job 分布式任务调度初始化库 maozi-cloud-xxljob-middleware-db
+-- 含 xxl_job_* 执行器/任务/日志表及种子数据 (默认账号 admin/123456),
+-- 供 maozi-cloud-basic-xxljob 容器使用
+-- (compose PARAMS 里的 datasource url 指向本库)。
+-- 需手动导入 maozi-cloud-basic-mysql 后再启动 xxl-job。
+-- ============================================================
 /*
  Navicat Premium Dump SQL
 

@@ -68,9 +68,9 @@ public class WebConfig implements WebMvcConfigurer {
     /** Serves static resources under classpath:/resources/, forcing revalidation (no-cache) on each request. */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // 前端为 SPA 懒加载(视图模板/控制器脚本经 XHR 拉取), 若被浏览器缓存,
-        // 重新部署后页面会继续使用旧版 JS/HTML 导致功能异常, 因此禁用缓存,
-        // 浏览器每次通过 304 协商缓存校验新鲜度
+        // The frontend is a lazy-loaded SPA (views and controller scripts are fetched via XHR):
+        // if cached by the browser, pages would keep using the old JS/HTML after a redeploy,
+        // so caching is disabled and freshness is revalidated via 304 negotiation on each request.
         registry.addResourceHandler("/**")
             .addResourceLocations("classpath:/resources/")
             .setCacheControl(CacheControl.noCache());

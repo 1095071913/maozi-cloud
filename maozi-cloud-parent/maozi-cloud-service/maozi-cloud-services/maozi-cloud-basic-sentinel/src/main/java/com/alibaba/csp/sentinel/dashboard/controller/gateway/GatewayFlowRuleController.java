@@ -142,7 +142,7 @@ public class GatewayFlowRuleController {
         }
         entity.setPort(port);
 
-        // API类型, Route ID或API分组
+        // Resource type: Route ID or API group name.
         Integer resourceMode = reqVo.getResourceMode();
         if (resourceMode == null) {
             return Result.ofFail(-1, "resourceMode can't be null");
@@ -152,20 +152,20 @@ public class GatewayFlowRuleController {
         }
         entity.setResourceMode(resourceMode);
 
-        // API名称
+        // API name.
         String resource = reqVo.getResource();
         if (StringUtil.isBlank(resource)) {
             return Result.ofFail(-1, "resource can't be null or empty");
         }
         entity.setResource(resource.trim());
 
-        // 针对请求属性
+        // Parameter item against request attributes.
         GatewayParamFlowItemVo paramItem = reqVo.getParamItem();
         if (paramItem != null) {
             GatewayParamFlowItemEntity itemEntity = new GatewayParamFlowItemEntity();
             entity.setParamItem(itemEntity);
 
-            // 参数属性 0-ClientIP 1-Remote Host 2-Header 3-URL参数 4-Cookie
+            // Parse strategy: 0-ClientIP, 1-Remote Host, 2-Header, 3-URL parameter, 4-Cookie.
             Integer parseStrategy = paramItem.getParseStrategy();
             if (!Arrays.asList(PARAM_PARSE_STRATEGY_CLIENT_IP, PARAM_PARSE_STRATEGY_HOST, PARAM_PARSE_STRATEGY_HEADER
                     , PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
@@ -173,9 +173,9 @@ public class GatewayFlowRuleController {
             }
             itemEntity.setParseStrategy(paramItem.getParseStrategy());
 
-            // 当参数属性为2-Header 3-URL参数 4-Cookie时，参数名称必填
+            // Field name is required for parse strategies 2-Header, 3-URL parameter and 4-Cookie.
             if (Arrays.asList(PARAM_PARSE_STRATEGY_HEADER, PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
-                // 参数名称
+                // Field name.
                 String fieldName = paramItem.getFieldName();
                 if (StringUtil.isBlank(fieldName)) {
                     return Result.ofFail(-1, "fieldName can't be null or empty");
@@ -184,7 +184,7 @@ public class GatewayFlowRuleController {
             }
 
             String pattern = paramItem.getPattern();
-            // 如果匹配串不为空，验证匹配模式
+            // Validate the match strategy only when the pattern is not empty.
             if (StringUtil.isNotEmpty(pattern)) {
                 itemEntity.setPattern(pattern);
                 Integer matchStrategy = paramItem.getMatchStrategy();
@@ -195,7 +195,7 @@ public class GatewayFlowRuleController {
             }
         }
 
-        // 阈值类型 0-线程数 1-QPS
+        // Threshold type: 0-thread count, 1-QPS.
         Integer grade = reqVo.getGrade();
         if (grade == null) {
             return Result.ofFail(-1, "grade can't be null");
@@ -205,7 +205,7 @@ public class GatewayFlowRuleController {
         }
         entity.setGrade(grade);
 
-        // QPS阈值
+        // QPS threshold.
         Double count = reqVo.getCount();
         if (count == null) {
             return Result.ofFail(-1, "count can't be null");
@@ -215,7 +215,7 @@ public class GatewayFlowRuleController {
         }
         entity.setCount(count);
 
-        // 间隔
+        // Interval.
         Long interval = reqVo.getInterval();
         if (interval == null) {
             return Result.ofFail(-1, "interval can't be null");
@@ -225,7 +225,7 @@ public class GatewayFlowRuleController {
         }
         entity.setInterval(interval);
 
-        // 间隔单位
+        // Interval unit.
         Integer intervalUnit = reqVo.getIntervalUnit();
         if (intervalUnit == null) {
             return Result.ofFail(-1, "intervalUnit can't be null");
@@ -235,7 +235,7 @@ public class GatewayFlowRuleController {
         }
         entity.setIntervalUnit(intervalUnit);
 
-        // 流控方式 0-快速失败 2-匀速排队
+        // Control behavior: 0-fast fail, 2-uniform rate limiter.
         Integer controlBehavior = reqVo.getControlBehavior();
         if (controlBehavior == null) {
             return Result.ofFail(-1, "controlBehavior can't be null");
@@ -246,7 +246,7 @@ public class GatewayFlowRuleController {
         entity.setControlBehavior(controlBehavior);
 
         if (CONTROL_BEHAVIOR_DEFAULT == controlBehavior) {
-            // 0-快速失败, 则Burst size必填
+            // Burst size is required for control behavior 0 (fast fail).
             Integer burst = reqVo.getBurst();
             if (burst == null) {
                 return Result.ofFail(-1, "burst can't be null");
@@ -256,7 +256,7 @@ public class GatewayFlowRuleController {
             }
             entity.setBurst(burst);
         } else if (CONTROL_BEHAVIOR_RATE_LIMITER == controlBehavior) {
-            // 2-匀速排队, 则超时时间必填
+            // Timeout is required for control behavior 2 (uniform rate limiter).
             Integer maxQueueingTimeoutMs = reqVo.getMaxQueueingTimeoutMs();
             if (maxQueueingTimeoutMs == null) {
                 return Result.ofFail(-1, "maxQueueingTimeoutMs can't be null");
@@ -305,13 +305,13 @@ public class GatewayFlowRuleController {
             return Result.ofFail(-1, "gateway flow rule does not exist, id=" + id);
         }
 
-        // 针对请求属性
+        // Parameter item against request attributes.
         GatewayParamFlowItemVo paramItem = reqVo.getParamItem();
         if (paramItem != null) {
             GatewayParamFlowItemEntity itemEntity = new GatewayParamFlowItemEntity();
             entity.setParamItem(itemEntity);
 
-            // 参数属性 0-ClientIP 1-Remote Host 2-Header 3-URL参数 4-Cookie
+            // Parse strategy: 0-ClientIP, 1-Remote Host, 2-Header, 3-URL parameter, 4-Cookie.
             Integer parseStrategy = paramItem.getParseStrategy();
             if (!Arrays.asList(PARAM_PARSE_STRATEGY_CLIENT_IP, PARAM_PARSE_STRATEGY_HOST, PARAM_PARSE_STRATEGY_HEADER
                     , PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
@@ -319,9 +319,9 @@ public class GatewayFlowRuleController {
             }
             itemEntity.setParseStrategy(paramItem.getParseStrategy());
 
-            // 当参数属性为2-Header 3-URL参数 4-Cookie时，参数名称必填
+            // Field name is required for parse strategies 2-Header, 3-URL parameter and 4-Cookie.
             if (Arrays.asList(PARAM_PARSE_STRATEGY_HEADER, PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
-                // 参数名称
+                // Field name.
                 String fieldName = paramItem.getFieldName();
                 if (StringUtil.isBlank(fieldName)) {
                     return Result.ofFail(-1, "fieldName can't be null or empty");
@@ -330,7 +330,7 @@ public class GatewayFlowRuleController {
             }
 
             String pattern = paramItem.getPattern();
-            // 如果匹配串不为空，验证匹配模式
+            // Validate the match strategy only when the pattern is not empty.
             if (StringUtil.isNotEmpty(pattern)) {
                 itemEntity.setPattern(pattern);
                 Integer matchStrategy = paramItem.getMatchStrategy();
@@ -343,7 +343,7 @@ public class GatewayFlowRuleController {
             entity.setParamItem(null);
         }
 
-        // 阈值类型 0-线程数 1-QPS
+        // Threshold type: 0-thread count, 1-QPS.
         Integer grade = reqVo.getGrade();
         if (grade == null) {
             return Result.ofFail(-1, "grade can't be null");
@@ -353,7 +353,7 @@ public class GatewayFlowRuleController {
         }
         entity.setGrade(grade);
 
-        // QPS阈值
+        // QPS threshold.
         Double count = reqVo.getCount();
         if (count == null) {
             return Result.ofFail(-1, "count can't be null");
@@ -363,7 +363,7 @@ public class GatewayFlowRuleController {
         }
         entity.setCount(count);
 
-        // 间隔
+        // Interval.
         Long interval = reqVo.getInterval();
         if (interval == null) {
             return Result.ofFail(-1, "interval can't be null");
@@ -373,7 +373,7 @@ public class GatewayFlowRuleController {
         }
         entity.setInterval(interval);
 
-        // 间隔单位
+        // Interval unit.
         Integer intervalUnit = reqVo.getIntervalUnit();
         if (intervalUnit == null) {
             return Result.ofFail(-1, "intervalUnit can't be null");
@@ -383,7 +383,7 @@ public class GatewayFlowRuleController {
         }
         entity.setIntervalUnit(intervalUnit);
 
-        // 流控方式 0-快速失败 2-匀速排队
+        // Control behavior: 0-fast fail, 2-uniform rate limiter.
         Integer controlBehavior = reqVo.getControlBehavior();
         if (controlBehavior == null) {
             return Result.ofFail(-1, "controlBehavior can't be null");
@@ -394,7 +394,7 @@ public class GatewayFlowRuleController {
         entity.setControlBehavior(controlBehavior);
 
         if (CONTROL_BEHAVIOR_DEFAULT == controlBehavior) {
-            // 0-快速失败, 则Burst size必填
+            // Burst size is required for control behavior 0 (fast fail).
             Integer burst = reqVo.getBurst();
             if (burst == null) {
                 return Result.ofFail(-1, "burst can't be null");
@@ -404,7 +404,7 @@ public class GatewayFlowRuleController {
             }
             entity.setBurst(burst);
         } else if (CONTROL_BEHAVIOR_RATE_LIMITER == controlBehavior) {
-            // 2-匀速排队, 则超时时间必填
+            // Timeout is required for control behavior 2 (uniform rate limiter).
             Integer maxQueueingTimeoutMs = reqVo.getMaxQueueingTimeoutMs();
             if (maxQueueingTimeoutMs == null) {
                 return Result.ofFail(-1, "maxQueueingTimeoutMs can't be null");

@@ -32,8 +32,7 @@ public class RpcUserServiceImpl extends UserServiceImpl implements RpcUserServic
 	/**
 	 * 根据用户名获取 OAuth 认证所需的用户信息
 	 * <p>
-	 * 查询用户的 ID、加密密码，并汇总该用户的全部权限标识，
-	 * 供授权服务器进行密码模式认证与权限填充。
+	 * 供授权服务器进行密码模式认证与权限填充；
 	 * 用户名为空或用户不存在时抛出业务异常。
 	 * </p>
 	 *

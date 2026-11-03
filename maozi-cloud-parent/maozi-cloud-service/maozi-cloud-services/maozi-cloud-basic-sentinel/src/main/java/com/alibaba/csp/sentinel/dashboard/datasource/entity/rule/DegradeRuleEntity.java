@@ -20,6 +20,8 @@ import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
 import java.util.Date;
 
 /**
+ * Entity for a circuit breaking (degrade) rule.
+ *
  * @author leyou
  */
 public class DegradeRuleEntity implements RuleEntity {
@@ -56,6 +58,9 @@ public class DegradeRuleEntity implements RuleEntity {
     /** The last modify time. */
     private Date gmtModified;
 
+    /**
+     * Build an entity from the given {@link DegradeRule}, carrying the given app, ip and port.
+     */
     public static DegradeRuleEntity fromDegradeRule(String app, String ip, Integer port, DegradeRule rule) {
         DegradeRuleEntity entity = new DegradeRuleEntity();
         entity.setApp(app);

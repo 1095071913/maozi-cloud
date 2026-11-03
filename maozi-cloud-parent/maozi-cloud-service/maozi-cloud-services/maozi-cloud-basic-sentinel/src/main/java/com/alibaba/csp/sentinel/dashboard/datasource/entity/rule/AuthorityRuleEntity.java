@@ -21,6 +21,8 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
+ * Entity for an authority (black/white list) rule, wrapping an {@link AuthorityRule}.
+ *
  * @author Eric Zhao
  * @since 0.2.1
  */
@@ -34,6 +36,9 @@ public class AuthorityRuleEntity extends AbstractRuleEntity<AuthorityRule> {
         this.rule = authorityRule;
     }
 
+    /**
+     * Build an entity wrapping the given {@link AuthorityRule}, carrying the given app, ip and port.
+     */
     public static AuthorityRuleEntity fromAuthorityRule(String app, String ip, Integer port, AuthorityRule rule) {
         AuthorityRuleEntity entity = new AuthorityRuleEntity(rule);
         entity.setApp(app);

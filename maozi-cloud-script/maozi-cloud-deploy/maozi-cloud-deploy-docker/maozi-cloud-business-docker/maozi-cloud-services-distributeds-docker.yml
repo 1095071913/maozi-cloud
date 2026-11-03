@@ -2,9 +2,10 @@
 # maozi-cloud-services-distributeds-docker.yml —— 业务服务一键拉起
 # ------------------------------------------------------------
 # 本 Compose 启动 maozi-cloud 平台的「业务服务」层（区别于 basics 的基础组件层）：
-#   - maozi-cloud-system-service   系统管理服务（端口 4000 / Dubbo 20881）
-#   - maozi-cloud-oauth-service    OAuth 鉴权服务（端口 3000 / Dubbo 20880）
-#   - maozi-cloud-gateway-service  业务网关（端口 1000）
+#   - maozi-cloud-system-service   系统管理服务（端口 4000 / Dubbo 22882）
+#   - maozi-cloud-oauth-service    OAuth 鉴权服务（端口 3000 / Dubbo 22881）
+#   - maozi-cloud-gateway-service  业务网关（端口 1100）
+#   - maozi-cloud-ai-service       AI 业务服务（端口 6000 / Dubbo 22883）
 # 注: maozi-cloud-monitor-service / maozi-cloud-sentinel-service 属中间件服务
 #     (maozi-cloud-services.json 里 is_middleware=true), 已迁往
 #     maozi-cloud-basics-docker/docker-compose.yml, 由 maozi-cloud-deploy-basics-all.sh
@@ -13,13 +14,13 @@
 # 启动前置：
 #   1. 先启动 maozi-cloud-basics-docker（提供 mysql / nacos / redis 等）；
 #   2. 外部网络 maozi-cloud-network 必须已创建；
-#   3. 业务镜像需通过 maozi-cloud-deploy-run 流程构建并 tag 为 laster（注：当前 compose
+#   3. 业务镜像需通过 maozi-cloud-deploy-docker-run 脚本构建并 tag 为 latest；
 #   4. healthcheck 依赖 Actuator 探针端点，需在 Nacos 配置中开启（K8s 外环境默认不暴露）：
 #      management.endpoint.health.probes.enabled=true
-#   5. 停止前钩子(pre_stop)三步下线：先 POST /actuator/serviceregistry 将实例置为 DOWN
-#      摘流，再 sleep 等待网关切流，最后 POST Actuator /shutdown 优雅停机；需在 Nacos
-#      配置中开启并暴露相关端点：management.endpoint.shutdown.enabled=true 且
-#      management.endpoints.web.exposure.include 中包含 serviceregistry,shutdown；
+#   5. 停止前钩子(pre_stop)：仅 .env GRACEFUL_UPDATE=true 时执行（配合 graceful-update-
+#      before/after 双节点优雅更新）：sleep 40 -> POST /actuator/serviceregistry 置 DOWN
+#      摘流 -> sleep 40 等流量切净；需在 Nacos 配置中暴露 serviceregistry 端点
+#      （management.endpoints.web.exposure.include）；
 #      钩子仅在 docker compose stop/down/restart 时触发，要求 Docker Compose >= 2.30.0
 # ------------------------------------------------------------
 # 关于 environment.ENVIRONMENT：
@@ -53,10 +54,12 @@ services:
       - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-gateway-service/gc:/application/maozi-cloud-gateway-service/logs/gc
       - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-gateway-service/heapdump:/application/maozi-cloud-gateway-service/logs/heapdump
     stop_grace_period: 150s
-    # 停止前钩子: docker compose stop/down/restart 时, 在发送 SIGTERM 前依次执行:
-    #   1. POST /actuator/serviceregistry 将实例置为 DOWN, 先从 Nacos 摘流(进程仍正常服务)
-    #   2. sleep 10: 等待 Nacos 推送(~2s) + 网关 LoadBalancer 缓存过期(ttl 5s), 流量彻底切净
-    #   3. POST /actuator/shutdown: 优雅停机(graceful 排空在途请求后再注销注册中心)
+    # 停止前钩子: docker compose stop/down/restart 时, 在发送 SIGTERM 前执行;
+    # 仅 GRACEFUL_UPDATE=true 时生效 (配合 graceful-update-before/after 的
+    # A/Backup 双节点优雅更新, 默认 false 时直接走 SIGTERM 优雅停机):
+    #   1. sleep 40: 等 backup 组接管 (Nacos 服务列表刷新 / 网关 LB 缓存过期)
+    #   2. POST /actuator/serviceregistry 将实例置为 DOWN, 先从 Nacos 摘流(进程仍正常服务)
+    #   3. sleep 40: 等流量彻底切净后再收 SIGTERM (stop_grace_period 150s 内排空在途请求)
     # 每步失败不阻塞停机(|| true); $$ 双转义同 healthcheck: 端口取容器运行时环境变量 APPLICATION_PORT
     pre_stop:
       - command: |
@@ -71,9 +74,9 @@ services:
       # $$ 双转义: 端口取容器运行时环境变量 APPLICATION_PORT, 随各服务端口配置自动生效
       # liveness(存活) 与 readiness(就绪) 探针均返回 200 才视为健康
       test: ["CMD-SHELL", "curl -sf http://localhost:$$APPLICATION_PORT/actuator/health/liveness && curl -sf http://localhost:$$APPLICATION_PORT/actuator/health/readiness"]
-      interval: 5s      # 每 30 秒检查一次
+      interval: 5s      # 每 5 秒检查一次
       timeout: 5s        # 单次检查超时时间
-      retries: 3         # 连续失败 5 次后标记 unhealthy
+      retries: 3         # 连续失败 3 次后标记 unhealthy
       start_period: 60s # 启动宽限期(Java 服务启动较慢), 宽限期内失败不计入重试
 
   # 注: monitor / sentinel 两个中间件服务已迁往 maozi-cloud-basics-docker/docker-compose.yml
@@ -102,10 +105,12 @@ services:
       - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-oauth-service/gc:/application/maozi-cloud-oauth-service/logs/gc
       - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-oauth-service/heapdump:/application/maozi-cloud-oauth-service/logs/heapdump
     stop_grace_period: 150s
-    # 停止前钩子: docker compose stop/down/restart 时, 在发送 SIGTERM 前依次执行:
-    #   1. POST /actuator/serviceregistry 将实例置为 DOWN, 先从 Nacos 摘流(进程仍正常服务)
-    #   2. sleep 10: 等待 Nacos 推送(~2s) + 网关 LoadBalancer 缓存过期(ttl 5s), 流量彻底切净
-    #   3. POST /actuator/shutdown: 优雅停机(graceful 排空在途请求后再注销注册中心)
+    # 停止前钩子: docker compose stop/down/restart 时, 在发送 SIGTERM 前执行;
+    # 仅 GRACEFUL_UPDATE=true 时生效 (配合 graceful-update-before/after 的
+    # A/Backup 双节点优雅更新, 默认 false 时直接走 SIGTERM 优雅停机):
+    #   1. sleep 40: 等 backup 组接管 (Nacos 服务列表刷新 / 网关 LB 缓存过期)
+    #   2. POST /actuator/serviceregistry 将实例置为 DOWN, 先从 Nacos 摘流(进程仍正常服务)
+    #   3. sleep 40: 等流量彻底切净后再收 SIGTERM (stop_grace_period 150s 内排空在途请求)
     # 每步失败不阻塞停机(|| true); $$ 双转义同 healthcheck: 端口取容器运行时环境变量 APPLICATION_PORT
     pre_stop:
       - command: |
@@ -120,9 +125,9 @@ services:
       # $$ 双转义: 端口取容器运行时环境变量 APPLICATION_PORT, 随各服务端口配置自动生效
       # liveness(存活) 与 readiness(就绪) 探针均返回 200 才视为健康
       test: ["CMD-SHELL", "curl -sf http://localhost:$$APPLICATION_PORT/actuator/health/liveness && curl -sf http://localhost:$$APPLICATION_PORT/actuator/health/readiness"]
-      interval: 5s      # 每 30 秒检查一次
+      interval: 5s      # 每 5 秒检查一次
       timeout: 5s        # 单次检查超时时间
-      retries: 3         # 连续失败 5 次后标记 unhealthy
+      retries: 3         # 连续失败 3 次后标记 unhealthy
       start_period: 60s # 启动宽限期(Java 服务启动较慢), 宽限期内失败不计入重试
 
   # ============ System 业务服务 ============
@@ -148,10 +153,12 @@ services:
       - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-system-service/gc:/application/maozi-cloud-system-service/logs/gc
       - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-system-service/heapdump:/application/maozi-cloud-system-service/logs/heapdump
     stop_grace_period: 150s
-    # 停止前钩子: docker compose stop/down/restart 时, 在发送 SIGTERM 前依次执行:
-    #   1. POST /actuator/serviceregistry 将实例置为 DOWN, 先从 Nacos 摘流(进程仍正常服务)
-    #   2. sleep 10: 等待 Nacos 推送(~2s) + 网关 LoadBalancer 缓存过期(ttl 5s), 流量彻底切净
-    #   3. POST /actuator/shutdown: 优雅停机(graceful 排空在途请求后再注销注册中心)
+    # 停止前钩子: docker compose stop/down/restart 时, 在发送 SIGTERM 前执行;
+    # 仅 GRACEFUL_UPDATE=true 时生效 (配合 graceful-update-before/after 的
+    # A/Backup 双节点优雅更新, 默认 false 时直接走 SIGTERM 优雅停机):
+    #   1. sleep 40: 等 backup 组接管 (Nacos 服务列表刷新 / 网关 LB 缓存过期)
+    #   2. POST /actuator/serviceregistry 将实例置为 DOWN, 先从 Nacos 摘流(进程仍正常服务)
+    #   3. sleep 40: 等流量彻底切净后再收 SIGTERM (stop_grace_period 150s 内排空在途请求)
     # 每步失败不阻塞停机(|| true); $$ 双转义同 healthcheck: 端口取容器运行时环境变量 APPLICATION_PORT
     pre_stop:
       - command: |
@@ -166,9 +173,9 @@ services:
       # $$ 双转义: 端口取容器运行时环境变量 APPLICATION_PORT, 随各服务端口配置自动生效
       # liveness(存活) 与 readiness(就绪) 探针均返回 200 才视为健康
       test: ["CMD-SHELL", "curl -sf http://localhost:$$APPLICATION_PORT/actuator/health/liveness && curl -sf http://localhost:$$APPLICATION_PORT/actuator/health/readiness"]
-      interval: 5s      # 每 30 秒检查一次
+      interval: 5s      # 每 5 秒检查一次
       timeout: 5s        # 单次检查超时时间
-      retries: 3         # 连续失败 5 次后标记 unhealthy
+      retries: 3         # 连续失败 3 次后标记 unhealthy
       start_period: 60s # 启动宽限期(Java 服务启动较慢), 宽限期内失败不计入重试
 
   # ============ AI 业务服务 ============
@@ -194,10 +201,12 @@ services:
       - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-ai-service/gc:/application/maozi-cloud-ai-service/logs/gc
       - ${APPLICATION_LOG_PATH:-./../maozi-cloud-basics-docker/maozi-cloud-basic-promtail/maozi-cloud-logs}/${ENVIRONMENT:-${APPLICATION_ENVIRONMENT:-dev}}/${VERSION:-${APPLICATION_VERSION:-main}}/maozi-cloud-ai-service/heapdump:/application/maozi-cloud-ai-service/logs/heapdump
     stop_grace_period: 150s
-    # 停止前钩子: docker compose stop/down/restart 时, 在发送 SIGTERM 前依次执行:
-    #   1. POST /actuator/serviceregistry 将实例置为 DOWN, 先从 Nacos 摘流(进程仍正常服务)
-    #   2. sleep 10: 等待 Nacos 推送(~2s) + 网关 LoadBalancer 缓存过期(ttl 5s), 流量彻底切净
-    #   3. POST /actuator/shutdown: 优雅停机(graceful 排空在途请求后再注销注册中心)
+    # 停止前钩子: docker compose stop/down/restart 时, 在发送 SIGTERM 前执行;
+    # 仅 GRACEFUL_UPDATE=true 时生效 (配合 graceful-update-before/after 的
+    # A/Backup 双节点优雅更新, 默认 false 时直接走 SIGTERM 优雅停机):
+    #   1. sleep 40: 等 backup 组接管 (Nacos 服务列表刷新 / 网关 LB 缓存过期)
+    #   2. POST /actuator/serviceregistry 将实例置为 DOWN, 先从 Nacos 摘流(进程仍正常服务)
+    #   3. sleep 40: 等流量彻底切净后再收 SIGTERM (stop_grace_period 150s 内排空在途请求)
     # 每步失败不阻塞停机(|| true); $$ 双转义同 healthcheck: 端口取容器运行时环境变量 APPLICATION_PORT
     pre_stop:
       - command: |
@@ -212,9 +221,9 @@ services:
       # $$ 双转义: 端口取容器运行时环境变量 APPLICATION_PORT, 随各服务端口配置自动生效
       # liveness(存活) 与 readiness(就绪) 探针均返回 200 才视为健康
       test: ["CMD-SHELL", "curl -sf http://localhost:$$APPLICATION_PORT/actuator/health/liveness && curl -sf http://localhost:$$APPLICATION_PORT/actuator/health/readiness"]
-      interval: 5s      # 每 30 秒检查一次
+      interval: 5s      # 每 5 秒检查一次
       timeout: 5s        # 单次检查超时时间
-      retries: 3         # 连续失败 5 次后标记 unhealthy
+      retries: 3         # 连续失败 3 次后标记 unhealthy
       start_period: 60s # 启动宽限期(Java 服务启动较慢), 宽限期内失败不计入重试
 
 # 外部网络：与 maozi-cloud-basics-docker 共享同一网络

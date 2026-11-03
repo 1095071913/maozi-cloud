@@ -16,6 +16,8 @@
 package com.alibaba.csp.sentinel.dashboard.domain;
 
 /**
+ * Generic result wrapper for dashboard REST APIs.
+ *
  * @author leyou
  * @author Eric Zhao
  */

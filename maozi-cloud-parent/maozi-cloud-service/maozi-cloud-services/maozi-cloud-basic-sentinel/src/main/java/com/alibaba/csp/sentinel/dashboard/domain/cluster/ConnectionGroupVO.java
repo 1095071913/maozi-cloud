@@ -18,6 +18,8 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster;
 import java.util.List;
 
 /**
+ * Connections to a cluster token server, grouped by namespace.
+ *
  * @author Eric Zhao
  * @since 1.4.0
  */

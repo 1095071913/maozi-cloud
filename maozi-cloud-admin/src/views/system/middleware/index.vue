@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 中间件管理页：按配置展示中间件卡片，内嵌窗口打开并按策略自动登录（Grafana/Nacos/XXL-Job 等）
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { Link as LinkIcon, Promotion, Refresh } from '@element-plus/icons-vue'
 import { Md5 } from 'ts-md5'

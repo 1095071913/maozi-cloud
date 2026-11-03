@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * View object of one resource node on the realtime monitoring page.
+ *
  * @author leyou
  */
 public class ResourceVo {

@@ -1,5 +1,5 @@
 # ============================================================
-# distributeds 业务入口 (OpenResty 动态解析版) —— server 骨架
+# basics 基础组件入口 (OpenResty 动态解析版) —— server 骨架
 # ------------------------------------------------------------
 # 本文件不再包含 ${ENVIRONMENT}/${VERSION} 占位符 (OpenResty 镜像无
 # envsubst 模板机制), 域名后缀由 Lua os.getenv() 运行时拼接。

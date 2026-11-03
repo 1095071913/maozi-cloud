@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// JSON 树的单个节点行：字段名/类型/值的编辑与增删，容器节点递归渲染子级
 import { computed, inject } from 'vue'
 import { ArrowRight, Delete, Plus } from '@element-plus/icons-vue'
 import { TYPE_COLORS, VALUE_TYPE_OPTIONS, type JsonEditorOps, type JsonNodeData } from './types'

@@ -31,14 +31,13 @@ import java.util.Objects;
  */
 public class GatewayFlowRuleEntity implements RuleEntity {
 
-    /**间隔单位*/
-    /**0-秒*/
+    /** Interval unit: second. */
     public static final int INTERVAL_UNIT_SECOND = 0;
-    /**1-分*/
+    /** Interval unit: minute. */
     public static final int INTERVAL_UNIT_MINUTE = 1;
-    /**2-时*/
+    /** Interval unit: hour. */
     public static final int INTERVAL_UNIT_HOUR = 2;
-    /**3-天*/
+    /** Interval unit: day. */
     public static final int INTERVAL_UNIT_DAY = 3;
 
     /** The entity id. */

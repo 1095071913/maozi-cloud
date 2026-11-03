@@ -149,16 +149,12 @@ public class CollectionUtil {
     }
 
     /**
-     * 校验集合是否为空，为空时抛出业务异常
-     * <p>
-     * 注意：方法语义为「判断为空则抛错」，与命名一致；
-     * 入参为 {@code null} 或空集合均视为「为空」。
-     * </p>
+     * 校验集合不为空，为空时抛出业务异常
      *
      * @param collection 集合
      * @param resourceName 资源名称（用于异常提示定位）
      * @param <T> 元素类型
-     * @return 原集合（校验通过时返回）
+     * @return 原集合
      * @throws BusinessResultException 集合为 null 或空时抛出
      */
     public static <T> Collection<T> collectionIsEmptyThrowError(Collection<T> collection,String resourceName) {
@@ -173,17 +169,13 @@ public class CollectionUtil {
     }
 
     /**
-     * 校验 Map 是否为空，为空时抛出业务异常
-     * <p>
-     * 注意：方法语义为「判断为空则抛错」，与命名一致；
-     * 入参为 {@code null} 或空 Map 均视为「为空」。
-     * </p>
+     * 校验 Map 不为空，为空时抛出业务异常
      *
      * @param map Map 对象
      * @param resourceName 资源名称（用于异常提示定位）
      * @param <K> 键类型
      * @param <V> 值类型
-     * @return 原 Map（校验通过时返回）
+     * @return 原 Map
      * @throws BusinessResultException Map 为 null 或空时抛出
      */
     public static <K,V> Map<K,V> collectionIsEmptyThrowError(Map<K,V> map,String resourceName) {

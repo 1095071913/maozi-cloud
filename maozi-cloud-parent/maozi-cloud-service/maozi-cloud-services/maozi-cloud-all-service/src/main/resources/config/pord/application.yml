@@ -43,6 +43,7 @@ oss:
   # 路由到阿里云处理器
   store-type: aliyun
   aliyun:
+    # 访问凭证从环境变量注入，禁止硬编码
     access-key-id: ${ALIYUN_CLIENT_ID}
     access-key-secret: ${ALIYUN_CLIENT_SECRET}
     region: cn-beijing

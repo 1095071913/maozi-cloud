@@ -43,12 +43,7 @@ public class FilterSampler implements Sampler {
     }
 
     /**
-     * 采样决策：按规则过滤噪声 Span
-     * <p>
-     * 依次判断：main 线程（启动阶段）丢弃 → Span 名称命中排除列表丢弃 →
-     * Span 属性命中 {@link FilterType} 过滤器丢弃；否则正常采样上报。
-     * 过滤过程发生异常时为保证不丢数据，默认放行采样。
-     * </p>
+     * 采样决策：按规则过滤噪声 Span，未命中过滤规则或过滤异常时放行采样
      *
      * @param parentContext 父上下文
      * @param traceId 链路追踪 ID

@@ -16,6 +16,8 @@
 package com.alibaba.csp.sentinel.dashboard.domain.cluster.state;
 
 /**
+ * Simple cluster state of a machine: mode, client/server availability and last modified time.
+ *
  * @author Eric Zhao
  * @since 1.4.0
  */

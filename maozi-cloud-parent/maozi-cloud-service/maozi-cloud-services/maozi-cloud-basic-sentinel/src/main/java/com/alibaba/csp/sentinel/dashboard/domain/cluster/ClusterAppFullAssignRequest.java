@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Request for a full cluster assignment of an app, carrying the whole server-client map plus the remaining unassigned machines.
+ *
  * @author Eric Zhao
  * @since 1.4.1
  */

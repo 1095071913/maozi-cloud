@@ -54,42 +54,24 @@ public class ApplicationLinkContext {
     /** 当前线程的登录用户信息（含用户 ID、客户端 ID、用户名） */
     private static TransmittableThreadLocal<CurrentUserInfo> currentUserInfos = new TransmittableThreadLocal<>();
 
-    /**
-     * 获取当前线程的链路追踪 ID
-     *
-     * @return 链路追踪 ID，未设置时返回 {@code null}
-     */
     public static String getTraceId() {
         return traceIds.get();
     }
 
-    /**
-     * 获取当前线程的版本号（用于灰度路由）
-     *
-     * @return 版本号，未设置时返回 {@code null}
-     */
     public static String getVersion() {
         return versions.get();
     }
 
-    /**
-     * 获取当前线程的登录用户信息
-     *
-     * @return 当前登录用户信息，未登录时返回 {@code null}
-     */
     public static CurrentUserInfo getCurrentUserInfo() {
         return currentUserInfos.get();
     }
 
     /**
      * 通过函数式接口提取当前登录用户的指定属性
-     * <p>
-     * 当上下文中未携带用户信息时返回 {@code null}，避免 NPE。
-     * </p>
      *
-     * @param function 从 {@link CurrentUserInfo} 提取目标属性的函数（如 {@code CurrentUserInfo::getUserId}）
+     * @param function 属性提取函数（如 {@code CurrentUserInfo::getUserId}）
      * @param <R> 目标属性类型
-     * @return 当前用户的目标属性值；未登录或上下文缺失时返回 {@code null}
+     * @return 目标属性值，未登录时返回 null
      */
     public static <R> R getCurrentUserInfo(Function<CurrentUserInfo, R> function) {
         CurrentUserInfo currentUserInfo = currentUserInfos.get();
@@ -110,10 +92,7 @@ public class ApplicationLinkContext {
     }
 
     /**
-     * 设置当前线程的链路追踪 ID
-     * <p>
-     * 非空时同时写入 MDC，便于日志框架输出 trace_id 关联整条链路。
-     * </p>
+     * 设置当前线程的链路追踪 ID，非空时同时写入 MDC 便于日志关联
      *
      * @param traceId 链路追踪 ID，为空时不做任何处理
      */
@@ -124,20 +103,10 @@ public class ApplicationLinkContext {
         }
     }
 
-    /**
-     * 设置当前线程的版本号（用于灰度路由）
-     *
-     * @param version 版本号
-     */
     public static void setVersion(String version) {
         versions.set(version);
     }
 
-    /**
-     * 设置当前线程的登录用户信息
-     *
-     * @param currentUserInfo 当前登录用户信息
-     */
     public static void setCurrentUserInfo(CurrentUserInfo currentUserInfo) {
         currentUserInfos.set(currentUserInfo);
     }
@@ -154,11 +123,7 @@ public class ApplicationLinkContext {
     }
 
     /**
-     * 清理当前线程的链路上下文
-     * <p>
-     * 依次移除 SQL 日志线程变量、版本号、当前登录用户信息、链路追踪 ID，
-     * 并清空 MDC 中的全部内容。
-     * </p>
+     * 清理当前线程的链路上下文（含 SQL 日志、版本号、用户信息、链路追踪 ID 及 MDC）
      */
     public static void clearContext(){
         LogUtil.sqlLog.remove();

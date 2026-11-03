@@ -16,6 +16,8 @@
 package com.alibaba.csp.sentinel.dashboard.domain.cluster;
 
 /**
+ * Cluster state of a single machine (address, mode and target).
+ *
  * @author Eric Zhao
  * @since 1.4.1
  */

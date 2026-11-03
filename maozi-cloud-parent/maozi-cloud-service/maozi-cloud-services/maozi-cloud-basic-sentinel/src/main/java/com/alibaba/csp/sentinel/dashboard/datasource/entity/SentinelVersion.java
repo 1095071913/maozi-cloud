@@ -16,6 +16,8 @@
 package com.alibaba.csp.sentinel.dashboard.datasource.entity;
 
 /**
+ * Sentinel version composed of major, minor and fix version numbers plus an optional postfix.
+ *
  * @author Eric Zhao
  * @since 0.2.1
  */
@@ -44,9 +46,7 @@ public class SentinelVersion {
         this.postfix = postfix;
     }
     
-    /**
-     * 000, 000, 000
-     */
+    /** Get the full version as a single integer in the form major * 1000000 + minor * 1000 + fix. */
     public int getFullVersion() {
         return majorVersion * 1000000 + minorVersion * 1000 + fixVersion;
     }

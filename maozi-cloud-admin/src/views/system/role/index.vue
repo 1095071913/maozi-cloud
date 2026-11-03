@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 角色管理页：角色列表（前端关键字过滤）、新增/编辑并勾选权限树、启用禁用与删除
 import { computed, nextTick, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import {
@@ -134,7 +135,9 @@ function handleSubmit() {
         | string
         | number
       )[]
+      // 勾选的权限全集（半选的父节点也计入）
       const currentSelected = new Set([...checked, ...halfChecked])
+      // 与打开弹窗时的权限做差集：新增勾选的走绑定，取消勾选的走解绑
       const bindPermissionIds = [...currentSelected].filter(
         (id) => !originPermissionIds.value.includes(id)
       )
@@ -142,6 +145,7 @@ function handleSubmit() {
         (id) => !currentSelected.has(id)
       )
 
+      // 编辑时按差集增量绑定/解绑，新增时直接绑定全量勾选
       if (isEdit.value) {
         await updateRole(editId.value, {
           ...form,

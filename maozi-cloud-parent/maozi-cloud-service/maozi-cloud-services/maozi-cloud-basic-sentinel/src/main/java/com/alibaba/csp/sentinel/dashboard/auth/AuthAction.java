@@ -22,6 +22,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Annotation marking a controller method as requiring the given auth privilege.
+ *
  * @author lkxiaolou
  * @since 1.7.1
  */

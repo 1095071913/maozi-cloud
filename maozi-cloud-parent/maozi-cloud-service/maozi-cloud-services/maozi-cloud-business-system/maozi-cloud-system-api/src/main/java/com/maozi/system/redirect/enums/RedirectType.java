@@ -46,10 +46,6 @@ public enum RedirectType implements BaseEnum {
 
     /**
      * 输出枚举的字符串表示
-     * <p>
-     * 重写默认的 toString 方法，返回格式为 "值.描述" 的字符串，
-     * 便于在日志和调试信息中快速识别枚举的含义。
-     * </p>
      *
      * @return 格式为 "值.描述" 的字符串，例如 "0.登陆页"
      */

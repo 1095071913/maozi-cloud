@@ -3195,6 +3195,7 @@
 </template>
 
 <script setup lang="ts">
+// 项目控制台：项目管理/创建绑定向导 + 基础服务与应用服务（单体/微服务）的启停、日志、资源与配置管理
 import { computed, nextTick, onActivated, onDeactivated, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { api, type AppServiceEntry, type ComposeServiceStats, type ConfigEntry, type EnvFile, type EnvSettingGroup, type EnvSettingItem, type EnvSettingSection, type ProjectBinding, type ProjectEntry } from '../api'

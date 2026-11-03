@@ -41,7 +41,9 @@ RUN mkdir -p /${APP_NAME} && \
 # 安装 dumb-init（Ubuntu/Debian 系统用 apt，Alpine 用 apk）
 RUN apt update && apt install -y dumb-init && rm -rf /var/lib/apt/lists/*
 
+# OTel Agent: 官方字节码增强 Agent + 自定义 SPI 扩展 (供 CMD -javaagent 引用)
 COPY opentelemetry-javaagent.jar          /opt/opentelemetry/opentelemetry-javaagent.jar
 COPY maozi-cloud-agent-opentelemetry.jar  /opt/opentelemetry/maozi-cloud-agent-opentelemetry.jar
 
+# 从解压阶段带走完整 Arthas 目录 (agent/core/lib 需同目录共存)
 COPY --from=arthas-unpack /opt/arthas /opt/arthas

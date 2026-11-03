@@ -131,7 +131,7 @@ public class BusinessResultException extends RuntimeException {
     }
 
     /**
-     * 设置资源名称前缀
+     * 将资源名称作为前缀拼接到错误信息前
      *
      * @param resource 资源名称
      * @return 当前实例（链式调用）
@@ -141,35 +141,16 @@ public class BusinessResultException extends RuntimeException {
         return this;
     }
 
-    /**
-     * 设置错误信息
-     *
-     * @param message 错误信息
-     * @return 当前实例（链式调用）
-     */
     public BusinessResultException setMessage(String message) {
         this.errorResult.setMessage(message);
         return this;
     }
 
-    /**
-     * 设置错误信息和异常信息
-     *
-     * @param message 错误信息
-     * @param exceptionMessage 异常信息
-     * @return 当前实例（链式调用）
-     */
     public BusinessResultException setMessage(String message,String exceptionMessage) {
         this.errorResult.setMessage(message,exceptionMessage);
         return this;
     }
 
-    /**
-     * 设置 HTTP 状态码
-     *
-     * @param httpCode HTTP 状态码
-     * @return 当前实例（链式调用）
-     */
     public BusinessResultException setHttpCode(Integer httpCode) {
         this.errorResult.setHttpCode(httpCode);
         return this;

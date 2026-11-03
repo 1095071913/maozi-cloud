@@ -17,25 +17,18 @@ import lombok.Getter;
  */
 public enum FilterType {
 
-    /** HTTP 请求来源，值为 0，描述为 "Http" */
+    /** HTTP 请求来源 */
     HTTP(0,"Http",new HttpFilterHandle()),
 
-    /** Redis 访问来源，值为 1，描述为 "Redis" */
+    /** Redis 访问来源 */
     REDIS(1,"Redis", new RedisFilterHandle()),
 
-    /** MySQL 访问来源，值为 2，描述为 "Mysql" */
+    /** MySQL 访问来源 */
     MYSQL(2,"Mysql",new MysqlFilterHandle()),
 
     ;
 
 
-    /**
-     * 枚举构造方法
-     *
-     * @param value 枚举的整型值
-     * @param desc 来源类型的英文描述
-     * @param handle 该类型绑定的过滤器实现
-     */
     FilterType(Integer value, String desc, FilterHandle handle){
 
         this.value = value;

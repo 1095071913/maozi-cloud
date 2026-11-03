@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 权限管理页：树表展示目录/菜单/按钮层级，支持新增子级、编辑与删除
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import {

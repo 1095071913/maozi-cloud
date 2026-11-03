@@ -8,15 +8,15 @@ spring:
   config:
     # 导入各组件子配置文件（classpath 下的 config/ 目录）
     import:
-      - classpath:config/${application.environment:local}/application.yml
+      - classpath:config/${application.environment:local}/application.yml        # 环境差异化配置（AI、图片存储等）
       - classpath:config/${application.environment:local}/boot-default.yml       # 通用默认配置（服务器、Jackson、日志级别等）
       - classpath:config/${application.environment:local}/boot-db.yml             # 数据库配置（MyBatis-Plus、Flyway）
       - classpath:config/${application.environment:local}/boot-redis.yml          # Redis 缓存配置
       - classpath:config/${application.environment:local}/boot-lock.yml           # 分布式锁（Redisson）配置
       - classpath:config/${application.environment:local}/cloud-oauth.yml         # OAuth2 资源服务器配置
-      - classpath:config/${application.environment:local}/boot-monitor.yml
+      - classpath:config/${application.environment:local}/boot-monitor.yml        # 监控端点配置（Actuator）
 
-# 项目展示信息（用于 Swagger 文档、日志等）
+# 项目基础信息（服务端口与 Swagger 文档展示信息）
 application:
   port: 1100
   title: 单体全量业务服务

@@ -18,6 +18,9 @@ package com.alibaba.csp.sentinel.dashboard.discovery;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Registry of discovered applications and their machines.
+ */
 public interface MachineDiscovery {
 
     /**

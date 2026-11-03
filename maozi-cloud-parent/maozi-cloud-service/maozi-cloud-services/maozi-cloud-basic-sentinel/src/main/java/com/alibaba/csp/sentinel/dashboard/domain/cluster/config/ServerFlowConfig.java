@@ -16,6 +16,8 @@
 package com.alibaba.csp.sentinel.dashboard.domain.cluster.config;
 
 /**
+ * Cluster token server flow config: exceed count, statistic interval and max allowed QPS.
+ *
  * @author Eric Zhao
  * @since 1.4.0
  */

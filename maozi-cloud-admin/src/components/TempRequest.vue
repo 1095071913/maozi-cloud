@@ -96,7 +96,7 @@ async function handleRestore() {
   min-width: 132px;
 }
 
-/** 地址过长时省略号截断 */
+// 地址过长时省略号截断
 .temp-url {
   display: inline-block;
   max-width: 200px;

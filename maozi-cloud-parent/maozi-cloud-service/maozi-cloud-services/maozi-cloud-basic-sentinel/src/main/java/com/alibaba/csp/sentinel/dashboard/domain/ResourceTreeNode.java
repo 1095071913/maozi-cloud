@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Node of the resource tree shown on the realtime monitoring page.
+ *
  * @author leyou
  */
 public class ResourceTreeNode {

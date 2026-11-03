@@ -2,7 +2,7 @@
 # Arthas 控制台 (arthas-tunnel-server, 在线诊断中心)
 # ------------------------------------------------------------
 # 未登录 302 -> /_auth/login.html (登录机制与凭据写法详见
-# form-auth.conf.template 顶部说明)。
+# lua/form_auth.lua 顶部说明)。
 #
 # 注意: 带变量的 proxy_pass 一旦带 URI (如 .../apps.html) 会替换整个
 # 请求路径, apps.html 内 ./static/... 相对资源将全部拿到 HTML 而白屏,

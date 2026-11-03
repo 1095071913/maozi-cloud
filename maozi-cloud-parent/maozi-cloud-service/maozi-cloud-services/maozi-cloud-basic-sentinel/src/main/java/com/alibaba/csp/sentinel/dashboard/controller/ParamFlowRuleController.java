@@ -47,6 +47,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
+ * Controller for hot parameter (hotspot) flow control rules.
+ *
  * @author Eric Zhao
  * @since 0.2.1
  */

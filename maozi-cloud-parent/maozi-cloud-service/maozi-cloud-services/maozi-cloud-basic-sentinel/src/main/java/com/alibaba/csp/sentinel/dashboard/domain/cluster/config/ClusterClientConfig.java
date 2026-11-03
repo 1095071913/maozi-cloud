@@ -16,6 +16,8 @@
 package com.alibaba.csp.sentinel.dashboard.domain.cluster.config;
 
 /**
+ * Cluster token client config: the target server address and the request/connect timeouts.
+ *
  * @author Eric Zhao
  * @since 1.4.0
  */

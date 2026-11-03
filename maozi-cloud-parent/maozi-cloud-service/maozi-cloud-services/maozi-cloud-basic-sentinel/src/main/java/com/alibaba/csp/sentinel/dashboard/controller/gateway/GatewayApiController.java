@@ -130,14 +130,14 @@ public class GatewayApiController {
         }
         entity.setPort(port);
 
-        // API名称
+        // API name.
         String apiName = reqVo.getApiName();
         if (StringUtil.isBlank(apiName)) {
             return Result.ofFail(-1, "apiName can't be null or empty");
         }
         entity.setApiName(apiName.trim());
 
-        // 匹配规则列表
+        // Predicate items.
         List<ApiPredicateItemVo> predicateItems = reqVo.getPredicateItems();
         if (CollectionUtils.isEmpty(predicateItems)) {
             return Result.ofFail(-1, "predicateItems can't empty");
@@ -147,14 +147,14 @@ public class GatewayApiController {
         for (ApiPredicateItemVo predicateItem : predicateItems) {
             ApiPredicateItemEntity predicateItemEntity = new ApiPredicateItemEntity();
 
-            // 匹配模式
+            // Match strategy.
             Integer matchStrategy = predicateItem.getMatchStrategy();
             if (!Arrays.asList(URL_MATCH_STRATEGY_EXACT, URL_MATCH_STRATEGY_PREFIX, URL_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
                 return Result.ofFail(-1, "invalid matchStrategy: " + matchStrategy);
             }
             predicateItemEntity.setMatchStrategy(matchStrategy);
 
-            // 匹配串
+            // Match pattern.
             String pattern = predicateItem.getPattern();
             if (StringUtil.isBlank(pattern)) {
                 return Result.ofFail(-1, "pattern can't be null or empty");
@@ -165,7 +165,7 @@ public class GatewayApiController {
         }
         entity.setPredicateItems(new LinkedHashSet<>(predicateItemEntities));
 
-        // 检查API名称不能重复
+        // Reject a duplicate API name within the app.
         List<ApiDefinitionEntity> allApis = repository.findAllByApp(app.trim());
         if (allApis.stream().map(o -> o.getApiName()).anyMatch(o -> o.equals(apiName.trim()))) {
             return Result.ofFail(-1, "apiName exists: " + apiName);
@@ -208,7 +208,7 @@ public class GatewayApiController {
             return Result.ofFail(-1, "api does not exist, id=" + id);
         }
 
-        // 匹配规则列表
+        // Predicate items.
         List<ApiPredicateItemVo> predicateItems = reqVo.getPredicateItems();
         if (CollectionUtils.isEmpty(predicateItems)) {
             return Result.ofFail(-1, "predicateItems can't empty");
@@ -218,14 +218,14 @@ public class GatewayApiController {
         for (ApiPredicateItemVo predicateItem : predicateItems) {
             ApiPredicateItemEntity predicateItemEntity = new ApiPredicateItemEntity();
 
-            // 匹配模式
+            // Match strategy.
             int matchStrategy = predicateItem.getMatchStrategy();
             if (!Arrays.asList(URL_MATCH_STRATEGY_EXACT, URL_MATCH_STRATEGY_PREFIX, URL_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
                 return Result.ofFail(-1, "Invalid matchStrategy: " + matchStrategy);
             }
             predicateItemEntity.setMatchStrategy(matchStrategy);
 
-            // 匹配串
+            // Match pattern.
             String pattern = predicateItem.getPattern();
             if (StringUtil.isBlank(pattern)) {
                 return Result.ofFail(-1, "pattern can't be null or empty");

@@ -36,10 +36,6 @@ public interface RestRoleService {
 
 	/**
 	 * 获取角色列表
-	 * <p>
-	 * 查询系统中所有角色的列表数据，
-	 * 当前实现仅查询角色的 ID 与名称字段。
-	 * </p>
 	 *
 	 * @return 返回角色列表数据，仅包含角色 ID 与名称
 	 */

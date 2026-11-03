@@ -6,7 +6,7 @@
 
 server:
   port: ${APPLICATION_PORT:${application.port:0}}
-  error.path: /application/error
+  error.path: /application/error # 统一错误处理路径
   shutdown: graceful # graceful=优雅停机 / immediate=立刻关闭
 
 spring:

@@ -29,15 +29,15 @@ public interface RuleRepository<T, ID> {
     /**
      * Save one.
      *
-     * @param entity
-     * @return
+     * @param entity the entity to save
+     * @return the saved entity
      */
     T save(T entity);
 
     /**
      * Save all.
      *
-     * @param rules
+     * @param rules the rules to save
      * @return rules saved.
      */
     List<T> saveAll(List<T> rules);
@@ -45,7 +45,7 @@ public interface RuleRepository<T, ID> {
     /**
      * Delete by id
      *
-     * @param id
+     * @param id the id of the entity to delete
      * @return entity deleted
      */
     T delete(ID id);
@@ -53,16 +53,16 @@ public interface RuleRepository<T, ID> {
     /**
      * Find by id.
      *
-     * @param id
-     * @return
+     * @param id the id of the entity
+     * @return the entity with the given id, or {@code null} if it does not exist
      */
     T findById(ID id);
 
     /**
      * Find all by machine.
      *
-     * @param machineInfo
-     * @return
+     * @param machineInfo the machine to find rules for
+     * @return rules bound to the given machine
      */
     List<T> findAllByMachine(MachineInfo machineInfo);
 

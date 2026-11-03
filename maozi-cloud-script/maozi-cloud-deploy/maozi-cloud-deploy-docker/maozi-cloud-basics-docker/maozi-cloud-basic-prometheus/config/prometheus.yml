@@ -9,9 +9,10 @@
 #   global.scrape_interval: 15s          全局抓取周期（开发期够用）
 #   global.evaluation_interval: 15s      告警规则评估周期
 #   scrape_configs                        抓取目标集合（均通过 /actuator/prometheus 暴露）：
-#     - maozi-cloud-gateway-service   业务网关指标（端口 1000）
+#     - maozi-cloud-gateway-service   业务网关指标（端口 1100）
 #     - maozi-cloud-oauth-service     OAuth 鉴权服务指标（端口 3000）
 #     - maozi-cloud-system-service    系统管理服务指标（端口 4000）
+#     - maozi-cloud-ai-service        AI 业务服务指标（端口 6000）
 #     （prometheus 自身抓取与 monitor/Spring Boot Admin 抓取已注释或未配置，
 #      如需启用请在下方 scrape_configs 中补充）
 # ------------------------------------------------------------
@@ -41,7 +42,7 @@ scrape_configs:
 #      - targets: ['localhost:9090']
 
   # ---------- 业务网关 ----------
-  # 对应 docker-compose.yml 中的 maozi-cloud-gateway-service:1000
+  # 对应 docker-compose.yml 中的 maozi-cloud-gateway-service:1100
   - job_name: 'maozi-cloud-gateway-service'
     metrics_path: '/actuator/prometheus'
     static_configs:

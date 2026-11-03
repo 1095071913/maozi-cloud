@@ -18,6 +18,8 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.request;
 import com.alibaba.csp.sentinel.dashboard.domain.cluster.config.ClusterClientConfig;
 
 /**
+ * Request to modify the cluster token client config of a machine.
+ *
  * @author Eric Zhao
  * @since 1.4.0
  */

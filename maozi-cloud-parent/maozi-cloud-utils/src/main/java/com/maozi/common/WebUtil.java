@@ -25,24 +25,16 @@ import java.util.Objects;
 @Slf4j
 public class WebUtil {
 
-    /**
-     * 本地IP地址
-     */
+    /** 本地 IP 地址 */
     public final static String LOCAL_IP = "127.0.0.1";
 
-    /**
-     * 本地回环IP地址
-     */
+    /** 本地回环 IP 地址（IPv6） */
     public final static String LOCAL_LOOPBACK_IP = "0:0:0:0:0:0:0:1";
 
     /**
      * 判断当前线程是否处于 HTTP 请求上下文
-     * <p>
-     * 通过 {@link #getRequest()} 能否拿到当前 HttpServletRequest 来判断，
-     * 用于在定时任务、消息消费者等非 Web 入口处跳过 Web 相关逻辑。
-     * </p>
      *
-     * @return 在 Web 请求线程中返回 {@code true}，否则返回 {@code false}
+     * @return 在 Web 请求线程中返回 true，否则返回 false
      */
     public static Boolean isHttpRequest() {
         return ObjectUtil.isNotNullEmpty(getRequest());
@@ -50,12 +42,8 @@ public class WebUtil {
 
     /**
      * 获取当前 HTTP 请求对象
-     * <p>
-     * 通过 Spring 的 RequestContextHolder 获取当前线程绑定的 Servlet 请求属性，
-     * 进而获取 HttpServletRequest 对象。仅在 Web 请求线程中有效。
-     * </p>
      *
-     * @return 当前 HttpServletRequest 对象，如果不在 Web 请求上下文中则返回 null
+     * @return 当前 HttpServletRequest，不在 Web 请求上下文中时返回 null
      */
     public static HttpServletRequest getRequest() {
         ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
@@ -67,12 +55,8 @@ public class WebUtil {
 
     /**
      * 获取当前 HTTP 响应对象
-     * <p>
-     * 通过 Spring 的 RequestContextHolder 获取当前线程绑定的 Servlet 请求属性，
-     * 进而获取 HttpServletResponse 对象。仅在 Web 请求线程中有效。
-     * </p>
      *
-     * @return 当前 HttpServletResponse 对象，如果不在 Web 请求上下文中则返回 null
+     * @return 当前 HttpServletResponse，不在 Web 请求上下文中时返回 null
      */
     public static HttpServletResponse getResponse() {
         ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
@@ -84,15 +68,13 @@ public class WebUtil {
 
 
     /**
-     * 向 HTTP 响应中写入 JSON 格式的数据
+     * 将数据序列化为 JSON 写入响应输出流（Content-Type 为 application/json）
      * <p>
-     * 将指定的数据对象序列化为 JSON 并写入响应输出流，
-     * 同时设置响应头 Content-Type 为 application/json。
-     * 如果响应对象或数据为空，则不做任何操作；写出过程中发生异常时仅记录 error 日志，不向外抛出。
+     * 响应对象或数据为空时不做任何操作；写出异常时仅记录 error 日志，不向外抛出。
      * </p>
      *
      * @param response HTTP 响应对象
-     * @param data 要写入的数据对象，将被序列化为 JSON 格式
+     * @param data 要写入的数据对象
      */
     public static void writeResponseBody(HttpServletResponse response,Object data){
 
@@ -110,12 +92,8 @@ public class WebUtil {
 
     /**
      * 获取当前请求的客户端真实 IP 地址
-     * <p>
-     * 无参重载，自动从 {@link #getRequest()} 取当前请求后委托给
-     * Hutool 的 {@code JakartaServletUtil#getClientIP} 解析客户端 IP。
-     * </p>
      *
-     * @return 客户端真实 IP 地址字符串
+     * @return 客户端 IP 地址
      * @throws NullPointerException 不在 Web 请求上下文中调用时抛出
      */
     public static String getRequestHost() {

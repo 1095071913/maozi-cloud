@@ -43,9 +43,7 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
     /** Max time in ms a metric entity is kept in the in-memory cache. */
     private static final long MAX_METRIC_LIVE_TIME_MS = 1000 * 60 * 5;
 
-    /**
-     * {@code app -> resource -> timestamp -> metric}
-     */
+    /** All cached metrics: {@code app -> resource -> timestamp -> metric}. */
     private Map<String, Map<String, LinkedHashMap<Long, MetricEntity>>> allMetrics = new ConcurrentHashMap<>();
 
     /** Read-write lock guarding the access to {@link #allMetrics}. */

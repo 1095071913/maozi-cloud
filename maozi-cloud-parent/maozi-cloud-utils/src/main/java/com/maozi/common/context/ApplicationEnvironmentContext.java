@@ -32,11 +32,6 @@ public class ApplicationEnvironmentContext {
     /** 项目缩写 */
     public static String APPLICATION_PROJECT_ABBREVIATION;
 
-    /**
-     * 设置项目缩写
-     *
-     * @param applicationProjectAbbreviation 项目缩写
-     */
     @Value("${application-project-abbreviation}")
     public void setApplicationProjectAbbreviation(String applicationProjectAbbreviation) {
         ApplicationEnvironmentContext.APPLICATION_PROJECT_ABBREVIATION = applicationProjectAbbreviation;
@@ -45,11 +40,6 @@ public class ApplicationEnvironmentContext {
     /** 服务名称 */
     public static String SERVICE_NAME;
 
-    /**
-     * 设置服务名称
-     *
-     * @param serviceName 服务名称
-     */
     @Value("${spring.application.name}")
     public void setServiceName(String serviceName) {
         ApplicationEnvironmentContext.SERVICE_NAME = serviceName;
@@ -58,11 +48,6 @@ public class ApplicationEnvironmentContext {
     /** Nacos 配置中心地址 */
     public static String CONFIG_ADDR;
 
-    /**
-     * 设置 Nacos 配置地址
-     *
-     * @param configAddr 配置中心地址
-     */
     @Value("${spring.cloud.nacos.config.server-addr:127.0.0.1:8848}")
     public void setConfigAddr(String configAddr) {
         ApplicationEnvironmentContext.CONFIG_ADDR = configAddr;
@@ -71,11 +56,6 @@ public class ApplicationEnvironmentContext {
     /** 当前运行环境 */
     public static String ENVIRONMENT;
 
-    /**
-     * 设置当前环境
-     *
-     * @param environment 环境标识
-     */
     @Value("${application.environment:local}")
     public void setEnvironment(String environment) {
         ApplicationEnvironmentContext.ENVIRONMENT = environment;
@@ -84,11 +64,6 @@ public class ApplicationEnvironmentContext {
     /** 项目标题 */
     public static String TITLE;
 
-    /**
-     * 设置项目标题
-     *
-     * @param title 项目标题
-     */
     @Value("${application.title:}")
     public void setTitle(String title) {
         ApplicationEnvironmentContext.TITLE = title;
@@ -97,11 +72,6 @@ public class ApplicationEnvironmentContext {
     /** 项目版本 */
     public static String VERSION;
 
-    /**
-     * 设置项目版本
-     *
-     * @param version 版本号
-     */
     @Value("${application.version:main}")
     public void setVersion(String version) {
         ApplicationEnvironmentContext.VERSION = version;
@@ -110,11 +80,6 @@ public class ApplicationEnvironmentContext {
     /** 项目描述 */
     public static String DETAILS;
 
-    /**
-     * 设置项目描述
-     *
-     * @param details 项目描述
-     */
     @Value("${application.details:}")
     public void setDetails(String details) {
         ApplicationEnvironmentContext.DETAILS = details;
@@ -123,11 +88,6 @@ public class ApplicationEnvironmentContext {
     /** Spring Environment 实例 */
     public static Environment CONFIG;
 
-    /**
-     * 设置 Environment 实例
-     *
-     * @param environmentConfig Spring Environment
-     */
     @Resource
     public void setEnvironmentConfig(Environment environmentConfig) {
         ApplicationEnvironmentContext.CONFIG = environmentConfig;

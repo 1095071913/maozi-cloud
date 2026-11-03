@@ -64,14 +64,13 @@ public interface RestConfigService {
 	AbstractBaseResult<Long> restSave(@RequestBody @Valid ConfigSaveUpdateParam param);
 
 	/**
-	 * 获取配置下拉列表
+	 * 获取指定类型的配置下拉列表
 	 * <p>
-	 * 根据配置类型（必传，为空时抛出业务异常）返回该类型下所有启用状态的配置选项，
-	 * 每项包含配置 ID、名称、别名、配置值与排序值，按排序值升序、创建时间升序排列。
+	 * 仅返回启用状态的配置选项，按排序值升序、创建时间升序排列。
 	 * </p>
 	 *
-	 * @param type 配置类型（必传），用于筛选指定类型的配置选项
-	 * @return 返回指定类型的配置下拉列表数据
+	 * @param type 配置类型（必传，为空时抛出业务异常）
+	 * @return 指定类型下启用状态的配置下拉列表
 	 */
 	@Get(value = PATH + "/{type}/dropDownList",description = "配置下拉列表")
 	AbstractBaseResult<List<ConfigDropDownResult>> dropDownListResult(@PathVariable("type") String type);
@@ -120,9 +119,8 @@ public interface RestConfigService {
 	/**
 	 * 更新配置信息（动态更新）
 	 * <p>
-	 * 仅更新传入的字段（名称、别名、类型、配置值、排序值），
-	 * 未传入的字段保持原值不变，不参与更新；
-	 * 传入配置名称时校验其唯一性（排除自身记录），重复时抛出业务异常。
+	 * 仅更新传入的字段（名称、别名、类型、配置值、排序值），未传入的字段保持原值；
+	 * 传入配置名称时校验唯一性（排除自身记录），重复时抛出业务异常。
 	 * </p>
 	 *
 	 * @param id    配置 ID，指定需要更新的配置记录

@@ -20,6 +20,8 @@ import com.alibaba.csp.sentinel.slots.block.Rule;
 import java.util.Date;
 
 /**
+ * Interface of entities that can be converted to a Sentinel {@link Rule}.
+ *
  * @author leyou
  */
 public interface RuleEntity {

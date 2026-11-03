@@ -34,6 +34,8 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
+ * Controller for cluster token server assignment and unbinding operations.
+ *
  * @author Eric Zhao
  * @since 1.4.1
  */

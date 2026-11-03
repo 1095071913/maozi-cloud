@@ -18,6 +18,8 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster;
 import java.util.Set;
 
 /**
+ * Result of a cluster assignment operation, carrying the failed server/client sets and the total machine count.
+ *
  * @author Eric Zhao
  * @since 1.4.1
  */

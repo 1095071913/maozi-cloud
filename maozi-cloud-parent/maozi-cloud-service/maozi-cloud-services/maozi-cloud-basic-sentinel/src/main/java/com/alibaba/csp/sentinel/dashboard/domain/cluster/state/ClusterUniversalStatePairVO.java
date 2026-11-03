@@ -16,6 +16,8 @@
 package com.alibaba.csp.sentinel.dashboard.domain.cluster.state;
 
 /**
+ * Pair of a machine (ip and command port) and its universal cluster state.
+ *
  * @author Eric Zhao
  * @since 1.4.1
  */

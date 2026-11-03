@@ -85,13 +85,9 @@ public final class NacosConfigUtil {
     /** DataId postfix of the cluster assignment map (no {@code .json} suffix). */
     public static final String CLUSTER_MAP_DATA_ID_POSTFIX = "-cluster-map";
 
-    /**
-     * cc for `cluster-client`
-     */
+    /** DataId postfix of the cluster-client config ({@code cc} for cluster-client). */
     public static final String CLIENT_CONFIG_DATA_ID_POSTFIX = "-cc-config";
-    /**
-     * cs for `cluster-server`
-     */
+    /** DataId postfix of the cluster-server transport config ({@code cs} for cluster-server). */
     public static final String SERVER_TRANSPORT_CONFIG_DATA_ID_POSTFIX = "-cs-transport-config";
     /** DataId postfix of the cluster-server flow config. */
     public static final String SERVER_FLOW_CONFIG_DATA_ID_POSTFIX = "-cs-flow-config";

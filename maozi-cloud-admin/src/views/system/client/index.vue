@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 客户端管理页：客户端的分页查询、新增/编辑、启用禁用与删除
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import {

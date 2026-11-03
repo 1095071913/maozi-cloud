@@ -45,7 +45,6 @@ public class JacksonUtil {
 	@Getter
     private static final ObjectMapper objectMapper;
 
-	// 类加载时初始化全局 ObjectMapper，确保配置只执行一次
 	static{
 		objectMapper = initObjectMapperConfig();
 	}
@@ -60,11 +59,7 @@ public class JacksonUtil {
 	}
 
 	/**
-	 * 初始化 ObjectMapper 配置
-	 * <p>
-	 * 配置包括：非空序列化、东八区时区、日期格式、Long 转字符串、
-	 * 空字符串转 null、Java 8 日期时间支持等。
-	 * </p>
+	 * 初始化 ObjectMapper 配置（非空序列化、东八区时区、Long 转字符串、空字符串转 null、Java 8 日期时间支持等）
 	 *
 	 * @param objectMapper 待配置的 ObjectMapper 实例
 	 * @return 配置好的 ObjectMapper，传入为空时返回 null
@@ -95,7 +90,6 @@ public class JacksonUtil {
 		// 空字符串反序列化为 null
 		module.addDeserializer(String.class, new StdDeserializer<>(String.class) {
 
-			/** 先按默认逻辑反序列化字符串，结果为空字符串时归一为 null */
 			@Override
 			public String deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
 				String result = StringDeserializer.instance.deserialize(jsonParser, deserializationContext);

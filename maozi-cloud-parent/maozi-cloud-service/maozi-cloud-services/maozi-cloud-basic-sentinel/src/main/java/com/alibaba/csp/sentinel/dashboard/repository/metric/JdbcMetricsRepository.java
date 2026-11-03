@@ -301,15 +301,15 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
                     bucket.setCount(0);
                     accumulator = new BucketAccumulator(bucket);
                 }
-                // 窗口回退重拉到的重复秒只折叠一次, 防止桶值双倍计数
+                // A second re-pulled after a window rollback folds only once, so the bucket is never double counted.
                 if (!accumulator.foldedSeconds.add(second)) {
                     return accumulator;
                 }
                 MetricEntity bucket = accumulator.entity;
                 bucket.addPassQps(metric.getPassQps());
                 bucket.addBlockQps(metric.getBlockQps());
-                // 实体的 rt 已是总 RT(avgRt*successQps), 桶累积直接相加;
-                // 不能走 addRtAndSuccessQps, 它会把传入值当平均 RT 再乘一次 successQps
+                // The entity rt is already the total RT (avgRt * successQps), so buckets just add it up;
+                // addRtAndSuccessQps must not be used here as it would multiply the total RT by successQps again.
                 bucket.setRt(bucket.getRt() + metric.getRt());
                 bucket.setSuccessQps(bucket.getSuccessQps() + metric.getSuccessQps());
                 bucket.addExceptionQps(metric.getExceptionQps());
@@ -392,12 +392,12 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         normalized.setTimestamp(bucket.getTimestamp());
         normalized.setGmtCreate(bucket.getGmtCreate());
         normalized.setGmtModified(new Date());
-        // N 秒窗口总量语义: 不做每秒平均归一化, 窗口内 3 次请求就存 3
+        // N-second window totals: no per-second normalization, 3 requests in the window are stored as 3.
         normalized.setPassQps(bucket.getPassQps());
         normalized.setSuccessQps(bucket.getSuccessQps());
         normalized.setBlockQps(bucket.getBlockQps());
         normalized.setExceptionQps(bucket.getExceptionQps());
-        // rt 保持总RT(平均RT*成功QPS): 读取侧 rt/successQps 即请求加权平均响应时间
+        // rt keeps the total-RT semantics (avg RT * successQPS): rt / successQps on read is the request-weighted mean RT.
         normalized.setRt(bucket.getRt());
         normalized.setCount(bucket.getCount());
         return normalized;

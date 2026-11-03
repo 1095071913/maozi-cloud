@@ -18,6 +18,8 @@ package com.alibaba.csp.sentinel.dashboard.datasource.entity;
 import java.util.Date;
 
 /**
+ * Entity of one metric record of a resource in a time slot.
+ *
  * @author leyou
  */
 public class MetricEntity {
@@ -29,9 +31,7 @@ public class MetricEntity {
     private Date gmtModified;
     /** The application name. */
     private String app;
-    /**
-     * 监控信息的时间戳
-     */
+    /** The timestamp of the metric. */
     private Date timestamp;
     /** The resource name. */
     private String resource;
@@ -44,19 +44,16 @@ public class MetricEntity {
     /** The exception QPS. */
     private Long exceptionQps;
 
-    /**
-     * summary rt of all success exit qps.
-     */
+    /** The summary RT of all success exits. */
     private double rt;
 
-    /**
-     * 本次聚合的总条数
-     */
+    /** The total count of this aggregation. */
     private int count;
 
     /** The hash code of the resource name, updated when the resource is set. */
     private int resourceCode;
 
+    /** Create a copy of the given entity with all fields copied. */
     public static MetricEntity copyOf(MetricEntity oldEntity) {
         MetricEntity entity = new MetricEntity();
         entity.setId(oldEntity.getId());
@@ -74,18 +71,22 @@ public class MetricEntity {
         return entity;
     }
 
+    /** Add the given value to the passed QPS. */
     public synchronized void addPassQps(Long passQps) {
         this.passQps += passQps;
     }
 
+    /** Add the given value to the blocked QPS. */
     public synchronized void addBlockQps(Long blockQps) {
         this.blockQps += blockQps;
     }
 
+    /** Add the given value to the exception QPS. */
     public synchronized void addExceptionQps(Long exceptionQps) {
         this.exceptionQps += exceptionQps;
     }
 
+    /** Add the given value to the total count. */
     public synchronized void addCount(int count) {
         this.count += count;
     }
@@ -99,10 +100,10 @@ public class MetricEntity {
     }
 
     /**
-     * {@link #rt} = {@code avgRt * successQps}
+     * Set {@link #rt} to {@code avgRt * successQps} and the success QPS to the given value.
      *
-     * @param avgRt      average rt of {@code successQps}
-     * @param successQps
+     * @param avgRt      the average RT of the {@code successQps} requests
+     * @param successQps the success QPS
      */
     public synchronized void setRtAndSuccessQps(double avgRt, Long successQps) {
         this.rt = avgRt * successQps;

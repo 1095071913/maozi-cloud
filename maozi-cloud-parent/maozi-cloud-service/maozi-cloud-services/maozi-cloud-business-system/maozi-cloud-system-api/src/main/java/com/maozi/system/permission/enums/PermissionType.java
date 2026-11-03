@@ -50,9 +50,9 @@ public enum PermissionType implements BaseEnum {
 	private final String desc;
 
 	/**
-	 * 重写toString方法，返回 "编码.描述" 格式的字符串
+	 * 输出枚举的字符串表示
 	 *
-	 * @return 格式化的枚举字符串表示
+	 * @return 格式为 "编码.描述" 的字符串
 	 */
 	@Override
 	public String toString() {

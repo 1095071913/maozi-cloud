@@ -26,7 +26,6 @@ public class RpcConfigServiceImpl extends ConfigServiceImpl implements RpcConfig
 	 * <p>
 	 * 配置键名即配置名称（name），全局唯一。
 	 * 配置键名为空时抛出业务异常，配置不存在时返回 null（data 为空）。
-	 * 该方法通过 Dubbo RPC 协议对外暴露，供其他微服务远程调用。
 	 * </p>
 	 *
 	 * @param key 配置键名（对应配置名称）

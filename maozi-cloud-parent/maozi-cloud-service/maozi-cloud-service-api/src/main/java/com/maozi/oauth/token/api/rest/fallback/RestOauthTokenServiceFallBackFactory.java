@@ -11,19 +11,12 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
-//--------------------------------------------------------------------------------------------------
-// 兼容说明：本降级工厂仍处于生效状态（@Component 仍注册为 Spring Bean），
-// 用于配合仍生效的 RestOauthTokenService Feign 客户端。
-// 令牌内省主链路已切换为 Dubbo RPC，详见：
-//   com.maozi.oauth.token.api.OauthTokenService
-//   com.maozi.oauth.token.api.impl.rpc.RpcOauthTokenServiceImpl
-// 若未来彻底移除 Feign 链路，可一并删除此降级工厂。
-//--------------------------------------------------------------------------------------------------
-
 /**
  * OAuth 令牌服务降级工厂
  * <p>
  * 当 OAuth 认证服务不可用时，提供降级响应，将服务端的错误信息原样返回。
+ * 令牌内省主链路已切换为 Dubbo RPC（{@link com.maozi.oauth.token.api.OauthTokenService}），
+ * 本工厂仅配合保留的 Feign 兼容入口使用，Feign 链路移除时可一并删除。
  * </p>
  *
  * @author maozi

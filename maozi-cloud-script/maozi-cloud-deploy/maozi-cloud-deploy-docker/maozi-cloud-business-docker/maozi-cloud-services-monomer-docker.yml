@@ -3,7 +3,7 @@
 # ------------------------------------------------------------
 # 仅启动 maozi-cloud-service-monomer (all-in-one 单镜像, 源码模块为
 # maozi-cloud-all-service, 把所有业务模块打成
-# 一个 jar, 用单一端口 1000 暴露, 替代标准拆分部署的 gateway 路由).
+# 一个 jar, 用单一端口 1100 暴露, 替代标准拆分部署的 gateway 路由).
 # ------------------------------------------------------------
 # 与本目录微服务 compose (maozi-cloud-services-distributeds-docker.yml) 互斥:
 #   monomer-service 与 gateway 都占 1100 端口, 不能同时跑.
@@ -57,9 +57,9 @@ services:
       # $$ 双转义: 端口取容器运行时环境变量 APPLICATION_PORT, 随各服务端口配置自动生效
       # liveness(存活) 与 readiness(就绪) 探针均返回 200 才视为健康
       test: [ "CMD-SHELL", "curl -sf http://localhost:$$APPLICATION_PORT/actuator/health/liveness && curl -sf http://localhost:$$APPLICATION_PORT/actuator/health/readiness" ]
-      interval: 5s      # 每 30 秒检查一次
+      interval: 5s      # 每 5 秒检查一次
       timeout: 5s        # 单次检查超时时间
-      retries: 3         # 连续失败 5 次后标记 unhealthy
+      retries: 3         # 连续失败 3 次后标记 unhealthy
       start_period: 60s # 启动宽限期(Java 服务启动较慢), 宽限期内失败不计入重试
 
 # 外部网络: 与 maozi-cloud-basics-docker 共享同一网络

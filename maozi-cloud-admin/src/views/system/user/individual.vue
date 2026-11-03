@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 个人中心页：当前登录用户维护头像、名称与登录密码
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, type FormInstance, type FormRules, type UploadRequestOptions } from 'element-plus'
 import { CameraFilled, UserFilled } from '@element-plus/icons-vue'

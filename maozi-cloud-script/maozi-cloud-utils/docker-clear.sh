@@ -39,10 +39,12 @@ NETWORK_WHITE_LIST=(
     "maozi-cloud-network"
 )
 
+# 带时间戳的日志输出
 info() {
     echo "[$(date +'%Y-%m-%d %H:%M:%S')] $*"
 }
 
+# 展示当前磁盘占用 (清理前后各调用一次对比)
 show_disk() {
     echo -e "\n==== Disk usage ===="
     df -h

@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * Controller for fetching realtime statistics of a machine.
+ *
  * @author Carpenter Lee
  */
 @RestController

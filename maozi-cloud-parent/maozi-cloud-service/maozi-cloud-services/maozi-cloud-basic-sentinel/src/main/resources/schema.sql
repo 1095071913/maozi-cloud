@@ -23,8 +23,8 @@ CREATE TABLE IF NOT EXISTS `sentinel_metric` (
   `rt`            DOUBLE       NOT NULL DEFAULT 0 COMMENT '总RT（平均RT*成功QPS）',
   `count`         INT          NOT NULL DEFAULT 0 COMMENT '聚合条数',
   PRIMARY KEY (`id`),
-  -- 语义唯一：同一应用同一资源同一秒只有一条聚合数据，重复拉取时按 upsert 覆盖
+  -- Semantic uniqueness: one aggregated row per app/resource/timestamp, re-pulled data is overwritten by upsert.
   UNIQUE KEY `uk_app_resource_timestamp` (`app`, `resource`, `timestamp`),
-  -- 支撑“按应用列出最近活跃资源”的聚合查询
+  -- Supports the aggregate query "list recently active resources of an app".
   KEY `idx_app_timestamp` (`app`, `timestamp`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'Sentinel 监控指标表';

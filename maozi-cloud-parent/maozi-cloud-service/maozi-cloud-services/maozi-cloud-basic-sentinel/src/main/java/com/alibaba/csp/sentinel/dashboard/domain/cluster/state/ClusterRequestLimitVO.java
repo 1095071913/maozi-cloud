@@ -16,6 +16,8 @@
 package com.alibaba.csp.sentinel.dashboard.domain.cluster.state;
 
 /**
+ * Request limit stats of one namespace on a cluster token server.
+ *
  * @author Eric Zhao
  * @since 1.4.1
  */

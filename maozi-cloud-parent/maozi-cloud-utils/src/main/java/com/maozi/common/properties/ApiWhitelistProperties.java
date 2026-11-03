@@ -30,7 +30,6 @@ public class ApiWhitelistProperties {
 
     static {
 
-        // 初始化系统默认白名单路径列表
         DEFAULT_WITE_LIST = CollectionUtil.newArrayList();
 
         // OAuth2 令牌内省端点，供资源服务器验证令牌有效性

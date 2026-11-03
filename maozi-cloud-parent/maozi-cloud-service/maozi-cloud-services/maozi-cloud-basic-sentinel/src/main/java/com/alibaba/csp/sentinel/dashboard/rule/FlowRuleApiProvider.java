@@ -28,6 +28,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * Default flow rule provider that fetches rules from the Sentinel transport API
+ * of the healthiest machine instead of a remote repository.
+ *
  * @author Eric Zhao
  */
 @Component("flowRuleDefaultProvider")

@@ -21,14 +21,17 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
+ * In-memory storage for system rules.
+ *
  * @author leyou
  */
 @Component
 public class InMemSystemRuleStore extends InMemoryRuleRepositoryAdapter<SystemRuleEntity> {
 
-    /** Static generator producing sequential ids for system rule entities. */
+    /** Static id generator for stored entities. */
     private static AtomicLong ids = new AtomicLong(0);
 
+    /** Generates the next sequential id with the static counter. */
     @Override
     protected long nextId() {
         return ids.incrementAndGet();

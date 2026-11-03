@@ -86,51 +86,39 @@ public interface OrderParam {
 	 */
 	default void initOrderParam() {
 
-		// 获取主表可排序字段映射（key=表别名, value=该表下的字段及默认排序方向）
 		Map<String, Map<String, Boolean>> orderMainFieldsMap = getOrderMainFieldsMap();
 
-		// 初始化升序字段映射（key=表别名, value=该表下需要升序排序的字段列表）
 		Map<String,List<String>> orderAscFieldsMap = CollectionUtil.newHashMap();
 
-		// 初始化降序字段映射（key=表别名, value=该表下需要降序排序的字段列表）
 		Map<String,List<String>> orderDescFieldsMap = CollectionUtil.newHashMap();
 
-		// 遍历每一张表的可排序字段
 		for(String key : orderMainFieldsMap.keySet()) {
 
-			// 获取当前表的所有可排序字段及其默认排序方向
 			Map<String,Boolean> orderMainFields = orderMainFieldsMap.get(key);
 
-			// 当前表的升序字段集合
 			List<String> orderAscFields = CollectionUtil.newArrayList();
 
-			// 当前表的降序字段集合
 			List<String> orderDescFields = CollectionUtil.newArrayList();
 
-			// 遍历当前表的每一个可排序字段
 			for(String orderMainField : orderMainFields.keySet()) {
 
-				// 获取前端传入的排序规则
 				Map<String, Boolean> orderFieldMap = getOrderFieldMap();
 
-				// 如果前端未传入排序规则，使用空 Map 以避免空指针
+				// 前端未传入排序规则时使用空 Map，避免空指针
 				if(ObjectUtil.isNullEmpty(orderFieldMap)){
 					orderFieldMap = CollectionUtil.newHashMap();
 				}
 
-				// 优先使用前端传入的排序方向，若前端未指定则使用字段默认的排序方向
+				// 优先使用前端传入的排序方向，未指定时使用字段默认排序方向
 				Boolean orderMainFieldValue = orderFieldMap.containsKey(orderMainField) ? orderFieldMap.get(orderMainField) : orderMainFields.get(orderMainField);
 
-				// 排序方向不为空时，将该字段加入对应的升序或降序列表
 				if(ObjectUtil.isNotNullEmpty(orderMainFieldValue)) {
 
-					// 将表别名转换为下划线格式（驼峰转下划线）
 					String underlineCase = StrUtil.toUnderlineCase(key);
 
-					// 表别名非空时，拼接为 "表别名.字段名"；表别名为空时 field 取 underlineCase（即对空串转换的结果，下游通常会过滤掉）
+					// 表别名非空时拼接为 "表别名.字段名"，为空时仅取字段名
 					String field = StringUtils.isEmpty(key) ? underlineCase : underlineCase + "." + StrUtil.toUnderlineCase(orderMainField);
 
-					// true 表示降序，false 表示升序
 					if(orderMainFieldValue) {
 						orderDescFields.add(field);
 					}else {
@@ -141,14 +129,12 @@ public interface OrderParam {
 
 			}
 
-			// 将当前表的升序和降序字段列表存入映射中
 			orderAscFieldsMap.put(key, orderAscFields);
 
 			orderDescFieldsMap.put(key, orderDescFields);
 
 		}
 
-		// 将最终结果写入接口属性，供后续 SQL 构建使用
 		setOrderAscFieldsMap(orderAscFieldsMap);
 
 		setOrderDescFieldsMap(orderDescFieldsMap);

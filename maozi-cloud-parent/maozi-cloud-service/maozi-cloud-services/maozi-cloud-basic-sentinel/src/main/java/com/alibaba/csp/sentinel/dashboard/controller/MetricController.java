@@ -39,6 +39,8 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * Controller providing metric queries for the monitoring pages.
+ *
  * @author leyou
  */
 @Controller
@@ -99,7 +101,7 @@ public class MetricController {
         }
         startTime = alignToBucket(startTime);
         endTime = alignToBucketEnd(endTime);
-        // 严格按查询区间列出资源: 区间内没有数据点的资源不展示
+        // List resources strictly by the query window: resources without data points in it are not shown.
         List<String> resources = metricStore.listResourcesOfApp(app, startTime, endTime);
         logger.debug("queryTopResourceMetric(), resources.size()={}", resources.size());
 
@@ -137,7 +139,7 @@ public class MetricController {
         }
         logger.debug("queryTopResourceMetric() total query time={} ms", System.currentTimeMillis() - time);
         Map<String, Object> resultMap = new HashMap<>(16);
-        // 聚合粒度 N 下发给前端: 图表首尾补零点的位置依赖它(点前/后 N 秒)
+        // Send the aggregation granularity N to the frontend: the leading/trailing zero padding of the chart depends on it (N seconds before/after a point).
         resultMap.put("aggregateSeconds", Math.max(1, aggregateSeconds));
         resultMap.put("totalCount", resources.size());
         resultMap.put("totalPage", totalPage);

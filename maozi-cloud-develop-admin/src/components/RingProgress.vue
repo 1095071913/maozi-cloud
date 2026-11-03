@@ -43,6 +43,7 @@
 </template>
 
 <script setup lang="ts">
+// SVG 圆环进度：中心展示百分比值，按使用率分档配色（正常/橙/红）
 import { computed } from 'vue'
 
 const props = withDefaults(

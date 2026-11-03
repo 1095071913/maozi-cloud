@@ -185,6 +185,7 @@
 </template>
 
 <script setup lang="ts">
+// 编程工具页：JSON 格式化编辑器（校验/压缩/行号错误定位）与时间戳互转
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { api } from '../api'

@@ -23,6 +23,7 @@ FROM __BASE_IMAGE__
 ENV APPLICATION_NAME=__SERVICE_NAME__
 __LOG_FILE_ENV__
 
+# 预建应用目录与 JVM 诊断产物目录 (gc / 崩溃日志 / 堆转储, compose 单独挂载持久化)
 RUN mkdir -p /application/${APPLICATION_NAME}
 RUN mkdir -p /application/${APPLICATION_NAME}/logs/gc
 RUN mkdir -p /application/${APPLICATION_NAME}/logs/hs
@@ -30,6 +31,7 @@ RUN mkdir -p /application/${APPLICATION_NAME}/logs/heapdump
 
 WORKDIR /application/${APPLICATION_NAME}
 
+# 拷入服务 jar (构建上下文里由部署脚本临时 cp 进来, 构建后自清理)
 COPY ./${APPLICATION_NAME}.jar ./
 
 __CMD_LINE__

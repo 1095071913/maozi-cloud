@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 主布局：左侧菜单 + 顶部标题/环境标识/灰度与临时请求入口 + 内容区 + 页脚
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
@@ -170,7 +171,7 @@ async function handleLogout() {
 }
 
 .env-tag {
-  /** 与 large 按钮同高（el-tag large 默认 32px） */
+  // 与 large 按钮同高（el-tag large 默认 32px）
   height: 40px;
   justify-content: center;
   min-width: 132px;
@@ -179,7 +180,7 @@ async function handleLogout() {
 }
 
 .header-title {
-  /** 与其余标识同风格同尺寸 */
+  // 与其余标识同风格同尺寸
   height: 40px;
   justify-content: center;
   min-width: 132px;

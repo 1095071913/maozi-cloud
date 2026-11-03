@@ -37,9 +37,7 @@ public class GatewayCrossConfig {
 	/** 允许所有响应头暴露给前端 */
 	private static final String ALL = "*";
 
-	/** CORS 预检请求缓存时间（秒）。注：当前值 "3600L" 带有 Java long 字面量后缀 L，
-	 *  作为 HTTP 响应头值发送时浏览器会收到字面字符串 "3600L" 而非 "3600"，
-	 *  可能导致浏览器无法正确解析；如需修正请改为 "3600"。 */
+	/** CORS 预检请求缓存时间（秒）；注意值带 long 后缀 L，浏览器会收到字面 "3600L"，如需修正请改为 "3600" */
 	private static final String MAX_AGE = "3600L";
 
 	/**

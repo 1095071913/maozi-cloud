@@ -49,6 +49,8 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 /**
+ * Controller for querying and modifying the cluster state and config of machines.
+ *
  * @author Eric Zhao
  * @since 1.4.0
  */

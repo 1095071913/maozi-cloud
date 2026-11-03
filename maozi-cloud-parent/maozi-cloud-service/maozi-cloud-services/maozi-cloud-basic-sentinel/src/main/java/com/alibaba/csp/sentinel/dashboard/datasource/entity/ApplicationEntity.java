@@ -20,6 +20,8 @@ import com.alibaba.csp.sentinel.dashboard.discovery.AppInfo;
 import java.util.Date;
 
 /**
+ * Persistent entity of an application registered to the dashboard.
+ *
  * @author leyou
  */
 public class ApplicationEntity {
@@ -95,6 +97,7 @@ public class ApplicationEntity {
         this.activeConsole = activeConsole;
     }
 
+    /** Convert to an {@link AppInfo} with the app name and app type of this entity. */
     public AppInfo toAppInfo() {
         return new AppInfo(app, appType);
     }

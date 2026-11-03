@@ -77,6 +77,7 @@
 </template>
 
 <script setup lang="ts">
+// 应用外壳：侧边栏导航（可拖拽排序、选中持久化）+ 主内容区按需挂载各功能页
 import { onMounted, ref, computed, watch, defineComponent, h, type Component } from 'vue'
 import { api } from './api'
 import EnvManager from './components/EnvManager.vue'

@@ -26,6 +26,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
+ * Default in-memory implementation of {@link MachineDiscovery}, keeping discovered
+ * applications and their machines in a concurrent map.
+ *
  * @author leyou
  */
 @Component

@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
+ * Controller that exposes the Sentinel dashboard version.
+ *
  * @author hisenyuan
  * @since 1.7.0
  */

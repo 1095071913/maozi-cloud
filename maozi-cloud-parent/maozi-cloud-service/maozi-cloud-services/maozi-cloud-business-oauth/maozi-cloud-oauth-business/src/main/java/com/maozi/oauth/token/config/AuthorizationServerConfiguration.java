@@ -99,7 +99,7 @@ public class AuthorizationServerConfiguration {
 			.tokenRevocationEndpoint(tokenRevocationEndpoint -> tokenRevocationEndpoint
 				//销毁令牌成功响应
 				.revocationResponseHandler(new TokenRevocationSuccessHandler())
-				//退出时删除令牌
+				//自定义撤销处理器：撤销令牌后物理删除对应授权记录
 				.authenticationProvider(SpringUtil.getBean(TokenRevocationAuthenticationProvider.class))
 			)
 

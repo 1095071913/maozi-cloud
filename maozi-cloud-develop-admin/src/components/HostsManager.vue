@@ -243,6 +243,7 @@
 </template>
 
 <script setup lang="ts">
+// Hosts 管理页：系统 hosts 的条目化编辑（增删改/启停/排序）、源文件编辑与 DNS 缓存刷新
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { api, type HostsEntry } from '../api'

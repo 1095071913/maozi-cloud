@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 配置管理页：按配置类型分组展示，支持 JSON 值格式化/放大/表单编辑与同类型配置复制
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { CopyDocument, FullScreen } from '@element-plus/icons-vue'

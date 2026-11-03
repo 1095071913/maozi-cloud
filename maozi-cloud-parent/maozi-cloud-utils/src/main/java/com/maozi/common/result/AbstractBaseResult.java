@@ -55,19 +55,9 @@ public abstract class AbstractBaseResult<D> implements Serializable {
 	@Serial
 	private static final long serialVersionUID = 1L;
 
-	/**
-	 * 获取响应数据
-	 *
-	 * @return 响应数据
-	 */
 	@Schema(description = "数据")
 	public abstract D getData();
 
-	/**
-	 * 获取业务内码
-	 *
-	 * @return 业务内码
-	 */
 	@Schema(description = "业务内码")
 	public abstract Integer getCode();
 

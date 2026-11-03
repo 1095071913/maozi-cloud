@@ -25,13 +25,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * Abstract in-memory repository of rule entities, indexed by id, machine and app.
+ *
  * @author leyou
  */
 public abstract class InMemoryRuleRepositoryAdapter<T extends RuleEntity> implements RuleRepository<T, Long> {
 
-    /**
-     * {@code <machine, <id, rule>>}
-     */
+    /** Rules grouped by machine ({@code <machine, <id, rule>>}). */
     private Map<MachineInfo, Map<Long, T>> machineRules = new ConcurrentHashMap<>(16);
     /** All stored rules keyed by rule id ({@code <id, rule>}). */
     private Map<Long, T> allRules = new ConcurrentHashMap<>(16);

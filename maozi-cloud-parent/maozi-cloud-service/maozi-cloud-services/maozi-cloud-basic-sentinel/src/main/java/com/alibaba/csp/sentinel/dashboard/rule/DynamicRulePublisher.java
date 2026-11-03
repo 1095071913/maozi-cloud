@@ -16,6 +16,8 @@
 package com.alibaba.csp.sentinel.dashboard.rule;
 
 /**
+ * Interface for publishing rules of an application to a remote rule repository.
+ *
  * @author Eric Zhao
  * @since 1.4.0
  */

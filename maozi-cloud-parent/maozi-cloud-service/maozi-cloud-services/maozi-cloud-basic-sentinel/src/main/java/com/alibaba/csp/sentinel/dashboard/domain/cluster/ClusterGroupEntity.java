@@ -19,6 +19,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Entity of one cluster group: a token server and the clients bound to it.
+ *
  * @author Eric Zhao
  * @since 1.4.1
  */

@@ -79,6 +79,7 @@ public class ExecutorMethodScanner implements Scanner, ApplicationContextAware {
                             Object beanObj = applicationContext.getBean(retryBeanDefinitionName);
                             Class<?> clazz = beanObj.getClass();
 
+                            // 类名含 $$ 说明是 AOP 代理类，取目标原始类以确保能扫描到方法上的注解
                             if (clazz.getName().contains("$$")) {
                                 clazz = AopUtils.getTargetClass(beanObj);
                             }

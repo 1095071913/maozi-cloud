@@ -21,6 +21,8 @@ import com.alibaba.csp.sentinel.dashboard.domain.cluster.config.ServerTransportC
 import java.util.Set;
 
 /**
+ * Request to modify the cluster token server config of a machine.
+ *
  * @author Eric Zhao
  * @since 1.4.0
  */

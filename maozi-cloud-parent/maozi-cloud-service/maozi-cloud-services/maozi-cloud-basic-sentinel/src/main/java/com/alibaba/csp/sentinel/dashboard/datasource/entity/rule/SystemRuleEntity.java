@@ -20,6 +20,8 @@ import com.alibaba.csp.sentinel.slots.system.SystemRule;
 import java.util.Date;
 
 /**
+ * Entity for a system adaptive protection rule.
+ *
  * @author leyou
  */
 public class SystemRuleEntity implements RuleEntity {
@@ -49,6 +51,9 @@ public class SystemRuleEntity implements RuleEntity {
     /** The last modify time. */
     private Date gmtModified;
 
+    /**
+     * Build an entity from the given {@link SystemRule}, carrying the given app, ip and port.
+     */
     public static SystemRuleEntity fromSystemRule(String app, String ip, Integer port, SystemRule rule) {
         SystemRuleEntity entity = new SystemRuleEntity();
         entity.setApp(app);
@@ -156,6 +161,7 @@ public class SystemRuleEntity implements RuleEntity {
         this.gmtModified = gmtModified;
     }
 
+    /** Convert to a {@link SystemRule} with all threshold fields copied. */
     @Override
     public SystemRule toRule() {
         SystemRule rule = new SystemRule();

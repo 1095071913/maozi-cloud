@@ -17,6 +17,8 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster;
 
 
 /**
+ * Descriptor of one connection to a cluster token server.
+ *
  * @author Eric Zhao
  * @since 1.4.0
  */

@@ -20,6 +20,8 @@ import com.alibaba.csp.sentinel.dashboard.domain.cluster.request.ClusterAppAssig
 import java.util.Set;
 
 /**
+ * Request for binding a set of clients to one cluster token server.
+ *
  * @author Eric Zhao
  * @since 1.4.1
  */

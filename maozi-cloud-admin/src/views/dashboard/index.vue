@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 首页 AI 对话工作台：会话管理、流式对话（打字机效果）、图片附件与图片生成
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {

@@ -1,3 +1,9 @@
+-- ============================================================
+-- Seata 分布式事务协调中心初始化库 maozi-cloud-seata-middleware-db
+-- 含全局事务/分支事务/锁三张表 (store.mode=db 时 TC 的会话存储),
+-- 数据源连接由 nacos 的 seata.properties 指向本库。
+-- 需手动导入 maozi-cloud-basic-mysql 后再启动 seata。
+-- ============================================================
 -- maozi-cloud-seata-middleware-db 可以改成自己的库名
 DROP DATABASE IF EXISTS `maozi-cloud-seata-middleware-db`;
 CREATE DATABASE `maozi-cloud-seata-middleware-db` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

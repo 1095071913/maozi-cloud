@@ -1,3 +1,14 @@
+# ============================================================
+# Seata Server 2.x 配置 —— 由 maozi-cloud-basics-docker/docker-compose.yml
+# 挂载到容器 /seata-server/resources/application.yml
+# ------------------------------------------------------------
+# 拓扑: 控制台端口 7091, 事务协调端口 8091 (compose 已映射);
+# 配置中心与注册中心均指向 nacos 的 middleware 命名空间,
+# 事务会话存储 (store.mode=db) 的数据源在 nacos 的 seata.properties 中维护,
+# 建库脚本见同目录 maozi-cloud-seata-middleware-db.sql。
+# ============================================================
+
+# Web 控制台端口 (事务端口 8091 由镜像默认 server.port+1000 得出)
 server:
   port: 7091
 
@@ -16,12 +27,14 @@ logging:
 #      bootstrap-servers: 127.0.0.1:9092
 #      topic: logback_to_logstash
 
+# 控制台登录账号 (http://localhost:7091)
 console:
   user:
     username: seata
     password: seata
 
 seata:
+  # 配置中心: 参数 (含 store.mode=db 的数据源) 从 nacos 的 seata.properties 读取
   config:
     # support: nacos, consul, apollo, zk, etcd3
     type: nacos
@@ -33,6 +46,7 @@ seata:
       password: nacos
       data-id: seata.properties
 
+  # 注册中心: TC 以 maozi-cloud-basic-seata 为服务名注册, 业务端 RM/TM 按此发现
   registry:
     # support: nacos, eureka, redis, zk, consul, etcd3, sofa
     type: nacos
@@ -47,6 +61,7 @@ seata:
       password: nacos
   #  server:
   #    service-port: 8091 #If not configured, the default is '${server.port} + 1000'
+  # 控制台/API 的 token 鉴权: secretKey 签发, 30 分钟有效; ignore 为免鉴权静态资源路径
   security:
     secretKey: SeataSecretKey0c382ef121d778043159209298fd40bf3850a017
     tokenValidityInMilliseconds: 1800000

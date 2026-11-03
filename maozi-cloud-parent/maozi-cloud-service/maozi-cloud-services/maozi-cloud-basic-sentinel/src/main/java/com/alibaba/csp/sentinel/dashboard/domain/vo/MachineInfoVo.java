@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * View object of a machine shown on the machines page.
+ *
  * @author leyou
  */
 public class MachineInfoVo {

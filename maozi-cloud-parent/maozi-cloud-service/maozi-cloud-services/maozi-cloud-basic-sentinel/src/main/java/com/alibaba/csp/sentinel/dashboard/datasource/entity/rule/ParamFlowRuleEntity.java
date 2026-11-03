@@ -25,6 +25,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
 
 /**
+ * Entity for a hot parameter flow control rule, wrapping a {@link ParamFlowRule}.
+ *
  * @author Eric Zhao
  * @since 0.2.1
  */
@@ -38,6 +40,9 @@ public class ParamFlowRuleEntity extends AbstractRuleEntity<ParamFlowRule> {
         this.rule = rule;
     }
 
+    /**
+     * Build an entity wrapping the given {@link ParamFlowRule}, carrying the given app, ip and port.
+     */
     public static ParamFlowRuleEntity fromParamFlowRule(String app, String ip, Integer port, ParamFlowRule rule) {
         ParamFlowRuleEntity entity = new ParamFlowRuleEntity(rule);
         entity.setApp(app);

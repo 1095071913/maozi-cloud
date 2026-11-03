@@ -20,6 +20,8 @@ import com.alibaba.csp.sentinel.slots.block.AbstractRule;
 import java.util.Date;
 
 /**
+ * Base entity holding a wrapped {@link AbstractRule} plus common fields shared by rule entities.
+ *
  * @author Eric Zhao
  * @since 0.2.1
  */
@@ -111,6 +113,7 @@ public abstract class AbstractRuleEntity<T extends AbstractRule> implements Rule
         return this;
     }
 
+    /** Return the wrapped rule object directly. */
     @Override
     public T toRule() {
         return rule;

@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Cluster token server state of a machine.
+ *
  * @author Eric Zhao
  * @since 1.4.0
  */

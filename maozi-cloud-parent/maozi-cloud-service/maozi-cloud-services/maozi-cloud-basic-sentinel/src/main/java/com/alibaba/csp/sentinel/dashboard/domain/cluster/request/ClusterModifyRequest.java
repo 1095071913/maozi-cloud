@@ -16,6 +16,8 @@
 package com.alibaba.csp.sentinel.dashboard.domain.cluster.request;
 
 /**
+ * Base request for cluster config modification of a machine.
+ *
  * @author Eric Zhao
  * @since 1.4.0
  */

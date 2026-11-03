@@ -311,6 +311,7 @@
 </template>
 
 <script setup lang="ts">
+// 书签管理页：三层分类分组展示，支持搜索、拖拽排序、自动抓取网页信息与账号密码保管
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { api, type Bookmark } from '../api'

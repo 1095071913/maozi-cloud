@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// JSON 表单编辑器弹窗：以树形表单编辑 JSON，保存时序列化为规范 JSON 输出
 import { computed, provide, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import JsonNode from './JsonNode.vue'

@@ -36,6 +36,8 @@ import java.util.Date;
 import java.util.List;
 
 /**
+ * Controller for system adaptive protection rules.
+ *
  * @author leyou(lihao)
  */
 @RestController

@@ -18,6 +18,8 @@ package com.alibaba.csp.sentinel.dashboard.datasource.entity;
 import java.util.Date;
 
 /**
+ * Persistent entity recording the last metric fetch position of a machine.
+ *
  * @author leyou
  */
 public class MetricPositionEntity {
@@ -31,19 +33,13 @@ public class MetricPositionEntity {
     private String app;
     /** The IP address of the machine. */
     private String ip;
-    /**
-     * Sentinel在该应用上使用的端口
-     */
+    /** The port Sentinel listens on in the application. */
     private int port;
 
-    /**
-     * 机器名，冗余字段
-     */
+    /** The hostname of the machine, a redundant field. */
     private String hostname;
 
-    /**
-     * 上一次拉取的最晚时间戳
-     */
+    /** The latest timestamp fetched last time. */
     private Date lastFetch;
 
     public long getId() {

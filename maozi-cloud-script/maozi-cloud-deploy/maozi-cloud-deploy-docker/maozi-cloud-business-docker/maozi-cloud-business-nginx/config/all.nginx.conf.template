@@ -1,16 +1,17 @@
 # ============================================================
-# monomer 业务入口 (OpenResty 动态解析版) —— server 骨架
+# 业务入口 (OpenResty 动态解析版) —— server 骨架 (monomer / distributeds 共用)
 # ------------------------------------------------------------
 # 本文件不再包含 ${ENVIRONMENT}/${VERSION} 占位符 (OpenResty 镜像无
 # envsubst 模板机制), 域名后缀由 Lua os.getenv() 运行时拼接。
 # 所有后端域名均不在配置加载期解析, 后端容器晚于本容器启动、或重启
 # 换 IP, 都能自动恢复, 不会永久 502/503。
 #
-# 路由按应用拆分为独立模板 (compose 挂载到 /etc/nginx/conf.d/routes/),
-# 由下方 server 内 include 文本级引入, 片段内为 server 级指令,
-# 语义与写在同一个文件里完全相同:
+# 路由按应用拆分为独立模板 (compose 按部署模式把 routes/monomer 或
+# routes/distributeds 挂载到 /etc/nginx/conf.d/routes/), 由下方 server 内
+# include 文本级引入, 片段内为 server 级指令, 语义与写在同一个文件里完全相同:
 #   admin.nginx.conf.template   /admin    管理端前端 ($变量请求期解析)
-#   api.nginx.conf.template     /api      单体服务 (A/Backup 双节点容灾)
+#   api.nginx.conf.template     /api      后端服务 (A/Backup 双节点容灾;
+#                                         monomer 指向聚合服务, distributeds 指向网关)
 # 新增应用 = 在 routes/ 新增一个 *.nginx.conf.template, 本文件零改动。
 # upstream 为 http 级指令, 无法下放到 server 级片段, 保留在本文件。
 # ============================================================

@@ -15,6 +15,7 @@ import {
     isDbInitialized,
     listProjects,
     markDbInitialized,
+    parseConfigContent,
     parseConfigFile,
     removeProject,
     saveBinding,
@@ -38,7 +39,7 @@ const exec = promisify(execFile)
 
 /**
  * 项目控制台 IPC：
- * - 选择本地目录 → 读取 CONFIG(name/version) 完成绑定
+ * - 选择本地目录 → 读取 maozi-cloud-config.json(name/version) 完成绑定
  * - 拉取代码 → 用密钥管理中的凭据(git clone HTTPS)，账密 / Token 两种认证，
  *   凭据仅拼接在内存中的克隆地址里，不落盘；错误信息会脱敏
  */
@@ -1720,11 +1721,91 @@ async function dockerConfigPath(b: ProjectBinding): Promise<string> {
   return candidates.find((f) => fs.existsSync(f)) ?? candidates[0]
 }
 
+/**
+ * 重读绑定目录的 maozi-cloud-config.json，把 name/version 同步进持久化绑定：
+ * 页面展示的名称/版本是绑定时的快照，配置文件后续修改（如升版本号）须在此刷新才能生效。
+ * best-effort：文件缺失 / JSON 编辑中途态 / 远程 SSH 不通 / 超过 3s（远程 SSH 假死不拖慢控制台进入）
+ * 均静默保留旧快照；name/version 无变化不写盘
+ */
+async function syncBindingMeta(b: ProjectBinding): Promise<ProjectBinding> {
+  try {
+    const content = await Promise.race([
+      readProjFile('maozi-cloud-config.json'),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+    ])
+    const { name, version } = parseConfigContent(content)
+    if (name === b.name && version === b.version) return b
+    const next = { ...b, name, version }
+    saveBinding(next)
+    return next
+  } catch {
+    return b
+  }
+}
+
+/**
+ * 配置文件监听（仅本地绑定）：maozi-cloud-config.json 被外部编辑（编辑器改 name/version）时
+ * 重读同步快照并把最新绑定推送到全部窗口，页面即时更新，无须重新绑定或重启。
+ * 远程绑定的配置文件在服务器上，本地无从监听 —— 切回页面时经 projects:state 兜底同步
+ */
+let configWatcher: fs.FSWatcher | null = null
+let watchedConfigFile = ''
+let configWatchTimer: NodeJS.Timeout | null = null
+
+function unwatchActiveConfig(): void {
+  if (configWatchTimer) {
+    clearTimeout(configWatchTimer)
+    configWatchTimer = null
+  }
+  if (configWatcher) {
+    configWatcher.close()
+    configWatcher = null
+  }
+  watchedConfigFile = ''
+}
+
+/** 按当前绑定（重）建立监听：远程绑定 / 未绑定只清理旧监听；监听同一文件时幂等跳过 */
+function watchActiveConfig(b: ProjectBinding | null): void {
+  const file = b && !b.remote ? path.join(b.path, 'maozi-cloud-config.json') : ''
+  if (file === watchedConfigFile) return
+  unwatchActiveConfig()
+  if (!file) return
+  try {
+    configWatcher = fs.watch(file, { persistent: false }, () => {
+      // 编辑器保存多为「写临时文件 + rename 替换」，事件成对触发，防抖合并为一次重读
+      if (configWatchTimer) clearTimeout(configWatchTimer)
+      configWatchTimer = setTimeout(async () => {
+        configWatchTimer = null
+        // 激活绑定可能已切换 / 解绑（监听器残留）：不再指向被监听文件即收摊，
+        // 严禁继续同步 —— saveBinding 在无激活项目时会兜底新建条目，残留触发会写出幽灵项目
+        const cur = getBinding()
+        if (!cur || cur.remote || path.join(cur.path, 'maozi-cloud-config.json') !== watchedConfigFile) {
+          unwatchActiveConfig()
+          return
+        }
+        const next = await syncBindingMeta(cur)
+        if (next === cur) return
+        for (const w of BrowserWindow.getAllWindows()) {
+          if (!w.webContents.isDestroyed()) w.webContents.send('projects:bindingChanged', next)
+        }
+      }, 300)
+    })
+    watchedConfigFile = file
+    configWatcher.on('error', () => unwatchActiveConfig())
+  } catch {
+    /* 文件暂不存在（如绑定后目录被移动）：下次 state 重建 */
+    unwatchActiveConfig()
+  }
+}
+
 /** 注册项目控制台全部 IPC 处理器；末尾做启动预取（回填落盘资源快照 + 后台拉新 + 预热 yml 缓存） */
 export function registerProjectHandlers(): void {
-  ipcMain.handle('projects:state', () => {
+  ipcMain.handle('projects:state', async () => {
     try {
-      return { ok: true, data: getBinding() }
+      const b = getBinding()
+      const data = b ? await syncBindingMeta(b) : null
+      watchActiveConfig(data)
+      return { ok: true, data }
     } catch (err) {
       return { ok: false, error: (err as Error).message }
     }
@@ -1760,6 +1841,7 @@ export function registerProjectHandlers(): void {
       const binding = activateProject(String(id ?? ''))
       clearYmlCache()
       composeOk = null
+      watchActiveConfig(binding)
       return { ok: true, data: binding }
     } catch (err) {
       return { ok: false, error: (err as Error).message }
@@ -1785,6 +1867,7 @@ export function registerProjectHandlers(): void {
       deactivateProject()
       clearYmlCache()
       composeOk = null
+      unwatchActiveConfig()
       return { ok: true }
     } catch (err) {
       return { ok: false, error: (err as Error).message }
@@ -1797,6 +1880,7 @@ export function registerProjectHandlers(): void {
       removeProject(String(id ?? ''))
       clearYmlCache()
       composeOk = null
+      watchActiveConfig(getBinding())
       return { ok: true }
     } catch (err) {
       return { ok: false, error: (err as Error).message }
@@ -1816,7 +1900,7 @@ export function registerProjectHandlers(): void {
     }
   })
 
-  /** 选择目录绑定：读取 CONFIG 的 name/version */
+  /** 选择目录绑定：读取 maozi-cloud-config.json 的 name/version */
   ipcMain.handle('projects:bindDir', (_e, dir: string) => {
     try {
       const target = String(dir ?? '').trim()
@@ -1825,6 +1909,7 @@ export function registerProjectHandlers(): void {
       const binding: ProjectBinding = { name, version, path: target, boundAt: Date.now() }
       saveBinding(binding)
       clearYmlCache()
+      watchActiveConfig(binding)
       return { ok: true, data: binding }
     } catch (err) {
       return { ok: false, error: (err as Error).message }
@@ -1833,7 +1918,7 @@ export function registerProjectHandlers(): void {
 
   /**
    * 拉取代码绑定：密钥(账密→user:pass / 密钥→token) + 目标系统目录
-   * 克隆到 <destDir>/maozi-cloud，成功后读 CONFIG 完成绑定。
+   * 克隆到 <destDir>/maozi-cloud，成功后读 maozi-cloud-config.json 完成绑定。
    * git 进度日志实时推送到渲染进程（projects:cloneLog），
    * 处理 \r 覆盖式进度行（Receiving objects: xx%），凭据全程脱敏
    */
@@ -1862,6 +1947,7 @@ export function registerProjectHandlers(): void {
       const binding: ProjectBinding = { name, version, path: target, boundAt: Date.now() }
       saveBinding(binding)
       clearYmlCache()
+      watchActiveConfig(binding)
       return { ok: true, data: binding }
     } catch (err) {
       return { ok: false, error: (err as Error).message }
@@ -1873,6 +1959,7 @@ export function registerProjectHandlers(): void {
       clearBinding()
       clearYmlCache()
       composeOk = null
+      unwatchActiveConfig()
       return { ok: true }
     } catch (err) {
       return { ok: false, error: (err as Error).message }
@@ -4420,25 +4507,16 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
     }
   })
 
-  /** 远程绑定：读取远程 CONFIG 文件完成绑定 */
+  /** 远程绑定：读取远程 maozi-cloud-config.json 文件完成绑定 */
   ipcMain.handle('projects:sshBindDir', async (_e, configId: string, dirPath: string) => {
     try {
       const target = resolveSshTarget(configId)
-      const configContent = await sshReadFile(target, dirPath + '/CONFIG')
-      const map = new Map<string, string>()
-      for (const line of configContent.split('\n')) {
-        const t = line.trim()
-        if (!t || t.startsWith('#')) continue
-        const eq = t.indexOf('=')
-        if (eq < 0) continue
-        map.set(t.slice(0, eq).trim(), t.slice(eq + 1).trim())
-      }
-      const name = map.get('name')
-      if (!name) throw new Error('远程 CONFIG 文件中缺少 name')
+      const configContent = await sshReadFile(target, dirPath + '/maozi-cloud-config.json')
+      const { name, version } = parseConfigContent(configContent)
       const cfg = listConfigs().find((c) => c.id === configId)
       const binding: ProjectBinding = {
         name,
-        version: map.get('version') ?? '',
+        version,
         path: dirPath,
         boundAt: Date.now(),
         remote: {
@@ -4451,6 +4529,7 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
       }
       saveBinding(binding)
       clearYmlCache()
+      watchActiveConfig(binding)
       return { ok: true, data: binding }
     } catch (err) {
       return { ok: false, error: (err as Error).message }
@@ -4517,21 +4596,13 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
         throw new Error(msg.startsWith('exit ') ? '远程 git clone 失败（' + msg + '），详见日志' : msg)
       }
 
-      // 读取远程 CONFIG 完成绑定
-      const configContent = await sshReadFile(target, targetDir + '/CONFIG')
-      const map = new Map<string, string>()
-      for (const line of configContent.split('\n')) {
-        const t = line.trim()
-        if (!t || t.startsWith('#')) continue
-        const eq = t.indexOf('=')
-        if (eq < 0) continue
-        map.set(t.slice(0, eq).trim(), t.slice(eq + 1).trim())
-      }
-      const name = map.get('name') ?? 'maozi-cloud'
+      // 读取远程 maozi-cloud-config.json 完成绑定
+      const configContent = await sshReadFile(target, targetDir + '/maozi-cloud-config.json')
+      const { name, version } = parseConfigContent(configContent)
       const configEntry = listConfigs().find((c) => c.id === configId)
       const binding: ProjectBinding = {
         name,
-        version: map.get('version') ?? '',
+        version,
         path: targetDir,
         boundAt: Date.now(),
         remote: {
@@ -4544,6 +4615,7 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
       }
       saveBinding(binding)
       clearYmlCache()
+      watchActiveConfig(binding)
       return { ok: true, data: binding }
     } catch (err) {
       return { ok: false, error: (err as Error).message }

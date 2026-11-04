@@ -149,6 +149,27 @@ contextBridge.exposeInMainWorld('api', {
       const listener = (_e: unknown, payload: { kind: 'line' | 'update'; text: string }): void => cb(payload)
       ipcRenderer.on('projects:cloneLog', listener)
       return () => ipcRenderer.removeListener('projects:cloneLog', listener)
+    },
+    /** 绑定元信息变化推送：主进程监听本地 maozi-cloud-config.json，name/version 被外部修改时即时下发 */
+    onBindingChanged: (cb: (payload: {
+      name: string
+      version: string
+      path: string
+      boundAt: number
+      remote?: { configId: string; configName: string; user: string; host: string; port: number }
+    }) => void) => {
+      const listener = (
+        _e: unknown,
+        payload: {
+          name: string
+          version: string
+          path: string
+          boundAt: number
+          remote?: { configId: string; configName: string; user: string; host: string; port: number }
+        }
+      ): void => cb(payload)
+      ipcRenderer.on('projects:bindingChanged', listener)
+      return () => ipcRenderer.removeListener('projects:bindingChanged', listener)
     }
   },
   configs: {
@@ -156,6 +177,28 @@ contextBridge.exposeInMainWorld('api', {
     save: (input: unknown) => ipcRenderer.invoke('configs:save', input),
     remove: (id: string) => ipcRenderer.invoke('configs:remove', id),
     login: (id: string) => ipcRenderer.invoke('configs:login', id)
+  },
+  rename: {
+    /** 批量重命名项目：目录/文件名 + 文件内容 + 根目录名替换，进度走 onRenameProgress */
+    run: (input: unknown) => ipcRenderer.invoke('rename:run', input),
+    cancel: () => ipcRenderer.invoke('rename:cancel'),
+    onRenameProgress: (cb: (payload: {
+      stage: 'scan' | 'content' | 'rename' | 'done' | 'error'
+      done: number
+      total: number
+      current: string
+      stats: Record<string, unknown>
+    }) => void) => {
+      const listener = (_e: unknown, payload: {
+        stage: 'scan' | 'content' | 'rename' | 'done' | 'error'
+        done: number
+        total: number
+        current: string
+        stats: Record<string, unknown>
+      }): void => cb(payload)
+      ipcRenderer.on('rename:progress', listener)
+      return () => ipcRenderer.removeListener('rename:progress', listener)
+    }
   },
   util: {
     copy: (text: string) => ipcRenderer.invoke('app:copy', text),

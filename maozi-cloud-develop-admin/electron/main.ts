@@ -5,6 +5,7 @@ import {registerSysinfoHandlers} from './system/sysinfo'
 import {registerBookmarkHandlers} from './bookmarks'
 import {registerConfigHandlers} from './configs'
 import {registerProjectHandlers} from './projects'
+import {registerRenameHandlers} from './rename'
 
 // 禁用沙箱要求下的安全默认值由 BrowserWindow 配置保证
 registerPlatformHandlers()
@@ -12,6 +13,7 @@ registerSysinfoHandlers()
 registerBookmarkHandlers()
 registerConfigHandlers()
 registerProjectHandlers()
+registerRenameHandlers()
 
 function createWindow(): void {
   const win = new BrowserWindow({

@@ -1176,7 +1176,7 @@
                 <div class="pc-option-ico dir">📂</div>
                 <div class="pc-option-title">选择目录</div>
                 <div class="pc-option-desc">
-                  {{ bindMode === 'local' ? '读取目录下 CONFIG 文件完成绑定' : '浏览远程目录，读取 CONFIG 完成绑定' }}
+                  {{ bindMode === 'local' ? '读取目录下 maozi-cloud-config.json 文件完成绑定' : '浏览远程目录，读取 maozi-cloud-config.json 完成绑定' }}
                 </div>
                 <div class="pc-option-go">开始绑定 →</div>
               </div>
@@ -1318,7 +1318,7 @@
             <div class="pcd-header-icon">⬇️</div>
             <div>
               <div class="pcd-title">拉取代码并绑定</div>
-              <div class="pcd-subtitle">使用 Git 类型密钥克隆 maozi-cloud 到本地，完成后自动读取 CONFIG 绑定</div>
+              <div class="pcd-subtitle">使用 Git 类型密钥克隆 maozi-cloud 到本地，完成后自动读取 maozi-cloud-config.json 绑定</div>
             </div>
           </div>
           <button class="pcd-close" type="button" @click="cloneVisible = false">✕</button>
@@ -2627,7 +2627,7 @@
                 {{
                   sshBrowserMode === 'clone'
                     ? '选择远程父目录与 Git 密钥 · SSH 在远程执行 git clone 后自动绑定'
-                    : 'SSH 登录远程 Linux 服务器 · 浏览目录 · 读取 CONFIG 完成绑定'
+                    : 'SSH 登录远程 Linux 服务器 · 浏览目录 · 读取 maozi-cloud-config.json 完成绑定'
                 }}
               </div>
             </div>
@@ -3436,7 +3436,7 @@ async function copyPath(): Promise<void> {
   ElMessage.success('路径已复制到剪贴板')
 }
 
-/** 选择本地目录绑定：读 CONFIG */
+/** 选择本地目录绑定：读 maozi-cloud-config.json */
 async function onPickDir(): Promise<void> {
   const picked = await api.projects.pickDir()
   if (!picked.ok) {
@@ -3483,6 +3483,13 @@ watch(
 )
 
 onUnmounted(() => offCloneLog())
+
+/** 本地绑定的 maozi-cloud-config.json 被外部编辑：主进程监听并推送最新 name/version，页面即时生效 */
+const offBindingChanged = api.projects.onBindingChanged((b) => {
+  binding.value = b
+})
+
+onUnmounted(() => offBindingChanged())
 
 /** ===== 脚本日志：多会话并发模型（每个操作独立日志，弹窗内标签页切换） ===== */
 const scriptVisible = ref(false)
@@ -5250,7 +5257,7 @@ function openSshBrowser(): void {
   }
 }
 
-/** 目录浏览器模式：bind=读取 CONFIG 绑定当前目录；clone=选父目录 + Git 密钥远程拉取代码 */
+/** 目录浏览器模式：bind=读取 maozi-cloud-config.json 绑定当前目录；clone=选父目录 + Git 密钥远程拉取代码 */
 const sshBrowserMode = ref<'bind' | 'clone'>('bind')
 
 /** 拉取代码（远程）：进入目录浏览器的拉取模式 */
@@ -6209,6 +6216,11 @@ onActivated(() => {
   void loadAppSvcStatuses()
   // git 仓库状态同理可能已变化（如目录外删除了 .git），刷新后按需隐藏分支与拉取/切换按钮
   void loadGitInfo()
+  // 绑定元信息同理：maozi-cloud-config.json 的 name/version 可能已被外部修改
+  // （远程绑定的配置文件在服务器上无法本地监听，切回页面时经 state 重读同步兜底）
+  void api.projects.state().then((r) => {
+    if (r.ok) binding.value = r.data ?? null
+  })
   // 窗口聚焦/回到前台即刷新：终端里切分支等外部变更切回即感知（监听幂等，重复激活先移除再挂）
   window.removeEventListener('focus', refreshGitOnFocus)
   document.removeEventListener('visibilitychange', refreshGitOnFocus)
@@ -8674,7 +8686,8 @@ onMounted(loadState)
 /* ===== 汇总仪表卡：环形进度（conic-gradient）+ 关键数值 ===== */
 .pc-sum {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* 第三张卡（服务状态）内容最宽：环 + 标题 + 实时标记 + 分段条，多分一些列宽防挤压 */
+  grid-template-columns: 1fr 1fr minmax(0, 1.3fr);
   gap: 14px;
 }
 
@@ -8813,6 +8826,8 @@ onMounted(loadState)
   font-size: 13px;
   font-weight: 700;
   color: #1f2d3d;
+  /* 标题不允许折行（窄窗下曾逐字竖排） */
+  white-space: nowrap;
 }
 
 .pc-sum-ico {
@@ -8866,6 +8881,8 @@ onMounted(loadState)
   font-size: 10px;
   font-weight: 500;
   color: #059669;
+  /* 「实时 · 3s 轮询」等标记保持单行 */
+  white-space: nowrap;
 }
 
 .pc-sum-live.pending {
@@ -9476,8 +9493,8 @@ onMounted(loadState)
   background: linear-gradient(90deg, #f87171, #ef4444);
 }
 
-/* 窄窗：汇总统计卡退化为单列 */
-@media (max-width: 980px) {
+/* 窄窗：汇总统计卡退化为单列（断点略高于常规分栏场景宽度，避免第三卡文字被挤压） */
+@media (max-width: 1024px) {
   .pc-sum {
     grid-template-columns: 1fr;
   }

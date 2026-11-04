@@ -172,23 +172,27 @@ export function removeProject(id: string): void {
 }
 
 /**
- * 解析目录下 CONFIG 文件（key=value 逐行，# 注释）
+ * 解析 maozi-cloud-config.json 内容（JSON 格式）
  * name 为项目名称、version 为项目版本号
  */
-export function parseConfigFile(dir: string): { name: string; version: string } {
-  const file = path.join(dir, 'CONFIG')
-  if (!fs.existsSync(file)) throw new Error('所选目录下未找到 CONFIG 文件')
-  const map = new Map<string, string>()
-  for (const line of fs.readFileSync(file, 'utf8').split(/\r?\n/)) {
-    const t = line.trim()
-    if (!t || t.startsWith('#')) continue
-    const eq = t.indexOf('=')
-    if (eq < 0) continue
-    map.set(t.slice(0, eq).trim(), t.slice(eq + 1).trim())
+export function parseConfigContent(content: string): { name: string; version: string } {
+  let data: { name?: string; version?: string }
+  try {
+    data = JSON.parse(content)
+  } catch (e) {
+    throw new Error('maozi-cloud-config.json 不是合法的 JSON：' + (e as Error).message)
   }
-  const name = map.get('name')
-  if (!name) throw new Error('CONFIG 文件中缺少 name（项目名称）')
-  return { name, version: map.get('version') ?? '' }
+  if (!data.name) throw new Error('maozi-cloud-config.json 中缺少 name（项目名称）')
+  return { name: data.name, version: data.version ?? '' }
+}
+
+/**
+ * 解析目录下 maozi-cloud-config.json 文件
+ */
+export function parseConfigFile(dir: string): { name: string; version: string } {
+  const file = path.join(dir, 'maozi-cloud-config.json')
+  if (!fs.existsSync(file)) throw new Error('所选目录下未找到 maozi-cloud-config.json 文件')
+  return parseConfigContent(fs.readFileSync(file, 'utf8'))
 }
 
 /**

@@ -20,6 +20,7 @@ import type {
 } from '../electron/system/sysinfo'
 import type {Bookmark, PageMeta} from '../electron/bookmarks/types'
 import type {AuthType, ConfigEntry, ConfigType, ToolAvailability} from '../electron/configs/types'
+import type {RenameOptions, RenameProgress, RenameRule, RenameStats} from '../electron/rename/types'
 import type {
     AppServiceEntry,
     ComposeServiceStats,
@@ -45,7 +46,11 @@ export type {
   EnvSettingItem,
   EnvSettingSection,
   ComposeServiceStats,
-  AppServiceEntry
+  AppServiceEntry,
+  RenameRule,
+  RenameOptions,
+  RenameStats,
+  RenameProgress
 }
 
 /** 应用服务（单体/微服务）条目：见 electron/projects/types.ts（转发保持渲染进程既有导入路径） */
@@ -154,7 +159,7 @@ export interface ElectronApi {
     ) => Promise<IpcResult<{ path: string; items: Array<{ name: string; isDir: boolean }> }>>
     /** 在远程目录下创建子目录（选择目录页新建） */
     sshMkdir: (configId: string, parentDir: string, name: string) => Promise<IpcResult<null>>
-    /** 远程绑定：读取远程 CONFIG 完成绑定 */
+    /** 远程绑定：读取远程 maozi-cloud-config.json 完成绑定 */
     sshBindDir: (configId: string, path: string) => Promise<IpcResult<ProjectBinding>>
     /** 检查远程是否安装 git */
     sshCheckGit: (configId: string) => Promise<IpcResult<boolean>>
@@ -237,12 +242,24 @@ export interface ElectronApi {
     gitCheckout: (branch: string, sid?: string) => Promise<PlatformResult>
     /** 订阅 git clone 实时日志；返回取消订阅函数 */
     onCloneLog: (cb: (payload: { kind: 'line' | 'update'; text: string }) => void) => () => void
+    /** 订阅绑定元信息变化（主进程监听本地 maozi-cloud-config.json，name/version 被外部修改时推送）；返回取消订阅函数 */
+    onBindingChanged: (cb: (payload: ProjectBinding) => void) => () => void
   }
   configs: {
     list: () => Promise<IpcResult<{ configs: ConfigEntry[]; tools: ToolAvailability }>>
     save: (input: Partial<ConfigEntry>) => Promise<IpcResult<ConfigEntry>>
     remove: (id: string) => Promise<PlatformResult>
     login: (id: string) => Promise<IpcResult<string>>
+  }
+  rename: {
+    /** 批量重命名项目：目录/文件名 + 文件内容 + 根目录名替换（多组规则，无限深度，worker 线程池并行） */
+    run: (input: {
+      root: string
+      rules: RenameRule[]
+      options?: RenameOptions
+    }) => Promise<IpcResult<{ stats: RenameStats; newRoot: string }>>
+    cancel: () => Promise<PlatformResult>
+    onRenameProgress: (cb: (payload: RenameProgress) => void) => () => void
   }
   util: {
     copy: (text: string) => Promise<PlatformResult>

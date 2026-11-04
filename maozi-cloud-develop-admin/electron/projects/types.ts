@@ -1,9 +1,9 @@
 /** 项目控制台公共类型 */
 
 export interface ProjectBinding {
-  /** 项目名称（CONFIG 的 name） */
+  /** 项目名称（maozi-cloud-config.json 的 name） */
   name: string
-  /** 项目版本号（CONFIG 的 version） */
+  /** 项目版本号（maozi-cloud-config.json 的 version） */
   version: string
   /** 项目根目录（本地路径或远程路径） */
   path: string

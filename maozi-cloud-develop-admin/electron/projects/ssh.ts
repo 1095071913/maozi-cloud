@@ -246,7 +246,7 @@ export async function sshListDir(target: SshTarget, dirPath: string): Promise<Ar
     .filter((e) => e.isDir && !e.name.startsWith('.'))
 }
 
-/** 读取远程 CONFIG 文件 */
+/** 读取远程 maozi-cloud-config.json 文件 */
 export async function sshReadFile(target: SshTarget, filePath: string): Promise<string> {
   const cmd = `cat "${filePath}" 2>/dev/null || echo "__NOT_FOUND__"`
   const out = await sshExec(target, cmd, 15_000)

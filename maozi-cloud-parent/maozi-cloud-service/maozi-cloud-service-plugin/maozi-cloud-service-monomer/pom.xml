@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 猫子云单体部署插件模块，为「单体」部署形态（all-service 单进程）装配所需的本地 Bean 注册/资源处理能力，避免依赖远程调用框架 -->
+<!-- 单体部署插件模块，为「单体」部署形态（all-service 单进程）装配所需的本地 Bean 注册/资源处理能力，避免依赖远程调用框架 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 猫子云服务层聚合工程，聚合管理服务运行库、API 接口层、实现层及插件层子模块 -->
+<!-- 服务层聚合工程，聚合管理服务运行库、API 接口层、实现层及插件层子模块 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<!-- 继承猫子云统一父工程，统一管理依赖版本 -->
+	<!-- 继承父工程，统一管理依赖版本 -->
 	<parent>
 		<groupId>com.maozi</groupId>
 		<artifactId>maozi-cloud-parent</artifactId>

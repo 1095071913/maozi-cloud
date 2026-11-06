@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 猫子云单体全量服务模块，将 oauth / system 等业务服务与单体部署插件聚合打包为单一可执行 JAR，作为单体部署形态的入口 -->
+<!-- 单体全量服务模块，将 oauth / system 等业务服务与单体部署插件聚合打包为单一可执行 JAR，作为单体部署形态的入口 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">

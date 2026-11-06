@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 猫子云服务启动运行基础模块，提供 BaseApplication 基类与运行时配置初始化器加载等启动核心能力 -->
+<!-- 服务启动运行基础模块，提供 BaseApplication 基类与运行时配置初始化器加载等启动核心能力 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 猫子云数据传输对象(DTO)模块，定义服务间数据传输的 DTO 基础结构 -->
+<!-- 数据传输对象(DTO)模块，定义服务间数据传输的 DTO 基础结构 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 猫子云分布式部署插件模块，为「分布式」部署形态装配所需的 Dubbo / Feign / Sentinel / 服务发现等远程调用与治理能力 -->
+<!-- 分布式部署插件模块，为「分布式」部署形态装配所需的 Dubbo / Feign / Sentinel / 服务发现等远程调用与治理能力 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">

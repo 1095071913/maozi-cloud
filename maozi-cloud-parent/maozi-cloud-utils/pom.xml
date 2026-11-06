@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 猫子云通用工具类模块，提供字节码增强、通用工具集、Swagger注解、线程上下文传递、JSON处理、参数校验等基础能力 -->
+<!-- 通用工具类模块，提供字节码增强、通用工具集、Swagger注解、线程上下文传递、JSON处理、参数校验等基础能力 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<!-- 继承猫子云统一父工程，统一管理依赖版本 -->
+	<!-- 继承父工程，统一管理依赖版本 -->
 	<parent>
 		<groupId>com.maozi</groupId>
 		<artifactId>maozi-cloud-parent</artifactId>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 猫子云 System 服务可执行启动模块，装配 Spring Boot 引导类与分布式部署插件，作为 System 服务的分布式部署入口 -->
+<!-- System 服务可执行启动模块，装配 Spring Boot 引导类与分布式部署插件，作为 System 服务的分布式部署入口 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">

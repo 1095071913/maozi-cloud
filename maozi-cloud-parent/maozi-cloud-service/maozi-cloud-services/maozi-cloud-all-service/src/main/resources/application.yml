@@ -27,8 +27,8 @@ application-project-whitelist: /config/system/get
 
 # 项目系统信息（用于文档展示与版权声明）
 application-project-system:
-  projectName: 小猫子脚手架
-  corporationName: 小猫子网络科技有限公司
+  projectName: maozi-cloud
+  corporationName: 网络科技有限公司
   icon: http://dummyimage.com/100x100
   environment: ${application.environment}
   description: 基于 Spring Cloud Alibaba + Dubbo 的一站式分布式解决方案开源封装，内置分布式应用开发所需全套组件，统一团队代码风格，保障代码质量，让开发者专注业务逻辑，实现高效快速开发。

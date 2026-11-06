@@ -4855,10 +4855,13 @@ async function saveEnvEdit(it: EnvSettingItem): Promise<void> {
       await refreshAppSvcNaming(it.key)
       return
     }
-    const fileId = it.fileId ?? envDefaultFileId.value
+    // 本地保存目标统一用默认配置文件（~/.zshrc，macOS zsh 交互主配置）而非变量原所在文件：
+    // 旧值可能在 .zshenv 等早期加载文件里，写回原文件会让新值再次被其它文件覆盖；
+    // update 在目标文件无此行时自动按新增落盘（darwin 层），并迁移清理其它文件的同 key 行
+    const fileId = envRemote.value ? (it.fileId ?? envDefaultFileId.value) : envDefaultFileId.value
     const r = envRemote.value
       ? await api.projects.sshEnvSave({ key: it.key, value, fileId })
-      : await api.env.save({ mode: it.fileId ? 'update' : 'add', key: it.key, value, fileId })
+      : await api.env.save({ mode: 'update', key: it.key, value, fileId })
     if (!r.ok) {
       ElMessage.error(r.error ?? '保存失败')
       return
@@ -4882,7 +4885,7 @@ async function saveEnvEdit(it: EnvSettingItem): Promise<void> {
         target.found = value !== ''
         target.enabled = value !== ''
         target.source = value !== '' ? target.source : ''
-        if (!target.fileId) target.fileId = fileId
+        target.fileId = fileId
         break
       }
     }

@@ -25,7 +25,33 @@ contextBridge.exposeInMainWorld('api', {
     dynamic: () => ipcRenderer.invoke('sysinfo:dynamic'),
     network: () => ipcRenderer.invoke('sysinfo:network'),
     publicIP: () => ipcRenderer.invoke('sysinfo:publicIP'),
-    devtools: () => ipcRenderer.invoke('sysinfo:devtools')
+    devtools: () => ipcRenderer.invoke('sysinfo:devtools'),
+    /** JDK 列表（macOS）与当前 JAVA_HOME */
+    jdkList: () => ipcRenderer.invoke('sysinfo:jdkList'),
+    /** 切换 JDK：写 JAVA_HOME 到 ~/.zshrc（托管区块 + 实时生效钩子） */
+    jdkSwitch: (home: string) => ipcRenderer.invoke('sysinfo:jdkSwitch', home),
+    /** 卸载 JDK（危险操作，前端先确认）：用户级直删 / brew uninstall / 管理员授权删除 */
+    jdkUninstall: (home: string) => ipcRenderer.invoke('sysinfo:jdkUninstall', home),
+    /** 下载安装 JDK（Adoptium / Corretto 官方源 → 用户级 JavaVirtualMachines），进度走 jdkDownloadProgress */
+    jdkDownload: (version: string, vendor: string) => ipcRenderer.invoke('sysinfo:jdkDownload', version, vendor),
+    jdkDownloadCancel: () => ipcRenderer.invoke('sysinfo:jdkDownloadCancel'),
+    onJdkDownloadProgress: (cb: (payload: {
+      stage: 'download' | 'extract' | 'install' | 'done' | 'error'
+      pct: number
+      receivedMB: number
+      totalMB: number
+      message: string
+    }) => void) => {
+      const listener = (_e: unknown, payload: {
+        stage: 'download' | 'extract' | 'install' | 'done' | 'error'
+        pct: number
+        receivedMB: number
+        totalMB: number
+        message: string
+      }): void => cb(payload)
+      ipcRenderer.on('sysinfo:jdkDownloadProgress', listener)
+      return () => ipcRenderer.removeListener('sysinfo:jdkDownloadProgress', listener)
+    }
   },
   bookmarks: {
     list: () => ipcRenderer.invoke('bookmarks:list'),

@@ -12,6 +12,8 @@ import type {
 import type {
     DevToolInfo,
     GpuInfo,
+    JdkDownloadProgress,
+    JdkEntry,
     NetInterface,
     ProxyInfo,
     PublicIPInfo,
@@ -32,7 +34,7 @@ import type {
 } from '../electron/projects/types'
 
 export type { EnvFile, EnvVarEntry, EnvSaveParams, LaunchctlParams, HostsEntry, PlatformResult }
-export type { SysStaticInfo, SysDynamicInfo, NetInterface, ProxyInfo, PublicIPInfo, GpuInfo, DevToolInfo }
+export type { SysStaticInfo, SysDynamicInfo, NetInterface, ProxyInfo, PublicIPInfo, GpuInfo, DevToolInfo, JdkEntry, JdkDownloadProgress }
 export type {
   Bookmark,
   PageMeta,
@@ -83,6 +85,16 @@ export interface ElectronApi {
     network: () => Promise<IpcResult<{ interfaces: NetInterface[]; primaryIP: string; proxy: ProxyInfo }>>
     publicIP: () => Promise<IpcResult<PublicIPInfo>>
     devtools: () => Promise<IpcResult<DevToolInfo[]>>
+    /** JDK 列表（macOS，含系统位置 / SDKMAN / Homebrew openjdk）与当前 JAVA_HOME */
+    jdkList: () => Promise<IpcResult<{ list: JdkEntry[]; current: string; arch: 'aarch64' | 'x64' }>>
+    /** 切换 JDK：JAVA_HOME 写 ~/.zshrc 托管区块（已打开终端经钩子实时生效） */
+    jdkSwitch: (home: string) => Promise<IpcResult<null>>
+    /** 卸载 JDK（危险操作，前端先经用户确认） */
+    jdkUninstall: (home: string) => Promise<IpcResult<null>>
+    /** 下载安装 JDK（Adoptium / Corretto 官方源，装到用户级 JavaVirtualMachines），进度经 onJdkDownloadProgress */
+    jdkDownload: (version: string, vendor: 'adoptium' | 'corretto') => Promise<IpcResult<null>>
+    jdkDownloadCancel: () => Promise<IpcResult<null>>
+    onJdkDownloadProgress: (cb: (payload: JdkDownloadProgress) => void) => () => void
   }
   bookmarks: {
     list: () => Promise<IpcResult<Bookmark[]>>

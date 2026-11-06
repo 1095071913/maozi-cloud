@@ -136,10 +136,13 @@ function sshBaseArgs(t: SshTarget, kp?: string, mux = true): string[] {
  * POSIX sh（bash POSIX 模式）下 source 不存在的文件会中止整个命令，必须先 test -f 守卫；
  * 且不能写 [ -f ]——方括号会被 expect 的 Tcl 双引号串当命令替换。
  * rc 配置可能整串替换 PATH（丢掉 /usr/bin 等系统目录，systemctl 等会 command not found），
- * source 后再补一次系统目录兜底
+ * source 后再补一次系统目录兜底。
+ * 末尾（rc 之后）source 实时环境文件：sshEnvSave 写入的新值对非交互 SSH 立即可见——
+ * ~/.zshrc 里装的 precmd/preexec 同步钩子只在交互终端执行，且 rc 头部的非交互 return
+ * 保护会跳过末尾追加的 export 行，仅靠 source rc 读不到最新值
  */
 const REMOTE_PATH_SETUP =
-  'export PATH=$PATH:/usr/local/bin:/usr/bin:/usr/sbin:/usr/local/sbin:/opt/homebrew/bin:$HOME/.local/bin:$HOME/bin; test -f ~/.zshenv && . ~/.zshenv >/dev/null 2>&1; test -f ~/.zshrc && . ~/.zshrc >/dev/null 2>&1; test -f ~/.bashrc && . ~/.bashrc >/dev/null 2>&1; test -f ~/.profile && . ~/.profile >/dev/null 2>&1; export PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin; true'
+  'export PATH=$PATH:/usr/local/bin:/usr/bin:/usr/sbin:/usr/local/sbin:/opt/homebrew/bin:$HOME/.local/bin:$HOME/bin; test -f ~/.zshenv && . ~/.zshenv >/dev/null 2>&1; test -f ~/.zshrc && . ~/.zshrc >/dev/null 2>&1; test -f ~/.bashrc && . ~/.bashrc >/dev/null 2>&1; test -f ~/.profile && . ~/.profile >/dev/null 2>&1; test -f ~/.maozi-cloud-develop-admin-env.sh && . ~/.maozi-cloud-develop-admin-env.sh >/dev/null 2>&1; export PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin; true'
 
 /**
  * 远端环境快照缓存（user@host → export 块）：
@@ -2761,10 +2764,16 @@ export function registerProjectHandlers(): void {
           15_000
         )
       } else {
-        // bash 系配置文件没有提示符钩子机制，维持直接写入（新开终端生效）
+        // bash 系配置文件没有提示符钩子机制，维持直接写入（新开终端生效）；
+        // 同时落一份到实时环境文件——rc 头部的非交互 return 保护会让本工具（非交互 SSH）
+        // source rc 时读不到末尾追加的 export 行，实时文件由 REMOTE_PATH_SETUP 末尾兜底 source
         await sshExec(
           ctx.ssh,
-          `grep -v '^export ${key}=' ${filePath} > ${filePath}.mzi 2>/dev/null || true; echo "export ${key}='${safeVal}'" >> ${filePath}.mzi; mv ${filePath}.mzi ${filePath}`,
+          [
+            `grep -v '^export ${key}=' ${filePath} > ${filePath}.mzi 2>/dev/null || true; echo "export ${key}='${safeVal}'" >> ${filePath}.mzi; mv ${filePath}.mzi ${filePath}`,
+            'f=~/.maozi-cloud-develop-admin-env.sh; touch "$f"',
+            `grep -v '^export ${key}=' "$f" > "$f.mzi" || true; echo "export ${key}='${safeVal}'" >> "$f.mzi"; mv "$f.mzi" "$f"`
+          ].join('; '),
           15_000
         )
       }

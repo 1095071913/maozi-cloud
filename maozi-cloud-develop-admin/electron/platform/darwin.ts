@@ -14,10 +14,11 @@ export const HOSTS_PATH = '/etc/hosts'
 const MANAGED_BEGIN = '# >>> maozi-cloud-develop-admin (managed) >>>'
 const MANAGED_END = '# <<< maozi-cloud-develop-admin (managed) <<<'
 
-/** macOS 常见 shell 配置文件，zsh 为默认 shell 排在最前 */
+/** macOS 常见 shell 配置文件：~/.zshrc 为 zsh 交互主配置（环境设置保存的默认目标），
+ *  排在最前决定默认文件与同名变量的归属优先级；.zshenv 仅适合极早期变量，不作为默认写入目标 */
 const ENV_FILE_DEFS = [
-  { id: 'zshenv', name: '~/.zshenv', file: '.zshenv' },
   { id: 'zshrc', name: '~/.zshrc', file: '.zshrc' },
+  { id: 'zshenv', name: '~/.zshenv', file: '.zshenv' },
   { id: 'zprofile', name: '~/.zprofile', file: '.zprofile' },
   { id: 'bash_profile', name: '~/.bash_profile', file: '.bash_profile' },
   { id: 'bashrc', name: '~/.bashrc', file: '.bashrc' },
@@ -154,6 +155,8 @@ export const darwinPlatform: Platform = {
       return cm !== null && cm[1] === key
     })
     const matchedCommented = matchIndex >= 0 && COMMENTED_EXPORT_RE.test(lines[matchIndex])
+    // 值写入模式（update/add）才做跨文件迁移清理；toggle/rename/remove 不动其它文件
+    let valueWritten = false
 
     if (mode === 'toggle') {
       if (matchIndex < 0) throw new Error(`未找到变量 ${key}`)
@@ -179,14 +182,41 @@ export const darwinPlatform: Platform = {
       if (matchIndex < 0) throw new Error(`未找到变量 ${key}`)
       lines.splice(matchIndex, 1)
     } else if (mode === 'update') {
-      if (matchIndex < 0) throw new Error(`未找到变量 ${key}`)
-      lines[matchIndex] = (matchedCommented ? '# ' : '') + serializeEnvLine(key, value)
+      if (matchIndex >= 0) {
+        lines[matchIndex] = (matchedCommented ? '# ' : '') + serializeEnvLine(key, value)
+      } else {
+        // 变量原在其它配置文件（保存目标已切换到默认文件）：按新增落到目标文件
+        appendManaged(lines, serializeEnvLine(key, value))
+      }
+      valueWritten = true
     } else {
       // add：已存在则视为修改（保持原位置与启用/禁用状态不动）
       if (matchIndex >= 0) {
         lines[matchIndex] = (matchedCommented ? '# ' : '') + serializeEnvLine(key, value)
       } else {
         appendManaged(lines, serializeEnvLine(key, value))
+      }
+      valueWritten = true
+    }
+
+    // 迁移语义（仅值写入模式）：目标文件写入后移除其它配置文件中的同 key 行（含禁用注释行）——
+    // 每个变量只保留单一来源，zshenv 旧值不再以加载顺序覆盖 zshrc 新值
+    if (valueWritten) {
+      for (const def of ENV_FILE_DEFS) {
+        if (def.id === fileId) continue
+        const p = envFilePath(def.id)
+        if (!fs.existsSync(p)) continue
+        const other = fs.readFileSync(p, 'utf8').split('\n')
+        const idx = other.findIndex((l) => {
+          const m = l.match(EXPORT_RE)
+          if (m) return m[1] === key
+          const cm = l.match(COMMENTED_EXPORT_RE)
+          return cm !== null && cm[1] === key
+        })
+        if (idx >= 0) {
+          other.splice(idx, 1)
+          backupAndWrite(p, `${cleanupEmptyManagedBlock(other).join('\n')}\n`, { backup: false })
+        }
       }
     }
 
@@ -321,20 +351,21 @@ const LIVE_END = '# <<< maozi-cloud-develop-admin (live-env) <<<'
 /**
  * 生成实时环境文件：启用的变量 export、禁用的 unset。
  * ~/.zshrc 的 preexec/precmd 钩子按文件内容 md5 检测变化并 source 它，已打开的终端无需重开即可生效。
+ * 同名变量按"后加载覆盖先加载"（Map 保序覆盖）：与 shell 逐文件 source 的覆盖语义一致，
+ * 例如 .zshrc 末尾追加的 export PATH="$JAVA_HOME/bin:$PATH" 必须覆盖前面的同名 PATH 行。
+ * 行序：值含变量引用（$...）的行排在纯值行之后——引用行必须在其依赖定义之后执行，
+ * 否则 source 时 PATH="$JAVA_HOME/bin:$PATH" 会以旧 JAVA_HOME 展开，在线终端拿到旧 JDK。
  * 文件内容全量生成、可随时重建，不做 .maozi.bak 备份（避免已删除的密钥明文残留）。
  */
 function syncLiveEnv(): void {
-  const seen = new Set<string>()
-  const lines = ['# 由 maozi-cloud-develop-admin 维护，请勿手工编辑']
+  const map = new Map<string, string>()
   for (const v of darwinPlatform.readEnvVars()) {
-    if (seen.has(v.key)) continue
-    seen.add(v.key)
-    if (v.enabled === false) {
-      lines.push(`unset ${v.key} 2>/dev/null || true`)
-    } else {
-      lines.push(serializeEnvLine(v.key, v.value))
-    }
+    map.set(v.key, v.enabled === false ? `unset ${v.key} 2>/dev/null || true` : serializeEnvLine(v.key, v.value))
   }
+  const plain: string[] = []
+  const refs: string[] = []
+  for (const line of map.values()) (line.includes('$') ? refs : plain).push(line)
+  const lines = ['# 由 maozi-cloud-develop-admin 维护，请勿手工编辑', ...plain, ...refs]
   backupAndWrite(path.join(homedir(), LIVE_ENV_FILE), `${lines.join('\n')}\n`, { backup: false })
 }
 

@@ -34,7 +34,7 @@ public interface RestChatConversationRecord {
      * @param pageParam 分页查询参数，包含页码、每页数量以及会话列表的排序条件
      * @return 返回会话分页列表数据，包含会话 ID、标题等信息
      */
-    @Post(value = PATH + "/list", description = "AI会话列表")
+    @Post(value = PATH + "/list", description = "列表")
     AbstractBaseResult<PageResult<ChatConversationRecordListResult>> restList(@RequestBody PageParam<ChatConversationRecordListParam> pageParam);
 
     /**
@@ -43,8 +43,12 @@ public interface RestChatConversationRecord {
      * @param param 携带首条消息内容的请求参数，该消息内容作为会话标题
      * @return 返回新建会话的 ID
      */
-    @Post(value = PATH + "/create", description = "AI会话创建")
+    @Post(value = PATH + "/create", description = "保存")
     AbstractBaseResult<Long> restCreate(@RequestBody RequestParam<String> param);
+
+
+    /** 当前会话基础路径，携带会话 ID 路径变量 */
+    String CURRENT_PATH = PATH + "/{conversationId}";
 
     /**
      * 更新会话标题
@@ -53,7 +57,7 @@ public interface RestChatConversationRecord {
      * @param param 携带新标题的请求参数
      * @return 空结果
      */
-    @Post(value = PATH + "/{conversationId}/updateTitle", description = "AI会话更新标题")
+    @Post(value = CURRENT_PATH + "/updateTitle", description = "更新标题")
     AbstractBaseResult<Void> restUpdateTitle(@PathVariable Long conversationId, @RequestBody RequestParam<String> param);
 
     /**
@@ -62,7 +66,7 @@ public interface RestChatConversationRecord {
      * @param conversationId 会话 ID
      * @return 空结果
      */
-    @Post(value = PATH + "/{conversationId}/remove", description = "AI会话删除")
+    @Post(value = CURRENT_PATH + "/remove", description = "删除")
     AbstractBaseResult<Void> restRemove(@PathVariable String conversationId);
 
 }

@@ -57,7 +57,7 @@ public interface RestUserService {
 	 * @param pageParam 分页查询参数，包含页码、每页数量以及用户搜索条件（如用户名称）
 	 * @return 返回用户分页列表数据，包含用户 ID、姓名、所属客户端、状态、创建时间等信息
 	 */
-	@Post(value = PATH + "/list",description = "用户列表")
+	@Post(value = PATH + "/list",description = "列表")
 	@PreAuthorize("hasAuthority('system:user:list')")
 	AbstractBaseResult<PageResult<UserListResult>> restList(@RequestBody PageParam<UserListParam> pageParam);
 
@@ -67,7 +67,7 @@ public interface RestUserService {
 	 * @param param 用户保存参数，包含账号、密码、姓名、关联角色等必要信息
 	 * @return 返回新增用户的 ID
 	 */
-	@Post(value = PATH + "/save",description = "用户保存")
+	@Post(value = PATH + "/save",description = "保存")
 	@PreAuthorize("hasAuthority('system:user:save')")
 	AbstractBaseResult<Long> restSave(@RequestBody UserSaveUpdateParam param);
 
@@ -86,7 +86,7 @@ public interface RestUserService {
 	 * @param id 用户 ID，用于查询指定用户的详细信息
 	 * @return 返回用户详细信息，包含账号、姓名、所属客户端、状态、关联角色等完整属性
 	 */
-	@Get(value = CURRENT_PATH + "/get",description = "用户详情")
+	@Get(value = CURRENT_PATH + "/get",description = "详情")
 	@PreAuthorize("hasAuthority('system:user:get')")
 	AbstractBaseResult<UserInfoResult> restGet(@PathVariable Long id);
 
@@ -96,7 +96,7 @@ public interface RestUserService {
 	 * @param id 用户 ID，指定需要删除的用户记录
 	 * @return 无返回数据，仅返回操作结果状态
 	 */
-	@Post(value = CURRENT_PATH + "/remove",description = "用户删除")
+	@Post(value = CURRENT_PATH + "/remove",description = "删除")
 	@PreAuthorize("hasAuthority('system:user:remove')")
 	AbstractBaseResult<Void> restRemove(@PathVariable Long id);
 
@@ -107,7 +107,7 @@ public interface RestUserService {
 	 * @param param 状态参数，包含需要更新的目标状态值（启用/禁用）
 	 * @return 无返回数据，仅返回操作结果状态
 	 */
-	@Post(value = CURRENT_PATH + "/updateStatus",description = "用户更新状态")
+	@Post(value = CURRENT_PATH + "/updateStatus",description = "更新状态")
 	@PreAuthorize("hasAuthority('system:user:update')")
 	AbstractBaseResult<Void> restUpdateStatusResult(@PathVariable Long id, @RequestBody RequestParam<Status> param);
 
@@ -118,7 +118,7 @@ public interface RestUserService {
 	 * @param param 用户更新参数，包含需要修改的用户属性信息
 	 * @return 无返回数据，仅返回操作结果状态
 	 */
-	@Post(value = CURRENT_PATH + "/update",description = "用户更新")
+	@Post(value = CURRENT_PATH + "/update",description = "更新")
 	@PreAuthorize("hasAuthority('system:user:update')")
 	AbstractBaseResult<Void> restUpdate(@PathVariable Long id, @RequestBody UserSaveUpdateParam param);
 
@@ -139,7 +139,7 @@ public interface RestUserService {
 	 *
 	 * @return 返回当前登录用户的个人信息，包含姓名、头像、权限标识等个人相关数据
 	 */
-	@Get(value = INDIVIDUAL_PATH + "/get",description = "用户个人详情")
+	@Get(value = INDIVIDUAL_PATH + "/get",description = "个人详情")
 	AbstractBaseResult<UserIndividualInfoResult> restIndividualGet();
 
 	/**
@@ -151,7 +151,7 @@ public interface RestUserService {
 	 * @param param 个人信息更新参数，包含需要修改的个人属性（如姓名、头像、密码等）
 	 * @return 无返回数据，仅返回操作结果状态
 	 */
-	@Post(value = INDIVIDUAL_PATH + "/update",description = "用户个人信息更新")
+	@Post(value = INDIVIDUAL_PATH + "/update",description = "个人信息更新")
 	AbstractBaseResult<Void> restIndividualUpdate(@RequestBody UserIndividualUpdateParam param);
 
 }

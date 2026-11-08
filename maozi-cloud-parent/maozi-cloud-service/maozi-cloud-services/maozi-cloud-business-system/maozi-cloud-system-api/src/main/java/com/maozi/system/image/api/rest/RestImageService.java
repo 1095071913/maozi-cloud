@@ -21,7 +21,7 @@ import java.util.List;
  *
  * @author maozi
  */
-@Tag(name = "图片模块")
+@Tag(name = "文件存储模块")
 public interface RestImageService {
 
 	/** 基础路径常量，图片模块的统一请求路径前缀 */

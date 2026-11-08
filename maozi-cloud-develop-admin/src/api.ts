@@ -2,35 +2,35 @@
  * 渲染进程对 preload 暴露能力的类型化封装
  */
 import type {
-    EnvFile,
-    EnvSaveParams,
-    EnvVarEntry,
-    HostsEntry,
-    LaunchctlParams,
-    PlatformResult
+  EnvFile,
+  EnvSaveParams,
+  EnvVarEntry,
+  HostsEntry,
+  LaunchctlParams,
+  PlatformResult
 } from '../electron/platform/types'
 import type {
-    DevToolInfo,
-    GpuInfo,
-    JdkDownloadProgress,
-    JdkEntry,
-    NetInterface,
-    ProxyInfo,
-    PublicIPInfo,
-    SysDynamicInfo,
-    SysStaticInfo
+  DevToolInfo,
+  GpuInfo,
+  JdkDownloadProgress,
+  JdkEntry,
+  NetInterface,
+  ProxyInfo,
+  PublicIPInfo,
+  SysDynamicInfo,
+  SysStaticInfo
 } from '../electron/system/sysinfo'
 import type {Bookmark, PageMeta} from '../electron/bookmarks/types'
 import type {AuthType, ConfigEntry, ConfigType, ToolAvailability} from '../electron/configs/types'
 import type {RenameOptions, RenameProgress, RenameRule, RenameStats} from '../electron/rename/types'
 import type {
-    AppServiceEntry,
-    ComposeServiceStats,
-    EnvSettingGroup,
-    EnvSettingItem,
-    EnvSettingSection,
-    ProjectBinding,
-    ProjectEntry
+  AppServiceEntry,
+  ComposeServiceStats,
+  EnvSettingGroup,
+  EnvSettingItem,
+  EnvSettingSection,
+  ProjectBinding,
+  ProjectEntry
 } from '../electron/projects/types'
 
 export type { EnvFile, EnvVarEntry, EnvSaveParams, LaunchctlParams, HostsEntry, PlatformResult }

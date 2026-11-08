@@ -3,12 +3,12 @@ import {getAccessToken} from '@/utils/auth'
 import {getGrayVersion} from '@/utils/gray'
 import {getTempRequestUrl} from '@/utils/tempRequest'
 import type {
-    ApiResponse,
-    ChatListResult,
-    ChatMessageItem,
-    ConversationItem,
-    GenerateImageResult,
-    PageResult
+  ApiResponse,
+  ChatListResult,
+  ChatMessageItem,
+  ConversationItem,
+  GenerateImageResult,
+  PageResult
 } from '@/types/api'
 
 /**

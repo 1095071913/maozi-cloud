@@ -7,32 +7,32 @@ import os from 'node:os'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import {
-    activateProject,
-    clearBinding,
-    createProject,
-    deactivateProject,
-    getBinding,
-    isDbInitialized,
-    listProjects,
-    markDbInitialized,
-    parseConfigContent,
-    parseConfigFile,
-    removeProject,
-    saveBinding,
-    updateProject,
-    userDataStateFile
+  activateProject,
+  clearBinding,
+  createProject,
+  deactivateProject,
+  getBinding,
+  isDbInitialized,
+  listProjects,
+  markDbInitialized,
+  parseConfigContent,
+  parseConfigFile,
+  removeProject,
+  saveBinding,
+  updateProject,
+  userDataStateFile
 } from './store'
 import {listConfigs} from '../configs/store'
 import {selectPlatform} from '../platform'
 import type {EnvFile, EnvVarEntry, HostsEntry} from '../platform/types'
 import {getShellPath} from '../system/sysinfo'
 import type {
-    AppServiceEntry,
-    ComposeServiceStats,
-    EnvSettingGroup,
-    EnvSettingItem,
-    EnvSettingSection,
-    ProjectBinding
+  AppServiceEntry,
+  ComposeServiceStats,
+  EnvSettingGroup,
+  EnvSettingItem,
+  EnvSettingSection,
+  ProjectBinding
 } from './types'
 
 const exec = promisify(execFile)

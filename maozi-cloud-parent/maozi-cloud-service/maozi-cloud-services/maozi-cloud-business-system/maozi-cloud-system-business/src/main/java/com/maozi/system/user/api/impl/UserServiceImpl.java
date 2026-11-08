@@ -42,6 +42,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
@@ -136,7 +137,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper,UserDo,Void> imp
 	 * @param param 用户新增/更新参数
 	 * @return 新增或更新后的用户ID
 	 */
-	protected Long restSaveUpdate(Long id, UserSaveUpdateParam param) {
+	@Transactional(rollbackFor = Exception.class)
+	public Long restSaveUpdate(Long id, UserSaveUpdateParam param) {
 
 		if(ObjectUtil.isNotNullEmpty(id)) {
 

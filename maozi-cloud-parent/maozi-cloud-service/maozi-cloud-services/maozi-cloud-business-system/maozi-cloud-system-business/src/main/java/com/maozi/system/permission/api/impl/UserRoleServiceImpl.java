@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -84,7 +83,7 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper,UserRole
 
 			};
 
-            bindRoleIds.forEach(Objects.requireNonNull(consumer));
+			bindRoleIds.forEach(consumer);
 
 		}
 
@@ -94,7 +93,7 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper,UserRole
 			    Wrappers.lambdaQuery(UserRoleDo.builder().userId(userId).roleId(roleId).build()
 			));
 
-			unbindRoleIds.forEach(Objects.requireNonNull(consumer));
+			unbindRoleIds.forEach(consumer);
 
 		}
 

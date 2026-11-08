@@ -10,6 +10,7 @@ import com.maozi.system.permission.mapper.RoleMapper;
 import com.maozi.system.role.param.RoleSaveUpdateParam;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 角色服务实现类
@@ -85,7 +86,8 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleMapper,RoleDo,Void> imp
 	 * @param param 角色保存/更新参数
 	 * @return 保存后的角色ID
 	 */
-	protected Long restSaveUpdate(Long id, RoleSaveUpdateParam param) {
+	@Transactional(rollbackFor = Exception.class)
+	public Long restSaveUpdate(Long id, RoleSaveUpdateParam param) {
 
 		id = saveUpdate(id,param);
 

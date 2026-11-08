@@ -28,10 +28,10 @@ import com.maozi.system.permission.domain.RolePermissionDo;
 import com.maozi.system.permission.mapper.RolePermissionMapper;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -86,6 +86,7 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
 	 * @param unbindPermissionIds 需要解绑的权限ID集合
 	 */
 	@Override
+	@Transactional(rollbackFor = Exception.class)
 	public void updateBind(Long roleId, Set<Long> bindPermissionIds, Set<Long> unbindPermissionIds) {
 
 		if(ObjectUtil.isNotNullEmpty(bindPermissionIds)) {
@@ -101,7 +102,7 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
 
 			};
 
-			bindPermissionIds.forEach(Objects.requireNonNull(consumer));
+			bindPermissionIds.forEach(consumer);
 
 		}
 
@@ -112,7 +113,7 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
 				remove(Wrappers.lambdaQuery(RolePermissionDo.builder().roleId(roleId).permissionId(permissionId).build()));
 			};
 
-			unbindPermissionIds.forEach(Objects.requireNonNull(consumer));
+			unbindPermissionIds.forEach(consumer);
 
 		}
 

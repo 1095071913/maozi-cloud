@@ -13,7 +13,10 @@ import com.maozi.common.result.success.SuccessResult;
  * @author pengjinlong
  * @since 2026/4/26 08:18
  */
-public class ResultUtil {
+public final class ResultUtil {
+
+    /** 私有构造器，防止工具类被实例化 */
+    private ResultUtil() {}
 
     /** 默认成功结果（无数据） */
     public static final SuccessResult<Void> DEFAULT_SUCCESS = new SuccessResult<>(null);

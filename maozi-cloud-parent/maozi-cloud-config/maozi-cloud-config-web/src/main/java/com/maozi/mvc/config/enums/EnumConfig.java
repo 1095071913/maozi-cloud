@@ -9,6 +9,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -27,8 +28,8 @@ import java.util.Map;
 @Component
 public class EnumConfig {
 
-    /** 全局枚举映射表，键为枚举类名（首字母小写），值为枚举常量列表 */
-    public static final Map<String, List<BaseEnum>> ENUMS = CollectionUtil.newHashMap();
+    /** 全局枚举映射表，键为枚举类名（首字母小写），值为枚举常量列表（仅类内部可写，外部通过 {@link #getEnums()} 只读视图访问） */
+    private static final Map<String, List<BaseEnum>> ENUMS = CollectionUtil.newHashMap();
 
     @PostConstruct
     public void init() {
@@ -62,13 +63,25 @@ public class EnumConfig {
 
                     charArray[0] += 32; // ASCII 码加 32，即大写字母转小写
 
+                    // 以不可变列表注册，防止外部通过引用修改枚举常量列表
+                    List<BaseEnum> constants = Collections.unmodifiableList(CollectionUtil.newArrayList(enumConstants));
+
                     // 将枚举常量列表注册到全局映射表
-                    ENUMS.put(new String(charArray), CollectionUtil.newArrayList(enumConstants));
+                    ENUMS.put(new String(charArray), constants);
 
                 }
 
             });
 
+    }
+
+    /**
+     * 获取全局枚举映射表的只读视图
+     *
+     * @return 不可变的枚举映射表视图（内部枚举常量列表同样不可变）
+     */
+    public static Map<String, List<BaseEnum>> getEnums() {
+        return Collections.unmodifiableMap(ENUMS);
     }
 
 }

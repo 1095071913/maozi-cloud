@@ -13,6 +13,9 @@ package com.maozi.common.result.error.code;
  */
 public class SystemErrorCode extends AbstractBaseErrorCode{
 
+    /** 私有构造器，防止常量类被实例化（错误码以静态常量形式提供，无需实例） */
+    private SystemErrorCode() {}
+
     /** 业务异常默认码 */
     public static final Integer BUSINESS_ERROR_DEFAULT_CODE = 400;
 

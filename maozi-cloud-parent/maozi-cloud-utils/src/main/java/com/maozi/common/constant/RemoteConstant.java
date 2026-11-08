@@ -12,6 +12,9 @@ package com.maozi.common.constant;
  */
 public final class RemoteConstant {
 
+    /** 私有构造器，防止常量类被实例化 */
+    private RemoteConstant() {}
+
     /** 远程调用接口统一前缀路径 */
     public static final String REMOTE_PREFIX_PATH = "/remote";
 

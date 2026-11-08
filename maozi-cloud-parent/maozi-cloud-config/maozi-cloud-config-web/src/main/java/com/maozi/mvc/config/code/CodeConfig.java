@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,8 +32,8 @@ import java.util.Map;
 @Component
 public class CodeConfig {
 
-    /** 全局错误码映射表，键为错误码值，值为错误码对象 */
-    public static final Map<Integer, ErrorCode> ERROR_CODES = new HashMap<>();
+    /** 全局错误码映射表，键为错误码值，值为错误码对象（仅类内部可写，外部通过 {@link #getErrorCodes()} 只读视图或 {@link #getErrorCode(Integer)} 访问） */
+    private static final Map<Integer, ErrorCode> ERROR_CODES = new HashMap<>();
 
     /**
      * 初始化错误码
@@ -84,6 +85,15 @@ public class CodeConfig {
 
         return ObjectUtil.isNullEmpty(errorCode) ? SystemErrorCode.NOT_EXIST_CODE_ERROR : errorCode;
 
+    }
+
+    /**
+     * 获取全局错误码映射表的只读视图
+     *
+     * @return 不可变的错误码映射表视图
+     */
+    public static Map<Integer, ErrorCode> getErrorCodes() {
+        return Collections.unmodifiableMap(ERROR_CODES);
     }
 
 }

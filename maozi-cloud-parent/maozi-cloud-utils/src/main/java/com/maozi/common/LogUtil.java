@@ -16,7 +16,10 @@ import java.util.Map;
  * @author pengjinlong
  * @since 2026/4/25 01:37
  */
-public class LogUtil {
+public final class LogUtil {
+
+    /** 私有构造器，防止工具类被实例化 */
+    private LogUtil() {}
 
     /** SQL 日志线程变量，用于在同一线程中累积 SQL 日志信息 */
     public static final ThreadLocal<StringBuilder> sqlLog = new ThreadLocal<>();

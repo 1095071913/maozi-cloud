@@ -16,7 +16,10 @@ import java.util.Objects;
  * @author pengjinlong
  * @since 2026/4/26 09:04
  */
-public class EnumUtil {
+public final class EnumUtil {
+
+    /** 私有构造器，防止工具类被实例化 */
+    private EnumUtil() {}
 
     /**
      * 根据整型值获取对应的枚举实例

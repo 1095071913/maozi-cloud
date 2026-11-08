@@ -11,6 +11,9 @@ package com.maozi.db.constant;
  */
 public final class TableColumnName {
 
+    /** 私有构造器，防止常量类被实例化 */
+    private TableColumnName() {}
+
     /** 租户标识列名（client_id），被 MyBatis-Plus 多租户插件用作租户隔离字段，兼作 OAuth2 客户端关联字段 */
     public static final String CLIENT_ID = "client_id";
 

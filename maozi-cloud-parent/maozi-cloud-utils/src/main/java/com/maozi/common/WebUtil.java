@@ -24,7 +24,10 @@ import java.util.Objects;
  * @since 2026/4/24 14:11
  */
 @Slf4j
-public class WebUtil {
+public final class WebUtil {
+
+    /** 私有构造器，防止工具类被实例化 */
+    private WebUtil() {}
 
     /** 本地 IP 地址 */
     public static final String LOCAL_IP = "127.0.0.1";

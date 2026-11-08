@@ -23,6 +23,12 @@ public enum Status implements BaseEnum {
 
 	;
 
+	/**
+	 * 按整型值和描述构造枚举实例
+	 *
+	 * @param value 状态值，对应数据库状态字段
+	 * @param desc 状态的中文描述
+	 */
 	Status(Integer value,String desc) {
 
 		this.value = value;
@@ -39,6 +45,11 @@ public enum Status implements BaseEnum {
 	@Getter
 	private final String desc;
 
+	/**
+	 * 返回"值.描述"格式的字符串
+	 *
+	 * @return 形如 "1.启用" 的字符串
+	 */
 	@Override
 	public String toString() {
 		return value + "." + desc;

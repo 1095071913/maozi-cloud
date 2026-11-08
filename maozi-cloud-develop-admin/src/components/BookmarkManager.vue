@@ -317,13 +317,17 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { api, type Bookmark } from '../api'
 
 const bookmarks = ref<Bookmark[]>([])
+/** 搜索关键字 */
 const keyword = ref('')
+/** 分类筛选（三层，未选为 undefined） */
 const filter = reactive<{ c1?: string; c2?: string; c3?: string }>({})
+/** 已收起的一级分类 */
 const collapsed = ref(new Set<string>())
 
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const saving = ref(false)
+/** 网页信息抓取中 */
 const metaLoading = ref(false)
 
 const emptyForm = () => ({
@@ -344,9 +348,12 @@ const form = ref(emptyForm())
 const titleHint = ref('')
 const descHint = ref('')
 
+/** 地址输入防抖定时器 */
 let urlTimer: ReturnType<typeof setTimeout> | null = null
+/** 编辑回填时跳过一次 url watch，避免立即触发抓取 */
 let skipUrlWatch = false
 
+/** 分类树节点（label + 计数 + 子节点） */
 interface CatNode {
   label: string
   count: number
@@ -374,12 +381,14 @@ const categoryTree = computed<CatNode[]>(() => {
   }))
 })
 
+/** 概览统计：书签总数 / 归宿数 / 环境数 */
 const stats = computed(() => ({
   total: bookmarks.value.length,
   companies: categoryTree.value.length,
   envs: categoryTree.value.reduce((s, g) => s + g.children.length, 0)
 }))
 
+/** 各级分类下拉选项（去重） */
 const catOptions = computed(() => {
   const uniq = (key: 'category1' | 'category2' | 'category3') => [
     ...new Set(bookmarks.value.map((b) => b[key]).filter(Boolean))
@@ -387,8 +396,10 @@ const catOptions = computed(() => {
   return { c1: uniq('category1'), c2: uniq('category2'), c3: uniq('category3') }
 })
 
+/** 是否设置了任一分类筛选 */
 const hasFilter = computed(() => !!(filter.c1 || filter.c2 || filter.c3))
 
+/** 按分类筛选 + 关键字（标题/地址/账号/描述）模糊匹配后的书签列表 */
 const filtered = computed(() => {
   const k = keyword.value.trim().toLowerCase()
   return bookmarks.value.filter((b) => {
@@ -415,11 +426,13 @@ const groupedByType = computed(() => {
   return [...map.entries()].map(([label, items]) => ({ label, items }))
 })
 
+/** 拉取书签列表 */
 async function load(): Promise<void> {
   const r = await api.bookmarks.list()
   if (r.ok && r.data) bookmarks.value = r.data
 }
 
+/** 点击分类树节点设置筛选 */
 function selectNode(node: { c1: string; c2?: string; c3?: string }): void {
   filter.c1 = node.c1
   filter.c2 = node.c2
@@ -450,6 +463,7 @@ function onLevel1Click(label: string): void {
   selectNode({ c1: label })
 }
 
+/** 按名称哈希稳定取色（同一分类颜色固定） */
 function colorOf(seed: string): string {
   const colors = ['#2563eb', '#7c3aed', '#db2777', '#dc2626', '#ea580c', '#059669', '#0891b2']
   let hash = 0
@@ -457,15 +471,18 @@ function colorOf(seed: string): string {
   return colors[hash % colors.length]
 }
 
+/** 去掉协议与结尾斜杠，用于展示 */
 function prettyUrl(url: string): string {
   return url.replace(/^https?:\/\//, '').replace(/\/$/, '')
 }
 
+/** 复制文本并提示 */
 async function copyText(text: string): Promise<void> {
   await api.util.copy(text)
   ElMessage.success('已复制到剪贴板')
 }
 
+/** 用默认浏览器打开书签地址 */
 async function openUrl(b: Bookmark): Promise<void> {
   await api.util.openUrl(b.url)
 }
@@ -518,6 +535,7 @@ watch(
   }
 )
 
+/** 抓取网页信息：图标直接采用；标题 / 描述仅在未填写时自动填入，已填写则暂存为覆盖提示 */
 async function fetchMeta(url: string): Promise<void> {
   metaLoading.value = true
   const r = await api.bookmarks.fetchMeta(url)
@@ -542,6 +560,7 @@ async function fetchMeta(url: string): Promise<void> {
   }
 }
 
+/** 采用抓取到的标题 / 描述覆盖已填内容 */
 function applyHint(field: 'title' | 'description'): void {
   if (field === 'title') {
     form.value.title = titleHint.value
@@ -605,8 +624,11 @@ async function onRemove(b: Bookmark): Promise<void> {
 }
 
 /* ===== 卡片拖拽排序 ===== */
+/** 拖起的书签 id */
 const dragId = ref('')
+/** 悬停的目标卡片 id */
 const dragOverId = ref('')
+/** 悬停的分组标题 */
 const dragOverGroup = ref('')
 /** 拖拽悬停的分组区域（整组作为放置区） */
 const dragOverArea = ref('')
@@ -621,6 +643,7 @@ function onDragStart(b: Bookmark, e: DragEvent): void {
   }
 }
 
+/** 悬停时按指针在卡片左半 / 右半决定插入位置 */
 function onDragOver(b: Bookmark, e: DragEvent): void {
   e.preventDefault()
   dragOverId.value = b.id
@@ -628,6 +651,7 @@ function onDragOver(b: Bookmark, e: DragEvent): void {
   dropPos.value = e.clientX < rect.left + rect.width / 2 ? 'before' : 'after'
 }
 
+/** 清空拖拽状态 */
 function onDragEnd(): void {
   dragId.value = ''
   dragOverId.value = ''
@@ -636,6 +660,7 @@ function onDragEnd(): void {
   dropPos.value = 'before'
 }
 
+/** 放到卡片上：按左右半区插到目标前后，跨组时先改三级类型，再按当前可见顺序重排 */
 async function onDrop(b: Bookmark, e: DragEvent): Promise<void> {
   e.preventDefault()
   // 已精确处理落点，阻止冒泡到分组的放置处理，避免重复移动

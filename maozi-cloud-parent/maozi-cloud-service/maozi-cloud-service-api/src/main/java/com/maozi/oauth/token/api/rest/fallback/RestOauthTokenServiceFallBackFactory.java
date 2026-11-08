@@ -15,7 +15,7 @@ import java.util.Map;
  * OAuth 令牌服务降级工厂
  * <p>
  * 当 OAuth 认证服务不可用时，提供降级响应，将服务端的错误信息原样返回。
- * 令牌内省主链路已切换为 Dubbo RPC（{@link com.maozi.oauth.token.api.OauthTokenService}），
+ * 令牌内省主链路已切换为 Dubbo RPC（{@link com.maozi.oauth.token.api.rpc.RpcOauthTokenService}），
  * 本工厂仅配合保留的 Feign 兼容入口使用，Feign 链路移除时可一并删除。
  * </p>
  *

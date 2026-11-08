@@ -7,7 +7,7 @@ import {registerConfigHandlers} from './configs'
 import {registerProjectHandlers} from './projects'
 import {registerRenameHandlers} from './rename'
 
-// 禁用沙箱要求下的安全默认值由 BrowserWindow 配置保证
+// 窗口创建前先注册各模块 IPC 处理器
 registerPlatformHandlers()
 registerSysinfoHandlers()
 registerBookmarkHandlers()
@@ -15,6 +15,7 @@ registerConfigHandlers()
 registerProjectHandlers()
 registerRenameHandlers()
 
+/** 创建主窗口：设置了 ELECTRON_START_URL（开发模式）时加载该地址，否则加载打包产物 dist/index.html */
 function createWindow(): void {
   const win = new BrowserWindow({
     width: 1280,
@@ -30,12 +31,14 @@ function createWindow(): void {
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      // 未启用 sandbox，安全隔离由 contextIsolation + 禁用 nodeIntegration 保证
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false
     }
   })
 
+  // 配合 show: false，渲染就绪后再显示，避免白屏闪烁
   win.once('ready-to-show', () => win.show())
 
   // 锁定页面缩放（捏合与 Cmd/Ctrl +/-/0）：编程工具的 JSON 编辑器为"高亮层 + 透明输入层"叠加结构，
@@ -64,11 +67,13 @@ function createWindow(): void {
 
 void app.whenReady().then(() => {
   createWindow()
+  // macOS：点击 Dock 图标且没有窗口时重新创建
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
 
+// 关闭所有窗口即退出；macOS 按平台惯例保持应用运行
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 })

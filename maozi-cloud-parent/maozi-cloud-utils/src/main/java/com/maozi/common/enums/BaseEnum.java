@@ -15,9 +15,9 @@ import com.baomidou.mybatisplus.annotation.IEnum;
 public interface BaseEnum extends IEnum<Integer> {
 
 	/**
-	 * 获取枚举的中文描述
+	 * 获取枚举的描述
 	 *
-	 * @return 枚举的中文描述
+	 * @return 枚举的描述
 	 */
 	String getDesc();
 

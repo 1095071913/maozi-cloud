@@ -16,8 +16,10 @@ import lombok.Getter;
 @Schema(description = "AI对话类型",type = "integer")
 public enum ChatType {
 
+    /** 完成对话（对话流已结束） */
     FINISH(0,"完成对话"),
 
+    /** 持续对话中（AI 正在输出回复内容） */
     OUTPUT(1,"持续对话中"),
 
     ;

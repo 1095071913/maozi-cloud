@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 /**
  * 远程资源消费者注解
  * <p>
- * 标注在字段或 setter 方法上，表示需要注入一个 Dubbo RPC 远程资源（消费端）。
+ * 标注在非静态字段上，表示需要注入一个 Dubbo RPC 远程资源（消费端）。
  * 该注解组合了 {@link Resource}，可被以下 Bean 后置处理器识别并完成注入：
  * <ul>
  *   <li>分布式部署：{@code RemoteResourceBeanPostProcessor}（从 Dubbo 注册中心获取代理）</li>

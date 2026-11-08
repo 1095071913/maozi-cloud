@@ -11,10 +11,13 @@ import type {ConfigEntry} from './types'
  */
 
 interface StoredConfig extends Omit<ConfigEntry, 'password'> {
+  /** 加密后的 base64；钥匙串不可用时为带 weak: 前缀的 base64 */
   passwordEnc: string
+  /** 弱加密标记（现未写入，弱加密以 passwordEnc 的 weak: 前缀识别） */
   weakEnc?: boolean
 }
 
+/** 弱加密（纯 base64）密文前缀 */
 const WEAK_PREFIX = 'weak:'
 
 /** 默认密钥：首次启动播种，缺失时自动补齐，不可删除 */
@@ -27,6 +30,7 @@ function storeFile(): string {
   return path.join(app.getPath('userData'), 'configs.json')
 }
 
+/** 加密密码：优先 safeStorage，不可用时退化为带 weak: 前缀的 base64 */
 function encrypt(plain: string): string {
   if (!plain) return ''
   if (safeStorage.isEncryptionAvailable()) {
@@ -35,6 +39,7 @@ function encrypt(plain: string): string {
   return `${WEAK_PREFIX}${Buffer.from(plain, 'utf8').toString('base64')}`
 }
 
+/** 解密密码（兼容 weak: 前缀），失败返回空串 */
 function decrypt(enc: string): string {
   if (!enc) return ''
   try {
@@ -47,6 +52,7 @@ function decrypt(enc: string): string {
   }
 }
 
+/** 读取存储的原始列表；文件缺失或损坏时返回空数组 */
 function readStore(): StoredConfig[] {
   try {
     const raw = JSON.parse(fs.readFileSync(storeFile(), 'utf8'))
@@ -61,6 +67,7 @@ function writeStore(list: StoredConfig[]): void {
   fs.writeFileSync(storeFile(), JSON.stringify({ version: 1, configs: list }, null, 2))
 }
 
+/** 存储结构转业务对象：解密密码并去掉加密字段 */
 function toDomain(c: StoredConfig): ConfigEntry {
   const { passwordEnc, weakEnc, ...rest } = c
   return { ...rest, password: decrypt(passwordEnc) }
@@ -85,6 +92,7 @@ export function listConfigs(): ConfigEntry[] {
     seeded = true
   }
 
+  // 归一历史默认名
   for (const item of list) {
     if (item.isDefault && LEGACY_DEFAULT_NAMES[item.id]?.includes(item.name)) {
       const def = DEFAULT_CONFIGS.find((d) => d.id === item.id)
@@ -104,6 +112,7 @@ export function listConfigs(): ConfigEntry[] {
     seeded = true
   }
 
+  // 播种缺失的默认密钥
   for (const def of DEFAULT_CONFIGS) {
     if (!list.some((c) => c.id === def.id)) {
       const entry: ConfigEntry = {
@@ -173,6 +182,7 @@ export function upsertConfig(input: Partial<ConfigEntry> & { id?: string }): Con
   return entry
 }
 
+/** 删除密钥；默认密钥不可删除，id 不存在时静默忽略 */
 export function removeConfig(id: string): void {
   const list = readStore()
   const target = list.find((c) => c.id === id)

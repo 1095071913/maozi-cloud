@@ -38,6 +38,7 @@ async function loadList() {
   }
 }
 
+/** 权限类型标签映射（表格展示用） */
 const typeTagMap: Record<number, { text: string; type: 'warning' | 'success' | 'info' }> = {
   [PermissionType.DIRECTORY]: { text: '目录', type: 'warning' },
   [PermissionType.MENU]: { text: '菜单', type: 'success' },
@@ -51,12 +52,14 @@ const isEdit = ref(false)
 const editId = ref<string | number>('')
 const formRef = ref<FormInstance>()
 
+/** 类型单选选项 */
 const typeOptions = [
   { value: PermissionType.DIRECTORY, label: '目录' },
   { value: PermissionType.MENU, label: '菜单' },
   { value: PermissionType.BUTTON, label: '按钮' }
 ]
 
+/** 表单默认值（新增场景） */
 const defaultForm = (): PermissionSaveParam => ({
   name: '',
   mark: '',

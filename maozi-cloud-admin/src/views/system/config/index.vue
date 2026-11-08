@@ -18,6 +18,7 @@ import { useUserStore } from '@/store/modules/user'
 import type { ConfigListItem, ConfigSaveParam } from '@/types/api'
 
 const userStore = useUserStore()
+/** 是否有编辑权限（无则状态列只读展示） */
 const canUpdate = computed(() => userStore.permissions.includes('system:config:update'))
 
 // ============ 配置类型 ============
@@ -151,6 +152,7 @@ async function handleStatusChange(row: ConfigListItem) {
     await updateConfigStatus(row.id, row.status)
     ElMessage.success(row.status === 1 ? '已启用' : '已禁用')
   } catch {
+    // 失败时回滚开关状态
     row.status = row.status === 1 ? 0 : 1
   }
 }
@@ -171,6 +173,7 @@ const isEdit = ref(false)
 const editId = ref<string | number>('')
 const formRef = ref<FormInstance>()
 
+/** 表单默认值（新增场景） */
 const defaultForm = (): ConfigSaveParam => ({
   name: '',
   alias: '',

@@ -14,6 +14,7 @@ const formRef = ref<FormInstance>()
 const submitting = ref(false)
 const uploadingIcon = ref(false)
 
+/** 表单默认值（密码字段留空表示不修改） */
 const defaultForm = (): UserIndividualUpdateParam => ({
   name: '',
   icon: '',

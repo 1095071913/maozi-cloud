@@ -1384,7 +1384,7 @@
       </template>
     </el-dialog>
 
-    <!-- ===== 微服务全量启动弹窗 ===== -->
+    <!-- ===== 执行日志弹窗：多会话执行历史 + 当前会话日志（各类部署 / compose / git 等操作共用） ===== -->
     <el-dialog
       v-model="scriptVisible"
       width="92%"
@@ -1504,7 +1504,7 @@
       </template>
     </el-dialog>
 
-    <!-- ===== 环境设置弹窗：进度总览 + 搜索筛选 + 分组卡片（修改写入 shell 配置，自动备份） ===== -->
+    <!-- ===== 环境设置弹窗：进度总览 + 搜索筛选 + 分组卡片（系统环境分节写入 shell 配置，.env 分节写入业务 .env，均不备份） ===== -->
     <el-dialog
       v-model="envVisible"
       width="780px"
@@ -3203,8 +3203,10 @@ import { api, type AppServiceEntry, type ComposeServiceStats, type ConfigEntry, 
 // KeepAlive include 按组件名缓存，显式声明避免依赖文件名推断
 defineOptions({ name: 'ProjectConsole' })
 
+/** 项目仓库主页（openRepo 打开） */
 const REPO_PAGE = 'https://github.com/1095071913/maozi-cloud'
 
+/** 当前激活项目的绑定信息（未绑定为 null） */
 const binding = ref<ProjectBinding | null>(null)
 
 /** ===== 视图状态机：projects 项目列表 / create 创建向导（填信息）/ bind 选择绑定方式 / console 控制台 ===== */
@@ -3212,6 +3214,7 @@ type ConsoleView = 'projects' | 'create' | 'bind' | 'console'
 const view = ref<ConsoleView>('projects')
 /** 首次 state() 读取完成前不渲染列表，避免已绑定项目闪一下空列表 */
 const booted = ref(false)
+/** 项目列表与当前激活项目 id */
 const projectList = ref<ProjectEntry[]>([])
 const activeProjectId = ref<string | null>(null)
 /** 待绑定项目数（头部计数细分展示） */
@@ -3219,6 +3222,7 @@ const unboundCount = computed(() => projectList.value.filter((p) => !p.binding).
 /** 向导第 2 步顶部横幅展示的项目（新建或从列表点开的待绑定项目） */
 const wizardProject = ref<ProjectEntry | null>(null)
 
+/** 刷新项目列表与激活项 */
 async function reloadProjects(): Promise<void> {
   const r = await api.projects.projectsList()
   if (r.ok && r.data) {
@@ -3247,9 +3251,11 @@ async function openProject(p: ProjectEntry): Promise<void> {
 const wzName = ref('')
 const wzAlias = ref('')
 const wzRemark = ref('')
+/** 项目名称校验规则（与主进程 store.ts 保持一致） */
 const WZ_NAME_CJK = /[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/
 const WZ_NAME_RE = /^[A-Za-z0-9][A-Za-z0-9._-]*$/
 
+/** 名称即时校验提示（空串表示通过） */
 const wzNameError = computed(() => {
   const n = wzName.value.trim()
   if (!n) return ''
@@ -3259,6 +3265,7 @@ const wzNameError = computed(() => {
   return ''
 })
 
+/** 第 1 步是否可进入下一步 */
 const wizardValid = computed(
   () => Boolean(wzName.value.trim()) && !wzNameError.value && Boolean(wzAlias.value.trim())
 )
@@ -3325,6 +3332,7 @@ const edAlias = ref('')
 const edRemark = ref('')
 const savingEdit = ref(false)
 
+/** 名称校验提示（重名校验排除自身） */
 const edNameError = computed(() => {
   const n = edName.value.trim()
   if (!n) return ''
@@ -3338,6 +3346,7 @@ const editValid = computed(
   () => Boolean(edName.value.trim()) && !edNameError.value && Boolean(edAlias.value.trim())
 )
 
+/** 打开编辑弹窗并回填当前信息 */
 function openProjectEdit(p: ProjectEntry): void {
   editingId.value = p.id
   edName.value = p.name
@@ -3346,6 +3355,7 @@ function openProjectEdit(p: ProjectEntry): void {
   editVisible.value = true
 }
 
+/** 保存项目信息并刷新列表 */
 async function saveProjectEdit(): Promise<void> {
   if (!editValid.value || savingEdit.value) return
   savingEdit.value = true
@@ -3389,12 +3399,14 @@ function avatarText(p: ProjectEntry): string {
   return (p.alias || p.name).trim().slice(0, 1).toUpperCase() || '?'
 }
 
+/** 名称散列到 0-5 号渐变色组 */
 function avatarHue(name: string): number {
   let h = 0
   for (const ch of name) h = (h * 31 + (ch.codePointAt(0) ?? 0)) % 997
   return h % 6
 }
 
+/** 读取当前绑定：已绑定则进入控制台并并行加载各面板数据 */
 async function loadState(): Promise<void> {
   const r = await api.projects.state()
   if (r.ok) binding.value = r.data ?? null
@@ -3424,6 +3436,7 @@ function openRepo(): void {
   void api.util.openUrl(REPO_PAGE)
 }
 
+/** 时间戳格式化为 YYYY-MM-DD HH:mm */
 function fmtTime(ts: number): string {
   const d = new Date(ts)
   const pad = (n: number): string => String(n).padStart(2, '0')
@@ -3474,6 +3487,7 @@ const offCloneLog = api.projects.onCloneLog((p) => {
   }
 })
 
+// 新日志到达后滚动到底部
 watch(
   () => cloneLogs.value.length,
   async () => {
@@ -3495,6 +3509,7 @@ onUnmounted(() => offBindingChanged())
 const scriptVisible = ref(false)
 const scriptLogBox = ref<HTMLElement>()
 
+/** 会话对应的操作（用于「重新执行」与运行中会话匹配） */
 type LastAction =
   | { type: 'script'; kind: 'all' | 'demand' | 'admin' | 'monomerServices' | 'monomerAdmin' }
   | { type: 'sshClone' }
@@ -3512,14 +3527,18 @@ type LastAction =
   | { type: 'dockerClear' }
   | { type: 'dockerRestart' }
 
+/** 一条执行会话（对应一次操作的完整日志） */
 interface LogSession {
   id: string
   action: LastAction
+  /** 历史列表中的名称 */
   label: string
   icon: string
+  /** 日志窗口标题 / 副标题 */
   title: string
   sub: string
   logs: string[]
+  /** 结果：'' 未结束 / ok 成功 / fail 失败 */
   status: '' | 'ok' | 'fail'
   running: boolean
   startedAt: number
@@ -3546,6 +3565,7 @@ function finishSession(s: LogSession, okFlag: boolean): void {
 /** 会话按项目隔离：projectId → 该项目自己的执行历史（切换项目互不可见，后台照常收日志） */
 const sessionsByProject = reactive<Record<string, LogSession[]>>({})
 
+/** 日志窗口当前查看的会话 id */
 const activeSid = ref('')
 
 /** 当前项目的会话桶（不存在时惰性创建，仅用于写操作）：新增/移除/清空都落在当前项目 */
@@ -3554,8 +3574,10 @@ function projectSessions(): LogSession[] {
   return (sessionsByProject[key] ??= [])
 }
 
+/** 无会话时共用的空数组（保持引用稳定） */
 const EMPTY_SESSIONS: LogSession[] = []
 
+/** 当前项目的会话（只读视图，写操作走 projectSessions） */
 const sessions = computed<LogSession[]>(() => sessionsByProject[activeProjectId.value ?? '_none'] ?? EMPTY_SESSIONS)
 
 const activeSession = computed(() => sessions.value.find((s) => s.id === activeSid.value) ?? null)
@@ -3576,6 +3598,7 @@ watch(activeProjectId, () => {
   scriptVisible.value = false
 })
 
+/** 当前项目运行中的会话数 / 是否有失败会话 */
 const runningSessionCount = computed(() => sessions.value.filter((s) => s.running).length)
 
 const hasFailedSession = computed(() => sessions.value.some((s) => s.status === 'fail'))
@@ -3586,6 +3609,7 @@ const logBtnState = computed(() => {
   return hasFailedSession.value ? 'fail' : 'ok'
 })
 
+/** 执行日志按钮的图标与状态文案 */
 const logBtnIcon = computed(() => {
   if (logBtnState.value === 'running') return '⏳'
   return logBtnState.value === 'fail' ? '⚠️' : '📄'
@@ -3663,6 +3687,7 @@ function runningOf(match: (a: LastAction) => boolean): boolean {
 
 type DeployKind = 'all' | 'demand' | 'admin' | 'monomerServices' | 'monomerAdmin'
 
+/** 部署脚本元信息：日志窗口图标 / 标题 / 副标题、所属变体与完成提示 */
 const DEPLOY_META: Record<DeployKind, { icon: string; title: string; sub: string; variant: AppSvcVariant; done: string }> = {
   demand: {
     icon: '⚡',
@@ -3701,6 +3726,7 @@ const DEPLOY_META: Record<DeployKind, { icon: string; title: string; sub: string
   }
 }
 
+/** 会话 id 自增序号 */
 let sidSeq = 0
 
 /** 新建会话并打开日志弹窗（返回响应式代理，后续状态变更才能触发视图更新） */
@@ -3727,12 +3753,14 @@ function focusRunning(match: (a: LastAction) => boolean): boolean {
   return true
 }
 
+/** 移除会话；移除的是当前查看项时回退到首条 */
 function removeSession(id: string): void {
   const idx = sessions.value.findIndex((s) => s.id === id)
   if (idx >= 0) sessions.value.splice(idx, 1)
   if (activeSid.value === id) activeSid.value = sessions.value[0]?.id ?? ''
 }
 
+/** 切换查看的会话并滚动到日志底部 */
 function focusSession(id: string): void {
   activeSid.value = id
   void nextTick(() => scriptLogBox.value?.scrollTo({ top: 10_000_000 }))
@@ -3762,8 +3790,10 @@ function onRerunLast(): Promise<void> {
 }
 
 /** ===== 日志窗口关闭语义：执行中点关闭=中断当前会话；后台运行=隐藏窗口，所有会话继续 ===== */
+/** 已请求中断的会话（防止重复发送中断） */
 const stopRequestedSids = new Set<string>()
 
+/** 中断当前查看的运行中会话 */
 async function interruptActive(): Promise<void> {
   const s = activeSession.value
   if (!s || !s.running || stopRequestedSids.has(s.id)) return
@@ -3772,19 +3802,23 @@ async function interruptActive(): Promise<void> {
   ElMessage.info('已中断执行')
 }
 
+/** 关闭按钮：先中断当前会话再隐藏窗口 */
 async function onCloseScript(): Promise<void> {
   await interruptActive()
   scriptVisible.value = false
 }
 
+/** 后台运行：仅隐藏窗口，会话继续执行 */
 function onRunBackground(): void {
   scriptVisible.value = false
 }
 
+/** 弹窗 before-close（遮罩 / Esc 关闭）：与关闭按钮一致，先中断再关闭 */
 function onBeforeScriptClose(done: () => void): void {
   void interruptActive().then(() => done())
 }
 
+/** 脚本日志推送：按 sid 路由到会话（line 追加，update 覆盖末行） */
 const offScriptLog = api.projects.onScriptLog((p) => {
   // 跨项目路由：后台运行的其他项目会话同样接收日志与完成标记（视图层只展示当前项目）
   const s = findSession(p.sid)
@@ -3805,6 +3839,7 @@ const offScriptLog = api.projects.onScriptLog((p) => {
   }
 })
 
+// 日志增长或切换会话时滚动到底部
 watch(
   () => scriptLogs.value.length,
   async () => {
@@ -3821,15 +3856,18 @@ onUnmounted(() => offScriptLog())
 
 /** ===== 服务日志查询：一次性拉取最近 N 行 + 可选实时跟踪（-f 流式，stopScript 中断） ===== */
 const logVisible = ref(false)
+/** 查看日志的服务名 */
 const logService = ref('')
-/** 日志上下文：'basics'（基础服务）或 '<monomer|distributeds>:<admin|services>'（应用服务 -f 文件） */
+/** 日志上下文：'basics'（基础服务）或 '<monomer|distributeds>:<admin|services|nginx>'（应用服务 -f 文件） */
 const logCtx = ref('basics')
 
+/** 应用服务上下文对应的 compose 文件名 */
 function appSvcYmlName(ctx: string): string {
   const [v, f] = ctx.split(':')
   return APP_SVC_FILE_NAMES[v as AppSvcVariant]?.[f as 'admin' | 'services' | 'nginx'] ?? ''
 }
 
+/** 日志窗口展示的等效命令行 */
 const logCmdText = computed(() =>
   [
     'docker',
@@ -3847,8 +3885,10 @@ const logServiceOptions = computed(() => {
   const [v] = logCtx.value.split(':')
   return appServices.value[v as AppSvcVariant].map((e) => ({ name: e.name, file: e.file, base: e.base }))
 })
+/** 一次性查询的行数 */
 const logTail = ref(500)
 const logLines = ref<string[]>([])
+/** 关键字过滤 */
 const logFilter = ref('')
 const logLoading = ref(false)
 const logError = ref('')
@@ -3859,6 +3899,7 @@ const logBoxEl = ref<HTMLElement>()
 /** 缓冲上限：超出丢弃最旧行，避免长时间跟踪内存膨胀 */
 const LOG_MAX_LINES = 5000
 
+/** 关键字（大小写不敏感）过滤后的日志行 */
 const filteredLogLines = computed(() => {
   const kw = logFilter.value.trim().toLowerCase()
   return kw ? logLines.value.filter((l) => l.toLowerCase().includes(kw)) : logLines.value
@@ -3892,6 +3933,7 @@ function highlightSegments(text: string, kw: string): Array<{ text: string; hit:
   return segments.length > 0 ? segments : [{ text, hit: false }]
 }
 
+/** 行内日志等级识别（WARNING 归 warn，TRACE 归 debug，FATAL 归 error） */
 const LOG_LEVEL_RE = /\b(FATAL|ERROR|WARNING|WARN|INFO|DEBUG|TRACE)\b/
 const LOG_LEVEL_MAP: Record<string, LogLineModel['level']> = {
   FATAL: 'error',
@@ -3903,6 +3945,7 @@ const LOG_LEVEL_MAP: Record<string, LogLineModel['level']> = {
   TRACE: 'debug'
 }
 
+/** 解析一行 compose 日志：拆出「容器名 |」前缀（去掉 maozi-cloud-basic- 项目前缀）并识别等级 */
 function parseLogLine(l: string): LogLineModel {
   const pm = l.match(/^(\S+\s+\|\s?)(.*)$/)
   const prefix = pm ? pm[1].replace(/^maozi-cloud-basic-/, '') : ''
@@ -3911,6 +3954,7 @@ function parseLogLine(l: string): LogLineModel {
   return { prefix, text, level: lm ? (LOG_LEVEL_MAP[lm[1]] ?? '') : '' }
 }
 
+/** 带关键字高亮分段的日志行模型 */
 const logLineModels = computed(() => {
   const kw = logFilter.value.trim()
   return filteredLogLines.value.map((l) => {
@@ -3919,6 +3963,7 @@ const logLineModels = computed(() => {
   })
 })
 
+/** 各等级行数（统计全部行，不受过滤影响） */
 const logLevelCounts = computed(() => {
   const c = { error: 0, warn: 0, info: 0, debug: 0 }
   for (const l of logLines.value) {
@@ -3945,6 +3990,7 @@ const logHeaderIcon = computed(() => {
   return svcVisual(logService.value).icon || svcName(logService.value).charAt(0).toUpperCase()
 })
 
+/** 日志窗口状态文案（跟踪中 / 读取中 / 行数与匹配数） */
 const logViewStatusText = computed(() => {
   if (logFollowSid.value) {
     if (logFollowEnded.value) return '跟踪已结束'
@@ -3964,11 +4010,13 @@ function scrollLogBottom(): void {
   void nextTick(() => logBoxEl.value?.scrollTo({ top: 10_000_000 }))
 }
 
+// 可见行数变化后滚动到底部
 watch(
   () => filteredLogLines.value.length,
   () => scrollLogBottom()
 )
 
+/** 打开服务日志窗口并拉取最近日志 */
 function openServiceLog(s: string, ctx = 'basics'): void {
   logService.value = s
   logCtx.value = ctx
@@ -3989,6 +4037,7 @@ function onTailPick(n: number): void {
   if (logVisible.value) void fetchLogs()
 }
 
+/** 一次性拉取最近 logTail 行（先停止实时跟踪） */
 async function fetchLogs(): Promise<void> {
   if (!logService.value) return
   stopLogFollow()
@@ -4005,6 +4054,7 @@ async function fetchLogs(): Promise<void> {
   }
 }
 
+/** 开始 / 停止实时跟踪（每次跟踪使用新 sid） */
 async function toggleLogFollow(): Promise<void> {
   if (logFollowSid.value) {
     stopLogFollow()
@@ -4028,6 +4078,7 @@ async function toggleLogFollow(): Promise<void> {
   }
 }
 
+/** 停止跟踪：清空跟踪 sid 并请求主进程中断 */
 function stopLogFollow(): void {
   const sid = logFollowSid.value
   logFollowSid.value = ''
@@ -4041,6 +4092,7 @@ async function copyLogs(): Promise<void> {
   ElMessage.success(`已复制 ${filteredLogLines.value.length} 行日志到剪贴板`)
 }
 
+/** 关闭日志窗口（同时停止跟踪）；before-close 同理 */
 function onCloseLog(): void {
   stopLogFollow()
   logVisible.value = false
@@ -4092,6 +4144,7 @@ function onPmcTab(e: KeyboardEvent): void {
   })
 }
 
+/** 编辑区行数 / 字节数 */
 const mavenLineCount = computed(() => mavenContent.value.split('\n').length)
 const mavenBytes = computed(() => new Blob([mavenContent.value]).size)
 
@@ -4109,12 +4162,14 @@ const xmlCheck = computed<{ cls: string; text: string } | null>(() => {
   }
 })
 
+/** 打开 Maven 配置弹窗 */
 function openMavenConfig(): void {
   mavenVisible.value = true
   // 已探测过则直接展示缓存（含编辑内容），刷新按钮强制重读
   if (!mavenData.value) void loadMavenConfig()
 }
 
+/** 探测 Maven（mvn -v）并读取 settings.xml */
 async function loadMavenConfig(): Promise<void> {
   mavenLoading.value = true
   mavenError.value = ''
@@ -4140,6 +4195,7 @@ async function loadMavenConfig(): Promise<void> {
   }
 }
 
+/** 覆盖保存 settings.xml（文件不存在时新建） */
 async function saveMavenConfig(): Promise<void> {
   if (!mavenData.value || mavenSaving.value) return
   mavenSaving.value = true
@@ -4166,6 +4222,7 @@ const gitSaving = ref(false)
 const gcxGutter = ref<HTMLElement>()
 const gcxArea = ref<HTMLTextAreaElement>()
 
+/** 行号槽与编辑区滚动同步 */
 function syncGcxGutter(): void {
   if (gcxGutter.value && gcxArea.value) gcxGutter.value.scrollTop = gcxArea.value.scrollTop
 }
@@ -4181,15 +4238,18 @@ function onGcxTab(e: KeyboardEvent): void {
   })
 }
 
+/** 编辑区行数 / 字节数 */
 const gitLineCount = computed(() => gitContent.value.split('\n').length)
 const gitBytes = computed(() => new Blob([gitContent.value]).size)
 
+/** 打开 Git 配置弹窗 */
 function openGitConfig(): void {
   gitVisible.value = true
   // 读到过内容则直接展示缓存（含未保存编辑），刷新按钮强制重读
   if (!gitFile.value) void loadGitConfig()
 }
 
+/** 读取项目 .git/config */
 async function loadGitConfig(): Promise<void> {
   gitLoading.value = true
   gitError.value = ''
@@ -4207,6 +4267,7 @@ async function loadGitConfig(): Promise<void> {
   }
 }
 
+/** 覆盖保存 .git/config */
 async function saveGitConfig(): Promise<void> {
   if (gitSaving.value) return
   gitSaving.value = true
@@ -4233,6 +4294,7 @@ const dockerRestarting = ref(false)
 const dcxGutter = ref<HTMLElement>()
 const dcxArea = ref<HTMLTextAreaElement>()
 
+/** 行号槽与编辑区滚动同步 */
 function syncDcxGutter(): void {
   if (dcxGutter.value && dcxArea.value) dcxGutter.value.scrollTop = dcxArea.value.scrollTop
 }
@@ -4248,6 +4310,7 @@ function onDcxTab(e: KeyboardEvent): void {
   })
 }
 
+/** 编辑区行数 / 字节数 */
 const dockerLineCount = computed(() => dockerContent.value.split('\n').length)
 const dockerBytes = computed(() => new Blob([dockerContent.value]).size)
 
@@ -4263,11 +4326,13 @@ const jsonCheck = computed<{ cls: string; text: string } | null>(() => {
   }
 })
 
+/** 打开 Docker 配置弹窗（已探测过则展示缓存） */
 function openDockerConfig(): void {
   dockerVisible.value = true
   if (!dockerData.value) void loadDockerConfig()
 }
 
+/** 探测 Docker 版本与 daemon.json 路径并读取内容 */
 async function loadDockerConfig(): Promise<void> {
   dockerLoading.value = true
   dockerError.value = ''
@@ -4293,6 +4358,7 @@ async function loadDockerConfig(): Promise<void> {
   }
 }
 
+/** 覆盖保存 daemon.json（需重启 Docker 生效） */
 async function saveDockerConfig(): Promise<void> {
   if (!dockerData.value || dockerSaving.value) return
   dockerSaving.value = true
@@ -4370,9 +4436,13 @@ const JVM_GC_PAUSE_SUPPORT: Record<string, boolean> = {
   '+UseZGC': true
 }
 
+/** JVM 参数卡片定义 */
 interface JvmParamDef {
+  /** 状态键（jvmState.on / val / unit 的 key） */
   key: string
+  /** 参数标志（数值型参数按它拼接） */
   flag: string
+  /** 卡片标题 / 说明 */
   name: string
   desc: string
   /** mem = 数值 + 单位；gc = 收集器选项；pause = 毫秒数值（无单位后缀）；bool = 仅开关（勾选输出 arg） */
@@ -4383,6 +4453,7 @@ interface JvmParamDef {
   needConcurrentGc?: boolean
   /** 仅 G1 下有效（字符串去重 / Region 大小），其他收集器时自动移除 */
   needG1?: boolean
+  /** 可选单位 / 最小值（mem、pause 类型） */
   units?: string[]
   min?: number
   /** 卡片图标及其渐变底色 */
@@ -4412,9 +4483,10 @@ const JVM_PARAM_DEFS: JvmParamDef[] = [
 
 /** 推荐默认值（= 测试环境方案）：-Xms256m -Xmx256m -Xss256k -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=256m -XX:+UseSerialGC -XX:CompressedClassSpaceSize=32m -XX:ReservedCodeCacheSize=48m -XX:MaxDirectMemorySize=96m */
 const JVM_DEFAULTS = { xms: { v: 256, u: 'm' }, xmx: { v: 256, u: 'm' }, xss: { v: 256, u: 'k' }, metaspace: { v: 256, u: 'm' }, metaspaceInit: { v: 256, u: 'm' }, gcPause: { v: 200, u: '' }, ccs: { v: 32, u: 'm' }, codeCache: { v: 48, u: 'm' }, direct: { v: 96, u: 'm' } } as const
+/** 参数键 → 数值与单位 */
 type JvmValues = Record<string, { v: number; u: string }>
 
-/** 推荐方案：一键套用整组参数（含 GC 与 bool 开关，见 applyJvmPreset）；total 为固定内存合计（堆+元空间+代码缓存+直接内存），徽标实际用 jvmPresetTotalText 实时计算（含线程栈） */
+/** 推荐方案：一键套用整组参数（含 GC 与 bool 开关，见 applyJvmPreset）；total 为方案说明性的固定内存合计（模板未引用），徽标实际用 jvmPresetTotalText 实时计算（含线程栈） */
 const JVM_PRESETS: { key: string; icon: string; label: string; total: string; tip: string; gc: string; preTouch: boolean; explicitGc: boolean; parallelRef: boolean; stringDedup: boolean; g1Region: boolean; perfDisable: boolean; values: JvmValues }[] = [
   {
     key: 'test',
@@ -4448,6 +4520,7 @@ const JVM_PRESETS: { key: string; icon: string; label: string; total: string; ti
   }
 ]
 
+/** 模板渲染用的参数定义（即 JVM_PARAM_DEFS） */
 const jvmParams = JVM_PARAM_DEFS
 
 /** 表单状态：on = 参数勾选，val/unit = 数值与单位，gc = 当前收集器 */
@@ -4544,6 +4617,7 @@ function jvmMb(key: string): number {
   return jvmState.unit[key] === 'k' ? v / 1024 : jvmState.unit[key] === 'g' ? v * 1024 : v
 }
 
+/** 数值 + 单位文本（非法值显示 ?） */
 function jvmUnitText(key: string): string {
   const v = jvmState.val[key]
   return `${Number.isFinite(v) && v > 0 ? v : '?'}${jvmState.unit[key] ?? ''}`
@@ -4561,6 +4635,7 @@ const jvmThreadsCount = computed(() => {
 /** 线程栈合计（MB）= 线程数 × 每线程栈大小 */
 const jvmThreadsTotalMb = computed(() => jvmThreadsCount.value * jvmMb('xss'))
 
+/** 线程栈合计文案（未填线程数时提示另计） */
 const jvmThreadsMbText = computed(() =>
   jvmThreadsTotalMb.value > 0 ? `≈ ${Math.round(jvmThreadsTotalMb.value)}m` : '/ 线程另计'
 )
@@ -4650,9 +4725,10 @@ async function copyJvmArgs(): Promise<void> {
 /** 业务 .env 相对路径：应用服务（单体/微服务 compose）共用的 JVM_PARAMS 所在文件 */
 const JVM_ENV_FILE = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker/maozi-cloud-business-docker/.env'
 
-/** 把当前完整参数写入业务 .env 的 JVM_PARAMS=（复用环境设置的 envFileSave：本地直写 / 远程 SSH，原位更新或追加） */
+/** JVM 参数写入中 */
 const jvmApplying = ref(false)
 
+/** 把当前完整参数写入业务 .env 的 JVM_PARAMS=（复用环境设置的 envFileSave：本地直写 / 远程 SSH） */
 async function applyJvmToServices(): Promise<void> {
   if (!jvmArgs.value) {
     ElMessage.warning('尚未勾选任何参数')
@@ -4685,10 +4761,13 @@ async function applyJvmToServices(): Promise<void> {
 const envVisible = ref(false)
 const envLoading = ref(false)
 const envSections = ref<EnvSettingSection[]>([])
+/** 当前分节（Tab）名 */
 const envTab = ref('')
+/** 可写入的 shell 配置文件与默认文件 */
 const envFiles = ref<EnvFile[]>([])
 const envDefaultFileId = ref('')
 const envError = ref('')
+/** 已切换为明文显示的敏感变量 key */
 const envRevealed = ref(new Set<string>())
 
 /** 当前分节（Tab）：按名称命中，初始/异常时回退第一节 */
@@ -4709,6 +4788,7 @@ function envFileNameOf(s: EnvSettingSection): string {
   return s.file?.split('/').pop() ?? '.env'
 }
 
+/** 切换分节并退出编辑态 */
 function switchEnvTab(name: string): void {
   if (activeEnvSection.value?.name === name) return
   envTab.value = name
@@ -4720,8 +4800,9 @@ const envEditing = ref('')
 const envDraft = ref('')
 const envSaving = ref(false)
 
-/** 汇总统计（汇总条展示） */
+/** 是否远程绑定（envSettings 返回 remote） */
 const envRemote = ref(false)
+/** 汇总统计（汇总条展示）：总数 / 已设置且启用 / 未设置 / 已禁用 */
 const envTotalCount = computed(() => envGroups.value.reduce((n, g) => n + g.items.length, 0))
 const envSetCount = computed(() => envGroups.value.reduce((n, g) => n + g.items.filter((i) => i.found && i.enabled).length, 0))
 const envMissingCount = computed(() => envTotalCount.value - envGroups.value.reduce((n, g) => n + g.items.filter((i) => i.found).length, 0))
@@ -4743,6 +4824,7 @@ const envRingStyle = computed(() => ({
 const envSearch = ref('')
 const envFilter = ref<'all' | 'missing' | 'off'>('all')
 
+/** 按状态筛选与关键字（名称 / key / 值）过滤后的分组（空组剔除） */
 const envViewGroups = computed(() => {
   const kw = envSearch.value.trim().toLowerCase()
   const match = (it: EnvSettingItem): boolean => {
@@ -4756,6 +4838,7 @@ const envViewGroups = computed(() => {
     .filter((g) => g.items.length > 0)
 })
 
+/** 过滤无结果时的提示文案 */
 const envEmptyText = computed(() => {
   const kw = envSearch.value.trim()
   if (kw) return `没有匹配「${kw}」的环境变量`
@@ -4782,11 +4865,13 @@ function isSecretEnv(it: EnvSettingItem): boolean {
   return /密|secret|token|key/i.test(it.label) || /(SECRET|TOKEN|KEY)/.test(it.key)
 }
 
+/** 展示值：敏感值未切明文时打码，空值显示 (空) */
 function envDisplay(it: EnvSettingItem): string {
   if (isSecretEnv(it) && !envRevealed.value.has(it.key)) return '••••••••••'
   return it.value === '' ? '(空)' : it.value
 }
 
+/** 切换明文 / 打码显示 */
 function toggleEnvReveal(key: string): void {
   const next = new Set(envRevealed.value)
   if (next.has(key)) next.delete(key)
@@ -4800,10 +4885,12 @@ async function copyEnvValue(it: EnvSettingItem): Promise<void> {
   ElMessage.success(`「${it.label}」的值已复制到剪贴板`)
 }
 
+/** 配置文件 id → 展示名 */
 function envFileName(fileId?: string): string {
   return envFiles.value.find((f) => f.id === fileId)?.name ?? ''
 }
 
+/** 进入编辑态（草稿取当前值） */
 function startEnvEdit(it: EnvSettingItem): void {
   envEditing.value = it.key
   envDraft.value = it.value
@@ -4822,8 +4909,9 @@ async function refreshAppSvcNaming(key: string): Promise<void> {
 }
 
 /**
- * 保存修改：.env 分节原位更新文件行；系统环境分节已存在的原位更新（禁用行顺带启用），
- * 新变量写入默认配置文件。buildChildEnv 每次执行脚本都重新读取配置文件，保存后部署脚本下次执行即生效
+ * 保存修改：.env 分节写入业务 .env 的 KEY= 行；系统环境分节本地统一写入默认配置文件
+ * （其它文件中的同名行迁移清理，禁用行顺带启用），远程写回变量原所在文件。
+ * buildChildEnv 每次执行脚本都重新读取配置文件，保存后部署脚本下次执行即生效
  */
 async function saveEnvEdit(it: EnvSettingItem): Promise<void> {
   // 允许空值且空值 = 未设置：.env 分节写 KEY= 行、系统环境分节写 export KEY=''（清空取值、
@@ -4895,6 +4983,7 @@ async function saveEnvEdit(it: EnvSettingItem): Promise<void> {
   }
 }
 
+/** 拉取环境设置（分节、可写配置文件、默认文件），并重置明文显示 */
 async function loadEnvSettings(): Promise<void> {
   envLoading.value = true
   envError.value = ''
@@ -4916,6 +5005,7 @@ async function loadEnvSettings(): Promise<void> {
   }
 }
 
+/** 打开环境设置弹窗（每次打开都实时读取） */
 function openEnvSettings(): void {
   envVisible.value = true
   envEditing.value = ''
@@ -4926,25 +5016,31 @@ function openEnvSettings(): void {
 const svcCfgVisible = ref(false)
 const svcCfgLoading = ref(false)
 const svcCfgError = ref('')
+/** 命中的 docker_variable.json 一级属性名 */
 const svcCfgSection = ref('')
 /** 当前查看的服务（真实名 + 静态前缀，供后端匹配一级属性） */
 const svcCfgTarget = ref<{ name: string; base?: string } | null>(null)
+/** 弹窗标题中的服务展示名 */
 const svcCfgServiceLabel = ref('')
 const svcCfgGroups = ref<EnvSettingGroup[]>([])
+/** 编辑中的变量 key 与草稿值 */
 const svcCfgEditing = ref('')
 const svcCfgDraft = ref('')
 const svcCfgSaving = ref(false)
+/** 已切换为明文显示的敏感变量 key */
 const svcCfgRevealed = ref(new Set<string>())
 
-/** 编辑展开态复用环境设置的样式（pev-edit） */
+/** 条目总数 / 已设置且启用的条目数（头部统计） */
 const svcCfgEditCount = computed(() => svcCfgGroups.value.reduce((n, g) => n + g.items.length, 0))
 const svcCfgSetCount = computed(() => svcCfgGroups.value.reduce((n, g) => n + g.items.filter((i) => i.found && i.enabled).length, 0))
 
+/** 展示值（规则同 envDisplay，明文状态独立维护） */
 function svcCfgDisplay(it: EnvSettingItem): string {
   if (isSecretEnv(it) && !svcCfgRevealed.value.has(it.key)) return '••••••••••'
   return it.value === '' ? '(空)' : it.value
 }
 
+/** 切换明文 / 打码显示 */
 function toggleSvcCfgReveal(key: string): void {
   const next = new Set(svcCfgRevealed.value)
   if (next.has(key)) next.delete(key)
@@ -4952,6 +5048,7 @@ function toggleSvcCfgReveal(key: string): void {
   svcCfgRevealed.value = next
 }
 
+/** 打开服务配置弹窗并加载 */
 function openServiceConfig(s: AppServiceEntry): void {
   svcCfgTarget.value = { name: s.name, base: s.base }
   svcCfgServiceLabel.value = appSvcName(s.base ?? s.name)
@@ -4960,6 +5057,7 @@ function openServiceConfig(s: AppServiceEntry): void {
   void loadServiceConfig()
 }
 
+/** 读取服务配置（未匹配到一级属性时为空列表） */
 async function loadServiceConfig(): Promise<void> {
   const t = svcCfgTarget.value
   if (!t) return
@@ -4984,6 +5082,7 @@ async function loadServiceConfig(): Promise<void> {
   }
 }
 
+/** 进入编辑态（草稿取当前值） */
 function startSvcCfgEdit(it: EnvSettingItem): void {
   svcCfgEditing.value = it.key
   svcCfgDraft.value = it.value
@@ -5048,6 +5147,7 @@ const SVC_VISUALS: Array<{ match: RegExp; icon: string; grad: string; glow: stri
   { match: /elasticsearch|es/, icon: '🔍', grad: 'linear-gradient(135deg, #fcd34d, #d97706)', glow: 'rgba(217, 119, 6, 0.3)' }
 ]
 
+/** 按名称匹配服务视觉，未命中时用默认灰色 */
 function svcVisual(s: string): { icon: string; grad: string; glow: string } {
   return (
     SVC_VISUALS.find((v) => v.match.test(s)) ?? {
@@ -5068,8 +5168,10 @@ function svcAvaStyle(s: string): Record<string, string> {
   }
 }
 
+/** 基础服务名列表与读取错误 */
 const composeServices = ref<string[]>([])
 const composeError = ref('')
+/** 服务名 → 运行状态（State）与状态查询错误 */
 const composeStatuses = ref<Record<string, string>>({})
 const composeStatusError = ref('')
 
@@ -5077,6 +5179,7 @@ function isRunning(s: string): boolean {
   return (composeStatuses.value[s] ?? '') === 'running'
 }
 
+/** 状态文案（状态查询失败时显示未知） */
 function stateText(s: string): string {
   if (isRunning(s)) return '运行中'
   return composeStatusError.value ? '未知' : '已停止'
@@ -5086,6 +5189,7 @@ function stateClass(s: string): string {
   return isRunning(s) ? 'on' : 'off'
 }
 
+/** 读取基础服务列表，随后刷新运行状态 */
 async function loadComposeServices(): Promise<void> {
   if (!binding.value) {
     composeServices.value = []
@@ -5102,8 +5206,10 @@ async function loadComposeServices(): Promise<void> {
   await loadComposeStatuses()
 }
 
+/** 状态刷新中 */
 const statusLoading = ref(false)
 
+/** 刷新基础服务与后台前端容器的运行状态 */
 async function loadComposeStatuses(): Promise<void> {
   if (!binding.value) {
     composeStatuses.value = {}
@@ -5132,6 +5238,7 @@ const hostsInitState = computed(() => hostsInit.value ?? { total: 0, missing: 0,
 /** ===== 容器网段（compose networks.default.external.name -> docker network create） ===== */
 const networkState = ref<{ name: string; exists: boolean } | null>(null)
 
+/** 查询容器网段是否已创建 */
 async function loadNetworkStatus(): Promise<void> {
   if (!binding.value) {
     networkState.value = null
@@ -5141,9 +5248,10 @@ async function loadNetworkStatus(): Promise<void> {
   networkState.value = r.ok && r.data ? r.data : null
 }
 
-/** ===== 初始化数据库（init_mysql_db.json：SQL 脚本数组，按需启动 mysql 导入缺失表） ===== */
+/** ===== 初始化数据库（init_mysql_db.json：SQL 脚本数组，按需启动 mysql 逐个导入；完成状态以 .db-init.json 标记为准） ===== */
 const dbInitState = ref<{ count: number; initialized: boolean; missing: number }>({ count: 0, initialized: false, missing: 0 })
 
+/** 查询数据库初始化状态 */
 async function loadDbInitStatus(): Promise<void> {
   if (!binding.value) {
     dbInitState.value = { count: 0, initialized: false, missing: 0 }
@@ -5153,7 +5261,7 @@ async function loadDbInitStatus(): Promise<void> {
   dbInitState.value = r.ok && r.data ? r.data : { count: 0, initialized: false, missing: 0 }
 }
 
-/** 初始化数据库：按需启动 mysql、逐表检测导入；日志走执行日志会话 */
+/** 初始化数据库：按需启动 mysql、逐个导入 SQL 脚本；日志走执行日志会话 */
 async function onDbInit(skipConfirm = false): Promise<void> {
   if (focusRunning((a) => a.type === 'dbInit')) return
   const s = startSession(
@@ -5181,6 +5289,7 @@ async function onDbInit(skipConfirm = false): Promise<void> {
 /** ===== 应用服务（单体 / 微服务）：Tab 互斥切换，选中状态持久化 .ui-state.json ===== */
 type AppSvcVariant = 'monomer' | 'distributeds'
 
+/** 变体展示名 / 图标 / compose 文件名（文件名与主进程 APP_SVC_DEFS 一致） */
 const APP_SVC_LABELS: Record<AppSvcVariant, string> = { monomer: '单体服务', distributeds: '微服务' }
 const APP_SVC_ICONS: Record<AppSvcVariant, string> = { monomer: '🧩', distributeds: '☁️' }
 const APP_SVC_FILE_NAMES: Record<AppSvcVariant, Record<'admin' | 'services' | 'nginx', string>> = {
@@ -5195,12 +5304,16 @@ const APP_SVC_FILE_NAMES: Record<AppSvcVariant, Record<'admin' | 'services' | 'n
     nginx: 'maozi-cloud-nginx-distributeds-docker.yml'
   }
 }
+/** 对侧变体（互斥关闭用） */
 const OTHER_APP_VARIANT: Record<AppSvcVariant, AppSvcVariant> = { monomer: 'distributeds', distributeds: 'monomer' }
 
+/** 当前选中的变体 Tab */
 const appSvcTab = ref<AppSvcVariant>('distributeds')
+/** 各变体的服务清单 */
 const appServices = ref<Record<AppSvcVariant, AppServiceEntry[]>>({ monomer: [], distributeds: [] })
 /** 当前 docker compose 编排取值（环境/灰度）：业务 .env 优先、其次系统环境变量，参与服务与容器命名 */
 const appSvcEnv = ref<{ ENVIRONMENT: string; VERSION: string } | null>(null)
+/** 各变体 服务名 → 运行状态 */
 const appSvcStatuses = ref<Record<AppSvcVariant, Record<string, string>>>({ monomer: {}, distributeds: {} })
 /** 容器 healthcheck 状态（healthy/unhealthy/starting；无 healthcheck 或未运行为空串） */
 const appSvcHealths = ref<Record<AppSvcVariant, Record<string, string>>>({ monomer: {}, distributeds: {} })
@@ -5219,10 +5332,12 @@ function appSvcHealth(v: AppSvcVariant, s: string): string {
   return appSvcHealths.value[v][s] ?? ''
 }
 
+/** 变体中运行中的服务数 */
 function appSvcRunningCount(v: AppSvcVariant): number {
   return appServices.value[v].filter((x) => isAppSvcRunning(v, x.name)).length
 }
 
+/** 当前 Tab 的服务清单 */
 const activeAppSvcServices = computed(() => appServices.value[appSvcTab.value])
 
 /** Tab 切换：记忆到 .ui-state.json（git 忽略） */
@@ -5235,22 +5350,26 @@ async function switchAppSvcTab(v: AppSvcVariant): Promise<void> {
 /** ===== 远程服务器（SSH）绑定 ===== */
 /** 绑定两步选择：'' 未选 / 'local' 本地 / 'remote' 远程 */
 const bindMode = ref<'' | 'local' | 'remote'>('')
+/** 远程目录浏览器弹窗 */
 const sshBindVisible = ref(false)
+/** 可选的 Linux 密钥与当前选中项 */
 const sshConfigs = ref<Array<{ id: string; name: string; address: string }>>([])
 const sshConfigId = ref('')
+/** 当前密钥是否已连接成功 */
 const sshConnected = ref(false)
 const sshTesting = ref(false)
+/** 当前浏览目录及其子目录 */
 const sshCwd = ref('/')
 const sshDirs = ref<string[]>([])
 const sshLoadingDir = ref(false)
 const sshError = ref('')
 
+/** 加载 Linux 类型密钥列表 */
 async function loadSshConfigs(): Promise<void> {
   const r = await api.projects.sshConfigs()
   sshConfigs.value = r.ok && r.data ? r.data : []
 }
 
-/** 绑定页内嵌的 SSH 连接（连接成功后显示操作选项） */
 /** 打开远程目录浏览器（已连接时补加载根目录列表） */
 function openSshBrowser(): void {
   sshBrowserMode.value = 'bind'
@@ -5280,6 +5399,7 @@ async function loadGitSecrets(): Promise<void> {
   cloneSecretId.value = ''
 }
 
+/** 绑定页内嵌的 SSH 连接测试：成功后加载根目录并显示操作选项 */
 async function testSshFromBind(): Promise<void> {
   if (!sshConfigId.value) return
   sshTesting.value = true
@@ -5299,6 +5419,7 @@ async function testSshFromBind(): Promise<void> {
   }
 }
 
+/** 目录浏览器内的连接测试（逻辑同 testSshFromBind） */
 async function testSsh(): Promise<void> {
   if (!sshConfigId.value) return
   sshTesting.value = true
@@ -5318,6 +5439,7 @@ async function testSsh(): Promise<void> {
   }
 }
 
+/** 列出远程目录下的子目录 */
 async function browseSshDir(dir: string): Promise<void> {
   sshLoadingDir.value = true
   sshError.value = ''
@@ -5334,8 +5456,9 @@ async function browseSshDir(dir: string): Promise<void> {
   }
 }
 
-/** 选择目录页：在当前浏览目录下新建子目录，创建成功后刷新列表 */
+/** 目录名校验（与主进程 sshMkdir 规则一致） */
 const SSH_DIR_NAME_RE = /^[A-Za-z0-9._\u4e00-\u9fa5-]{1,64}$/
+/** 选择目录页：在当前浏览目录下新建子目录，创建成功后刷新列表 */
 async function createSshDir(): Promise<void> {
   let name = ''
   try {
@@ -5361,6 +5484,7 @@ async function createSshDir(): Promise<void> {
   }
 }
 
+/** 浏览器确认：bind 模式读取当前目录配置完成远程绑定，clone 模式转 confirmSshClone */
 async function confirmSshBind(): Promise<void> {
   if (sshBrowserMode.value === 'clone') {
     await confirmSshClone()
@@ -5427,6 +5551,7 @@ function openTraceQuery(): void {
   traceVisible.value = true
 }
 
+/** 按链路 ID 查询全链路日志 */
 async function runTraceQuery(): Promise<void> {
   const kw = traceId.value.trim()
   if (!kw) {
@@ -5463,6 +5588,7 @@ function toggleAppSvcCollapsed(): void {
   void api.projects.uiStateSave({ appSvcCollapsed: appSvcCollapsed.value })
 }
 
+/** 恢复 UI 状态：应用服务 Tab、面板收起状态与热备开关 */
 async function loadUiState(): Promise<void> {
   const r = await api.projects.uiStateGet()
   if (r.ok && r.data) {
@@ -5480,6 +5606,7 @@ async function loadUiState(): Promise<void> {
 /** ===== 应用服务「接口不停机更新」（单体/微服务各一个开关）：开启后 全部重启/编译启动/单服务重启 前先起 -backup 热备容器承接流量 ===== */
 const hotSwapState = ref<{ monomer: boolean; distributeds: boolean }>({ monomer: false, distributeds: false })
 
+/** 切换接口不停机更新开关（过程日志走执行会话） */
 async function toggleHotSwap(variant: AppSvcVariant): Promise<void> {
   if (focusRunning((a) => a.type === 'hotSwap' && a.variant === variant)) return
   const target = !hotSwapState.value[variant]
@@ -5512,6 +5639,7 @@ async function toggleHotSwap(variant: AppSvcVariant): Promise<void> {
   }
 }
 
+/** 加载两个变体的服务清单与编排取值（环境 / 灰度） */
 async function loadAppServices(): Promise<void> {
   if (!binding.value) return
   await Promise.all(
@@ -5524,6 +5652,7 @@ async function loadAppServices(): Promise<void> {
   )
 }
 
+/** 加载两个变体的运行状态与健康状态 */
 async function loadAppSvcStatuses(): Promise<void> {
   if (!binding.value) return
   await Promise.all(
@@ -5536,12 +5665,15 @@ async function loadAppSvcStatuses(): Promise<void> {
   )
 }
 
+/** 各变体 服务名 → 资源占用 */
 const appSvcStats = ref<Record<AppSvcVariant, Record<string, ComposeServiceStats>>>({ monomer: {}, distributeds: {} })
 
 /** 首次统计是否已返回（未返回前环形卡数值做呼吸占位） */
 const appStatsLoaded = ref(false)
+/** 请求进行中标记（防止并发重复拉取） */
 let appStatsInFlight = false
 
+/** 拉取应用服务资源统计（preferCache 时可命中启动预取快照） */
 async function loadAppSvcStats(preferCache = false): Promise<void> {
   if (!binding.value || appStatsInFlight) return
   appStatsInFlight = true
@@ -5582,11 +5714,13 @@ const appSvcTotal = computed(() => {
   return { cpu, memUsed, memLimit }
 })
 
+/** CPU 合计占主机总算力（核数 × 100%）的百分比 */
 const appSvcCpuBarValue = computed(() => {
   const cap = Math.max(hostCpuCount.value, 1) * 100
   return Math.min((appSvcTotal.value.cpu / cap) * 100, 100)
 })
 
+/** 内存百分比分母：全部服务都设置了内存配额时取配额合计，否则取主机物理内存 */
 const appSvcMemDenom = computed(() => {
   const entries = Object.values(appSvcStats.value[appSvcTab.value] ?? {})
   const allLimited = entries.length > 0 && entries.every((st) => st.memLimit > 0)
@@ -5597,6 +5731,7 @@ const appSvcMemBarValue = computed(() =>
   appSvcMemDenom.value > 0 ? Math.min((appSvcTotal.value.memUsed / appSvcMemDenom.value) * 100, 100) : 0
 )
 
+/** 汇总环形图样式：CPU / 内存 / 运行比例 */
 const appSvcCpuRingStyle = computed(() => ringStyle(appSvcCpuBarValue.value, RING_COLORS[totalLevel(appSvcCpuBarValue.value)]))
 const appSvcMemRingStyle = computed(() => ringStyle(appSvcMemBarValue.value, RING_COLORS_MEM[totalLevel(appSvcMemBarValue.value)]))
 const appSvcRingStyle = computed(() =>
@@ -5608,17 +5743,22 @@ const appSvcRingStyle = computed(() =>
 
 /** ===== 互斥切换确认弹窗：左（将被关闭）→ 右（即将启动）的可视化确认 ===== */
 interface MutexPayload {
+  /** 说明文案 */
   desc: string
+  /** 将被关闭的一侧：变体名与其运行中的服务 */
   stopLabel: string
   stopList: string[]
+  /** 即将启动的一侧：操作名与所属变体 */
   startLabel: string
   startSub: string
 }
 
 const mutexVisible = ref(false)
 const mutexPayload = ref<MutexPayload | null>(null)
+/** 等待用户选择的 Promise resolve */
 let mutexResolve: ((v: boolean) => void) | null = null
 
+/** 弹出互斥确认，返回用户是否确认 */
 function confirmMutex(payload: MutexPayload): Promise<boolean> {
   mutexPayload.value = payload
   mutexVisible.value = true
@@ -5627,6 +5767,7 @@ function confirmMutex(payload: MutexPayload): Promise<boolean> {
   })
 }
 
+/** 关闭互斥确认并回传结果 */
 function closeMutex(result: boolean): void {
   mutexVisible.value = false
   mutexResolve?.(result)
@@ -5814,11 +5955,13 @@ const initImagesReady = computed(
   () => initImages.value.length > 0 && initImages.value.every((i) => i.exists)
 )
 
+/** 打开镜像清单并刷新构建状态 */
 function openInitImages(): void {
   initImagesVisible.value = true
   void loadInitImages()
 }
 
+/** 读取初始化镜像清单（对照 docker images 的存在状态） */
 async function loadInitImages(): Promise<void> {
   initImagesLoading.value = true
   initImagesError.value = ''
@@ -5934,6 +6077,7 @@ async function onNetworkCreate(skipConfirm = false): Promise<void> {
   }
 }
 
+/** 查询 Hosts 初始化状态 */
 async function loadHostsInitStatus(): Promise<void> {
   if (!binding.value) {
     hostsInit.value = null
@@ -5969,6 +6113,7 @@ async function onHostsInit(): Promise<void> {
   }
 }
 
+/** 查询后台前端容器状态 */
 async function loadAdminStatus(): Promise<void> {
   if (!binding.value) {
     adminState.value = 'unknown'
@@ -6015,6 +6160,7 @@ async function onAdminStop(skipConfirm = false): Promise<void> {
   }
 }
 
+/** 查询基础服务运行状态（失败时记录错误，卡片状态显示未知） */
 async function doLoadComposeStatuses(): Promise<void> {
   const r = await api.projects.composeStatus()
   if (r.ok && r.data) {
@@ -6028,14 +6174,17 @@ async function doLoadComposeStatuses(): Promise<void> {
 
 /** ===== 实时资源占用：docker stats 一次性快照，前端定时轮询（本地 3s / 远程 10s） ===== */
 const composeStats = ref<Record<string, ComposeServiceStats>>({})
+/** 主机 CPU 核数与物理内存（字节），随统计接口返回 */
 const hostCpuCount = ref(1)
 const hostMemTotal = ref(0)
+/** 请求进行中标记 / 轮询定时器 */
 let statsInFlight = false
 let statsTimer: ReturnType<typeof setInterval> | undefined
 
 /** 首次统计是否已返回（未返回前大数字做呼吸占位，与服务全停的 0% 区分） */
 const statsLoaded = ref(false)
 
+/** 拉取基础服务资源统计（preferCache 时可命中启动预取快照） */
 async function loadComposeStats(preferCache = false): Promise<void> {
   if (!binding.value || statsInFlight) return
   statsInFlight = true
@@ -6056,6 +6205,7 @@ async function loadComposeStats(preferCache = false): Promise<void> {
   }
 }
 
+/** 基础服务资源合计（仅统计有数据的服务） */
 const statsTotal = computed(() => {
   let cpu = 0
   let memUsed = 0
@@ -6096,17 +6246,20 @@ const RING_COLORS: Record<string, [string, string]> = {
   warn: ['#fbbf24', '#f59e0b'],
   high: ['#f87171', '#dc2626']
 }
+/** 内存环配色（常态为紫色） */
 const RING_COLORS_MEM: Record<string, [string, string]> = {
   '': ['#a78bfa', '#7c3aed'],
   warn: ['#fbbf24', '#f59e0b'],
   high: ['#f87171', '#dc2626']
 }
 
+/** 生成环形仪表样式变量；首次统计返回前弧长为 0 */
 function ringStyle(p: number, colors: [string, string]): Record<string, string> {
   const v = Math.min(Math.max(Number.isFinite(p) ? p : 0, 0), 100)
   return { '--p': statsLoaded.value ? v.toFixed(2) : '0', '--c1': colors[0], '--c2': colors[1] }
 }
 
+/** 基础服务环形图样式：CPU / 内存 / 运行比例 */
 const cpuRingStyle = computed(() => ringStyle(cpuBarValue.value, RING_COLORS[totalLevel(cpuBarValue.value)]))
 const memRingStyle = computed(() => ringStyle(memBarValue.value, RING_COLORS_MEM[totalLevel(memBarValue.value)]))
 const svcRingStyle = computed(() =>
@@ -6125,6 +6278,7 @@ const svcSearch = ref('')
 
 const stoppedServiceCount = computed(() => composeServices.value.length - runningServiceCount.value)
 
+/** 按状态与关键字（原名 / 展示名）过滤后的服务 */
 const filteredServices = computed(() => {
   const kw = svcSearch.value.trim().toLowerCase()
   return composeServices.value.filter((s) => {
@@ -6135,6 +6289,7 @@ const filteredServices = computed(() => {
   })
 })
 
+/** 过滤无结果时的提示文案 */
 const svcNoneText = computed(() => {
   const kw = svcSearch.value.trim()
   if (kw) return `没有名称包含「${kw}」的服务`
@@ -6170,7 +6325,7 @@ function svcMemBar(st: ComposeServiceStats): string {
   return `${svcMemPct(st)}%`
 }
 
-/** 负载等级（仅设了配额时才有"超配额"语义） */
+/** 负载等级（仅设了配额时才有"超配额"语义）：CPU 阈值 60% / 90% */
 function svcCpuLevel(st: ComposeServiceStats): string {
   if (st.cpusLimit <= 0) return ''
   const pct = svcCpuPct(st)
@@ -6178,6 +6333,7 @@ function svcCpuLevel(st: ComposeServiceStats): string {
   return pct >= 60 ? 'warn' : ''
 }
 
+/** 内存负载等级：阈值 70% / 90% */
 function svcMemLevel(st: ComposeServiceStats): string {
   if (st.memLimit <= 0) return ''
   const pct = svcMemPct(st)
@@ -6185,6 +6341,7 @@ function svcMemLevel(st: ComposeServiceStats): string {
   return pct >= 70 ? 'warn' : ''
 }
 
+/** 字节数格式化（1024 进制，KiB / MiB / GiB） */
 function fmtBytes(n: number): string {
   if (!n || n <= 0) return '0 B'
   const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB']
@@ -6231,7 +6388,7 @@ onActivated(() => {
   document.addEventListener('visibilitychange', refreshGitOnFocus)
   // 定时探测远程新提交（仅 git 仓库时实际生效）
   startGitRemoteWatch()
-  // 回页首拉带 preferCache：1 分钟内的快照直接渲染，随后由轮询刷新
+  // 回页首拉带 preferCache：10 分钟内的快照直接渲染（主进程 STATS_SNAPSHOT_TTL），随后由轮询刷新
   void loadComposeStats(true)
   void loadAppSvcStats(true)
 })
@@ -6258,6 +6415,7 @@ onUnmounted(() => {
   document.removeEventListener('visibilitychange', refreshGitOnFocus)
 })
 
+/** 基础服务操作（service=all 为全部）：启动走一键部署脚本、rebuild 强制重建，停止 / 重启走 compose；日志走执行会话 */
 async function onCompose(
   service: string,
   action: 'start' | 'stop' | 'restart' | 'rebuild',
@@ -6385,6 +6543,7 @@ async function onRunScript(kind: DeployKind, skipConfirm = false): Promise<void>
   }
 }
 
+/** 打开本地拉取代码弹窗 */
 async function openCloneDialog(): Promise<void> {
   await loadGitSecrets()
   cloneDest.value = ''
@@ -6392,6 +6551,7 @@ async function openCloneDialog(): Promise<void> {
   cloneVisible.value = true
 }
 
+/** 选择克隆目标父目录 */
 async function pickCloneDest(): Promise<void> {
   const r = await api.projects.pickDir()
   if (!r.ok) {
@@ -6401,6 +6561,7 @@ async function pickCloneDest(): Promise<void> {
   if (r.data) cloneDest.value = r.data
 }
 
+/** 本地拉取代码：克隆到 <目标目录>/maozi-cloud 后自动绑定 */
 async function startClone(): Promise<void> {
   if (!cloneSecretId.value) {
     ElMessage.warning('请选择密钥')
@@ -6437,9 +6598,11 @@ async function onOpenDir(): Promise<void> {
 }
 
 /** ===== 项目 git 管理：仓库检测 / 拉取代码 / 切换分支 ===== */
+/** 是否 git 仓库与当前分支 */
 const gitInfo = ref<{ isRepo: boolean; branch: string }>({ isRepo: false, branch: '' })
 const gitPulling = ref(false)
 
+/** 读取 git 仓库状态与本地最后一次提交 */
 async function loadGitInfo(): Promise<void> {
   const r = await api.projects.gitInfo()
   if (r.ok && r.data) {
@@ -6459,6 +6622,7 @@ const gitRemoteAhead = ref(0)
 let gitProbeEpoch = 0
 /** 本地最后一次提交：短 sha + 提交时间（原始串形如 2026-09-29 14:30:25 +0800） */
 const gitLastCommit = ref<{ sha: string; time: string }>({ sha: '', time: '' })
+/** 远程提交探测定时器（30 秒） */
 let gitCheckTimer: ReturnType<typeof setInterval> | null = null
 /** 防重复提示：同一批新提交只 toast 一次，归零后重置 */
 let gitBehindNotified = false
@@ -6520,10 +6684,12 @@ async function checkGitRemote(): Promise<void> {
   await probeGitRemote()
 }
 
+/** isRepo 就绪监听的停止函数（首查后即停止） */
 let gitCheckWatchStop: (() => void) | null = null
 
-/** 窗口聚焦/回到前台即刷新 git 状态：在终端等外部切换分支后切回应用可立刻感知（5s 节流防频繁切换） */
+/** 上次聚焦刷新时间（节流用） */
 let gitFocusRefreshAt = 0
+/** 窗口聚焦/回到前台即刷新 git 状态：在终端等外部切换分支后切回应用可立刻感知（5s 节流防频繁切换） */
 function refreshGitOnFocus(): void {
   if (document.visibilityState !== 'visible') return
   const now = Date.now()
@@ -6534,6 +6700,7 @@ function refreshGitOnFocus(): void {
   void checkGitRemote()
 }
 
+/** 启动远程提交探测（已启动则忽略） */
 function startGitRemoteWatch(): void {
   if (gitCheckTimer) return
   // gitInfo 就绪（isRepo 变真）立即首查（fetch 网络耗时即全部延迟），之后每 30 秒探测一次
@@ -6552,6 +6719,7 @@ function startGitRemoteWatch(): void {
   gitCheckTimer = setInterval(() => void checkGitRemote(), 30_000)
 }
 
+/** 停止远程提交探测（定时器与 isRepo 监听） */
 function stopGitRemoteWatch(): void {
   if (gitCheckTimer) {
     clearInterval(gitCheckTimer)
@@ -6582,14 +6750,17 @@ async function onGitPull(): Promise<void> {
 
 /** ===== 分叉处理弹窗：本地与远程各有新提交，选择拉取策略 ===== */
 const pullDivergeVisible = ref(false)
+/** 选中的分叉处理策略 */
 const pullDivergeMode = ref<'rebase' | 'merge' | 'reset'>('rebase')
 
+/** 打开分叉处理弹窗 */
 function openPullDiverge(): void {
   // 每次打开重置为推荐策略，避免上次选择残留
   pullDivergeMode.value = 'rebase'
   pullDivergeVisible.value = true
 }
 
+/** 按所选策略执行拉取 */
 async function confirmPullDiverge(): Promise<void> {
   const mode = pullDivergeMode.value
   pullDivergeVisible.value = false
@@ -6627,11 +6798,13 @@ async function runGitPull(mode: '' | 'rebase' | 'merge' | 'reset' = ''): Promise
   }
 }
 
+/** 分支选择弹窗状态与分支列表（local 表示本地已有） */
 const branchVisible = ref(false)
 const branchLoading = ref(false)
 const branchError = ref('')
 const branchList = ref<Array<{ name: string; local: boolean }>>([])
 
+/** 打开分支选择弹窗 */
 function openBranchDialog(): void {
   branchError.value = ''
   branchVisible.value = true
@@ -6663,6 +6836,7 @@ async function loadGitBranches(): Promise<void> {
   }
 }
 
+/** 切换确认弹窗：目标分支及其是否本地已有 */
 const branchConfirmVisible = ref(false)
 const branchConfirmTarget = ref('')
 const branchConfirmLocal = ref(false)
@@ -6678,7 +6852,7 @@ function onPickBranch(b: string): void {
   branchConfirmVisible.value = true
 }
 
-/** 确认切换分支：关弹窗并走脚本日志会话执行（fetch + checkout） */
+/** 确认切换分支：关闭弹窗并走脚本日志会话执行 */
 async function confirmBranchSwitch(): Promise<void> {
   const b = branchConfirmTarget.value
   branchConfirmVisible.value = false
@@ -6686,7 +6860,7 @@ async function confirmBranchSwitch(): Promise<void> {
   await runGitCheckout(b)
 }
 
-/** 执行分支切换（fetch + checkout），日志走脚本日志会话 */
+/** 执行分支切换（本地已有分支直接 checkout，否则先 fetch 再 checkout），日志走脚本日志会话 */
 async function runGitCheckout(b: string): Promise<void> {
   if (focusRunning((a) => a.type === 'gitPull' || a.type === 'gitCheckout')) return
   const s = startSession({ type: 'gitCheckout', branch: b }, {
@@ -6721,10 +6895,12 @@ async function runGitCheckout(b: string): Promise<void> {
 /** 解绑确认弹窗状态 */
 const unbindVisible = ref(false)
 
+/** 打开解绑确认 */
 function onUnbind(): void {
   unbindVisible.value = true
 }
 
+/** 确认解绑：清空当前项目绑定并返回列表（项目记录保留） */
 async function confirmUnbind(): Promise<void> {
   unbindVisible.value = false
   const r = await api.projects.unbind()

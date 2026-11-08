@@ -5,6 +5,7 @@ import {useUserStore} from '@/store/modules/user'
 import {buildPermissionTree} from '@/utils/permission'
 import {type PermissionItem, type PermissionTreeNode, PermissionType} from '@/types/api'
 
+/** 权限 store：全量权限列表与按用户权限过滤后的目录/菜单树 */
 export const usePermissionStore = defineStore('permission', () => {
   /** 目录/菜单树（已按用户权限过滤） */
   const menuTree = ref<PermissionTreeNode[]>([])

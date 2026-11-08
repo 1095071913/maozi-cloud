@@ -25,6 +25,7 @@ const envInfo = computed(() =>
   environmentInfo(appStore.systemInfo?.environment || '')
 )
 
+/** 退出登录：确认后清理会话与动态路由并跳转登录页 */
 async function handleLogout() {
   await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
     confirmButtonText: '确定',

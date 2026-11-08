@@ -1,5 +1,6 @@
 /** 项目控制台公共类型 */
 
+/** 项目目录绑定信息 */
 export interface ProjectBinding {
   /** 项目名称（maozi-cloud-config.json 的 name） */
   name: string
@@ -7,10 +8,13 @@ export interface ProjectBinding {
   version: string
   /** 项目根目录（本地路径或远程路径） */
   path: string
+  /** 绑定时间戳（毫秒） */
   boundAt: number
   /** 远程绑定时记录服务器信息（本地绑定为空） */
   remote?: {
+    /** 对应 Linux 密钥 id */
     configId: string
+    /** 密钥名称（展示用） */
     configName: string
     user: string
     host: string
@@ -20,6 +24,7 @@ export interface ProjectBinding {
 
 /** 项目列表条目：创建项目时录入的基础信息 + 可选的绑定信息 */
 export interface ProjectEntry {
+  /** 唯一标识（UUID） */
   id: string
   /** 项目名称（仅字母数字与 . _ -，不允许中文） */
   name: string
@@ -27,6 +32,7 @@ export interface ProjectEntry {
   alias: string
   /** 备注 */
   remark: string
+  /** 创建时间戳（毫秒） */
   createdAt: number
   /** 绑定信息（尚未绑定目录时为 null） */
   binding: ProjectBinding | null
@@ -52,7 +58,9 @@ export interface EnvSettingItem {
 
 /** 环境设置分组：节内直接映射的变量归入 name 为空的组 */
 export interface EnvSettingGroup {
+  /** 分组名（节内直接映射的变量为空串） */
   name: string
+  /** 组内变量 */
   items: EnvSettingItem[]
 }
 

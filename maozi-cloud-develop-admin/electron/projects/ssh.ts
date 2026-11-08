@@ -8,11 +8,22 @@ import type {ConfigEntry} from '../configs/types'
 
 const exec = promisify(execFile)
 
+/**
+ * SSH 远程操作工具：把 Linux 类型密钥解析为连接目标，
+ * 提供一次性执行、流式执行、远程目录列举与文件读取
+ */
+
+/** SSH 连接目标 */
 export interface SshTarget {
+  /** 登录用户（缺省 root） */
   user: string
+  /** 主机名或 IP */
   host: string
+  /** 端口（缺省 22） */
   port: number
+  /** 认证方式：password 密码 / key 私钥 */
   authType: 'password' | 'key'
+  /** 密码或私钥内容（取决于 authType） */
   password: string
 }
 
@@ -118,9 +129,8 @@ export async function sshExec(target: SshTarget, command: string, timeoutMs = 30
     timeout: timeoutMs + 10_000,
     env: { ...process.env, SSH_PASS: target.password }
   })
-  // expect 的 spawn 输出包含命令回显，须过滤后返回
+  // expect 输出含 spawn 命令回显与密码提示行，过滤后返回
   const lines = stdout.split('\n')
-  // 去掉 spawn 行和密码提示行
   const cleanLines = lines.filter(
     (l) => !l.startsWith('spawn ') && !l.includes('password:') && !l.includes('Password:')
   )
@@ -178,6 +188,7 @@ async function streamSshProcess(
   opts: { timeoutMs: number; sid?: string; extraEnv?: Record<string, string> }
 ): Promise<void> {
   return new Promise<void>((resolve, reject) => {
+    // detached：子进程自成进程组，超时可整组终止（含 expect 派生的 ssh）
     const child = spawn(cmd, args, {
       detached: true,
       env: { ...process.env, ...(opts.extraEnv ?? {}) }
@@ -192,6 +203,7 @@ async function streamSshProcess(
     }
 
     let carry = ''
+    // 按 \n 切出完整行（同一行内多次 \r 覆盖只取最后一段）；尾部未换行的 \r 段作为进度覆盖行推送
     const feed = (chunk: Buffer): void => {
       carry += chunk.toString('utf8')
       let nl: number
@@ -212,6 +224,7 @@ async function streamSshProcess(
 
     const kill = (sig: NodeJS.Signals): void => {
       try {
+        // 负 pid 表示向整个进程组发信号
         if (child.pid) process.kill(-child.pid, sig)
       } catch {
         child.kill(sig)
@@ -246,7 +259,7 @@ export async function sshListDir(target: SshTarget, dirPath: string): Promise<Ar
     .filter((e) => e.isDir && !e.name.startsWith('.'))
 }
 
-/** 读取远程 maozi-cloud-config.json 文件 */
+/** 读取远程文件内容；文件不存在时抛错 */
 export async function sshReadFile(target: SshTarget, filePath: string): Promise<string> {
   const cmd = `cat "${filePath}" 2>/dev/null || echo "__NOT_FOUND__"`
   const out = await sshExec(target, cmd, 15_000)

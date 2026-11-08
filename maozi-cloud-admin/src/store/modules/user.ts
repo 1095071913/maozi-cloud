@@ -4,6 +4,7 @@ import {login as loginApi, revoke as revokeApi} from '@/api/auth'
 import {getUserInfo} from '@/api/user'
 import {clearTokens, getAccessToken, setAccessToken, setRefreshToken} from '@/utils/auth'
 
+/** 用户 store：登录态、用户信息与权限列表 */
 export const useUserStore = defineStore('user', () => {
   /** 访问令牌 */
   const token = ref<string>(getAccessToken())

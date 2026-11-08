@@ -4,6 +4,7 @@ import type {HostsEntry} from './types'
  * hosts 文件解析与序列化（平台无关，darwin / win32 共用）
  */
 
+/** 映射行：首段为 IP，其余为域名（可带行内注释） */
 const ENTRY_RE = /^(\S+)\s+(.+)$/
 
 /** 解析 hosts 文本为行列表（空行丢弃） */
@@ -29,12 +30,14 @@ export function parseHosts(text: string): HostsEntry[] {
     if (parsed) {
       entries.push({ id, kind: 'entry', ...parsed, enabled: true })
     } else {
+      // 无法识别的行按注释行保留，序列化时会补 # 前缀
       entries.push({ id, kind: 'comment', enabled: false, raw: trimmed })
     }
   })
   return entries
 }
 
+/** 解析 IP 映射行；首段不像 IP（仅允许十六进制字符、: 与 .）或缺少域名时返回 null */
 function parseEntryLine(line: string): { ip: string; domains: string; comment?: string } | null {
   const m = line.match(ENTRY_RE)
   if (!m) return null

@@ -294,8 +294,11 @@ import { api, type EnvFile, type EnvVarEntry } from '../api'
 
 const files = ref<EnvFile[]>([])
 const vars = ref<EnvVarEntry[]>([])
+/** 文件筛选：'all' 或配置文件 id */
 const fileFilter = ref('all')
+/** 搜索关键字（匹配变量名与值） */
 const keyword = ref('')
+/** 是否 macOS：launchctl「立即生效」按钮仅 macOS 显示 */
 const isMac = ref(true)
 
 const dialogVisible = ref(false)
@@ -307,6 +310,7 @@ const editOriginKey = ref('')
 const saving = ref(false)
 const form = ref({ key: '', value: '', fileId: 'zshrc' })
 
+/** 按文件与关键字过滤后的变量 */
 const filteredVars = computed(() =>
   vars.value.filter((v) => {
     if (fileFilter.value !== 'all' && v.fileId !== fileFilter.value) return false
@@ -316,6 +320,7 @@ const filteredVars = computed(() =>
   })
 )
 
+/** 托管区块内的变量数 / 已禁用（被注释）的变量数 */
 const managedCount = computed(() => vars.value.filter((v) => v.managed).length)
 const disabledCount = computed(() => vars.value.filter((v) => v.enabled === false).length)
 
@@ -344,6 +349,7 @@ const fileStats = computed(() =>
   }))
 )
 
+/** 文件配色（按文件列表顺序循环取色） */
 const FILE_COLORS = ['#2563eb', '#0891b2', '#0ea5e9', '#38bdf8', '#d97706', '#db2777']
 
 function fileColor(fileId: string): string {
@@ -351,28 +357,33 @@ function fileColor(fileId: string): string {
   return FILE_COLORS[(idx < 0 ? 0 : idx) % FILE_COLORS.length]
 }
 
+/** 文件 id → 展示名（如 ~/.zshrc） */
 function fileName(fileId: string): string {
   return files.value.find((f) => f.id === fileId)?.name ?? fileId
 }
 
+/** 复制变量值 */
 async function copyVal(row: EnvVarEntry): Promise<void> {
   if (!row.value) return
   const result = await api.util.copy(row.value)
   if (result.ok) ElMessage.success(`已复制 ${row.key} 的值`)
 }
 
+/** 拉取配置文件与变量列表 */
 async function load(): Promise<void> {
   const result = await api.env.list()
   files.value = result.files
   vars.value = result.vars
 }
 
+/** 新增：默认写入当前筛选的文件，未筛选时为 ~/.zshrc */
 function openAdd(): void {
   isEdit.value = false
   form.value = { key: '', value: '', fileId: fileFilter.value !== 'all' ? fileFilter.value : 'zshrc' }
   dialogVisible.value = true
 }
 
+/** 编辑：记录原文件与原变量名，保存时据此判断改名 / 跨文件迁移 */
 function openEdit(row: EnvVarEntry): void {
   isEdit.value = true
   editOriginFileId.value = row.fileId
@@ -381,6 +392,7 @@ function openEdit(row: EnvVarEntry): void {
   dialogVisible.value = true
 }
 
+/** 保存：按新增 / 更新 / 改名 / 跨文件迁移选择对应的保存模式 */
 async function onSave(): Promise<void> {
   const { key, value, fileId } = form.value
   if (!key) {
@@ -429,6 +441,7 @@ async function onSave(): Promise<void> {
   }
 }
 
+/** 删除变量，并同步清理 launchctl 中的同名变量 */
 async function onRemove(row: EnvVarEntry): Promise<void> {
   try {
     await ElMessageBox.confirm(
@@ -450,6 +463,7 @@ async function onRemove(row: EnvVarEntry): Promise<void> {
   await load()
 }
 
+/** 单个变量 launchctl setenv：对当前会话的图形应用立即生效 */
 async function onLaunchctl(row: EnvVarEntry): Promise<void> {
   try {
     await ElMessageBox.confirm(
@@ -468,10 +482,13 @@ async function onLaunchctl(row: EnvVarEntry): Promise<void> {
   ElMessage.success('已设置，图形应用立即生效')
 }
 
+/** 批量 launchctl 执行中 */
 const launchingAll = ref(false)
 
 /** ===== 卡片拖拽排序（仅同一文件内） ===== */
+/** 拖起的变量名 */
 const dragKey = ref('')
+/** 落点：目标变量与上 / 下半区 */
 const dropMark = ref<{ key: string; above: boolean } | null>(null)
 
 function onCardDragStart(e: DragEvent, row: EnvVarEntry): void {
@@ -487,6 +504,7 @@ function onCardDragEnd(): void {
   dropMark.value = null
 }
 
+/** 悬停：只接受同文件的变量，按指针位于上半 / 下半标记插入位置 */
 function onCardDragOver(e: DragEvent, row: EnvVarEntry): void {
   if (!dragKey.value || row.key === dragKey.value) return
   const dragged = vars.value.find((v) => v.key === dragKey.value)
@@ -504,6 +522,7 @@ function onCardDragLeave(row: EnvVarEntry): void {
   if (dropMark.value && dropMark.value.key === row.key) dropMark.value = null
 }
 
+/** 放下：在同文件的可见变量中移动位置，以 reorder 模式写回 */
 async function onCardDrop(_e: DragEvent, row: EnvVarEntry): Promise<void> {
   const mark = dropMark.value
   const key = dragKey.value

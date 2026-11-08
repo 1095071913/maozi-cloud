@@ -16,66 +16,103 @@ const exec = promisify(execFile)
 
 // ---------- 类型 ----------
 
+/** GPU 信息（system_profiler SPDisplaysDataType） */
 export interface GpuInfo {
+  /** 条目标题（GPU 名称） */
   name: string
+  /** 芯片型号（Chipset Model） */
   chipsetModel: string
+  /** GPU 核心数 */
   cores?: number
+  /** Metal 支持版本 */
   metal?: string
+  /** 显存（字节） */
   vram?: number
+  /** 总线类型（如 Built-In） */
   bus?: string
+  /** 连接的显示器名称 */
   displays: string[]
 }
 
+/** 静态硬件 / 系统信息（首次采集后缓存） */
 export interface SysStaticInfo {
+  /** 主机名 */
   hostname: string
+  /** 电脑名称（scutil ComputerName，失败回退主机名） */
   computerName: string
+  /** 机型名称（Model Name） */
   modelName: string
+  /** 机型标识（Model Identifier） */
   modelIdentifier: string
+  /** 芯片（Apple 芯片名或处理器名） */
   chip: string
+  /** CPU 型号（os.cpus） */
   cpuModel: string
+  /** 逻辑核数 */
   cpuLogicalCores: number
+  /** 物理核数 */
   cpuPhysicalCores: number
+  /** 内存总量（字节） */
   memoryTotal: number
+  /** 系统名称（固定为 macOS） */
   osName: string
+  /** 系统版本：内核版本号，附 system_profiler 的 OSVersion（有值时） */
   osVersion: string
+  /** 内核版本（os.release） */
   kernel: string
+  /** CPU 架构（os.arch） */
   arch: string
   gpus: GpuInfo[]
 }
 
+/** CPU 实时占用（%） */
 export interface CpuDynamic {
+  /** 总使用率（保留一位小数） */
   usage: number
+  /** 各逻辑核使用率（取整） */
   cores: number[]
 }
 
+/** 内存实时占用（容量单位：字节） */
 export interface MemDynamic {
   total: number
   used: number
+  /** 可用量（darwin 为 free + speculative + inactive 页） */
   available: number
+  /** 使用率（%） */
   usage: number
 }
 
+/** 磁盘卷容量（容量单位：字节） */
 export interface DiskDynamic {
+  /** 挂载点 */
   mount: string
   total: number
+  /** 当前用户可用空间（bavail） */
   free: number
   used: number
+  /** 使用率（%） */
   usage: number
 }
 
+/** 实时资源采样结果（sysinfo:dynamic） */
 export interface SysDynamicInfo {
   cpu: CpuDynamic
   mem: MemDynamic
   disks: DiskDynamic[]
   /** 与 static.gpus 一一对应的 GPU 利用率；null 表示该平台不支持采集 */
   gpuUsages: (number | null)[]
+  /** 系统运行时长（秒） */
   uptime: number
 }
 
+/** 网卡 IPv4 地址 */
 export interface NetInterface {
+  /** 网卡名（如 en0） */
   name: string
   ip: string
   mac: string
+  /** 是否内部（回环）接口；getNetwork 已排除，恒为 false */
   internal: boolean
 }
 
@@ -87,16 +124,21 @@ export interface ProxyInfo {
   all: string
 }
 
+/** 公网 IP 探测结果 */
 export interface PublicIPInfo {
   ip: string
+  /** 归属地（仅 ipip.net 返回） */
   location?: string
+  /** 命中的探测服务名 */
   source: string
 }
 
 // ---------- CPU 差分采样 ----------
 
+/** 上次采样的各核时间片（差分基准） */
 let lastCpuTimes: os.CpuInfo[] | null = null
 
+/** 与上次采样做差分，得出总使用率与各核使用率（首次调用无基准，均为 0） */
 function sampleCpu(): CpuDynamic {
   const cpus = os.cpus()
   const cores: number[] = []
@@ -136,8 +178,10 @@ function sampleCpu(): CpuDynamic {
 
 // ---------- 内存（darwin: vm_stat 精确值；其他平台退化为 os.freemem） ----------
 
+/** 内存页大小（字节），以 vm_stat 报告为准 */
 let pageSize = 4096
 
+/** 采样内存占用：可用量按 free + speculative + inactive 页计，失败回退 os.freemem */
 async function sampleMem(): Promise<MemDynamic> {
   const total = os.totalmem()
   if (process.platform !== 'darwin') {
@@ -205,6 +249,7 @@ async function listMounts(): Promise<string[]> {
   return cachedMounts
 }
 
+/** statfs 读取挂载点容量：used = 总量 - bfree，free 取当前用户可用的 bavail；失败返回 null */
 async function statDisk(mount: string): Promise<DiskDynamic | null> {
   try {
     const st = await fs.promises.statfs(mount)
@@ -283,6 +328,7 @@ async function parseGpus(): Promise<GpuInfo[]> {
  */
 let lastGpuUsages: (number | null)[] | null = null
 
+/** 采样各 GPU 利用率（%），平滑与失败回退规则见上 */
 async function sampleGpuUsages(gpuCount: number): Promise<(number | null)[]> {
   const fallback = lastGpuUsages ?? Array.from({ length: gpuCount }, () => null)
   if (process.platform !== 'darwin' || gpuCount === 0) return fallback
@@ -306,8 +352,10 @@ async function sampleGpuUsages(gpuCount: number): Promise<(number | null)[]> {
   }
 }
 
+/** 开发工具探测结果 */
 export interface DevToolInfo {
   id: 'java' | 'maven' | 'node' | 'docker' | 'git' | 'python'
+  /** 展示名 */
   name: string
   /** 解析出的版本号；null 表示未安装或不在 PATH */
   version: string | null
@@ -359,6 +407,7 @@ export async function getShellPath(): Promise<string> {
   return cachedShellPath
 }
 
+/** 以登录 shell PATH 执行工具命令（6 秒超时） */
 async function runTool(cmd: string, args: string[]): Promise<{ stdout: string; stderr: string }> {
   const path = await getShellPath()
   return await exec(cmd, args, { timeout: 6000, env: { ...process.env, PATH: path } })
@@ -366,6 +415,7 @@ async function runTool(cmd: string, args: string[]): Promise<{ stdout: string; s
 
 // ---------- JDK 管理（切换 = 写 JAVA_HOME 到 ~/.zshrc 托管区块，复用环境变量实时生效机制） ----------
 
+/** 本机 JDK 条目 */
 export interface JdkEntry {
   /** 版本号（如 17.0.2 / 1.8.0_392） */
   version: string
@@ -465,7 +515,7 @@ async function listJdks(): Promise<{ list: JdkEntry[]; current: string }> {
 }
 
 /**
- * 切换 JDK：JAVA_HOME 写入 ~/.zshrc（走平台环境变量托管区块——原位更新、备份、
+ * 切换 JDK：JAVA_HOME 写入 ~/.zshrc（走平台环境变量托管区块——原位更新、
  * precmd/preexec 实时生效钩子、跨文件迁移清理一并生效），并幂等追加一次
  * PATH 头部引用（$JAVA_HOME/bin 优先）；最后失效 shell PATH 缓存让探测立即反映新 JDK
  */
@@ -483,7 +533,7 @@ async function switchJdk(homeArg: string): Promise<void> {
   if (!text.includes('$JAVA_HOME/bin')) {
     fs.writeFileSync(zshrc, `${text.replace(/\n*$/, '\n')}\n# >>> maozi-cloud-develop-admin (java-home-path) >>>\n${PATH_LINE}\n# <<< maozi-cloud-develop-admin (java-home-path) <<<\n`, { mode: 0o644 })
   }
-  // 追加 PATH 行后重新生成实时环境文件：在线终端经 .zshrc 钩子（precmd/precmd 检测 md5 变化）
+  // 追加 PATH 行后重新生成实时环境文件：在线终端经 .zshrc 钩子（preexec/precmd 检测 md5 变化）
   // source 的正是这份文件，必须同时包含新 JAVA_HOME 与 PATH 前置，java 命令才会立即解析到新版本
   platform.saveEnvVar({ mode: 'update', key: 'JAVA_HOME', value: home, fileId: 'zshrc' })
   cachedShellPath = null
@@ -673,14 +723,19 @@ async function uninstallJdk(homeArg: string): Promise<void> {
 
 // ---------- JDK 下载安装（官方发行商 API → 用户级 JavaVirtualMachines，无需 sudo） ----------
 
+/** JDK 发行商 */
 export type JdkVendor = 'adoptium' | 'corretto'
 
+/** JDK 下载进度推送载荷 */
 export interface JdkDownloadProgress {
   stage: 'download' | 'extract' | 'install' | 'done' | 'error'
   /** download：字节百分比 0-100；其余阶段忽略 */
   pct: number
+  /** 已接收（MB） */
   receivedMB: number
+  /** 总大小（MB，未知时为 0） */
   totalMB: number
+  /** 阶段提示文案 */
   message: string
 }
 
@@ -688,6 +743,7 @@ export interface JdkDownloadProgress {
 let jdkDlAbort: AbortController | null = null
 let jdkDlWin: WebContents | null = null
 
+/** 向发起下载的渲染进程推送进度 */
 function jdkDlEmit(p: JdkDownloadProgress): void {
   jdkDlWin?.send('sysinfo:jdkDownloadProgress', p)
 }
@@ -773,6 +829,7 @@ async function downloadJdk(versionArg: string, vendorArg: string): Promise<void>
   }
 }
 
+/** 并行探测常用开发工具版本（Java / Maven / Node.js / Git / Python / Docker） */
 async function getDevTools(): Promise<DevToolInfo[]> {
   const [java, maven, node, npm, docker, git, python3, pip3] = await Promise.allSettled([
     runTool('java', ['-version']),
@@ -862,8 +919,10 @@ async function getDevTools(): Promise<DevToolInfo[]> {
   return tools
 }
 
+/** 静态信息缓存（硬件信息运行期不变） */
 let staticCache: SysStaticInfo | null = null
 
+/** 解析 system_profiler SPHardwareDataType 为 键 → 值 */
 async function parseHardware(): Promise<Record<string, string>> {
   const info: Record<string, string> = {}
   try {
@@ -878,6 +937,7 @@ async function parseHardware(): Promise<Record<string, string>> {
   return info
 }
 
+/** 采集静态硬件 / 系统信息（首次采集后缓存） */
 async function getStatic(): Promise<SysStaticInfo> {
   if (staticCache) return staticCache
   const hw = await parseHardware()
@@ -887,7 +947,7 @@ async function getStatic(): Promise<SysStaticInfo> {
     const { stdout } = await exec('scutil', ['--get', 'ComputerName'])
     computerName = stdout.trim()
   } catch {
-    /* ignore */
+    /* 读取失败沿用主机名 */
   }
 
   let physicalCores = parseInt(hw['Total Number of Cores'] ?? '0', 10)
@@ -921,6 +981,7 @@ async function getStatic(): Promise<SysStaticInfo> {
 
 // ---------- 网络 ----------
 
+/** 列出非内部接口的 IPv4 网卡，en0 优先作为主 IP */
 function getNetwork(): { interfaces: NetInterface[]; primaryIP: string } {
   const ni = os.networkInterfaces()
   const interfaces: NetInterface[] = []
@@ -968,6 +1029,7 @@ const PUBLIC_IP_SERVICES: { url: string; name: string }[] = [
   { url: 'https://ifconfig.me/ip', name: 'ifconfig.me' }
 ]
 
+/** 带超时的 fetch，返回响应文本 */
 async function fetchWithTimeout(url: string, ms: number): Promise<string> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), ms)
@@ -982,6 +1044,7 @@ async function fetchWithTimeout(url: string, ms: number): Promise<string> {
   }
 }
 
+/** 按服务链依次探测公网 IP，首个解析成功即返回；全部失败抛出最后一个错误 */
 async function getPublicIP(): Promise<PublicIPInfo> {
   let lastError = '无法访问公网探测服务'
   for (const svc of PUBLIC_IP_SERVICES) {
@@ -1008,8 +1071,9 @@ async function getPublicIP(): Promise<PublicIPInfo> {
 
 // ---------- IPC 注册 ----------
 
+/** 注册系统信息相关 IPC（硬件 / 资源 / 网络 / 开发工具 / JDK 管理） */
 export function registerSysinfoHandlers(): void {
-  // 下载进度推送目标窗口（渲染层订阅 sysinfo:jdkDownloadProgress）
+  /** 下载安装 JDK：记录发起方为进度推送目标（渲染层订阅 sysinfo:jdkDownloadProgress） */
   ipcMain.handle('sysinfo:jdkDownload', async (event, version: string, vendor: string) => {
     try {
       jdkDlWin = event.sender
@@ -1020,6 +1084,7 @@ export function registerSysinfoHandlers(): void {
     }
   })
 
+  /** 取消进行中的 JDK 下载 */
   ipcMain.handle('sysinfo:jdkDownloadCancel', () => {
     jdkDlAbort?.abort()
     return { ok: true }
@@ -1033,6 +1098,7 @@ export function registerSysinfoHandlers(): void {
     }
   })
 
+  /** 实时资源采样：CPU / 内存 / 磁盘 / GPU 利用率 / 运行时长 */
   ipcMain.handle('sysinfo:dynamic', async () => {
     try {
       const [mem, mounts, gpus] = await Promise.all([
@@ -1058,11 +1124,13 @@ export function registerSysinfoHandlers(): void {
     }
   })
 
+  /** 网卡列表、主 IP 与系统代理 */
   ipcMain.handle('sysinfo:network', async () => {
     const proxy = await getScutilProxy()
     return { ok: true, data: { ...getNetwork(), proxy } }
   })
 
+  /** 本机 JDK 列表与当前 JAVA_HOME */
   ipcMain.handle('sysinfo:jdkList', async () => {
     try {
       return { ok: true, data: await listJdks() }
@@ -1071,6 +1139,7 @@ export function registerSysinfoHandlers(): void {
     }
   })
 
+  /** 切换 JDK（写 JAVA_HOME 到 ~/.zshrc） */
   ipcMain.handle('sysinfo:jdkSwitch', async (_e, home: string) => {
     try {
       await switchJdk(String(home ?? ''))

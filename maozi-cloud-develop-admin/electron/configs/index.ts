@@ -13,6 +13,7 @@ const exec = promisify(execFile)
  * - Docker / Helm：一键登录（docker login / helm registry login，密码走 stdin）
  */
 
+/** 各密钥类型对应探测的 CLI 可执行文件名 */
 const TOOL_BIN: Record<Exclude<ConfigType, ''>, string> = {
   Git: 'git',
   Docker: 'docker',
@@ -20,9 +21,11 @@ const TOOL_BIN: Record<Exclude<ConfigType, ''>, string> = {
   Linux: 'ssh'
 }
 
+/** CLI 探测结果缓存，有效期 TOOL_CACHE_MS */
 const toolCache: Partial<Record<Exclude<ConfigType, ''>, { ok: boolean; at: number }>> = {}
 const TOOL_CACHE_MS = 60_000
 
+/** 用登录 shell 的 PATH 执行 which，判断该类型对应 CLI 是否已安装（结果缓存） */
 async function toolExists(type: Exclude<ConfigType, ''>): Promise<boolean> {
   const cached = toolCache[type]
   if (cached && Date.now() - cached.at < TOOL_CACHE_MS) return cached.ok
@@ -38,6 +41,7 @@ async function toolExists(type: Exclude<ConfigType, ''>): Promise<boolean> {
   return ok
 }
 
+/** 并行探测全部 CLI 工具的可用性 */
 async function checkTools(): Promise<ToolAvailability> {
   const [git, docker, helm, linux] = await Promise.all([
     toolExists('Git'),
@@ -75,6 +79,7 @@ function execWithStdin(cmd: string, args: string[], input: string, timeoutMs = 3
   })
 }
 
+/** 按类型执行 docker login / helm registry login，返回 CLI 输出 */
 async function doLogin(entry: ConfigEntry): Promise<string> {
   if (!entry.username) throw new Error('请先填写账号')
   if (!entry.password) throw new Error('请先填写密码')
@@ -97,7 +102,9 @@ async function doLogin(entry: ConfigEntry): Promise<string> {
   throw new Error('该密钥类型不支持一键登录')
 }
 
+/** 注册密钥管理 IPC 处理器 */
 export function registerConfigHandlers(): void {
+  /** 列出密钥，并附带本机 CLI 可用性 */
   ipcMain.handle('configs:list', async () => {
     try {
       return { ok: true, data: { configs: listConfigs(), tools: await checkTools() } }
@@ -108,7 +115,7 @@ export function registerConfigHandlers(): void {
 
   ipcMain.handle('configs:save', async (_e, input: Partial<ConfigEntry>) => {
     try {
-      // 保存后的类型对应的 CLI 未安装时不允许修改（与前端禁用一致，后端兜底）
+      // 已有密钥按原类型、新增按传入类型校验：对应 CLI 未安装时不允许修改（与前端禁用一致，后端兜底）
       const resultType = input.id
         ? (listConfigs().find((c) => c.id === input.id)?.type ?? input.type)
         : input.type

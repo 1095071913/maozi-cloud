@@ -55,14 +55,16 @@ export type {
   RenameProgress
 }
 
-/** 应用服务（单体/微服务）条目：见 electron/projects/types.ts（转发保持渲染进程既有导入路径） */
-
+/** IPC 通用返回结构 */
 export interface IpcResult<T> {
   ok: boolean
+  /** 失败原因 */
   error?: string
+  /** 成功时的返回数据 */
   data?: T
 }
 
+/** preload 通过 contextBridge 暴露的 window.api 结构 */
 export interface ElectronApi {
   app: {
     info: () => Promise<{ platform: string; hostsPath: string }>
@@ -70,13 +72,16 @@ export interface ElectronApi {
   env: {
     list: () => Promise<{ files: EnvFile[]; vars: EnvVarEntry[] }>
     save: (params: EnvSaveParams) => Promise<PlatformResult>
+    /** launchctl setenv / unsetenv：同步到图形应用环境（仅 macOS） */
     launchctl: (params: LaunchctlParams) => Promise<PlatformResult>
   }
   hosts: {
     list: () => Promise<{ ok: boolean; error?: string; entries: HostsEntry[] }>
     save: (entries: HostsEntry[]) => Promise<PlatformResult>
     flushDns: () => Promise<PlatformResult>
+    /** 读取 hosts 原始文本（源文件编辑） */
     readRaw: () => Promise<IpcResult<string>>
+    /** 按原始文本整体覆盖写入 hosts */
     saveRaw: (text: string) => Promise<PlatformResult>
   }
   sysinfo: {
@@ -93,17 +98,23 @@ export interface ElectronApi {
     jdkUninstall: (home: string) => Promise<IpcResult<null>>
     /** 下载安装 JDK（Adoptium / Corretto 官方源，装到用户级 JavaVirtualMachines），进度经 onJdkDownloadProgress */
     jdkDownload: (version: string, vendor: 'adoptium' | 'corretto') => Promise<IpcResult<null>>
+    /** 取消进行中的 JDK 下载 */
     jdkDownloadCancel: () => Promise<IpcResult<null>>
+    /** 订阅 JDK 下载进度；返回取消订阅函数 */
     onJdkDownloadProgress: (cb: (payload: JdkDownloadProgress) => void) => () => void
   }
   bookmarks: {
     list: () => Promise<IpcResult<Bookmark[]>>
+    /** 新增或更新书签（带 id 视为更新） */
     save: (input: Partial<Bookmark>) => Promise<IpcResult<Bookmark>>
     remove: (id: string) => Promise<PlatformResult>
+    /** 抓取网页标题 / 描述 / 图标 */
     fetchMeta: (url: string) => Promise<IpcResult<PageMeta>>
+    /** 拖拽排序：按 id 顺序重排 */
     reorder: (ids: string[]) => Promise<PlatformResult>
   }
   projects: {
+    /** 当前激活项目的绑定（未激活 / 未绑定为 null） */
     state: () => Promise<IpcResult<ProjectBinding | null>>
     /** 项目列表（含绑定信息与当前激活项 id） */
     projectsList: () => Promise<IpcResult<{ projects: ProjectEntry[]; activeId: string | null }>>
@@ -117,27 +128,34 @@ export interface ElectronApi {
     projectDeactivate: () => Promise<IpcResult<null>>
     /** 删除项目（含其绑定信息） */
     projectRemove: (id: string) => Promise<IpcResult<null>>
+    /** 系统目录选择框；取消返回 null */
     pickDir: () => Promise<IpcResult<string | null>>
+    /** 绑定本地目录（读取其中的 maozi-cloud-config.json） */
     bindDir: (dir: string) => Promise<IpcResult<ProjectBinding>>
+    /** 用 Git 密钥克隆仓库到 destDir/maozi-cloud 并绑定，日志经 onCloneLog */
     clone: (secretId: string, destDir: string) => Promise<IpcResult<ProjectBinding>>
+    /** 解绑当前项目（项目记录保留） */
     unbind: () => Promise<PlatformResult>
-    /** 微服务全量启动（执行项目内部署脚本，日志经 onScriptLog 推送） */
+    /** 执行项目内部署脚本（key 见主进程 DEPLOY_SCRIPTS：微服务按需/全量、后台、单体、容器磁盘清除），日志经 onScriptLog 推送 */
     runScript: (key: string, sid?: string) => Promise<PlatformResult>
+    /** 基础服务 compose 服务名列表 */
     composeServices: () => Promise<IpcResult<string[]>>
+    /** 基础服务操作：start / stop / restart / rebuild（service 传 all 为全部） */
     composeAction: (service: string, action: string, sid?: string) => Promise<PlatformResult>
+    /** 基础服务运行状态（服务名 → State） */
     composeStatus: () => Promise<IpcResult<Record<string, string>>>
     /** 基础服务实时资源占用（CPU/内存，按服务名索引；hostMemTotal 为物理内存，未设配额时作分母）。preferCache=首屏命中启动预取快照 */
     composeStats: (preferCache?: boolean) => Promise<IpcResult<{ stats: Record<string, ComposeServiceStats>; cpuCount: number; hostMemTotal: number } | null>>
     /**
      * 服务日志查询：最近 tail 行。ctx 为 compose 上下文 —— 'basics'（默认，基础服务）
-     * 或 '<monomer|distributeds>:<admin|services>'（应用服务，-f 指定 compose 文件）
+     * 或 '<monomer|distributeds>:<admin|services|nginx>'（应用服务，-f 指定 compose 文件）
      */
     composeLogs: (service: string, tail?: number, ctx?: string) => Promise<IpcResult<string[]>>
     /** 服务日志实时跟踪（ctx 同 composeLogs；行经 onComposeLog 推送，停止复用 stopScript） */
     composeLogsFollow: (service: string, tail: number, sid?: string, ctx?: string) => Promise<PlatformResult>
     /** 应用服务清单（variant: monomer 单体 / distributeds 微服务） */
     appServices: (variant: string) => Promise<IpcResult<{ services: AppServiceEntry[]; env?: { ENVIRONMENT: string; VERSION: string } }>>
-    /** 应用服务运行状态（服务名 → State） */
+    /** 应用服务运行状态：states 服务名 → State，healths 服务名 → 健康检查状态 */
     appServicesStatus: (
       variant: string
     ) => Promise<IpcResult<{ states: Record<string, string>; healths: Record<string, string> }>>
@@ -182,14 +200,17 @@ export interface ElectronApi {
     /** UI 状态（Tab 选中 等）：.ui-state.json 持久化 */
     uiStateGet: () => Promise<IpcResult<Record<string, unknown>>>
     uiStateSave: (patch: Record<string, unknown>) => Promise<PlatformResult>
-    /** 订阅基础服务日志跟踪输出；返回取消订阅函数 */
+    /** 订阅服务日志跟踪输出（composeLogsFollow）；返回取消订阅函数 */
     onComposeLog: (
       cb: (payload: { kind: 'line' | 'update'; text: string; sid?: string }) => void
     ) => () => void
+    /** 后台前端容器状态：none（未创建）/ running / exited / unknown */
     adminContainerStatus: () => Promise<IpcResult<string>>
+    /** 后台前端容器启动 / 关闭（compose up -d / down） */
     adminContainerAction: (action: string, sid?: string) => Promise<PlatformResult>
-    /** 初始化 Hosts：项目 maozi-cloud-utils/init_hosts.json 追加进系统 /etc/hosts，已设置的忽略 */
+    /** 初始化 Hosts 状态：项目 init_hosts.json 中尚未写入系统 hosts 的映射数 */
     hostsInitStatus: () => Promise<IpcResult<{ total: number; missing: number; initialized: boolean } | null>>
+    /** 初始化 Hosts：项目 maozi-cloud-utils/init_hosts.json 追加进系统 /etc/hosts（远程绑定写远端），已设置的忽略 */
     hostsInit: (sid?: string) => Promise<PlatformResult>
     /** 容器网络：解析 compose 的 networks.default.external.name 并检查 docker 中是否已存在 */
     networkStatus: () => Promise<IpcResult<{ name: string; exists: boolean }>>
@@ -201,7 +222,7 @@ export interface ElectronApi {
     dbInit: (sid?: string) => Promise<PlatformResult>
     /** 环境设置：解析项目 environment_variable.json 并实时读取环境变量当前值 */
     envSettings: () => Promise<IpcResult<{ sections: EnvSettingSection[]; files: EnvFile[]; defaultFileId: string; remote?: boolean } | null>>
-    /** 环境设置 .env 分节保存：原位更新 key=value 行（无则末尾追加），本地直写 / 远程 SSH */
+    /** 环境设置 .env 分节保存：本地原位更新或末尾追加 key=value 行；远程先删旧行再追加 */
     envFileSave: (input: { key: string; value: string }) => Promise<PlatformResult>
     /** Maven 配置：mvn -v 解析安装目录与版本，定位 conf/settings.xml */
     mavenInfo: () => Promise<IpcResult<{ version: string; home: string; settingsFile: string; exists: boolean }>>
@@ -226,7 +247,7 @@ export interface ElectronApi {
       service: string,
       base?: string
     ) => Promise<IpcResult<{ section: string; groups: EnvSettingGroup[]; file: string } | null>>
-    /** 应用服务「接口不停机更新」开关（variant = monomer | distributeds）：开启生成热备 yml；关闭回收热备容器并删除文件（状态持久化） */
+    /** 应用服务「接口不停机更新」开关（variant = monomer | distributeds）：开启生成热备 yml，关闭删除热备文件（不动容器）；微服务同步写入 / 移除 .env 的 GRACEFUL_UPDATE；状态持久化 */
     hotSwap: (
       variant: string,
       enable: boolean,
@@ -238,9 +259,11 @@ export interface ElectronApi {
     initImageBuild: (name: string, sid?: string) => Promise<PlatformResult>
     /** 中断当前正在执行的脚本（进程组 SIGINT/SIGKILL） */
     stopScript: (sid?: string) => Promise<PlatformResult>
+    /** 订阅脚本 / 命令执行日志；返回取消订阅函数 */
     onScriptLog: (
       cb: (payload: { kind: 'line' | 'update'; text: string; sid?: string }) => void
     ) => () => void
+    /** 用系统文件管理器打开项目目录 */
     openDir: () => Promise<PlatformResult>
     /** 项目 git 管理：仓库检测（含当前分支与本地最后一次提交短 sha/时间） */
     gitInfo: () => Promise<IpcResult<{ isRepo: boolean; branch: string; lastSha: string; lastTime: string }>>
@@ -258,9 +281,11 @@ export interface ElectronApi {
     onBindingChanged: (cb: (payload: ProjectBinding) => void) => () => void
   }
   configs: {
+    /** 密钥列表与本机 CLI 可用性 */
     list: () => Promise<IpcResult<{ configs: ConfigEntry[]; tools: ToolAvailability }>>
     save: (input: Partial<ConfigEntry>) => Promise<IpcResult<ConfigEntry>>
     remove: (id: string) => Promise<PlatformResult>
+    /** 一键登录（docker login / helm registry login），返回 CLI 输出 */
     login: (id: string) => Promise<IpcResult<string>>
   }
   rename: {
@@ -270,11 +295,15 @@ export interface ElectronApi {
       rules: RenameRule[]
       options?: RenameOptions
     }) => Promise<IpcResult<{ stats: RenameStats; newRoot: string }>>
+    /** 请求取消进行中的重命名 */
     cancel: () => Promise<PlatformResult>
+    /** 订阅重命名进度；返回取消订阅函数 */
     onRenameProgress: (cb: (payload: RenameProgress) => void) => () => void
   }
   util: {
+    /** 写入系统剪贴板 */
     copy: (text: string) => Promise<PlatformResult>
+    /** 用默认浏览器打开链接（仅 http/https） */
     openUrl: (url: string) => Promise<PlatformResult>
   }
 }
@@ -301,4 +330,5 @@ const lazyStubApi = (): ElectronApi =>
         }
       )
   })
+/** 渲染进程统一入口：Electron 内为 window.api，浏览器调试时回退到桩代理 */
 export const api: ElectronApi = window.api ?? lazyStubApi()

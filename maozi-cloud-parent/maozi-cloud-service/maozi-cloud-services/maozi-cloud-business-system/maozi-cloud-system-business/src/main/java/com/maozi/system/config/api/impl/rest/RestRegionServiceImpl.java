@@ -37,7 +37,6 @@ public class RestRegionServiceImpl extends RegionServiceImpl implements RestRegi
 	@Override
 	public AbstractBaseResult<List<DropDownResult>> restList(Long parentId) {
 
-		// 构建查询条件
 		LambdaQueryWrapper<RegionDo> wrapper = Wrappers.lambdaQuery();
 
 		// 只查询ID和名称字段

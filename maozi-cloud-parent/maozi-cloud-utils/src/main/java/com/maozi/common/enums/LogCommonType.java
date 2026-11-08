@@ -38,6 +38,12 @@ public enum LogCommonType implements BaseEnum {
 
     ;
 
+    /**
+     * 按整型值和类型描述构造枚举实例
+     *
+     * @param value 枚举整型值
+     * @param desc 日志类型英文描述
+     */
     LogCommonType(Integer value,String desc) {
 
         this.value = value;
@@ -54,6 +60,7 @@ public enum LogCommonType implements BaseEnum {
     @Getter
     private final String desc;
 
+    /** 返回 {@code value.desc} 格式的枚举描述 */
     @Override
     public String toString() {
         return value + "." + desc;

@@ -11,11 +11,14 @@ import type {ProjectBinding, ProjectEntry} from './types'
 
 /** 项目名称约束：字母数字与 . _ -（不允许中文等非 ASCII） */
 const PROJECT_NAME_RE = /^[A-Za-z0-9][A-Za-z0-9._-]*$/
+/** 中日韩汉字检测：命中时给出"不允许中文"的明确提示 */
 const PROJECT_NAME_CJK_RE = /[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/
 
+/** projects.json v2 结构 */
 interface ProjectStore {
   version: 2
   projects: ProjectEntry[]
+  /** 当前激活项目 id，未激活为 null */
   activeId: string | null
 }
 
@@ -27,6 +30,7 @@ function newProjectId(): string {
   return crypto.randomUUID()
 }
 
+/** 读取项目存储：v1 自动迁移，文件缺失或格式无法识别时返回空存储 */
 function loadStore(): ProjectStore {
   const empty: ProjectStore = {version: 2, projects: [], activeId: null}
   try {
@@ -171,10 +175,7 @@ export function removeProject(id: string): void {
   saveStore(s)
 }
 
-/**
- * 解析 maozi-cloud-config.json 内容（JSON 格式）
- * name 为项目名称、version 为项目版本号
- */
+/** 解析 maozi-cloud-config.json 内容：name 为项目名称（必填），version 为项目版本号 */
 export function parseConfigContent(content: string): { name: string; version: string } {
   let data: { name?: string; version?: string }
   try {
@@ -186,9 +187,7 @@ export function parseConfigContent(content: string): { name: string; version: st
   return { name: data.name, version: data.version ?? '' }
 }
 
-/**
- * 解析目录下 maozi-cloud-config.json 文件
- */
+/** 解析目录下的 maozi-cloud-config.json，文件不存在时抛错 */
 export function parseConfigFile(dir: string): { name: string; version: string } {
   const file = path.join(dir, 'maozi-cloud-config.json')
   if (!fs.existsSync(file)) throw new Error('所选目录下未找到 maozi-cloud-config.json 文件')
@@ -215,13 +214,12 @@ export function userDataStateFile(fileName: string): string {
   return target
 }
 
-/**
- * 数据库初始化标记：userData/.db-init.json（项目路径 → 完成时间，JSON）
- */
+/** 数据库初始化标记文件：userData/.db-init.json（项目路径 → 完成时间） */
 function dbInitMarkFile(): string {
   return userDataStateFile('.db-init.json')
 }
 
+/** 该项目路径是否已完成数据库初始化 */
 export function isDbInitialized(projectPath: string): boolean {
   try {
     const map = JSON.parse(fs.readFileSync(dbInitMarkFile(), 'utf8'))
@@ -231,6 +229,7 @@ export function isDbInitialized(projectPath: string): boolean {
   }
 }
 
+/** 记录该项目路径的数据库初始化完成时间（ISO 字符串） */
 export function markDbInitialized(projectPath: string): void {
   let map: Record<string, string> = {}
   try {

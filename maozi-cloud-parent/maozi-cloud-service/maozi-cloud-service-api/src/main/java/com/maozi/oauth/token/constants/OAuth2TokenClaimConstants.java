@@ -4,7 +4,7 @@ package com.maozi.oauth.token.constants;
 /**
  * OAuth2令牌内省声明（Claim）字段常量
  * <p>
- * 定义RPC令牌内省响应中使用的标准字段名称常量。
+ * 定义令牌签发及内省响应中使用的声明字段名称常量。
  * </p>
  *
  * @author maozi
@@ -33,10 +33,7 @@ public final class OAuth2TokenClaimConstants {
 	public static final String ISS = "iss";
 
 	/**
-	 * 私有构造方法，防止实例化
-	 * <p>
-	 * 该类仅提供静态常量，不应被实例化
-	 * </p>
+	 * 常量类私有化构造，禁止实例化
 	 */
 	private OAuth2TokenClaimConstants() {
 	}

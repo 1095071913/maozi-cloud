@@ -23,6 +23,12 @@ public enum EnvironmentType implements BaseEnum {
 
 	;
 
+	/**
+	 * 按整型值和环境描述构造枚举实例
+	 *
+	 * @param value 枚举整型值
+	 * @param desc 环境描述
+	 */
 	EnvironmentType(Integer value,String desc) {
 
 		this.value = value;
@@ -31,7 +37,7 @@ public enum EnvironmentType implements BaseEnum {
 
 	}
 
-	/** 枚举的整型值，用于数据库存储和环境标识 */
+	/** 枚举的整型值，用于数据库存储 */
 	@Getter
 	private final Integer value;
 
@@ -39,6 +45,7 @@ public enum EnvironmentType implements BaseEnum {
 	@Getter
 	private final String desc;
 
+	/** 返回 {@code value.desc} 格式的枚举描述 */
 	@Override
 	public String toString() {
 		return value + "." + desc;

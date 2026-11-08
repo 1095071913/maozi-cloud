@@ -3,8 +3,11 @@ import type {ApiResponse, ClientDetail, ClientListItem, ClientSaveParam, PageRes
 
 /** 客户端列表查询参数 */
 export interface ClientListParams {
+  /** 当前页 */
   current?: number
+  /** 每页数量 */
   size?: number
+  /** 客户端名称（模糊查询） */
   name?: string
 }
 

@@ -104,7 +104,7 @@ public abstract class BaseGrantAuthenticationConverter<T extends BaseGrantAuthen
         // 获取请求中的参数
         MultiValueMap<String, String> parameters = getParameters(request);
 
-        // scope (OPTIONAL)
+        // scope 为可选参数
         String scope = parameters.getFirst(OAuth2ParameterNames.SCOPE);
         if (StringUtils.hasText(scope) &&
                 parameters.get(OAuth2ParameterNames.SCOPE).size() != 1) {
@@ -116,7 +116,7 @@ public abstract class BaseGrantAuthenticationConverter<T extends BaseGrantAuthen
                     Arrays.asList(StringUtils.delimitedListToStringArray(scope, ",")));
         }
 
-        //参数检查
+        // 参数检查
         checkParams(request);
 
         // 提取附加参数（排除grant_type与client_id）

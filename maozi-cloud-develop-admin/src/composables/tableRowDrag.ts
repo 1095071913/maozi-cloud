@@ -4,29 +4,35 @@ import type {Ref} from 'vue'
  * el-table 行拖拽排序：事件委托到表格根节点（tbody 重渲染不丢监听），
  * 拖拽起点限定在 .drag-handle 上，避免影响单元格内的文本选择。
  * 行索引即表格数据顺序（使用方均未启用表格自身排序）。
+ * @param onReorder 放下时回调：above 为 true 表示落在目标行上半部（插到其前面）
+ * @returns bind：表格挂载后调用一次以注册事件（无防重，重复调用会重复注册）
  */
 export function useTableRowDrag(
   tableRef: Ref<unknown>,
   onReorder: (fromIdx: number, toIdx: number, above: boolean) => void
 ): { bind: () => void } {
+  // 当前拖起的行索引，-1 表示未在拖拽
   let dragIdx = -1
 
   function root(): HTMLElement | undefined {
     return (tableRef.value as { $el?: HTMLElement } | null)?.$el
   }
 
+  /** tr 在表体中的行索引，不属于表体时返回 -1 */
   function rowIndexOf(el: HTMLElement, tr: HTMLElement): number {
     const tbody = el.querySelector('.el-table__body tbody')
     if (!tbody || !tbody.contains(tr)) return -1
     return Array.from(tbody.querySelectorAll('tr')).indexOf(tr as HTMLTableRowElement)
   }
 
+  /** 清除拖拽中与落点指示样式 */
   function clearMarks(el: HTMLElement): void {
     el.querySelectorAll('tr.row-dragging, tr.row-drop-above, tr.row-drop-below').forEach((tr) =>
       tr.classList.remove('row-dragging', 'row-drop-above', 'row-drop-below')
     )
   }
 
+  /** 在表格根节点上委托注册 dragstart / dragover / drop / dragend */
   function bind(): void {
     const el = root()
     if (!el) return

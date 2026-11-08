@@ -5,10 +5,9 @@ import java.util.Map;
 /**
  * OAuth 令牌服务接口
  * <p>
- * 定义访问令牌（Access Token）的内省能力，供资源服务器校验令牌有效性。
- * 实际实现由 {@code OauthTokenServiceImpl} 提供，并由 {@code RpcOauthTokenServiceImpl}
- * 通过 Dubbo RPC 对外暴露，资源服务器经 Dubbo 调用完成令牌校验，
- * 替代 HTTP 调用 introspection 端点的方式以减少网络开销。
+ * 定义访问令牌（Access Token）的内省能力，供 {@code OpaqueTokenIntrospector} 校验令牌有效性。
+ * 授权服务器进程使用本地实现 {@code OauthTokenServiceImpl}；资源服务器进程使用
+ * {@code RemoteOauthTokenServiceImpl}，按配置经 Dubbo RPC（默认）或 REST（Feign）远程调用授权服务器。
  * </p>
  *
  * @author pengjinlong
@@ -19,8 +18,7 @@ public interface OauthTokenService {
     /**
      * 内省访问令牌
      * <p>
-     * 校验令牌有效性并返回令牌关联的属性信息，供资源服务器完成身份认证。
-     * 替代 HTTP 调用 introspection 端点的方式，减少网络开销。
+     * 校验令牌有效性并返回令牌关联的声明信息，供资源服务器完成身份认证。
      * </p>
      *
      * @param token 待内省的令牌字符串

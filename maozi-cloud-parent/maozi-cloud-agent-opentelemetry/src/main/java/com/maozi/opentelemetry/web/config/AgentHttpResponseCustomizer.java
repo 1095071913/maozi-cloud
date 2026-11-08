@@ -6,6 +6,7 @@ import io.opentelemetry.javaagent.bootstrap.http.HttpServerResponseMutator;
 import io.opentelemetry.javaagent.shaded.io.opentelemetry.api.trace.Span;
 import io.opentelemetry.javaagent.shaded.io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.javaagent.shaded.io.opentelemetry.context.Context;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -49,9 +50,9 @@ public class AgentHttpResponseCustomizer implements HttpServerResponseCustomizer
         // 从当前上下文提取 Span 上下文，用于获取追踪 ID
         SpanContext spanContext = Span.fromContext(context).getSpanContext();
 
-        //Gateway未找到服务转发 = io.netty.handler.codec.http.DefaultFullHttpResponse
-        //Gateway找到服务转发 = io.netty.handler.codec.http.DefaultHttpResponse
-        //Service = io.undertow.server.HttpServerExchange
+        // 网关未找到目标服务时的转发响应 = io.netty.handler.codec.http.DefaultFullHttpResponse
+        // 网关找到目标服务时的转发响应 = io.netty.handler.codec.http.DefaultHttpResponse
+        // 服务层的响应对象 = io.undertow.server.HttpServerExchange（不注入）
         if(ADD_TRACEID_CLASS.contains(response.getClass().getName())){
             responseMutator.appendHeader(response, TRACE_ID_HEADER_KEY, spanContext.getTraceId());
         }

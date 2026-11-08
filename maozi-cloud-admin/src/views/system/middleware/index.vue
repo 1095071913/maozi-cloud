@@ -153,6 +153,7 @@ const LOGIN_STRATEGIES: Record<string, LoginStrategy> = {
   snailjob: SNAIL_JOB_STRATEGY
 }
 
+/** 默认策略：直连中间件地址提交通用表单登录（未配置账密时仅加载页面） */
 const DEFAULT_STRATEGY: LoginStrategy = {
   mode: 'form',
   action: (url) => `${url}/login`,
@@ -163,6 +164,7 @@ const dialogVisible = ref(false)
 const current = ref<MiddlewareItem | null>(null)
 /** login=登录中（展示过渡动画），ready=加载主 iframe */
 const phase = ref<'login' | 'ready'>('login')
+/** 主 iframe 加载地址 */
 const frameSrc = ref('')
 /** 主 iframe 的 key：自增触发元素重建，实现刷新 */
 const frameKey = ref(0)
@@ -326,6 +328,7 @@ async function performSameOriginLogin(mw: MiddlewareItem, strategy: LoginStrateg
   showMainFrame()
 }
 
+/** 打开内嵌窗口：进入登录过渡态，并按策略自动登录后加载主界面 */
 function handleOpen(mw: MiddlewareItem) {
   current.value = mw
   frameSrc.value = ''

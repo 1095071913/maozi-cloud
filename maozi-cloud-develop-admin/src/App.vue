@@ -127,6 +127,7 @@ const IconTool = defineComponent(() => () =>
   ])
 )
 
+/** 导航项 */
 type MenuKey = 'env' | 'hosts' | 'sys' | 'bookmarks' | 'tools' | 'configs' | 'projects'
 interface MenuItem {
   key: MenuKey
@@ -134,6 +135,7 @@ interface MenuItem {
   icon: Component
 }
 
+/** 默认导航顺序（无保存记录时使用） */
 const DEFAULT_MENUS: MenuItem[] = [
   { key: 'sys', label: '系统信息', icon: IconGauge },
   { key: 'env', label: '环境变量', icon: IconTerminal },
@@ -144,9 +146,10 @@ const DEFAULT_MENUS: MenuItem[] = [
   { key: 'bookmarks', label: '书签管理', icon: IconBookmark }
 ]
 
-/** 菜单顺序持久化：按 localStorage 保存的 key 顺序恢复，未知项忽略、新增项补到末尾 */
+/** 菜单顺序持久化 key：按 localStorage 保存的 key 顺序恢复，未知项忽略、新增项补到末尾 */
 const MENU_ORDER_KEY = 'maozi-cloud-develop-admin:nav-order'
 
+/** 从 localStorage 恢复菜单顺序，无有效记录时返回默认顺序 */
 function restoreMenuOrder(base: MenuItem[]): MenuItem[] {
   try {
     const saved = JSON.parse(localStorage.getItem(MENU_ORDER_KEY) ?? '[]') as string[]
@@ -165,9 +168,10 @@ function restoreMenuOrder(base: MenuItem[]): MenuItem[] {
 
 const menus = ref<MenuItem[]>(restoreMenuOrder(DEFAULT_MENUS))
 
-/** 当前导航持久化：页面整体重载（开发模式 HMR 整页刷新等）后回到原页面，而非跳回默认的系统信息 */
+/** 选中导航持久化 key：页面整体重载（开发模式 HMR 整页刷新等）后回到原页面，而非跳回默认的系统信息 */
 const NAV_ACTIVE_KEY = 'maozi-cloud-develop-admin:nav-active'
 
+/** 恢复上次选中的导航，无有效记录时回落“系统信息” */
 function restoreActiveNav(): MenuKey {
   try {
     const saved = localStorage.getItem(NAV_ACTIVE_KEY)
@@ -180,6 +184,7 @@ function restoreActiveNav(): MenuKey {
 
 const active = ref<MenuKey>(restoreActiveNav())
 
+// 选中变化即写回 localStorage
 watch(active, (k) => {
   try {
     localStorage.setItem(NAV_ACTIVE_KEY, k)
@@ -189,8 +194,11 @@ watch(active, (k) => {
 })
 
 /** ===== 菜单拖拽排序 ===== */
+/** 拖起的菜单 key */
 const dragMenuKey = ref('')
+/** 当前悬停的菜单 key */
 const dragOverMenuKey = ref('')
+/** 悬停落点：目标项上半 / 下半 */
 const dropMenuPos = ref<'above' | 'below'>('above')
 
 function onMenuDragStart(key: MenuKey, e: DragEvent): void {
@@ -201,18 +209,21 @@ function onMenuDragStart(key: MenuKey, e: DragEvent): void {
   }
 }
 
+/** 悬停时按指针在菜单项上半 / 下半决定插入位置 */
 function onMenuDragOver(target: MenuItem, e: DragEvent): void {
   dragOverMenuKey.value = target.key
   const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
   dropMenuPos.value = e.clientY < rect.top + rect.height / 2 ? 'above' : 'below'
 }
 
+/** 清空拖拽状态 */
 function onMenuDragEnd(): void {
   dragMenuKey.value = ''
   dragOverMenuKey.value = ''
   dropMenuPos.value = 'above'
 }
 
+/** 放下：把拖起项移动到目标项前 / 后，并持久化新顺序 */
 function onMenuDrop(target: MenuItem, e: DragEvent): void {
   e.preventDefault()
   const sourceKey = dragMenuKey.value
@@ -230,14 +241,17 @@ function onMenuDrop(target: MenuItem, e: DragEvent): void {
   localStorage.setItem(MENU_ORDER_KEY, JSON.stringify(list.map((m) => m.key)))
 }
 
+/** 主进程报告的平台标识（darwin / win32 / …） */
 const platform = ref('')
 
+/** 侧栏底部展示的平台名 */
 const platformLabel = computed(() => {
   if (platform.value === 'darwin') return 'macOS'
   if (platform.value === 'win32') return 'Windows'
   return platform.value || '…'
 })
 
+// 拉取平台标识（app:info）
 onMounted(async () => {
   const info = await api.app.info()
   platform.value = info.platform

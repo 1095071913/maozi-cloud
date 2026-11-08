@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 侧边栏菜单项：目录渲染为可折叠子菜单，菜单渲染为可点击跳转项
 import type { PermissionTreeNode } from '@/types/api'
 import { PermissionType } from '@/types/api'
 import { markToPath } from '@/utils/permission'

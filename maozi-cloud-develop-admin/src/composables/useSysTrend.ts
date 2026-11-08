@@ -15,18 +15,24 @@ const state = reactive({
   latest: null as SysDynamicInfo | null,
   /** 三条曲线共享的采样时间戳(ms) */
   times: [] as number[],
+  /** CPU 使用率序列（%） */
   cpu: [] as number[],
+  /** 首块 GPU 利用率序列（%，不支持采集时为 null） */
   gpu: [] as Array<number | null>,
+  /** 内存使用率序列（%） */
   mem: [] as number[]
 })
 
+/** 采样定时器（启动后常驻，不清除） */
 let timer: ReturnType<typeof setInterval> | null = null
 
+/** 追加采样值，超出 TREND_POINTS 时丢弃最旧的点 */
 function trim<T>(arr: T[], v: T): void {
   arr.push(v)
   if (arr.length > TREND_POINTS) arr.splice(0, arr.length - TREND_POINTS)
 }
 
+/** 拉取一次动态数据，更新 latest 与各趋势序列（失败时跳过本次） */
 async function sample(): Promise<void> {
   const r = await api.sysinfo.dynamic()
   if (!r.ok || !r.data) return

@@ -39,11 +39,15 @@ const exec = promisify(execFile)
 
 /**
  * 项目控制台 IPC：
- * - 选择本地目录 → 读取 maozi-cloud-config.json(name/version) 完成绑定
+ * - 项目列表与绑定：本地目录 / SSH 远程目录，读取 maozi-cloud-config.json(name/version) 完成绑定
  * - 拉取代码 → 用密钥管理中的凭据(git clone HTTPS)，账密 / Token 两种认证，
  *   凭据仅拼接在内存中的克隆地址里，不落盘；错误信息会脱敏
+ * - 基础服务 / 应用服务（单体、微服务）的 compose 启停、状态、资源统计与日志，
+ *   以及 git 管理、环境设置、Maven / Git / Docker 配置读写、数据库与 hosts 初始化
+ * 本地绑定与远程绑定经 projExec / projStream 等执行层自动路由
  */
 
+/** 拉取代码时克隆的仓库地址（凭据在运行时拼入） */
 const REPO_URL = 'https://github.com/1095071913/maozi-cloud.git'
 /** 基础服务 docker compose 目录（相对项目根目录） */
 const COMPOSE_DIR =
@@ -57,13 +61,19 @@ const BASICS_REBUILD_SCRIPT =
 
 /** ===== SSH 远程服务器操作 ===== */
 interface SshTarget {
+  /** 登录用户（缺省 root） */
   user: string
+  /** 主机名或 IP */
   host: string
+  /** 端口（缺省 22） */
   port: number
+  /** 认证方式：password 密码 / key 私钥 */
   authType: 'password' | 'key'
+  /** 密码或私钥内容（取决于 authType） */
   password: string
 }
 
+/** 从密钥管理解析 Linux 凭据为 SSH 目标（address 支持 host、user@host、host:port、user@host:port） */
 function resolveSshTarget(configId: string): SshTarget {
   const entry = listConfigs().find((c) => c.id === configId)
   if (!entry) throw new Error('密钥不存在')
@@ -83,6 +93,7 @@ function resolveSshTarget(configId: string): SshTarget {
   return { user, host, port, authType: (entry.authType ?? 'password') as 'password' | 'key', password: entry.password }
 }
 
+/** 写临时私钥文件（0600），返回路径 */
 function writeTempKey(keyContent: string): string {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sshkey-'))
   const kp = path.join(dir, 'id_rsa')
@@ -90,6 +101,7 @@ function writeTempKey(keyContent: string): string {
   return kp
 }
 
+/** 删除临时私钥及其所在临时目录 */
 function cleanupTempKey(kp: string): void {
   try { fs.rmSync(path.dirname(kp), { recursive: true, force: true }) } catch { /* */ }
 }
@@ -118,6 +130,7 @@ function sshOptsStr(t: SshTarget, mux = true): string {
 const isSshNoise = (l: string): boolean =>
   /^(mux_client|ControlSocket|Warning: Permanently added)/.test(l.trim())
 
+/** 直连 ssh 的命令行参数（key 认证用）：mux=true 启用连接复用，否则改为心跳保活 */
 function sshBaseArgs(t: SshTarget, kp?: string, mux = true): string[] {
   const keepAlive = ['-o', 'ServerAliveInterval=15', '-o', 'ServerAliveCountMax=3']
   const a = [
@@ -264,18 +277,21 @@ async function remoteComposeCmd(t: SshTarget): Promise<string> {
   }
 }
 
+/** 列出远程目录下的子目录（不含隐藏目录） */
 async function sshListDir(t: SshTarget, dirPath: string): Promise<Array<{ name: string; isDir: boolean }>> {
   const out = await sshExec(t, `ls -1ap "${dirPath}" 2>/dev/null || echo "__ERROR__"`, 15_000)
   if (out.includes('__ERROR__')) throw new Error(`无法访问目录 ${dirPath}`)
   return out.split('\n').filter((l) => l.trim()).map((l) => ({ name: l.replace(/\/$/, ''), isDir: l.endsWith('/') })).filter((e) => e.isDir && !e.name.startsWith('.'))
 }
 
+/** 读取远程文件内容，文件不存在时抛错 */
 async function sshReadFile(t: SshTarget, filePath: string): Promise<string> {
   const out = await sshExec(t, `cat "${filePath}" 2>/dev/null || echo "__NOT_FOUND__"`, 15_000)
   if (out.includes('__NOT_FOUND__')) throw new Error(`远程文件不存在：${filePath}`)
   return out
 }
 
+/** 远程是否安装 git */
 async function sshCheckGit(t: SshTarget): Promise<boolean> {
   try {
     const out = await sshExec(t, 'which git 2>/dev/null', 10_000)
@@ -283,6 +299,7 @@ async function sshCheckGit(t: SshTarget): Promise<boolean> {
   } catch { return false }
 }
 
+/** SSH 流式执行（独占连接、带远端环境前缀），输出逐行推送到 channel；传 sid 时可被 stopScript 中断 */
 async function sshStream(
   sender: Electron.WebContents,
   channel: string,
@@ -361,6 +378,7 @@ async function sshStream(
 
 /** ===== 项目执行层：根据绑定类型自动路由本地 / SSH 远程 ===== */
 
+/** 当前项目的执行上下文 */
 interface ProjectCtx {
   /** 项目根目录（本地路径或远程路径） */
   root: string
@@ -409,7 +427,7 @@ async function readProjFile(relPath: string): Promise<string> {
   return fs.readFileSync(abs, 'utf8')
 }
 
-/** 检查项目内文件是否存在 */
+/** 检查项目内文件是否存在（远程绑定实际只判断 SSH 能否执行，见行内说明） */
 async function projFileExists(relPath: string): Promise<boolean> {
   const ctx = getProjectCtx()
   const abs = path.join(ctx.root, relPath)
@@ -535,10 +553,13 @@ async function readInitMysqlDb(): Promise<string | null> {
 
 /** 初始化镜像定义文件：JSON，key = 镜像名（含 tag），value = 构建目录（相对 DOCKER_IMAGE_DIR） */
 const INIT_BASE_IMAGE_FILE = 'maozi-cloud-script/maozi-cloud-utils/init_base_image.json'
+/** 初始化镜像构建目录根（相对项目根目录） */
 const DOCKER_IMAGE_DIR = 'maozi-cloud-script/maozi-cloud-deploy/maozi-cloud-deploy-docker-image'
 
+/** 项目内置 hosts 映射 */
 interface HostsDef {
   ip: string
+  /** 域名，多个以空格分隔 */
   domains: string
 }
 
@@ -635,7 +656,7 @@ function parseEnvFile(text: string): Map<string, string> {
   return map
 }
 
-/** 业务 .env 写入/删除一个 key 行（value 为 null 时删除该行）：原位更新或末尾追加，本地直写 / 远程 SSH */
+/** 业务 .env 写入/删除一个 key 行（value 为 null 时删除该行）：本地原位更新或末尾追加；远程 SSH 先删旧行再追加到末尾 */
 async function businessEnvFileSet(key: string, value: string | null): Promise<void> {
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) throw new Error(`变量名不合法: ${key}`)
   if (value !== null && /[\r\n]/.test(value)) throw new Error('变量值不能包含换行')
@@ -679,7 +700,7 @@ async function businessEnvFileSet(key: string, value: string | null): Promise<vo
 }
 
 /**
- * 环境变量取值：shell 配置里已启用的最优先（文件顺序即展示顺序，zshrc/bash_profile 靠前），
+ * 环境变量取值：shell 配置里已启用的最优先（按配置文件顺序取首个，~/.zshrc 最靠前），
  * 其次当前进程环境（覆盖 launchctl setenv 场景），最后保留被注释禁用行的值。
  * 空值一律视为未设置（export KEY="" / 进程环境为空串 = 清空取值，不算已配置）
  */
@@ -715,7 +736,7 @@ const ADMIN_CONTAINER = 'maozi-cloud-admin-distributeds'
 
 /**
  * 应用服务（单体 / 微服务）compose 定义：两变体共用 maozi-cloud-business-docker 目录，
- * 各含 admin 与 services 两个 compose 文件。
+ * 各含 admin / services / nginx 三个 compose 文件。
  * 两变体互斥：启动任一变体服务前，先 down 掉另一变体的全部服务
  */
 type AppSvcVariant = 'monomer' | 'distributeds'
@@ -727,6 +748,7 @@ const appSvcFiles = (def: { servicesFile: string; adminFile: string; nginxFile: 
   def.nginxFile
 ]
 
+/** 各变体的展示名、compose 目录与文件名 */
 const APP_SVC_DEFS: Record<
   AppSvcVariant,
   { label: string; dir: string; adminFile: string; servicesFile: string; nginxFile: string }
@@ -820,6 +842,7 @@ function hotSwapOn(variant: AppSvcVariant): boolean {
   }
 }
 
+/** 写入热备开关（合并进 .ui-state.json） */
 function setHotSwap(variant: AppSvcVariant, on: boolean): void {
   const key = variant === 'monomer' ? 'monomerHotSwap' : 'distributedsHotSwap'
   let cur: Record<string, unknown> = {}
@@ -937,7 +960,7 @@ async function gracefulUpdateHook(
   }
 }
 
-/** 读取变体的服务清单（admin + services 两个文件合并，标记归属文件）。
+/** 读取变体的服务清单（nginx + admin + services 三个文件合并，标记归属文件）。
  *  服务名可含 ${VAR} 占位（按环境/版本区分实例）：name 为插值后的真实名称
  *  （docker compose 命令与状态匹配用），base 为占位前的静态前缀（前端展示用） */
 async function readAppServices(bPath: string, variant: AppSvcVariant): Promise<AppServiceEntry[]> {
@@ -961,7 +984,7 @@ async function readAppServices(bPath: string, variant: AppSvcVariant): Promise<A
   return out
 }
 
-/** 变体所有服务的容器名映射（插值后的服务名 → 插值后的 container_name，读取两个 yml） */
+/** 变体所有服务的容器名映射（插值后的服务名 → 插值后的 container_name，读取变体全部 compose 文件） */
 async function appSvcContainerNames(bPath: string, variant: AppSvcVariant): Promise<Record<string, string>> {
   const def = APP_SVC_DEFS[variant]
   const interp = await appSvcNameValues()
@@ -1011,6 +1034,7 @@ const DEPLOY_SCRIPTS: Record<string, { file: string; label: string }> = {
     label: '容器磁盘清除'
   }
 }
+/** 本地拉取代码时在目标目录下创建的克隆目录名 */
 const CLONE_DIR = 'maozi-cloud'
 
 /** 执行 git（登录 shell PATH），错误信息中抹掉含凭据的 URL */
@@ -1030,6 +1054,7 @@ async function runGit(args: string[], timeoutMs: number): Promise<string> {
   }
 }
 
+/** 校验本机 git 可用，不可用时抛出可读错误 */
 async function ensureGit(): Promise<void> {
   try {
     await runGit(['--version'], 8000)
@@ -1038,6 +1063,7 @@ async function ensureGit(): Promise<void> {
   }
 }
 
+/** 当前聚焦窗口，无聚焦时取第一个窗口（用作系统对话框的父窗口） */
 function focusedWindow(): BrowserWindow | null {
   return BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0] ?? null
 }
@@ -1410,7 +1436,7 @@ function parseDockerSize(s: string): number {
   return v * (units[m[2]] ?? 0)
 }
 
-/** 解析 compose 中所有服务的 container_name 映射（服务名 → 容器名；未设则回退服务名） */
+/** 解析 compose 中显式声明的 container_name（服务名 → 容器名；未声明的服务不在结果中，由调用方回退） */
 function parseServiceContainerNames(text: string): Record<string, string> {
   const map: Record<string, string> = {}
   let curSvc = ''
@@ -1505,8 +1531,9 @@ function parseStatsLine(
   return { name, cpuPercent, memUsed: parseDockerSize(used), memLimit: parseDockerSize(limit) }
 }
 
-/** docker compose 可用性检测（走登录 shell PATH） */
+/** compose 可用性检测结果缓存（只记成功） */
 let composeOk: boolean | null = null
+/** docker compose 可用性检测：远程绑定经 SSH，本地走登录 shell PATH；不可用时抛错 */
 async function checkDockerCompose(): Promise<void> {
   // 仅缓存成功结果；失败不烙印——预取已在启动瞬间调用，瞬时 SSH 失败若被记住会毒化整个会话
   if (composeOk === true) return
@@ -1615,7 +1642,7 @@ async function streamProcess(
         const parts = seg.split('\r')
         send('line', parts[parts.length - 1])
       }
-      // 未收完整的行:按 \r 前进,最新内容覆盖上一条
+      // 未收完整的行：按 \r 前进，最新内容覆盖上一条
       const cr = carry.lastIndexOf('\r')
       if (cr >= 0) {
         const latest = carry.slice(cr + 1)
@@ -1755,6 +1782,7 @@ let configWatcher: fs.FSWatcher | null = null
 let watchedConfigFile = ''
 let configWatchTimer: NodeJS.Timeout | null = null
 
+/** 停止配置文件监听并清除防抖定时器 */
 function unwatchActiveConfig(): void {
   if (configWatchTimer) {
     clearTimeout(configWatchTimer)
@@ -1803,6 +1831,7 @@ function watchActiveConfig(b: ProjectBinding | null): void {
 
 /** 注册项目控制台全部 IPC 处理器；末尾做启动预取（回填落盘资源快照 + 后台拉新 + 预热 yml 缓存） */
 export function registerProjectHandlers(): void {
+  /** 当前激活项目的绑定：顺带同步配置文件 name/version 并（重）建监听 */
   ipcMain.handle('projects:state', async () => {
     try {
       const b = getBinding()
@@ -1957,6 +1986,7 @@ export function registerProjectHandlers(): void {
     }
   })
 
+  /** 解绑：清空当前项目的绑定并退出到列表（项目记录保留） */
   ipcMain.handle('projects:unbind', () => {
     try {
       clearBinding()
@@ -2421,7 +2451,7 @@ export function registerProjectHandlers(): void {
         }
         return { ok: true }
       }
-      // 此处 action 只剩 stop / restart（start 已提前返回）：重启 = 先停移除再 up -d 重建
+      // 此处 action 只剩 stop / restart（start / rebuild 已提前返回）：重启 = 先停移除再 up -d 重建
       const cmdList: string[][] = isAll
         ? action === 'stop'
           ? [['compose', 'down']]
@@ -2910,13 +2940,17 @@ async function remoteHostSpecs(t: SshTarget): Promise<{ cpus: number; memTotal: 
 /** 资源快照缓存：docker stats 有 ~1.3s 固有采样窗口，App 启动即预取 + 落盘持久化，
  * 首屏请求（preferCache）命中即返。轮询请求不查缓存，始终拉新值；10 分钟外的快照视为过期不用 */
 const STATS_SNAPSHOT_TTL = 10 * 60_000
+/** 基础服务资源统计：服务名 → 资源占用，附主机 CPU 核数与内存总量 */
 type BasicsStatsData = { stats: Record<string, ComposeServiceStats>; cpuCount: number; hostMemTotal: number }
+/** 应用服务资源统计：按变体分组 */
 type AppSvcStatsData = {
   stats: Record<'monomer' | 'distributeds', Record<string, ComposeServiceStats>>
   cpuCount: number
   hostMemTotal: number
 }
+/** 资源快照 */
 interface StatsSnap<T> {
+  /** 采集时间戳（毫秒） */
   at: number
   /** 绑定标识（项目路径 + 远程目标）：换绑后旧快照不匹配，防止展示错项目的数据 */
   key: string
@@ -2941,6 +2975,7 @@ function statsSnapshotFile(): string {
   return path.join(app.getPath('userData'), 'stats-snapshot.json')
 }
 let snapWriteTimer: NodeJS.Timeout | null = null
+/** 防抖 1 秒后把两份快照写盘 */
 function persistStatsSnapshot(): void {
   if (snapWriteTimer) return
   snapWriteTimer = setTimeout(() => {
@@ -2952,6 +2987,7 @@ function persistStatsSnapshot(): void {
     }
   }, 1000)
 }
+/** 启动回填：读取落盘快照，仅采用与当前绑定一致且未过期的部分 */
 function hydrateStatsSnapshot(): void {
   try {
     const raw = JSON.parse(fs.readFileSync(statsSnapshotFile(), 'utf8')) as {
@@ -3086,7 +3122,7 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
 })
 
   /**
-   * 应用服务互斥停机：docker compose -p <项目名> -f <file> down 两个 compose 文件（与全部关闭同款语义）。
+   * 应用服务互斥停机：对变体全部 compose 文件逐个执行 docker compose -p <项目名> -f <file> down（与全部关闭同款语义）。
    * 无运行容器时跳过。日志走 projects:scriptLog
    */
   async function appServicesDown(
@@ -3556,6 +3592,7 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
       }
 
       // 逐容器并行 grep 日志文件
+      /** 命中的日志行（ts 为行首时间戳，用于跨服务排序） */
       interface HitLine {
         service: string
         ts: number
@@ -3613,7 +3650,7 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
       if (!/^[A-Za-z0-9_.-]+$/.test(String(service))) throw new Error('非法的服务名')
       const tail = Math.min(Math.max(parseInt(String(tailArg ?? 200), 10) || 200, 1), 5000)
       await checkDockerCompose()
-      // 上下文：basics（默认）或应用服务 '<variant>:<admin|services>'（-p 项目名 + -f 指定 compose 文件）
+      // 上下文：basics（默认）或应用服务 '<variant>:<admin|services|nginx>'（-p 项目名 + -f 指定 compose 文件）
       const ctx = ctxArg ? resolveComposeCtx(ctxArg) : null
       const dir = ctx ? path.join(b.path, ctx.dir) : path.join(b.path, COMPOSE_DIR)
       const fileArgs = ctx ? ['-p', await appSvcProjectName(), '-f', ctx.file] : []
@@ -3860,7 +3897,7 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
         try {
           map = parseEnvFile(await readProjFile(sec.file ?? BUSINESS_ENV_FILE))
         } catch {
-          /* 远程绑定或文件缺失：保持未设置 */
+          /* 文件缺失或读取失败（含远程 SSH 异常）：保持未设置 */
         }
         for (const g of sec.groups) {
           // 空值视为未设置（KEY= 行保留 key 定义但取值为空）
@@ -4362,7 +4399,7 @@ ipcMain.handle('projects:appServicesStats', async (_e, preferCacheArg?: boolean)
     }
   })
 
-  /** 环境设置 .env 分节保存：原位更新 key=value 行（无则在末尾追加），本地直写 / 远程 SSH */
+  /** 环境设置 .env 分节保存：写入业务 .env 的 key=value 行（写法见 businessEnvFileSet） */
   ipcMain.handle('projects:envFileSave', async (_e, params: { key: string; value: string }) => {
     try {
       const b = getBinding()

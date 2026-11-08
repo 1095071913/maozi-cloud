@@ -7,15 +7,18 @@ import type {PageMeta} from './types'
  * 浏览器能访问的站点这里就能抓到；只读 HTML 头部（前 256KB），8 秒超时
  */
 
+/** 伪装为桌面版 Chrome，避免部分站点拦截非浏览器请求 */
 const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
 
+/** 补全协议（缺省 https）后解析为 URL */
 function normalizeUrl(raw: string): URL {
   const trimmed = raw.trim()
   const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
   return new URL(withScheme)
 }
 
+/** 带超时的 net.fetch：超时即 abort（只覆盖到响应头返回为止） */
 async function fetchWithTimeout(url: string, ms: number): Promise<Response> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), ms)
@@ -30,6 +33,7 @@ async function fetchWithTimeout(url: string, ms: number): Promise<Response> {
   }
 }
 
+/** 解码常见 HTML 实体并去除首尾空白 */
 function decodeEntities(s: string): string {
   return s
     .replace(/&amp;/g, '&')
@@ -41,6 +45,7 @@ function decodeEntities(s: string): string {
     .trim()
 }
 
+/** 取 <meta name|property=name> 的 content，兼容 content 写在前面的属性顺序 */
 function matchMetaTag(html: string, name: string): string | undefined {
   const re = new RegExp(
     `<meta[^>]+(?:name|property)=["']${name}["'][^>]*content=["']([^"']*)["']`,
@@ -72,6 +77,7 @@ function collectIconHrefs(html: string): string[] {
   return found.sort((a, b) => a.priority - b.priority).map((f) => f.href)
 }
 
+/** 图标响应转 dataURL；为空、超过 512KB 或非图片类型（octet-stream 放行）时返回 undefined */
 async function toDataUrl(res: Response): Promise<string | undefined> {
   const type = res.headers.get('content-type') ?? ''
   const buf = Buffer.from(await res.arrayBuffer())
@@ -81,6 +87,7 @@ async function toDataUrl(res: Response): Promise<string | undefined> {
   return `data:${mime};base64,${buf.toString('base64')}`
 }
 
+/** 抓取网页标题、描述与图标；出错时返回已解析到的部分 */
 export async function fetchPageMeta(rawUrl: string): Promise<PageMeta> {
   const meta: PageMeta = {}
   try {
@@ -97,6 +104,7 @@ export async function fetchPageMeta(rawUrl: string): Promise<PageMeta> {
         // head 一般在最前面，读完 </head> 即可提前停止
         if (/<\/head>/i.test(html)) break
       }
+      // 可能提前跳出，主动取消以释放剩余响应体
       await reader.cancel().catch(() => {})
     } else {
       html = await res.text()
@@ -111,6 +119,7 @@ export async function fetchPageMeta(rawUrl: string): Promise<PageMeta> {
 
     for (const href of candidates) {
       try {
+        // 协议相对地址补 https，相对路径按页面地址解析
         const abs = href.startsWith('//')
           ? `https:${href}`
           : href.startsWith('http') || href.startsWith('data:')

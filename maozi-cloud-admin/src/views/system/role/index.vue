@@ -21,6 +21,7 @@ import {
 } from '@/types/api'
 
 const userStore = useUserStore()
+/** 是否有编辑权限（无则状态列只读展示） */
 const canUpdate = computed(() => userStore.permissions.includes('system:role:update'))
 
 // ============ 列表 ============
@@ -28,6 +29,7 @@ const list = ref<RoleListItem[]>([])
 const loading = ref(false)
 const keyword = ref('')
 
+/** 按关键字本地过滤（名称/描述） */
 const filteredList = computed(() => {
   const kw = keyword.value.trim()
   if (!kw) return list.value
@@ -52,6 +54,7 @@ async function handleStatusChange(row: RoleListItem) {
     await updateRoleStatus(row.id, row.status)
     ElMessage.success(row.status === 1 ? '已启用' : '已禁用')
   } catch {
+    // 失败时回滚开关状态
     row.status = row.status === 1 ? 0 : 1
   }
 }
@@ -73,11 +76,13 @@ const isEdit = ref(false)
 const editId = ref<string | number>('')
 const formRef = ref<FormInstance>()
 const treeRef = ref()
+/** 打开弹窗时角色已有的权限 ID 列表（提交时据此计算绑定/解绑差集） */
 const originPermissionIds = ref<(string | number)[]>([])
 
 const permissionList = ref<PermissionOptionItem[]>([])
 const permissionTree = computed(() => buildFullPermissionTree(permissionList.value))
 
+/** 表单默认值（新增场景） */
 const defaultForm = (): RoleSaveParam => ({
   name: '',
   description: '',
@@ -238,6 +243,7 @@ onMounted(loadList)
         </el-form-item>
         <el-form-item label="权限">
           <div class="perm-tree-wrap">
+            <!-- 权限树：check-strictly 父子不联动，各节点可独立勾选 -->
             <el-tree
               ref="treeRef"
               :data="permissionTree"

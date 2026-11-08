@@ -11,7 +11,7 @@ import java.io.Serializable;
 /**
  * 系统用户数据传输对象
  * <p>
- * 用于 RPC 和 REST 接口间传输系统用户的基本信息。
+ * 用于跨服务 RPC 调用时传输系统用户的基本信息。
  * </p>
  *
  * @author maozi

@@ -126,7 +126,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
 			// 记录异常相关的用户、描述和堆栈位置到日志
 			Long userId = ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUserId);
 			if(ObjectUtil.isNotNullEmpty(userId)){
-				logs.put(LogTag.ERROR_USER, userId.toString());   // 记录当前操作用户
+				logs.put(LogTag.ERROR_USER, userId.toString());
 			}
             logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
             logs.put(LogTag.ERROR_LINE, e.getStackTrace()[0].toString());

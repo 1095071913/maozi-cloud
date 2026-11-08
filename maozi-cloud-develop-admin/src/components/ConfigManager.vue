@@ -283,10 +283,15 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { api, type ConfigEntry, type ConfigType, type AuthType, type ToolAvailability } from '../api'
 
 const configs = ref<ConfigEntry[]>([])
+/** 本机 CLI 可用性（缺失时对应类型密钥禁止编辑） */
 const tools = ref<ToolAvailability>({ git: false, docker: false, helm: false })
+/** 搜索关键字 */
 const keyword = ref('')
+/** 已收起的一级归宿 */
 const collapsed = ref(new Set<string>())
+/** 分类筛选：归宿 / 环境 */
 const filter = reactive<{ c1?: string; c2?: string }>({})
+/** 正在一键登录的密钥 id（按钮 loading） */
 const loggingId = ref('')
 
 const dialogVisible = ref(false)
@@ -315,9 +320,11 @@ const emptyForm = (): {
 })
 const form = ref(emptyForm())
 
+/** 归宿 / 环境下拉选项（去重） */
 const c1Options = computed(() => [...new Set(configs.value.map((c) => c.category1).filter(Boolean))])
 const c2Options = computed(() => [...new Set(configs.value.map((c) => c.category2).filter(Boolean))])
 
+/** 按分类筛选 + 关键字（名称/地址/账号）匹配后的密钥列表 */
 const filtered = computed(() => {
   const k = keyword.value.trim().toLowerCase()
   return configs.value.filter((c) => {
@@ -332,6 +339,7 @@ const filtered = computed(() => {
   })
 })
 
+/** 是否设置了分类筛选 */
 const hasFilter = computed(() => !!(filter.c1 || filter.c2))
 
 function clearFilter(): void {
@@ -358,15 +366,18 @@ function onLevel1Click(label: string): void {
   filter.c2 = undefined
 }
 
+/** 点击二级节点：按归宿 + 环境筛选 */
 function selectNode(c1: string, c2: string): void {
   filter.c1 = c1
   filter.c2 = c2
 }
 
+/** 指定工具类型的密钥数（头部统计） */
 function typeCount(t: ConfigType): number {
   return configs.value.filter((c) => c.type === t).length
 }
 
+/** 指定认证方式的密钥数（缺省按账密计） */
 function authCount(a: 'password' | 'key'): number {
   return configs.value.filter((c) => (c.authType ?? 'password') === a).length
 }
@@ -413,22 +424,26 @@ const TYPE_META: Record<string, { icon: string; grad: [string, string] }> = {
   Linux: { icon: '🐧', grad: ['#333333', '#1a1a2e'] },
 }
 
+/** 类型图标（无类型为 🔑） */
 function typeIcon(t: ConfigType): string {
   return TYPE_META[t]?.icon ?? '🔑'
 }
 
+/** 卡片强调色（--accent）渐变 */
 function typeAccent(t: ConfigType): string {
   const meta = TYPE_META[t]
   if (!meta) return 'linear-gradient(90deg, #cbd5e1, #94a3b8)'
   return `linear-gradient(90deg, ${meta.grad[0]}, ${meta.grad[1]})`
 }
 
+/** 类型图标底色 */
 function typeIconStyle(t: ConfigType): Record<string, string> {
   const meta = TYPE_META[t]
   if (!meta) return { background: 'linear-gradient(135deg, #cbd5e1, #94a3b8)' }
   return { background: `linear-gradient(135deg, ${meta.grad[0]}, ${meta.grad[1]})` }
 }
 
+/** 类型标签的 el-tag 配色 */
 function typeTag(t: ConfigType): 'success' | 'primary' | 'warning' {
   if (t === 'Git') return 'success'
   if (t === 'Docker') return 'primary'
@@ -444,7 +459,7 @@ const typeHint = computed(() => {
   return ''
 })
 
-/** 类型对应的 CLI 已安装才允许修改/操作（无类型密钥不受限） */
+/** 类型对应的 CLI 已安装才允许修改/操作（无类型密钥不受限；Linux 类型检测 ssh） */
 function toolReady(row: ConfigEntry): boolean {
   if (row.type === 'Git') return tools.value.git
   if (row.type === 'Docker') return tools.value.docker
@@ -453,11 +468,13 @@ function toolReady(row: ConfigEntry): boolean {
   return true
 }
 
+/** CLI 缺失时的禁用提示 */
 function toolTip(row: ConfigEntry): string {
   const bin = row.type === 'Git' ? 'git' : row.type === 'Docker' ? 'docker' : row.type === 'Helm' ? 'helm' : 'ssh'
   return `本机未安装 ${bin}，不允许修改`
 }
 
+/** 拉取密钥列表与本机 CLI 可用性 */
 async function load(): Promise<void> {
   const r = await api.configs.list()
   if (r.ok && r.data) {

@@ -3,8 +3,8 @@ package com.maozi.base.constant;
 /**
  * 结果方法名常量
  * <p>
- * 定义 {@code BaseServiceResult} 接口中各方法的方法名字符串常量，
- * 用于反射调用时匹配目标方法。
+ * 定义 {@code BaseServiceResult} 中需反射调用的方法名字符串常量，
+ * 用于填充关联数据时匹配目标方法。
  * </p>
  *
  * @author pengjinlong

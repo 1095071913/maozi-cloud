@@ -15,6 +15,7 @@ import { useUserStore } from '@/store/modules/user'
 import { AuthType, type ClientListItem, type ClientSaveParam } from '@/types/api'
 
 const userStore = useUserStore()
+/** 是否有编辑权限（无则状态列只读展示） */
 const canUpdate = computed(() => userStore.permissions.includes('system:client:update'))
 
 // ============ 列表 ============
@@ -64,6 +65,7 @@ async function handleStatusChange(row: ClientListItem) {
     await updateClientStatus(row.id, row.status)
     ElMessage.success(row.status === 1 ? '已启用' : '已禁用')
   } catch {
+    // 失败时回滚开关状态
     row.status = row.status === 1 ? 0 : 1
   }
 }
@@ -84,6 +86,7 @@ const isEdit = ref(false)
 const editId = ref<string | number>('')
 const formRef = ref<FormInstance>()
 
+/** 授权模式下拉选项 */
 const grantTypeOptions = [
   { value: AuthType.AUTHORIZATION_CODE, label: '授权码模式' },
   { value: AuthType.CLIENT_CREDENTIALS, label: '客户端模式' },
@@ -91,9 +94,11 @@ const grantTypeOptions = [
   { value: AuthType.PASSWORD, label: '密码模式' }
 ]
 
+/** 授权模式值转展示文案 */
 const grantTypeText = (v: number) =>
   grantTypeOptions.find((o) => o.value === v)?.label || String(v)
 
+/** 表单默认值（新增场景） */
 const defaultForm = (): ClientSaveParam => ({
   name: '',
   clientSecret: '',

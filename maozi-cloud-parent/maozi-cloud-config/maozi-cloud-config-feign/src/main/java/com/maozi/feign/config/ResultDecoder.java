@@ -124,7 +124,7 @@ public class ResultDecoder implements Decoder {
                 this.response.body().close();
             }
             catch (IOException ex) {
-                // Ignore exception on close...
+                // 关闭响应体时的异常可忽略，不影响主流程
             }
         }
 

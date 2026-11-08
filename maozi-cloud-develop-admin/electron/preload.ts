@@ -80,9 +80,9 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.invoke('projects:composeAction', service, action, sid),
     composeStatus: () => ipcRenderer.invoke('projects:composeStatus'),
     composeStats: (preferCache?: boolean) => ipcRenderer.invoke('projects:composeStats', preferCache),
-    /** 基础服务日志：一次性查询最近 N 行 */
+    /** 服务日志：一次性查询最近 N 行（ctx 缺省为基础服务，或应用服务 '<variant>:<admin|services|nginx>'） */
     composeLogs: (service: string, tail?: number, ctx?: string) => ipcRenderer.invoke('projects:composeLogs', service, tail, ctx),
-    /** 基础服务日志实时跟踪（-f 流式，停止复用 stopScript） */
+    /** 服务日志实时跟踪（-f 流式，ctx 同 composeLogs，停止复用 stopScript） */
     composeLogsFollow: (service: string, tail: number, sid?: string, ctx?: string) =>
       ipcRenderer.invoke('projects:composeLogsFollow', service, tail, sid, ctx),
     onComposeLog: (cb: (payload: { kind: 'line' | 'update'; text: string; sid?: string }) => void) => {
@@ -129,9 +129,9 @@ contextBridge.exposeInMainWorld('api', {
     /** UI 状态持久化（Tab 选中 等，.ui-state.json） */
     uiStateGet: () => ipcRenderer.invoke('projects:uiStateGet'),
     uiStateSave: (patch: Record<string, unknown>) => ipcRenderer.invoke('projects:uiStateSave', patch),
-    /** 数据库初始化状态：init_mysql_db 定义的表是否均已存在 */
+    /** 数据库初始化状态：按 .db-init.json 标记判定是否已初始化（init_mysql_db.json 无脚本时 count=0） */
     dbInitStatus: () => ipcRenderer.invoke('projects:dbInitStatus'),
-    /** 初始化数据库：按需启动 mysql、检测表、导入缺失脚本 */
+    /** 初始化数据库：mysql 未运行时临时启动，逐个导入 init_mysql_db.json 定义的 SQL 脚本，结束后回收本次启动的容器 */
     dbInit: (sid?: string) => ipcRenderer.invoke('projects:dbInit', sid),
     envSettings: () => ipcRenderer.invoke('projects:envSettings'),
     envFileSave: (input: { key: string; value: string }) => ipcRenderer.invoke('projects:envFileSave', input),
@@ -165,7 +165,7 @@ contextBridge.exposeInMainWorld('api', {
     /** 项目 git 管理：仓库检测（含当前分支） */
     gitInfo: () => ipcRenderer.invoke('projects:gitInfo'),
     gitRemoteCheck: () => ipcRenderer.invoke('projects:gitRemoteCheck'),
-    /** 远程分支列表（git ls-remote --heads，需网络） */
+    /** 分支列表：本地分支 + 远程分支（git ls-remote --heads，需网络；远程失败时降级为仅本地） */
     gitBranches: () => ipcRenderer.invoke('projects:gitBranches'),
     /** 拉取代码（git pull；mode：缺省普通 / rebase 变基 / merge 合并 / reset 硬重置到远程），日志走 onScriptLog */
     gitPull: (mode?: string, sid?: string) => ipcRenderer.invoke('projects:gitPull', mode, sid),

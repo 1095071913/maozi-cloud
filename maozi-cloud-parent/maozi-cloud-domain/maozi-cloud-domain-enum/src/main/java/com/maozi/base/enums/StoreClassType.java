@@ -16,6 +16,12 @@ public enum StoreClassType implements BaseEnum {
     /** 数据库存储 */
     DB(0,"数据库");
 
+    /**
+     * 按整型值和描述构造枚举实例
+     *
+     * @param value 存储类型的整型值
+     * @param desc 存储类型的中文描述
+     */
     StoreClassType(Integer value,String desc) {
 
 		this.value = value;
@@ -32,6 +38,11 @@ public enum StoreClassType implements BaseEnum {
     @Getter
     private final String desc;
 
+    /**
+     * 返回"值.描述"格式的字符串
+     *
+     * @return 形如 "0.数据库" 的字符串
+     */
     @Override
     public String toString() {
         return value + "." + desc;

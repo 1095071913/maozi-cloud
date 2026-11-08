@@ -40,8 +40,8 @@ public class MicrometerConfiguration {
     public ServerRequestObservationConvention uriTagContributorForObservationApi() {
 
         /*
-         * Fixes the URI {@link org.springframework.http.server.reactive.observation.ServerHttpObservationDocumentation} value when set as <b>UNKNOWN</b> in /metrics API
-         * by Spring framework issue. See https://github.com/spring-cloud/spring-cloud-gateway/issues/891
+         * 修复 Spring 框架问题导致 /metrics 端点中 URI 标签值被置为 UNKNOWN 的问题，
+         * 参见 https://github.com/spring-cloud/spring-cloud-gateway/issues/891
          */
         return new DefaultServerRequestObservationConvention() {
 

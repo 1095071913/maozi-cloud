@@ -90,11 +90,14 @@ const submitting = ref(false)
 const isEdit = ref(false)
 const editId = ref<string | number>('')
 const formRef = ref<FormInstance>()
+/** 打开弹窗时用户已有的角色 ID 列表（提交时据此计算解绑差集） */
 const originRoleIds = ref<(string | number)[]>([])
 
+/** 客户端/角色下拉选项 */
 const clientOptions = ref<OptionItem[]>([])
 const roleOptions = ref<OptionItem[]>([])
 
+/** 表单默认值（新增场景） */
 const defaultForm = (): UserSaveParam & { bindRoleIds: (string | number)[] } => ({
   username: '',
   name: '',
@@ -118,6 +121,7 @@ const rules = computed<FormRules<typeof form>>(() => ({
   status: [{ required: true, message: '请选择状态', trigger: 'change' }]
 }))
 
+/** 并行拉取客户端与角色下拉选项 */
 async function loadDropdowns() {
   const [c, r] = await Promise.all([getClientDropdown(), getRoleDropdown()])
   clientOptions.value = c.data || []

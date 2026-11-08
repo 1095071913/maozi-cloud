@@ -3,6 +3,7 @@ import {ref} from 'vue'
 import {getSystemInfo} from '@/api/system'
 import type {SystemInfo} from '@/types/api'
 
+/** 应用全局 store：维护系统详情（项目信息） */
 export const useAppStore = defineStore('app', () => {
   /** 系统详情（项目信息） */
   const systemInfo = ref<SystemInfo | null>(null)

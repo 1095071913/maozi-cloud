@@ -1,16 +1,18 @@
 import request from './request'
 import type {
-    ApiResponse,
-    ConfigDetail,
-    ConfigListItem,
-    ConfigOptionItem,
-    ConfigSaveParam,
-    PageResult
+  ApiResponse,
+  ConfigDetail,
+  ConfigListItem,
+  ConfigOptionItem,
+  ConfigSaveParam,
+  PageResult
 } from '@/types/api'
 
 /** 配置列表查询参数 */
 export interface ConfigListParams {
+  /** 当前页 */
   current?: number
+  /** 每页数量 */
   size?: number
   /** 配置类型（必传） */
   type: string

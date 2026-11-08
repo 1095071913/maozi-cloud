@@ -98,11 +98,15 @@ import { computed, ref } from 'vue'
  */
 const props = withDefaults(
   defineProps<{
+    /** 采样值序列（%）；null 表示无数据（该点断开曲线） */
     values: Array<number | null>
     /** 每个采样点的时间戳(ms)；缺省时气泡只显示数值 */
     times?: Array<number>
+    /** 渐变主题色 [from, to] */
     theme?: [string, string]
+    /** 绘图高度（px，同时是 viewBox 高度） */
     height?: number
+    /** 纵轴最大值 */
     max?: number
     /** 深色背景模式：网格/底线换成半透明白 */
     dark?: boolean
@@ -110,19 +114,25 @@ const props = withDefaults(
   { theme: () => ['#60a5fa', '#2563eb'] as [string, string], height: 56, max: 100, dark: false }
 )
 
+/** 面积渐变的 id（实例随机后缀，避免同页多图冲突） */
 const gid = `mt-${Math.random().toString(36).slice(2, 8)}`
+/** 横向参考线所在的数值刻度 */
 const gridLines = [25, 50, 75]
+/** 悬停命中的采样下标 */
 const hoverIdx = ref<number | null>(null)
 
+/** 采样点横坐标（0-100 百分比） */
 function xOf(i: number, n: number): number {
   return n > 1 ? (i / (n - 1)) * 100 : 100
 }
 
+/** 采样点纵坐标（px，顶部留 3px、底部留 1.5px） */
 function yOf(v: number): number {
   const ratio = Math.max(0, Math.min(1, v / props.max))
   return props.height - ratio * (props.height - 3) - 1.5
 }
 
+/** 连续有效采样段（null 处断开） */
 const segments = computed(() => {
   const n = props.values.length
   const segs: Array<Array<{ x: number; y: number }>> = []
@@ -157,6 +167,7 @@ function smoothPath(pts: Array<{ x: number; y: number }>): string {
   return d
 }
 
+/** 折线主路径：每个有效段一条平滑曲线 */
 const linePath = computed(() =>
   segments.value
     .filter((s) => s.length > 1)
@@ -164,6 +175,7 @@ const linePath = computed(() =>
     .join(' ')
 )
 
+/** 面积路径：曲线段两端垂直接到底边闭合 */
 const areaPath = computed(() =>
   segments.value
     .filter((s) => s.length > 1)
@@ -174,6 +186,7 @@ const areaPath = computed(() =>
     .join(' ')
 )
 
+/** 最新的有效采样点（呼吸圆点位置） */
 const lastPoint = computed(() => {
   const n = props.values.length
   for (let i = n - 1; i >= 0; i--) {
@@ -185,6 +198,7 @@ const lastPoint = computed(() => {
   return null
 })
 
+/** 悬停点坐标与数值（无效点固定在纵轴中部，气泡显示“无数据”） */
 const hoverPoint = computed(() => {
   const i = hoverIdx.value
   if (i === null) return null
@@ -195,6 +209,7 @@ const hoverPoint = computed(() => {
   return { x: xOf(i, n), y: valid ? yOf(v) : props.height / 2, v: valid ? v : null }
 })
 
+/** 悬停点时间（HH:mm:ss） */
 const hoverTime = computed(() => {
   const i = hoverIdx.value
   const t = i !== null ? props.times?.[i] : undefined
@@ -204,12 +219,14 @@ const hoverTime = computed(() => {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 })
 
+/** 悬停点数值文案（保留一位小数） */
 const hoverValueText = computed(() => {
   const v = hoverPoint.value?.v
   if (v === null || v === undefined) return '无数据'
   return `${Math.round(v * 10) / 10}%`
 })
 
+/** 气泡数值颜色（无数据时用默认色） */
 const tipColor = computed(() =>
   hoverPoint.value?.v === null ? {} : { color: props.theme[1] }
 )
@@ -229,6 +246,7 @@ const tipStyle = computed(() => {
   }
 })
 
+/** 鼠标移动按横向比例换算到最近的采样点 */
 function onMove(e: MouseEvent): void {
   const box = e.currentTarget as SVGElement
   const rect = box.getBoundingClientRect()

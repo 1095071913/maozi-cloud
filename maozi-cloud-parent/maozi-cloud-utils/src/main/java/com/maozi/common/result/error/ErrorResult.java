@@ -199,22 +199,47 @@ public class ErrorResult<D> extends AbstractBaseResult<D> implements Serializabl
 		return Objects.equals(SystemErrorCode.PERMISSION_ERROR.getCode(),code) || Objects.equals(SystemErrorCode.USER_AUTH_ERROR.getCode(),code);
 	}
 
+	/**
+	 * 设置错误信息
+	 *
+	 * @param message 错误信息
+	 * @return 当前实例（链式调用）
+	 */
 	public ErrorResult<D> setMessage(String message) {
 		this.message = message;
 		return this;
 	}
 
+	/**
+	 * 同时设置错误信息和异常错误信息
+	 *
+	 * @param message 错误信息
+	 * @param exceptionMessage 异常错误信息
+	 * @return 当前实例（链式调用）
+	 */
 	public ErrorResult<D> setMessage(String message,String exceptionMessage) {
 		this.message = message;
 		this.exceptionMessage = exceptionMessage;
 		return this;
 	}
 
+	/**
+	 * 设置异常错误信息
+	 *
+	 * @param exceptionMessage 异常错误信息
+	 * @return 当前实例（链式调用）
+	 */
 	public ErrorResult<D> setExceptionMessage(String exceptionMessage) {
 		this.exceptionMessage = exceptionMessage;
 		return this;
 	}
 
+	/**
+	 * 设置 HTTP 状态码
+	 *
+	 * @param httpCode HTTP 状态码
+	 * @return 当前实例（链式调用）
+	 */
 	public ErrorResult<D> setHttpCode(Integer httpCode) {
 		this.httpCode = httpCode;
 		return this;

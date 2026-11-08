@@ -688,6 +688,7 @@ import { api } from '../api'
 import type { RenameStats } from '../api'
 
 type ToolTab = 'json' | 'ts' | 'pwd' | 'b64' | 'rn'
+/** 当前工具 Tab */
 const activeTab = ref<ToolTab>('json')
 
 /** Tab 滑块按 Tab 数均分宽度、位移到当前项（位移动画由 .seg-thumb 的 transition 提供） */
@@ -699,8 +700,10 @@ const segThumbStyle = computed(() => ({
 
 /* ===================== JSON 格式化编辑器 ===================== */
 const jsonText = ref('')
+/** 缩进：2 空格 / 4 空格 / Tab */
 const indent = ref<'2' | '4' | 'tab'>('2')
 
+/** JSON 校验错误（有 position 时附带行列） */
 interface JsonError {
   msg: string
   line?: number
@@ -771,11 +774,13 @@ const jsonError = computed<JsonError | null>(() => {
   }
 })
 
+/** 文本是否含注释 */
 const hasComments = computed(() => {
   const text = jsonText.value
   return text.trim() ? stripComments(text) !== text : false
 })
 
+/** 逻辑行数（行号栏） */
 const jsonLineCount = computed(() => jsonText.value.split('\n').length)
 
 /* 行号栏状态：滚动跟随 + 光标所在行高亮 */
@@ -789,19 +794,26 @@ const jsonLineCount = computed(() => jsonText.value.split('\n').length)
  */
 const JSON_LINE_PITCH = 17
 const JSON_PAD_TOP = 10
+/** textarea 滚动距离（行号栏跟随） */
 const jsonScrollTop = ref(0)
+/** 光标位置（selectionStart） */
 const caretPos = ref(0)
+/** selectionchange 监听函数（卸载时移除） */
 let jsonSelChange: (() => void) | null = null
+/** 光标所在逻辑行 */
 const caretLine = computed(() => jsonText.value.slice(0, caretPos.value).split('\n').length)
 
+/** 底部统计：字符数 · 行数 */
 const jsonStats = computed(
   () => `${jsonText.value.length} 字符 · ${jsonText.value.split('\n').length} 行`
 )
 
 /* ===== 语法高亮：注释绿 / key 红 / 字符串值蓝 / 数值橙 / true·false·null 紫 ===== */
+/** 透明输入层（el-input）与着色层（pre）的引用 */
 const jsonInputRef = ref()
 const highlightRef = ref<HTMLElement>()
 
+/** 着色 HTML：每个逻辑行包在一个 .ln 块中（行号按块实测位置对齐） */
 const highlightedJson = computed(() => {
   const text = jsonText.value
   const n = text.length
@@ -892,8 +904,10 @@ const highlightedJson = computed(() => {
    N×17px），行号只对齐块首行；内容或宽度变化后重测（当前行不画背景高亮条，
    仅行号变蓝加粗提示） */
 const lineTops = ref<number[]>([])
+/** 着色层尺寸监听（宽度变化会改变换行点） */
 let jsonRo: ResizeObserver | null = null
 
+/** 实测各 .ln 块的 offsetTop */
 function measureLines(): void {
   const pre = highlightRef.value
   if (!pre) return
@@ -1049,6 +1063,7 @@ function prettyJsonc(text: string, unit: string): string {
   return out
 }
 
+/** 格式化：校验通过后按当前缩进重排（保留注释） */
 function formatJson(): void {
   if (!requireValid()) return
   jsonText.value = prettyJsonc(jsonText.value, indentUnitStr())
@@ -1070,6 +1085,7 @@ async function copyEscaped(): Promise<void> {
   await copyText(JSON.stringify(minifiedJson()), '已复制压缩转义 JSON')
 }
 
+/** 内容非空且 JSON 合法才放行，否则提示并返回 false */
 function requireValid(): boolean {
   if (!jsonText.value.trim()) {
     ElMessage.warning('请先输入 JSON 内容')
@@ -1091,6 +1107,7 @@ function clearJson(): void {
   jsonText.value = ''
 }
 
+/** 填入示例 JSONC */
 function loadSample(): void {
   jsonText.value = `{
   // 项目信息（支持注释，格式化后注释保留）
@@ -1115,6 +1132,7 @@ function insertAtCursor(ta: HTMLTextAreaElement, text: string): void {
   }
 }
 
+/** 当前缩进单位字符串 */
 function indentUnitStr(): string {
   return indent.value === 'tab' ? '\t' : ' '.repeat(Number(indent.value))
 }
@@ -1160,6 +1178,7 @@ function enclosingOpener(value: string, pos: number): string {
   return ''
 }
 
+/** JSON 编辑器按键增强：跳过闭合符、自动配对、key 自动加引号、Tab 缩进、智能退格、回车自动缩进 */
 function onJsonKeydown(e: KeyboardEvent): void {
   // 中文输入法组合中、或按住修饰键的快捷键不做拦截
   if (e.isComposing || e.ctrlKey || e.metaKey || e.altKey) return
@@ -1298,17 +1317,22 @@ function onJsonKeydown(e: KeyboardEvent): void {
 }
 
 /* ===================== 时间戳转换 ===================== */
+/** 当前时间（每秒刷新） */
 const now = ref(new Date())
 let timer: ReturnType<typeof setInterval> | null = null
 
+/** 本地时区标签（如 UTC+8） */
 const tzLabel = computed(() => {
   const off = -new Date().getTimezoneOffset() / 60
   return `UTC${off >= 0 ? '+' : ''}${off}`
 })
 
+/** 时间戳 → 时间：输入框 */
 const tsInput = ref('')
+/** 时间 → 时间戳：日期选择器的值 */
 const pickDate = ref<Date | null>(new Date())
 
+/** 日期选择快捷项 */
 const dateShortcuts = [
   { text: '此刻', value: () => new Date() },
   {
@@ -1350,24 +1374,29 @@ function fmtDateTime(d: Date, withMs = false): string {
   return withMs ? `${base}.${String(d.getMilliseconds()).padStart(3, '0')}` : base
 }
 
+/** 本地日期 YYYY-MM-DD */
 function fmtDay(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
+/** UTC 时间文本（可选毫秒） */
 function fmtUtc(d: Date, withMs = false): string {
   const iso = d.toISOString()
   const base = iso.replace('T', ' ').slice(0, 19)
   return withMs ? `${base}.${iso.slice(20, 23)} UTC` : `${base} UTC`
 }
 
+/** 星期几（中文单字） */
 function weekdayOf(d: Date): string {
   return '日一二三四五六'[d.getDay()]
 }
 
+/** 秒级时间戳 */
 function secOf(d: Date): number {
   return Math.floor(d.getTime() / 1000)
 }
 
+/** 相对 base 的时间差文案（如 3 分钟前 / 2 天后），月按 30 天、年按 365 天粗算 */
 function relativeTo(d: Date, base: Date): string {
   const diff = (base.getTime() - d.getTime()) / 1000
   const abs = Math.abs(diff)
@@ -1381,6 +1410,7 @@ function relativeTo(d: Date, base: Date): string {
 }
 
 /* ===================== 密码生成 ===================== */
+/** 各字符类型的字符集 */
 const PWD_DIGITS = '0123456789'
 const PWD_UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 const PWD_LOWER = 'abcdefghijklmnopqrstuvwxyz'
@@ -1392,7 +1422,9 @@ const pwdUseDigits = ref(true)
 const pwdUseUpper = ref(true)
 const pwdUseLower = ref(true)
 const pwdUseSymbol = ref(false)
+/** 排除字符（逐字符生效） */
 const pwdExclude = ref('')
+/** 生成结果 */
 const pwdResults = ref<string[]>([])
 /** 批次号：每次生成更新，作为结果行 key 的一部分触发入场动画重播 */
 const pwdBatch = ref(0)
@@ -1425,12 +1457,14 @@ const pwdTypes = [
   { key: 'symbol', label: '特殊符号', glyph: '#$&', range: '!@#…', model: pwdUseSymbol }
 ]
 
+/** 长度滑块刻度 / 生成数量选项 */
 const pwdLenMarks: Record<number, string> = { 8: '8', 16: '16', 32: '32', 64: '64' }
 const pwdCountOptions = [1, 5, 10, 20, 50, 100]
 
 /** 排除字符去重后的 chip 列表（空白不参与排除也不展示） */
 const pwdExcludeChips = computed(() => [...new Set([...pwdExclude.value])].filter(c => c.trim()))
 
+/** 从排除字符中移除一个 */
 function removeExclude(c: string): void {
   pwdExclude.value = [...pwdExclude.value].filter(x => x !== c).join('')
 }
@@ -1457,6 +1491,7 @@ const pwdPools = computed(() => {
   return picked.map(s => [...s].filter(c => !ex.has(c)).join('')).filter(s => s.length > 0)
 })
 
+/** 所有可用字符合并后的总池 */
 const pwdPoolAll = computed(() => pwdPools.value.join(''))
 
 /** 单条密码：先从每个所选类型各取一个保证齐备，再从全池补足长度，最后洗牌打散位置 */
@@ -1476,6 +1511,7 @@ function genOnePassword(len: number): string {
   return chars.join('')
 }
 
+/** 按当前格式批量生成（随机密码 / UUID） */
 function genPasswords(): void {
   const count = pwdCount.value ?? 5
   pwdBatch.value = Date.now()
@@ -1554,6 +1590,7 @@ function coloredPwd(p: string): string {
     .join('')
 }
 
+/** 强度分档（按熵：<40 弱、<60 中、<90 强，否则极强） */
 const pwdStrength = computed((): { label: string; cls: string } => {
   const bits = pwdEntropyBits.value
   if (bits < 40) return { label: '弱', cls: 's1' }
@@ -1570,7 +1607,9 @@ async function copyAllPasswords(): Promise<void> {
 const b64Input = ref('')
 const b64Output = ref('')
 const b64Error = ref('')
+/** URL Safe：编码输出 -_ 且去掉 = 填充，解码时还原 */
 const b64UrlSafe = ref(false)
+/** 转换方向 */
 const b64Mode = ref<'encode' | 'decode'>('encode')
 const b64ModeOptions = [
   { label: '编码 →', value: 'encode' },
@@ -1633,20 +1672,24 @@ function b64Clear(): void {
 /* ===== 图片 ⇄ Base64 ===== */
 const imgFileRef = ref<HTMLInputElement>()
 const imgDragging = ref(false)
+/** 图片 → Base64：已加载图片的 Data URL 及文件信息 */
 const imgUrl = ref('')
 const imgName = ref('')
 const imgType = ref('')
 const imgSize = ref(0)
+/** Base64 → 图片：输入内容、校验通过后的预览地址与错误信息 */
 const imgDecodeInput = ref('')
 const imgDecodeSrc = ref('')
 const imgDecodeError = ref('')
 
+/** 文件大小格式化（B / KB / MB） */
 function fmtSize(n: number): string {
   if (n < 1024) return `${n} B`
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`
   return `${(n / 1024 / 1024).toFixed(2)} MB`
 }
 
+/** 读取图片文件为 Data URL（超过 8MB 仅提示，不拦截） */
 function loadImgFile(file: File): void {
   if (!file.type.startsWith('image/')) {
     ElMessage.warning('请选择图片文件')
@@ -1670,6 +1713,7 @@ function imgPick(): void {
   imgFileRef.value?.click()
 }
 
+/** 文件选择框选中图片 */
 function onImgFile(e: Event): void {
   const f = (e.target as HTMLInputElement).files?.[0]
   if (f) loadImgFile(f)
@@ -1758,12 +1802,15 @@ const RN_STAGES = [
   { key: 'rename', label: '重命名' },
   { key: 'done', label: '完成' }
 ] as const
+/** 阶段先后顺序（步骤条状态判定用） */
 const RN_STAGE_ORDER: string[] = ['scan', 'content', 'rename', 'done']
 
+/** 目标目录 */
 const rnDir = ref('')
 /** 规则行带自增 id：transition-group 的稳定 key（增删有动画） */
 let rnRuleSeq = 1
 const rnRules = ref<Array<{ id: number; from: string; to: string }>>([{ id: rnRuleSeq++, from: '', to: '' }])
+/** 替换文件内容 / 仅处理文本文件 */
 const rnContent = ref(true)
 const rnTextOnly = ref(true)
 /** 名称替换开关：文件名 / 目录名（目录含根目录自身），可独立关闭只做内容或只做改名 */
@@ -1775,6 +1822,7 @@ const rnExcludeTags = ref([
   'node_modules', '.git', '.svn', 'dist', 'build', 'target', 'out', '.idea', '.vscode', '.gradle'
 ])
 
+/** 执行状态与进度（由 onRenameProgress 推送更新） */
 const rnRunning = ref(false)
 const rnStage = ref<'idle' | 'scan' | 'content' | 'rename' | 'done' | 'error'>('idle')
 const rnDone = ref(0)
@@ -1787,13 +1835,15 @@ const rnError = ref('')
 /** worker 池规模（与主进程 N = min(8, cpus) 一致），用于活动可视化 */
 const rnWorkerCount = Math.max(1, Math.min(8, navigator.hardwareConcurrency || 4))
 
+/** 进度百分比 */
 const rnPct = computed(() => (rnTotal.value > 0 ? Math.min(100, Math.round((rnDone.value / rnTotal.value) * 100)) : 0))
 
 /** 有效规则数（旧字符非空且新旧不同，与主进程过滤一致），横幅实时显示 */
 const rnRuleCount = computed(() => rnRules.value.filter(r => r.from.length > 0 && r.from !== r.to).length)
 
-/** 横幅状态徽章：待命灰 / 运行蓝脉冲 / 完成绿 / 取消黄 / 失败红 */
+/** 运行中各阶段的徽章文案 */
 const RN_STAGE_NAMES: Record<string, string> = { scan: '扫描中', content: '替换内容', rename: '重命名中' }
+/** 横幅状态徽章：待命灰 / 运行蓝脉冲 / 完成绿 / 取消黄 / 失败红 */
 const rnStatusBadge = computed((): { label: string; cls: string } => {
   if (rnRunning.value) return { label: RN_STAGE_NAMES[rnStage.value] ?? '运行中', cls: 'run' }
   if (rnStage.value === 'done') return rnStats.value?.cancelled ? { label: '已取消', cls: 'warn' } : { label: '已完成', cls: 'ok' }
@@ -1817,6 +1867,7 @@ function rnLineClass(i: number): string {
   return cur > i ? 'done' : ''
 }
 
+/** 选择目标目录（复用项目控制台的目录选择框） */
 async function rnPickDir(): Promise<void> {
   const res = await api.projects.pickDir()
   if (res.ok && res.data) rnDir.value = res.data
@@ -1826,6 +1877,7 @@ function rnAddRule(): void {
   rnRules.value.push({ id: ++rnRuleSeq, from: '', to: '' })
 }
 
+/** 删除规则（至少保留一条） */
 function rnRemoveRule(i: number): void {
   if (rnRules.value.length > 1) rnRules.value.splice(i, 1)
 }
@@ -1844,6 +1896,7 @@ function addExcludeTag(): void {
   rnExcludeInput.value = ''
 }
 
+/** 输入中英文逗号即提交为 chip */
 function onExcludeKeydown(e: KeyboardEvent): void {
   if (e.key === ',' || e.key === '，') {
     e.preventDefault()
@@ -1855,6 +1908,7 @@ function removeExcludeTag(t: string): void {
   rnExcludeTags.value = rnExcludeTags.value.filter(x => x !== t)
 }
 
+/** 校验 → 二次确认 → 执行批量重命名，结束后展示统计 */
 async function rnStart(): Promise<void> {
   if (rnRunning.value) return
   if (!rnDir.value.trim()) {
@@ -1914,6 +1968,7 @@ async function rnStart(): Promise<void> {
   }
 }
 
+/** 请求取消（主进程在下一个检查点停止，已完成部分保留） */
 async function rnCancelRun(): Promise<void> {
   await api.rename.cancel()
   ElMessage.info('正在取消…')
@@ -1941,6 +1996,7 @@ async function copyText(text: string, msg = '已复制到剪贴板'): Promise<vo
   ElMessage.success(msg)
 }
 
+// 时间戳工具：当前时间每秒刷新（卸载时清除 timer）
 onMounted(() => {
   timer = setInterval(() => (now.value = new Date()), 1000)
 })

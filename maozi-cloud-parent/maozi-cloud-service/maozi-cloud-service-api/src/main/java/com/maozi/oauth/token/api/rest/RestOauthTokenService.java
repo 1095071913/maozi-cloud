@@ -16,7 +16,7 @@ import java.util.Map;
  * <p>
  * 通过 Feign 客户端调用 OAuth 认证服务的令牌管理接口，提供令牌内省（校验）能力。
  * 本接口保留为 Feign 兼容入口，令牌内省主链路已切换为 Dubbo RPC
- * （{@link com.maozi.oauth.token.api.OauthTokenService}），新业务请直接使用 Dubbo 接口。
+ * （{@link com.maozi.oauth.token.api.rpc.RpcOauthTokenService}），新业务请直接使用 Dubbo 接口。
  * </p>
  *
  * @author maozi

@@ -25,7 +25,7 @@ import java.io.Serial;
 import java.io.Serializable;
 
 /**
- * 错误码基类
+ * 错误码对象
  * <p>
  * 定义错误码、错误信息和异常信息三个维度，用于统一描述业务和系统错误。
  * </p>

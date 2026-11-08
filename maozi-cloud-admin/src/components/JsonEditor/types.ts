@@ -3,13 +3,17 @@ export type JsonValueType = 'string' | 'number' | 'boolean' | 'null' | 'object' 
 
 /** 可编辑的 JSON 节点（树形结构） */
 export interface JsonNodeData {
+  /** 节点自增 ID（列表渲染 key 与删除定位用） */
   id: number
   /** 字段名（数组子节点不使用，序列化时按位置生成） */
   key: string
+  /** 值类型 */
   type: JsonValueType
   /** 基础类型值的文本形式，boolean 用 'true' / 'false' */
   value: string
+  /** 是否展开子级 */
   expanded: boolean
+  /** 子节点（object 为字段、array 为元素） */
   children: JsonNodeData[]
   /** 父节点引用（仅运行时使用，根节点为 null） */
   parent: JsonNodeData | null
@@ -17,11 +21,15 @@ export interface JsonNodeData {
 
 /** 编辑器提供给子节点组件的操作接口 */
 export interface JsonEditorOps {
+  /** 切换节点类型 */
   setType(node: JsonNodeData, type: JsonValueType): void
+  /** 添加子节点 */
   addChild(parent: JsonNodeData): void
+  /** 删除节点 */
   removeNode(node: JsonNodeData): void
 }
 
+/** 类型下拉选项 */
 export const VALUE_TYPE_OPTIONS: { label: string; value: JsonValueType }[] = [
   { label: '字符串', value: 'string' },
   { label: '数字', value: 'number' },
@@ -41,6 +49,7 @@ export const TYPE_COLORS: Record<JsonValueType, string> = {
   array: '#6f42c1'
 }
 
+/** 节点 ID 自增计数器 */
 let seed = 0
 
 function nextId(): number {

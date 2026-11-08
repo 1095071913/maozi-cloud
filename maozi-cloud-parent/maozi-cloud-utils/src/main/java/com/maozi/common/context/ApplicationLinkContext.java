@@ -30,7 +30,7 @@ public class ApplicationLinkContext {
     /** 当前登录用户信息请求头名称 */
     public static final String CURRENT_USER_INFO_KEY = "X-CurrentUserInfo";
 
-    /** 请求链路唯一ID */
+    /** 链路追踪 ID 请求头名称 */
     public static final String TRACE_ID_KEY = "X-TraceId";
 
     /** 链路追踪 ID 未初始化时的占位值（32 个 0） */
@@ -54,14 +54,29 @@ public class ApplicationLinkContext {
     /** 当前线程的登录用户信息（含用户 ID、客户端 ID、用户名） */
     private static TransmittableThreadLocal<CurrentUserInfo> currentUserInfos = new TransmittableThreadLocal<>();
 
+    /**
+     * 获取当前线程的链路追踪 ID
+     *
+     * @return 链路追踪 ID，未设置时返回 null
+     */
     public static String getTraceId() {
         return traceIds.get();
     }
 
+    /**
+     * 获取当前线程的版本号
+     *
+     * @return 版本号，未设置时返回 null
+     */
     public static String getVersion() {
         return versions.get();
     }
 
+    /**
+     * 获取当前线程的登录用户信息
+     *
+     * @return 当前登录用户信息，未登录时返回 null
+     */
     public static CurrentUserInfo getCurrentUserInfo() {
         return currentUserInfos.get();
     }
@@ -103,10 +118,20 @@ public class ApplicationLinkContext {
         }
     }
 
+    /**
+     * 设置当前线程的版本号
+     *
+     * @param version 版本号
+     */
     public static void setVersion(String version) {
         versions.set(version);
     }
 
+    /**
+     * 设置当前线程的登录用户信息
+     *
+     * @param currentUserInfo 当前登录用户信息
+     */
     public static void setCurrentUserInfo(CurrentUserInfo currentUserInfo) {
         currentUserInfos.set(currentUserInfo);
     }

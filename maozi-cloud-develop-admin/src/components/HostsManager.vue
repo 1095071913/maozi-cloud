@@ -248,10 +248,12 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { api, type HostsEntry } from '../api'
 
+/** 全部 hosts 行（含注释行与系统默认条目） */
 const entries = ref<HostsEntry[]>([])
 const hostsPath = ref('/etc/hosts')
 const saving = ref(false)
 const keyword = ref('')
+/** 启用状态筛选 */
 const filter = ref<'all' | 'enabled' | 'disabled'>('all')
 
 /** 系统默认条目（精确匹配整行，自动忽略不显示，保存时原样保留在文件中） */
@@ -270,6 +272,7 @@ const visibleEntries = computed(() =>
   entries.value.filter((e) => e.kind === 'entry' && !isSystemDefault(e))
 )
 
+/** 按启用状态与关键字（IP / 域名 / 备注）过滤后的记录 */
 const filteredEntries = computed(() =>
   visibleEntries.value.filter((e) => {
     if (filter.value === 'enabled' && !e.enabled) return false
@@ -284,12 +287,14 @@ const filteredEntries = computed(() =>
   })
 )
 
+/** 记录总数 / 启用数 / 禁用数（均不含系统默认条目） */
 const entryCount = computed(() => visibleEntries.value.length)
 const enabledCount = computed(() => visibleEntries.value.filter((e) => e.enabled).length)
 const disabledCount = computed(() => entryCount.value - enabledCount.value)
 
-/** ===== 未保存更改标记（增删改/开关/排序后点亮保存按钮） ===== */
+/** ===== 未保存更改标记：entries 变化即置位，写入成功后清除；写入失败时保留以显示「重试保存」 ===== */
 const dirty = ref(false)
+/** load 回填期间不置脏 */
 let suppressDirty = false
 watch(
   entries,
@@ -299,7 +304,7 @@ watch(
   { deep: true }
 )
 
-/** 立即写入系统 hosts（含管理员授权、自动备份与 DNS 刷新），返回是否成功 */
+/** 立即写入系统 hosts（含管理员授权与 DNS 刷新），返回是否成功 */
 async function saveToSystem(): Promise<boolean> {
   try {
     // reactive Proxy 无法跨 IPC 结构化克隆，先深拷贝成纯数组
@@ -317,14 +322,17 @@ async function saveToSystem(): Promise<boolean> {
   }
 }
 
+/** 域名拆成标签展示 */
 function domainChips(row: HostsEntry): string[] {
   return (row.domains ?? '').split(/\s+/).filter(Boolean)
 }
 
+/** 条目在可见列表中的序号 */
 function visibleIndexOf(row: HostsEntry): number {
   return visibleEntries.value.findIndex((e) => e.id === row.id)
 }
 
+/** IP 配色（按 IP 哈希稳定取色） */
 const IP_COLORS = ['#2563eb', '#0891b2', '#0ea5e9', '#38bdf8', '#d97706', '#db2777']
 
 function ipColor(ip: string): string {
@@ -341,10 +349,13 @@ async function copyText(text: string): Promise<void> {
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const form = ref({ ip: '', domains: '', comment: '', enabled: true })
+/** 正在编辑的行 id（新增时为空） */
 let editRowId = ''
 
+/** IPv4 格式校验（含 : 的地址按 IPv6 放行） */
 const IP_RE = /^(\d{1,3}\.){3}\d{1,3}$/
 
+/** 读取系统 hosts（回填期间抑制脏标记） */
 async function load(): Promise<void> {
   const result = await api.hosts.list()
   if (!result.ok) {
@@ -377,6 +388,7 @@ function openEdit(row: HostsEntry): void {
   dialogVisible.value = true
 }
 
+/** 弹窗确认：校验 IP 与域名（逗号 / 空白分隔归一为空格），新增或替换条目后立即写入系统 */
 async function onConfirm(): Promise<void> {
   const { ip, domains, comment, enabled } = form.value
   const normalizedDomains = domains.split(/[\s,]+/).filter(Boolean).join(' ')
@@ -443,6 +455,7 @@ async function onToggle(row: HostsEntry): Promise<void> {
   }
 }
 
+/** 仅刷新 DNS 缓存 */
 async function onFlushDns(): Promise<void> {
   const result = await api.hosts.flushDns()
   if (!result.ok) {
@@ -457,6 +470,7 @@ const rawDialogVisible = ref(false)
 const rawText = ref('')
 const rawSaving = ref(false)
 
+/** 读取原文并打开源文件编辑弹窗 */
 async function onOpenFile(): Promise<void> {
   const result = await api.hosts.readRaw()
   if (!result.ok) {
@@ -467,6 +481,7 @@ async function onOpenFile(): Promise<void> {
   rawDialogVisible.value = true
 }
 
+/** 按编辑区原文整体覆盖写入，成功后重新加载条目 */
 async function onSaveRaw(): Promise<void> {
   try {
     await ElMessageBox.confirm(
@@ -492,8 +507,10 @@ async function onSaveRaw(): Promise<void> {
   }
 }
 
-/** ===== 卡片拖拽排序（重排内存数组，随「保存到系统」写回文件；隐藏的注释/系统默认行保持原位） ===== */
+/** ===== 卡片拖拽排序（重排内存数组后立即写入系统 hosts；隐藏的注释/系统默认行保持原位） ===== */
+/** 拖起的条目 id */
 const dragId = ref('')
+/** 落点：目标条目与上 / 下半区 */
 const dropMark = ref<{ id: string; above: boolean } | null>(null)
 
 function onCardDragStart(e: DragEvent, row: HostsEntry): void {
@@ -509,6 +526,7 @@ function onCardDragEnd(): void {
   dropMark.value = null
 }
 
+/** 悬停：按指针位于上半 / 下半标记插入位置 */
 function onCardDragOver(e: DragEvent, row: HostsEntry): void {
   if (!dragId.value || row.id === dragId.value) return
   e.preventDefault()
@@ -524,6 +542,7 @@ function onCardDragLeave(row: HostsEntry): void {
   if (dropMark.value && dropMark.value.id === row.id) dropMark.value = null
 }
 
+/** 放下：在完整 entries 中移动到目标前 / 后，并立即写入系统 */
 async function onCardDrop(_e: DragEvent, row: HostsEntry): Promise<void> {
   const mark = dropMark.value
   const id = dragId.value

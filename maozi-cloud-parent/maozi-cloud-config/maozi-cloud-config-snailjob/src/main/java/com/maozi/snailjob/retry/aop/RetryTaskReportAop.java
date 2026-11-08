@@ -65,12 +65,12 @@ public class RetryTaskReportAop {
 
             Object result = proceedingJoinPoint.proceed();
 
-            //若为重试流量则直接返回数据,交给重试执行器处理
+            // 若为重试流量则直接返回数据，交给重试执行器处理
             if (retryTraffic) {
                 return result;
             }
 
-            //结果集校验无需重试时直接返回结果，仍需重试时落入下方重试与上报流程
+            // 结果集校验无需重试时直接返回结果，仍需重试时落入下方重试与上报流程
             if (retryCondition(retryTask, result)) {
                 return result;
             }
@@ -79,16 +79,16 @@ public class RetryTaskReportAop {
             ex = e;
         }
 
-        //只有抛异常 || (非重试流量 && 结果集校验方法需要重试)才会走到这里
+        // 只有抛异常 || (非重试流量 && 结果集校验方法需要重试)才会走到这里
 
-        //若为非重试流量则执行本地重试与远程上报
+        // 若为非重试流量则执行本地重试与远程上报
         if (!retryTraffic) {
 
-            //本地重试
+            // 本地重试
             if (retryTask.retryStrategy() == RetryType.ONLY_LOCAL
                 || retryTask.retryStrategy() == RetryType.LOCAL_REMOTE) {
 
-                //本地重试成功结束逻辑
+                // 本地重试成功结束逻辑
                 LocalRetryResultDTO localRetryResult =
                     localRetry(retryTask.localTimes(), retryTask.localInterval(), proceedingJoinPoint, retryTask);
                 if (localRetryResult.success()) {
@@ -97,7 +97,7 @@ public class RetryTaskReportAop {
 
             }
 
-            //重试失败则落库上报
+            // 重试失败则落库上报
             if (retryTask.retryStrategy() == RetryType.ONLY_REMOTE
                 || retryTask.retryStrategy() == RetryType.LOCAL_REMOTE) {
 
@@ -109,6 +109,7 @@ public class RetryTaskReportAop {
                 retryTaskParam.setVersion(ApplicationLinkContext.getVersionDefault(ApplicationLinkContext.getVersion()));
                 retryTaskParam.setRetryIfResultClassName(retryTask.retryIfResult().getName());
 
+                // OpenTelemetry 无有效追踪上下文时 traceId 为全 0 占位值，此时回退链路上下文中的 traceId
                 String traceId = Span.current().getSpanContext().getTraceId();
                 boolean notHasTraceId = ApplicationLinkContext.TRACE_ID_VALUE.equals(traceId);
                 retryTaskParam.setTraceId(notHasTraceId ? ApplicationLinkContext.getTraceId() : traceId);
@@ -200,7 +201,7 @@ public class RetryTaskReportAop {
 
             try {
 
-                //重试间隙,防止重试过快跟上一次结果一样
+                // 重试间隙，防止重试过快跟上一次结果一样
                 if (localInterval > 0) {
                     Thread.sleep(localInterval * 1000L);
                 }

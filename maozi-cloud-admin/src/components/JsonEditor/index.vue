@@ -33,8 +33,10 @@ const visible = computed({
   set: (v: boolean) => emit('update:modelValue', v)
 })
 
+/** 根节点树 */
 const root = ref<JsonNodeData>(toJsonTree({}))
 
+// 打开弹窗时按 source 初始化节点树；无内容或解析失败时回退为空对象
 watch(
   () => props.modelValue,
   (open) => {
@@ -80,6 +82,7 @@ function removeNode(node: JsonNodeData) {
 
 provide<JsonEditorOps>('jsonEditorOps', { setType, addChild, removeNode })
 
+/** 校验字段名后序列化为规范 JSON 并关闭弹窗 */
 function handleConfirm() {
   if (!validateKeys(root.value)) {
     ElMessage.warning('存在空的字段名，请补全后再保存')

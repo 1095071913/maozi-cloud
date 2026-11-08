@@ -28,6 +28,11 @@ public class QueryEnvironmentContext {
     /** 默认排序表别名（排序字段拼接前缀），由配置项 mybatis-plus-join.table-alias 注入 */
     public static String DEFAULT_ORDER_KEY;
 
+    /**
+     * 将配置注入的默认表别名写入静态变量，供全局静态读取
+     *
+     * @param defaultOrderKey 配置注入的默认表别名
+     */
     @Value("${mybatis-plus-join.table-alias:}")
     public void setDefaultTableAlias(String defaultOrderKey) {
         QueryEnvironmentContext.DEFAULT_ORDER_KEY = defaultOrderKey;

@@ -48,11 +48,17 @@ import { computed } from 'vue'
 
 const props = withDefaults(
   defineProps<{
+    /** 百分比数值（0-100） */
     value: number
+    /** 圆环外框尺寸（px） */
     size?: number
+    /** 圆环线宽（px） */
     stroke?: number
+    /** 渐变 id（页面内多个圆环须唯一） */
     gradId: string
+    /** 中心标签文案 */
     label?: string
+    /** true 时中心显示“暂不支持”，圆环置空 */
     unsupported?: boolean
     /** 正常档主题渐变色 [from, to]；>=70% 橙、>=85% 红自动分档 */
     theme?: [string, string]
@@ -60,15 +66,20 @@ const props = withDefaults(
   { size: 128, stroke: 11, label: '使用率', unsupported: false, theme: undefined }
 )
 
+/** 中心展示的百分比（取整） */
 const displayValue = computed(() => Math.round(props.value))
 
 const center = computed(() => props.size / 2)
+/** 圆环半径：扣除线宽与 2px 内边距 */
 const radius = computed(() => (props.size - props.stroke) / 2 - 2)
+/** 圆周长（dasharray 基准） */
 const circumference = computed(() => 2 * Math.PI * radius.value)
+/** 按百分比折算的起始弧长偏移（unsupported 时空环） */
 const dashOffset = computed(() =>
   props.unsupported ? circumference.value : circumference.value * (1 - Math.min(props.value, 100) / 100)
 )
 
+/** 渐变配色：高使用率自动切橙 / 红告警色 */
 const colors = computed<[string, string]>(() => {
   if (props.value >= 85) return ['#f87171', '#dc2626']
   if (props.value >= 70) return ['#fbbf24', '#d97706']

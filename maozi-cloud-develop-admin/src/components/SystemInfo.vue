@@ -520,6 +520,7 @@ function jdkIsLts(version: string): boolean {
   return ['8', '11', '17', '21', '25'].includes(jdkMajorOf(version))
 }
 
+/** 打开 JDK 弹窗：首次打开时拉取列表，之后复用 */
 async function openJdkDialog(): Promise<void> {
   if (jdkSwitching.value || jdkUninstalling.value) return
   jdkVisible.value = true
@@ -539,6 +540,7 @@ async function openJdkDialog(): Promise<void> {
   }
 }
 
+/** 切换 JDK，成功后刷新列表与开发工具版本 */
 async function switchJdk(j: JdkEntry): Promise<void> {
   if (jdkSwitching.value || jdkUninstalling.value || j.home === jdkCurrent.value) return
   jdkSwitching.value = true
@@ -583,26 +585,32 @@ async function uninstallJdkEntry(j: JdkEntry): Promise<void> {
 }
 
 /** ===== JDK 下载：列表视图 ⇄ 下载视图（先选版本，再选发行商） ===== */
+/** 可下载的主版本 */
 const JDK_DL_VERSIONS = ['8', '11', '17', '21', '25']
+/** 可选发行商 */
 const JDK_DL_VENDORS = [
   { id: 'adoptium' as const, name: 'Eclipse Adoptium', sub: 'Temurin · Eclipse 基金会', icon: '☀️' },
   { id: 'corretto' as const, name: 'Amazon Corretto', sub: 'AWS · 免费 · 长期更新', icon: '📦' }
 ]
 /** 本机架构（jdkList 带出）：Adoptium 不提供 Apple Silicon 的 JDK 8，用于禁用不可用组合 */
 const jdkArch = ref<'aarch64' | 'x64'>('aarch64')
+/** 当前选中版本下该发行商是否可用 */
 function jdkDlVendorOk(vendor: 'adoptium' | 'corretto'): boolean {
   return !(jdkArch.value === 'aarch64' && jdkDlVersion.value === '8' && vendor === 'adoptium')
 }
+/** 发行商副标题（不可用时显示原因） */
 function jdkDlVendorHint(vendor: 'adoptium' | 'corretto'): string {
   const vd = JDK_DL_VENDORS.find(v => v.id === vendor)
   if (vd && !jdkDlVendorOk(vendor)) return '未提供 Apple Silicon 的 JDK 8'
   return vd?.sub ?? ''
 }
 
+/** 弹窗视图：列表 / 下载 */
 const jdkView = ref<'list' | 'download'>('list')
 const jdkDlVersion = ref('21')
 const jdkDlVendor = ref<'adoptium' | 'corretto'>('adoptium')
 const jdkDlRunning = ref(false)
+/** 下载进度（由主进程 onJdkDownloadProgress 推送更新） */
 const jdkDlStage = ref<'idle' | 'download' | 'extract' | 'install' | 'done' | 'error'>('idle')
 const jdkDlPct = ref(0)
 const jdkDlReceivedMB = ref(0)
@@ -610,17 +618,20 @@ const jdkDlTotalMB = ref(0)
 const jdkDlMsg = ref('')
 
 const jdkDlVendorName = computed(() => JDK_DL_VENDORS.find(v => v.id === jdkDlVendor.value)?.name ?? '')
+/** 进度提示：优先使用主进程推送的文案 */
 const jdkDlStageText = computed(() => {
   if (jdkDlMsg.value) return jdkDlMsg.value
   const names: Record<string, string> = { download: '下载中…', extract: '解压安装中…', install: '安装中…' }
   return names[jdkDlStage.value] ?? ''
 })
 
+/** 关闭弹窗（切换 / 卸载 / 下载进行中不允许关闭） */
 function closeJdkDialog(): void {
   if (jdkSwitching.value || jdkUninstalling.value || jdkDlRunning.value) return
   jdkVisible.value = false
 }
 
+/** 进入下载视图并重置进度 */
 function openJdkDownload(): void {
   jdkView.value = 'download'
   jdkDlStage.value = 'idle'
@@ -628,6 +639,7 @@ function openJdkDownload(): void {
   jdkDlMsg.value = ''
 }
 
+/** 开始下载安装：成功后回到列表视图并刷新 */
 async function startJdkDownload(): Promise<void> {
   if (jdkDlRunning.value) return
   if (!jdkDlVendorOk(jdkDlVendor.value)) {
@@ -660,6 +672,7 @@ async function cancelJdkDownload(): Promise<void> {
   await api.sysinfo.jdkDownloadCancel()
 }
 
+// 订阅下载进度推送，卸载时取消订阅
 let jdkDlOff: (() => void) | null = null
 onMounted(() => {
   jdkDlOff = api.sysinfo.onJdkDownloadProgress(p => {
@@ -672,7 +685,7 @@ onMounted(() => {
 })
 onUnmounted(() => jdkDlOff?.())
 
-/** 切换后刷新列表（保持弹窗内“当前”标记与最新环境一致） */
+/** 切换 / 卸载 / 下载后刷新列表（保持弹窗内“当前”标记与最新环境一致） */
 async function openJdkRefresh(): Promise<void> {
   const r = await api.sysinfo.jdkList()
   if (r.ok && r.data) {
@@ -682,6 +695,7 @@ async function openJdkRefresh(): Promise<void> {
   }
 }
 const devLoading = ref(false)
+/** 开发工具图标 */
 const devIcons: Record<string, string> = {
   java: '☕',
   maven: '🪶',
@@ -698,6 +712,7 @@ const devDragOver = ref('')
 const devDropPos = ref<'before' | 'after'>('before')
 const DEV_ORDER_KEY = 'maozi-devtool-order'
 
+/** 按 localStorage 中保存的顺序排列，未记录的工具排在最后 */
 function applyDevOrder(list: DevToolInfo[]): DevToolInfo[] {
   let saved: string[] = []
   try {
@@ -716,9 +731,12 @@ function applyDevOrder(list: DevToolInfo[]): DevToolInfo[] {
  * 位移超过 6px 才进入拖拽（未超过的释放不拦截，原生 click 正常触发 Java 弹窗）
  */
 const devGhost = ref<{ x: number; y: number; name: string; icon: string } | null>(null)
+/** 拖拽期间挂在 <html> 上的类名（全局锁定抓手光标） */
 const DEV_DRAG_CLASS = 'dev-pointer-dragging'
+/** 按下时记录的指针起点；位移超过阈值后 active=true 进入拖拽 */
 let devPtr: { id: string; name: string; icon: string; startX: number; startY: number; active: boolean } | null = null
 
+/** 左键按下：记录起点并监听全局 pointermove / pointerup */
 function onDevPointerDown(t: DevToolInfo, e: PointerEvent): void {
   if (e.button !== 0) return
   devPtr = {
@@ -745,6 +763,7 @@ function hitDevItem(x: number, y: number): { id: string; rect: DOMRect } | null 
   return null
 }
 
+/** 移动：超过 6px 进入拖拽，更新跟随浮层并按目标左半 / 右半计算落点 */
 function onDevPointerMove(e: PointerEvent): void {
   if (!devPtr) return
   if (!devPtr.active) {
@@ -764,6 +783,7 @@ function onDevPointerMove(e: PointerEvent): void {
   }
 }
 
+/** 释放：解除全局监听；若发生过拖拽则按落点重排并持久化顺序 */
 function onDevPointerUp(): void {
   window.removeEventListener('pointermove', onDevPointerMove)
   window.removeEventListener('pointerup', onDevPointerUp)
@@ -801,12 +821,14 @@ function onDevPointerUp(): void {
 
 let clockTimer: ReturnType<typeof setInterval> | null = null
 
+/** 头部日期 / 星期 / 时钟 */
 const now = ref({ date: '', weekday: '', clock: '' })
 
 function pad(n: number): string {
   return n < 10 ? `0${n}` : `${n}`
 }
 
+/** 刷新头部时钟（每秒） */
 function refreshClock(): void {
   const d = new Date()
   const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
@@ -817,10 +839,12 @@ function refreshClock(): void {
   }
 }
 
+/** 主磁盘（优先根卷 /）、首块 GPU 及其利用率 */
 const mainDisk = computed(() => dyn.value?.disks.find((d) => d.mount === '/') ?? dyn.value?.disks[0])
 const mainGpu = computed<GpuInfo | undefined>(() => info.value?.gpus[0])
 const mainGpuUsage = computed<number | null>(() => dyn.value?.gpuUsages?.[0] ?? null)
 
+/** 设备规格明细行 */
 const specRows = computed(() => [
   { label: '电脑名称', value: info.value?.computerName ?? '' },
   { label: '主机名', value: info.value?.hostname ?? '' },
@@ -833,6 +857,7 @@ const specRows = computed(() => [
   { label: '架构', value: info.value?.arch ?? '' }
 ])
 
+/** 显卡摘要（芯片型号 · 核心数，多块以分号分隔） */
 const gpuSummary = computed(() => {
   const gpus = info.value?.gpus ?? []
   if (gpus.length === 0) return '未识别'
@@ -841,6 +866,7 @@ const gpuSummary = computed(() => {
     .join('；')
 })
 
+/** 字节数格式化（1024 进制，B ~ TB） */
 function formatBytes(bytes: number, fractionDigits = 1): string {
   if (!bytes) return '0 B'
   const units = ['B', 'KB', 'MB', 'GB', 'TB']
@@ -853,6 +879,7 @@ function formatBytes(bytes: number, fractionDigits = 1): string {
   return `${n.toFixed(i === 0 ? 0 : fractionDigits)} ${units[i]}`
 }
 
+/** 运行时长格式化：超过 1 天显示天 + 小时，否则小时 + 分 / 分钟 */
 function formatUptime(seconds: number): string {
   const d = Math.floor(seconds / 86400)
   const h = Math.floor((seconds % 86400) / 3600)
@@ -862,12 +889,14 @@ function formatUptime(seconds: number): string {
   return `${m} 分钟`
 }
 
+/** 使用率分档样式（>=85 危险、>=70 警告） */
 function usageLevel(v: number): string {
   if (v >= 85) return 'level-danger'
   if (v >= 70) return 'level-warn'
   return 'level-ok'
 }
 
+/** 拉取静态硬件信息 */
 async function loadStatic(): Promise<void> {
   const r = await api.sysinfo.static()
   if (r.ok && r.data) info.value = r.data
@@ -894,17 +923,20 @@ const proxyOnTypes = computed(() => proxyRows.value.filter(p => !!p.value).map(p
 /** GPU 从未采集到过数据时隐藏趋势区（该平台不支持） */
 const gpuHasData = computed(() => trend.gpu.some((v) => v !== null))
 
+/** 序列峰值（取整，忽略 null） */
 function peakOf(values: Array<number | null>): number {
   let max = 0
   for (const v of values) if (typeof v === 'number' && v > max) max = v
   return Math.round(max)
 }
 
+/** 拉取网卡与系统代理 */
 async function loadNetwork(): Promise<void> {
   const r = await api.sysinfo.network()
   if (r.ok && r.data) network.value = r.data
 }
 
+/** 探测公网 IP（失败时记录错误信息） */
 async function loadPublicIP(): Promise<void> {
   publicIPLoading.value = true
   publicIPError.value = ''
@@ -918,6 +950,7 @@ async function loadPublicIP(): Promise<void> {
   }
 }
 
+/** 拉取开发工具版本，并按用户保存的顺序排列 */
 async function loadDevTools(): Promise<void> {
   devLoading.value = true
   const r = await api.sysinfo.devtools()

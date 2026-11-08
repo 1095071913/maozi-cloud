@@ -11,6 +11,7 @@ export default defineConfig({
     emptyOutDir: true
   },
   server: {
+    // 固定端口：scripts/dev.mjs 以 http://localhost:5173 作为 ELECTRON_START_URL 拉起 Electron
     port: 5173,
     strictPort: true
   }

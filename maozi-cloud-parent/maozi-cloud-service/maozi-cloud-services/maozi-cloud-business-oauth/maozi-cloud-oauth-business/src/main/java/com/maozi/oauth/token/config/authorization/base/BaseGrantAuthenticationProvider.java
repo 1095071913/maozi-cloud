@@ -131,10 +131,10 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
 
         T authenticationToken = (T)authentication;
 
-        // Ensure the client is authenticated
+        // 确保客户端已通过认证
         OAuth2ClientAuthenticationToken clientPrincipal = getAuthenticatedClientElseThrowInvalidClient(authenticationToken);
         RegisteredClient registeredClient = clientPrincipal.getRegisteredClient();
-        // Ensure the client is configured to use this authorization grant type
+        // 确保客户端已配置该授权模式
         if (registeredClient == null || !registeredClient.getAuthorizationGrantTypes().contains(authenticationToken.getAuthorizationGrantType())) {
             throw new OAuth2AuthenticationException(OAuth2ErrorCodes.UNAUTHORIZED_CLIENT);
         }
@@ -160,7 +160,7 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
                 .authorizationGrantType(authenticationToken.getAuthorizationGrantType())
                 .authorizationGrant(authenticationToken);
 
-        // Initialize the OAuth2Authorization
+        // 初始化OAuth2Authorization构建器
         OAuth2Authorization.Builder authorizationBuilder = OAuth2Authorization.withRegisteredClient(registeredClient)
                 // 2023-07-15修改逻辑，加入当前用户认证信息，防止刷新token时因获取不到认证信息而抛出空指针异常
                 // 存入授权scope
@@ -215,7 +215,7 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
         // ----- Refresh token -----
         OAuth2RefreshToken refreshToken = null;
         if (registeredClient.getAuthorizationGrantTypes().contains(AuthorizationGrantType.REFRESH_TOKEN) &&
-                // Do not issue refresh token to public client
+                // 不向公共客户端颁发refresh token
                 !clientPrincipal.getClientAuthenticationMethod().equals(ClientAuthenticationMethod.NONE)) {
 
             tokenContext = tokenContextBuilder.tokenType(OAuth2TokenType.REFRESH_TOKEN).build();
@@ -238,7 +238,7 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
         if (authorizedScopes.contains(OidcScopes.OPENID)) {
             tokenContext = tokenContextBuilder
                     .tokenType(ID_TOKEN_TOKEN_TYPE)
-                    // ID token customizer may need access to the access token and/or refresh token
+                    // ID token定制器可能需要访问access token或refresh token
                     .authorization(authorizationBuilder.build())
                     .build();
             // @formatter:on
@@ -263,7 +263,7 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
 
         OAuth2Authorization authorization = authorizationBuilder.build();
 
-        // Save the OAuth2Authorization
+        // 保存授权信息
         this.authorizationService.save(authorization);
 
         Map<String, Object> additionalParameters = new HashMap<>(1);
@@ -283,7 +283,7 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
      * @return 认证过的scope
      */
     private Set<String> getAuthorizedScopes(RegisteredClient registeredClient, Set<String> requestedScopes) {
-        // Default to configured scopes
+        // 默认使用客户端配置的scope
         Set<String> authorizedScopes = registeredClient.getScopes();
         if (!ObjectUtils.isEmpty(requestedScopes)) {
             Set<String> unauthorizedScopes = requestedScopes.stream()

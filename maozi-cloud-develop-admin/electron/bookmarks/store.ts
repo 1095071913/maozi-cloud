@@ -13,15 +13,18 @@ import type {Bookmark} from './types'
 interface StoredBookmark extends Omit<Bookmark, 'password'> {
   /** 加密后的 base64；仅当钥匙串不可用时为弱标记 base64 */
   passwordEnc: string
+  /** 弱加密标记（现未写入，弱加密以 passwordEnc 的 weak: 前缀识别） */
   weakEnc?: boolean
 }
 
+/** 弱加密（纯 base64）密文前缀 */
 const WEAK_PREFIX = 'weak:'
 
 function storeFile(): string {
   return path.join(app.getPath('userData'), 'bookmarks.json')
 }
 
+/** 加密密码：优先 safeStorage，不可用时退化为带 weak: 前缀的 base64 */
 function encrypt(plain: string): StoredBookmark['passwordEnc'] & { weak?: boolean } {
   if (!plain) return ''
   if (safeStorage.isEncryptionAvailable()) {
@@ -30,6 +33,7 @@ function encrypt(plain: string): StoredBookmark['passwordEnc'] & { weak?: boolea
   return `${WEAK_PREFIX}${Buffer.from(plain, 'utf8').toString('base64')}`
 }
 
+/** 解密密码（兼容 weak: 前缀），失败返回空串 */
 function decrypt(enc: string): string {
   if (!enc) return ''
   try {
@@ -42,6 +46,7 @@ function decrypt(enc: string): string {
   }
 }
 
+/** 读取存储的原始列表（文件内顺序）；文件缺失或损坏时返回空数组 */
 function readStore(): StoredBookmark[] {
   try {
     const raw = JSON.parse(fs.readFileSync(storeFile(), 'utf8'))
@@ -56,11 +61,13 @@ function writeStore(list: StoredBookmark[]): void {
   fs.writeFileSync(storeFile(), JSON.stringify({ version: 1, bookmarks: list }, null, 2))
 }
 
+/** 存储结构转业务对象：解密密码并去掉加密字段 */
 function toDomain(b: StoredBookmark): Bookmark {
   const { passwordEnc, weakEnc, ...rest } = b
   return { ...rest, password: decrypt(passwordEnc) }
 }
 
+/** 列出全部书签（密码已解密），按 sortOrder 升序，缺省时取 createdAt */
 export function listBookmarks(): Bookmark[] {
   return readStore()
     .map(toDomain)

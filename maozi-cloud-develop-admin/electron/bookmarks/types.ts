@@ -1,6 +1,7 @@
 /** 书签公共类型 */
 
 export interface Bookmark {
+  /** 唯一标识（UUID） */
   id: string
   /** 页面地址 */
   url: string
@@ -22,12 +23,15 @@ export interface Bookmark {
   category3: string
   /** 排序序号（拖拽排序后持久化，旧数据缺省按创建时间排） */
   sortOrder?: number
+  /** 创建时间戳（毫秒） */
   createdAt: number
 }
 
 /** 自动抓取的网页信息 */
 export interface PageMeta {
+  /** 网页标题 */
   title?: string
+  /** 网页描述 */
   description?: string
   /** dataURL */
   icon?: string

@@ -40,8 +40,7 @@ public class ExcelFileValidator implements ConstraintValidator<ExcelFile, Multip
             return true;
         }
 
-        // 检查文件的 Content-Type 是否为 Excel 格式
-        // 支持两种格式：xls（application/vnd.ms-excel）和 xlsx（application/vnd.openxmlformats-officedocument.spreadsheetml.sheet）
+        // 仅接受 xls 与 xlsx 两种 Excel 格式的 Content-Type
         String contentType = file.getContentType();
         return "application/vnd.ms-excel".equals(contentType) || "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet".equals(contentType);
 

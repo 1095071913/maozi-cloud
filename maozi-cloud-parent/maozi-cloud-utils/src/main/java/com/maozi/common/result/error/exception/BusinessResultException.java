@@ -141,16 +141,35 @@ public class BusinessResultException extends RuntimeException {
         return this;
     }
 
+    /**
+     * 设置错误结果中的错误信息
+     *
+     * @param message 错误信息
+     * @return 当前实例（链式调用）
+     */
     public BusinessResultException setMessage(String message) {
         this.errorResult.setMessage(message);
         return this;
     }
 
+    /**
+     * 同时设置错误结果中的错误信息和异常错误信息
+     *
+     * @param message 错误信息
+     * @param exceptionMessage 异常错误信息
+     * @return 当前实例（链式调用）
+     */
     public BusinessResultException setMessage(String message,String exceptionMessage) {
         this.errorResult.setMessage(message,exceptionMessage);
         return this;
     }
 
+    /**
+     * 设置错误结果中的 HTTP 状态码
+     *
+     * @param httpCode HTTP 状态码
+     * @return 当前实例（链式调用）
+     */
     public BusinessResultException setHttpCode(Integer httpCode) {
         this.errorResult.setHttpCode(httpCode);
         return this;

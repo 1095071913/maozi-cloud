@@ -32,7 +32,6 @@ public class RestSystemServiceImpl extends SystemServiceImpl implements RestSyst
 	 */
 	@Override
 	public AbstractBaseResult<SystemPropertiesResult> restGet() {
-		// 使用 Cglib 工具将配置属性对象拷贝为结果对象
 		return ResultUtil.success(CglibUtil.copy(systemProperties, SystemPropertiesResult.class));
 	}
 

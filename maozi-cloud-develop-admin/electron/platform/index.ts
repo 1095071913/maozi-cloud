@@ -18,9 +18,11 @@ export function selectPlatform(): Platform {
   }
 }
 
+/** 注册环境变量、hosts 与 app:info 相关 IPC，返回当前平台实现 */
 export function registerPlatformHandlers(): Platform {
   const platform = selectPlatform()
 
+  /** 平台标识与 hosts 路径 */
   ipcMain.handle('app:info', () => ({
     platform: platform.id,
     hostsPath: platform.hostsPath()
@@ -84,7 +86,7 @@ export function registerPlatformHandlers(): Platform {
     }
   })
 
-  /** 按原始文本写入 hosts（提权、备份、刷新 DNS 缓存） */
+  /** 按原始文本写入 hosts（提权写入并刷新 DNS 缓存） */
   ipcMain.handle('hosts:saveRaw', async (_e, text: string) => {
     try {
       await platform.writeHostsRaw(String(text ?? ''))

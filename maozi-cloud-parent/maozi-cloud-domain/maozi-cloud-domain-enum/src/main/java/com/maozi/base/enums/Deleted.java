@@ -22,6 +22,12 @@ public enum Deleted implements BaseEnum {
 
 	;
 
+	/**
+	 * 按整型值和描述构造枚举实例
+	 *
+	 * @param value 删除标记值，对应数据库删除标记字段
+	 * @param desc 删除状态的中文描述
+	 */
 	Deleted(Integer value,String desc) {
 
 		this.value = value;
@@ -38,6 +44,11 @@ public enum Deleted implements BaseEnum {
 	@Getter
 	private final String desc;
 
+	/**
+	 * 返回"值.描述"格式的字符串
+	 *
+	 * @return 形如 "0.未删除" 的字符串
+	 */
 	@Override
 	public String toString() {
 		return value + "." + desc;

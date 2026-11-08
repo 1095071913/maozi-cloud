@@ -15,8 +15,10 @@ import lombok.Getter;
 @Schema(description = "AI对话消息类型",type = "integer")
 public enum ChatMessageType {
 
+    /** 用户消息 */
     USER(0,"用户消息"),
 
+    /** AI消息 */
     AI(1,"AI消息")
 
     ;

@@ -8,6 +8,7 @@ import {parseHosts, renderHosts} from './shared'
 
 const exec = promisify(execFile)
 
+/** macOS hosts 文件路径 */
 export const HOSTS_PATH = '/etc/hosts'
 
 /** 托管区块标记：本应用新增的变量统一写入区块内，避免与用户手写内容混排 */
@@ -25,10 +26,12 @@ const ENV_FILE_DEFS = [
   { id: 'profile', name: '~/.profile', file: '.profile' }
 ]
 
+/** 启用的 export 行：export KEY=... */
 const EXPORT_RE = /^\s*export\s+([A-Za-z_][A-Za-z0-9_]*)=(.*)$/
 /** 被注释掉的 export 行（禁用态）：# export KEY=... */
 const COMMENTED_EXPORT_RE = /^\s*#\s*export\s+([A-Za-z_][A-Za-z0-9_]*)=(.*)$/
 
+/** 配置文件 id 转绝对路径，未知 id 抛错 */
 function envFilePath(fileId: string): string {
   const def = ENV_FILE_DEFS.find((d) => d.id === fileId)
   if (!def) throw new Error(`未知的配置文件: ${fileId}`)
@@ -53,16 +56,19 @@ function parseEnvValue(raw: string): string {
   return v
 }
 
+/** 生成 export KEY="VALUE" 行（转义双引号与反斜杠） */
 function serializeEnvLine(key: string, value: string): string {
   return `export ${key}="${value.replace(/(["\\])/g, '\\$1')}"`
 }
 
+/** 按行读取配置文件，文件不存在时返回空数组 */
 function readEnvFileLines(fileId: string): string[] {
   const p = envFilePath(fileId)
   if (!fs.existsSync(p)) return []
   return fs.readFileSync(p, 'utf8').split('\n')
 }
 
+/** 写入文件：默认先把原文件备份为 .maozi.bak；backup=false 时不备份并删除遗留备份 */
 function backupAndWrite(file: string, content: string, opts?: { backup?: boolean }): void {
   if (opts?.backup === false) {
     // 应用全量生成、可随时重建的文件无需备份；顺手清掉历史遗留备份，避免已删除的密钥明文残留
@@ -74,6 +80,7 @@ function backupAndWrite(file: string, content: string, opts?: { backup?: boolean
   fs.writeFileSync(file, content, { mode: 0o644 })
 }
 
+/** macOS 平台实现：环境变量写入 shell 配置文件，hosts 经管理员授权或免密助手写入 */
 export const darwinPlatform: Platform = {
   id: 'darwin',
 
@@ -88,6 +95,7 @@ export const darwinPlatform: Platform = {
     })
   },
 
+  /** 扫描全部配置文件的 export 行（含被注释的禁用行），并标记是否位于托管区块内 */
   readEnvVars(): EnvVarEntry[] {
     const result: EnvVarEntry[] = []
     for (const def of ENV_FILE_DEFS) {
@@ -128,6 +136,7 @@ export const darwinPlatform: Platform = {
     return result
   },
 
+  /** 按 mode 增 / 改 / 删 / 启停 / 改名 / 排序变量，写回后刷新实时环境文件 */
   saveEnvVar(params: EnvSaveParams): void {
     const { mode, key = '', value = '', fileId } = params
     if (mode === 'reorder') {
@@ -148,6 +157,7 @@ export const darwinPlatform: Platform = {
     // 去掉结尾的空行，便于后面统一处理
     while (lines.length > 0 && lines[lines.length - 1].trim() === '') lines.pop()
 
+    // 定位目标变量所在行（启用或禁用态均可）
     const matchIndex = lines.findIndex((l) => {
       const m = l.match(EXPORT_RE)
       if (m !== null) return m[1] === key
@@ -247,6 +257,7 @@ export const darwinPlatform: Platform = {
 
 
 
+  /** 刷新 DNS 缓存：优先走免密助手，未安装时弹授权框执行 */
   async flushDns(): Promise<void> {
     if (await helperReady()) {
       await exec('/usr/bin/sudo', ['-n', HELPER_PATH, '--flush'], { timeout: 15_000 })
@@ -273,8 +284,9 @@ const HELPER_PATH = '/usr/local/bin/maozi-hosts-helper'
 const SUDOERS_PATH = '/etc/sudoers.d/maozi-hosts-helper'
 const SUDOERS_LINE = '%admin ALL=(root) NOPASSWD: /usr/local/bin/maozi-hosts-helper'
 
-/** 助手脚本内容：仅接受文件名以 maozi-hosts-* 开头的文件（按 basename 校验），写入后刷新 DNS（不备份） */
+/** 助手版本号：--check 输出与之不一致视为旧版，触发授权重装 */
 const HELPER_VERSION = 'v2'
+/** 助手脚本内容：仅接受文件名以 maozi-hosts-* 开头的文件（按 basename 校验），写入后刷新 DNS（不备份）；另支持 --check 返回版本、--flush 仅刷新 DNS */
 function helperScript(): string {
   return [
     '#!/bin/bash',
@@ -324,6 +336,7 @@ async function writeHostsText(text: string): Promise<void> {
     const helperTmp = path.join(tmpdir(), `maozi-helper-${Date.now()}.sh`)
     fs.writeFileSync(helperTmp, helperScript() + '\n', { mode: 0o755 })
     try {
+      // 同一次授权内：覆盖 hosts、刷新 DNS、安装免密助手；sudoers 先写临时文件经 visudo -c 校验后再落位，避免写坏 sudo 配置
       await runAsAdmin(
         `cp ${q(tmp)} ${q(HOSTS_PATH)} && ` +
           `chown root:wheel ${q(HOSTS_PATH)} && chmod 644 ${q(HOSTS_PATH)} && ` +
@@ -464,12 +477,14 @@ function q(s: string): string {
  * 命令内容只包含本程序生成的安全路径，不拼接用户输入的任意 shell
  */
 async function runAsAdmin(shellCmd: string, prompt: string): Promise<void> {
+  // 转义为 AppleScript 双引号字符串
   const escaped = shellCmd.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
   const script = `do shell script "${escaped}" with administrator privileges with prompt "${prompt}"`
   try {
     await exec('osascript', ['-e', script])
   } catch (err) {
     const e = err as { stderr?: string; message?: string }
+    // -128 为 AppleScript 用户取消的错误码
     if (e.stderr?.includes('User canceled') || e.message?.includes('User canceled') ||
         e.message?.includes('(-128)')) {
       throw new Error('已取消授权')

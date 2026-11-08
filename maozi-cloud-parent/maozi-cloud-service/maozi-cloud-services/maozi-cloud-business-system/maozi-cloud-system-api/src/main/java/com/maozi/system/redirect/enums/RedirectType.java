@@ -17,7 +17,7 @@ import lombok.Getter;
 @Schema(description = "重定向类型",type = "integer")
 public enum RedirectType implements BaseEnum {
 
-    /** 登陆页类型 - 表示重定向到登录页面 */
+    /** 重定向到登陆页 */
     LOGIN(0,"登陆页"),
 
     ;

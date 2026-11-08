@@ -38,6 +38,7 @@ const TEXT_EXTS = new Set([
 /** 无扩展名的常见文本文件名（前缀匹配，大小写不敏感） */
 const TEXT_NAMES = [/^dockerfile/i, /^makefile/i, /^jenkinsfile/i, /^vagrantfile/i, /^rakefile/i, /^gemfile/i]
 
+/** 按扩展名、dotfile 名或常见无扩展名文件名判断是否为文本文件 */
 function isTextFile(name: string): boolean {
   const ext = path.extname(name).toLowerCase()
   if (ext && TEXT_EXTS.has(ext)) return true
@@ -56,6 +57,7 @@ function isTextFile(name: string): boolean {
  *  不受扩展名白名单与 NUL 二进制检测限制（jar 解包的 META-INF 下多为无扩展名文本） */
 const FORCE_TEXT_DIRS = new Set(['META-INF'])
 
+/** 路径中是否含强制文本目录段 */
 function underForceDir(filePath: string): boolean {
   return filePath.split(/[\\/]+/).some(seg => FORCE_TEXT_DIRS.has(seg.toUpperCase()))
 }
@@ -109,14 +111,20 @@ parentPort.on('message', (msg) => {
 
 /** 单次运行上下文（进度推送与取消都围绕它） */
 interface RunCtx {
+  /** 进度推送目标窗口 */
   win: BrowserWindow | null
+  /** 是否已取消（由 syncCancel 从 currentCancel 同步） */
   cancelled: boolean
   stats: RenameStats
+  /** 内容替换 + 重命名的总项数 */
   total: number
+  /** 已完成项数 */
   done: number
+  /** 上次推送时间（节流用） */
   lastEmit: number
 }
 
+/** 推送进度：80ms 节流，force 时立即推送（用于阶段切换） */
 function emit(ctx: RunCtx, stage: RenameProgress['stage'], current: string, force = false): void {
   const now = Date.now()
   if (!force && now - ctx.lastEmit < 80) return
@@ -125,6 +133,7 @@ function emit(ctx: RunCtx, stage: RenameProgress['stage'], current: string, forc
   ctx.win?.webContents.send('rename:progress', payload)
 }
 
+/** 记录错误信息（最多保留 50 条） */
 function pushError(ctx: RunCtx, msg: string): void {
   if (ctx.stats.errors.length < 50) ctx.stats.errors.push(msg)
 }
@@ -136,10 +145,13 @@ function applyRules(name: string, rules: RenameRule[]): string {
   return out
 }
 
+/** 扫描到的文件 / 目录 */
 interface ScanEntry {
   /** 原始绝对路径 */
   path: string
+  /** 名称（basename） */
   name: string
+  /** 层级深度（根目录的直接子项为 1） */
   depth: number
 }
 
@@ -187,8 +199,8 @@ async function scan(
 }
 
 /**
- * worker 线程池：每个 worker 循环从共享队列领文件，空队列/取消时结束。
- * 返回的 Promise 在全部 worker 退出后完成（异常不中断整体，错误记入 stats.errors）
+ * 驱动单个 worker：循环从共享队列领文件，队列为空或已取消时终止该 worker 并 resolve。
+ * 调用方用 Promise.all 等待全部 worker；单文件异常经 onResult 记入 stats.errors，不中断整体
  */
 function startContentWorker(
   worker: Worker,
@@ -248,7 +260,7 @@ async function safeRename(ctx: RunCtx, from: string, to: string): Promise<boolea
   }
 }
 
-/** 运行中标记：cancel handler 置位，各阶段检查点同步进 ctx */
+/** 取消请求标记：rename:cancel 置位，各阶段检查点同步进 ctx */
 let currentCancel = false
 
 /** 检查点：把取消标记同步进上下文 */
@@ -256,7 +268,9 @@ function syncCancel(ctx: RunCtx): void {
   if (currentCancel) ctx.cancelled = true
 }
 
+/** 注册批量重命名 IPC：rename:run 执行、rename:cancel 取消 */
 export function registerRenameHandlers(): void {
+  /** 执行批量重命名，返回统计与（可能已改名的）根目录新路径 */
   ipcMain.handle('rename:run', async (_e, input: { root?: string; rules?: RenameRule[]; options?: RenameOptions }) => {
     const root = (input.root ?? '').trim()
     // from 不做 trim：空格等空白本身就是合法的"旧字符"
@@ -416,6 +430,7 @@ export function registerRenameHandlers(): void {
     }
   })
 
+  /** 请求取消，下一个检查点生效 */
   ipcMain.handle('rename:cancel', () => {
     currentCancel = true
     return { ok: true }

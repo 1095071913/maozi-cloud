@@ -13,6 +13,7 @@ export function registerBookmarkHandlers(): void {
     }
   })
 
+  /** 新增或更新书签（带 id 视为更新） */
   ipcMain.handle('bookmarks:save', (_e, input: Partial<Bookmark>) => {
     try {
       return { ok: true, data: upsertBookmark(input) }
@@ -30,7 +31,7 @@ export function registerBookmarkHandlers(): void {
     }
   })
 
-  /** 拖拽排序：按 id 顺序重写全局排序 */
+  /** 拖拽排序：按传入 id 顺序重排，只改动这些书签所占的位置 */
   ipcMain.handle('bookmarks:reorder', (_e, ids: string[]) => {
     try {
       reorderBookmarks(Array.isArray(ids) ? ids : [])
@@ -54,6 +55,7 @@ export function registerBookmarkHandlers(): void {
     return { ok: true }
   })
 
+  /** 用系统默认浏览器打开链接，仅放行 http(s) */
   ipcMain.handle('app:openUrl', (_e, url: string) => {
     if (/^https?:\/\//i.test(url)) void shell.openExternal(url)
     return { ok: true }

@@ -9,9 +9,9 @@ package com.maozi.common.constant;
  * @author pengjinlong
  * @since 2026/6/15 11:38
  */
-public class AuthroizationConstant {
+public class AuthorizationConstant {
 
     /** 标准认证请求头名称，用于携带 Access Token / Bearer 凭证 */
-    public final static String AUTHORIZATION_HEADER = "Authorization";
+    public static final String AUTHORIZATION_HEADER = "Authorization";
 
 }

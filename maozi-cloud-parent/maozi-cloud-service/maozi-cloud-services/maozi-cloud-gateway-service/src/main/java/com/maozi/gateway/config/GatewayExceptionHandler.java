@@ -88,9 +88,6 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
 	@Setter
     private List<ViewResolver> viewResolvers = Collections.emptyList();
 
-	/** 线程本地变量，暂存异常处理结果，用于后续响应渲染 */
-	private final ThreadLocal<ErrorResult<?>> exceptionHandlerResult = new ThreadLocal<>();
-
 	/**
 	 * 设置 HTTP 消息读取器。
 	 *
@@ -120,8 +117,7 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
 	 * @param request 服务端请求对象
 	 * @return 包含错误信息的 ServerResponse
 	 */
-	protected Mono<ServerResponse> renderErrorResponse(ServerRequest request) {
-		ErrorResult<?> result = exceptionHandlerResult.get();
+	protected Mono<ServerResponse> renderErrorResponse(ServerRequest request, ErrorResult<?> result) {
 		return ServerResponse.status(result.getHttpCode()).contentType(MediaType.APPLICATION_JSON)
 				.body(BodyInserters.fromValue(result));
 	}
@@ -222,7 +218,9 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
 
 		if (e instanceof NotFoundException) {
 			// 服务未找到异常
-			result = ResultUtil.error(SystemErrorCode.SERVICE_NOT_EXIST_ERROR).setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
+			result = ResultUtil.error(SystemErrorCode.SERVICE_NOT_EXIST_ERROR)
+							   .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
+
 		}else if(BlockException.isBlockException(e)){
 			// Sentinel 限流异常
 			result = ResultUtil.error(SystemErrorCode.CURRENT_LIMITING_ERROR).setHttpCode(SystemErrorCode.CURRENT_LIMITING_ERROR_DEFAULT_CODE);
@@ -237,19 +235,16 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
 		LogUtil.error(log,logs);
 
 		// 清除 MDC 上下文，防止内存泄漏
-		MDC.clear();
+		MDC.remove(ApplicationLinkContext.MDC_TRACE_ID_KEY);
 
 		// 如果响应已提交（已发送给客户端），则无法修改，直接返回异常
 		if (exchange.getResponse().isCommitted()) {
 			return Mono.error(e);
 		}
 
-		// 将错误结果暂存到 ThreadLocal，供 renderErrorResponse 使用
-		exceptionHandlerResult.set(result);
-
 		// 创建新的 ServerRequest 并路由到错误响应处理器
 		ServerRequest newRequest = ServerRequest.create(exchange, this.messageReaders);
-		return RouterFunctions.route(RequestPredicates.all(), this::renderErrorResponse).route(newRequest)
+		return RouterFunctions.route(RequestPredicates.all(), (req) -> renderErrorResponse(req, result)).route(newRequest)
 				.switchIfEmpty(Mono.error(e)).flatMap((handler) -> handler.handle(newRequest))
 				.flatMap((response) -> write(exchange, response));
 	}

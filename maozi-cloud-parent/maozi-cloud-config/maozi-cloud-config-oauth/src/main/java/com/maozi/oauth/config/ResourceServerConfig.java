@@ -58,7 +58,7 @@ public class ResourceServerConfig {
 
         // 合并系统默认白名单和项目自定义白名单
         List<String> whitelist = CollectionUtil.newArrayList();
-        whitelist.addAll(ApiWhitelistProperties.DEFAULT_WITE_LIST);
+        whitelist.addAll(ApiWhitelistProperties.DEFAULT_WHITE_LIST);
 
         List<String> configWhitelist = apiWhitelistProperties.getConfigWhitelist();
         if(ObjectUtil.isNotNullEmpty(configWhitelist)){

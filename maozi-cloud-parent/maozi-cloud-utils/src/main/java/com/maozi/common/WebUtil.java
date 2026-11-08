@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.io.IOException;
 import java.util.Objects;
 
 /**
@@ -26,10 +27,10 @@ import java.util.Objects;
 public class WebUtil {
 
     /** 本地 IP 地址 */
-    public final static String LOCAL_IP = "127.0.0.1";
+    public static final String LOCAL_IP = "127.0.0.1";
 
     /** 本地回环 IP 地址（IPv6） */
-    public final static String LOCAL_LOOPBACK_IP = "0:0:0:0:0:0:0:1";
+    public static final String LOCAL_LOOPBACK_IP = "0:0:0:0:0:0:0:1";
 
     /**
      * 判断当前线程是否处于 HTTP 请求上下文
@@ -84,8 +85,10 @@ public class WebUtil {
 
         response.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 
-        try{JacksonUtil.getObjectMapper().writeValue(response.getOutputStream(),data);}catch (Exception e){
-            log.error(e.getLocalizedMessage());
+        try {
+            JacksonUtil.getObjectMapper().writeValue(response.getOutputStream(), data);
+        } catch (IOException e) {
+            log.error("write response body json error, data: {}", data, e);
         }
 
     }

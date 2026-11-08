@@ -36,13 +36,13 @@ import java.time.LocalDateTime;
 public class MetaObjectHandler implements com.baomidou.mybatisplus.core.handlers.MetaObjectHandler {
 
     /** 状态字段名 */
-    private final static String STATUS = "status";
+    private static final String STATUS = "status";
 
     /** 逻辑删除字段名 */
-    private final static String DELETED = "deleted";
+    private static final String DELETED = "deleted";
 
     /** 创建时间字段名 */
-    private final static String CREATE_TIME = "createTime";
+    private static final String CREATE_TIME = "createTime";
 
     /**
      * 插入时自动填充字段

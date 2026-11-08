@@ -79,7 +79,7 @@ public class MetricFetcher {
     /** Charset used to decode the response body when it declares none. */
     private static final Charset DEFAULT_CHARSET = Charset.forName(SentinelConfig.charset());
     /** Path of the metric command on the Sentinel client. */
-    private final static String METRIC_URL_PATH = "metric";
+    private static final String METRIC_URL_PATH = "metric";
     /** Logger of this class. */
     private static Logger logger = LoggerFactory.getLogger(MetricFetcher.class);
     /** Period in seconds of the scheduled fetch-all task. */

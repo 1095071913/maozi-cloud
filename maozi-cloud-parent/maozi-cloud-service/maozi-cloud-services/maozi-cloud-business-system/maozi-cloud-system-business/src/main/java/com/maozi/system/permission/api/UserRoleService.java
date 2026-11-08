@@ -52,7 +52,7 @@ public interface UserRoleService {
 	 * @param userId 用户ID
 	 * @param roleId 角色ID
 	 */
-	void hasUserBindRole(Long userId,Long roleId);
+	void checkUserBindRole(Long userId,Long roleId);
 
 	/**
 	 * 解除用户与所有角色的绑定关系

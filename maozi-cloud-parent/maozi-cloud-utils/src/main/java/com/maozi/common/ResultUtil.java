@@ -16,7 +16,7 @@ import com.maozi.common.result.success.SuccessResult;
 public class ResultUtil {
 
     /** 默认成功结果（无数据） */
-    public final static SuccessResult<Void> DEFAULT_SUCCESS = new SuccessResult<>(null);
+    public static final SuccessResult<Void> DEFAULT_SUCCESS = new SuccessResult<>(null);
 
     /**
      * 返回默认成功结果（无数据）

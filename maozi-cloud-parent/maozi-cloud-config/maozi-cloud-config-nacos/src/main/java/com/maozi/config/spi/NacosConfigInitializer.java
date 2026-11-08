@@ -25,25 +25,25 @@ public class NacosConfigInitializer implements ConfigInitializer {
     private static final String NACOS_CLIENT_LOGGER = "com.alibaba.nacos";
 
     /** 项目自定义的 Nacos 服务地址属性键 */
-    private final static String PROJECT_NACOS_SERVER_KEY = "nacos.server";
+    private static final String PROJECT_NACOS_SERVER_KEY = "nacos.server";
 
     /** Nacos 服务地址默认值占位符：优先取环境变量 APPLICATION_NACOS_SERVER，缺省使用内置 Nacos 服务地址 */
-    private final static String PROJECT_NACOS_SERVER_VALUE = "${APPLICATION_NACOS_SERVER:maozi-cloud-basic-nacos:8848}";
+    private static final String PROJECT_NACOS_SERVER_VALUE = "${APPLICATION_NACOS_SERVER:maozi-cloud-basic-nacos:8848}";
 
     /** Nacos 命名空间默认值占位符：直接引用项目属性 application.environment，跟随当前运行环境 */
-    private final static String PROJECT_NACOS_NAMESPACE_VALUE = "${application.environment}";
+    private static final String PROJECT_NACOS_NAMESPACE_VALUE = "${application.environment}";
 
     /** Nacos 配置中心服务地址属性键 */
-    private final static String NACOS_CONFIG_SERVER_KEY = "spring.cloud.nacos.config.server-addr";
+    private static final String NACOS_CONFIG_SERVER_KEY = "spring.cloud.nacos.config.server-addr";
 
     /** Nacos 注册中心（服务发现）服务地址属性键 */
-    private final static String NACOS_DISCOVERY_SERVER_KEY = "spring.cloud.nacos.discovery.server-addr";
+    private static final String NACOS_DISCOVERY_SERVER_KEY = "spring.cloud.nacos.discovery.server-addr";
 
     /** Nacos 配置中心命名空间属性键 */
-    private final static String NACOS_CONFIG_NAMESPACE_KEY = "spring.cloud.nacos.config.namespace";
+    private static final String NACOS_CONFIG_NAMESPACE_KEY = "spring.cloud.nacos.config.namespace";
 
     /** Nacos 注册中心（服务发现）命名空间属性键 */
-    private final static String NACOS_DISCOVERY_NAMESPACE_KEY = "spring.cloud.nacos.discovery.namespace";
+    private static final String NACOS_DISCOVERY_NAMESPACE_KEY = "spring.cloud.nacos.discovery.namespace";
 
     /**
      * 初始化 Nacos 配置中心与注册中心的连接属性。
@@ -70,7 +70,7 @@ public class NacosConfigInitializer implements ConfigInitializer {
         );
 
         // 若已存在项目级 nacos.server 定义，则配置中心与注册中心地址以占位符方式引用该值
-        if(properties.containsKey(PROJECT_NACOS_SERVER_KEY)){
+        if (properties.containsKey(PROJECT_NACOS_SERVER_KEY)) {
             properties.put(NACOS_CONFIG_SERVER_KEY, "${" + PROJECT_NACOS_SERVER_KEY + "}");
             properties.put(NACOS_DISCOVERY_SERVER_KEY, "${" + PROJECT_NACOS_SERVER_KEY + "}");
         }else{

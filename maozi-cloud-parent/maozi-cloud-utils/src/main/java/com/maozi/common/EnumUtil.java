@@ -4,6 +4,8 @@ import com.maozi.common.enums.BaseEnum;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
 
+import java.util.Objects;
+
 /**
  * 枚举工具类
  * <p>
@@ -30,7 +32,7 @@ public class EnumUtil {
 
         for(T iEnum : values) {
 
-            if(iEnum.getValue().intValue() == value.intValue()) {
+            if(Objects.equals(iEnum.getValue(), value)) {
                 return iEnum;
             }
 
@@ -56,7 +58,7 @@ public class EnumUtil {
 
         for(T iEnum : values) {
 
-            if(iEnum.getValue().intValue() == value.intValue()) {
+            if(Objects.equals(iEnum.getValue(), value)) {
                 return iEnum;
             }
 

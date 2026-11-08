@@ -28,7 +28,7 @@ import java.util.List;
 public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper,ConfigDo,Void> implements ConfigService {
 
 	/** 资源名称，用于日志和异常信息中标识当前操作的资源类型 */
-	private final static String RESOURCE_NAME = "配置";
+	private static final String RESOURCE_NAME = "配置";
 
 	/**
 	 * 获取资源名称

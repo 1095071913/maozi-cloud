@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper,PermissionDo,Void> implements PermissionService {
 
 	/** 资源名称，用于异常提示信息 */
-	private final static String RESOURCE_NAME = "权限";
+	private static final String RESOURCE_NAME = "权限";
 
 	/** 角色权限关系服务，用于校验权限是否被角色绑定 */
 	@Resource(name = "rolePermissionServiceImpl")

@@ -56,7 +56,7 @@ import static org.apache.dubbo.common.constants.CommonConstants.TIMESTAMP_KEY;
 public class ProviderFirstParams extends DefaultProviderFirstParams {
 
     /** 自定义的应用版本参数名（值随服务注册写入 URL，供灰度路由做版本匹配） */
-    public final static String APPLICATION_VERSION_KEY = "application.version";
+    public static final String APPLICATION_VERSION_KEY = "application.version";
 
     /**
      * 服务提供者优先参数集合
@@ -66,7 +66,7 @@ public class ProviderFirstParams extends DefaultProviderFirstParams {
      * 消费者即使传递了相同名称的参数也不会覆盖提供者的值。
      * </p>
      */
-    private final static Set<String> PARAMS = Collections.unmodifiableSet(new HashSet<>() {{
+    private static final Set<String> PARAMS = Collections.unmodifiableSet(new HashSet<>() {{
         addAll(Arrays.asList(RELEASE_KEY, DUBBO_VERSION_KEY, METHODS_KEY, TIMESTAMP_KEY, TAG_KEY, APPLICATION_VERSION_KEY));
     }});
 

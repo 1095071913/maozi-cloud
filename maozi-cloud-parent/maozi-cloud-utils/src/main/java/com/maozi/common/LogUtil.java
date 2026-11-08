@@ -19,7 +19,7 @@ import java.util.Map;
 public class LogUtil {
 
     /** SQL 日志线程变量，用于在同一线程中累积 SQL 日志信息 */
-    public final static ThreadLocal<StringBuilder> sqlLog = new ThreadLocal<>();
+    public static final ThreadLocal<StringBuilder> sqlLog = new ThreadLocal<>();
 
     /**
      * 输出 info 级别日志
@@ -78,9 +78,12 @@ public class LogUtil {
      * @param error 是否为错误日志
      * @param message 日志内容
      */
-    public static void log(Logger log, Boolean error, String message){
-        if(error) log.error(message);
-        else log.info(message);
+    public static void log(Logger log, boolean error, String message) {
+        if (error) {
+            log.error(message);
+        } else {
+            log.info(message);
+        }
     }
 
     /**
@@ -90,9 +93,9 @@ public class LogUtil {
      * @param error 是否为错误日志
      * @param content 日志内容键值对
      */
-    public static void log(Logger log,Boolean error,Map<String, String> content){
+    public static void log(Logger log, boolean error, Map<String, String> content) {
         String message = LogUtil.convertLog(content);
-        log(log,error,message);
+        log(log, error, message);
     }
 
     /**

@@ -10,7 +10,7 @@ package com.maozi.swagger.config;
 import cn.hutool.core.collection.CollUtil;
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.ObjectUtil;
-import com.maozi.common.constant.AuthroizationConstant;
+import com.maozi.common.constant.AuthorizationConstant;
 import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.common.properties.ApiWhitelistProperties;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -53,13 +53,13 @@ import java.util.Set;
 public class SwaggerConfig {
 
     /** 许可证名称 */
-    private final static String LICENSE_NAME = "Apache 2.0";
+    private static final String LICENSE_NAME = "Apache 2.0";
 
     /** 授权令牌示例值 */
-    private final static String AUTHORIZATION_VALUE = "{{oauth_access_token}}";
+    private static final String AUTHORIZATION_VALUE = "{{oauth_access_token}}";
 
     /** 项目主页 URL */
-    private final static String OFFICIAL_URL = "https://github.com/1095071913";
+    private static final String OFFICIAL_URL = "https://github.com/1095071913";
 
     /** API 白名单配置 */
     @Resource
@@ -96,7 +96,7 @@ public class SwaggerConfig {
 
         // 白名单 = 系统默认白名单 + 配置文件自定义白名单
         List<String> whitelist = CollectionUtil.newArrayList();
-        whitelist.addAll(ApiWhitelistProperties.DEFAULT_WITE_LIST);
+        whitelist.addAll(ApiWhitelistProperties.DEFAULT_WHITE_LIST);
 
         // 合并项目自定义白名单（可能未配置）
         List<String> apiWhitelist = apiWhitelistProperties.getConfigWhitelist();
@@ -114,7 +114,7 @@ public class SwaggerConfig {
 
             // 构建全局 Authorization 请求头参数，示例值便于在 Swagger UI 中直接调试
             Parameter tokenHeader = new HeaderParameter()
-                    .name(AuthroizationConstant.AUTHORIZATION_HEADER)
+                    .name(AuthorizationConstant.AUTHORIZATION_HEADER)
                     .example(AUTHORIZATION_VALUE)
                     .description("用户授权令牌")
                     .required(true)

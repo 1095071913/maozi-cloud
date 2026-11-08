@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 public class RegionServiceImpl extends BaseServiceImpl<RegionMapper,RegionDo,Void> implements RegionService {
 
 	/** 资源名称，用于日志和异常信息中标识当前操作的资源类型 */
-	private final static String RESOURCE_NAME = "地区";
+	private static final String RESOURCE_NAME = "地区";
 
 	/**
 	 * 获取资源名称

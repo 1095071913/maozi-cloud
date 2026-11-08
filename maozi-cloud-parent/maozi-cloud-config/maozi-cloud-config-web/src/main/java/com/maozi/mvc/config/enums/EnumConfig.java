@@ -5,6 +5,7 @@ import com.maozi.common.CollectionUtil;
 import com.maozi.common.constant.ApplicationNameConstant;
 import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.common.enums.BaseEnum;
+import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
@@ -26,12 +27,10 @@ import java.util.Map;
 public class EnumConfig {
 
     /** 全局枚举映射表，键为枚举类名（首字母小写），值为枚举常量列表 */
-    public final static Map<String, List<BaseEnum>> enums = CollectionUtil.newHashMap();
+    public static final Map<String, List<BaseEnum>> ENUMS = CollectionUtil.newHashMap();
 
-    /**
-     * 构造方法，初始化基础枚举和项目枚举
-     */
-    public EnumConfig(){
+    @PostConstruct
+    public void init() {
 
         // 先加载基础枚举包下的所有枚举类
         initEnum(ApplicationEnvironmentContext.PACKAGE_PREFIX + ".base.enums");
@@ -63,7 +62,7 @@ public class EnumConfig {
                     charArray[0] += 32; // ASCII 码加 32，即大写字母转小写
 
                     // 将枚举常量列表注册到全局映射表
-                    enums.put(new String(charArray), CollectionUtil.newArrayList(enumConstants));
+                    ENUMS.put(new String(charArray), CollectionUtil.newArrayList(enumConstants));
 
                 }
 

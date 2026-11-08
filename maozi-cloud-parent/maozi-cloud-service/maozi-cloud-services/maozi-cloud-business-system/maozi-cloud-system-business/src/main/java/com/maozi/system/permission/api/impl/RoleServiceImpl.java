@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 public class RoleServiceImpl extends BaseServiceImpl<RoleMapper,RoleDo,Void> implements RoleService {
 
 	/** 资源名称，用于异常提示信息 */
-	private final static String RESOURCE_NAME = "角色";
+	private static final String RESOURCE_NAME = "角色";
 
 	/** 用户角色关系服务，用于校验角色是否被用户绑定 */
 	@Resource(name = "userRoleServiceImpl")

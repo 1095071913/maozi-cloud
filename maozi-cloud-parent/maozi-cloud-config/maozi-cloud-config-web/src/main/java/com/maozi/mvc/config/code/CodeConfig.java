@@ -6,6 +6,7 @@ import com.maozi.common.ObjectUtil;
 import com.maozi.common.result.error.code.AbstractBaseErrorCode;
 import com.maozi.common.result.error.code.ErrorCode;
 import com.maozi.common.result.error.code.SystemErrorCode;
+import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -30,14 +31,7 @@ import java.util.Map;
 public class CodeConfig {
 
     /** 全局错误码映射表，键为错误码值，值为错误码对象 */
-    public final static Map<Integer, ErrorCode> ERROR_CODES = new HashMap<>();
-
-    /**
-     * 构造方法，初始化错误码映射表
-     */
-    public CodeConfig(){
-        initErrorCode();
-    }
+    public static final Map<Integer, ErrorCode> ERROR_CODES = new HashMap<>();
 
     /**
      * 初始化错误码
@@ -46,6 +40,7 @@ public class CodeConfig {
      * 通过反射遍历其字段，提取 {@link ErrorCode} 类型的字段值并注册到全局映射表。
      * </p>
      */
+    @PostConstruct
     private void initErrorCode(){
 
         // 从 Spring 容器中获取所有 AbstractBaseErrorCode 类型的 Bean
@@ -56,7 +51,7 @@ public class CodeConfig {
             try {
 
                 // 通过反射遍历 Bean 的所有声明字段
-                for(Field field : errorCodeBean.getClass().getDeclaredFields()){
+                for (Field field : errorCodeBean.getClass().getDeclaredFields()) {
 
                     field.setAccessible(true); // 设置可访问私有字段
 
@@ -89,4 +84,5 @@ public class CodeConfig {
         return ObjectUtil.isNullEmpty(errorCode) ? SystemErrorCode.NOT_EXIST_CODE_ERROR : errorCode;
 
     }
+
 }

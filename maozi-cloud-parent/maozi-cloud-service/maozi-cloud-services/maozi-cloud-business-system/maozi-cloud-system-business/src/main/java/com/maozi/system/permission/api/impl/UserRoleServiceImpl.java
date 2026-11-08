@@ -11,6 +11,7 @@ import com.maozi.system.permission.domain.UserRoleDo;
 import com.maozi.system.permission.mapper.UserRoleMapper;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
@@ -28,7 +29,7 @@ import java.util.stream.Collectors;
 public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper,UserRoleDo,Void> implements UserRoleService {
 
 	/** 资源名称，用于异常提示信息 */
-	private final static String RESOURCE_NAME = "用户角色关系";
+	private static final String RESOURCE_NAME = "用户角色关系";
 
 	/** 角色服务，用于校验角色是否存在 */
 	@Resource(name = "roleServiceImpl")
@@ -67,6 +68,7 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper,UserRole
 	 * @param unbindRoleIds 需要解绑的角色ID列表
 	 */
 	@Override
+	@Transactional(rollbackFor = Exception.class)
 	public void updateBind(Long userId, List<Long> bindRoleIds, List<Long> unbindRoleIds) {
 
 		if(ObjectUtil.isNotNullEmpty(bindRoleIds)) {
@@ -87,7 +89,9 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper,UserRole
 
 		if(ObjectUtil.isNotNullEmpty(unbindRoleIds)) {
 
-			Consumer<Long> consumer = (roleId)-> remove(Wrappers.lambdaQuery(UserRoleDo.builder().userId(userId).roleId(roleId).build()));
+			Consumer<Long> consumer = (roleId) -> remove(
+			    Wrappers.lambdaQuery(UserRoleDo.builder().userId(userId).roleId(roleId).build()
+			));
 
 			unbindRoleIds.forEach(Objects.requireNonNull(consumer));
 
@@ -121,7 +125,7 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper,UserRole
 	 * @throws com.maozi.common.result.error.exception.BusinessResultException 用户未绑定该角色时抛出
 	 */
 	@Override
-	public void hasUserBindRole(Long userId, Long roleId) {
+	public void checkUserBindRole(Long userId, Long roleId) {
 
 		LambdaQueryWrapper<UserRoleDo> wrapper = Wrappers.lambdaQuery();
 		wrapper.eq(UserRoleDo::getUserId,userId);

@@ -55,6 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -88,13 +89,26 @@ import java.util.stream.Collectors;
  *
  * @author maozi
  */
-public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends AbstractBaseDomain,D> extends ServiceImpl<M, T> implements MPJBaseService<T>,BaseServiceResult<D> {
+public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends AbstractBaseDomain, D>
+		extends ServiceImpl<M, T>
+		implements MPJBaseService<T>, BaseServiceResult<D> {
 
 	/** 领域模型（数据库实体）Class 对象 */
 	protected Class<T> domainClass;
 
 	/** 数据传输对象（DTO）Class 对象 */
 	protected Class<D> resultClass;
+
+	/** 资源名称后缀：列表 */
+	private static final String RESOURCE_SUFFIX_LIST = "列表";
+
+	/** 资源名称后缀：分组 */
+	private static final String RESOURCE_SUFFIX_GROUP = "分组";
+
+	/** 资源名称后缀：连接类型 */
+	private static final String RESOURCE_SUFFIX_JOIN_TYPE = "连接类型";
+	/** 资源名称后缀：查询类型 */
+	private static final String RESOURCE_SUFFIX_QUERY_TYPE = "查询类型";
 
 	/**
 	 * 获取资源名称（供子类实现）
@@ -116,9 +130,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 	public BaseServiceImpl() {
 
 		// 沿继承链向上查找带泛型参数的父类，提取领域模型与 DTO 的泛型实参
-		for(Class<?> superClass = this.getClass() ;; superClass = superClass.getSuperclass()) {
+		for(Class<?> superClass = this.getClass() ; superClass != null && superClass != Object.class ; superClass = superClass.getSuperclass()) {
 
-		Type genericSuperclass = superClass.getGenericSuperclass();
+			Type genericSuperclass = superClass.getGenericSuperclass();
 
 			if(genericSuperclass instanceof ParameterizedType type) {
 
@@ -155,8 +169,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public Class<D> getResultClass(){
 
-		if(resultClass.getName().equals(Void.class.getName())) {
-			throw new BusinessResultException(SystemErrorCode.NOT_SET_RESPONSE_ERROR).setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
+		if(Void.class.equals(resultClass)) {
+			throw new BusinessResultException(SystemErrorCode.NOT_SET_RESPONSE_ERROR)
+					.setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
 		}
 
     	return resultClass;
@@ -232,37 +247,39 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param sfunction Lambda 函数引用
      * @return 数据库列名
      */
-	@SneakyThrows
-    protected <O> String getColumn(SFunction<O, ?> sfunction) {
+	protected <O> String getColumn(SFunction<O, ?> sfunction) {
 
-		// 通过 writeReplace 方法反射获取 Lambda 的序列化元信息
-		Method method = sfunction.getClass().getDeclaredMethod(SerializeUtil.WRITE_REPLACE_FIELD_NAME);
+		try {
 
-		method.setAccessible(true);
+			Method method = sfunction.getClass().getDeclaredMethod(SerializeUtil.WRITE_REPLACE_FIELD_NAME);
+			method.setAccessible(true);
+			SerializedLambda serializedLambda = (SerializedLambda) method.invoke(sfunction);
 
-		SerializedLambda serializedLambda = (SerializedLambda) method.invoke(sfunction);
+			String fieldWithGet = serializedLambda.getImplMethodName();
 
-		String fieldWithGet = serializedLambda.getImplMethodName();
+			// 去掉方法名的 get 前缀得到属性名，并转为下划线格式
+			String propertyName = StrUtil.toUnderlineCase(fieldWithGet.substring(3));
 
-		// 去掉方法名的 get 前缀得到属性名，并转为下划线格式
-		String propertyName = StrUtil.toUnderlineCase(fieldWithGet.substring(3));
+			TableInfo tableInfo = TableInfoHelper.getTableInfo(entityClass);
+			ObjectUtil.checkConditionThrowError(ObjectUtil.isNotNullEmpty(tableInfo),"领域模型映射关系不存在");
 
-		TableInfo tableInfo = TableInfoHelper.getTableInfo(entityClass);
-		ObjectUtil.checkConditionThrowError(ObjectUtil.isNotNullEmpty(tableInfo),"领域模型映射关系不存在");
-
-		// 命中主键属性：返回主键列名
-		if (tableInfo.getKeyProperty().equals(propertyName)) {
-			return tableInfo.getKeyColumn();
-		}
-
-		// 遍历普通字段映射：属性名匹配时返回映射列名
-		for (TableFieldInfo fieldInfo : tableInfo.getFieldList()) {
-			if (fieldInfo.getProperty().equals(propertyName)) {
-				return fieldInfo.getColumn();
+			// 命中主键属性：返回主键列名
+			if (propertyName.equals(tableInfo.getKeyProperty())) {
+				return tableInfo.getKeyColumn();
 			}
-		}
 
-		return propertyName;
+			// 遍历普通字段映射：属性名匹配时返回映射列名
+			for (TableFieldInfo fieldInfo : tableInfo.getFieldList()) {
+				if (fieldInfo.getProperty().equals(propertyName)) {
+					return fieldInfo.getColumn();
+				}
+			}
+
+			return propertyName;
+
+		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+			throw new BusinessResultException(SystemErrorCode.SYSTEM_ERROR).setResource(getResourceName());
+		}
 
 	}
 
@@ -446,7 +463,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     protected void checkAvailable(List<Long> ids){
 
-    	CollectionUtil.collectionIsEmptyThrowError(ids,getResourceName() + "列表");
+		CollectionUtil.collectionIsEmptyThrowError(ids,getResourceName() + RESOURCE_SUFFIX_LIST);
 
 		QueryWrapper<T> wrapper = Wrappers.query();
 
@@ -787,7 +804,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     protected List<T> listByIds(Collection<?> ids,String ... columns) {
 
-		CollectionUtil.collectionIsEmptyThrowError(ids,getResourceName() + "列表");
+		CollectionUtil.collectionIsEmptyThrowError(ids,getResourceName() + RESOURCE_SUFFIX_LIST);
 
 		QueryWrapper<T> wrapper = Wrappers.query();
 		if(columns.length > 0) {
@@ -1041,7 +1058,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public void saveUpdateBatch(List<T> domains) {
 
-		CollectionUtil.collectionIsEmptyThrowError(domains,getResourceName() + "列表");
+		CollectionUtil.collectionIsEmptyThrowError(domains, getResourceName() + RESOURCE_SUFFIX_LIST);
 
 		Consumer<T> consumer = (domain) -> {
 
@@ -1060,7 +1077,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
 		};
 
-		domains.forEach(Objects.requireNonNull(consumer));
+		domains.forEach(consumer);
 
     }
 
@@ -1069,14 +1086,14 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      *
      * @param id 实体 ID
      */
-    protected void checkBind(Long id) {};
+	protected void checkBind(Long id) {}
 
     /**
      * 解除实体的绑定关系（供子类覆盖）
      *
      * @param id 实体 ID
      */
-    protected void unbind(Long id) {};
+    protected void unbind(Long id) {}
 
     /**
      * 根据 ID 删除实体
@@ -1155,11 +1172,12 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 包含 Map&lt;Long, List&lt;D&gt;&gt; 的统一响应结果
      */
     @Override
-	public AbstractBaseResult<Map<Long,List<D>>> listByRelationIdsResult(Collection<Long> ids,String relationField,String ... columns) {
+	public AbstractBaseResult<Map<Long, List<D>>> listByRelationIdsResult(
+			Collection<Long> ids, String relationField, String ... columns) {
 
-		CollectionUtil.collectionIsEmptyThrowError(ids,getResourceName() + "列表");
+		CollectionUtil.collectionIsEmptyThrowError(ids,getResourceName() + RESOURCE_SUFFIX_LIST);
 
-		ObjectUtil.isNullEmptyThrowError(relationField, getResourceName() + "分组");
+		ObjectUtil.isNullEmptyThrowError(relationField, getResourceName() + RESOURCE_SUFFIX_GROUP);
 
 		QueryWrapper<T> wrapper = Wrappers.query();
 		if(columns.length > 0) {
@@ -1198,7 +1216,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
 		ObjectUtil.isNullEmptyThrowError(id,getResourceName());
 
-		ObjectUtil.isNullEmptyThrowError(relationField, getResourceName() + "分组");
+		ObjectUtil.isNullEmptyThrowError(relationField, getResourceName() + RESOURCE_SUFFIX_GROUP);
 
 		QueryWrapper<T> wrapper = Wrappers.query();
 		if(columns.length > 0) {
@@ -1230,9 +1248,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 包含实体 ID 的统一响应结果
      */
 	@Override
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public <P> AbstractBaseResult<Long> saveUpdateResult(Long id, P param){
-		return ResultUtil.success(saveUpdate(id,param));
+		return ResultUtil.success(saveUpdate(id, param));
 	}
 
     /**
@@ -1242,7 +1260,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 统一响应结果
      */
 	@Override
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public AbstractBaseResult<Void> saveUpdateBatchResult(List<SaveUpdateBatch> collection){
 
 		CollectionUtil.collectionIsEmptyThrowError(collection, getResourceName() + "列表");
@@ -1261,7 +1279,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 统一响应结果
      */
 	@Override
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public AbstractBaseResult<Void> removeByIdResult(Long id) {
 		removeById(id);
 		return ResultUtil.success();
@@ -1274,7 +1292,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 统一响应结果
      */
 	@Override
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public AbstractBaseResult<Void> removeByIdBatchResult(List<Long> ids) {
 
 		CollectionUtil.collectionIsEmptyThrowError(ids, getResourceName() + "列表");
@@ -1434,13 +1452,13 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
 					JoinBaseType value = annotation.value();
 
-					ObjectUtil.isNullEmptyThrowError(value, getResourceName() + "连接类型");
+					ObjectUtil.isNullEmptyThrowError(value, getResourceName() + RESOURCE_SUFFIX_JOIN_TYPE);
 
-					ObjectUtil.isNullEmptyThrowError(value.getType(), getResourceName() + "连接类型");
+					ObjectUtil.isNullEmptyThrowError(value.getType(), getResourceName() + RESOURCE_SUFFIX_JOIN_TYPE);
 
 					JoinType joinType = JoinType.get(value.getType());
 
-					ObjectUtil.isNullEmptyThrowError(joinType, getResourceName() + "连接类型");
+					ObjectUtil.isNullEmptyThrowError(joinType, getResourceName() + RESOURCE_SUFFIX_JOIN_TYPE);
 
 					Objects.requireNonNull(joinType).getJoinPlugin().apply(getResourceName(), wrapper, annotation);
 

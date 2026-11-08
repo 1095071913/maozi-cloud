@@ -51,6 +51,12 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo, C
 	/** 资源名称标识，用于日志和异常提示 */
 	private static final String RESOURCE_NAME = "客户端";
 
+	/** 授权码存活时间（秒）：5 分钟 */
+	private static final long AUTH_CODE_TTL_SECONDS = 300;
+
+	/** 设备码存活时间（秒）：5 分钟 */
+	private static final long DEVICE_CODE_TTL_SECONDS = 300;
+
 	/** 请求令牌（Access Token）默认有效期：2小时 */
 	protected static final Long DEFAULT_ACCESS_TOKEN_VALIDITY_SECONDS = 60 * 60 * 2L;
 
@@ -58,10 +64,10 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo, C
 	protected static final Long DEFAULT_REFRESH_TOKEN_VALIDITY_SECONDS = 60 * 60 * 24 * 7L;
 
 	/** OAuth2专用的JSON序列化/反序列化对象，注册了Spring Security OAuth2的Jackson模块 */
-	public final static ObjectMapper oauthObjectMapper;
+	public static final ObjectMapper oauthObjectMapper;
 
 	/** 密码编码器，用于对客户端密钥进行加密存储 */
-	protected final static PasswordEncoder passwordEncoder;
+	protected static final PasswordEncoder passwordEncoder;
 
 	/*
 	  静态初始化块。
@@ -142,9 +148,9 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo, C
 			//不透明令牌（REFERENCE），令牌值不携带信息，需通过内省端点校验
 			builder.accessTokenFormat(OAuth2TokenFormat.REFERENCE);
 			// 授权码存活时间：5分钟
-			builder.authorizationCodeTimeToLive(Duration.ofSeconds(300));
+			builder.authorizationCodeTimeToLive(Duration.ofSeconds(AUTH_CODE_TTL_SECONDS));
 			// 设备码存活时间：5分钟
-			builder.deviceCodeTimeToLive(Duration.ofSeconds(300));
+			builder.deviceCodeTimeToLive(Duration.ofSeconds(DEVICE_CODE_TTL_SECONDS));
 			// 不重用 Refresh Token（每次刷新令牌时签发新的 Refresh Token）
 			builder.reuseRefreshTokens(Boolean.FALSE);
 

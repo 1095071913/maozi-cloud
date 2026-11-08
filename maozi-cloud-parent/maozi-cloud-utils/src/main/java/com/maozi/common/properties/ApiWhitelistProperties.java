@@ -22,7 +22,7 @@ import java.util.List;
 public class ApiWhitelistProperties {
 
     /** 系统默认白名单路径列表 */
-    public final static List<String> DEFAULT_WITE_LIST;
+    public static final List<String> DEFAULT_WHITE_LIST;
 
     /** 项目自定义白名单路径列表，通过 application-project-whitelist 配置 */
     @Value("${application-project-whitelist:}")
@@ -30,19 +30,19 @@ public class ApiWhitelistProperties {
 
     static {
 
-        DEFAULT_WITE_LIST = CollectionUtil.newArrayList();
+        DEFAULT_WHITE_LIST = CollectionUtil.newArrayList();
 
         // OAuth2 令牌内省端点，供资源服务器验证令牌有效性
-        DEFAULT_WITE_LIST.add("/oauth2/introspect");
-        DEFAULT_WITE_LIST.add("/oauth/token/**/introspect");
+        DEFAULT_WHITE_LIST.add("/oauth2/introspect");
+        DEFAULT_WHITE_LIST.add("/oauth/token/**/introspect");
         // Swagger UI 依赖的静态资源路径
-        DEFAULT_WITE_LIST.add("/webjars/**");
+        DEFAULT_WHITE_LIST.add("/webjars/**");
         // Spring Boot Actuator 监控端点，用于健康检查和运维监控
-        DEFAULT_WITE_LIST.add("/actuator/**");
+        DEFAULT_WHITE_LIST.add("/actuator/**");
         // 应用配置相关端点
-        DEFAULT_WITE_LIST.add("/application/**");
+        DEFAULT_WHITE_LIST.add("/application/**");
         // OpenAPI 3.0 API 文档端点
-        DEFAULT_WITE_LIST.add("/v3/api-docs/**");
+        DEFAULT_WHITE_LIST.add("/v3/api-docs/**");
 
     }
 

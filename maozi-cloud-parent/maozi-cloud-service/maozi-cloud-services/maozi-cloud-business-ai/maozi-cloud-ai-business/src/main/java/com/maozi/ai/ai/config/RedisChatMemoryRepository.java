@@ -7,6 +7,7 @@ import com.maozi.ai.ai.constant.ChatMessageConstant;
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.JacksonUtil;
 import com.maozi.common.ObjectUtil;
+import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.redis.utils.RedisUtil;
 import jakarta.annotation.Resource;
 import org.jetbrains.annotations.NotNull;
@@ -51,13 +52,13 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
     private StringRedisTemplate redisClient;
 
     /** 会话记忆消息主体 key 前缀 */
-    private final static String AI_CHAT_MEMORY_KEY = RedisUtil.REDIS_KEY_PREFIX + "chat:memory:";
+    private static final String AI_CHAT_MEMORY_KEY = RedisUtil.REDIS_KEY_PREFIX + "chat:memory:";
 
     /** 消息顺序索引 key 后缀：ZSET，member = 消息雪花 ID，score = 写入时刻毫秒时间戳 */
-    private final static String AI_CHAT_MEMORY_ORDER_KEY_SUFFIX = ":order";
+    private static final String AI_CHAT_MEMORY_ORDER_KEY_SUFFIX = ":order";
 
     /** 用户对话记录索引 key 后缀：ZSET，member = 消息雪花 ID，score = 写入时刻毫秒时间戳，仅记录 USER / ASSISTANT 消息 */
-    private final static String AI_CHAT_MEMORY_RECORD_KEY_SUFFIX = ":record";
+    private static final String AI_CHAT_MEMORY_RECORD_KEY_SUFFIX = ":record";
 
     /**
      * 查询全部会话 ID
@@ -122,6 +123,7 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
     @NotNull
     @Override
     public List<Message> findRecordAfterTimestamp(@NotNull String conversationId, Long timestamp) {
+        Objects.requireNonNull(timestamp, "timestamp must not be null");
         return findMessageByIndexSuffix(conversationId, AI_CHAT_MEMORY_RECORD_KEY_SUFFIX, timestamp + 1);
     }
 
@@ -314,11 +316,10 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
                 return new AssistantMessage(chatMessage.getTextContent(), chatMessage.getMetadata(), chatMessage.getToolCalls(),chatMessage.getMedia());
             }
             case TOOL -> {
-                return new ToolResponseMessage(chatMessage.getToolResponses(),chatMessage.getMetadata());
+                return new ToolResponseMessage(chatMessage.getToolResponses(), chatMessage.getMetadata());
             }
+            default -> throw new BusinessResultException("message data conversion error");
         }
-
-        throw new RuntimeException("message data conversion error");
 
     }
 

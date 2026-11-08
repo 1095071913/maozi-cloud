@@ -35,7 +35,7 @@ public class RestApplicationCode {
      */
     @Get(value = PATH + "/list",description = "列表")
     public AbstractBaseResult<Map<String, List<BaseEnum>>> list() {
-        return ResultUtil.success(EnumConfig.enums);
+        return ResultUtil.success(EnumConfig.ENUMS);
     }
 
     /**
@@ -46,7 +46,7 @@ public class RestApplicationCode {
      */
     @Get(value = PATH + "/{name}/get",description = "详情")
     public AbstractBaseResult<List<BaseEnum>> get(@PathVariable("name") String name) {
-        return ResultUtil.success(EnumConfig.enums.get(name));
+        return ResultUtil.success(EnumConfig.ENUMS.get(name));
     }
 
 }

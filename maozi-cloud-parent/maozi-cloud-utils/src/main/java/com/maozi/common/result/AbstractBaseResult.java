@@ -32,6 +32,7 @@ import lombok.experimental.SuperBuilder;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * 接口响应结果集基类
@@ -78,7 +79,7 @@ public abstract class AbstractBaseResult<D> implements Serializable {
 	 */
 	@JsonIgnore
 	public Boolean isSuccess() {
-		return getCode() == 200;
+		return Objects.equals(SuccessResult.RESULT_SUCCESS_DEFAULT_CODE, getCode());
 	}
 
 	/**

@@ -47,7 +47,7 @@ public class SuccessResult<D> extends AbstractBaseResult<D> implements Serializa
 	private static final long serialVersionUID = 1L;
 
 	/** 结果集成功默认码 */
-	public final static Integer RESULT_SUCCESS_DEFAULT_CODE = 200;
+	public static final Integer RESULT_SUCCESS_DEFAULT_CODE = 200;
 
 	/**
 	 * 获取业务内码

@@ -44,7 +44,7 @@ import java.util.Map;
 public class RetryExecutorTask implements ExecutorMethod {
 
     /** 自定义统一重试处理器场景值 */
-    public final static String SCENE = "retryExecutorTask";
+    public static final String SCENE = "retryExecutorTask";
 
     /**
      * 构建带版本号前缀的业务场景值（{@code ApplicationEnvironmentContext.VERSION + "_" + 场景值}）

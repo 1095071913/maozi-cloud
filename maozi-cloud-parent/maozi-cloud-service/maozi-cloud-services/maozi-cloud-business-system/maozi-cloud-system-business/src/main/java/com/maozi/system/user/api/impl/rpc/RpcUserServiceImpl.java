@@ -78,7 +78,7 @@ public class RpcUserServiceImpl extends UserServiceImpl implements RpcUserServic
 		Long id = getAvailableByUsername(username);
 
 		// 校验用户绑定了指定角色，未绑定则抛出异常
-		userRoleService.hasUserBindRole(id,roleId);
+		userRoleService.checkUserBindRole(id,roleId);
 
 		List<String> responses = CollectionUtil.newArrayList();
 

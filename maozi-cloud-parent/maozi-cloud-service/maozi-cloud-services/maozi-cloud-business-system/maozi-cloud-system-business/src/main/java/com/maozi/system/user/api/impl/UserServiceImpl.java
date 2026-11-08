@@ -60,7 +60,7 @@ import java.util.List;
 public class UserServiceImpl extends BaseServiceImpl<UserMapper,UserDo,Void> implements UserService {
 
 	/** 资源名称常量，用于异常提示信息 */
-	private final static String RESOURCE_NAME = "用户";
+	private static final String RESOURCE_NAME = "用户";
 
 	/**
 	 * 获取资源名称
@@ -181,7 +181,10 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper,UserDo,Void> imp
 	 * @return 当前用户拥有的权限标识列表
 	 */
 	protected List<String> getCurrentPermissions() {
-		return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+		return SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+				.stream()
+				.map(GrantedAuthority::getAuthority)
+				.toList();
 	}
 
 	/**

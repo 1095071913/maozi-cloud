@@ -20,7 +20,8 @@ import java.util.List;
  * 通过 QueryMapping 注解自动查询角色关联的权限ID列表。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @NoArgsConstructor

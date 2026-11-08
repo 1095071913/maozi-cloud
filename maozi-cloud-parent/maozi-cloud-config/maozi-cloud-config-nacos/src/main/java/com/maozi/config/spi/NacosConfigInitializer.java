@@ -17,7 +17,8 @@ import java.util.Properties;
  * 连接信息和应用自身配置文件的导入声明写入系统属性。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class NacosConfigInitializer implements ConfigInitializer {
 

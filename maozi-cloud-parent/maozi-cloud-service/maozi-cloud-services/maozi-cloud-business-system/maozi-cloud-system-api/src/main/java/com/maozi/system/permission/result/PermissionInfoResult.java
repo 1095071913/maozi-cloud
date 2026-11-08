@@ -17,7 +17,8 @@ import java.io.Serializable;
  * 路由配置、服务地址、权限类型及排序等。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @NoArgsConstructor

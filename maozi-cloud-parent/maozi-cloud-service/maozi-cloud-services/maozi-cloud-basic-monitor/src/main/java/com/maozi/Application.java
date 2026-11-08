@@ -25,7 +25,8 @@ package com.maozi;
  * 可查看各服务的健康状态、JVM 指标、线程信息、日志级别等。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class Application extends BaseApplication {
 

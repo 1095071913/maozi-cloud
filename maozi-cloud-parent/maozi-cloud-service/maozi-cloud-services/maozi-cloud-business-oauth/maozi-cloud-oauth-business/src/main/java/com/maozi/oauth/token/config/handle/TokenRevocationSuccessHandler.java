@@ -16,7 +16,8 @@ import java.io.IOException;
  * 当令牌成功撤销后（即用户退出登录），向客户端返回成功响应。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class TokenRevocationSuccessHandler implements AuthenticationSuccessHandler {
 

@@ -17,7 +17,8 @@ import org.springframework.stereotype.Component;
  * 当密码错误时抛出自定义的中文错误提示"用户认证授权失败"。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component
 public class BaseDaoAuthenticationProvider extends DaoAuthenticationProvider {

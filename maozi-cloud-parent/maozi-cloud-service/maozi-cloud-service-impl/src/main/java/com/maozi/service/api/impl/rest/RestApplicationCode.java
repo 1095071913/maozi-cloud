@@ -19,7 +19,8 @@ import java.util.Map;
  * 供前端下拉选择等场景使用。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @RestService
 @Tag(name = "公用模块/枚举常量")

@@ -116,8 +116,8 @@ public class LogUtil {
 
         StringBuilder sb = new StringBuilder();
 
-        for (String key : content.keySet()) {
-            sb.append("[ ").append(key).append("：").append(content.get(key)).append(" ]  ");
+        for (Map.Entry<String, String> entry : content.entrySet()) {
+            sb.append("[ ").append(entry.getKey()).append("：").append(entry.getValue()).append(" ]  ");
         }
         sb.delete(0, 2);
         sb.delete(sb.length() - 4, sb.length());

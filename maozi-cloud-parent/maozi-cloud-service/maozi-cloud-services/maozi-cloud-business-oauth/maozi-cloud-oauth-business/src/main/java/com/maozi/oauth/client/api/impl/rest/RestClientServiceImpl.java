@@ -27,7 +27,8 @@ import java.util.List;
  * 使用 @RestService 注解标识为REST服务。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @RestService
 public class RestClientServiceImpl extends ClientServiceImpl implements RestClientService {

@@ -21,7 +21,8 @@ import org.springframework.util.Assert;
  * 确保令牌被彻底清除而不仅仅是标记为失效。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Service
 public final class TokenRevocationAuthenticationProvider implements AuthenticationProvider {

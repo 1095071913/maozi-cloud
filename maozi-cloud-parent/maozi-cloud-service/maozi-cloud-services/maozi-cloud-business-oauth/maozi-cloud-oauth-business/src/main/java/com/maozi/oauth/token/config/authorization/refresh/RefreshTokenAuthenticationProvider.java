@@ -35,7 +35,8 @@ import java.util.stream.Collectors;
  * 确保刷新后的Token通过introspection端点能正确返回权限信息。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Slf4j
 @Component

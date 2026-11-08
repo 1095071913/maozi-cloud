@@ -14,7 +14,8 @@ import org.springframework.security.core.AuthenticationException;
  * </p>
  *
  * @param <T> 认证令牌类型，必须继承自AbstractAuthenticationToken
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public abstract class BaseSubAuthenticationProvider<T extends AbstractAuthenticationToken> implements AuthenticationProvider {
 

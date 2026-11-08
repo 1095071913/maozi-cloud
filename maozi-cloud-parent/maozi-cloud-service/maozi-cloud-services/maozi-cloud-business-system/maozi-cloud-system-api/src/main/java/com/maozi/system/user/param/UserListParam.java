@@ -21,7 +21,8 @@ import java.util.Map;
  * 默认按创建时间倒序排列。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 public class UserListParam implements OrderParam, Serializable {

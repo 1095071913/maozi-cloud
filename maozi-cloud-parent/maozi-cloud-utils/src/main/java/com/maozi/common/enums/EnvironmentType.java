@@ -8,7 +8,8 @@ import lombok.Getter;
  * desc 与配置的环境标识（local/test/prod）保持一致，用于运行环境判断。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public enum EnvironmentType implements BaseEnum {
 

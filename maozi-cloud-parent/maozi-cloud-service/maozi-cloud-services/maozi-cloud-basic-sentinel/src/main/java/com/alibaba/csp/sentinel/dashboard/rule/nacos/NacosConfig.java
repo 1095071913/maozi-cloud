@@ -27,7 +27,8 @@ import java.util.Properties;
 /**
  * Nacos config service for rule persistence.
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Configuration
 public class NacosConfig {

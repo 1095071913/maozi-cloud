@@ -16,7 +16,8 @@ import com.maozi.system.config.result.ConfigDropDownResult;
  * 供其他微服务通过 RPC 方式获取系统全局配置。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @RemoteService
 public class RpcConfigServiceImpl extends ConfigServiceImpl implements RpcConfigService {

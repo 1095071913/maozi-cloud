@@ -12,7 +12,8 @@ import lombok.Getter;
  * 当前支持阿里云对象存储（OSS），后续可扩展本地存储、MinIO 等类型。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Schema(description = "图片存储类型",type = "integer")
 public enum ImageStorageType implements BaseEnum {

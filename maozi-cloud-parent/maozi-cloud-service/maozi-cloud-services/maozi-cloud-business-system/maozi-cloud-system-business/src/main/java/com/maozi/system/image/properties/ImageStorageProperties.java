@@ -16,7 +16,8 @@ import java.io.Serializable;
  * aliyun 为阿里云 OSS 处理器所需的连接配置。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @Configuration

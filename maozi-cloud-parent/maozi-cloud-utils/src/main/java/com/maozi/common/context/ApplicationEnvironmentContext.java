@@ -16,7 +16,8 @@ import org.springframework.stereotype.Component;
  * 使用 {@link RefreshScope} 支持配置动态刷新。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @Component(ApplicationEnvironmentContext.CLASS_NAME)

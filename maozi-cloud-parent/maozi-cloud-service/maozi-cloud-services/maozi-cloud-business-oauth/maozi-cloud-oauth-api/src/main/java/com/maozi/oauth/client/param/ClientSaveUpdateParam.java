@@ -38,7 +38,8 @@ import java.util.Set;
  * 授权模式、令牌有效期等核心配置项。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @NoArgsConstructor

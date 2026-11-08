@@ -22,7 +22,8 @@ import reactor.core.publisher.Mono;
  * 确保下游服务只能通过网关鉴权后获取真实的用户身份信息。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component
 public class RequestHeaderFilter implements GlobalFilter, Ordered {

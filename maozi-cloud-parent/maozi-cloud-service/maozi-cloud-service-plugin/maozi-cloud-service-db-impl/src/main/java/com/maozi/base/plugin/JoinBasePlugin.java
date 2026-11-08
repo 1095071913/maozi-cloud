@@ -10,7 +10,8 @@ import com.maozi.base.plugin.join.JoinPlugin;
  * （InnerJoin、LeftJoin、RightJoin）分别实现不同的 SQL 关联拼接逻辑。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public abstract class JoinBasePlugin {
 

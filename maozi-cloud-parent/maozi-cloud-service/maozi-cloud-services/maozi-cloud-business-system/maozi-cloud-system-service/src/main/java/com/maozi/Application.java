@@ -24,7 +24,8 @@ package com.maozi;
  * 负责初始化并启动 Spring Boot 应用程序。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class Application extends BaseApplicationDB {
 

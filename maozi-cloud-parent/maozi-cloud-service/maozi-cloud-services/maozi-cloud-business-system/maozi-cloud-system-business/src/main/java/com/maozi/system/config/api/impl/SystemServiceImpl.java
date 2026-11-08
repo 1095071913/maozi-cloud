@@ -12,7 +12,8 @@ import org.springframework.stereotype.Service;
  * 通过注入 SystemProperties 获取系统相关的配置信息。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Service
 public class SystemServiceImpl implements SystemService {

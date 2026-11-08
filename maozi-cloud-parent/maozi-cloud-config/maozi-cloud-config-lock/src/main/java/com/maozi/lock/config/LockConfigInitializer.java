@@ -12,7 +12,8 @@ import java.util.Properties;
  * Nacos 共享配置文件追加到系统属性 {@code spring.config.import} 导入列表。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class LockConfigInitializer implements ConfigInitializer {
 

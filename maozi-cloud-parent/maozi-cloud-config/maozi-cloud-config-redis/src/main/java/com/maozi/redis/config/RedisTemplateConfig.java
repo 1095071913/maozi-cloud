@@ -13,7 +13,8 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * 值和哈希值使用 Java 原生序列化，确保数据可读性和兼容性。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Configuration
 public class RedisTemplateConfig {

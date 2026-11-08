@@ -67,7 +67,8 @@ import java.util.UUID;
  * 同时记录详细的错误日志，包含请求 IP、URL、方法、异常信息等。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Slf4j
 @Component
@@ -202,7 +203,7 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
 		}
 
 		// 构建错误日志信息
-		Map<String,String> logs = new LinkedHashMap<>();
+		Map<String, String> logs = new LinkedHashMap<>(8);
 
 		logs.put(LogTag.TYPE, LogCommonType.GATEWAY.getDesc());
 		logs.put(LogTag.IP, WebUtil.getRequestHost(request));

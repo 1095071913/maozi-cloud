@@ -14,7 +14,8 @@ import org.apache.ibatis.logging.Log;
  * （==&gt;  Preparing:）或参数信息（==&gt; Parameters:）时才进行收集。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Slf4j
 public class MybatisPlusLog implements Log {

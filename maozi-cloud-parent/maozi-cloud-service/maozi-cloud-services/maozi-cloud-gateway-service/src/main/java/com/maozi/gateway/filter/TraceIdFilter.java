@@ -25,7 +25,8 @@ import java.util.UUID;
  * 将 traceId 写入 MDC 以关联网关日志，请求结束后清理 MDC 防止线程复用导致的数据泄漏。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component
 public class TraceIdFilter implements GlobalFilter, Ordered {

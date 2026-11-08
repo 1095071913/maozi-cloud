@@ -16,7 +16,8 @@ import java.util.Map;
  * </p>
  *
  * @param <D> 数据传输对象类型
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public interface BaseServiceResult<D> {
 

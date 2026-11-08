@@ -16,7 +16,8 @@ import java.io.Serializable;
  * 如ID、上级ID、名称、图标、标识和类型等。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @NoArgsConstructor

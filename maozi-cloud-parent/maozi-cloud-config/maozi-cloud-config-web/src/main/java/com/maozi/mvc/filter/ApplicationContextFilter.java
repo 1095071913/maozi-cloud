@@ -37,7 +37,8 @@ import java.util.UUID;
  * 请求完成后自动清理上下文，防止线程池复用导致的数据泄漏。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)

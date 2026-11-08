@@ -32,7 +32,8 @@ import java.io.Serializable;
  * 适用于所有需要下拉选项的场景。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @NoArgsConstructor

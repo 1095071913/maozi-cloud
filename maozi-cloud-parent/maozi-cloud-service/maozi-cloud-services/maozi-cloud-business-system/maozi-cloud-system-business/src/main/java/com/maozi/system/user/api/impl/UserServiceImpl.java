@@ -54,7 +54,8 @@ import java.util.List;
  * 同时提供 REST 和 RPC 服务实现的公共基础方法。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Service
 public class UserServiceImpl extends BaseServiceImpl<UserMapper,UserDo,Void> implements UserService {

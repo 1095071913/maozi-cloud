@@ -7,7 +7,8 @@ import java.util.List;
  * <p>提供用户与角色绑定关系的管理功能，包括绑定关系校验、
  * 绑定/解绑操作以及根据用户或角色查询关联关系等功能。</p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public interface UserRoleService {
 

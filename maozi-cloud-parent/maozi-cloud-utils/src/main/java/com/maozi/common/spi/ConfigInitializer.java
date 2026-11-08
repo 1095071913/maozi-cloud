@@ -12,7 +12,8 @@ import java.util.Properties;
  * 将配置写入系统属性，并可向启动日志贡献诊断信息。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public interface ConfigInitializer {
 

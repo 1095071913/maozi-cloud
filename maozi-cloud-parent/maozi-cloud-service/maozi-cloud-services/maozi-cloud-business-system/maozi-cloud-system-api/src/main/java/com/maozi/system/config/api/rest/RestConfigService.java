@@ -29,7 +29,8 @@ import java.util.List;
  * 以及根据配置名称获取配置值等操作。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Tag(name = "配置模块")
 public interface RestConfigService {

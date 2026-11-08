@@ -12,7 +12,8 @@ import java.io.Serializable;
  * 所有错误码分类的公共父类，子类通过静态常量定义具体的错误码实例。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @NoArgsConstructor

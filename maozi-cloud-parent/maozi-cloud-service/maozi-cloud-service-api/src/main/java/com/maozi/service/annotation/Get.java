@@ -18,7 +18,8 @@ import java.lang.annotation.Target;
  * 简化 GET 接口的定义。通过 {@code description} 属性同时配置接口描述和 Swagger 摘要。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Operation
 @Documented

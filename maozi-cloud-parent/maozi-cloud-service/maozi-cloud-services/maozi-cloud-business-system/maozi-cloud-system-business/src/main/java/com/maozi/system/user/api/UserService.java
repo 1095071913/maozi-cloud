@@ -30,7 +30,8 @@ import java.util.List;
  * 由 UserServiceImpl 实现具体业务逻辑。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public interface UserService {
 

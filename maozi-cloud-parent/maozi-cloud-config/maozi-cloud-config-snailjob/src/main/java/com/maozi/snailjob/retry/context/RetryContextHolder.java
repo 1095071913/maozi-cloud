@@ -12,7 +12,8 @@ import com.alibaba.ttl.TransmittableThreadLocal;
  * 使用 {@link TransmittableThreadLocal} 支持线程池场景下的上下文传递。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class RetryContextHolder {
 

@@ -11,7 +11,8 @@ import org.springframework.context.annotation.Configuration;
  * 用于配置 Redisson 客户端连接信息和锁的默认超时参数。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @Configuration

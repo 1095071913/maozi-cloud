@@ -13,7 +13,8 @@ import java.lang.annotation.Target;
  * 同一实体需要配置多个 JOIN 关联时，使用 {@link JoinPlugins} 包装多个本注解。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

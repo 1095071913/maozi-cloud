@@ -30,7 +30,8 @@ import java.io.Serial;
  * <p>对应数据库表 system_role_permission，存储角色与权限的多对多关联关系，
  * 一个角色可以拥有多个权限，一个权限也可以分配给多个角色。</p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @NoArgsConstructor

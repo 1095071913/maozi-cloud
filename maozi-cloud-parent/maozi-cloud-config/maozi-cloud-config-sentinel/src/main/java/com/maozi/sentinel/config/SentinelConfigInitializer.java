@@ -17,7 +17,8 @@ import java.util.Properties;
  * 过滤列表，由其启动时安装的标准输出包装器丢弃对应输出。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class SentinelConfigInitializer implements ConfigInitializer {
 

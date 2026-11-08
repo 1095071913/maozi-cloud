@@ -32,7 +32,8 @@ import java.util.UUID;
  * 登录用户名密码来自 {@link SecurityProperties}（spring.security.user.* 配置项）。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Configuration(proxyBeanMethods = false)
 @EnableWebSecurity

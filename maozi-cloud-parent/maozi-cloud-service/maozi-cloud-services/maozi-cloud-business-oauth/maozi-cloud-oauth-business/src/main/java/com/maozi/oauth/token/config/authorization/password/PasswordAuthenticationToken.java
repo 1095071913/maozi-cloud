@@ -14,7 +14,8 @@ import java.util.Set;
  * 继承自BaseGrantAuthenticationToken，封装密码模式所需的认证信息。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class PasswordAuthenticationToken extends BaseGrantAuthenticationToken {
 

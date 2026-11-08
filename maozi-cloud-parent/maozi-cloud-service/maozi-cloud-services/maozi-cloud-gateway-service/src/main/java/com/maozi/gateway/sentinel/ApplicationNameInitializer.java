@@ -27,7 +27,8 @@ import org.springframework.core.env.ConfigurableEnvironment;
  * 之后不再读取该系统属性）。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class ApplicationNameInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext>, Ordered {
 

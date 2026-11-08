@@ -9,7 +9,8 @@ import com.github.yulichang.wrapper.MPJLambdaWrapper;
  * 分别实现不同的 SQL 条件拼接逻辑。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public abstract class QueryBasePlugin {
 

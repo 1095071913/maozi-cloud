@@ -12,7 +12,8 @@ import java.lang.annotation.Target;
  * 支持等于、模糊查询、范围查询等多种查询类型，并可指定关联表名和字段名。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)

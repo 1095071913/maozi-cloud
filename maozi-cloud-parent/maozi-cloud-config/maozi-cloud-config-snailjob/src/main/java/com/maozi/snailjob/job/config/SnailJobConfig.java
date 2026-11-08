@@ -27,7 +27,8 @@ import org.springframework.context.annotation.Configuration;
  * 本配置类随 maozi-cloud-config-snailjob 依赖引入即生效，服务无需任何额外配置。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Configuration
 @EnableSnailJob

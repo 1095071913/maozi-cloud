@@ -13,7 +13,8 @@ import org.springframework.context.annotation.Configuration;
  * 端口、日志路径和访问令牌等参数，注册 XXL-Job 执行器实例。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Configuration
 public class JobConfig {

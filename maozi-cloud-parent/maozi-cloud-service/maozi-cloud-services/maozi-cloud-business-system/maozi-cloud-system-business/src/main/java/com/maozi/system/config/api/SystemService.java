@@ -7,7 +7,8 @@ package com.maozi.system.config.api;
  * 现阶段仅用于在 Spring 容器中标识系统 Service 类型，便于按类型注入或排除。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public interface SystemService {
 

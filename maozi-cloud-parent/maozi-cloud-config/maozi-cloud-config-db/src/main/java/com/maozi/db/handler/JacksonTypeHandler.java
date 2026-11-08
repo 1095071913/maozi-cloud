@@ -22,7 +22,8 @@ import java.lang.reflect.Field;
  * 实体类需设置 {@code @TableName(autoResultMap = true)}。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Slf4j
 public class JacksonTypeHandler extends com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler {

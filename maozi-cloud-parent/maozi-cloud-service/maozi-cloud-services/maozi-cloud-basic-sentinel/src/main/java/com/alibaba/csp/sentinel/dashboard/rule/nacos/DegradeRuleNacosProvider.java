@@ -31,7 +31,8 @@ import java.util.stream.Collectors;
 /**
  * Degrade rules provider backed by Nacos.
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component("degradeRuleNacosProvider")
 public class DegradeRuleNacosProvider implements DynamicRuleProvider<List<DegradeRuleEntity>> {

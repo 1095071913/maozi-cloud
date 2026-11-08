@@ -40,7 +40,8 @@ import java.util.Objects;
  * 在响应返回时自动补充响应耗时（RT）和响应数据。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component
 public class RequestLogFilter implements GlobalFilter, Ordered {

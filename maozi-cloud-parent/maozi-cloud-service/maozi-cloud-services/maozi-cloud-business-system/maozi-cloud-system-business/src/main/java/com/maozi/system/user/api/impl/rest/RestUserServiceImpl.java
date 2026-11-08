@@ -49,7 +49,8 @@ import com.maozi.system.user.result.UserListResult;
  * 继承自 UserServiceImpl，复用用户基础业务逻辑。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @RestService
 public class RestUserServiceImpl extends UserServiceImpl implements RestUserService {

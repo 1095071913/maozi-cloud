@@ -33,7 +33,8 @@ import java.util.List;
  * 查询用户信息等功能。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public interface RpcUserService {
 

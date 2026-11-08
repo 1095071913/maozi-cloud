@@ -12,7 +12,8 @@ import java.util.Map;
  * 定义 OAuth 令牌相关的 RPC 远程调用方法。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public interface RpcOauthTokenService {
 

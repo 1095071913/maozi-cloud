@@ -15,7 +15,8 @@ import java.io.Serializable;
  * 子类可扩展具体的业务字段。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @NoArgsConstructor

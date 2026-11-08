@@ -30,7 +30,8 @@ import java.io.Serial;
  * <p>对应数据库表 system_user_role，存储用户与角色的多对多关联关系，
  * 一个用户可以拥有多个角色，一个角色也可以分配给多个用户。</p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @NoArgsConstructor

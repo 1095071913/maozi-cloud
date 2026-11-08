@@ -8,7 +8,8 @@ import lombok.Getter;
  * 定义支持的查询条件类型，包括等于、模糊查询、范围查询、不等于、大于等于、小于等于。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Getter
 public enum QueryBaseType {

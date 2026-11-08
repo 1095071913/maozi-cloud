@@ -87,7 +87,8 @@ import java.util.stream.Collectors;
  * </ul>
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends AbstractBaseDomain, D>
 		extends ServiceImpl<M, T>

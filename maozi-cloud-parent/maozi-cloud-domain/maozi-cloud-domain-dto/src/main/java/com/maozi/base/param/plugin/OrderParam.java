@@ -19,7 +19,8 @@ import java.util.Map;
  * 自动将排序字段按升序/降序分组，转换为下划线命名的 SQL 排序字段。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public interface OrderParam {
 

@@ -11,7 +11,8 @@ import org.springframework.context.annotation.Configuration;
  * 用于配置调度中心地址、访问令牌及执行器参数。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @Configuration

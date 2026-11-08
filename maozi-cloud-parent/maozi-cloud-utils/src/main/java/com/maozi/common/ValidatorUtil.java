@@ -19,7 +19,8 @@ import java.util.Set;
  * 集合类型会自动包装为 {@link ValidCollectionParam} 后再进行校验。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class ValidatorUtil {
 

@@ -65,7 +65,8 @@ import java.util.Arrays;
  * 密码编码器以及授权确认服务等。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Configuration
 public class AuthorizationServerConfiguration {

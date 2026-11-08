@@ -18,7 +18,8 @@ import java.util.Properties;
  * 输出包装器丢弃对应输出，屏蔽 Sentinel 启动日志对控制台的干扰。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class SentinelConfigInitializer implements ConfigInitializer {
 

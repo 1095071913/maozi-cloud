@@ -18,7 +18,8 @@ import java.io.Serializable;
  * 以支持前端在下拉选择时直接展示或使用配置内容。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @NoArgsConstructor

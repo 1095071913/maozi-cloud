@@ -17,7 +17,8 @@ import java.util.Set;
  * 支持的授权模式、令牌有效期、备注及状态等。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 public class ClientInfoResult implements Serializable {

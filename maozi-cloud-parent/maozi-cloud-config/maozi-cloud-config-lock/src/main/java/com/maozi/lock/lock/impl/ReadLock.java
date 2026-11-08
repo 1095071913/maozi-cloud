@@ -16,7 +16,8 @@ import java.util.concurrent.TimeUnit;
  * 但在有读锁持有时，写锁将被阻塞。适用于读多写少的并发场景。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component
 public class ReadLock implements Lock {

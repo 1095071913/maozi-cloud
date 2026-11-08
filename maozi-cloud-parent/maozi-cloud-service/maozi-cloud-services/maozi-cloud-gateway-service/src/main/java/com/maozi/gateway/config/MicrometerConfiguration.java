@@ -20,7 +20,8 @@ import java.util.Optional;
  * 从请求路径前两段提取路径模板，提升指标标签的可读性。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Configuration
 public class MicrometerConfiguration {

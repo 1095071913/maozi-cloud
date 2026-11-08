@@ -17,7 +17,8 @@ import lombok.NoArgsConstructor;
  * 以支持树形结构的权限选择。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @NoArgsConstructor

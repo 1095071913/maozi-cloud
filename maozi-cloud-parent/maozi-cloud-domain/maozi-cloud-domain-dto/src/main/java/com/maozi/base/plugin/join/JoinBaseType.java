@@ -8,7 +8,8 @@ import lombok.Getter;
  * 定义支持的 JOIN 查询类型，包括内连接、左连接、右连接。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Getter
 public enum JoinBaseType {

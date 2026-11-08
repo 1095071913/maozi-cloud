@@ -31,7 +31,8 @@ import java.util.stream.Collectors;
 /**
  * Gateway flow rules provider backed by Nacos.
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component("gatewayFlowRuleNacosProvider")
 public class GatewayFlowRuleNacosProvider implements DynamicRuleProvider<List<GatewayFlowRuleEntity>> {

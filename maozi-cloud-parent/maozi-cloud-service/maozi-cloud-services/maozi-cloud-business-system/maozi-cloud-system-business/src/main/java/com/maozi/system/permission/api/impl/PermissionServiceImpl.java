@@ -39,7 +39,8 @@ import java.util.stream.Collectors;
  * <p>实现权限相关的业务逻辑，包括权限存在性判断、权限标识查询、
  * 删除前的绑定关系校验等功能。</p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Service
 public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper,PermissionDo,Void> implements PermissionService {

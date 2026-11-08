@@ -28,7 +28,8 @@ import java.util.stream.Collectors;
 /**
  * Gateway api definitions publisher backed by Nacos.
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component("apiDefinitionNacosPublisher")
 public class ApiDefinitionNacosPublisher implements DynamicRulePublisher<List<ApiDefinitionEntity>> {

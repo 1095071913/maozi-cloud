@@ -13,7 +13,8 @@ import java.util.Properties;
  * 属性已存在时以逗号前插合并。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class MonitorConfigInitializer implements ConfigInitializer {
 

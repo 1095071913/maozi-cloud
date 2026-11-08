@@ -42,7 +42,8 @@ import java.util.Set;
  * 白名单接口自动跳过 Authorization 头注入。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Configuration
 @ConditionalOnProperty(

@@ -15,7 +15,8 @@ import com.maozi.service.api.annotation.RemoteService;
  * 其余方法均直接继承自 ClientServiceImpl。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @RemoteService
 public class RpcClientServiceImpl extends ClientServiceImpl implements RpcClientService {

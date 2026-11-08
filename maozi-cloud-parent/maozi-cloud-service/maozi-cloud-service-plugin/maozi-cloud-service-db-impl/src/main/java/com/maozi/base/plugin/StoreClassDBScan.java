@@ -20,7 +20,8 @@ import java.util.Map;
  * 供运行时动态映射使用。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component
 public class StoreClassDBScan implements ApplicationRunner {

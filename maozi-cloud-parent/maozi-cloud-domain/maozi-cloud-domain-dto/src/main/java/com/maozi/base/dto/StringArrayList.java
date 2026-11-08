@@ -12,7 +12,8 @@ import java.util.ArrayList;
  * 解决泛型擦除导致的类型丢失问题。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @EqualsAndHashCode(callSuper = true)

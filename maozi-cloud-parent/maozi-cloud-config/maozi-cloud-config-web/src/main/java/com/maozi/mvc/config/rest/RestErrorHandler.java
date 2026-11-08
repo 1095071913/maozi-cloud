@@ -29,7 +29,8 @@ import java.util.Map;
  * 原样抛出，交由对应框架机制处理。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Slf4j
 @RestControllerAdvice

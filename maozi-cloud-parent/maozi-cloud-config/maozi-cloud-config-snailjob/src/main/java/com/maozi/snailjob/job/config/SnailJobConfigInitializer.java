@@ -14,7 +14,8 @@ import java.util.Properties;
  * 并注册 SnailJob 启动 banner 过滤特征。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class SnailJobConfigInitializer implements ConfigInitializer {
 

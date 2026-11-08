@@ -19,7 +19,8 @@ import java.util.Map;
  * 用于OAuth客户端分页列表查询的请求参数，支持按名称模糊搜索和排序功能。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 public class ClientListParam implements OrderParam,Serializable {

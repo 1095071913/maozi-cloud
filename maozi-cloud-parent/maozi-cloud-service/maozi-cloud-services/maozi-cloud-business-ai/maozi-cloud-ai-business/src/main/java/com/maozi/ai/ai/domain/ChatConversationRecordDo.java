@@ -17,7 +17,8 @@ import java.io.Serial;
  * <p>对应数据库表 ai_chat_conversation_record，存储用户与 AI 的交互会话基本信息，
  * 包括所属用户、会话标识和会话标题等属性。</p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @NoArgsConstructor

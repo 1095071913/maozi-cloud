@@ -43,7 +43,8 @@ import java.util.stream.Collectors;
  * 包括客户端密钥加密、令牌有效期配置、OAuth2相关设置的构建等功能。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Service
 public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo, ClientDto> implements ClientService {

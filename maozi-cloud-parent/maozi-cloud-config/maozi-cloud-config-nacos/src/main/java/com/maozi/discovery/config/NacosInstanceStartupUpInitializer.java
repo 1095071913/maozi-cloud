@@ -16,7 +16,8 @@ import org.springframework.stereotype.Component;
  * 启动后的最终状态一定是上线。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component
 public class NacosInstanceStartupUpInitializer {

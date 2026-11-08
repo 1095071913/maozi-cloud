@@ -26,7 +26,8 @@ package com.maozi;
  * 或 application.port 配置覆盖）。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class Application extends BaseApplicationDB {
 

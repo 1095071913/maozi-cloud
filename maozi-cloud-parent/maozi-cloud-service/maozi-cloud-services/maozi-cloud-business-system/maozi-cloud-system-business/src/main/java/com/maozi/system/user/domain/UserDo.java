@@ -32,7 +32,8 @@ import java.io.Serial;
  * 用于存储系统用户的核心信息，包括用户账号、密码、头像图标以及所属客户端ID。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @NoArgsConstructor

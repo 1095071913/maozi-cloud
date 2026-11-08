@@ -31,7 +31,8 @@ import java.util.stream.Collectors;
 /**
  * Authority rules provider backed by Nacos.
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component("authorityRuleNacosProvider")
 public class AuthorityRuleNacosProvider implements DynamicRuleProvider<List<AuthorityRuleEntity>> {

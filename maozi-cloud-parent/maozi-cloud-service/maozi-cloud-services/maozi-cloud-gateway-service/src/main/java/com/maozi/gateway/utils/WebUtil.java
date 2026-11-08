@@ -13,7 +13,8 @@ import java.util.Objects;
  * 兼容 Nginx、Apache、WebLogic 等多种反向代理场景。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class WebUtil {
 

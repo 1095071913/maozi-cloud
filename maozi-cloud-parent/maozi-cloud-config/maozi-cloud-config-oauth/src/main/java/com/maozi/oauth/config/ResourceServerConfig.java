@@ -29,7 +29,8 @@ import java.util.List;
  * 启用方法级安全注解（JSR-250 和 Secured）支持。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Configuration
 @EnableWebSecurity

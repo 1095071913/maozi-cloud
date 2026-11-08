@@ -26,7 +26,8 @@ import java.util.List;
  * 所有接口均需要相应的权限授权才能访问。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Tag(name = "角色模块")
 public interface RestRoleService {

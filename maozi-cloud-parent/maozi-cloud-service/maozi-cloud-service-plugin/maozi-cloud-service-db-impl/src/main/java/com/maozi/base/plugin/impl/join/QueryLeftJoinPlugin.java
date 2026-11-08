@@ -13,7 +13,8 @@ import org.apache.commons.lang3.StringUtils;
  * 支持表别名设置。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class QueryLeftJoinPlugin extends JoinBasePlugin {
 

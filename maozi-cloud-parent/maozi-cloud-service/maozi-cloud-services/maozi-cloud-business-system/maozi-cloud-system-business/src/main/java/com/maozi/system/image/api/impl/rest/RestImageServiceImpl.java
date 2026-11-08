@@ -19,7 +19,8 @@ import java.util.List;
  * 上传请求根据配置路由到对应的存储处理器处理。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @RestService
 public class RestImageServiceImpl extends ImageServiceImpl implements RestImageService {

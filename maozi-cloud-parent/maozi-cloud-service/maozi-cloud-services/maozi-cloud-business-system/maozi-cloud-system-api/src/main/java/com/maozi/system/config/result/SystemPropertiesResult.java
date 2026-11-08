@@ -13,7 +13,8 @@ import java.io.Serializable;
  * 包括项目名称、公司名称、图标、运行环境、项目描述和版权声明等。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 public class SystemPropertiesResult implements Serializable {

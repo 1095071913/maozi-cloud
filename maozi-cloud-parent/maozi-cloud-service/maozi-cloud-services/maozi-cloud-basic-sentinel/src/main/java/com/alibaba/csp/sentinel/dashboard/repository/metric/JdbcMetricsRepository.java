@@ -49,7 +49,8 @@ import java.util.concurrent.TimeUnit;
  * while the database is auto-created by the {@code createDatabaseIfNotExist=true}
  * JDBC url parameter.
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component
 public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {

@@ -8,7 +8,8 @@ import com.maozi.system.config.result.ConfigDropDownResult;
  * 定义全局配置模块的内部业务方法，供本服务内部及 REST/RPC 实现层复用。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public interface ConfigService {
 

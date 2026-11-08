@@ -31,7 +31,8 @@ import java.util.stream.Collectors;
 /**
  * Parameter flow control rules provider backed by Nacos.
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component("paramFlowRuleNacosProvider")
 public class ParamFlowRuleNacosProvider implements DynamicRuleProvider<List<ParamFlowRuleEntity>> {

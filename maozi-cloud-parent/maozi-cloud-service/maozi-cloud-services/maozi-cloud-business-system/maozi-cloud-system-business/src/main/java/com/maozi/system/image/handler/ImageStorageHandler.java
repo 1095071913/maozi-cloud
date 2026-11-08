@@ -12,7 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
  * 决定上传请求实际路由到的处理器。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public interface ImageStorageHandler {
 

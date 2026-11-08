@@ -18,7 +18,8 @@ import java.util.Map;
  * 也可按用户单个或批量注销其在客户端下的授权记录，实现强制下线。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @RemoteService
 public class RpcOauthTokenServiceImpl extends OauthTokenServiceImpl implements RpcOauthTokenService {

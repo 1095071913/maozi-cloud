@@ -14,7 +14,8 @@ import lombok.Getter;
  * 包括：内连接（INNER JOIN）、左连接（LEFT JOIN）、右连接（RIGHT JOIN）三种关联类型。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Getter
 public enum JoinType {

@@ -66,9 +66,9 @@ public class ProviderFirstParams extends DefaultProviderFirstParams {
      * 消费者即使传递了相同名称的参数也不会覆盖提供者的值。
      * </p>
      */
-    private static final Set<String> PARAMS = Collections.unmodifiableSet(new HashSet<>() {{
-        addAll(Arrays.asList(RELEASE_KEY, DUBBO_VERSION_KEY, METHODS_KEY, TIMESTAMP_KEY, TAG_KEY, APPLICATION_VERSION_KEY));
-    }});
+    private static final Set<String> PARAMS = Collections.unmodifiableSet(
+        new HashSet<>(Arrays.asList(RELEASE_KEY, DUBBO_VERSION_KEY, METHODS_KEY, TIMESTAMP_KEY, TAG_KEY, APPLICATION_VERSION_KEY))
+    );
 
     /**
      * 获取服务提供者优先参数集合

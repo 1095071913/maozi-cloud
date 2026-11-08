@@ -49,7 +49,8 @@ import java.util.function.Consumer;
  * 异常时记录错误信息和堆栈行号。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Slf4j
 @Aspect

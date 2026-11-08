@@ -16,7 +16,8 @@ import java.io.Serializable;
  * 仅允许传入配置名称、配置别名、配置类型、配置值与排序字段。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @NoArgsConstructor

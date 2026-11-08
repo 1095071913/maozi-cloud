@@ -16,7 +16,8 @@ import org.springframework.util.StringUtils;
  * 负责校验请求中的用户名和密码参数是否为空。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @EqualsAndHashCode(callSuper = true)

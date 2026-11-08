@@ -20,7 +20,8 @@ import java.time.LocalDateTime;
  * 如ID、姓名、所属客户端、状态和创建时间等。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @NoArgsConstructor

@@ -11,7 +11,8 @@ import org.springframework.stereotype.Component;
  * 从 HTTP 请求中解析来源标识（客户端真实 IP 地址），用于授权规则的来源判断。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component
 public class RequestOriginParser implements com.alibaba.csp.sentinel.adapter.spring.webmvc_v6x.callback.RequestOriginParser {

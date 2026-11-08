@@ -35,7 +35,8 @@ import java.io.Serializable;
  * 包含权限的层级关系、基本信息、路由配置及类型等字段。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @NoArgsConstructor

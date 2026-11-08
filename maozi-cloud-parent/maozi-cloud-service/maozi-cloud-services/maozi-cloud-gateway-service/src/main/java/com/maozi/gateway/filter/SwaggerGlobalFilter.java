@@ -35,7 +35,8 @@ import java.util.Set;
  * 3. 将所有 paths 中的路径添加微服务前缀，使前端 Swagger UI 通过网关访问各服务接口。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component
 public class SwaggerGlobalFilter implements GlobalFilter, Ordered {

@@ -9,6 +9,7 @@ import com.maozi.system.config.domain.ConfigDo;
  * 对应表 system_config，提供全局配置记录的增删改查等数据库操作。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public interface ConfigMapper extends IBaseMapper<ConfigDo>{}

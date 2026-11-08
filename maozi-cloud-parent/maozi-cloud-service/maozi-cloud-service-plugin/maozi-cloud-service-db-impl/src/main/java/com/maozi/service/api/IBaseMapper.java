@@ -10,7 +10,8 @@ import com.github.yulichang.base.MPJBaseMapper;
  * </p>
  *
  * @param <T> 实体类型
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public interface IBaseMapper<T> extends MPJBaseMapper<T> {
 

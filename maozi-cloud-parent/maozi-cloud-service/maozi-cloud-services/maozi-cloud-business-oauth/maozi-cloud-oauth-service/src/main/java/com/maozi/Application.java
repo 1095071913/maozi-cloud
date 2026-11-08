@@ -24,7 +24,8 @@ package com.maozi;
  * 作为OAuth2认证授权微服务的入口，负责启动Spring Boot应用。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class Application extends BaseApplicationDB {
 

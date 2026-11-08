@@ -13,7 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
  * 文件为空时跳过校验。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class ExcelFileValidator implements ConstraintValidator<ExcelFile, MultipartFile> {
 

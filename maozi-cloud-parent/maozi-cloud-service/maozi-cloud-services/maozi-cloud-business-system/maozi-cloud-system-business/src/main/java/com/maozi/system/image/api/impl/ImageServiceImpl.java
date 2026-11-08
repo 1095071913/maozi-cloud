@@ -26,7 +26,8 @@ import java.util.Map;
  * 逐个文件调用处理器完成上传。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Service
 public class ImageServiceImpl implements ImageService {

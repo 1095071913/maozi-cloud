@@ -20,7 +20,8 @@ import java.time.Duration;
  * 封装为OauthTokenDto对象，并以统一格式返回给客户端。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Slf4j
 public class UserAuthenticationSuccessHandler implements org.springframework.security.web.authentication.AuthenticationSuccessHandler {

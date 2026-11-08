@@ -27,7 +27,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * RPC 实现类仍可被正确解析。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component
 public class LocalRemoteResourceBeanPostProcessor implements InstantiationAwareBeanPostProcessor, BeanFactoryAware {

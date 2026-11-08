@@ -44,7 +44,8 @@ import java.util.Set;
  * 已根据外部请求头写入了用户信息，则需要确认该线程变量是否会在后续被覆盖或清理，否则存在身份残留风险。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component
 @Order(SecurityProperties.DEFAULT_FILTER_ORDER - 1)

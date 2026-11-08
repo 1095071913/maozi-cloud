@@ -13,7 +13,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  * 提供系统级别的基础接口，当前仅有模版接口，用于在接口文档中展示通用返回结构，业务无需调用。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @RestService
 @Tag(name = "公用模块/无用忽略掉")

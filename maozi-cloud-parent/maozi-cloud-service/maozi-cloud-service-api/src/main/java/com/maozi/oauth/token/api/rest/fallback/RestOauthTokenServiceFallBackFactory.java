@@ -19,7 +19,8 @@ import java.util.Map;
  * 本工厂仅配合保留的 Feign 兼容入口使用，Feign 链路移除时可一并删除。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component
 public class RestOauthTokenServiceFallBackFactory implements FallbackFactory<RestOauthTokenService>{

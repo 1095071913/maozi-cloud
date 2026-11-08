@@ -33,7 +33,8 @@ import java.util.Map;
  * 否则直接反序列化为目标类型。内置 Feign 响应到 Spring ClientHttpResponse 的适配器。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component
 public class ResultDecoder implements Decoder {

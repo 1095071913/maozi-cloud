@@ -15,7 +15,8 @@ import java.util.List;
  * 扩展了查询逻辑，在查找客户端时增加了状态过滤条件，只查询启用状态的客户端。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Service
 public class JdbcRegisteredClientRepository extends org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository {

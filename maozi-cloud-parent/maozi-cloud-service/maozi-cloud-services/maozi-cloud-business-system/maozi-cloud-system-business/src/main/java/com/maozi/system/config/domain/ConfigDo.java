@@ -17,7 +17,8 @@ import java.io.Serial;
  * 继承自 AbstractBaseNameDomain，配置名称（name）作为全局唯一键。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @NoArgsConstructor

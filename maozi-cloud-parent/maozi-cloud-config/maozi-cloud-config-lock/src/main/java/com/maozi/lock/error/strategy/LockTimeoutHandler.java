@@ -8,7 +8,8 @@ import com.maozi.lock.lock.Lock;
  * 定义加锁超时时的处理行为，由具体策略实现。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public interface LockTimeoutHandler {
 

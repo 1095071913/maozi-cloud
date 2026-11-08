@@ -8,7 +8,8 @@ package com.maozi.common.monitor;
  * 供日志切面等组件通过依赖注入调用，从而对底层监控实现解耦。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public interface Alarm {
 

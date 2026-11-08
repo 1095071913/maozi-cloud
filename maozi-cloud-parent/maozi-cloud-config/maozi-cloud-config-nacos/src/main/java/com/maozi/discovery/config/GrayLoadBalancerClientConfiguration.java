@@ -17,7 +17,8 @@ import org.springframework.core.env.Environment;
  * 实现基于版本号的灰度流量路由。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class GrayLoadBalancerClientConfiguration extends LoadBalancerClientConfiguration {
 

@@ -15,7 +15,8 @@ import java.io.Serializable;
  * 以客户端 ID 和用户名标识某客户端下的用户主体，用于按用户主体批量注销令牌等场景。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @NoArgsConstructor

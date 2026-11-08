@@ -42,7 +42,8 @@ import java.util.Objects;
  * </p>
  *
  * @param <D> 响应数据类型
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Data
 @SuperBuilder

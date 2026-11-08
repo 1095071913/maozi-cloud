@@ -21,7 +21,8 @@ import java.lang.annotation.Target;
  * </ul>
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)

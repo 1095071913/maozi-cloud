@@ -11,7 +11,8 @@ import java.util.Map;
  * 按存储类型维护表名与实体 Class 的映射，供动态查询构建时按表名查找实体 Class。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class StoreClass {
 

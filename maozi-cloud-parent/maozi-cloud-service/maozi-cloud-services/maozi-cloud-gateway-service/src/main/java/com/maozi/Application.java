@@ -24,7 +24,8 @@ package com.maozi;
  * 作为 Spring Cloud Gateway 的入口点，负责请求路由、灰度发布、限流等网关核心功能。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class Application extends BaseApplication {
 

@@ -28,7 +28,8 @@ import java.util.stream.Collectors;
 /**
  * System rules publisher backed by Nacos.
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component("systemRuleNacosPublisher")
 public class SystemRuleNacosPublisher implements DynamicRulePublisher<List<SystemRuleEntity>> {

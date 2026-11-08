@@ -34,7 +34,8 @@ import java.util.UUID;
  * 避免同名覆盖与顺序前缀。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Component
 public class AliyunOssImageStorageHandler implements ImageStorageHandler {

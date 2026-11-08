@@ -19,7 +19,8 @@ import java.util.List;
  * 提供 RESTful 风格的地区查询接口，主要用于前端下拉列表数据获取。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @RestService
 public class RestRegionServiceImpl extends RegionServiceImpl implements RestRegionService {

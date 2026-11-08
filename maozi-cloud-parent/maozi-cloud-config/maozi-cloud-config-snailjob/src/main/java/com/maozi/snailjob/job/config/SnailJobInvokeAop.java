@@ -22,7 +22,8 @@ import org.springframework.stereotype.Component;
  * 其他注解的任务不经过本切面，仍按 SnailJob 原生契约执行。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @Aspect
 @Component

@@ -26,7 +26,8 @@ import java.util.List;
  * 下拉列表以及按名称获取配置等功能。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 @RestService
 public class RestConfigServiceImpl extends ConfigServiceImpl implements RestConfigService {

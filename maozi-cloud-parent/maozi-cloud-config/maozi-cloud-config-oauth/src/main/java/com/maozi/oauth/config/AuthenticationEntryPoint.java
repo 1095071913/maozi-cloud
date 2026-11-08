@@ -35,7 +35,8 @@ import org.springframework.security.core.AuthenticationException;
  * 否则返回默认的用户认证错误。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class AuthenticationEntryPoint implements org.springframework.security.web.AuthenticationEntryPoint {
 

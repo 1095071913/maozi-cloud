@@ -9,7 +9,8 @@ import cn.hutool.core.util.StrUtil;
  * 提供更简洁的 getter/setter 方法调用和名称生成工具。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class ReflectUtil extends cn.hutool.core.util.ReflectUtil {
 

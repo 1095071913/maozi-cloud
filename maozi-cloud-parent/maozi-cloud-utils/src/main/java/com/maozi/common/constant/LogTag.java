@@ -6,7 +6,8 @@ package com.maozi.common.constant;
  * 定义统一的日志字段标签名称，用于结构化日志输出。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class LogTag {
 

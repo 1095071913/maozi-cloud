@@ -7,7 +7,8 @@ package com.maozi.lock.lock;
  * （可重入锁、公平锁、读写锁等）分别实现具体的锁策略。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public interface Lock {
 

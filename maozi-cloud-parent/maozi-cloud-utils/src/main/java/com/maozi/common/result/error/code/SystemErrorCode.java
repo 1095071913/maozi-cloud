@@ -8,7 +8,8 @@ package com.maozi.common.result.error.code;
  * 权限、限流等场景；通用业务异常涵盖禁用、数据不存在、数据已存在等场景。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class SystemErrorCode extends AbstractBaseErrorCode{
 

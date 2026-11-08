@@ -19,7 +19,8 @@ import java.util.Properties;
  * 此处通过 SPI 初始化器设置，确保在任何环境下都能稳定生效。
  * </p>
  *
- * @author maozi
+  * @author maozi
+ * @date 2026/11/08
  */
 public class SwaggerConfigInitializer implements ConfigInitializer {
 

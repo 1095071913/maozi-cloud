@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -42,234 +43,243 @@ import java.util.TimeZone;
 @Slf4j
 public class JacksonUtil {
 
-	/** 全局 ObjectMapper 实例 */
-	@Getter
-    private static final ObjectMapper objectMapper;
+    private static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss.SSS";
 
-	static{
-		objectMapper = initObjectMapperConfig();
-	}
+    /** 全局 ObjectMapper 实例 */
+    @Getter
+    private static final ObjectMapper OBJECT_MAPPER;
 
-	/**
-	 * 使用默认 ObjectMapper 初始化配置
-	 *
-	 * @return 配置好的 ObjectMapper
-	 */
-	public static ObjectMapper initObjectMapperConfig(){
-		return initObjectMapperConfig(new ObjectMapper());
-	}
+    static{
+        OBJECT_MAPPER = initObjectMapperConfig();
+    }
 
-	/**
-	 * 初始化 ObjectMapper 配置（非空序列化、东八区时区、Long 转字符串、空字符串转 null、Java 8 日期时间支持等）
-	 *
-	 * @param objectMapper 待配置的 ObjectMapper 实例
-	 * @return 配置好的 ObjectMapper，传入为空时返回 null
-	 */
-	public static ObjectMapper initObjectMapperConfig(ObjectMapper objectMapper){
+    public static ObjectMapper getObjectMapper(){
+        return OBJECT_MAPPER;
+    }
 
-		if(ObjectUtil.isNullEmpty(objectMapper)){
-			return null;
-		}
+    /**
+     * 使用默认 ObjectMapper 初始化配置
+     *
+     * @return 配置好的 ObjectMapper
+     */
+    public static ObjectMapper initObjectMapperConfig(){
+        return initObjectMapperConfig(new ObjectMapper());
+    }
 
-		objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    /**
+     * 初始化 ObjectMapper 配置（非空序列化、东八区时区、Long 转字符串、
+     * 空字符串转 null、Java 8 日期时间支持等）
+     *
+     * @param objectMapper 待配置的 ObjectMapper 实例
+     * @return 配置好的 ObjectMapper，传入为空时返回 null
+     */
+    public static ObjectMapper initObjectMapperConfig(ObjectMapper objectMapper){
 
-		objectMapper.setTimeZone(TimeZone.getTimeZone("GMT+8"));
-		// java.util.Date 的序列化/反序列化日期格式
-		objectMapper.setDateFormat(new java.text.SimpleDateFormat("yyyy‑MM‑dd HH:mm:ss.SSS"));
-		objectMapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
-		objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-		objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-		objectMapper.configure(SerializationFeature.WRITE_ENUMS_USING_TO_STRING, true);
-		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		objectMapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
-		objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+        if(ObjectUtil.isNullEmpty(objectMapper)){
+            return null;
+        }
 
-		SimpleModule module = new SimpleModule();
-		// Long 序列化为字符串，防止前端精度丢失
-		module.addSerializer(Long.class, ToStringSerializer.instance);
-		module.addSerializer(Long.TYPE, ToStringSerializer.instance);
-		// 空字符串反序列化为 null
-		module.addDeserializer(String.class, new StdDeserializer<>(String.class) {
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
-			@Override
-			public String deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
-				String result = StringDeserializer.instance.deserialize(jsonParser, deserializationContext);
-				if (ObjectUtil.isNullEmpty(result)) {
-					return null;
-				}
-				return result;
-			}
-		});
+        objectMapper.setTimeZone(TimeZone.getTimeZone("GMT+8"));
+        // java.util.Date 的序列化/反序列化日期格式
+        objectMapper.setDateFormat(new java.text.SimpleDateFormat(DATE_TIME_PATTERN));
+        objectMapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
+        objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        objectMapper.configure(SerializationFeature.WRITE_ENUMS_USING_TO_STRING, true);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
+        objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
 
-		// LocalDateTime 自定义序列化/反序列化，格式为 yyyy-MM-dd HH:mm:ss.SSS（空格分隔、含毫秒，不带 T）
-		DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy‑MM‑dd HH:mm:ss.SSS");
-		module.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(dateTimeFormatter));
-		module.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(dateTimeFormatter));
+        SimpleModule module = new SimpleModule();
+        // Long 序列化为字符串，防止前端精度丢失
+        module.addSerializer(Long.class, ToStringSerializer.instance);
+        module.addSerializer(Long.TYPE, ToStringSerializer.instance);
+        // 空字符串反序列化为 null
+        module.addDeserializer(String.class, new StdDeserializer<>(String.class) {
 
-		// 注册 JavaTimeModule，支持 Java 8 日期时间类型
-		objectMapper.registerModule(new JavaTimeModule());
-		// 自定义 SimpleModule 最后注册，确保 LocalDateTime 使用自定义格式而非 ISO-8601（带 T）
-		objectMapper.registerModule(module);
+            @Override
+            public String deserialize(JsonParser jsonParser,
+                    DeserializationContext deserializationContext) throws IOException {
+                String result = StringDeserializer.instance.deserialize(jsonParser, deserializationContext);
+                if (ObjectUtil.isNullEmpty(result)) {
+                    return null;
+                }
+                return result;
+            }
+        });
 
-		return objectMapper;
+        // LocalDateTime 自定义序列化/反序列化，格式为 yyyy-MM-dd HH:mm:ss.SSS
+        // （空格分隔、含毫秒，不带 T）
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
+        module.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(dateTimeFormatter));
+        module.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(dateTimeFormatter));
 
-	}
+        // 注册 JavaTimeModule，支持 Java 8 日期时间类型
+        objectMapper.registerModule(new JavaTimeModule());
+        // 自定义 SimpleModule 最后注册，确保 LocalDateTime 使用自定义格式而非 ISO-8601（带 T）
+        objectMapper.registerModule(module);
 
-	/**
-	 * 将对象序列化为 JSON 字符串
-	 *
-	 * @param data Java 对象
-	 * @return JSON 字符串，异常时返回 null
-	 */
+        return objectMapper;
+
+    }
+
+    /**
+     * 将对象序列化为 JSON 字符串
+     *
+     * @param data Java 对象
+     * @return JSON 字符串，异常时返回 null
+     */
     public static String objectToJson(Object data){
 
-		try {return objectMapper.writeValueAsString(data);} catch (JsonProcessingException e) {
-			log.error(e.getLocalizedMessage(),e);
-			return null;
-		}
+        try {return OBJECT_MAPPER.writeValueAsString(data);} catch (JsonProcessingException e) {
+            log.error(e.getLocalizedMessage(),e);
+            return null;
+        }
 
-	}
+    }
 
-	/**
-	 * 将 JSON 字符串反序列化为 Java 对象
-	 *
-	 * @param jsonString JSON 字符串
-	 * @param type 目标类型
-	 * @param <T> 目标类型泛型
-	 * @return Java 对象，异常时返回 null
-	 */
-	public static <T> T jsonToObject(String jsonString, Class<T> type){
+    /**
+     * 将 JSON 字符串反序列化为 Java 对象
+     *
+     * @param jsonString JSON 字符串
+     * @param type 目标类型
+     * @param <T> 目标类型泛型
+     * @return Java 对象，异常时返回 null
+     */
+    public static <T> T jsonToObject(String jsonString, Class<T> type){
 
-		try {return objectMapper.readValue(jsonString, type);} catch (JsonProcessingException e) {
-			log.error(e.getLocalizedMessage(),e);
-			return null;
-		}
+        try {return OBJECT_MAPPER.readValue(jsonString, type);} catch (JsonProcessingException e) {
+            log.error(e.getLocalizedMessage(),e);
+            return null;
+        }
 
-	}
+    }
 
-	/**
-	 * 将 JSON 字符串反序列化为 List
-	 *
-	 * @param json JSON 字符串
-	 * @param <T> 列表元素类型
-	 * @return List 对象，异常时返回 null
-	 */
-	public static <T> List<T> jsonToList(String json) {
+    /**
+     * 将 JSON 字符串反序列化为 List
+     *
+     * @param json JSON 字符串
+     * @param <T> 列表元素类型
+     * @return List 对象，异常时返回 null
+     */
+    public static <T> List<T> jsonToList(String json) {
 
-		TypeReference<List<T>> typeReference = new TypeReference<>() {};
+        TypeReference<List<T>> typeReference = new TypeReference<>() {};
 
-		try {return objectMapper.readValue(json,typeReference);} catch (Exception e) {
-			log.error(e.getLocalizedMessage(),e);
-			return null;
-		}
+        try {return OBJECT_MAPPER.readValue(json,typeReference);} catch (Exception e) {
+            log.error("json deserialize failed, json={}", json, e);
+            return Collections.emptyList();
+        }
 
-	}
+    }
 
-	/**
-	 * 将 JSON 字符串反序列化为 Map
-	 *
-	 * @param json JSON 字符串
-	 * @param <T> Map 值类型
-	 * @return Map 对象，异常时返回 null
-	 */
-	public static <T> Map<String, T> jsonToMap(String json) {
+    /**
+     * 将 JSON 字符串反序列化为 Map
+     *
+     * @param json JSON 字符串
+     * @param <T> Map 值类型
+     * @return Map 对象，异常时返回 null
+     */
+    public static <T> Map<String, T> jsonToMap(String json) {
 
-		TypeReference<Map<String, T>> typeReference = new TypeReference<>() {};
+        TypeReference<Map<String, T>> typeReference = new TypeReference<>() {};
 
-		try {return objectMapper.readValue(json,typeReference);} catch (Exception e) {
-			log.error(e.getLocalizedMessage(),e);
-			return null;
-		}
+        try {return OBJECT_MAPPER.readValue(json,typeReference);} catch (Exception e) {
+            log.error(e.getLocalizedMessage(),e);
+            return null;
+        }
 
-	}
+    }
 
-	/**
-	 * 将 Java 对象转换为 Map
-	 *
-	 * @param data Java 对象
-	 * @param <T> Map 值类型
-	 * @return Map 对象，异常时返回 null
-	 */
-	public static <T> Map<String, T> objectToMap(Object data) {
+    /**
+     * 将 Java 对象转换为 Map
+     *
+     * @param data Java 对象
+     * @param <T> Map 值类型
+     * @return Map 对象，异常时返回 null
+     */
+    public static <T> Map<String, T> objectToMap(Object data) {
 
-		TypeReference<Map<String, T>> typeReference = new TypeReference<>() {};
+        TypeReference<Map<String, T>> typeReference = new TypeReference<>() {};
 
-		try {return objectMapper.convertValue(data,typeReference);} catch (Exception e) {
-			log.error(e.getLocalizedMessage(),e);
-			return null;
-		}
+        try {return OBJECT_MAPPER.convertValue(data,typeReference);} catch (Exception e) {
+            log.error(e.getLocalizedMessage(),e);
+            return null;
+        }
 
-	}
+    }
 
-	/**
-	 * 将 Map 转换为 Java 对象
-	 *
-	 * @param data Map 数据
-	 * @param type 目标类型
-	 * @param <T> 目标类型泛型
-	 * @return Java 对象，异常时返回 null
-	 */
-	public static <T> T mapToObject(Map<String, ?> data, Class<T> type) {
+    /**
+     * 将 Map 转换为 Java 对象
+     *
+     * @param data Map 数据
+     * @param type 目标类型
+     * @param <T> 目标类型泛型
+     * @return Java 对象，异常时返回 null
+     */
+    public static <T> T mapToObject(Map<String, ?> data, Class<T> type) {
 
-		try {return objectMapper.convertValue(data,type);} catch (Exception e) {
-			log.error(e.getLocalizedMessage(),e);
-			return null;
-		}
+        try {return OBJECT_MAPPER.convertValue(data,type);} catch (Exception e) {
+            log.error(e.getLocalizedMessage(),e);
+            return null;
+        }
 
-	}
+    }
 
-	/**
-	 * 将 Map 转换为 Java 对象（支持泛型类型）
-	 *
-	 * @param data Map 数据
-	 * @param type 目标类型（含泛型信息）
-	 * @param <T> 目标类型泛型
-	 * @return Java 对象，异常时返回 null
-	 */
-	public static <T> T mapToObject(Map<String, ?> data, Type type) {
+    /**
+     * 将 Map 转换为 Java 对象（支持泛型类型）
+     *
+     * @param data Map 数据
+     * @param type 目标类型（含泛型信息）
+     * @param <T> 目标类型泛型
+     * @return Java 对象，异常时返回 null
+     */
+    public static <T> T mapToObject(Map<String, ?> data, Type type) {
 
-		JavaType constructType = TypeFactory.defaultInstance().constructType(type);
+        JavaType constructType = TypeFactory.defaultInstance().constructType(type);
 
-		try {return objectMapper.convertValue(data,constructType);} catch (Exception e) {
-			log.error(e.getLocalizedMessage(),e);
-			return null;
-		}
+        try {return OBJECT_MAPPER.convertValue(data,constructType);} catch (Exception e) {
+            log.error(e.getLocalizedMessage(),e);
+            return null;
+        }
 
-	}
+    }
 
-	/**
-	 * 将 Map 列表转换为对象列表
-	 *
-	 * @param data Map 列表
-	 * @param <T> 目标类型泛型
-	 * @return 对象列表，异常时返回 null
-	 */
-	public static <T> List<T> mapListToListObject(List<Map<String,Object>> data) {
+    /**
+     * 将 Map 列表转换为对象列表
+     *
+     * @param data Map 列表
+     * @param <T> 目标类型泛型
+     * @return 对象列表，异常时返回 null
+     */
+    public static <T> List<T> mapListToListObject(List<Map<String,Object>> data) {
 
-		TypeReference<List<T>> typeReference = new TypeReference<>() {};
+        TypeReference<List<T>> typeReference = new TypeReference<>() {};
 
-		try {return objectMapper.convertValue(data,typeReference);} catch (Exception e) {
-			log.error(e.getLocalizedMessage(),e);
-			return null;
-		}
+        try {return OBJECT_MAPPER.convertValue(data,typeReference);} catch (Exception e) {
+            log.error(e.getLocalizedMessage(),e);
+            return null;
+        }
 
-	}
+    }
 
-	/**
-	 * 将对象列表转换为 Map 列表
-	 *
-	 * @param data 对象列表
-	 * @return Map 列表，异常时返回 null
-	 */
-	public static <T> List<Map<String,Object>> listObjectToMapList(List<?> data) {
+    /**
+     * 将对象列表转换为 Map 列表
+     *
+     * @param data 对象列表
+     * @return Map 列表，异常时返回 null
+     */
+    public static <T> List<Map<String,Object>> listObjectToMapList(List<?> data) {
 
-		TypeReference<List<Map<String,Object>>> typeReference = new TypeReference<>() {};
+        TypeReference<List<Map<String,Object>>> typeReference = new TypeReference<>() {};
 
-		try {return objectMapper.convertValue(data,typeReference);} catch (Exception e) {
-			log.error(e.getLocalizedMessage(),e);
-			return null;
-		}
+        try {return OBJECT_MAPPER.convertValue(data,typeReference);} catch (Exception e) {
+            log.error(e.getLocalizedMessage(),e);
+            return null;
+        }
 
-	}
+    }
 
 }

@@ -29,13 +29,13 @@ package com.maozi;
  */
 public class Application extends BaseApplicationDB {
 
-	/**
-	 * 应用程序主入口方法
-	 *
-	 * @param args 启动参数，由命令行传入
-	 */
-	public static void main(String[] args) {
-		ApplicationRun(args);
-	}
+    /**
+     * 应用程序主入口方法
+     *
+     * @param args 启动参数，由命令行传入
+     */
+    public static void main(String[] args) {
+        applicationRun(args);
+    }
 
 }

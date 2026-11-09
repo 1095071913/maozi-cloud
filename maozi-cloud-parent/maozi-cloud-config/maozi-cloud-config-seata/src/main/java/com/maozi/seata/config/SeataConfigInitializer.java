@@ -1,5 +1,6 @@
 package com.maozi.seata.config;
 
+import com.maozi.common.constant.SpringPropertyConstant;
 import com.maozi.common.spi.ConfigInitializer;
 
 import java.util.Map;
@@ -32,7 +33,7 @@ public class SeataConfigInitializer implements ConfigInitializer {
     @Override
     public void initialize(Properties properties) {
         properties.merge(
-            "spring.config.import",
+            SpringPropertyConstant.SPRING_CONFIG_IMPORT,
             NACOS_IMPORTS,
             (existing, incoming) -> incoming + "," + existing
         );

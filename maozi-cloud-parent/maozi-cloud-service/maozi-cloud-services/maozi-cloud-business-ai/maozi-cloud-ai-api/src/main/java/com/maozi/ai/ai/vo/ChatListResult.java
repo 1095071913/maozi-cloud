@@ -1,5 +1,6 @@
 package com.maozi.ai.ai.vo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,7 +31,8 @@ public class ChatListResult implements Serializable {
 
     /** 是否对话中（true 表示该会话存在进行中的流式对话或文生图任务） */
     @Schema(description = "是否对话中")
-    private Boolean isLocked;
+    @JsonProperty("isLocked")
+    private Boolean locked;
 
     /** 对话消息列表（仅用户与 AI 消息，不含系统消息） */
     @Schema(description = "对话内容")

@@ -25,9 +25,10 @@ import org.springframework.scheduling.annotation.EnableAsync;
 /**
  * 数据库应用启动基类
  * <p>
- * 与 {@link BaseApplication} 组合使用（非继承关系），在基础启动配置上增加数据库相关配置：
+ * 与 {@link BaseApplication} 组合使用（非继承关系），
+ * 在基础启动配置上增加数据库相关配置：
  * 自动扫描项目 Mapper 接口并开启异步支持。启动流程委托
- * {@link BaseApplication#ApplicationRun(String[])} 执行，其中会通过 SPI 机制
+ * {@link BaseApplication#applicationRun(String[])} 执行，其中会通过 SPI 机制
  * 加载 classpath 下 {@code META-INF/run/config/} 中的配置初始化器。
  * </p>
  *
@@ -37,15 +38,19 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 @EnableAsync
 @SpringBootApplication
-@MapperScan(ApplicationEnvironmentContext.PACKAGE_PREFIX + ".*.*.mapper")
+@MapperScan(ApplicationEnvironmentContext.PACKAGE_PREFIX + BaseApplicationDB.MAPPER_SCAN_PATTERN)
 public class BaseApplicationDB {
+
+    /** Mapper 接口扫描包模式（拼接在项目包前缀之后，匹配各模块下的 mapper 包）；
+     * 包级可见以便本类注解引用 */
+    static final String MAPPER_SCAN_PATTERN = ".*.*.mapper";
 
     /**
      * 应用启动入口方法
      * @param args 命令行参数
      */
-    protected static void ApplicationRun(String[] args) {
-        BaseApplication.ApplicationRun(args);
+    protected static void applicationRun(String[] args) {
+        BaseApplication.applicationRun(args);
     }
 
 }

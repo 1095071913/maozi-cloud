@@ -1,6 +1,7 @@
 package com.maozi.snailjob.job.config;
 
 import com.maozi.BaseApplication;
+import com.maozi.common.constant.SpringPropertyConstant;
 import com.maozi.common.spi.ConfigInitializer;
 
 import java.util.Map;
@@ -43,7 +44,7 @@ public class SnailJobConfigInitializer implements ConfigInitializer {
     @Override
     public void initialize(Properties properties) {
         properties.merge(
-            "spring.config.import",
+            SpringPropertyConstant.SPRING_CONFIG_IMPORT,
             NACOS_IMPORTS,
             (existing, incoming) -> incoming + "," + existing
         );

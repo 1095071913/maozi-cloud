@@ -45,11 +45,15 @@ import java.util.Map;
 @Slf4j
 @Aspect
 @Component
-@Order(value = Ordered.HIGHEST_PRECEDENCE + 1 )
+@Order(value = Ordered.HIGHEST_PRECEDENCE + 1)
 public class SnailJobEntranceLogAop {
 
-    /** SnailJob 注解执行器任务入口切点表达式（入口方法声明于父类 AbstractJobExecutor，拦截全部注解执行器子类） */
-    private final String POINT = "execution(* com.aizuda.snailjob.client.job.core.executor.AbstractJobExecutor.jobExecute(..))";
+    /**
+     * SnailJob 注解执行器任务入口切点表达式
+     * （入口方法声明于父类 AbstractJobExecutor，拦截全部注解执行器子类）
+     */
+    private final String POINT =
+        "execution(* com.aizuda.snailjob.client.job.core.executor.AbstractJobExecutor.jobExecute(..))";
 
     /**
      * 环绕通知，记录定时任务调度入口日志
@@ -75,14 +79,14 @@ public class SnailJobEntranceLogAop {
 
         ApplicationLinkContext.setVersion(ApplicationEnvironmentContext.VERSION);
 
-        Map<String, String> logs = new LinkedHashMap<>();
+        Map<String, String> logs = new LinkedHashMap<>(16);
 
         logs.put(LogTag.TYPE, LogCommonType.JOB.getDesc());
         logs.put(LogTag.FUNCTION, getExecutorInfo(proceedingJoinPoint));
 
         // 非生产环境直接记录任务参数；生产环境为避免参数外泄，仅在异常时补充记录
-        Boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentType.PROD);
-        if(isNotProd){
+        boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentType.PROD);
+        if (isNotProd) {
             logs.put(LogTag.PARAM, businessParam);
         }
 
@@ -90,28 +94,28 @@ public class SnailJobEntranceLogAop {
 
             return proceedingJoinPoint.proceed(args);
 
-        }catch (Exception e){
+        } catch (Exception e) {
 
             error = true;
 
-            LogUtil.error(log,e);
+            LogUtil.error(log, e);
 
-            if(!isNotProd){
+            if (!isNotProd) {
                 logs.put(LogTag.PARAM, businessParam);
             }
 
             logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
 
             StackTraceElement[] errorLines = e.getStackTrace();
-            if(errorLines.length > 0) {
+            if (errorLines.length > 0) {
                 logs.put(LogTag.ERROR_LINE, errorLines[0].toString());
             }
 
             throw e;
 
-        }finally {
+        } finally {
 
-            StringBuilder sqlLog = LogUtil.sqlLog.get();
+            StringBuilder sqlLog = LogUtil.SQL_LOG.get();
             if (ObjectUtil.isNotNullEmpty(sqlLog)) {
                 logs.put(LogTag.SQL, sqlLog.toString());
             }
@@ -121,7 +125,7 @@ public class SnailJobEntranceLogAop {
             String log = LogUtil.convertLog(logs);
             if (error) {
                 SnailJobLog.REMOTE.error(log);
-            } else{
+            } else {
                 SnailJobLog.REMOTE.info(log);
             }
 
@@ -151,7 +155,8 @@ public class SnailJobEntranceLogAop {
             }
         }
 
-        return proceedingJoinPoint.getSignature().getDeclaringTypeName() + ":" + proceedingJoinPoint.getSignature().getName();
+        return proceedingJoinPoint.getSignature().getDeclaringTypeName()
+            + ":" + proceedingJoinPoint.getSignature().getName();
 
     }
 

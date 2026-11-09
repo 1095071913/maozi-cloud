@@ -55,8 +55,20 @@ import java.util.function.Consumer;
 @Slf4j
 @Aspect
 @Component
-@Order(value = Ordered.HIGHEST_PRECEDENCE + 1 )
+@Order(value = Ordered.HIGHEST_PRECEDENCE + 1)
 public class StreamEntranceLogAop {
+
+    /** 日志中 Topic 的标签 */
+    private static final String LOG_TAG_TOPIC = "Topic";
+
+    /** 日志中消息 ID 的标签 */
+    private static final String LOG_TAG_MESSAGE_ID = "MessageId";
+
+    /** RocketMQ Topic 的消息头键名 */
+    private static final String HEADER_ROCKET_MQ_TOPIC = "ROCKET_MQ_TOPIC";
+
+    /** RocketMQ 消息 ID 的消息头键名 */
+    private static final String HEADER_ROCKET_MQ_MESSAGE_ID = "ROCKET_MQ_MESSAGE_ID";
 
     /** Stream 消费者方法切点表达式 */
     private final String POINT = "execution(java.util.function.Consumer com.maozi.*.*.stream..*(..))";
@@ -84,29 +96,33 @@ public class StreamEntranceLogAop {
 
             MessageHeaders headers = message.getHeaders();
 
-            Map<String, String> logs = new LinkedHashMap<>();
+            Map<String, String> logs = new LinkedHashMap<>(16);
 
-            logs.put(LogTag.TYPE, LogCommonType.MQ.getDesc()) ;
-            logs.put("MessageId", Objects.requireNonNull(headers.get("ROCKET_MQ_MESSAGE_ID")).toString());
-            logs.put("Topic", Objects.requireNonNull(headers.get("ROCKET_MQ_TOPIC")).toString());
-            logs.put(LogTag.FUNCTION, proceedingJoinPoint.getSignature().getDeclaringTypeName() + ":" + proceedingJoinPoint.getSignature().getName());
+            logs.put(LogTag.TYPE, LogCommonType.MQ.getDesc());
+            logs.put(LOG_TAG_MESSAGE_ID, Objects.requireNonNull(headers.get(HEADER_ROCKET_MQ_MESSAGE_ID)).toString());
+            logs.put(LOG_TAG_TOPIC, Objects.requireNonNull(headers.get(HEADER_ROCKET_MQ_TOPIC)).toString());
+            logs.put(LogTag.FUNCTION, proceedingJoinPoint.getSignature().getDeclaringTypeName()
+                + ":" + proceedingJoinPoint.getSignature().getName());
 
             // 非生产环境直接记录消息参数；生产环境为避免参数外泄，仅在异常时补充记录
-            Boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentType.PROD);
-            if(isNotProd){
+            boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentType.PROD);
+            if (isNotProd) {
                 logs.put(LogTag.PARAM, messageData.toString());
             }
 
             // 从消息头中提取版本号设置到链路上下文
-            ApplicationLinkContext.setVersion(ApplicationLinkContext.getVersionDefault(headers.get(ApplicationLinkContext.VERSION_KEY)));
+            ApplicationLinkContext.setVersion(
+                ApplicationLinkContext.getVersionDefault(headers.get(ApplicationLinkContext.VERSION_KEY)));
 
-            try{resultData.accept(message);}catch (Exception e){
+            try {
+                resultData.accept(message);
+            } catch (Exception e) {
 
                 error = true;
 
                 StackTraceElement stackTraceElement = e.getStackTrace()[0];
 
-                if(!isNotProd){
+                if (!isNotProd) {
                     logs.put(LogTag.PARAM, messageData.toString());
                 }
                 logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
@@ -114,16 +130,16 @@ public class StreamEntranceLogAop {
 
                 throw e;
 
-            }finally {
+            } finally {
 
-                StringBuilder sqlLog = LogUtil.sqlLog.get();
-                if(ObjectUtil.isNotNullEmpty(sqlLog)) {
+                StringBuilder sqlLog = LogUtil.SQL_LOG.get();
+                if (ObjectUtil.isNotNullEmpty(sqlLog)) {
                     logs.put(LogTag.SQL, sqlLog.toString());
                 }
 
                 logs.put(LogTag.RT, String.valueOf(System.currentTimeMillis() - beginTime));
 
-                LogUtil.log(log,error,logs);
+                LogUtil.log(log, error, logs);
 
                 ApplicationLinkContext.clearContext();
 

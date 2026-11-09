@@ -66,7 +66,8 @@ public class RetryExecutorTask implements ExecutorMethod {
      * 执行远程重试回调
      * <p>
      * 标记当前为远程重试流量并恢复上报时保存的链路上下文后，
-     * 按参数中的方法信息反射回调目标方法；执行结束（无论成败）统一清理线程上下文。
+     * 按参数中的方法信息反射回调目标方法；
+     * 执行结束（无论成败）统一清理线程上下文。
      * </p>
      *
      * @param params 回调参数数组，第一个元素为 {@link RetryTaskParam}
@@ -103,10 +104,10 @@ public class RetryExecutorTask implements ExecutorMethod {
                 throw new BusinessResultException("远程重试失败");
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
 
             Throwable ex = e.getCause();
-            if(ObjectUtil.isNullEmpty(ex)){
+            if (ObjectUtil.isNullEmpty(ex)) {
                 ex = e;
             }
 
@@ -126,10 +127,10 @@ public class RetryExecutorTask implements ExecutorMethod {
 
             throw ex;
 
-        }finally {
+        } finally {
 
             // 记录本次请求过程中执行的 SQL 日志（从 ThreadLocal 中获取）
-            StringBuilder sqlLog = LogUtil.sqlLog.get();
+            StringBuilder sqlLog = LogUtil.SQL_LOG.get();
             if (ObjectUtil.isNotNullEmpty(sqlLog)) {
                 logs.put(LogTag.SQL, sqlLog.toString());
             }
@@ -137,7 +138,7 @@ public class RetryExecutorTask implements ExecutorMethod {
             // 记录响应时间
             logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + " ms");
 
-            LogUtil.log(log,logs.containsKey(LogTag.ERROR_DESC), logs);
+            LogUtil.log(log, logs.containsKey(LogTag.ERROR_DESC), logs);
 
             // 清理重试流量标记与链路上下文
             RetryContextHolder.clear();

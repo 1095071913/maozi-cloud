@@ -1,6 +1,7 @@
 package com.maozi.dubbo.config;
 
 import com.maozi.BaseApplication;
+import com.maozi.common.constant.SpringPropertyConstant;
 import com.maozi.common.spi.ConfigInitializer;
 
 import java.util.Map;
@@ -29,7 +30,8 @@ public class DubboConfigInitializer implements ConfigInitializer {
     private static final String IMPORTS = "optional:nacos:cloud-dubbo.yml";
 
     /** Dubbo banner 输出类的全路径，该类仅有 banner 一处日志输出，整类关闭无副作用 */
-    private static final String WELCOME_LOGO_LOGGER = "org.apache.dubbo.spring.boot.context.event.WelcomeLogoApplicationListener";
+    private static final String WELCOME_LOGO_LOGGER = "org.apache.dubbo.spring.boot.context.event."
+            + "WelcomeLogoApplicationListener";
 
     /** Dubbo 启动 banner 特征片段，用于识别并丢弃 banner 输出 */
     private static final String BANNER_FLAG = ":: Dubbo (v";
@@ -38,7 +40,8 @@ public class DubboConfigInitializer implements ConfigInitializer {
      * 导入 Dubbo 共享配置文件，并屏蔽 Dubbo 启动 banner 输出。
      * <p>
      * 先将 {@code cloud-dubbo.yml} 以 optional 前缀合并到
-     * {@code spring.config.import} 导入列表；再写入日志记录器关闭属性：Spring Boot 在环境准备阶段
+     * {@code spring.config.import} 导入列表；
+     * 再写入日志记录器关闭属性：Spring Boot 在环境准备阶段
      * （早于 banner 输出监听器执行）应用 {@code logging.level.*} 属性，
      * 使 banner 记录器 INFO 级别不可用，强制走标准输出回退路径。
      * 同时将 banner 特征注册到 {@code BaseApplication} 的统一过滤列表。
@@ -50,7 +53,7 @@ public class DubboConfigInitializer implements ConfigInitializer {
     public void initialize(Properties properties) {
 
         properties.merge(
-                "spring.config.import",
+                SpringPropertyConstant.SPRING_CONFIG_IMPORT,
                 IMPORTS,
                 (existing, incoming) -> incoming + "," + existing
         );

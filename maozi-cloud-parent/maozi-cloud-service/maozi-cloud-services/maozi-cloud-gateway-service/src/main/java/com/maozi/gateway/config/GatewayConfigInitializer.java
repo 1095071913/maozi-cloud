@@ -1,5 +1,6 @@
 package com.maozi.gateway.config;
 
+import com.maozi.common.constant.SpringPropertyConstant;
 import com.maozi.common.spi.ConfigInitializer;
 
 import java.util.Map;
@@ -18,7 +19,8 @@ import java.util.Properties;
 public class GatewayConfigInitializer implements ConfigInitializer {
 
     /** 网关 Nacos 共享配置文件导入清单（optional 前缀保证文件不存在时不阻断启动） */
-    private static final String NACOS_IMPORTS = "optional:nacos:cloud-nacos.yml,optional:nacos:boot-monitor.yml,optional:nacos:cloud-default.yml";
+    private static final String NACOS_IMPORTS = "optional:nacos:cloud-nacos.yml,"
+        + "optional:nacos:boot-monitor.yml,optional:nacos:cloud-default.yml";
 
     /**
      * 初始化网关运行时配置
@@ -33,10 +35,10 @@ public class GatewayConfigInitializer implements ConfigInitializer {
     @Override
     public void initialize(Properties properties) {
 
-        properties.put("spring.main.allow-bean-definition-overriding",true);
+        properties.put(SpringPropertyConstant.ALLOW_BEAN_DEFINITION_OVERRIDING, true);
 
         properties.merge(
-            "spring.config.import",
+            SpringPropertyConstant.SPRING_CONFIG_IMPORT,
             NACOS_IMPORTS,
             (existing, incoming) -> incoming + "," + existing
         );

@@ -11,6 +11,7 @@ import com.maozi.snailjob.retry.context.RetryContextHolder;
 import com.maozi.snailjob.retry.executor.RetryExecutorTask;
 import com.maozi.snailjob.retry.param.RetryTaskParam;
 import io.opentelemetry.api.trace.Span;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -37,12 +38,16 @@ import java.util.Objects;
   * @author maozi
  * @date 2026/11/08
  */
+@Slf4j
 @Aspect
 @Component
 public class RetryTaskReportAop {
 
     /** RetryTask 注解切点表达式 */
     private final String POINT = "@annotation(com.maozi.snailjob.retry.annotation.RetryTask)";
+
+    /** 秒转毫秒换算因子 */
+    private static final long SECONDS_TO_MILLIS = 1000L;
 
     /**
      * 环绕通知，处理 {@code @RetryTask} 方法失败后的本地重试与远程上报
@@ -107,7 +112,8 @@ public class RetryTaskReportAop {
                 retryTaskParam.setMethodName(method.getName());
                 retryTaskParam.setParamTypes(signature.getParameterTypes());
                 retryTaskParam.setData(proceedingJoinPoint.getArgs());
-                retryTaskParam.setVersion(ApplicationLinkContext.getVersionDefault(ApplicationLinkContext.getVersion()));
+                retryTaskParam.setVersion(
+                    ApplicationLinkContext.getVersionDefault(ApplicationLinkContext.getVersion()));
                 retryTaskParam.setRetryIfResultClassName(retryTask.retryIfResult().getName());
 
                 // OpenTelemetry 无有效追踪上下文时 traceId 为全 0 占位值，此时回退链路上下文中的 traceId
@@ -172,9 +178,11 @@ public class RetryTaskReportAop {
      */
     private void reportRetryTask(String scene, RetryTaskParam retryTaskParam) {
 
-        SnailJobTemplate snailJobTemplate =
-            RetryTaskTemplateBuilder.newBuilder().withScene(RetryExecutorTask.buildScene(scene)).withExecutorMethod(RetryExecutorTask.class)
-                .withParam(retryTaskParam).build();
+        SnailJobTemplate snailJobTemplate = RetryTaskTemplateBuilder.newBuilder()
+            .withScene(RetryExecutorTask.buildScene(scene))
+            .withExecutorMethod(RetryExecutorTask.class)
+            .withParam(retryTaskParam)
+            .build();
 
         snailJobTemplate.executeRetry();
 
@@ -204,7 +212,7 @@ public class RetryTaskReportAop {
 
                 // 重试间隙，防止重试过快跟上一次结果一样
                 if (localInterval > 0) {
-                    Thread.sleep(localInterval * 1000L);
+                    Thread.sleep(localInterval * SECONDS_TO_MILLIS);
                 }
 
                 Object result = proceedingJoinPoint.proceed();
@@ -212,7 +220,8 @@ public class RetryTaskReportAop {
                     return new LocalRetryResultDTO(true, result);
                 }
 
-            } catch (Throwable ignored) {
+            } catch (Throwable e) {
+                log.warn("local retry invoke error, times={}", currentLocalTimes, e);
             }
 
             ++currentLocalTimes;

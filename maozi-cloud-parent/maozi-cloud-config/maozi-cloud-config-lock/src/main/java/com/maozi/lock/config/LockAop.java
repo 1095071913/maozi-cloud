@@ -1,6 +1,7 @@
 package com.maozi.lock.config;
 
 import com.maozi.common.CollectionUtil;
+import com.maozi.lock.annotation.Lock;
 import com.maozi.lock.annotation.LockKey;
 import com.maozi.lock.lock.LockType;
 import com.maozi.lock.properties.LockRedissonProperties;
@@ -41,7 +42,7 @@ import java.util.List;
  */
 @Aspect
 @Component
-@Order(value = Ordered.HIGHEST_PRECEDENCE + 2 )
+@Order(value = Ordered.HIGHEST_PRECEDENCE + 2)
 public class LockAop {
 
     /** SpEL 表达式解析器 */
@@ -63,7 +64,7 @@ public class LockAop {
      * @throws Throwable 业务方法或锁操作抛出的异常
      */
     @Around("@annotation(annotation)")
-    public Object around(ProceedingJoinPoint joinPoint, com.maozi.lock.annotation.Lock annotation) throws Throwable {
+    public Object around(ProceedingJoinPoint joinPoint, Lock annotation) throws Throwable {
 
         // 获取方法签名信息，用于后续提取方法名和参数
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
@@ -72,27 +73,36 @@ public class LockAop {
         LockType type = annotation.type();
 
         // 解析业务键名称（来自 SpEL 表达式或 @LockKey 注解的参数）
-        String businessKeyName = getKeyName(joinPoint,annotation);
+        String businessKeyName = getKeyName(joinPoint, annotation);
 
-        // 确定锁名称：如果注解指定了名称则使用指定名称，否则使用 "类名.方法名" 作为默认锁名称
-        String lockName = org.apache.commons.lang3.StringUtils.isNotBlank(annotation.name()) ? annotation.name() : signature.getDeclaringTypeName()+ "." +signature.getMethod().getName();
+        // 确定锁名称：如果注解指定了名称则使用指定名称，
+        // 否则使用 "类名.方法名" 作为默认锁名称
+        String lockName = org.apache.commons.lang3.StringUtils.isNotBlank(annotation.name()) ?
+                annotation.name()
+                :
+                signature.getDeclaringTypeName() + "." + signature.getMethod().getName();
 
-        // 拼接锁键名：maozi-cloud:服务名:lock:锁名称_业务键名（REDIS_KEY_PREFIX 尾部自带冒号，业务键以 "_" 为前缀连接）
+        // 拼接锁键名：maozi-cloud:服务名:lock:锁名称_业务键名
+        // （REDIS_KEY_PREFIX 尾部自带冒号，业务键以 "_" 为前缀连接）
         lockName = RedisUtil.REDIS_KEY_PREFIX + "lock:" + lockName + businessKeyName;
 
         // 获取等待时间：如果注解未指定（Long.MIN_VALUE），则使用全局配置的默认值
-        long waitTime = annotation.waitTime() == Long.MIN_VALUE ? lockRedissonProperties.getWaitTime() : annotation.waitTime();
+        long waitTime = annotation.waitTime() == Long.MIN_VALUE
+                ? lockRedissonProperties.getWaitTime() : annotation.waitTime();
 
         // 获取持有时间：如果注解未指定（Long.MIN_VALUE），则使用全局配置的默认值
-        long leaseTime = annotation.leaseTime() == Long.MIN_VALUE ? lockRedissonProperties.getLeaseTime() : annotation.leaseTime();
+        long leaseTime = annotation.leaseTime() == Long.MIN_VALUE
+                ? lockRedissonProperties.getLeaseTime() : annotation.leaseTime();
 
         // 执行加锁操作，如果加锁失败则根据配置的策略进行处理
-        type.lock(lockName,waitTime,leaseTime,annotation.lockTimeoutStrategy());
+        type.lock(lockName, waitTime, leaseTime, annotation.lockTimeoutStrategy());
 
         // 执行目标业务方法，确保在 finally 块中释放锁
-        try {return joinPoint.proceed();} finally {
+        try {
+            return joinPoint.proceed();
+        } finally {
             // 无论业务方法执行成功或失败，都执行解锁操作，并根据策略处理解锁超时
-            type.unlock(lockName,annotation.releaseTimeoutStrategy());
+            type.unlock(lockName, annotation.releaseTimeoutStrategy());
         }
 
     }
@@ -105,25 +115,30 @@ public class LockAop {
      * @return 拼接后的锁键名称
      * @throws Exception 反射操作异常
      */
-    public String getKeyName(JoinPoint joinPoint, com.maozi.lock.annotation.Lock lock) throws Exception {
+    public String getKeyName(JoinPoint joinPoint, Lock lock) throws Exception {
 
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
 
         Method method = signature.getMethod();
 
-        // 如果方法声明在接口上，直接使用接口方法；否则从目标类获取实际方法，确保获取到正确的参数注解
-        method = method.getDeclaringClass().isInterface() ? signature.getMethod() : joinPoint.getTarget().getClass().getDeclaredMethod(signature.getName(),method.getParameterTypes());
+        // 如果方法声明在接口上，直接使用接口方法；
+        // 否则从目标类获取实际方法，确保获取到正确的参数注解
+        method = method.getDeclaringClass().isInterface()
+                ? signature.getMethod()
+                : joinPoint.getTarget().getClass().getDeclaredMethod(signature.getName(),
+                        method.getParameterTypes());
 
         List<String> keyList = CollectionUtil.newArrayList();
 
         // 收集通过 SpEL 表达式定义的锁键（来自 @Lock 注解的 keys 属性）
-        keyList.addAll(getSpelDefinitionKey(joinPoint.getTarget(),lock.keys(), method, joinPoint.getArgs()) );
+        keyList.addAll(getSpelDefinitionKey(joinPoint.getTarget(), lock.keys(), method, joinPoint.getArgs()));
 
         // 收集通过 @LockKey 注解标记的参数值作为锁键
-        keyList.addAll(getParameterKey(method.getParameters(), joinPoint.getArgs()) );
+        keyList.addAll(getParameterKey(method.getParameters(), joinPoint.getArgs()));
 
-        // 每个业务键前拼接 "_"，键之间不加分隔符，形如 "_key1_key2"（分隔符为空、前缀 "_"、后缀为空）
-        return StringUtils.collectionToDelimitedString(keyList,"","_","");
+        // 每个业务键前拼接 "_"，键之间不加分隔符，形如 "_key1_key2"
+        // （分隔符为空、前缀 "_"、后缀为空）
+        return StringUtils.collectionToDelimitedString(keyList, "", "_", "_");
 
     }
 
@@ -136,7 +151,8 @@ public class LockAop {
      * @param parameterValues 方法参数值
      * @return 解析后的锁键列表
      */
-    private List<String> getSpelDefinitionKey(Object rootObject, String[] definitionKeys, Method method, Object[] parameterValues) {
+    private List<String> getSpelDefinitionKey(Object rootObject, String[] definitionKeys, Method method,
+            Object[] parameterValues) {
 
         List<String> definitionKeyList = CollectionUtil.newArrayList();
 
@@ -144,8 +160,10 @@ public class LockAop {
 
             if (!ObjectUtils.isEmpty(definitionKey)) {
 
-                // 创建基于方法的 SpEL 求值上下文，将方法参数绑定到上下文中以便 SpEL 表达式引用
-                EvaluationContext context = new MethodBasedEvaluationContext(rootObject, method, parameterValues, nameDiscoverer);
+                // 创建基于方法的 SpEL 求值上下文，
+                // 将方法参数绑定到上下文中以便 SpEL 表达式引用
+                EvaluationContext context = new MethodBasedEvaluationContext(rootObject, method,
+                        parameterValues, nameDiscoverer);
 
                 // 解析 SpEL 表达式并获取实际值，例如 "#orderId" 会被解析为实际的订单 ID
                 Object objKey = parser.parseExpression(definitionKey).getValue(context);

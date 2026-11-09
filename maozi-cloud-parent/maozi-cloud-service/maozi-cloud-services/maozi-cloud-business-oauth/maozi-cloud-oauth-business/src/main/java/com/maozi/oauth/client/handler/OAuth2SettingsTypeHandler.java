@@ -26,7 +26,7 @@ import java.lang.reflect.Field;
 public class OAuth2SettingsTypeHandler extends JacksonTypeHandler {
 
     /** OAuth2专用的ObjectMapper，复用ClientServiceImpl中已注册安全模块的实例 */
-    private static final ObjectMapper OAUTH2_OBJECT_MAPPER = ClientServiceImpl.oauthObjectMapper;
+    private static final ObjectMapper OAUTH2_OBJECT_MAPPER = ClientServiceImpl.OAUTH_OBJECT_MAPPER;
 
     /**
      * 构造方法，仅指定类型。

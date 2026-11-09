@@ -22,7 +22,7 @@ import com.alibaba.ttl.TransmittableThreadLocal;
 public class SnailJobParamContext {
 
     /** 当前任务业务参数（SnailJob 服务端配置的任务参数） */
-    private static final TransmittableThreadLocal<String> jobParams = new TransmittableThreadLocal<>();
+    private static final TransmittableThreadLocal<String> JOB_PARAMS = new TransmittableThreadLocal<>();
 
     /**
      * 获取当前任务业务参数
@@ -30,7 +30,7 @@ public class SnailJobParamContext {
      * @return 当前任务业务参数；未处于任务执行上下文或任务未配置参数时返回 null
      */
     public static String getJobParams() {
-        return jobParams.get();
+        return JOB_PARAMS.get();
     }
 
     /**
@@ -39,14 +39,14 @@ public class SnailJobParamContext {
      * @param param 任务业务参数
      */
     public static void setJobParams(String param) {
-        jobParams.set(param);
+        JOB_PARAMS.set(param);
     }
 
     /**
      * 清除当前线程的任务业务参数
      */
     public static void clearJobParams() {
-        jobParams.remove();
+        JOB_PARAMS.remove();
     }
 
 }

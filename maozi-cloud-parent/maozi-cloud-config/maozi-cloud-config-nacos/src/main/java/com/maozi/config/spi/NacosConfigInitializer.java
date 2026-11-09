@@ -3,6 +3,7 @@ package com.maozi.config.spi;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import com.maozi.common.constant.LogTag;
+import com.maozi.common.constant.SpringPropertyConstant;
 import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.common.spi.ConfigInitializer;
 import org.slf4j.LoggerFactory;
@@ -28,10 +29,16 @@ public class NacosConfigInitializer implements ConfigInitializer {
     /** 项目自定义的 Nacos 服务地址属性键 */
     private static final String PROJECT_NACOS_SERVER_KEY = "nacos.server";
 
-    /** Nacos 服务地址默认值占位符：优先取环境变量 APPLICATION_NACOS_SERVER，缺省使用内置 Nacos 服务地址 */
+    /**
+     * Nacos 服务地址默认值占位符：优先取环境变量 APPLICATION_NACOS_SERVER，
+     * 缺省使用内置 Nacos 服务地址
+     */
     private static final String PROJECT_NACOS_SERVER_VALUE = "${APPLICATION_NACOS_SERVER:maozi-cloud-basic-nacos:8848}";
 
-    /** Nacos 命名空间默认值占位符：直接引用项目属性 application.environment，跟随当前运行环境 */
+    /**
+     * Nacos 命名空间默认值占位符：直接引用项目属性 application.environment，
+     * 跟随当前运行环境
+     */
     private static final String PROJECT_NACOS_NAMESPACE_VALUE = "${application.environment}";
 
     /** Nacos 配置中心服务地址属性键 */
@@ -65,17 +72,19 @@ public class NacosConfigInitializer implements ConfigInitializer {
         // 导入列表末尾（spring.config.import 中越靠后的导入优先级越高，应用自身配置因此
         // 优先于各共享配置文件）；optional 前缀保证文件不存在时不阻断启动
         properties.merge(
-            "spring.config.import",
-            "optional:nacos:" + properties.getProperty("spring.application.name") + ".yml",
+            SpringPropertyConstant.SPRING_CONFIG_IMPORT,
+            "optional:nacos:" + properties.getProperty(SpringPropertyConstant.SPRING_APPLICATION_NAME) + ".yml",
             (existing, incoming) -> existing + "," + incoming
         );
 
-        // 若已存在项目级 nacos.server 定义，则配置中心与注册中心地址以占位符方式引用该值
+        // 若已存在项目级 nacos.server 定义，
+        // 则配置中心与注册中心地址以占位符方式引用该值
         if (properties.containsKey(PROJECT_NACOS_SERVER_KEY)) {
             properties.put(NACOS_CONFIG_SERVER_KEY, "${" + PROJECT_NACOS_SERVER_KEY + "}");
             properties.put(NACOS_DISCOVERY_SERVER_KEY, "${" + PROJECT_NACOS_SERVER_KEY + "}");
-        }else{
-            // 否则写入默认占位符：优先取环境变量 APPLICATION_NACOS_SERVER，缺省使用内置 Nacos 服务地址
+        } else {
+            // 否则写入默认占位符：优先取环境变量 APPLICATION_NACOS_SERVER，
+            // 缺省使用内置 Nacos 服务地址
             properties.put(NACOS_CONFIG_SERVER_KEY, PROJECT_NACOS_SERVER_VALUE);
             properties.put(NACOS_DISCOVERY_SERVER_KEY, PROJECT_NACOS_SERVER_VALUE);
         }
@@ -83,9 +92,12 @@ public class NacosConfigInitializer implements ConfigInitializer {
         properties.put(NACOS_CONFIG_NAMESPACE_KEY, PROJECT_NACOS_NAMESPACE_VALUE);
         properties.put(NACOS_DISCOVERY_NAMESPACE_KEY, PROJECT_NACOS_NAMESPACE_VALUE);
 
-        // Nacos 客户端在 spring.config.import 阶段（早于 Spring 应用 logback-spring.xml）即初始化并输出 INFO 日志，
-        // 此时 logback 仍处于内置默认配置（root=DEBUG + 控制台输出），启动前置写入的 logging.level.root 尚未生效；
-        // 因此在 Spring 启动前直接以编程方式将 Nacos 客户端日志级别压至 WARN，屏蔽启动阶段的 INFO 刷屏。
+        // Nacos 客户端在 spring.config.import 阶段（早于 Spring 应用 logback-spring.xml）
+        // 即初始化并输出 INFO 日志，
+        // 此时 logback 仍处于内置默认配置（root=DEBUG + 控制台输出），
+        // 启动前置写入的 logging.level.root 尚未生效；
+        // 因此在 Spring 启动前直接以编程方式将 Nacos 客户端日志级别压至 WARN，
+        // 屏蔽启动阶段的 INFO 刷屏。
         // Spring 加载 logback-spring.xml 时会 reset 上下文，此设置不会影响运行期日志体系。
         if (LoggerFactory.getILoggerFactory() instanceof LoggerContext loggerContext) {
             loggerContext.getLogger(NACOS_CLIENT_LOGGER).setLevel(Level.WARN);

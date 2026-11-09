@@ -14,8 +14,10 @@ import java.util.function.Function;
 /**
  * 应用链路上下文
  * <p>
- * 使用 TransmittableThreadLocal 存储当前请求的链路信息，包括版本号、当前登录用户信息（{@link CurrentUserInfo}）、
- * 以及链路追踪 ID（traceId，并同步写入 MDC 便于日志关联），支持线程池和异步场景下的上下文传递。
+ * 使用 TransmittableThreadLocal 存储当前请求的链路信息，
+ * 包括版本号、当前登录用户信息（{@link CurrentUserInfo}）、
+ * 以及链路追踪 ID（traceId，并同步写入 MDC 便于日志关联），
+ * 支持线程池和异步场景下的上下文传递。
  * 同时提供基于 Function 的用户属性提取和上下文清理功能。
  * </p>
  *
@@ -104,7 +106,9 @@ public class ApplicationLinkContext {
      * @return 版本号字符串
      */
     public static String getVersionDefault(Object version){
-        return ObjectUtil.isNotNullEmpty(version) && StringUtils.isNotBlank(version.toString()) ? version.toString() : ApplicationLinkContext.APPLICATION_DEFAULT_VERSION;
+        boolean hasVersion = ObjectUtil.isNotNullEmpty(version)
+                && StringUtils.isNotBlank(version.toString());
+        return hasVersion ? version.toString() : ApplicationLinkContext.APPLICATION_DEFAULT_VERSION;
     }
 
     /**
@@ -144,7 +148,8 @@ public class ApplicationLinkContext {
      */
     public static void setCurrentUserInfo(String currentUserInfoJson){
         if(ObjectUtil.isNotNullEmpty(currentUserInfoJson)){
-            ApplicationLinkContext.currentUserInfos.set(JacksonUtil.jsonToObject(currentUserInfoJson, CurrentUserInfo.class));
+            ApplicationLinkContext.currentUserInfos.set(
+                    JacksonUtil.jsonToObject(currentUserInfoJson, CurrentUserInfo.class));
         }
     }
 
@@ -152,7 +157,7 @@ public class ApplicationLinkContext {
      * 清理当前线程的链路上下文（含 SQL 日志、版本号、用户信息、链路追踪 ID 及 MDC）
      */
     public static void clearContext(){
-        LogUtil.sqlLog.remove();
+        LogUtil.SQL_LOG.remove();
         versions.remove();
         currentUserInfos.remove();
         traceIds.remove();

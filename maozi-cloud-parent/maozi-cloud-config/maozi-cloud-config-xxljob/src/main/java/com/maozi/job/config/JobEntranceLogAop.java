@@ -34,7 +34,7 @@ import java.util.Map;
 @Slf4j
 @Aspect
 @Component
-@Order(value = Ordered.HIGHEST_PRECEDENCE + 1 )
+@Order(value = Ordered.HIGHEST_PRECEDENCE + 1)
 public class JobEntranceLogAop {
 
     /** XxlJob 注解切点表达式 */
@@ -61,37 +61,42 @@ public class JobEntranceLogAop {
 
         ApplicationLinkContext.setVersion(ApplicationEnvironmentContext.VERSION);
 
-        Map<String, String> logs = new LinkedHashMap<>();
+        Map<String, String> logs = new LinkedHashMap<>(16);
 
         logs.put(LogTag.TYPE, LogCommonType.JOB.getDesc());
-        logs.put(LogTag.FUNCTION, proceedingJoinPoint.getSignature().getDeclaringTypeName() + ":" + proceedingJoinPoint.getSignature().getName());
+        logs.put(LogTag.FUNCTION, proceedingJoinPoint.getSignature().getDeclaringTypeName()
+            + ":" + proceedingJoinPoint.getSignature().getName());
 
         // 非生产环境直接记录任务参数；生产环境为避免参数外泄，仅在异常时补充记录
-        Boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentType.PROD);
-        if(isNotProd){
+        boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentType.PROD);
+        if (isNotProd) {
             logs.put(LogTag.PARAM, arg);
         }
 
-        try {proceedingJoinPoint.proceed();}catch (Exception e){
+        try {
+            proceedingJoinPoint.proceed();
+        } catch (Exception e) {
 
             error = true;
 
-            LogUtil.error(log,e);
+            LogUtil.error(log, e);
 
-            if(!isNotProd){
+            if (!isNotProd) {
                 logs.put(LogTag.PARAM, arg);
             }
 
             logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
 
             StackTraceElement[] errorLines = e.getStackTrace();
-            if(errorLines.length > 0) {
+            if (errorLines.length > 0) {
                 logs.put(LogTag.ERROR_LINE, errorLines[0].toString());
             }
 
-        }finally {
+            throw e;
 
-            StringBuilder sqlLog = LogUtil.sqlLog.get();
+        } finally {
+
+            StringBuilder sqlLog = LogUtil.SQL_LOG.get();
             if (ObjectUtil.isNotNullEmpty(sqlLog)) {
                 logs.put(LogTag.SQL, sqlLog.toString());
             }

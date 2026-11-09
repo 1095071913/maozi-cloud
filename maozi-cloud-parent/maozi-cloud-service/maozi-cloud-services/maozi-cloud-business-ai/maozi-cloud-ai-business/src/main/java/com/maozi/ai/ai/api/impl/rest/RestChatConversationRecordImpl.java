@@ -33,7 +33,10 @@ import org.springframework.ai.chat.memory.ChatMemory;
  */
 @RestService
 @RequiredArgsConstructor
-public class RestChatConversationRecordImpl extends ChatConversationRecordServiceImpl implements RestChatConversationRecord {
+public class RestChatConversationRecordImpl extends ChatConversationRecordServiceImpl
+        implements RestChatConversationRecord {
+
+    private static final int TITLE_MAX_LENGTH = 20;
 
     /** 对话记忆，用于删除会话时清空该会话的对话记忆 */
     private final ChatMemory chatMemory;
@@ -48,13 +51,16 @@ public class RestChatConversationRecordImpl extends ChatConversationRecordServic
      * @return 会话分页列表
      */
     @Override
-    public AbstractBaseResult<PageResult<ChatConversationRecordListResult>> restList(PageParam<ChatConversationRecordListParam> pageParam) {
+    public AbstractBaseResult<PageResult<ChatConversationRecordListResult>> restList(
+            PageParam<ChatConversationRecordListParam> pageParam) {
 
         Long userId = ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUserId);
-        MPJLambdaWrapper<ChatConversationRecordDo> wrapper = buildQueryWrapper(pageParam, ChatConversationRecordListResult.class);
+        MPJLambdaWrapper<ChatConversationRecordDo> wrapper = buildQueryWrapper(
+                pageParam, ChatConversationRecordListResult.class);
         wrapper.eq(ChatConversationRecordDo::getUserId,userId);
 
-        Page<ChatConversationRecordListResult> page = selectJoinListPage(convertPage(pageParam),ChatConversationRecordListResult.class,wrapper);
+        Page<ChatConversationRecordListResult> page = selectJoinListPage(
+                convertPage(pageParam), ChatConversationRecordListResult.class, wrapper);
 
         PageResult<ChatConversationRecordListResult> pageResult = convertPageResult(page);
 
@@ -83,7 +89,7 @@ public class RestChatConversationRecordImpl extends ChatConversationRecordServic
         }
 
         ChatConversationRecordDo domain = new ChatConversationRecordDo();
-        domain.setTitle(title.length() > 20 ? StrUtil.subPre(title,20) + "..." : title);
+        domain.setTitle(title.length() > TITLE_MAX_LENGTH ? StrUtil.subPre(title, TITLE_MAX_LENGTH) + "..." : title);
         domain.setUserId(ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUserId));
 
         save(domain);
@@ -111,8 +117,8 @@ public class RestChatConversationRecordImpl extends ChatConversationRecordServic
             throw new BusinessResultException("标题不能为空");
         }
 
-        if(title.length() > 20){
-            throw new BusinessResultException("标题不能大于20字符");
+        if (title.length() > TITLE_MAX_LENGTH) {
+            throw new BusinessResultException("标题不能大于"+ TITLE_MAX_LENGTH +"字符");
         }
 
         ChatConversationRecordDo domain = new ChatConversationRecordDo();

@@ -1,5 +1,6 @@
 package com.maozi.service.spi;
 
+import com.maozi.common.constant.SpringPropertyConstant;
 import com.maozi.common.spi.ConfigInitializer;
 
 import java.util.Map;
@@ -19,8 +20,14 @@ import java.util.Properties;
  */
 public class NacosConfigInitializer implements ConfigInitializer {
 
-    /** 分布式组件 Nacos 共享配置文件导入清单（optional 前缀保证文件不存在时不阻断启动） */
-    private static final String NACOS_IMPORTS = "optional:nacos:cloud-nacos.yml,optional:nacos:cloud-dubbo.yml,optional:nacos:cloud-sentinel.yml,optional:nacos:boot-monitor.yml,optional:nacos:cloud-oauth.yml,optional:nacos:cloud-default.yml";
+    /** 分布式组件 Nacos 共享配置文件导入清单
+     * （optional 前缀保证文件不存在时不阻断启动） */
+    private static final String NACOS_IMPORTS = "optional:nacos:cloud-nacos.yml,"
+        + "optional:nacos:cloud-dubbo.yml,"
+        + "optional:nacos:cloud-sentinel.yml,"
+        + "optional:nacos:boot-monitor.yml,"
+        + "optional:nacos:cloud-oauth.yml,"
+        + "optional:nacos:cloud-default.yml";
 
     /**
      * 初始化分布式组件运行时配置
@@ -35,7 +42,7 @@ public class NacosConfigInitializer implements ConfigInitializer {
     @Override
     public void initialize(Properties properties) {
         properties.merge(
-            "spring.config.import",
+            SpringPropertyConstant.SPRING_CONFIG_IMPORT,
             NACOS_IMPORTS,
             (existing, incoming) -> incoming + "," + existing
         );

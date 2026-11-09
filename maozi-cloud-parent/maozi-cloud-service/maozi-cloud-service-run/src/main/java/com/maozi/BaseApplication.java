@@ -20,6 +20,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import com.maozi.common.LogUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.constant.LogTag;
+import com.maozi.common.constant.SpringPropertyConstant;
 import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.common.context.ApplicationLinkContext;
 import com.maozi.common.enums.EnvironmentType;
@@ -49,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -57,7 +59,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * 微服务应用的统一启动基类，各服务启动入口直接继承此类，或继承 {@code BaseApplicationDB}
  * （组合关系，非继承）并委托本类执行启动。负责统一初始化运行环境、应用名称、
  * 日志等基础启动参数，并在启动前扫描 classpath 下 {@code META-INF/run/config/*.properties}
- * 登记的配置初始化器（{@link ConfigInitializer}），由各初始化器写入 Nacos 配置中心/服务发现、
+ * 登记的配置初始化器（{@link ConfigInitializer}），
+ * 由各初始化器写入 Nacos 配置中心/服务发现、
  * 缓存、定时任务等组件所需的系统属性。
  * </p>
  * <p>
@@ -75,22 +78,91 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @DependsOn({ApplicationEnvironmentContext.CLASS_NAME})
 public class BaseApplication {
 
-    /** 运行时配置初始化器扫描模式，匹配 classpath（含 JAR 内）下 META-INF/run/config 目录中的所有 .properties 文件，文件内容为实现类全路径 */
+    /** 运行时配置初始化器扫描模式，匹配 classpath（含 JAR 内）下
+     * META-INF/run/config 目录中的所有 .properties 文件，文件内容为实现类全路径 */
     private static final String CONFIG_LOCATION_PATTERN = "classpath*:META-INF/run/config/*.properties";
 
-    /** banner 过滤特征列表，由各组件模块在配置初始化阶段注册，{@link BannerFilterPrintStream} 过滤时实时读取 */
+    private static final Set<String> BUILD_DIR_NAMES = Set.of(
+        "target", "build", "classes", "bin", "java", "main", "test");
+
+    /** banner 过滤特征列表，由各组件模块在配置初始化阶段注册，
+     * {@link BannerFilterPrintStream} 过滤时实时读取 */
     private static final List<String> BANNER_FILTERS = new CopyOnWriteArrayList<>();
+
+    /** 属性键：运行环境 */
+    private static final String APPLICATION_ENVIRONMENT_KEY = "application.environment";
+
+    /** 环境变量名：运行环境 */
+    private static final String APPLICATION_ENVIRONMENT_ENV = "APPLICATION_ENVIRONMENT";
+
+    /** 属性键：应用版本 */
+    private static final String APPLICATION_VERSION_KEY = "application.version";
+
+    /** 环境变量名：应用版本 */
+    private static final String APPLICATION_VERSION_ENV = "APPLICATION_VERSION";
+
+    /** 项目名统一前缀 */
+    private static final String PROJECT_PREFIX = "maozi-cloud";
+
+    /** 项目简称截取时去除的尾部模块后缀长度 */
+    private static final int PROJECT_NAME_SUFFIX_LENGTH = 9;
+
+    /** 属性键：项目简称 */
+    private static final String PROJECT_ABBREVIATION_KEY = "application-project-abbreviation";
+
+    /** 属性键：是否输出启动信息日志 */
+    private static final String LOG_STARTUP_INFO_KEY = "spring.main.log-startup-info";
+
+    /** 属性键：是否允许循环依赖 */
+    private static final String ALLOW_CIRCULAR_REFERENCES_KEY = "spring.main.allow-circular-references";
+
+    /** 属性键：根日志级别 */
+    private static final String LOGGING_LEVEL_ROOT_KEY = "logging.level.root";
+
+    /** 日志级别：错误 */
+    private static final String LOG_LEVEL_ERROR = "ERROR";
+
+    /** 属性键：com.maozi 包日志级别 */
+    private static final String LOGGING_LEVEL_PROJECT_KEY = "logging.level.com.maozi";
+
+    /** 日志级别：信息 */
+    private static final String LOG_LEVEL_INFO = "INFO";
+
+    /** 属性键：日志输出方式 */
+    private static final String LOGGING_APPENDER_KEY = "logging.appender";
+
+    /** 日志输出方式：异步文件 */
+    private static final String APPENDER_ASYNC_FILE = "ASYNC_FILE";
+
+    /** 日志输出方式：异步控制台 */
+    private static final String APPENDER_ASYNC_CONSOLE = "ASYNC_CONSOLE";
+
+    /** 属性键：日志文件路径 */
+    private static final String LOGGING_FILE_NAME_KEY = "logging.file.name";
+
+    /** jar 包文件后缀 */
+    private static final String JAR_SUFFIX = ".jar";
+
+    /** 应用启动入口方法名 */
+    private static final String MAIN_METHOD_NAME = "main";
+
+    /** Windows 路径盘符分隔符所在下标（如 /C:/path 中冒号位于下标 2） */
+    private static final int WINDOWS_DRIVE_SEPARATOR_INDEX = 2;
+
+    /** Windows 路径盘符分隔符 */
+    private static final char WINDOWS_DRIVE_SEPARATOR = ':';
 
     /**
      * 应用启动入口方法
      * <p>
      * 初始化系统属性、启动 Spring Boot 应用，记录启动日志（包括初始化时间、
-     * 服务端口以及各初始化器追加的诊断信息如 Nacos 地址）。启动失败时记录错误日志并退出。
+     * 服务端口以及各初始化器追加的诊断信息如 Nacos 地址）。
+     * 启动失败时记录错误日志并退出。
      * </p>
      *
      * @param args 命令行参数
      */
-    protected static void ApplicationRun(String[] args) {
+    protected static void applicationRun(String[] args) {
 
         initBannerFilter();
 
@@ -128,7 +200,7 @@ public class BaseApplication {
             logs.put(LogTag.ERROR_LINE, stackTraceElement.toString());
 
             LogUtil.error(log,logs);
-            System.exit(0);
+            System.exit(1);
 
         }
 
@@ -138,7 +210,8 @@ public class BaseApplication {
      * 安装启动 banner 过滤输出流
      * <p>
      * 在一切启动流程之前将标准输出包装为 {@link BannerFilterPrintStream}，
-     * 后续各组件模块注册的过滤特征在输出时实时生效；已安装时跳过，保证全局仅一层包装
+     * 后续各组件模块注册的过滤特征在输出时实时生效；
+     * 已安装时跳过，保证全局仅一层包装
      * （多层嵌套会导致内层过滤被绕过而失效）。
      * </p>
      */
@@ -176,7 +249,8 @@ public class BaseApplication {
      * <p>
      * 解析运行环境（优先取系统属性 application.environment，其次取环境变量
      * APPLICATION_ENVIRONMENT，均未设置时默认本地环境；应用版本 application.version
-     * 按同样优先级解析，未设置时取默认版本号），推导应用名与项目简称，并设置应用名称、
+     * 按同样优先级解析，未设置时取默认版本号），
+     * 推导应用名与项目简称，并设置应用名称、
      * 允许循环依赖、日志级别等 Spring Boot 启动参数。非本地环境使用异步文件日志
      * 输出到 {@code logs/应用名.log}，本地环境使用异步控制台日志。
      * 应用名称读取失败时抛出异常，终止启动。
@@ -187,44 +261,45 @@ public class BaseApplication {
 
         Properties properties = System.getProperties();
 
-        String environment = (String) properties.get("application.environment");
+        String environment = (String) properties.get(APPLICATION_ENVIRONMENT_KEY);
         if(ObjectUtil.isNullEmpty(environment)){
-            environment = System.getenv("APPLICATION_ENVIRONMENT");
+            environment = System.getenv(APPLICATION_ENVIRONMENT_ENV);
             if(ObjectUtil.isNullEmpty(environment)){
                 environment = EnvironmentType.LOCAL.getDesc();
             }
-            properties.put("application.environment",environment);
+            properties.put(APPLICATION_ENVIRONMENT_KEY,environment);
         }
 
-        String version = (String) properties.get("application.version");
+        String version = (String) properties.get(APPLICATION_VERSION_KEY);
         if(ObjectUtil.isNullEmpty(version)){
-            version = System.getenv("APPLICATION_VERSION");
+            version = System.getenv(APPLICATION_VERSION_ENV);
             if(ObjectUtil.isNullEmpty(version)){
                 version = ApplicationLinkContext.APPLICATION_DEFAULT_VERSION;
             }
-            properties.put("application.version", version);
+            properties.put(APPLICATION_VERSION_KEY, version);
         }
 
         String applicationName = getApplicationName();
         if(ObjectUtil.isNullEmpty(applicationName)){
             throw new Exception("服务名读取失败");
         }
-        String applicationProjectAbbreviation = applicationName.replace("maozi-cloud","");
-        applicationProjectAbbreviation = applicationProjectAbbreviation.substring(0, applicationProjectAbbreviation.length() - 9);
+        String applicationProjectAbbreviation = applicationName.replace(PROJECT_PREFIX,"");
+        applicationProjectAbbreviation = applicationProjectAbbreviation.substring(0,
+            applicationProjectAbbreviation.length() - PROJECT_NAME_SUFFIX_LENGTH);
 
-        properties.put("spring.application.name",applicationName);
-        properties.put("application-project-abbreviation",applicationProjectAbbreviation);
+        properties.put(SpringPropertyConstant.SPRING_APPLICATION_NAME,applicationName);
+        properties.put(PROJECT_ABBREVIATION_KEY,applicationProjectAbbreviation);
 
-        properties.put("spring.main.log-startup-info",false);
-        properties.put("spring.main.allow-circular-references",true);
+        properties.put(LOG_STARTUP_INFO_KEY,false);
+        properties.put(ALLOW_CIRCULAR_REFERENCES_KEY,true);
 
-        properties.put("logging.level.root", "ERROR");
-        properties.put("logging.level.com.maozi", "INFO");
+        properties.put(LOGGING_LEVEL_ROOT_KEY, LOG_LEVEL_ERROR);
+        properties.put(LOGGING_LEVEL_PROJECT_KEY, LOG_LEVEL_INFO);
         if(!Objects.equals(environment, EnvironmentType.LOCAL.getDesc())){
-            properties.put("logging.appender","ASYNC_FILE");
-            properties.put("logging.file.name","logs/${spring.application.name}.log");
+            properties.put(LOGGING_APPENDER_KEY,APPENDER_ASYNC_FILE);
+            properties.put(LOGGING_FILE_NAME_KEY,"logs/${spring.application.name}.log");
         }else{
-            properties.put("logging.appender","ASYNC_CONSOLE");
+            properties.put(LOGGING_APPENDER_KEY,APPENDER_ASYNC_CONSOLE);
         }
 
     }
@@ -305,7 +380,8 @@ public class BaseApplication {
      * - jar 运行：取 jar 文件名
      * - 目录运行：从启动类路径往上推导项目名
      *
-     * @return 应用名称（jar 运行取 jar 文件名去掉 .jar 后缀，目录运行取推导出的项目名）；无法定位时返回 null
+     * @return 应用名称（jar 运行取 jar 文件名去掉 .jar 后缀，
+     *         目录运行取推导出的项目名）；无法定位时返回 null
      */
     public static String getApplicationName() {
         Class<?> mainClass = findMainClass();
@@ -321,8 +397,8 @@ public class BaseApplication {
         String name = codeLocation.getName();
 
         // jar 包：直接取文件名去掉 .jar
-        if (name.endsWith(".jar")) {
-            return name.substring(0, name.length() - 4);
+        if (name.endsWith(JAR_SUFFIX)) {
+            return name.substring(0, name.length() - JAR_SUFFIX.length());
         }
 
         // 目录：往上跳过构建目录，取项目根目录名
@@ -336,10 +412,11 @@ public class BaseApplication {
      */
     private static Class<?> findMainClass() {
         for (StackTraceElement element : Thread.currentThread().getStackTrace()) {
-            if ("main".equals(element.getMethodName())) {
+            if (MAIN_METHOD_NAME.equals(element.getMethodName())) {
                 try {
                     return Class.forName(element.getClassName());
-                } catch (ClassNotFoundException ignored) {
+                } catch (ClassNotFoundException e) {
+                    log.error("main class not loadable: {}", element.getClassName(), e);
                 }
             }
         }
@@ -350,7 +427,9 @@ public class BaseApplication {
      * 从目录往上推导项目根目录名
      *
      * @param dir 启动类所在的目录
-     * @return 自下而上第一个非构建产物目录的名称；祖先均为构建产物目录时返回 dir 自身名称，dir 为 {@code null} 时返回 {@code null}
+     * @return 自下而上第一个非构建产物目录的名称；
+     *         祖先均为构建产物目录时返回 dir 自身名称，
+     *         dir 为 {@code null} 时返回 {@code null}
      */
     private static String deriveProjectName(File dir) {
         File current = dir;
@@ -392,16 +471,17 @@ public class BaseApplication {
         // 场景1：jar 包运行（包括传统 jar 和 Spring Boot 3 nested jar）
         // jar:file:/path/to/app.jar!/...
         // jar:nested:/path/to/app.jar/!BOOT-INF/classes/!/
-        int jarEndIndex = urlStr.indexOf(".jar");
+        int jarEndIndex = urlStr.indexOf(JAR_SUFFIX);
         if (jarEndIndex != -1) {
             // 截取 URL 开头至 .jar 结束（含 .jar）的部分
-            String beforeJar = urlStr.substring(0, jarEndIndex + 4);
+            String beforeJar = urlStr.substring(0, jarEndIndex + JAR_SUFFIX.length());
             // 找到最后一个冒号的位置，跳过协议前缀
             int colonIndex = beforeJar.lastIndexOf(':');
             if (colonIndex != -1) {
                 String path = beforeJar.substring(colonIndex + 1);
                 // 处理 Windows 路径可能出现的前导 /
-                if (path.startsWith("/") && path.length() > 2 && path.charAt(2) == ':') {
+                if (path.startsWith("/") && path.length() > WINDOWS_DRIVE_SEPARATOR_INDEX
+                    && path.charAt(WINDOWS_DRIVE_SEPARATOR_INDEX) == WINDOWS_DRIVE_SEPARATOR) {
                     path = path.substring(1);
                 }
                 return new File(path);
@@ -419,10 +499,7 @@ public class BaseApplication {
      * @return 是构建产物目录返回 true
      */
     private static boolean isBuildDir(String name) {
-        return name.equals("target") || name.equals("build")
-                || name.equals("classes") || name.equals("bin")
-                || name.equals("java") || name.equals("main")
-                || name.equals("test");
+        return BUILD_DIR_NAMES.contains(name);
     }
 
 }

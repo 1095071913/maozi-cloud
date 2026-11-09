@@ -23,8 +23,8 @@ public class EnvironmentUtil {
      * @param type 目标环境类型
      * @return 一致时返回 true，否则返回 false
      */
-    public static Boolean isEnvironment(EnvironmentType type) {
-        return type.getDesc().equals(ApplicationEnvironmentContext.ENVIRONMENT);
+    public static boolean isEnvironment(EnvironmentType type) {
+        return ApplicationEnvironmentContext.ENVIRONMENT.equals(type.getDesc());
     }
 
     /**
@@ -33,8 +33,8 @@ public class EnvironmentUtil {
      * @param type 目标环境类型
      * @return 不一致时返回 true，一致时返回 false
      */
-    public static Boolean notEnvironment(EnvironmentType type) {
-        return !type.getDesc().equals(ApplicationEnvironmentContext.ENVIRONMENT);
+    public static boolean notEnvironment(EnvironmentType type) {
+        return !isEnvironment(type);
     }
 
 }

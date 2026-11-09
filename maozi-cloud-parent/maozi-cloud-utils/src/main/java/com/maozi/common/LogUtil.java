@@ -22,7 +22,7 @@ public final class LogUtil {
     private LogUtil() {}
 
     /** SQL 日志线程变量，用于在同一线程中累积 SQL 日志信息 */
-    public static final ThreadLocal<StringBuilder> sqlLog = new ThreadLocal<>();
+    public static final ThreadLocal<StringBuilder> SQL_LOG = new ThreadLocal<>();
 
     /**
      * 输出 info 级别日志
@@ -104,7 +104,8 @@ public final class LogUtil {
     /**
      * 将 Map 格式的日志内容转换为字符串
      * <p>
-     * 每个条目按 {@code [ key：value ]  } 拼接，并去除整串最前面的 {@code "[ "} 与最后面的 {@code " ]  "}。
+     * 每个条目按 {@code [ key：value ]  } 拼接，
+     * 并去除整串最前面的 {@code "[ "} 与最后面的 {@code " ]  "}。
      * 例如两条目时实际输出为：{@code key1：value1 ]  [ key2：value2}
      * </p>
      *

@@ -2,7 +2,6 @@ package com.maozi.redis.utils;
 
 import cn.hutool.extra.spring.SpringUtil;
 import com.maozi.common.context.ApplicationEnvironmentContext;
-import lombok.Getter;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
@@ -24,17 +23,25 @@ public class RedisUtil {
     private static final String REDIS_KEY_PROJECT_PREFIX = "maozi-cloud";
 
     /** StringRedisTemplate 客户端实例 */
-    @Getter
-    private static final StringRedisTemplate redisClient;
+    private static final StringRedisTemplate REDIS_CLIENT;
 
     // 类加载时通过 SpringUtil 获取 StringRedisTemplate Bean，并基于服务名拼接全局键前缀
     // 注意：本类的首次访问必须晚于 Spring 容器就绪，否则 SpringUtil.getBean 会抛出 NPE
     static {
 
-        redisClient = SpringUtil.getBean(StringRedisTemplate.class);
+        REDIS_CLIENT = SpringUtil.getBean(StringRedisTemplate.class);
 
         REDIS_KEY_PREFIX = REDIS_KEY_PROJECT_PREFIX + ":" + ApplicationEnvironmentContext.SERVICE_NAME + ":";
 
+    }
+
+    /**
+     * 获取全局共用的 StringRedisTemplate 客户端实例
+     *
+     * @return StringRedisTemplate 实例（在类加载时通过 Spring 容器获取）
+     */
+    public static StringRedisTemplate getRedisClient() {
+        return REDIS_CLIENT;
     }
 
 }

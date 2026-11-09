@@ -1,6 +1,7 @@
 package com.maozi.sentinel.config;
 
 import com.maozi.BaseApplication;
+import com.maozi.common.constant.SpringPropertyConstant;
 import com.maozi.common.spi.ConfigInitializer;
 
 import java.util.Map;
@@ -28,6 +29,12 @@ public class SentinelConfigInitializer implements ConfigInitializer {
     /** Sentinel 初始化日志特征片段，用于识别并丢弃对应的标准输出 */
     private static final String BANNER_FLAG = "INFO: Sentinel log";
 
+    /** Sentinel 心跳上报接口路径属性键 */
+    private static final String HEARTBEAT_API_PATH_KEY = "csp.sentinel.heartbeat.api.path";
+
+    /** Sentinel 心跳上报接口路径 */
+    private static final String HEARTBEAT_API_PATH_VALUE = "/sentinel/registry/machine";
+
     /**
      * 导入 Sentinel 共享配置文件，设置心跳上报路径，并屏蔽 Sentinel 初始化日志输出。
      * <p>
@@ -43,9 +50,9 @@ public class SentinelConfigInitializer implements ConfigInitializer {
     @Override
     public void initialize(Properties properties) {
         // 设置 Sentinel 客户端向控制台上报心跳的接口路径
-        properties.put("csp.sentinel.heartbeat.api.path","/sentinel/registry/machine");
+        properties.put(HEARTBEAT_API_PATH_KEY, HEARTBEAT_API_PATH_VALUE);
         properties.merge(
-                "spring.config.import",
+                SpringPropertyConstant.SPRING_CONFIG_IMPORT,
                 IMPORTS,
                 (existing, incoming) -> incoming + "," + existing
         );

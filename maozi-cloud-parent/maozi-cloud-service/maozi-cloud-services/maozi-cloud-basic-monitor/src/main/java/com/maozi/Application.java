@@ -30,13 +30,13 @@ package com.maozi;
  */
 public class Application extends BaseApplication {
 
-	/**
-	 * 应用程序主入口方法。
-	 *
-	 * @param args 命令行启动参数
-	 */
-	public static void main(String[] args) {
-		ApplicationRun(args);
-	}
+    /**
+     * 应用程序主入口方法。
+     *
+     * @param args 命令行启动参数
+     */
+    public static void main(String[] args) {
+        applicationRun(args);
+    }
 
 }

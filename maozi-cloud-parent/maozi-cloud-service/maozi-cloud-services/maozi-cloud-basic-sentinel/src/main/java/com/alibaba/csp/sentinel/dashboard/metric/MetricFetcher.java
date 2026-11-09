@@ -52,9 +52,9 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.DiscardPolicy;
 import java.util.concurrent.TimeUnit;
@@ -76,12 +76,32 @@ public class MetricFetcher {
     private static final long MAX_LAST_FETCH_INTERVAL_MS = 1000 * 15;
     /** Length in seconds of each fetch time window. */
     private static final long FETCH_INTERVAL_SECOND = 6;
+    /** 拉取 HTTP 请求的连接超时时间（毫秒） */
+    private static final int HTTP_CONNECT_TIMEOUT_MS = 3000;
+    /** 拉取 HTTP 请求的读超时时间（毫秒） */
+    private static final int HTTP_SO_TIMEOUT_MS = 3000;
+    /** 异步 HTTP 客户端的最大总连接数 */
+    private static final int MAX_CONN_TOTAL = 4000;
+    /** 异步 HTTP 客户端每个路由的最大连接数 */
+    private static final int MAX_CONN_PER_ROUTE = 1000;
+    /** 定时拉取任务的初始延迟（秒） */
+    private static final long FETCH_INITIAL_DELAY_SECONDS = 10;
+    /** 指标聚合 Map 的初始容量 */
+    private static final int METRIC_MAP_INITIAL_CAPACITY = 16;
+    /** CPU 核心数乘数，用于计算拉取线程数与 IO 线程数 */
+    private static final int CPU_CORE_MULTIPLIER = 2;
+    /** 一秒对应的毫秒数 */
+    private static final long ONE_SECOND_MS = 1000L;
+    /** 拉取窗口距当前时间小于该秒数时跳过本轮，留待下次拉取 */
+    private static final int NEAR_SKIP_WINDOW_SECONDS = 2;
+    /** 单次拉取等待 HTTP 客户端返回的最长秒数 */
+    private static final int MAX_WAIT_SECONDS = 5;
     /** Charset used to decode the response body when it declares none. */
     private static final Charset DEFAULT_CHARSET = Charset.forName(SentinelConfig.charset());
     /** Path of the metric command on the Sentinel client. */
     private static final String METRIC_URL_PATH = "metric";
     /** Logger of this class. */
-    private static Logger logger = LoggerFactory.getLogger(MetricFetcher.class);
+    private static final Logger logger = LoggerFactory.getLogger(MetricFetcher.class);
     /** Period in seconds of the scheduled fetch-all task. */
     private final long intervalSecond = 1;
 
@@ -100,8 +120,9 @@ public class MetricFetcher {
 
     /** Scheduler that periodically triggers metric fetching of all apps. */
     @SuppressWarnings("PMD.ThreadPoolCreationRule")
-    private ScheduledExecutorService fetchScheduleService = Executors.newScheduledThreadPool(1,
-        new NamedThreadFactory("sentinel-dashboard-metrics-fetch-task", true));
+    private ScheduledExecutorService fetchScheduleService = new ScheduledThreadPoolExecutor(1,
+            new NamedThreadFactory("sentinel-dashboard-metrics-fetch-task", true),
+            new ThreadPoolExecutor.AbortPolicy());
     /** Executor that runs the per-app metric fetch dispatch tasks. */
     private ExecutorService fetchService;
     /** Executor that runs the actual per-app fetch tasks (HTTP round trips). */
@@ -112,7 +133,7 @@ public class MetricFetcher {
      * then starts the periodic fetch-all schedule.
      */
     public MetricFetcher() {
-        int cores = Runtime.getRuntime().availableProcessors() * 2;
+        int cores = Runtime.getRuntime().availableProcessors() * CPU_CORE_MULTIPLIER;
         long keepAliveTime = 0;
         int queueSize = 2048;
         RejectedExecutionHandler handler = new DiscardPolicy();
@@ -123,9 +144,9 @@ public class MetricFetcher {
             keepAliveTime, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(queueSize),
             new NamedThreadFactory("sentinel-dashboard-metrics-fetchWorker",true), handler);
         IOReactorConfig ioConfig = IOReactorConfig.custom()
-            .setConnectTimeout(3000)
-            .setSoTimeout(3000)
-            .setIoThreadCount(Runtime.getRuntime().availableProcessors() * 2)
+            .setConnectTimeout(HTTP_CONNECT_TIMEOUT_MS)
+            .setSoTimeout(HTTP_SO_TIMEOUT_MS)
+            .setIoThreadCount(Runtime.getRuntime().availableProcessors() * CPU_CORE_MULTIPLIER)
             .build();
 
         httpclient = HttpAsyncClients.custom()
@@ -135,8 +156,8 @@ public class MetricFetcher {
                 protected boolean isRedirectable(final String method) {
                     return false;
                 }
-            }).setMaxConnTotal(4000)
-            .setMaxConnPerRoute(1000)
+            }).setMaxConnTotal(MAX_CONN_TOTAL)
+            .setMaxConnPerRoute(MAX_CONN_PER_ROUTE)
             .setDefaultIOReactorConfig(ioConfig)
             .build();
         httpclient.start();
@@ -151,7 +172,7 @@ public class MetricFetcher {
             } catch (Exception e) {
                 logger.info("fetchAllApp error:", e);
             }
-        }, 10, intervalSecond, TimeUnit.SECONDS);
+        }, FETCH_INITIAL_DELAY_SECONDS, intervalSecond, TimeUnit.SECONDS);
     }
 
     /** Stamps gmtCreate/gmtModified with now and persists the metrics in batch; empty input is ignored. */
@@ -201,8 +222,8 @@ public class MetricFetcher {
             return;
         }
         Set<MachineInfo> machines = appInfo.getMachines();
-        logger.debug("enter fetchOnce(" + app + "), machines.size()=" + machines.size()
-            + ", time intervalMs [" + startTime + ", " + endTime + "]");
+        logger.debug("enter fetchOnce({}), machines.size()={}, time intervalMs [{}, {}]",
+            app, machines.size(), startTime, endTime);
         if (machines.isEmpty()) {
             return;
         }
@@ -212,8 +233,8 @@ public class MetricFetcher {
         final AtomicLong fail = new AtomicLong();
 
         long start = System.currentTimeMillis();
-        /** app_resource_timeSecond -> metric */
-        final Map<String, MetricEntity> metricMap = new ConcurrentHashMap<>(16);
+        // app_resource_timeSecond -> metric
+        final Map<String, MetricEntity> metricMap = new ConcurrentHashMap<>(METRIC_MAP_INITIAL_CAPACITY);
         final CountDownLatch latch = new CountDownLatch(machines.size());
         for (final MachineInfo machine : machines) {
             // auto remove the machine whose health status is dead (lost)
@@ -236,7 +257,7 @@ public class MetricFetcher {
                         handleResponse(response, machine, metricMap);
                         success.incrementAndGet();
                     } catch (Exception e) {
-                        logger.error(msg + " metric " + url + " error:", e);
+                        logger.error("{} metric {} error:", msg, url, e);
                     } finally {
                         latch.countDown();
                     }
@@ -251,9 +272,10 @@ public class MetricFetcher {
                     if (ex instanceof SocketTimeoutException) {
                         logger.error("Failed to fetch metric from <{}>: socket timeout", url);
                     } else if (ex instanceof ConnectException) {
-                        logger.error("Failed to fetch metric from <{}> (ConnectionException: {})", url, ex.getMessage());
+                        logger.error("Failed to fetch metric from <{}> (ConnectionException: {})",
+                            url, ex.getMessage());
                     } else {
-                        logger.error(msg + " metric " + url + " error", ex);
+                        logger.error("{} metric {} error", msg, url, ex);
                     }
                 }
 
@@ -269,7 +291,7 @@ public class MetricFetcher {
         try {
             latch.await(maxWaitSeconds, TimeUnit.SECONDS);
         } catch (Exception e) {
-            logger.info(msg + " metric, wait http client error:", e);
+            logger.info("{} metric, wait http client error:", msg, e);
         }
         //long cost = System.currentTimeMillis() - start;
         //logger.info("finished " + msg + " metric for " + app + ", time intervalMs [" + startTime + ", " + endTime
@@ -287,12 +309,12 @@ public class MetricFetcher {
         long now = System.currentTimeMillis();
         long lastFetchMs = now - MAX_LAST_FETCH_INTERVAL_MS;
         if (appLastFetchTime.containsKey(app)) {
-            lastFetchMs = Math.max(lastFetchMs, appLastFetchTime.get(app).get() + 1000);
+            lastFetchMs = Math.max(lastFetchMs, appLastFetchTime.get(app).get() + ONE_SECOND_MS);
         }
         // trim milliseconds
-        lastFetchMs = lastFetchMs / 1000 * 1000;
-        long endTime = lastFetchMs + FETCH_INTERVAL_SECOND * 1000;
-        if (endTime > now - 1000 * 2) {
+        lastFetchMs = lastFetchMs / ONE_SECOND_MS * ONE_SECOND_MS;
+        long endTime = lastFetchMs + FETCH_INTERVAL_SECOND * ONE_SECOND_MS;
+        if (endTime > now - ONE_SECOND_MS * NEAR_SKIP_WINDOW_SECONDS) {
             // too near
             return;
         }
@@ -304,13 +326,13 @@ public class MetricFetcher {
             // do real fetch async
             fetchWorker.submit(() -> {
                 try {
-                    fetchOnce(app, finalLastFetchMs, finalEndTime, 5);
+                    fetchOnce(app, finalLastFetchMs, finalEndTime, MAX_WAIT_SECONDS);
                 } catch (Exception e) {
-                    logger.info("fetchOnce(" + app + ") error", e);
+                    logger.info("fetchOnce({}) error", app, e);
                 }
             });
         } catch (Exception e) {
-            logger.info("submit fetchOnce(" + app + ") fail, intervalMs [" + lastFetchMs + ", " + endTime + "]", e);
+            logger.info("submit fetchOnce({}) fail, intervalMs [{}, {}]", app, lastFetchMs, endTime, e);
         }
     }
 
@@ -333,6 +355,7 @@ public class MetricFetcher {
                 charset = contentType.getCharset();
             }
         } catch (Exception ignore) {
+            // Content-Type 解析失败时忽略，后续回退到 DEFAULT_CHARSET 解码
         }
         String body = EntityUtils.toString(response.getEntity(), charset != null ? charset : DEFAULT_CHARSET);
         if (StringUtil.isEmpty(body) || body.startsWith(NO_METRICS)) {

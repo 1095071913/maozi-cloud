@@ -91,63 +91,81 @@ import java.util.stream.Collectors;
  * @date 2026/11/08
  */
 public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends AbstractBaseDomain, D>
-		extends ServiceImpl<M, T>
-		implements MPJBaseService<T>, BaseServiceResult<D> {
+        extends ServiceImpl<M, T>
+        implements MPJBaseService<T>, BaseServiceResult<D> {
 
-	/** 领域模型（数据库实体）Class 对象 */
-	protected Class<T> domainClass;
+    /** 领域模型（数据库实体）Class 对象 */
+    protected Class<T> domainClass;
 
-	/** 数据传输对象（DTO）Class 对象 */
-	protected Class<D> resultClass;
+    /** 数据传输对象（DTO）Class 对象 */
+    protected Class<D> resultClass;
 
-	/** 资源名称后缀：列表 */
-	private static final String RESOURCE_SUFFIX_LIST = "列表";
+    /** 资源名称后缀：列表 */
+    private static final String RESOURCE_SUFFIX_LIST = "列表";
 
-	/** 资源名称后缀：分组 */
-	private static final String RESOURCE_SUFFIX_GROUP = "分组";
+    /** 资源名称后缀：分组 */
+    private static final String RESOURCE_SUFFIX_GROUP = "分组";
 
-	/** 资源名称后缀：连接类型 */
-	private static final String RESOURCE_SUFFIX_JOIN_TYPE = "连接类型";
-	/** 资源名称后缀：查询类型 */
-	private static final String RESOURCE_SUFFIX_QUERY_TYPE = "查询类型";
+    /** 资源名称后缀：连接类型 */
+    private static final String RESOURCE_SUFFIX_JOIN_TYPE = "连接类型";
+    /** 资源名称后缀：查询类型 */
+    private static final String RESOURCE_SUFFIX_QUERY_TYPE = "查询类型";
+    /** 资源名称后缀：映射关系名称 */
+    private static final String RESOURCE_SUFFIX_MAPPING_NAME = "映射关系名称";
+    /** 资源名称后缀：映射关系不存在 */
+    private static final String RESOURCE_SUFFIX_MAPPING_NOT_EXIST = "映射关系不存在";
+    /** 资源名称后缀：映射关系类型错误 */
+    private static final String RESOURCE_SUFFIX_MAPPING_TYPE_ERROR = "映射关系类型错误";
+    /** 资源名称后缀：参数 */
+    private static final String RESOURCE_SUFFIX_PARAM = "参数";
+    /** 资源名称后缀：服务不存在 */
+    private static final String RESOURCE_SUFFIX_SERVICE_NOT_EXIST = "服务不存在";
+    /** 资源名称后缀：关系字段未设置 */
+    private static final String RESOURCE_SUFFIX_RELATION_FIELD_NOT_SET = "关系字段未设置";
+    /** 领域模型映射关系不存在的提示语 */
+    private static final String DOMAIN_MAPPING_NOT_EXIST = "领域模型映射关系不存在";
+    /** get 方法名前缀的长度 */
+    private static final int GETTER_PREFIX_LENGTH = 3;
 
-	/**
-	 * 获取资源名称（供子类实现）
-	 * <p>
-	 * 用于在异常信息中标识当前操作的资源名称，便于问题定位。
-	 * </p>
-	 *
-	 * @return 资源名称
-	 */
-	protected abstract String getResourceName();
+    /**
+     * 获取资源名称（供子类实现）
+     * <p>
+     * 用于在异常信息中标识当前操作的资源名称，便于问题定位。
+     * </p>
+     *
+     * @return 资源名称
+     */
+    protected abstract String getResourceName();
 
-	/**
-	 * 构造方法
-	 * <p>
-	 * 通过反射获取父类泛型参数的实际类型，初始化 domainClass 和 resultClass。
-	 * </p>
-	 */
-	@SuppressWarnings("unchecked")
-	public BaseServiceImpl() {
+    /**
+     * 构造方法
+     * <p>
+     * 通过反射获取父类泛型参数的实际类型，初始化 domainClass 和 resultClass。
+     * </p>
+     */
+    @SuppressWarnings("unchecked")
+    public BaseServiceImpl() {
 
-		// 沿继承链向上查找带泛型参数的父类，提取领域模型与 DTO 的泛型实参
-		for(Class<?> superClass = this.getClass() ; superClass != null && superClass != Object.class ; superClass = superClass.getSuperclass()) {
+        // 沿继承链向上查找带泛型参数的父类，提取领域模型与 DTO 的泛型实参
+        for (Class<?> superClass = this.getClass();
+                superClass != null && superClass != Object.class;
+                superClass = superClass.getSuperclass()) {
 
-			Type genericSuperclass = superClass.getGenericSuperclass();
+            Type genericSuperclass = superClass.getGenericSuperclass();
 
-			if(genericSuperclass instanceof ParameterizedType type) {
+            if(genericSuperclass instanceof ParameterizedType type) {
 
-				domainClass = (Class<T>) type.getActualTypeArguments()[1];
+                domainClass = (Class<T>) type.getActualTypeArguments()[1];
 
-				resultClass = (Class<D>) type.getActualTypeArguments()[2];
+                resultClass = (Class<D>) type.getActualTypeArguments()[2];
 
-				break;
+                break;
 
-			}
+            }
 
-		}
+        }
 
-	}
+    }
 
     /**
      * 获取当前领域模型的 Class 对象
@@ -170,12 +188,12 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public Class<D> getResultClass(){
 
-		if(Void.class.equals(resultClass)) {
-			throw new BusinessResultException(SystemErrorCode.NOT_SET_RESPONSE_ERROR)
-					.setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
-		}
+        if(Void.class.equals(resultClass)) {
+            throw new BusinessResultException(SystemErrorCode.NOT_SET_RESPONSE_ERROR)
+                    .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
+        }
 
-    	return resultClass;
+        return resultClass;
 
     }
 
@@ -187,7 +205,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return MyBatis-Plus 分页对象
      */
     protected <R> com.baomidou.mybatisplus.extension.plugins.pagination.Page<R> convertPage(PageParam<?> pageParam){
-    	return new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(pageParam.getCurrent(),pageParam.getSize());
+        return new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(pageParam.getCurrent(),
+                pageParam.getSize());
     }
 
     /**
@@ -199,8 +218,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 自定义分页结果
      */
     protected <R> PageResult<R> convertPageResult(Page<T> page,Supplier<R> target) {
-		return new PageResult<>(page.getCurrent(),page.getSize(),page.getTotal(),CglibUtil.copyList(page.getRecords(),target));
-	}
+        return new PageResult<>(page.getCurrent(),page.getSize(),page.getTotal(),
+                CglibUtil.copyList(page.getRecords(),target));
+    }
 
     /**
      * 将 MyBatis-Plus 分页结果转换为自定义分页结果（直接使用已有数据列表）
@@ -211,8 +231,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 自定义分页结果
      */
     protected <R> PageResult<R> convertPageResult(Page<T> page,List<R> responseData) {
-		return new PageResult<>(page.getCurrent(),page.getSize(),page.getTotal(),responseData);
-	}
+        return new PageResult<>(page.getCurrent(),page.getSize(),page.getTotal(),responseData);
+    }
 
     /**
      * 将 MyBatis-Plus 分页结果转换为自定义分页结果（类型一致时直接使用）
@@ -221,9 +241,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param page MyBatis-Plus 分页对象
      * @return 自定义分页结果
      */
-	protected <R> PageResult<R> convertPageResult(Page<R> page) {
-		return new PageResult<>(page.getCurrent(),page.getSize(),page.getTotal(),page.getRecords());
-	}
+    protected <R> PageResult<R> convertPageResult(Page<R> page) {
+        return new PageResult<>(page.getCurrent(),page.getSize(),page.getTotal(),page.getRecords());
+    }
 
     /**
      * 将集合转换为以 ID 为键的 Map
@@ -234,8 +254,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 以 ID 为键、元素为值的 Map
      */
     protected <R> Map<Long,R> toMapByIds(List<R> collection,Function<R, Long> function) {
-    	return collection.stream().collect(Collectors.toMap(function, Function.identity()));
-	}
+        return collection.stream().collect(Collectors.toMap(function, Function.identity()));
+    }
 
     /**
      * 根据 Lambda 函数引用获取对应的数据库列名
@@ -248,41 +268,41 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param sfunction Lambda 函数引用
      * @return 数据库列名
      */
-	protected <O> String getColumn(SFunction<O, ?> sfunction) {
+    protected <O> String getColumn(SFunction<O, ?> sfunction) {
 
-		try {
+        try {
 
-			Method method = sfunction.getClass().getDeclaredMethod(SerializeUtil.WRITE_REPLACE_FIELD_NAME);
-			method.setAccessible(true);
-			SerializedLambda serializedLambda = (SerializedLambda) method.invoke(sfunction);
+            Method method = sfunction.getClass().getDeclaredMethod(SerializeUtil.WRITE_REPLACE_FIELD_NAME);
+            method.setAccessible(true);
+            SerializedLambda serializedLambda = (SerializedLambda) method.invoke(sfunction);
 
-			String fieldWithGet = serializedLambda.getImplMethodName();
+            String fieldWithGet = serializedLambda.getImplMethodName();
 
-			// 去掉方法名的 get 前缀得到属性名，并转为下划线格式
-			String propertyName = StrUtil.toUnderlineCase(fieldWithGet.substring(3));
+            // 去掉方法名的 get 前缀得到属性名，并转为下划线格式
+            String propertyName = StrUtil.toUnderlineCase(fieldWithGet.substring(GETTER_PREFIX_LENGTH));
 
-			TableInfo tableInfo = TableInfoHelper.getTableInfo(entityClass);
-			ObjectUtil.checkConditionThrowError(ObjectUtil.isNotNullEmpty(tableInfo),"领域模型映射关系不存在");
+            TableInfo tableInfo = TableInfoHelper.getTableInfo(entityClass);
+            ObjectUtil.checkConditionThrowError(ObjectUtil.isNotNullEmpty(tableInfo),DOMAIN_MAPPING_NOT_EXIST);
 
-			// 命中主键属性：返回主键列名
-			if (propertyName.equals(tableInfo.getKeyProperty())) {
-				return tableInfo.getKeyColumn();
-			}
+            // 命中主键属性：返回主键列名
+            if (propertyName.equals(tableInfo.getKeyProperty())) {
+                return tableInfo.getKeyColumn();
+            }
 
-			// 遍历普通字段映射：属性名匹配时返回映射列名
-			for (TableFieldInfo fieldInfo : tableInfo.getFieldList()) {
-				if (fieldInfo.getProperty().equals(propertyName)) {
-					return fieldInfo.getColumn();
-				}
-			}
+            // 遍历普通字段映射：属性名匹配时返回映射列名
+            for (TableFieldInfo fieldInfo : tableInfo.getFieldList()) {
+                if (fieldInfo.getProperty().equals(propertyName)) {
+                    return fieldInfo.getColumn();
+                }
+            }
 
-			return propertyName;
+            return propertyName;
 
-		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-			throw new BusinessResultException(SystemErrorCode.SYSTEM_ERROR).setResource(getResourceName());
-		}
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            throw new BusinessResultException(SystemErrorCode.SYSTEM_ERROR).setResource(getResourceName());
+        }
 
-	}
+    }
 
 
     /**
@@ -295,20 +315,20 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     @SafeVarargs
     protected final <O> String[] getColumns(SFunction<O, ?>... functions) {
 
-    	String [] columns = new String[functions.length];
+        String [] columns = new String[functions.length];
 
-		int i = 0;
-    	for(SFunction<?, ?> sfunction : functions) {
+        int i = 0;
+        for(SFunction<?, ?> sfunction : functions) {
 
-			columns[i] = getColumn(sfunction);
+            columns[i] = getColumn(sfunction);
 
-	        ++i;
+            ++i;
 
-		}
+        }
 
-    	return columns;
+        return columns;
 
-	}
+    }
 
     /**
      * 根据 Class 对象获取其对应的所有数据库列名（默认为关联查询模式）
@@ -316,9 +336,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param clazz Class 对象
      * @return 数据库列名数组
      */
-	protected String[] getColumns(Class<?> clazz){
-		return getColumns(clazz,true);
-	}
+    protected String[] getColumns(Class<?> clazz){
+        return getColumns(clazz,true);
+    }
 
     /**
      * 根据 Class 对象获取其对应的所有数据库列名
@@ -327,7 +347,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * <ul>
      *   <li>无注解：直接使用字段名的下划线形式</li>
      *   <li>注解标记 ignore 且指定了 field 或 tableName：使用注解配置的列名</li>
-     *   <li>其余带注解字段（未标记 ignore，或标记 ignore 但未指定 field 与 tableName）：跳过，不生成查询列</li>
+     *   <li>其余带注解字段（未标记 ignore，或标记 ignore 但未指定 field 与 tableName）：
+     *   跳过，不生成查询列</li>
      * </ul>
      * </p>
      *
@@ -335,49 +356,52 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param isJoin 是否为关联查询模式（关联查询时列名会添加表别名前缀）
      * @return 数据库列名数组
      */
-	protected String[] getColumns(Class<?> clazz,Boolean isJoin) {
+    protected String[] getColumns(Class<?> clazz,Boolean isJoin) {
 
-		List<String> columns = CollectionUtil.newArrayList();
+        List<String> columns = CollectionUtil.newArrayList();
 
-		for( ; !Object.class.getName().equals(clazz.getName()); clazz = clazz.getSuperclass()){
+        for( ; !Object.class.getName().equals(clazz.getName()); clazz = clazz.getSuperclass()){
 
-			Field [] fields = clazz.getDeclaredFields();
-			for(Field field : fields) {
+            Field [] fields = clazz.getDeclaredFields();
+            for(Field field : fields) {
 
-				if(SerializeUtil.SERIAL_VERSION_UID_FIELD_NAME.equals(field.getName())){
-					continue;
-				}
+                if(SerializeUtil.SERIAL_VERSION_UID_FIELD_NAME.equals(field.getName())){
+                    continue;
+                }
 
-				QueryMapping annotation = field.getAnnotation(QueryMapping.class);
-				if(ObjectUtil.isNullEmpty(annotation)) {
+                QueryMapping annotation = field.getAnnotation(QueryMapping.class);
+                if(ObjectUtil.isNullEmpty(annotation)) {
 
-					// 无注解：字段名转下划线，关联模式下追加默认表别名前缀
-					String fieldName = StrUtil.toUnderlineCase(field.getName());
-					columns.add(isJoin ? QueryEnvironmentContext.DEFAULT_ORDER_KEY + "." + fieldName : fieldName);
+                    // 无注解：字段名转下划线，关联模式下追加默认表别名前缀
+                    String fieldName = StrUtil.toUnderlineCase(field.getName());
+                    columns.add(isJoin ? QueryEnvironmentContext.DEFAULT_ORDER_KEY + "." + fieldName : fieldName);
 
-				}else if(annotation.ignore() && (StringUtils.isNotBlank(annotation.field()) || StringUtils.isNotBlank(annotation.tableName()))){
+                }else if(annotation.ignore() && (StringUtils.isNotBlank(annotation.field())
+                        || StringUtils.isNotBlank(annotation.tableName()))){
 
-				// ignore 且显式指定来源字段或表名：按注解配置生成列名，未指定的部分回退字段名/默认别名
-				String tableName = StringUtils.isNotBlank(annotation.tableName()) ?
-							annotation.tableName()
-							:
-							QueryEnvironmentContext.DEFAULT_ORDER_KEY;
+                // ignore 且显式指定来源字段或表名：按注解配置生成列名，
+                // 未指定的部分回退字段名/默认别名
+                String tableName = StringUtils.isNotBlank(annotation.tableName()) ?
+                            annotation.tableName()
+                            :
+                            QueryEnvironmentContext.DEFAULT_ORDER_KEY;
 
-					String fieldName = StringUtils.isNotBlank(annotation.field()) ? annotation.field() : StrUtil.toUnderlineCase(field.getName());
+                    String fieldName = StringUtils.isNotBlank(annotation.field()) ?
+                        annotation.field() : StrUtil.toUnderlineCase(field.getName());
 
-					fieldName = isJoin ? tableName + "." + fieldName : fieldName;
+                    fieldName = isJoin ? tableName + "." + fieldName : fieldName;
 
-					columns.add(fieldName);
+                    columns.add(fieldName);
 
-				}
+                }
 
-			}
+            }
 
-		}
+        }
 
-		return columns.toArray(new String[0]);
+        return columns.toArray(new String[0]);
 
-	}
+    }
 
     /**
      * 根据 ID 查询实体（指定字符串列名）
@@ -388,18 +412,18 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     protected T getById(Long id,String ... columns){
 
-		ObjectUtil.isNullEmptyThrowError(id, getResourceName());
+        ObjectUtil.isNullEmptyThrowError(id, getResourceName());
 
-		QueryWrapper<T> wrapper = Wrappers.query();
-		if(columns.length > 0) {
-    		wrapper.select(columns);
-    	}
+        QueryWrapper<T> wrapper = Wrappers.query();
+        if(columns.length > 0) {
+            wrapper.select(columns);
+        }
 
-    	wrapper.eq(getColumn(AbstractBaseDomain::getId),id);
+        wrapper.eq(getColumn(AbstractBaseDomain::getId),id);
 
-    	return getOne(wrapper);
+        return getOne(wrapper);
 
-	}
+    }
 
     /**
      * 根据 ID 查询实体（指定 Lambda 列名）
@@ -411,18 +435,18 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     @SafeVarargs
     protected final T getById(Long id, SFunction<T, ?>... columns){
 
-		ObjectUtil.isNullEmptyThrowError(id, getResourceName());
+        ObjectUtil.isNullEmptyThrowError(id, getResourceName());
 
-		LambdaQueryWrapper<T> wrapper = Wrappers.lambdaQuery();
-		if(columns.length > 0) {
-    		wrapper.select(columns);
-    	}
+        LambdaQueryWrapper<T> wrapper = Wrappers.lambdaQuery();
+        if(columns.length > 0) {
+            wrapper.select(columns);
+        }
 
-    	wrapper.eq(AbstractBaseDomain::getId,id);
+        wrapper.eq(AbstractBaseDomain::getId,id);
 
-    	return getOne(wrapper);
+        return getOne(wrapper);
 
-	}
+    }
 
     /**
      * 检查单个实体是否可用（非禁用状态）
@@ -432,24 +456,24 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     protected void checkAvailable(Long id){
 
-		ObjectUtil.isNullEmptyThrowError(id, getResourceName());
+        ObjectUtil.isNullEmptyThrowError(id, getResourceName());
 
-		QueryWrapper<T> wrapper = Wrappers.query();
+        QueryWrapper<T> wrapper = Wrappers.query();
 
-		wrapper.select(getColumn(AbstractBaseDomain::getStatus));
+        wrapper.select(getColumn(AbstractBaseDomain::getStatus));
 
-    	wrapper.eq(getColumn(AbstractBaseDomain::getId),id);
+        wrapper.eq(getColumn(AbstractBaseDomain::getId),id);
 
-    	T domain = getOne(wrapper);
+        T domain = getOne(wrapper);
 
-		ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
+        ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
 
-		if(domain.getStatus() == Status.DISABLE) {
-			throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
-					.setResource(getResourceName());
-		}
+        if(domain.getStatus() == Status.DISABLE) {
+            throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
+                    .setResource(getResourceName());
+        }
 
-	}
+    }
 
     /**
      * 批量检查实体是否可用（非禁用状态）
@@ -464,25 +488,25 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     protected void checkAvailable(List<Long> ids){
 
-		CollectionUtil.collectionIsEmptyThrowError(ids,getResourceName() + RESOURCE_SUFFIX_LIST);
+        CollectionUtil.collectionIsEmptyThrowError(ids,getResourceName() + RESOURCE_SUFFIX_LIST);
 
-		QueryWrapper<T> wrapper = Wrappers.query();
+        QueryWrapper<T> wrapper = Wrappers.query();
 
-		wrapper.select(getColumn(AbstractBaseDomain::getStatus));
+        wrapper.select(getColumn(AbstractBaseDomain::getStatus));
 
-    	wrapper.in(getColumn(AbstractBaseDomain::getId),ids);
+        wrapper.in(getColumn(AbstractBaseDomain::getId),ids);
 
-    	List<T> domains = list(wrapper);
-    	domains.forEach((domain)->{
+        List<T> domains = list(wrapper);
+        domains.forEach((domain)->{
 
-    		if(domain.getStatus() == Status.DISABLE) {
-				throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
-						.setResource(getResourceName());
-        	}
+            if(domain.getStatus() == Status.DISABLE) {
+                throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
+                        .setResource(getResourceName());
+            }
 
-    	});
+        });
 
-	}
+    }
 
     /**
      * 根据 ID 查询可用实体（Lambda 列名方式），不可用则抛出异常
@@ -492,10 +516,10 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 可用的实体对象
      * @throws BusinessResultException 当实体不存在或状态为禁用时抛出异常
      */
-	@SafeVarargs
+    @SafeVarargs
     protected final T getAvailableById(Long id, SFunction<T, ?>... columns){
-		return getAvailableById(id,getColumns(columns));
-	}
+        return getAvailableById(id,getColumns(columns));
+    }
 
     /**
      * 根据 ID 查询可用实体（字符串列名方式）
@@ -510,29 +534,29 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     protected T getAvailableById(Long id,String ... columns){
 
-		ObjectUtil.isNullEmptyThrowError(id, getResourceName());
+        ObjectUtil.isNullEmptyThrowError(id, getResourceName());
 
-		QueryWrapper<T> wrapper = Wrappers.query();
+        QueryWrapper<T> wrapper = Wrappers.query();
 
-		String[] newColumns = new String[columns.length + 1];
-		System.arraycopy(columns, 0, newColumns, 0, columns.length);
-		newColumns[columns.length] = getColumn(AbstractBaseDomain::getStatus);
-    	wrapper.select(newColumns);
+        String[] newColumns = new String[columns.length + 1];
+        System.arraycopy(columns, 0, newColumns, 0, columns.length);
+        newColumns[columns.length] = getColumn(AbstractBaseDomain::getStatus);
+        wrapper.select(newColumns);
 
-    	wrapper.eq(getColumn(AbstractBaseDomain::getId),id);
+        wrapper.eq(getColumn(AbstractBaseDomain::getId),id);
 
-    	T domain = getOne(wrapper);
+        T domain = getOne(wrapper);
 
-		ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
+        ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
 
-    	if(domain.getStatus() == Status.DISABLE) {
-			throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
-						.setResource(getResourceName());
-    	}
+        if(domain.getStatus() == Status.DISABLE) {
+            throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
+                        .setResource(getResourceName());
+        }
 
-    	return domain;
+        return domain;
 
-	}
+    }
 
     /**
      * 根据查询条件查询可用实体
@@ -546,21 +570,21 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     protected T getAvailableByParam(MPJLambdaWrapper<T> wrapper){
 
-		wrapper.selectAsClass(domainClass,domainClass);
-    	wrapper.select(getColumn(AbstractBaseDomain::getStatus));
+        wrapper.selectAsClass(domainClass,domainClass);
+        wrapper.select(getColumn(AbstractBaseDomain::getStatus));
 
-    	T domain = getOne(wrapper);
+        T domain = getOne(wrapper);
 
-		ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
+        ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
 
-    	if(domain.getStatus() == Status.DISABLE) {
-			throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
-					.setResource(getResourceName());
-    	}
+        if(domain.getStatus() == Status.DISABLE) {
+            throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
+                    .setResource(getResourceName());
+        }
 
-    	return domain;
+        return domain;
 
-	}
+    }
 
     /**
      * 检查数据是否存在
@@ -569,9 +593,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @throws BusinessResultException 当数据不存在时抛出异常
      */
     protected void checkHas(Wrapper<T> wrapper) {
-		ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
-		ObjectUtil.checkConditionThrowError(count(wrapper) > 0, errorCode, getResourceName() + errorCode.getMessage());
-	}
+        ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
+        ObjectUtil.checkConditionThrowError(count(wrapper) > 0, errorCode, getResourceName() + errorCode.getMessage());
+    }
 
     /**
      * 检查数据是否不存在
@@ -580,9 +604,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @throws BusinessResultException 当数据已存在时抛出异常
      */
     protected void checkNotHas(Wrapper<T> wrapper) {
-		ErrorCode errorCode = SystemErrorCode.DATA_EXIST_ERROR;
-		ObjectUtil.checkConditionThrowError(count(wrapper) < 1, errorCode, getResourceName() + errorCode.getMessage());
-	}
+        ErrorCode errorCode = SystemErrorCode.DATA_EXIST_ERROR;
+        ObjectUtil.checkConditionThrowError(count(wrapper) < 1, errorCode, getResourceName() + errorCode.getMessage());
+    }
 
     /**
      * 根据 ID 获取下拉选项
@@ -593,21 +617,21 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     protected DropDownResult dropDown(Long id){
 
-		ObjectUtil.isNullEmptyThrowError(id, getResourceName());
+        ObjectUtil.isNullEmptyThrowError(id, getResourceName());
 
-		QueryWrapper<T> wrapper = Wrappers.query();
+        QueryWrapper<T> wrapper = Wrappers.query();
 
-		wrapper.select(getColumns(AbstractBaseNameDomain::getId,AbstractBaseNameDomain::getName));
+        wrapper.select(getColumns(AbstractBaseNameDomain::getId,AbstractBaseNameDomain::getName));
 
-    	wrapper.eq(getColumn(AbstractBaseDomain::getId), id);
+        wrapper.eq(getColumn(AbstractBaseDomain::getId), id);
 
-    	T domain = getOne(wrapper);
+        T domain = getOne(wrapper);
 
-		ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
+        ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
 
-    	return CglibUtil.copy(domain, DropDownResult.class);
+        return CglibUtil.copy(domain, DropDownResult.class);
 
-	}
+    }
 
     /**
      * 获取所有启用状态的下拉选项列表
@@ -616,15 +640,15 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     protected List<DropDownResult> dropDownList(){
 
-		QueryWrapper<T> wrapper = Wrappers.query();
+        QueryWrapper<T> wrapper = Wrappers.query();
 
-		wrapper.select(getColumns(AbstractBaseNameDomain::getId,AbstractBaseNameDomain::getName));
+        wrapper.select(getColumns(AbstractBaseNameDomain::getId,AbstractBaseNameDomain::getName));
 
-    	wrapper.eq(getColumn(AbstractBaseDomain::getStatus), Status.ENABLE);
+        wrapper.eq(getColumn(AbstractBaseDomain::getStatus), Status.ENABLE);
 
-    	return CglibUtil.copyList(list(wrapper), DropDownResult::new);
+        return CglibUtil.copyList(list(wrapper), DropDownResult::new);
 
-	}
+    }
 
     /**
      * 根据 ID 查询实体，不存在则抛出异常（字符串列名方式）
@@ -636,23 +660,23 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     protected T getByIdThrowError(Long id,String ... columns){
 
-		ObjectUtil.isNullEmptyThrowError(id, getResourceName());
+        ObjectUtil.isNullEmptyThrowError(id, getResourceName());
 
-		QueryWrapper<T> wrapper = Wrappers.query();
+        QueryWrapper<T> wrapper = Wrappers.query();
 
-		if(columns.length > 0) {
-    		wrapper.select(columns);
-    	}
+        if(columns.length > 0) {
+            wrapper.select(columns);
+        }
 
-    	wrapper.eq(getColumn(AbstractBaseDomain::getId),id);
+        wrapper.eq(getColumn(AbstractBaseDomain::getId),id);
 
-    	T domain = getOne(wrapper);
+        T domain = getOne(wrapper);
 
-		ObjectUtil.isNullEmptyThrowError(domain,getResourceName());
+        ObjectUtil.isNullEmptyThrowError(domain,getResourceName());
 
-    	return domain;
+        return domain;
 
-	}
+    }
 
     /**
      * 根据 ID 查询实体（使用 MPJLambdaWrapper），不存在则抛出异常
@@ -662,19 +686,19 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 实体对象
      * @throws BusinessResultException 当实体不存在时抛出异常
      */
-	protected T getByIdThrowError(Long id,MPJLambdaWrapper<T> wrapper){
+    protected T getByIdThrowError(Long id,MPJLambdaWrapper<T> wrapper){
 
-		ObjectUtil.isNullEmptyThrowError(id, getResourceName());
+        ObjectUtil.isNullEmptyThrowError(id, getResourceName());
 
-		wrapper.eq(getColumn(AbstractBaseDomain::getId),id);
+        wrapper.eq(getColumn(AbstractBaseDomain::getId),id);
 
-		T domain = getOne(wrapper);
+        T domain = getOne(wrapper);
 
-		ObjectUtil.isNullEmptyThrowError(domain,getResourceName());
+        ObjectUtil.isNullEmptyThrowError(domain,getResourceName());
 
-		return domain;
+        return domain;
 
-	}
+    }
 
     /**
      * 根据查询条件查询单个实体并转换为指定类型，不存在则抛出异常
@@ -687,16 +711,17 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     protected <R> R getByParamThrowError(Wrapper<T> wrapper,Class<R> clazz) {
 
-    	T domain = getOne(wrapper);
+        T domain = getOne(wrapper);
 
-		ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
+        ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
 
-		return CglibUtil.copy(domain, clazz);
+        return CglibUtil.copy(domain, clazz);
 
-	}
+    }
 
     /**
-     * 根据查询条件查询单个实体并转换为指定类型，同时填充关联数据，不存在则抛出异常
+     * 根据查询条件查询单个实体并转换为指定类型，同时填充关联数据，
+     * 不存在则抛出异常
      *
      * @param <R> 目标类型
      * @param wrapper 查询条件
@@ -706,17 +731,17 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     protected <R> R getByParamThrowErrorRelation(Wrapper<T> wrapper,Class<R> clazz) {
 
-    	T domain = getOne(wrapper);
+        T domain = getOne(wrapper);
 
-		ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
+        ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
 
-		R response = CglibUtil.copy(domain, clazz);
+        R response = CglibUtil.copy(domain, clazz);
 
-		setRelationData(response, clazz);
+        setRelationData(response, clazz);
 
-		return response;
+        return response;
 
-	}
+    }
 
     /**
      * 根据 ID 查询实体（Lambda 列名方式），不存在则抛出异常
@@ -729,8 +754,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     @SafeVarargs
     protected final <R> T getByIdThrowError(Long id, SFunction<R, ?> ... columns) {
-    	return getByIdThrowError(id,getColumns(columns));
-	}
+        return getByIdThrowError(id,getColumns(columns));
+    }
 
     /**
      * 根据 ID 查询实体并转换为指定类型，不存在则抛出异常
@@ -745,8 +770,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     @SafeVarargs
     protected final <V,R> V getByIdThrowError(Long id, Class<V> clazz, SFunction<R, ?> ... columns){
-    	return CglibUtil.copy(getByIdThrowError(id,columns), clazz);
-	}
+        return CglibUtil.copy(getByIdThrowError(id,columns), clazz);
+    }
 
     /**
      * 根据 ID 查询实体并转换为指定类型，同时填充关联数据，不存在则抛出异常
@@ -759,13 +784,13 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     protected <V> V getByIdThrowErrorRelation(Long id,Class<V> clazz) {
 
-		V response = CglibUtil.copy(getByIdThrowError(id,getColumns(clazz,false)), clazz);
+        V response = CglibUtil.copy(getByIdThrowError(id,getColumns(clazz,false)), clazz);
 
-    	setRelationData(response, clazz);
+        setRelationData(response, clazz);
 
-    	return response;
+        return response;
 
-	}
+    }
 
     /**
      * 根据 DTO 参数查询实体并转换为指定类型，同时填充关联数据，不存在则抛出异常
@@ -777,23 +802,23 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 转换后且填充了关联数据的对象
      * @throws BusinessResultException 当查询参数为空或实体不存在时抛出异常
      */
-	protected <V,R> V getByParamThrowErrorRelation(R dto,Class<V> clazz) {
+    protected <V,R> V getByParamThrowErrorRelation(R dto,Class<V> clazz) {
 
-		ObjectUtil.isNullEmptyThrowError(dto, getResourceName());
+        ObjectUtil.isNullEmptyThrowError(dto, getResourceName());
 
-		MPJLambdaWrapper<T> wrapper = buildQueryWrapper(dto,clazz);
+        MPJLambdaWrapper<T> wrapper = buildQueryWrapper(dto,clazz);
 
-		wrapper.select(getColumns(clazz));
+        wrapper.select(getColumns(clazz));
 
-		V response = CglibUtil.copy(getOne(wrapper), clazz);
+        V response = CglibUtil.copy(getOne(wrapper), clazz);
 
-		ObjectUtil.isNullEmptyThrowError(response, getResourceName());
+        ObjectUtil.isNullEmptyThrowError(response, getResourceName());
 
-		setRelationData(response, clazz);
+        setRelationData(response, clazz);
 
-		return response;
+        return response;
 
-	}
+    }
 
     /**
      * 根据 ID 集合批量查询实体列表
@@ -805,18 +830,18 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     protected List<T> listByIds(Collection<?> ids,String ... columns) {
 
-		CollectionUtil.collectionIsEmptyThrowError(ids,getResourceName() + RESOURCE_SUFFIX_LIST);
+        CollectionUtil.collectionIsEmptyThrowError(ids,getResourceName() + RESOURCE_SUFFIX_LIST);
 
-		QueryWrapper<T> wrapper = Wrappers.query();
-		if(columns.length > 0) {
-    		wrapper.select(columns);
-    	}
+        QueryWrapper<T> wrapper = Wrappers.query();
+        if(columns.length > 0) {
+            wrapper.select(columns);
+        }
 
-    	wrapper.in(getColumn(AbstractBaseDomain::getId),ids);
+        wrapper.in(getColumn(AbstractBaseDomain::getId),ids);
 
-    	return list(wrapper);
+        return list(wrapper);
 
-	}
+    }
 
     /**
      * 查询指定类型的列表数据（使用 MPJ 关联查询）
@@ -830,16 +855,16 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     @SafeVarargs
     protected final <R,V> List<V> list(Class<V> voClass, SFunction<R, ?>... columns) {
 
-    	MPJLambdaWrapper<T> wrapper = MPJWrappers.lambdaJoin();
-		wrapper.selectAsClass(domainClass,voClass);
+        MPJLambdaWrapper<T> wrapper = MPJWrappers.lambdaJoin();
+        wrapper.selectAsClass(domainClass,voClass);
 
-		if(columns.length > 0) {
-    		wrapper.select(columns);
-    	}
+        if(columns.length > 0) {
+            wrapper.select(columns);
+        }
 
-		return selectJoinList(voClass, wrapper);
+        return selectJoinList(voClass, wrapper);
 
-	}
+    }
 
     /**
      * 根据查询条件查询列表并转换为指定类型
@@ -851,11 +876,11 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     protected <R> List<R> list(Wrapper<T> wrapper,Supplier<R> target) {
 
-    	List<T> list = list(wrapper);
+        List<T> list = list(wrapper);
 
-    	return CglibUtil.copyList(list, target);
+        return CglibUtil.copyList(list, target);
 
-	}
+    }
 
     /**
      * 根据 DTO 参数查询列表并转换为指定类型
@@ -865,22 +890,23 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param target 目标类型的 Supplier
      * @return 转换后的列表
      */
-	protected <V> List<V> list(D dto,Supplier<V> target) {
+    protected <V> List<V> list(D dto,Supplier<V> target) {
 
-		ObjectUtil.isNullEmptyThrowError(dto, getResourceName());
+        ObjectUtil.isNullEmptyThrowError(dto, getResourceName());
 
-		V vo = target.get();
+        V vo = target.get();
 
-		List<T> list = list(buildQueryWrapper(dto, vo.getClass()));
+        List<T> list = list(buildQueryWrapper(dto, vo.getClass()));
 
-		return CglibUtil.copyList(list, () -> vo);
+        return CglibUtil.copyList(list, () -> vo);
 
-	}
+    }
 
     /**
      * 根据 DTO 参数查询列表、填充关联数据并转换为指定类型
      * <p>
-     * 注意：关联数据当前填充到查询参数 {@code dto} 对象上（见 {@code setRelationData(dto, ...)}），
+     * 注意：关联数据当前填充到查询参数 {@code dto} 对象上
+     * （见 {@code setRelationData(dto, ...)}），
      * 返回的列表元素本身不会被填充关联数据。
      * </p>
      *
@@ -889,19 +915,19 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param target 目标类型的 Supplier
      * @return 转换后的列表（未填充关联数据）
      */
-	protected <V> List<V> listRelation(D dto,Supplier<V> target) {
+    protected <V> List<V> listRelation(D dto,Supplier<V> target) {
 
-		ObjectUtil.isNullEmptyThrowError(dto, getResourceName());
+        ObjectUtil.isNullEmptyThrowError(dto, getResourceName());
 
-		V vo = target.get();
+        V vo = target.get();
 
-		List<T> list = list(buildQueryWrapper(dto,vo.getClass()));
+        List<T> list = list(buildQueryWrapper(dto,vo.getClass()));
 
-		setRelationData(dto,vo.getClass());
+        setRelationData(dto,vo.getClass());
 
-		return CglibUtil.copyList(list, () -> vo);
+        return CglibUtil.copyList(list, () -> vo);
 
-	}
+    }
 
     /**
      * 分页查询并转换为指定类型
@@ -914,11 +940,11 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     protected <V> PageResult<V> list(PageParam<?> pageParam,Wrapper<T> wrapper,Supplier<V> target) {
 
-    	Page<T> page = page(convertPage(pageParam),wrapper);
+        Page<T> page = page(convertPage(pageParam),wrapper);
 
-    	return convertPageResult(page, target);
+        return convertPageResult(page, target);
 
-	}
+    }
 
     /**
      * 根据分页参数和 VO 类型进行关联分页查询
@@ -930,11 +956,11 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     protected <V> PageResult<V> list(PageParam<?> pageParam,Class<V> clazz) {
 
-		Page<V> page = selectJoinListPage(convertPage(pageParam),clazz,buildQueryWrapper(pageParam.getData(),clazz));
+        Page<V> page = selectJoinListPage(convertPage(pageParam),clazz,buildQueryWrapper(pageParam.getData(),clazz));
 
-    	return convertPageResult(page);
+        return convertPageResult(page);
 
-	}
+    }
 
     /**
      * 根据分页参数和查询条件进行分页查询（返回原始 MyBatis-Plus 分页对象）
@@ -944,8 +970,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return MyBatis-Plus 分页对象
      */
     protected Page<T> list(PageParam<?> pageParam,Wrapper<T> wrapper) {
-		return page(convertPage(pageParam),wrapper);
-	}
+        return page(convertPage(pageParam),wrapper);
+    }
 
     /**
      * 根据分页参数进行关联分页查询并填充关联数据
@@ -957,13 +983,13 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     protected <V> PageResult<V> listRelation(PageParam<?> pageParam,Class<V> clazz) {
 
-    	PageResult<V> page = list(pageParam,clazz);
+        PageResult<V> page = list(pageParam,clazz);
 
-		setRelationData(page, clazz);
+        setRelationData(page, clazz);
 
-		return page;
+        return page;
 
-	}
+    }
 
     /**
      * 根据参数统计符合条件的记录数
@@ -972,13 +998,13 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param param 查询参数
      * @return 符合条件的记录数
      */
-	protected <P> Long getCountByParam(P param){
+    protected <P> Long getCountByParam(P param){
 
-		ObjectUtil.isNullEmptyThrowError(param,getResourceName());
+        ObjectUtil.isNullEmptyThrowError(param,getResourceName());
 
-		return count(buildQueryWrapper(param));
+        return count(buildQueryWrapper(param));
 
-	}
+    }
 
     /**
      * 新增或更新实体
@@ -992,23 +1018,24 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public boolean saveUpdate(T domain) {
 
-		ObjectUtil.isNullEmptyThrowError(domain,getResourceName());
+        ObjectUtil.isNullEmptyThrowError(domain,getResourceName());
 
-    	// 携带 ID 视为更新：先校验数据存在
-    	if(ObjectUtil.isNotNullEmpty(domain.getId())) {
+        // 携带 ID 视为更新：先校验数据存在
+        if(ObjectUtil.isNotNullEmpty(domain.getId())) {
 
-			QueryWrapper<T> wrapper = Wrappers.query();
+            QueryWrapper<T> wrapper = Wrappers.query();
 
-			wrapper.eq(getColumn(AbstractBaseDomain::getId), domain.getId());
+            wrapper.eq(getColumn(AbstractBaseDomain::getId), domain.getId());
 
-			ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
-			ObjectUtil.checkConditionThrowError(count(wrapper) > 0, errorCode, getResourceName() + errorCode.getMessage());
+            ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
+            ObjectUtil.checkConditionThrowError(count(wrapper) > 0, errorCode,
+                getResourceName() + errorCode.getMessage());
 
-    	}
+        }
 
-		return super.saveOrUpdate(domain);
+        return super.saveOrUpdate(domain);
 
-	}
+    }
 
     /**
      * 新增或更新实体（通过参数对象）
@@ -1021,33 +1048,34 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param param 参数对象
      * @return 新增或更新后的实体 ID
      */
-	public Long saveUpdate(Long id,Object param) {
+    public Long saveUpdate(Long id,Object param) {
 
-		ObjectUtil.isNullEmptyThrowError(param,getResourceName());
+        ObjectUtil.isNullEmptyThrowError(param,getResourceName());
 
-    	T domain = CglibUtil.copy(param, domainClass);
+        T domain = CglibUtil.copy(param, domainClass);
 
-    	// 携带 ID 视为更新：回填 ID 并校验数据存在
-    	if(ObjectUtil.isNotNullEmpty(id)) {
+        // 携带 ID 视为更新：回填 ID 并校验数据存在
+        if(ObjectUtil.isNotNullEmpty(id)) {
 
-    		domain.setId(id);
+            domain.setId(id);
 
-			QueryWrapper<T> wrapper = Wrappers.query();
-			wrapper.eq(getColumn(AbstractBaseDomain::getId), domain.getId());
+            QueryWrapper<T> wrapper = Wrappers.query();
+            wrapper.eq(getColumn(AbstractBaseDomain::getId), domain.getId());
 
-			ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
-			ObjectUtil.checkConditionThrowError(count(wrapper) > 0, errorCode, getResourceName() + errorCode.getMessage());
+            ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
+            ObjectUtil.checkConditionThrowError(count(wrapper) > 0, errorCode,
+                getResourceName() + errorCode.getMessage());
 
-    	}else {
-    		// 未携带 ID 视为新增：校验参数合法性
-    		ValidatorUtil.validate(param);
-    	}
+        }else {
+            // 未携带 ID 视为新增：校验参数合法性
+            ValidatorUtil.validate(param);
+        }
 
-    	super.saveOrUpdate(domain);
+        super.saveOrUpdate(domain);
 
-    	return domain.getId();
+        return domain.getId();
 
-	}
+    }
 
     /**
      * 批量新增或更新实体
@@ -1059,26 +1087,27 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public void saveUpdateBatch(List<T> domains) {
 
-		CollectionUtil.collectionIsEmptyThrowError(domains, getResourceName() + RESOURCE_SUFFIX_LIST);
+        CollectionUtil.collectionIsEmptyThrowError(domains, getResourceName() + RESOURCE_SUFFIX_LIST);
 
-		Consumer<T> consumer = (domain) -> {
+        Consumer<T> consumer = (domain) -> {
 
-			// 携带 ID 视为更新：先校验数据存在
-			if(ObjectUtil.isNotNullEmpty(domain.getId())) {
+            // 携带 ID 视为更新：先校验数据存在
+            if(ObjectUtil.isNotNullEmpty(domain.getId())) {
 
-				QueryWrapper<T> wrapper = Wrappers.query();
-				wrapper.eq(getColumn(AbstractBaseDomain::getId), domain.getId());
+                QueryWrapper<T> wrapper = Wrappers.query();
+                wrapper.eq(getColumn(AbstractBaseDomain::getId), domain.getId());
 
-				ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
-				ObjectUtil.checkConditionThrowError(count(wrapper) > 0, errorCode, getResourceName() + errorCode.getMessage());
+                ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
+                ObjectUtil.checkConditionThrowError(count(wrapper) > 0, errorCode,
+                    getResourceName() + errorCode.getMessage());
 
-			}
+            }
 
-			super.saveOrUpdate(domain);
+            super.saveOrUpdate(domain);
 
-		};
+        };
 
-		domains.forEach(consumer);
+        domains.forEach(consumer);
 
     }
 
@@ -1087,7 +1116,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      *
      * @param id 实体 ID
      */
-	protected void checkBind(Long id) {}
+    protected void checkBind(Long id) {}
 
     /**
      * 解除实体的绑定关系（供子类覆盖）
@@ -1106,13 +1135,13 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public void removeById(Long id) {
 
-		ObjectUtil.isNullEmptyThrowError(id,getResourceName());
+        ObjectUtil.isNullEmptyThrowError(id,getResourceName());
 
-		checkBind(id);
+        checkBind(id);
 
-		unbind(id);
+        unbind(id);
 
-		super.removeById(id);
+        super.removeById(id);
 
     }
 
@@ -1120,7 +1149,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
 
 
-//	========================== 结果集封装 ==========================
+// ========================== 结果集封装 ==========================
 
     /**
      * 根据 ID 查询实体并封装为结果（字符串列名方式）
@@ -1131,9 +1160,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     @Override
     public AbstractBaseResult<D> getByIdResult(Long id,String ... columns) {
-		T domain = getById(id, columns);
-		return ResultUtil.success(CglibUtil.copy(domain, getResultClass()));
-	}
+        T domain = getById(id, columns);
+        return ResultUtil.success(CglibUtil.copy(domain, getResultClass()));
+    }
 
     /**
      * 根据 ID 集合批量查询并封装为以 ID 为键的 Map 结果
@@ -1143,26 +1172,26 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 包含 Map&lt;Long, D&gt; 的统一响应结果
      */
     @Override
-	public AbstractBaseResult<Map<Long,D>> listByIdsResult(Collection<Long> ids,String ... columns) {
+    public AbstractBaseResult<Map<Long,D>> listByIdsResult(Collection<Long> ids,String ... columns) {
 
-		List<T> domains = listByIds(ids, columns);
+        List<T> domains = listByIds(ids, columns);
 
-		List<D> responseItems = CglibUtil.copyList(domains, () -> ReflectUtil.newInstance(getResultClass()));
+        List<D> responseItems = CglibUtil.copyList(domains, () -> ReflectUtil.newInstance(getResultClass()));
 
-		return ResultUtil.success(
+        return ResultUtil.success(
 
-			responseItems.stream().collect(
+            responseItems.stream().collect(
 
-				Collectors.toMap(
-					ReflectUtil::invokeFunGetId
-					,
-					Function.identity()
-				)
+                Collectors.toMap(
+                    ReflectUtil::invokeFunGetId
+                    ,
+                    Function.identity()
+                )
 
-			)
-		);
+            )
+        );
 
-	}
+    }
 
     /**
      * 根据关联字段分组查询并封装为 Map 结果
@@ -1173,36 +1202,36 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 包含 Map&lt;Long, List&lt;D&gt;&gt; 的统一响应结果
      */
     @Override
-	public AbstractBaseResult<Map<Long, List<D>>> listByRelationIdsResult(
-			Collection<Long> ids, String relationField, String ... columns) {
+    public AbstractBaseResult<Map<Long, List<D>>> listByRelationIdsResult(
+            Collection<Long> ids, String relationField, String ... columns) {
 
-		CollectionUtil.collectionIsEmptyThrowError(ids,getResourceName() + RESOURCE_SUFFIX_LIST);
+        CollectionUtil.collectionIsEmptyThrowError(ids,getResourceName() + RESOURCE_SUFFIX_LIST);
 
-		ObjectUtil.isNullEmptyThrowError(relationField, getResourceName() + RESOURCE_SUFFIX_GROUP);
+        ObjectUtil.isNullEmptyThrowError(relationField, getResourceName() + RESOURCE_SUFFIX_GROUP);
 
-		QueryWrapper<T> wrapper = Wrappers.query();
-		if(columns.length > 0) {
-    		wrapper.select(columns);
-    	}
-    	wrapper.in(relationField,ids);
+        QueryWrapper<T> wrapper = Wrappers.query();
+        if(columns.length > 0) {
+            wrapper.select(columns);
+        }
+        wrapper.in(relationField,ids);
 
-		List<T> domains = list(wrapper);
-		if(ObjectUtil.isNullEmpty(domains)) {
-			return ResultUtil.success(CollectionUtil.newHashMap());
-		}
+        List<T> domains = list(wrapper);
+        if(ObjectUtil.isNullEmpty(domains)) {
+            return ResultUtil.success(CollectionUtil.newHashMap());
+        }
 
-		List<D> responseItems = CglibUtil.copyList(domains, () -> ReflectUtil.newInstance(getResultClass()));
-		return ResultUtil.success(
+        List<D> responseItems = CglibUtil.copyList(domains, () -> ReflectUtil.newInstance(getResultClass()));
+        return ResultUtil.success(
 
-			responseItems.stream().collect(
-				Collectors.groupingBy((resultData) ->
-					ReflectUtil.invokeGet(resultData, relationField), Collectors.toList()
-				)
-			)
+            responseItems.stream().collect(
+                Collectors.groupingBy((resultData) ->
+                    ReflectUtil.invokeGet(resultData, relationField), Collectors.toList()
+                )
+            )
 
-		);
+        );
 
-	}
+    }
 
     /**
      * 根据单个关联 ID 查询关联列表并封装为结果
@@ -1213,21 +1242,21 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 包含 List&lt;D&gt; 的统一响应结果
      */
     @Override
-	public AbstractBaseResult<List<D>> listByRelationIdResult(Long id,String relationField,String ... columns) {
+    public AbstractBaseResult<List<D>> listByRelationIdResult(Long id,String relationField,String ... columns) {
 
-		ObjectUtil.isNullEmptyThrowError(id,getResourceName());
+        ObjectUtil.isNullEmptyThrowError(id,getResourceName());
 
-		ObjectUtil.isNullEmptyThrowError(relationField, getResourceName() + RESOURCE_SUFFIX_GROUP);
+        ObjectUtil.isNullEmptyThrowError(relationField, getResourceName() + RESOURCE_SUFFIX_GROUP);
 
-		QueryWrapper<T> wrapper = Wrappers.query();
-		if(columns.length > 0) {
-    		wrapper.select(columns);
-    	}
-    	wrapper.eq(relationField,id);
+        QueryWrapper<T> wrapper = Wrappers.query();
+        if(columns.length > 0) {
+            wrapper.select(columns);
+        }
+        wrapper.eq(relationField,id);
 
-		return ResultUtil.success(CglibUtil.copyList(list(wrapper), () -> ReflectUtil.newInstance(getResultClass())));
+        return ResultUtil.success(CglibUtil.copyList(list(wrapper), () -> ReflectUtil.newInstance(getResultClass())));
 
-	}
+    }
 
     /**
      * 根据参数统计记录数并封装为结果
@@ -1236,9 +1265,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 包含记录数的统一响应结果
      */
     @Override
-	public AbstractBaseResult<Long> getCountByParamResult(D dto){
-		return ResultUtil.success(getCountByParam(dto));
-	}
+    public AbstractBaseResult<Long> getCountByParamResult(D dto){
+        return ResultUtil.success(getCountByParam(dto));
+    }
 
     /**
      * 新增或更新实体并封装为结果
@@ -1248,11 +1277,11 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param param 参数对象
      * @return 包含实体 ID 的统一响应结果
      */
-	@Override
-	@Transactional(rollbackFor = Exception.class)
-	public <P> AbstractBaseResult<Long> saveUpdateResult(Long id, P param){
-		return ResultUtil.success(saveUpdate(id, param));
-	}
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public <P> AbstractBaseResult<Long> saveUpdateResult(Long id, P param){
+        return ResultUtil.success(saveUpdate(id, param));
+    }
 
     /**
      * 批量新增或更新并封装为结果
@@ -1260,18 +1289,18 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param collection 新增/更新参数列表
      * @return 统一响应结果
      */
-	@Override
-	@Transactional(rollbackFor = Exception.class)
-	public AbstractBaseResult<Void> saveUpdateBatchResult(List<SaveUpdateBatch> collection){
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AbstractBaseResult<Void> saveUpdateBatchResult(List<SaveUpdateBatch> collection){
 
-		CollectionUtil.collectionIsEmptyThrowError(collection, getResourceName() + "列表");
+        CollectionUtil.collectionIsEmptyThrowError(collection, getResourceName() + RESOURCE_SUFFIX_LIST);
 
-		List<T> domains = CglibUtil.copyList(collection, ()-> ReflectUtil.newInstance(domainClass));
-		saveUpdateBatch(domains);
+        List<T> domains = CglibUtil.copyList(collection, ()-> ReflectUtil.newInstance(domainClass));
+        saveUpdateBatch(domains);
 
-		return ResultUtil.success();
+        return ResultUtil.success();
 
-	}
+    }
 
     /**
      * 根据 ID 删除实体并封装为结果
@@ -1279,12 +1308,12 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param id 实体 ID
      * @return 统一响应结果
      */
-	@Override
-	@Transactional(rollbackFor = Exception.class)
-	public AbstractBaseResult<Void> removeByIdResult(Long id) {
-		removeById(id);
-		return ResultUtil.success();
-	}
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AbstractBaseResult<Void> removeByIdResult(Long id) {
+        removeById(id);
+        return ResultUtil.success();
+    }
 
     /**
      * 批量删除实体并封装为结果
@@ -1292,17 +1321,17 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param ids 实体 ID 列表
      * @return 统一响应结果
      */
-	@Override
-	@Transactional(rollbackFor = Exception.class)
-	public AbstractBaseResult<Void> removeByIdBatchResult(List<Long> ids) {
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AbstractBaseResult<Void> removeByIdBatchResult(List<Long> ids) {
 
-		CollectionUtil.collectionIsEmptyThrowError(ids, getResourceName() + "列表");
+        CollectionUtil.collectionIsEmptyThrowError(ids, getResourceName() + RESOURCE_SUFFIX_LIST);
 
-		ids.forEach(this::removeById);
+        ids.forEach(this::removeById);
 
-		return ResultUtil.success();
+        return ResultUtil.success();
 
-	}
+    }
 
     /**
      * 检查单个实体是否可用并封装为结果
@@ -1310,11 +1339,11 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param id 实体 ID
      * @return 统一响应结果
      */
-	@Override
-	public AbstractBaseResult<Void> checkAvailableResult(Long id){
-		checkAvailable(id);
-		return ResultUtil.success();
-	}
+    @Override
+    public AbstractBaseResult<Void> checkAvailableResult(Long id){
+        checkAvailable(id);
+        return ResultUtil.success();
+    }
 
     /**
      * 批量检查实体是否可用并封装为结果
@@ -1322,11 +1351,11 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param ids 实体 ID 列表
      * @return 统一响应结果
      */
-	@Override
-	public AbstractBaseResult<Void> checkAvailableResult(List<Long> ids){
-		checkAvailable(ids);
-		return ResultUtil.success();
-	}
+    @Override
+    public AbstractBaseResult<Void> checkAvailableResult(List<Long> ids){
+        checkAvailable(ids);
+        return ResultUtil.success();
+    }
 
     /**
      * 根据 ID 查询可用实体并封装为结果
@@ -1335,14 +1364,14 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param columns 查询字段列表
      * @return 包含 DTO 的统一响应结果
      */
-	@Override
-	public AbstractBaseResult<D> getAvailableByIdResult(Long id,String ... columns){
+    @Override
+    public AbstractBaseResult<D> getAvailableByIdResult(Long id,String ... columns){
 
-    	T domain = getAvailableById(id, columns);
+        T domain = getAvailableById(id, columns);
 
-    	return ResultUtil.success(CglibUtil.copy(domain, getResultClass()));
+        return ResultUtil.success(CglibUtil.copy(domain, getResultClass()));
 
-	}
+    }
 
     /**
      * 根据 ID 获取下拉选项并封装为结果
@@ -1350,19 +1379,19 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param id 实体 ID
      * @return 包含下拉选项的统一响应结果
      */
-	@Override
-	public AbstractBaseResult<DropDownResult> dropDownResult(Long id){
-		return ResultUtil.success(dropDown(id));
-	}
+    @Override
+    public AbstractBaseResult<DropDownResult> dropDownResult(Long id){
+        return ResultUtil.success(dropDown(id));
+    }
 
     /**
      * 获取所有启用状态的下拉选项列表并封装为结果
      *
      * @return 包含下拉选项列表的统一响应结果
      */
-	public AbstractBaseResult<List<DropDownResult>> dropDownListResult(){
-		return ResultUtil.success(dropDownList());
-	}
+    public AbstractBaseResult<List<DropDownResult>> dropDownListResult(){
+        return ResultUtil.success(dropDownList());
+    }
 
     /**
      * 根据 ID 集合批量获取下拉选项并封装为结果
@@ -1370,18 +1399,18 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param ids 实体 ID 集合
      * @return 包含下拉选项列表的统一响应结果
      */
-	@Override
-	public AbstractBaseResult<List<DropDownResult>> dropDownListResult(Collection<Long> ids){
+    @Override
+    public AbstractBaseResult<List<DropDownResult>> dropDownListResult(Collection<Long> ids){
 
-		QueryWrapper<T> wrapper = Wrappers.query();
+        QueryWrapper<T> wrapper = Wrappers.query();
 
-		wrapper.select(getColumns(AbstractBaseNameDomain::getId,AbstractBaseNameDomain::getName));
+        wrapper.select(getColumns(AbstractBaseNameDomain::getId,AbstractBaseNameDomain::getName));
 
-    	wrapper.in(getColumn(AbstractBaseDomain::getId), ids);
+        wrapper.in(getColumn(AbstractBaseDomain::getId), ids);
 
-    	return ResultUtil.success(CglibUtil.copyList(list(wrapper), DropDownResult::new));
+        return ResultUtil.success(CglibUtil.copyList(list(wrapper), DropDownResult::new));
 
-	}
+    }
 
     /**
      * 更新实体状态
@@ -1395,32 +1424,32 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param param 携带目标状态的请求参数（data 为空时抛出参数错误异常）
      * @return 统一响应结果
      */
-	@SneakyThrows
-	public AbstractBaseResult<Void> updateStatusResult(Long id, RequestParam<Status> param){
+    @SneakyThrows
+    public AbstractBaseResult<Void> updateStatusResult(Long id, RequestParam<Status> param){
 
-		Status status = param.getData();
-		ObjectUtil.isNullEmptyThrowError(status,SystemErrorCode.PARAM_ERROR,"状态");
+        Status status = param.getData();
+        ObjectUtil.isNullEmptyThrowError(status,SystemErrorCode.PARAM_ERROR,"状态");
 
-		// 目标状态为禁用时，需先检查是否存在绑定关系
-		if(param.getData() == Status.DISABLE){
-			checkBind(id);
-		}
+        // 目标状态为禁用时，需先检查是否存在绑定关系
+        if(param.getData() == Status.DISABLE){
+            checkBind(id);
+        }
 
-		T domain = domainClass.getDeclaredConstructor().newInstance();
+        T domain = domainClass.getDeclaredConstructor().newInstance();
 
-		domain.setId(id);
-		domain.setStatus(status);
+        domain.setId(id);
+        domain.setStatus(status);
 
-		updateById(domain);
+        updateById(domain);
 
-		return ResultUtil.success();
+        return ResultUtil.success();
 
-	}
-
-
+    }
 
 
-//	====================== 工具方法 ======================
+
+
+// ====================== 工具方法 ======================
 
     /**
      * 根据参数对象的注解信息构建查询条件
@@ -1428,8 +1457,10 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * 处理流程：
      * <ol>
      *   <li>解析类级别的 JoinPlugins 注解，构建关联查询条件</li>
-     *   <li>遍历参数对象的所有字段（值为空的字段跳过），根据 QueryPlugin 注解构建查询条件</li>
-     *   <li>处理注解标记 nest=true 的嵌套参数对象，以注解指定的表名递归解析其内部条件</li>
+     *   <li>遍历参数对象的所有字段（值为空的字段跳过），
+     *   根据 QueryPlugin 注解构建查询条件</li>
+     *   <li>处理注解标记 nest=true 的嵌套参数对象，
+     *   以注解指定的表名递归解析其内部条件</li>
      *   <li>处理 TimeParam 类型的字段，自动生成范围查询条件</li>
      * </ol>
      * </p>
@@ -1438,107 +1469,108 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param param 查询参数对象
      * @param wrapper MPJ Lambda 查询条件构造器
      */
-	private void paramFieldSetWrapper(String tableName, Object param, MPJLambdaWrapper<T> wrapper) {
+    private void paramFieldSetWrapper(String tableName, Object param, MPJLambdaWrapper<T> wrapper) {
 
-		Class<?> paramClass = param.getClass();
+        Class<?> paramClass = param.getClass();
 
-		// 解析类级 JoinPlugins 注解：逐个校验连接类型并应用关联插件拼接 JOIN
-		if (paramClass.isAnnotationPresent(JoinPlugins.class)) {
+        // 解析类级 JoinPlugins 注解：逐个校验连接类型并应用关联插件拼接 JOIN
+        if (paramClass.isAnnotationPresent(JoinPlugins.class)) {
 
-			JoinPlugins annotations = paramClass.getAnnotation(JoinPlugins.class);
+            JoinPlugins annotations = paramClass.getAnnotation(JoinPlugins.class);
 
-			if(ObjectUtil.isNotNullEmpty(annotations.value())){
+            if(ObjectUtil.isNotNullEmpty(annotations.value())){
 
-				Arrays.stream(annotations.value()).forEach(annotation -> {
+                Arrays.stream(annotations.value()).forEach(annotation -> {
 
-					JoinBaseType value = annotation.value();
+                    JoinBaseType value = annotation.value();
 
-					ObjectUtil.isNullEmptyThrowError(value, getResourceName() + RESOURCE_SUFFIX_JOIN_TYPE);
+                    ObjectUtil.isNullEmptyThrowError(value, getResourceName() + RESOURCE_SUFFIX_JOIN_TYPE);
 
-					ObjectUtil.isNullEmptyThrowError(value.getType(), getResourceName() + RESOURCE_SUFFIX_JOIN_TYPE);
+                    ObjectUtil.isNullEmptyThrowError(value.getType(), getResourceName() + RESOURCE_SUFFIX_JOIN_TYPE);
 
-					JoinType joinType = JoinType.get(value.getType());
+                    JoinType joinType = JoinType.get(value.getType());
 
-					ObjectUtil.isNullEmptyThrowError(joinType, getResourceName() + RESOURCE_SUFFIX_JOIN_TYPE);
+                    ObjectUtil.isNullEmptyThrowError(joinType, getResourceName() + RESOURCE_SUFFIX_JOIN_TYPE);
 
-					Objects.requireNonNull(joinType).getJoinPlugin().apply(getResourceName(), wrapper, annotation);
+                    Objects.requireNonNull(joinType).getJoinPlugin().apply(getResourceName(), wrapper, annotation);
 
-				});
+                });
 
-			}
+            }
 
-		}
+        }
 
-		Field [] fields = ReflectUtil.getFields(param.getClass());
+        Field [] fields = ReflectUtil.getFields(param.getClass());
 
-		for(Field field : fields) {
+        for(Field field : fields) {
 
-			if(SerializeUtil.SERIAL_VERSION_UID_FIELD_NAME.equals(field.getName())){
-				continue;
-			}
+            if(SerializeUtil.SERIAL_VERSION_UID_FIELD_NAME.equals(field.getName())){
+                continue;
+            }
 
-			Object data = ReflectUtil.invokeGet(param, field.getName());
-			// 字段值为空时不参与查询条件构建，直接跳过
-			if(ObjectUtil.isNullEmpty(data)) {continue;}
+            Object data = ReflectUtil.invokeGet(param, field.getName());
+            // 字段值为空时不参与查询条件构建，直接跳过
+            if(ObjectUtil.isNullEmpty(data)) {continue;}
 
-			QueryPlugin annotation = field.getAnnotation(QueryPlugin.class);
+            QueryPlugin annotation = field.getAnnotation(QueryPlugin.class);
 
-			String fieldName = ObjectUtil.isNotNullEmpty(annotation) && StringUtils.isNotBlank(annotation.field()) ?
-					annotation.field()
-					:
-					field.getName();
+            String fieldName = ObjectUtil.isNotNullEmpty(annotation) && StringUtils.isNotBlank(annotation.field()) ?
+                    annotation.field()
+                    :
+                    field.getName();
 
-			if(ObjectUtil.isNotNullEmpty(annotation)) {
+            if(ObjectUtil.isNotNullEmpty(annotation)) {
 
-				// 嵌套参数：以注解指定的表名递归解析其内部字段的查询条件
-				if(annotation.nest()) {
+                // 嵌套参数：以注解指定的表名递归解析其内部字段的查询条件
+                if(annotation.nest()) {
 
-					paramFieldSetWrapper(annotation.tableName(),field,wrapper);
+                    paramFieldSetWrapper(annotation.tableName(),field,wrapper);
 
-					continue;
+                    continue;
 
-				}
+                }
 
-				QueryBaseType value = annotation.value();
+                QueryBaseType value = annotation.value();
 
-				ObjectUtil.isNullEmptyThrowError(value, getResourceName() + "查询类型");
+                ObjectUtil.isNullEmptyThrowError(value, getResourceName() + RESOURCE_SUFFIX_QUERY_TYPE);
 
-				ObjectUtil.isNullEmptyThrowError(value.getType(), getResourceName() + "查询类型");
+                ObjectUtil.isNullEmptyThrowError(value.getType(), getResourceName() + RESOURCE_SUFFIX_QUERY_TYPE);
 
-				QueryType queryType = QueryType.get(value.getType());
+                QueryType queryType = QueryType.get(value.getType());
 
-				ObjectUtil.isNullEmptyThrowError(queryType, getResourceName() + "查询类型");
+                ObjectUtil.isNullEmptyThrowError(queryType, getResourceName() + RESOURCE_SUFFIX_QUERY_TYPE);
 
                 // 字段注解显式指定表名时，覆盖外层传入的表名
                 if(StringUtils.isNotBlank(annotation.tableName())){
                     tableName = annotation.tableName();
                 }
 
-				if(StringUtils.isNotBlank(tableName)){
-					fieldName = tableName + "." + fieldName;
-				}
+                if (StringUtils.isNotBlank(tableName)) {
+                    fieldName = tableName + "." + fieldName;
+                }
 
-				Objects.requireNonNull(queryType).getQueryPlugin().apply(wrapper, fieldName, data);
+                Objects.requireNonNull(queryType).getQueryPlugin().apply(wrapper, fieldName, data);
 
-			}
+            }
 
-			// 时间范围参数：起始时间拼 >= 条件、结束时间拼 <= 条件（不依赖 QueryPlugin 注解）
-			if(data instanceof TimeParam timeParam) {
+            // 时间范围参数：起始时间拼 >= 条件、结束时间拼 <= 条件
+            // （不依赖 QueryPlugin 注解）
+            if(data instanceof TimeParam timeParam) {
 
-				if(ObjectUtil.isNotNullEmpty(timeParam.getStartTime())) {
-					QueryType.GE.getQueryPlugin().apply(wrapper, fieldName, timeParam.getStartTime());
-				}
+                if(ObjectUtil.isNotNullEmpty(timeParam.getStartTime())) {
+                    QueryType.GE.getQueryPlugin().apply(wrapper, fieldName, timeParam.getStartTime());
+                }
 
-				if(ObjectUtil.isNotNullEmpty(timeParam.getEndTime())) {
-					QueryType.LE.getQueryPlugin().apply(wrapper, fieldName, timeParam.getEndTime());
-				}
+                if(ObjectUtil.isNotNullEmpty(timeParam.getEndTime())) {
+                    QueryType.LE.getQueryPlugin().apply(wrapper, fieldName, timeParam.getEndTime());
+                }
 
-			}
+            }
 
 
-		}
+        }
 
-	}
+    }
 
     /**
      * 设置查询映射关联（MPJ 关联查询的 selectCollection/selectAssociation）
@@ -1550,40 +1582,46 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param clazz VO 类型 Class 对象
      * @param wrapper MPJ Lambda 查询条件构造器
      */
-	protected void setQueryMappingWrapper(Class<?> clazz, MPJLambdaWrapper<T> wrapper){
+    protected void setQueryMappingWrapper(Class<?> clazz, MPJLambdaWrapper<T> wrapper){
 
-		for(;!Object.class.getName().equals(clazz.getName());clazz = clazz.getSuperclass()){
+        for(;!Object.class.getName().equals(clazz.getName());clazz = clazz.getSuperclass()){
 
-			Field [] fields = clazz.getDeclaredFields();
+            Field [] fields = clazz.getDeclaredFields();
 
-			for(Field field : fields) {
+            for(Field field : fields) {
 
-				QueryMapping annotation = field.getAnnotation(QueryMapping.class);
-				if(ObjectUtil.isNotNullEmpty(annotation) && !annotation.ignore() && !annotation.isService()) {
+                QueryMapping annotation = field.getAnnotation(QueryMapping.class);
+                if(ObjectUtil.isNotNullEmpty(annotation) && !annotation.ignore() && !annotation.isService()) {
 
-					Class<?> type = field.getType();
+                    Class<?> type = field.getType();
 
-					String tableName = annotation.tableName();
-					ObjectUtil.checkConditionThrowError(ObjectUtil.isNotNullEmpty(tableName),getResourceName() + "映射关系名称");
+                    String tableName = annotation.tableName();
+                    ObjectUtil.checkConditionThrowError(ObjectUtil.isNotNullEmpty(tableName),
+                            getResourceName() + RESOURCE_SUFFIX_MAPPING_NAME);
 
-					Class<?> relationClazz = StoreClass.storeClassMap.get(StoreClassType.DB).get(tableName);
-					ObjectUtil.checkConditionThrowError(ObjectUtil.isNotNullEmpty(relationClazz),getResourceName() + "映射关系不存在");
+                    Map<String, Class<?>> dbClassMap = StoreClass.storeClassMap.get(StoreClassType.DB);
+                    Class<?> relationClazz = dbClassMap == null ? null : dbClassMap.get(tableName);
+                    ObjectUtil.checkConditionThrowError(ObjectUtil.isNotNullEmpty(relationClazz),
+                            getResourceName() + RESOURCE_SUFFIX_MAPPING_NOT_EXIST);
 
-					ObjectUtil.checkConditionThrowError(!type.isPrimitive(),getResourceName() + "映射关系类型错误");
+                    ObjectUtil.checkConditionThrowError(!type.isPrimitive(),
+                            getResourceName() + RESOURCE_SUFFIX_MAPPING_TYPE_ERROR);
 
-					if(type.equals(List.class)){
-						wrapper.selectCollection(relationClazz,(response) -> ReflectUtil.invokeGet(response, field.getName()));
-					}else{
-						wrapper.selectAssociation(relationClazz,(response) -> ReflectUtil.invokeGet(response, field.getName()));
-					}
+                    if (List.class.equals(type)) {
+                        wrapper.selectCollection(relationClazz,
+                                (response) -> ReflectUtil.invokeGet(response, field.getName()));
+                    }else{
+                        wrapper.selectAssociation(relationClazz,
+                                (response) -> ReflectUtil.invokeGet(response, field.getName()));
+                    }
 
-				}
+                }
 
-			}
+            }
 
-		}
+        }
 
-	}
+    }
 
     /**
      * 构建关联查询条件（指定 VO 类型）
@@ -1600,45 +1638,45 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param fieldsClass VO 类型 Class 对象
      * @return MPJ Lambda 查询条件构造器
      */
-	public MPJLambdaWrapper<T> buildQueryWrapper(Object param,Class<?> fieldsClass) {
+    public MPJLambdaWrapper<T> buildQueryWrapper(Object param,Class<?> fieldsClass) {
 
-		if(param instanceof PageParam<?> pageParam) {
-			param = pageParam.getData();
-		}
+        if(param instanceof PageParam<?> pageParam) {
+            param = pageParam.getData();
+        }
 
-		ObjectUtil.isNullEmptyThrowError(param, getResourceName() + "参数");
+        ObjectUtil.isNullEmptyThrowError(param, getResourceName() + RESOURCE_SUFFIX_PARAM);
 
-		MPJLambdaWrapper<T> wrapper = MPJWrappers.lambdaJoin();
-		wrapper.selectAsClass(domainClass, fieldsClass);
+        MPJLambdaWrapper<T> wrapper = MPJWrappers.lambdaJoin();
+        wrapper.selectAsClass(domainClass, fieldsClass);
 
-		if(ObjectUtil.isNotNullEmpty(fieldsClass)) {
+        if(ObjectUtil.isNotNullEmpty(fieldsClass)) {
 
-			wrapper.select(getColumns(fieldsClass));
+            wrapper.select(getColumns(fieldsClass));
 
-//			setQueryMappingWrapper(fieldsClass,wrapper);
+//            setQueryMappingWrapper(fieldsClass,wrapper);
 
-		}
+        }
 
-		paramFieldSetWrapper(null,param,wrapper);
+        paramFieldSetWrapper(null,param,wrapper);
 
-		// 排序参数：初始化默认排序后，按默认表别名取升序/降序字段拼接 ORDER BY
-		if(param instanceof OrderParam orderParam) {
+        // 排序参数：初始化默认排序后，按默认表别名取升序/降序字段拼接 ORDER BY
+        if(param instanceof OrderParam orderParam) {
 
-			orderParam.initOrderParam();
+            orderParam.initOrderParam();
 
-			List<String> asc = orderParam.getOrderAscFieldsMap().get(QueryEnvironmentContext.DEFAULT_ORDER_KEY);
+            List<String> asc = orderParam.getOrderAscFieldsMap().get(QueryEnvironmentContext.DEFAULT_ORDER_KEY);
 
-			List<String> desc = orderParam.getOrderDescFieldsMap().get(QueryEnvironmentContext.DEFAULT_ORDER_KEY);
+            List<String> desc = orderParam.getOrderDescFieldsMap().get(QueryEnvironmentContext.DEFAULT_ORDER_KEY);
 
-			wrapper.orderByAscStr(ObjectUtil.isNotNullEmpty(asc),asc);
+            wrapper.orderByAscStr(ObjectUtil.isNotNullEmpty(asc),asc);
 
-			wrapper.orderByDescStr(ObjectUtil.isNotNullEmpty(desc),desc);
+            wrapper.orderByDescStr(ObjectUtil.isNotNullEmpty(desc),desc);
 
-		}
+        }
 
-		return wrapper;
+        return wrapper;
 
-	}
+    }
 
     /**
      * 构建关联查询条件（不指定 VO 类型）
@@ -1646,304 +1684,309 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param param 查询参数对象
      * @return MPJ Lambda 查询条件构造器
      */
-	public MPJLambdaWrapper<T> buildQueryWrapper(Object param) {
-		return buildQueryWrapper(param,null);
-	}
+    public MPJLambdaWrapper<T> buildQueryWrapper(Object param) {
+        return buildQueryWrapper(param,null);
+    }
 
-	/**
-	 * 设置关联数据
-	 * <p>
-	 * 根据 VO 类中 QueryMapping 注解的配置，通过 RPC 或本地服务调用
-	 * 自动填充关联数据。支持以下关联类型：
-	 * <ul>
-	 *   <li>通过 functionName 自定义方法调用</li>
-	 *   <li>List 类型：一对多关联</li>
-	 *   <li>DropDownResult 类型：下拉选项关联</li>
-	 *   <li>其他类型：一对一关联</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param data 响应数据对象（支持 PageResult、List 和单个对象）
-	 * @param clazz VO 类型 Class 对象
-	 */
-	public void setRelationData(Object data, Class<?> clazz) {
+    /**
+     * 设置关联数据
+     * <p>
+     * 根据 VO 类中 QueryMapping 注解的配置，通过 RPC 或本地服务调用
+     * 自动填充关联数据。支持以下关联类型：
+     * <ul>
+     *   <li>通过 functionName 自定义方法调用</li>
+     *   <li>List 类型：一对多关联</li>
+     *   <li>DropDownResult 类型：下拉选项关联</li>
+     *   <li>其他类型：一对一关联</li>
+     * </ul>
+     * </p>
+     *
+     * @param data 响应数据对象（支持 PageResult、List 和单个对象）
+     * @param clazz VO 类型 Class 对象
+     */
+    public void setRelationData(Object data, Class<?> clazz) {
 
-		if (data instanceof PageResult<?> pageResult) {
-			data = pageResult.getData();
-		}
+        if (data instanceof PageResult<?> pageResult) {
+            data = pageResult.getData();
+        }
 
-		if (data instanceof List<?> responses) {
-			setBatchRelationData(responses, clazz);
-		} else {
-			setSingleRelationData(data, clazz);
-		}
+        if (data instanceof List<?> responses) {
+            setBatchRelationData(responses, clazz);
+        } else {
+            setSingleRelationData(data, clazz);
+        }
 
-	}
+    }
 
-	/**
-	 * 解析并校验服务 Bean
-	 *
-	 * @param annotation QueryMapping 注解
-	 * @return 服务 Bean 对象
-	 */
-	private Object resolveServiceBean(QueryMapping annotation) {
-		Object service = SpringUtil.getBean(annotation.serviceName());
-		ObjectUtil.checkConditionThrowError(ObjectUtil.isNotNullEmpty(service), getResourceName() + "服务不存在");
-		return service;
-	}
+    /**
+     * 解析并校验服务 Bean
+     *
+     * @param annotation QueryMapping 注解
+     * @return 服务 Bean 对象
+     */
+    private Object resolveServiceBean(QueryMapping annotation) {
+        Object service = SpringUtil.getBean(annotation.serviceName());
+        ObjectUtil.checkConditionThrowError(ObjectUtil.isNotNullEmpty(service),
+                getResourceName() + RESOURCE_SUFFIX_SERVICE_NOT_EXIST);
+        return service;
+    }
 
-	/**
-	 * 批量设置关联数据
-	 * <p>
-	 * 遍历 VO 类中所有带 QueryMapping 注解的字段，批量收集 ID 后统一调用服务获取关联数据。
-	 * </p>
-	 *
-	 * @param responses 响应数据列表
-	 * @param clazz VO 类型 Class 对象
-	 */
-	private void setBatchRelationData(List<?> responses, Class<?> clazz) {
+    /**
+     * 批量设置关联数据
+     * <p>
+     * 遍历 VO 类中所有带 QueryMapping 注解的字段，
+     * 批量收集 ID 后统一调用服务获取关联数据。
+     * </p>
+     *
+     * @param responses 响应数据列表
+     * @param clazz VO 类型 Class 对象
+     */
+    private void setBatchRelationData(List<?> responses, Class<?> clazz) {
 
-		if (ObjectUtil.isNullEmpty(responses)) {
-			return;
-		}
+        if (ObjectUtil.isNullEmpty(responses)) {
+            return;
+        }
 
-		Field[] fields = ReflectUtil.getFields(clazz);
-		for (Field field : fields) {
+        Field[] fields = ReflectUtil.getFields(clazz);
+        for (Field field : fields) {
 
-			QueryMapping annotation = field.getAnnotation(QueryMapping.class);
-			if (ObjectUtil.isNullEmpty(annotation) || annotation.ignore()) {
-				continue;
-			}
+            QueryMapping annotation = field.getAnnotation(QueryMapping.class);
+            if (ObjectUtil.isNullEmpty(annotation) || annotation.ignore()) {
+                continue;
+            }
 
-			String functionName = annotation.functionName();
-			String relationFieldName = annotation.relationField();
-			ObjectUtil.checkConditionThrowError(
-				ObjectUtil.isNotNullEmpty(relationFieldName) || ObjectUtil.isNotNullEmpty(functionName),
-				getResourceName() + "关系字段未设置"
-			);
+            String functionName = annotation.functionName();
+            String relationFieldName = annotation.relationField();
+            ObjectUtil.checkConditionThrowError(
+                ObjectUtil.isNotNullEmpty(relationFieldName) || ObjectUtil.isNotNullEmpty(functionName),
+                getResourceName() + RESOURCE_SUFFIX_RELATION_FIELD_NOT_SET
+            );
 
-			if (annotation.isService()) {
-				Object service = resolveServiceBean(annotation);
-				setBatchRelationField(responses, field, service, functionName, relationFieldName);
-			}
+            if (annotation.isService()) {
+                Object service = resolveServiceBean(annotation);
+                setBatchRelationField(responses, field, service, functionName, relationFieldName);
+            }
 
-		}
+        }
 
-	}
+    }
 
-	/**
-	 * 单个对象设置关联数据
-	 * <p>
-	 * 遍历 VO 类中所有带 QueryMapping 注解的字段，逐个调用服务获取关联数据。
-	 * </p>
-	 *
-	 * @param data 响应数据对象
-	 * @param clazz VO 类型 Class 对象
-	 */
-	private void setSingleRelationData(Object data, Class<?> clazz) {
+    /**
+     * 单个对象设置关联数据
+     * <p>
+     * 遍历 VO 类中所有带 QueryMapping 注解的字段，逐个调用服务获取关联数据。
+     * </p>
+     *
+     * @param data 响应数据对象
+     * @param clazz VO 类型 Class 对象
+     */
+    private void setSingleRelationData(Object data, Class<?> clazz) {
 
-		Field[] fields = ReflectUtil.getFields(clazz);
-		for (Field field : fields) {
+        Field[] fields = ReflectUtil.getFields(clazz);
+        for (Field field : fields) {
 
-			QueryMapping annotation = field.getAnnotation(QueryMapping.class);
-			if (ObjectUtil.isNullEmpty(annotation) || annotation.ignore()) {
-				continue;
-			}
+            QueryMapping annotation = field.getAnnotation(QueryMapping.class);
+            if (ObjectUtil.isNullEmpty(annotation) || annotation.ignore()) {
+                continue;
+            }
 
-			String functionName = annotation.functionName();
-			String relationFieldName = annotation.relationField();
-			ObjectUtil.checkConditionThrowError(
-				ObjectUtil.isNotNullEmpty(relationFieldName) || ObjectUtil.isNotNullEmpty(functionName),
-				getResourceName() + "关系字段未设置"
-			);
+            String functionName = annotation.functionName();
+            String relationFieldName = annotation.relationField();
+            ObjectUtil.checkConditionThrowError(
+                ObjectUtil.isNotNullEmpty(relationFieldName) || ObjectUtil.isNotNullEmpty(functionName),
+                getResourceName() + RESOURCE_SUFFIX_RELATION_FIELD_NOT_SET
+            );
 
-			if (annotation.isService()) {
-				Object service = resolveServiceBean(annotation);
-				setSingleRelationField(data, field, service, functionName, relationFieldName);
-			}
+            if (annotation.isService()) {
+                Object service = resolveServiceBean(annotation);
+                setSingleRelationField(data, field, service, functionName, relationFieldName);
+            }
 
-		}
+        }
 
-	}
+    }
 
-	/**
-	 * 批量模式：设置单个字段的关联数据
-	 * <p>
-	 * 根据字段类型进行 4 路分发：functionName 自定义方法、List 一对多、DropDownResult 下拉、其他一对一。
-	 * 批量收集 ID 后统一调用服务获取关联数据，再分发回各响应对象
-	 * （一对多关联收集对象自身主键 ID 作为关联值，其余分支收集关联字段的值）。
-	 * </p>
-	 *
-	 * @param responses 响应数据列表
-	 * @param field 当前字段
-	 * @param service 服务 Bean
-	 * @param functionName 自定义方法名
-	 * @param relationFieldName 关联字段名
-	 */
-	private void setBatchRelationField(List<?> responses, Field field, Object service,
-			String functionName, String relationFieldName) {
+    /**
+     * 批量模式：设置单个字段的关联数据
+     * <p>
+     * 根据字段类型进行 4 路分发：functionName 自定义方法、List 一对多、
+     * DropDownResult 下拉、其他一对一。
+     * 批量收集 ID 后统一调用服务获取关联数据，再分发回各响应对象
+     * （一对多关联收集对象自身主键 ID 作为关联值，其余分支收集关联字段的值）。
+     * </p>
+     *
+     * @param responses 响应数据列表
+     * @param field 当前字段
+     * @param service 服务 Bean
+     * @param functionName 自定义方法名
+     * @param relationFieldName 关联字段名
+     */
+    private void setBatchRelationField(List<?> responses, Field field, Object service,
+            String functionName, String relationFieldName) {
 
-		Class<?> type = field.getType();
+        Class<?> type = field.getType();
 
-		// 自定义方法分支：按关联字段收集参数统一调用，再按关联字段取回并分发结果
-		if (StringUtils.isNotBlank(functionName)) {
+        // 自定义方法分支：按关联字段收集参数统一调用，再按关联字段取回并分发结果
+        if (StringUtils.isNotBlank(functionName)) {
 
-			Set<Object> param = CollectionUtil.newHashSet();
-			for (Object response : responses) {
-				param.add(ReflectUtil.invokeGet(response, relationFieldName));
-			}
+            Set<Object> param = CollectionUtil.newHashSet();
+            for (Object response : responses) {
+                param.add(ReflectUtil.invokeGet(response, relationFieldName));
+            }
 
-			if (ObjectUtil.isNotNullEmpty(param)) {
-				Map<Long, Object> result = ReflectUtil.invoke(service, functionName, param, relationFieldName);
-				for (Object response : responses) {
-					Long id = ReflectUtil.invokeGet(response, relationFieldName);
-					Object object = result.get(id);
-					if (ObjectUtil.isNotNullEmpty(object)) {
-						ReflectUtil.invokeSet(response, field.getName(), object);
-					}
-				}
-			}
+            if (ObjectUtil.isNotNullEmpty(param)) {
+                Map<Long, Object> result = ReflectUtil.invoke(service, functionName, param, relationFieldName);
+                for (Object response : responses) {
+                    Long id = ReflectUtil.invokeGet(response, relationFieldName);
+                    Object object = result.get(id);
+                    if (ObjectUtil.isNotNullEmpty(object)) {
+                        ReflectUtil.invokeSet(response, field.getName(), object);
+                    }
+                }
+            }
 
-		// 一对多分支：以对象自身主键 ID 作为关联值，按关联字段分组取回列表
-		} else if (type.equals(List.class)) {
+        // 一对多分支：以对象自身主键 ID 作为关联值，按关联字段分组取回列表
+        } else if (type.equals(List.class)) {
 
-			Set<Long> relationIds = CollectionUtil.newHashSet();
-			for (Object response : responses) {
-				relationIds.add(ReflectUtil.invokeFunGetId(response));
-			}
+            Set<Long> relationIds = CollectionUtil.newHashSet();
+            for (Object response : responses) {
+                relationIds.add(ReflectUtil.invokeFunGetId(response));
+            }
 
-			if (ObjectUtil.isNotNullEmpty(relationIds)) {
-				AbstractBaseResult<Map<Long, List<?>>> rpcResult = ReflectUtil.invoke(
-					service, ResultFunName.LIST_BY_RELATION_IDS_RESULT, relationIds, relationFieldName, getColumns(field.getClass()));
-				Map<Long, List<?>> resultData = rpcResult.getResultDataThrowError();
-				for (Object response : responses) {
-					Long id = ReflectUtil.invokeFunGetId(response);
-					List<?> list = resultData.get(id);
-					if (ObjectUtil.isNotNullEmpty(list)) {
-						ReflectUtil.invokeSet(response, field.getName(), list);
-					}
-				}
-			}
+            if (ObjectUtil.isNotNullEmpty(relationIds)) {
+                AbstractBaseResult<Map<Long, List<?>>> rpcResult = ReflectUtil.invoke(
+                    service, ResultFunName.LIST_BY_RELATION_IDS_RESULT, relationIds,
+                    relationFieldName, getColumns(field.getClass()));
+                Map<Long, List<?>> resultData = rpcResult.getResultDataThrowError();
+                for (Object response : responses) {
+                    Long id = ReflectUtil.invokeFunGetId(response);
+                    List<?> list = resultData.get(id);
+                    if (ObjectUtil.isNotNullEmpty(list)) {
+                        ReflectUtil.invokeSet(response, field.getName(), list);
+                    }
+                }
+            }
 
-		// 下拉关联分支：按关联字段批量取回下拉选项，转 Map 后按 ID 分发
-		} else if (type.equals(DropDownResult.class)) {
+        // 下拉关联分支：按关联字段批量取回下拉选项，转 Map 后按 ID 分发
+        } else if (DropDownResult.class.equals(type)) {
 
-			Set<Long> relationIds = CollectionUtil.newHashSet();
-			for (Object response : responses) {
-				relationIds.add(ReflectUtil.invokeGet(response, relationFieldName));
-			}
+            Set<Long> relationIds = CollectionUtil.newHashSet();
+            for (Object response : responses) {
+                relationIds.add(ReflectUtil.invokeGet(response, relationFieldName));
+            }
 
-			if (ObjectUtil.isNotNullEmpty(relationIds)) {
-				AbstractBaseResult<List<DropDownResult>> rpcResult = ReflectUtil.invoke(
-					service, ResultFunName.DROP_DOWN_LIST_RESULT, relationIds);
-				List<DropDownResult> resultData = rpcResult.getResultDataThrowError();
-				Map<Long, DropDownResult> relationsMap = toMapByIds(resultData, DropDownResult::getId);
-				for (Object response : responses) {
-					Long id = ReflectUtil.invokeGet(response, relationFieldName);
-					DropDownResult relation = relationsMap.get(id);
-					if (ObjectUtil.isNotNullEmpty(relation)) {
-						ReflectUtil.invokeSet(response, field.getName(), relation);
-					}
-				}
-			}
+            if (ObjectUtil.isNotNullEmpty(relationIds)) {
+                AbstractBaseResult<List<DropDownResult>> rpcResult = ReflectUtil.invoke(
+                    service, ResultFunName.DROP_DOWN_LIST_RESULT, relationIds);
+                List<DropDownResult> resultData = rpcResult.getResultDataThrowError();
+                Map<Long, DropDownResult> relationsMap = toMapByIds(resultData, DropDownResult::getId);
+                for (Object response : responses) {
+                    Long id = ReflectUtil.invokeGet(response, relationFieldName);
+                    DropDownResult relation = relationsMap.get(id);
+                    if (ObjectUtil.isNotNullEmpty(relation)) {
+                        ReflectUtil.invokeSet(response, field.getName(), relation);
+                    }
+                }
+            }
 
-		// 一对一分支：按关联字段批量取回关联对象，转 Map 后按 ID 分发
-		} else {
+        // 一对一分支：按关联字段批量取回关联对象，转 Map 后按 ID 分发
+        } else {
 
-			Set<Long> relationIds = CollectionUtil.newHashSet();
-			for (Object response : responses) {
-				relationIds.add(ReflectUtil.invokeGet(response, relationFieldName));
-			}
+            Set<Long> relationIds = CollectionUtil.newHashSet();
+            for (Object response : responses) {
+                relationIds.add(ReflectUtil.invokeGet(response, relationFieldName));
+            }
 
-			if (ObjectUtil.isNotNullEmpty(relationIds)) {
-				AbstractBaseResult<Map<Long, Object>> rpcResult = ReflectUtil.invoke(
-					service, ResultFunName.LIST_BY_IDS_RESULT, relationIds, getColumns(field.getClass()));
-				Map<Long, Object> resultData = rpcResult.getResultDataThrowError();
-				for (Object response : responses) {
-					Long id = ReflectUtil.invokeGet(response, relationFieldName);
-					Object relation = resultData.get(id);
-					if (ObjectUtil.isNotNullEmpty(relation)) {
-						ReflectUtil.invokeSet(response, field.getName(), relation);
-					}
-				}
-			}
+            if (ObjectUtil.isNotNullEmpty(relationIds)) {
+                AbstractBaseResult<Map<Long, Object>> rpcResult = ReflectUtil.invoke(
+                    service, ResultFunName.LIST_BY_IDS_RESULT, relationIds, getColumns(field.getClass()));
+                Map<Long, Object> resultData = rpcResult.getResultDataThrowError();
+                for (Object response : responses) {
+                    Long id = ReflectUtil.invokeGet(response, relationFieldName);
+                    Object relation = resultData.get(id);
+                    if (ObjectUtil.isNotNullEmpty(relation)) {
+                        ReflectUtil.invokeSet(response, field.getName(), relation);
+                    }
+                }
+            }
 
-		}
+        }
 
-	}
+    }
 
-	/**
-	 * 单对象模式：设置单个字段的关联数据
-	 * <p>
-	 * 根据字段类型进行 4 路分发：functionName 自定义方法、List 一对多、DropDownResult 下拉、其他一对一。
-	 * 针对单个对象调用服务获取关联数据。
-	 * </p>
-	 *
-	 * @param data 响应数据对象
-	 * @param field 当前字段
-	 * @param service 服务 Bean
-	 * @param functionName 自定义方法名
-	 * @param relationFieldName 关联字段名
-	 */
-	private void setSingleRelationField(Object data, Field field, Object service,
-			String functionName, String relationFieldName) {
+    /**
+     * 单对象模式：设置单个字段的关联数据
+     * <p>
+     * 根据字段类型进行 4 路分发：functionName 自定义方法、List 一对多、
+     * DropDownResult 下拉、其他一对一。
+     * 针对单个对象调用服务获取关联数据。
+     * </p>
+     *
+     * @param data 响应数据对象
+     * @param field 当前字段
+     * @param service 服务 Bean
+     * @param functionName 自定义方法名
+     * @param relationFieldName 关联字段名
+     */
+    private void setSingleRelationField(Object data, Field field, Object service,
+            String functionName, String relationFieldName) {
 
-		Class<?> type = field.getType();
+        Class<?> type = field.getType();
 
-		// 自定义方法分支：配置了关联字段则携带其值调用，否则无参调用
-		if (StringUtils.isNotBlank(functionName)) {
+        // 自定义方法分支：配置了关联字段则携带其值调用，否则无参调用
+        if (StringUtils.isNotBlank(functionName)) {
 
-			Object result = null;
-			if (StringUtils.isNotBlank(relationFieldName)) {
-				var param = ReflectUtil.invokeGet(data, relationFieldName);
-				result = ReflectUtil.invoke(service, functionName, param);
-			} else {
-				result = ReflectUtil.invoke(service, functionName);
-			}
+            Object result = null;
+            if (StringUtils.isNotBlank(relationFieldName)) {
+                var param = ReflectUtil.invokeGet(data, relationFieldName);
+                result = ReflectUtil.invoke(service, functionName, param);
+            } else {
+                result = ReflectUtil.invoke(service, functionName);
+            }
 
-			if (ObjectUtil.isNotNullEmpty(result)) {
-				ReflectUtil.invokeSet(data, field.getName(), result);
-			}
+            if (ObjectUtil.isNotNullEmpty(result)) {
+                ReflectUtil.invokeSet(data, field.getName(), result);
+            }
 
-		// 一对多分支：以对象自身主键作为关联值查询关联列表
-		} else if (type.equals(List.class)) {
+        // 一对多分支：以对象自身主键作为关联值查询关联列表
+        } else if (type.equals(List.class)) {
 
-			Long id = ReflectUtil.invokeFunGetId(data);
-			AbstractBaseResult<List<?>> rpcResult = ReflectUtil.invoke(
-				service, ResultFunName.LIST_BY_RELATION_ID_RESULT, id, relationFieldName, getColumns(field.getClass()));
-			List<?> resultData = rpcResult.getResultDataThrowError();
-			if (ObjectUtil.isNotNullEmpty(resultData)) {
-				ReflectUtil.invokeSet(data, field.getName(), resultData);
-			}
+            Long id = ReflectUtil.invokeFunGetId(data);
+            AbstractBaseResult<List<?>> rpcResult = ReflectUtil.invoke(
+                service, ResultFunName.LIST_BY_RELATION_ID_RESULT, id, relationFieldName, getColumns(field.getClass()));
+            List<?> resultData = rpcResult.getResultDataThrowError();
+            if (ObjectUtil.isNotNullEmpty(resultData)) {
+                ReflectUtil.invokeSet(data, field.getName(), resultData);
+            }
 
-		// 下拉关联分支：按关联字段值查询单个下拉选项
-		} else if (type.equals(DropDownResult.class)) {
+        // 下拉关联分支：按关联字段值查询单个下拉选项
+        } else if (type.equals(DropDownResult.class)) {
 
-			Long relationId = ReflectUtil.invokeGet(data, relationFieldName);
-			if (ObjectUtil.isNotNullEmpty(relationId)) {
-				AbstractBaseResult<DropDownResult> rpcResult = ReflectUtil.invoke(
-					service, ResultFunName.DROP_DOWN_RESULT, relationId);
-				DropDownResult resultData = rpcResult.getResultDataThrowError();
-				if (ObjectUtil.isNotNullEmpty(resultData)) {
-					ReflectUtil.invokeSet(data, field.getName(), resultData);
-				}
-			}
+            Long relationId = ReflectUtil.invokeGet(data, relationFieldName);
+            if (ObjectUtil.isNotNullEmpty(relationId)) {
+                AbstractBaseResult<DropDownResult> rpcResult = ReflectUtil.invoke(
+                    service, ResultFunName.DROP_DOWN_RESULT, relationId);
+                DropDownResult resultData = rpcResult.getResultDataThrowError();
+                if (ObjectUtil.isNotNullEmpty(resultData)) {
+                    ReflectUtil.invokeSet(data, field.getName(), resultData);
+                }
+            }
 
-		// 一对一分支：按关联字段值查询单个关联对象
-		} else {
+        // 一对一分支：按关联字段值查询单个关联对象
+        } else {
 
-			Long relationId = ReflectUtil.invokeGet(data, relationFieldName);
-			if (ObjectUtil.isNotNullEmpty(relationId)) {
-				AbstractBaseResult<Object> rpcResult = ReflectUtil.invoke(
-					service, ResultFunName.GET_BY_ID_RESULT, relationId, getColumns(field.getClass()));
-				Object resultData = rpcResult.getResultDataThrowError();
-				if (ObjectUtil.isNotNullEmpty(resultData)) {
-					ReflectUtil.invokeSet(data, field.getName(), resultData);
-				}
-			}
+            Long relationId = ReflectUtil.invokeGet(data, relationFieldName);
+            if (ObjectUtil.isNotNullEmpty(relationId)) {
+                AbstractBaseResult<Object> rpcResult = ReflectUtil.invoke(
+                    service, ResultFunName.GET_BY_ID_RESULT, relationId, getColumns(field.getClass()));
+                Object resultData = rpcResult.getResultDataThrowError();
+                if (ObjectUtil.isNotNullEmpty(resultData)) {
+                    ReflectUtil.invokeSet(data, field.getName(), resultData);
+                }
+            }
 
-		}
+        }
 
-	}
+    }
 
 }

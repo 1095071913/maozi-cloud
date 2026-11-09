@@ -4,6 +4,7 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -21,22 +22,25 @@ import java.io.Serializable;
 @ConfigurationProperties("application-project-system")
 public class SystemProperties implements Serializable {
 
-	/** 项目名称 */
-	private String projectName;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
-	/** 公司名称 */
-	private String corporationName;
+    /** 项目名称 */
+    private String projectName;
 
-	/** 系统图标 */
-	private String icon;
+    /** 公司名称 */
+    private String corporationName;
 
-	/** 运行环境（如 dev、test、prod） */
-	private String environment;
+    /** 系统图标 */
+    private String icon;
 
-	/** 系统描述信息 */
-	private String description;
+    /** 运行环境（如 dev、test、prod） */
+    private String environment;
 
-	/** 版权信息 */
-	private String copyright;
+    /** 系统描述信息 */
+    private String description;
+
+    /** 版权信息 */
+    private String copyright;
 
 }

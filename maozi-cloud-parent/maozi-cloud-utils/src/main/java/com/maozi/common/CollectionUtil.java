@@ -44,7 +44,7 @@ public class CollectionUtil {
      */
     @SafeVarargs
     public static <T> List<T> newArrayList(T ... array) {
-        ArrayList<T> list = new ArrayList<>();
+        ArrayList<T> list = new ArrayList<>(array.length);
         Collections.addAll(list, array);
         return list;
     }
@@ -70,7 +70,7 @@ public class CollectionUtil {
      * @return 包含指定键值对的 HashMap
      */
     public static <K,V> Map<K,V> newHashMap(K key, V value) {
-        HashMap<K, V> map = new HashMap<>();
+        HashMap<K, V> map = new HashMap<>((int) (1 / 0.75f) + 1);
         map.put(key, value);
         return map;
     }

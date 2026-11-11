@@ -40,6 +40,7 @@ import com.maozi.system.user.param.UserSaveUpdateParam;
 import com.maozi.system.user.result.UserIndividualInfoResult;
 import com.maozi.system.user.result.UserInfoResult;
 import com.maozi.system.user.result.UserListResult;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 用户REST服务实现类
@@ -93,12 +94,12 @@ public class RestUserServiceImpl extends UserServiceImpl implements RestUserServ
 		}
 
 		// 删除用户数据库记录
-		AbstractBaseResult<Void> responseResult = removeByIdResult(id);
+		if(removeById(id)){
+			// 通过RPC调用OAuth服务，根据clientId+用户名销毁该用户的所有OAuth2授权令牌
+			rpcOauthTokenService.rpcDestroyByPrincipal(user.getClientId(), user.getUsername()).getResultDataThrowError();
+		}
 
-		// 通过RPC调用OAuth服务，根据clientId+用户名销毁该用户的所有OAuth2授权令牌
-		rpcOauthTokenService.rpcDestroyByPrincipal(user.getClientId(), user.getUsername()).getResultDataThrowError();
-
-		return responseResult;
+		return ResultUtil.success();
 
 	}
 
@@ -165,6 +166,7 @@ public class RestUserServiceImpl extends UserServiceImpl implements RestUserServ
 	 * @return 操作结果
 	 */
 	@Override
+	@Transactional(rollbackFor = Exception.class)
 	public AbstractBaseResult<Void> updateStatusResult(Long id, RequestParam<Status> param){
 
 		Status status = param.getData();
@@ -215,6 +217,7 @@ public class RestUserServiceImpl extends UserServiceImpl implements RestUserServ
 	 * @return 操作结果
 	 */
 	@Override
+	@Transactional(rollbackFor = Exception.class)
 	public AbstractBaseResult<Void> restIndividualUpdate(UserIndividualUpdateParam param) {
 
 		Long userId = ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUserId);
@@ -227,11 +230,11 @@ public class RestUserServiceImpl extends UserServiceImpl implements RestUserServ
 			UserDo domain = getByIdThrowError(userId, UserDo::getPassword);
 
 			// 旧密码与库中密文不匹配时抛出业务异常
-			if(!passwordEncoder.matches(paramPassword,domain.getPassword())){
+			if(!PASSWORD_ENCODER.matches(paramPassword,domain.getPassword())){
 				throw new BusinessResultException("旧密码不正确");
 			}
 
-			paramNewPassword = passwordEncoder.encode(paramNewPassword);
+			paramNewPassword = PASSWORD_ENCODER.encode(paramNewPassword);
 		}
 
 		UserDo domain = CglibUtil.copy(param, UserDo.class);

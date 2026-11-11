@@ -374,7 +374,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
                     // 无注解：字段名转下划线，关联模式下追加默认表别名前缀
                     String fieldName = StrUtil.toUnderlineCase(field.getName());
-                    columns.add(isJoin ? QueryEnvironmentContext.DEFAULT_ORDER_KEY + "." + fieldName : fieldName);
+                    columns.add(isJoin ? String.join(".", QueryEnvironmentContext.DEFAULT_ORDER_KEY, fieldName) : fieldName);
 
                 }else if(annotation.ignore() && (StringUtils.isNotBlank(annotation.field())
                         || StringUtils.isNotBlank(annotation.tableName()))){
@@ -1133,7 +1133,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      *
      * @param id 实体 ID
      */
-    public void removeById(Long id) {
+    public boolean removeById(Long id) {
 
         ObjectUtil.isNullEmptyThrowError(id,getResourceName());
 
@@ -1141,7 +1141,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         unbind(id);
 
-        super.removeById(id);
+        return super.removeById(id);
 
     }
 

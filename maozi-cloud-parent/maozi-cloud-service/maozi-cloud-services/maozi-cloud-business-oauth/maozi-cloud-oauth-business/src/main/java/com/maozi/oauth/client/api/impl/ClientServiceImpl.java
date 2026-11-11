@@ -266,8 +266,8 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo, C
         wrapper.select(ClientDo::getId,ClientDo::getClientId);
         
         wrapper.in(ClientDo::getId, ids);
-        
-        return list(wrapper).stream().collect(Collectors.toMap(ClientDo::getId, ClientDo::getClientId));
+
+        return list(wrapper).stream().collect(Collectors.toMap(ClientDo::getId, ClientDo::getClientId, (v1, v2) -> v1));
         
     }
 

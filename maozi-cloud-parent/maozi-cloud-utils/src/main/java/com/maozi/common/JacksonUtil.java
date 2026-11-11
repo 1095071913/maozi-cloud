@@ -188,7 +188,7 @@ public class JacksonUtil {
 
         try {return OBJECT_MAPPER.readValue(json,typeReference);} catch (Exception e) {
             log.error(e.getLocalizedMessage(),e);
-            return null;
+            return Collections.emptyMap();
         }
 
     }
@@ -206,7 +206,7 @@ public class JacksonUtil {
 
         try {return OBJECT_MAPPER.convertValue(data,typeReference);} catch (Exception e) {
             log.error(e.getLocalizedMessage(),e);
-            return null;
+            return Collections.emptyMap();
         }
 
     }
@@ -260,7 +260,7 @@ public class JacksonUtil {
 
         try {return OBJECT_MAPPER.convertValue(data,typeReference);} catch (Exception e) {
             log.error(e.getLocalizedMessage(),e);
-            return null;
+            return Collections.emptyList();
         }
 
     }
@@ -277,7 +277,7 @@ public class JacksonUtil {
 
         try {return OBJECT_MAPPER.convertValue(data,typeReference);} catch (Exception e) {
             log.error(e.getLocalizedMessage(),e);
-            return null;
+            return Collections.emptyList();
         }
 
     }

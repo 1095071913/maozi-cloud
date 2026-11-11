@@ -10,7 +10,6 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,13 +56,11 @@ public class ConfigListParam implements OrderParam, Serializable {
 	private Map<String, List<String>> orderDescFieldsMap;
 
 	/** 主表可排序字段映射，key为表别名，value为该表下可排序字段及默认排序方向（true 降序、false 升序），默认按排序值升序、创建时间倒序排列 */
-	private final Map<String, Map<String, Boolean>> orderMainFieldsMap = new HashMap<>() {{
-
-		put(QueryEnvironmentContext.DEFAULT_ORDER_KEY, new HashMap<>() {{
-			put("sort", false);
-			put(CREATE_TIME_KEY, true);
-		}});
-
-	}};
+	private final Map<String, Map<String, Boolean>> orderMainFieldsMap = Map.of(
+		QueryEnvironmentContext.DEFAULT_ORDER_KEY, Map.of(
+			"sort",false,
+				CREATE_TIME_KEY, true
+		)
+	);
 
 }

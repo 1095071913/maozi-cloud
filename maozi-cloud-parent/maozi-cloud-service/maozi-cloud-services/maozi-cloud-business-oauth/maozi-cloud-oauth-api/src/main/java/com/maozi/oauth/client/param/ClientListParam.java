@@ -9,7 +9,6 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -43,12 +42,10 @@ public class ClientListParam implements OrderParam,Serializable {
     private Map<String,List<String>> orderDescFieldsMap;
 
     /** 主排序字段映射，key为主表别名，value为该表下可排序字段及默认排序方向配置（true 降序、false 升序），默认按创建时间降序排列 */
-    private Map<String, Map<String, Boolean>> orderMainFieldsMap = new HashMap<>() {{
-
-        put(QueryEnvironmentContext.DEFAULT_ORDER_KEY, new HashMap<>() {{
-            put(CREATE_TIME_KEY, true);
-        }});
-
-    }};
+    private final Map<String, Map<String, Boolean>> orderMainFieldsMap = Map.of(
+        QueryEnvironmentContext.DEFAULT_ORDER_KEY, Map.of(
+            CREATE_TIME_KEY, true
+        )
+    );
 
 }

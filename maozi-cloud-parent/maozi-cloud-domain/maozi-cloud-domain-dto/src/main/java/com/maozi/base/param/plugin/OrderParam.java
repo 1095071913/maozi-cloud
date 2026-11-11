@@ -118,7 +118,7 @@ public interface OrderParam {
 					String underlineCase = StrUtil.toUnderlineCase(key);
 
 					// 表别名非空时拼接为 "表别名.字段名"，为空时仅取表别名的下划线形式
-					String field = StringUtils.isEmpty(key) ? underlineCase : underlineCase + "." + StrUtil.toUnderlineCase(orderMainField);
+					String field = StringUtils.isEmpty(key) ? underlineCase : String.join(".", underlineCase, StrUtil.toUnderlineCase(orderMainField));
 
 					if(orderMainFieldValue) {
 						orderDescFields.add(field);

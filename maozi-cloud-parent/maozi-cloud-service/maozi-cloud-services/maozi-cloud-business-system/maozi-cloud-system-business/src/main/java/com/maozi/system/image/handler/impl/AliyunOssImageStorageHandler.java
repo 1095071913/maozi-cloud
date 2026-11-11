@@ -16,6 +16,7 @@ import com.maozi.system.image.result.ImageUploadResult;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,6 +38,7 @@ import java.util.UUID;
   * @author maozi
  * @date 2026/11/08
  */
+@Slf4j
 @Component
 public class AliyunOssImageStorageHandler implements ImageStorageHandler {
 
@@ -82,6 +84,7 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
 				ossClient.close();
 			} catch (Exception e) {
 				// 应用关闭阶段，客户端资源释放失败时忽略
+				log.warn("close oss client failed on shutdown", e);
 			}
 		}
 	}

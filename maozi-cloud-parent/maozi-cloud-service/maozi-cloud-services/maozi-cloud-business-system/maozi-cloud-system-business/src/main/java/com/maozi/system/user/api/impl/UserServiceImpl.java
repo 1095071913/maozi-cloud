@@ -66,6 +66,12 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper,UserDo,Void> imp
     private static final String RESOURCE_NAME = "用户";
 
     /**
+     * 密码编码器（DelegatingPasswordEncoder 委派模式，默认 {bcrypt} 算法且密文带算法前缀），
+     * 用于用户密码的加密及旧密码比对校验
+     */
+    protected final static PasswordEncoder PASSWORD_ENCODER = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+
+    /**
      * 获取资源名称
      *
      * @return 资源名称字符串
@@ -74,12 +80,6 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper,UserDo,Void> imp
     protected String getResourceName() {
         return RESOURCE_NAME;
     }
-
-    /**
-     * 密码编码器（DelegatingPasswordEncoder 委派模式，默认 {bcrypt} 算法且密文带算法前缀），
-     * 用于用户密码的加密及旧密码比对校验
-     */
-    protected final PasswordEncoder passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
 
     /** 用户角色服务，用于管理用户与角色的关联关系 */
     @Resource(name = "userRoleServiceImpl")
@@ -170,7 +170,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper,UserDo,Void> imp
 
         if(ObjectUtil.isNotNullEmpty(param.getPassword())) {
             // 密码非空时先加密再入库
-            param.setPassword(passwordEncoder.encode(param.getPassword()));
+            param.setPassword(PASSWORD_ENCODER.encode(param.getPassword()));
         }
 
         id = saveUpdate(id,param);

@@ -23,6 +23,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AIChatConfig {
 
+    private static final int CHAT_MEMORY_MAX_MESSAGES = 200;
+
 //    @Bean
 //    public Advisor loggerAdvisor() {
 //        return new SimpleLoggerAdvisor();
@@ -41,7 +43,7 @@ public class AIChatConfig {
     public ChatMemory chatMemory(ChatMemoryRepository chatMemoryRepository) {
         return MessageWindowChatMemory.builder()
                 .chatMemoryRepository(chatMemoryRepository)
-                .maxMessages(200)
+                .maxMessages(CHAT_MEMORY_MAX_MESSAGES)
                 .build();
     }
 

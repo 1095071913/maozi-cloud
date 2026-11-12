@@ -9,7 +9,7 @@ import lombok.Getter;
  * 标识数据的存储介质类型，当前仅支持数据库，可按需扩展缓存、搜索引擎、对象存储等。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public enum StoreClassType implements BaseEnum {

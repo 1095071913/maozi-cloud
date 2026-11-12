@@ -56,20 +56,20 @@ import java.util.List;
  * 同时提供 REST 和 RPC 服务实现的公共基础方法。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Service
-public class UserServiceImpl extends BaseServiceImpl<UserMapper,UserDo,Void> implements UserService {
+public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo, Void> implements UserService {
 
     /** 资源名称常量，用于异常提示信息 */
-    private static final String RESOURCE_NAME = "用户";
+    public static final String RESOURCE_NAME = "用户";
 
     /**
      * 密码编码器（DelegatingPasswordEncoder 委派模式，默认 {bcrypt} 算法且密文带算法前缀），
      * 用于用户密码的加密及旧密码比对校验
      */
-    protected final static PasswordEncoder PASSWORD_ENCODER = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    public final static PasswordEncoder PASSWORD_ENCODER = PasswordEncoderFactories.createDelegatingPasswordEncoder();
 
     /**
      * 获取资源名称
@@ -77,29 +77,29 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper,UserDo,Void> imp
      * @return 资源名称字符串
      */
     @Override
-    protected String getResourceName() {
+    public String getResourceName() {
         return RESOURCE_NAME;
     }
 
     /** 用户角色服务，用于管理用户与角色的关联关系 */
     @Resource(name = "userRoleServiceImpl")
-    protected UserRoleService userRoleService;
+    public UserRoleService userRoleService;
 
     /** 角色权限服务，用于查询角色关联的权限信息 */
     @Resource(name = "rolePermissionServiceImpl")
-    protected RolePermissionService rolePermissionService;
+    public RolePermissionService rolePermissionService;
 
     /** 权限服务，用于查询权限标识信息 */
     @Resource(name = "permissionServiceImpl")
-    protected PermissionService permissionService;
+    public PermissionService permissionService;
 
     /** OAuth令牌RPC服务，用于远程调用认证令牌相关接口 */
     @RemoteResource
-    protected RpcOauthTokenService rpcOauthTokenService;
+    public RpcOauthTokenService rpcOauthTokenService;
 
     /** 客户端RPC服务，用于远程调用客户端相关接口 */
     @RemoteResource
-    protected RpcClientService rpcClientService;
+    public RpcClientService rpcClientService;
 
     /**
      * 根据用户名获取可用的用户ID

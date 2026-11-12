@@ -8,7 +8,7 @@ import lombok.Getter;
  * 标识日志来源入口类型（网关、Web 接口、RPC、定时任务、MQ 等），便于日志分类与排查。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public enum LogCommonType implements BaseEnum {

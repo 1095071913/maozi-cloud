@@ -37,7 +37,7 @@ import java.util.UUID;
  * 4. 根据响应状态码和业务码决定日志级别（ERROR 或 INFO）。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Slf4j

@@ -15,7 +15,7 @@ import com.maozi.system.config.api.rpc.RpcRegionService;
  * 供其他微服务通过 RPC 方式调用地区相关的接口。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @RemoteService

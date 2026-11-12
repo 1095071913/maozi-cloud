@@ -10,7 +10,7 @@ import com.maozi.service.api.IBaseMapper;
  * 基础 CRUD 及关联查询能力继承自 IBaseMapper。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public interface ChatConversationRecordMapper extends IBaseMapper<ChatConversationRecordDo>{}

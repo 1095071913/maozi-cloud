@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
  * 如ID、名称、描述、创建时间和状态等。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

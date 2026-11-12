@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 /**
  * Nacos connection properties for rule persistence.
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Component

@@ -15,7 +15,7 @@ import java.util.Properties;
  * {@code com.maozi.config.spi.NacosConfigInitializer} 负责写入。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public class NacosConfigInitializer implements ConfigInitializer {

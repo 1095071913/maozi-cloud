@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
  * 支持可重入锁、公平锁、读写锁，锁键可通过 SpEL 表达式或 {@link LockKey} 指定。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Target(value = {ElementType.METHOD})

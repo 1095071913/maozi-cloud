@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
  * <p>实现用户与角色绑定关系的管理逻辑，包括绑定关系校验、
  * 批量绑定/解绑、根据用户或角色查询关联关系以及用户解绑等功能。</p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Service
@@ -41,7 +41,7 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper,UserRole
 	 * @return 资源名称字符串
 	 */
 	@Override
-	protected String getResourceName() {
+	public String getResourceName() {
 		return RESOURCE_NAME;
 	}
 

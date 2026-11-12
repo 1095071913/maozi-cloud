@@ -16,7 +16,7 @@ import java.io.IOException;
  * 交由调用方自行处理响应内容，其余错误状态码仍按 Spring 默认行为处理。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public class RestTemplateBuilder {

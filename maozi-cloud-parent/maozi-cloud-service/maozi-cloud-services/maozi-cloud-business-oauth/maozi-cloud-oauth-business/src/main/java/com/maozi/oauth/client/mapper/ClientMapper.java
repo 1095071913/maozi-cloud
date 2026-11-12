@@ -28,7 +28,7 @@ import com.maozi.service.api.IBaseMapper;
  * 之间的ORM映射操作，包括基础的增删改查和关联查询功能。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public interface ClientMapper extends IBaseMapper<ClientDo>{}

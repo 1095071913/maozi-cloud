@@ -15,7 +15,7 @@ import java.io.Serial;
  * 由全局异常处理器统一捕获并返回标准错误响应。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

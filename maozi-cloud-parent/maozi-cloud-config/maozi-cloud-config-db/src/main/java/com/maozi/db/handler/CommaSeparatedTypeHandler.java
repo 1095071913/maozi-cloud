@@ -23,7 +23,7 @@ import java.util.Set;
  * 读取时去除元素首尾空格并过滤空元素。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @MappedTypes({Collection.class, List.class, Set.class})

@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  * 链路追踪 ID）透传到下游服务，支撑下游的用户身份识别、灰度路由与日志关联。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Component

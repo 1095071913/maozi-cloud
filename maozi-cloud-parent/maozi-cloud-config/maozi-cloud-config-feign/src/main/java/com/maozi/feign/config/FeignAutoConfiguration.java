@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
  * Feign 客户端无法被注册，故此处必须明确指定基础包。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Configuration

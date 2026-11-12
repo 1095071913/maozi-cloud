@@ -28,7 +28,7 @@ import java.sql.Statement;
  * {@code @Configuration} 配置类提前实例化的问题。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Configuration

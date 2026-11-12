@@ -33,7 +33,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
  * 用于处理需要客户端认证但客户端未提供有效凭证的请求。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public class ClientAuthenticationEntryPoint implements AuthenticationEntryPoint {

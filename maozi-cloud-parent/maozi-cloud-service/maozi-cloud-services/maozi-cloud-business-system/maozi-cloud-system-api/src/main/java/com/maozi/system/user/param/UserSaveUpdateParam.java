@@ -36,7 +36,7 @@ import java.util.List;
  * 包含用户的基本信息、所属客户端以及需要绑定/解绑的角色列表。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

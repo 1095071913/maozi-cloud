@@ -20,7 +20,7 @@ import java.util.List;
  * <p>提供角色管理的RESTful接口实现，包括角色列表查询、
  * 角色新增、角色详情查询、角色更新、角色删除、角色状态更新以及角色下拉列表等功能。</p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @RestService

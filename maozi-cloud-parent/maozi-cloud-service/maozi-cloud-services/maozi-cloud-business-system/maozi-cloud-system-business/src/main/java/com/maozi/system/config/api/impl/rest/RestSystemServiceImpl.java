@@ -16,7 +16,7 @@ import com.maozi.system.config.result.SystemPropertiesResult;
  * 将系统属性配置转换为 SystemPropertiesResult 结果对象返回给前端使用。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @RestService

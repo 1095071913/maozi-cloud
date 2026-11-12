@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
  * 且在有写锁持有时，所有读锁和写锁请求都将被阻塞。适用于数据修改等需要独占访问的场景。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Component

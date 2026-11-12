@@ -27,7 +27,7 @@ import java.util.List;
  * 停止对话、增量获取消息以及删除指定消息等操作。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Tag(name = "AI对话模块")

@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
  * 会话的保存/更新与分页列表查询由 REST 层实现类
  * RestChatConversationRecordImpl 提供并复用本类的通用数据访问能力。</p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Service
@@ -30,7 +30,7 @@ public class ChatConversationRecordServiceImpl extends BaseServiceImpl<ChatConve
 	 * @return 资源名称字符串
 	 */
 	@Override
-	protected String getResourceName() {
+	public String getResourceName() {
 		return RESOURCE_NAME;
 	}
 

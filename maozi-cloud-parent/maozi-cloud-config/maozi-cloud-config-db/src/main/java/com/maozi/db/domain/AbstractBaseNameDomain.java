@@ -31,7 +31,7 @@ import java.io.Serial;
  * 适用于角色、权限、分类、配置项等需要名称属性的业务实体。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

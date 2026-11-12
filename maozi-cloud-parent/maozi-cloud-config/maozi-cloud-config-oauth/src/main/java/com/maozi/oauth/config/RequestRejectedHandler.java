@@ -16,7 +16,7 @@ import org.springframework.security.web.firewall.RequestRejectedException;
  * 返回恶意请求的统一错误响应。使用 {@link SystemErrorCode#MALICE_REQUEST_ERROR} 作为错误码。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Configuration

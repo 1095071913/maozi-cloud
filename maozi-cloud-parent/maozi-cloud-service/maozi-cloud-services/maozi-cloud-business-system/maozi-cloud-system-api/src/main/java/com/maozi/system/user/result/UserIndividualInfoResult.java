@@ -17,7 +17,7 @@ import java.util.List;
  * 以及该用户拥有的权限标识列表。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

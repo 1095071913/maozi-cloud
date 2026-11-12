@@ -34,7 +34,7 @@ import java.io.IOException;
  * 故采用回显请求 {@code Origin} 的方式放行来源域。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Component

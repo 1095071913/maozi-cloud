@@ -17,7 +17,7 @@ import java.util.List;
  * {@code print/println(String)} 的重写，导致内层过滤失效。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public class BannerFilterPrintStream extends PrintStream {

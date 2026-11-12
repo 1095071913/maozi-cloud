@@ -17,7 +17,7 @@ import java.io.Serial;
  * 继承自 AbstractBaseNameDomain，包含基础名称字段。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

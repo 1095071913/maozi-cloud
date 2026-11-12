@@ -22,7 +22,7 @@ import java.util.List;
  * 基于 MyBatis-Plus 的 Mapper 层实现数据库访问操作。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Service
@@ -37,7 +37,7 @@ public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper,ConfigDo,Voi
 	 * @return 返回当前服务所管理的资源名称 "配置"
 	 */
 	@Override
-	protected String getResourceName() {
+	public String getResourceName() {
 		return RESOURCE_NAME;
 	}
 

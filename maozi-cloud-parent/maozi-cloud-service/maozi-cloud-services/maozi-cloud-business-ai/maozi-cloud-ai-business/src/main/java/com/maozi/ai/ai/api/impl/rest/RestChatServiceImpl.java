@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
  * 对话进行中的状态通过 Redis 标记维护，用于支持停止对话与页面状态展示。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @RestService

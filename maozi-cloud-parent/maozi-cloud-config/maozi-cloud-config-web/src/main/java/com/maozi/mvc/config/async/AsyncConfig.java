@@ -32,7 +32,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * 拒绝策略为 CallerRunsPolicy（由调用线程执行），确保任务不丢失。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Configuration

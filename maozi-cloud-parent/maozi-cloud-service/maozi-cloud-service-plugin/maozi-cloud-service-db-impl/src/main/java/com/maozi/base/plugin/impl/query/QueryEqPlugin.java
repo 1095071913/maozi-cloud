@@ -9,7 +9,7 @@ import com.maozi.base.plugin.QueryBasePlugin;
  * 实现 {@code WHERE field = data} 的 SQL 条件拼接。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public class QueryEqPlugin extends QueryBasePlugin{

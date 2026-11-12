@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
  * 用于替代直接使用 {@code @RestController}，统一项目中的 REST 接口标识。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Documented

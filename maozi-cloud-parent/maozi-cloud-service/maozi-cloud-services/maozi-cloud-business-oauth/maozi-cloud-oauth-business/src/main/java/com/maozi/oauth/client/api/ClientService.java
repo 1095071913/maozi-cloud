@@ -11,7 +11,7 @@ import java.util.Map;
  * 并随其子类（RPC/REST 服务实现）一并承载。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public interface ClientService {

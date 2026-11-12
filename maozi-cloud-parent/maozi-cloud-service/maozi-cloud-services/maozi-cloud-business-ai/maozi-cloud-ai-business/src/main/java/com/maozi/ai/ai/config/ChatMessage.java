@@ -75,7 +75,7 @@ public class ChatMessage implements Serializable {
      * byte[]（序列化为整型数组）与 URI（序列化为字符串）。
      * </p>
      *
-     * @author maozi
+    * @author maozi
      */
     public static class MediaDeserializer extends JsonDeserializer<Media> {
 
@@ -137,7 +137,7 @@ public class ChatMessage implements Serializable {
      * 为 URI 时输出字符串，保证序列化与反序列化可无损往返。
      * </p>
      *
-     * @author maozi
+    * @author maozi
      */
     public static class MediaSerializer extends JsonSerializer<Media> {
 

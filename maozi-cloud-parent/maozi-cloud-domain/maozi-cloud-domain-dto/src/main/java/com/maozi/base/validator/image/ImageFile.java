@@ -17,7 +17,7 @@ import java.lang.annotation.Target;
  * 校验上传文件是否为图片格式（Content-Type 以 "image" 开头）。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Target({ElementType.FIELD,ElementType.TYPE_USE})

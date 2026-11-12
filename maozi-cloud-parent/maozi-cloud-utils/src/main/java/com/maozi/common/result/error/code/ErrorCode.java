@@ -30,7 +30,7 @@ import java.io.Serializable;
  * 定义错误码、错误信息和异常信息三个维度，用于统一描述业务和系统错误。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Getter

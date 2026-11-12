@@ -15,7 +15,7 @@ import java.util.List;
  * 通过配置文件自定义的项目级白名单。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

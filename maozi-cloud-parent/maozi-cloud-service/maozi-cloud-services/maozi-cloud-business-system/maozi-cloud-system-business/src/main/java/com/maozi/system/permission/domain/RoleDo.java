@@ -29,7 +29,7 @@ import java.io.Serial;
  * <p>对应数据库表 system_role，存储系统角色的基本信息，
  * 包括角色名称和描述等属性，用于实现基于角色的访问控制（RBAC）。</p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

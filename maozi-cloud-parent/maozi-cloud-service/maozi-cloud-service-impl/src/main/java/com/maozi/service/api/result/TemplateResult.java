@@ -17,7 +17,7 @@ import java.io.Serializable;
  * 错误结果、字符串列表、整数列表和枚举结果。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

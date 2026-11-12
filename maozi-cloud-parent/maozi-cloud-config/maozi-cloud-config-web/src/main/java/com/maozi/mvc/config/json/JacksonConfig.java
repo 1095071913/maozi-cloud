@@ -17,7 +17,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
  * 并扫描项目包下所有枚举类统一设置为整数格式输出（{@code JsonFormat.Shape.NUMBER_INT}）。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Configuration

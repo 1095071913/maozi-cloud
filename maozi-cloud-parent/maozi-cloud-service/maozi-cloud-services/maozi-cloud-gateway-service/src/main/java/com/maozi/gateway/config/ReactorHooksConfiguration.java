@@ -20,7 +20,7 @@ import reactor.netty.channel.AbortedException;
  * - 客户端断连类异常（{@link AbortedException}）：视为正常现象，静默丢弃，不记录日志；
  * - 其他丢弃异常：保持 ERROR 级别记录，避免遗漏真实错误。
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Slf4j

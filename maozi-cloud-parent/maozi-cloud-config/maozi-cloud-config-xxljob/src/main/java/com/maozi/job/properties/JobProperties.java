@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
  * 用于配置调度中心地址、访问令牌及执行器参数。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data
@@ -31,7 +31,7 @@ public class JobProperties {
     /**
      * 调度中心配置
      *
-     * @author maozi
+    * @author maozi
      */
     @Data
     public static class Admin {
@@ -44,7 +44,7 @@ public class JobProperties {
     /**
      * 执行器配置
      *
-     * @author maozi
+    * @author maozi
      */
     @Data
     public static class Executor {

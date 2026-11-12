@@ -14,7 +14,7 @@ import org.springframework.security.core.AuthenticationException;
  * 当用户认证失败时（如用户名或密码错误），返回用户认证错误（USER_AUTH_ERROR）的统一错误响应。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public class UserAuthenticationFailureHandler implements org.springframework.security.web.authentication.AuthenticationFailureHandler {

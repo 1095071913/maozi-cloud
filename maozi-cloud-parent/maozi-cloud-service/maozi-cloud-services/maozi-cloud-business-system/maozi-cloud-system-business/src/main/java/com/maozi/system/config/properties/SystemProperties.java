@@ -14,7 +14,7 @@ import java.io.Serializable;
  * 用于映射和管理系统级别的配置属性，包括项目名称、公司名称、图标等信息。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

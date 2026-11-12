@@ -15,7 +15,7 @@ import java.io.Serializable;
  * 包含原始文件名、对象存储路径以及文件访问地址等信息。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

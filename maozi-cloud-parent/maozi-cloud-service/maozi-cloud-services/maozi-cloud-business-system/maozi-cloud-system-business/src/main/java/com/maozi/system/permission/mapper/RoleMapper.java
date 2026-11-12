@@ -24,7 +24,7 @@ import com.maozi.system.permission.domain.RoleDo;
  * 角色Mapper接口
  * <p>对应表 system_role，提供角色记录的增删改查等数据库操作。</p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public interface RoleMapper extends IBaseMapper<RoleDo>{}

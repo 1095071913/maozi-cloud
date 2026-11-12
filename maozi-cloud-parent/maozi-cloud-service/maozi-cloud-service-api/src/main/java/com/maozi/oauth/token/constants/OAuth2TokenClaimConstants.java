@@ -7,7 +7,7 @@ package com.maozi.oauth.token.constants;
  * 定义令牌签发及内省响应中使用的声明字段名称常量。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public final class OAuth2TokenClaimConstants {

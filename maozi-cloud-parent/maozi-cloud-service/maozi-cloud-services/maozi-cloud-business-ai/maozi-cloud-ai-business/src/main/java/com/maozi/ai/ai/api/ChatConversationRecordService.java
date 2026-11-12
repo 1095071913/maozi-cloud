@@ -9,7 +9,7 @@ import com.maozi.common.result.error.exception.BusinessResultException;
  * 供本模块内部其他业务（如AI对话流程）调用。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public interface ChatConversationRecordService {

@@ -26,7 +26,7 @@ import com.maozi.system.user.domain.UserDo;
  * 对应表 system_user，提供用户记录的增删改查等数据库操作。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public interface UserMapper extends IBaseMapper<UserDo>{}

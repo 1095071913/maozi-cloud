@@ -16,7 +16,7 @@ import java.io.Serializable;
  * 适用于下拉选择、数据字典等场景。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

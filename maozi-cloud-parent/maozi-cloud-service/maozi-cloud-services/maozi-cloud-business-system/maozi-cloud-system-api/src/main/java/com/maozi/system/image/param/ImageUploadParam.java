@@ -21,7 +21,7 @@ import java.util.List;
  * 保存路径必填，作为对象存储的目录前缀。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

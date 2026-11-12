@@ -43,7 +43,7 @@ import org.springframework.web.bind.annotation.RequestBody;
  * 用户信息更新、用户状态更新以及当前登录用户个人信息查询等操作。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Tag(name = "用户模块")

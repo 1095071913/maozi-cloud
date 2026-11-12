@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
  * 其余流控/熔断拦截使用 {@link SystemErrorCode#CURRENT_LIMITING_ERROR} 作为错误码。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Component

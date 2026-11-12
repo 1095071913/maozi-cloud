@@ -35,7 +35,7 @@ import java.util.Objects;
  * 交由重试执行器根据执行情况判定本轮重试是否成功，避免重复本地重试与上报。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Slf4j
@@ -241,7 +241,7 @@ public class RetryTaskReportAop {
      *
      * @param success 是否重试成功
      * @param result  重试成功的结果集
-     * @author maozi
+    * @author maozi
      */
      private record LocalRetryResultDTO(boolean success, Object result) {}
 

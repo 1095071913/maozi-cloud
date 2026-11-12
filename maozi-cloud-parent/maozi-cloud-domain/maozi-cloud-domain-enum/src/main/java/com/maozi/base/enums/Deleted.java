@@ -10,7 +10,7 @@ import lombok.Getter;
  * 查询时自动追加 {@code deleted = 0} 过滤条件。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public enum Deleted implements BaseEnum {

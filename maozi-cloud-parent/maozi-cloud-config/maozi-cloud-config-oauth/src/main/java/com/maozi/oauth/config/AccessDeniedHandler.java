@@ -32,7 +32,7 @@ import org.springframework.security.access.AccessDeniedException;
  * 使用 {@link SystemErrorCode#PERMISSION_ERROR} 作为错误码。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public class AccessDeniedHandler implements org.springframework.security.web.access.AccessDeniedHandler {

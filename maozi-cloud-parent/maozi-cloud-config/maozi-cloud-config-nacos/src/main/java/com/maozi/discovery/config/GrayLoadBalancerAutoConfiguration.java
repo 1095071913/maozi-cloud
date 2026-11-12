@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
  * 使所有服务调用默认使用灰度轮询负载均衡策略。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Configuration

@@ -40,7 +40,7 @@ import java.time.LocalDateTime;
  * deleted、status、createTime 在插入时由 MetaObjectHandler 自动填充默认值。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

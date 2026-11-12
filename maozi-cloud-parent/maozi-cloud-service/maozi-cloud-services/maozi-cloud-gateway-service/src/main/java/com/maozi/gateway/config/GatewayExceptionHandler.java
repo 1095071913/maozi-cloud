@@ -67,7 +67,7 @@ import java.util.UUID;
  * 同时记录详细的错误日志，包含请求 IP、URL、方法、异常信息等。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Slf4j

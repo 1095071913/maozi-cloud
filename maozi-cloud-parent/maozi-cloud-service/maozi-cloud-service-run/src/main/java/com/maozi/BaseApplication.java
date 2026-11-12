@@ -69,7 +69,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * 注册第三方框架启动 banner 的过滤特征，由该包装器统一丢弃对应输出。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Slf4j

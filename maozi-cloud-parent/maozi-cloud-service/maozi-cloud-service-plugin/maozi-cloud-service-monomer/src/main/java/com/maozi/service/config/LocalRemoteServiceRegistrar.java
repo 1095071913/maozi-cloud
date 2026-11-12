@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
  * （如 {@code RpcUserServiceImpl extends UserServiceImpl}，二者都实现 {@code UserService}）。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Component

@@ -18,7 +18,7 @@ import lombok.Getter;
  * 大于等于（GE）、小于等于（LE）六种查询类型。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Getter

@@ -14,7 +14,7 @@ import java.io.Serializable;
  * 用于时间范围查询的公共参数对象，包含开始时间和结束时间（时间戳格式）。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

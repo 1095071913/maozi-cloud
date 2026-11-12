@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
  * <p>实现角色相关的业务逻辑，包括角色存在性判断、删除前的绑定关系校验、
  * 角色与权限的级联更新等功能。</p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Service
@@ -40,7 +40,7 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleMapper,RoleDo,Void> imp
 	 * @return 资源名称字符串
 	 */
 	@Override
-	protected String getResourceName() {
+	public String getResourceName() {
 		return RESOURCE_NAME;
 	}
 
@@ -52,7 +52,7 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleMapper,RoleDo,Void> imp
 	 * @throws com.maozi.common.result.error.exception.BusinessResultException 角色已被用户绑定时抛出
 	 */
 	@Override
-	protected void checkBind(Long id) {
+	public void checkBind(Long id) {
 		userRoleService.checkUserBindRoleByRole(id);
 	}
 
@@ -63,7 +63,7 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleMapper,RoleDo,Void> imp
 	 * @param id 角色ID
 	 */
 	@Override
-	protected void unbind(Long id) {
+	public void unbind(Long id) {
 		rolePermissionService.roleUnbind(id);
 	}
 

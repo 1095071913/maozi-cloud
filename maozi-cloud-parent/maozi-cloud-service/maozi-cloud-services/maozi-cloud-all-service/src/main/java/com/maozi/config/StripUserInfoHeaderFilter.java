@@ -44,7 +44,7 @@ import java.util.Set;
  * 已根据外部请求头写入了用户信息，则需要确认该线程变量是否会在后续被覆盖或清理，否则存在身份残留风险。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Component
@@ -78,7 +78,7 @@ public class StripUserInfoHeaderFilter extends OncePerRequestFilter {
      * {@code getHeaderNames} 时均使用 {@code equalsIgnoreCase} 过滤目标头。
      * </p>
      *
-     * @author maozi
+    * @author maozi
      */
     private static class UserInfoHeaderStrippedRequestWrapper extends HttpServletRequestWrapper {
 

@@ -14,7 +14,7 @@ import com.maozi.system.user.dto.SystemUser;
  * 继承自 UserServiceImpl，复用用户基础业务逻辑。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @RemoteService

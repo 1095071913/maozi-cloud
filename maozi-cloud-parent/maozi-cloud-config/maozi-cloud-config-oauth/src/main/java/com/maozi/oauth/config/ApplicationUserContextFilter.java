@@ -26,7 +26,7 @@ import java.util.List;
  * 防止线程池复用导致的数据泄漏。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Configuration

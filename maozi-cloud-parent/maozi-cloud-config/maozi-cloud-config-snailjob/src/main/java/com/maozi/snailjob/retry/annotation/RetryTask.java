@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
  * 在 {@code ExecutorMethodScanner} 扫描统一重试处理器时按本注解配置复制注册。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Target(ElementType.METHOD)

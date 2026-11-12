@@ -13,7 +13,7 @@ import java.util.List;
  * 同时提供批量注销以减少Redis网络往返。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public interface OAuth2AuthorizationService extends org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService {

@@ -15,7 +15,7 @@ import java.io.Serializable;
  * 由统一重试处理器 {@code RetryExecutorTask} 在服务端调度时依据本参数动态回调目标方法。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

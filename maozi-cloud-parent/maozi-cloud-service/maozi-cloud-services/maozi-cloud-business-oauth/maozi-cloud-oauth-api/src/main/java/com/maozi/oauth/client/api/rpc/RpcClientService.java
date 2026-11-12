@@ -15,7 +15,7 @@ import java.util.List;
  * 用于微服务之间的内部调用，包括客户端可用性校验、单个和批量获取客户端下拉信息等功能。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public interface RpcClientService {

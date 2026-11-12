@@ -16,7 +16,7 @@ import java.util.Map;
  * </p>
  *
  * @param <D> 数据传输对象类型
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public interface BaseServiceResult<D> {
@@ -120,7 +120,7 @@ public interface BaseServiceResult<D> {
     /**
      * 根据 ID 查询可用的单条记录
      *
-     * @param id 主键 ID
+     * @param id 主键 ID`
      * @param columns 查询字段列表
      * @return 查询结果
      */

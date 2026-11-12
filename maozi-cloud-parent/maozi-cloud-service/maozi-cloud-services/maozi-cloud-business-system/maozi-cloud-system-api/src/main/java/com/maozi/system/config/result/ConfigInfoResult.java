@@ -18,7 +18,7 @@ import java.io.Serializable;
  * 包含配置名称、别名、类型、配置值、排序值与状态等属性（配置 ID 不对外输出）。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

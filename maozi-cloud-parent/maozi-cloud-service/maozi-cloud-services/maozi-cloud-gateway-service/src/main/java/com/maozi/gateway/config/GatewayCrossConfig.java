@@ -29,7 +29,7 @@ import reactor.core.publisher.Mono;
  * 3. 提供全局 CORS 跨域过滤器，允许前端跨域访问网关。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Component

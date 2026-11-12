@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
  * 该值作为排序字段的前缀（默认表别名）在 SQL 构建时使用。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

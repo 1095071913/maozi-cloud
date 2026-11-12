@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * 使权限信息可用于后续的访问控制决策。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Component

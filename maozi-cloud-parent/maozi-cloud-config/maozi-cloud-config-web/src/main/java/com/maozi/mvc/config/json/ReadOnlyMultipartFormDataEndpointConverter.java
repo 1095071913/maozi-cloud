@@ -20,7 +20,7 @@ import java.lang.reflect.Type;
  * 才使用 Jackson 将请求体反序列化为对象。仅支持读取，不支持写入。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public class ReadOnlyMultipartFormDataEndpointConverter extends MappingJackson2HttpMessageConverter {

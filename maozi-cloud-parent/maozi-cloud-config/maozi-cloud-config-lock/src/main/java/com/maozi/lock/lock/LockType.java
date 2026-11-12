@@ -21,7 +21,7 @@ import java.util.function.Supplier;
  * 支持编程式加锁（Supplier 回调）和声明式加锁（AOP 注解）两种使用方式。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public enum LockType implements BaseEnum {

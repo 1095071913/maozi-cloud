@@ -13,7 +13,7 @@ import java.util.Properties;
  * Bean 定义覆盖，并将网关所需的 Nacos 共享配置文件清单写入系统属性。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public class GatewayConfigInitializer implements ConfigInitializer {

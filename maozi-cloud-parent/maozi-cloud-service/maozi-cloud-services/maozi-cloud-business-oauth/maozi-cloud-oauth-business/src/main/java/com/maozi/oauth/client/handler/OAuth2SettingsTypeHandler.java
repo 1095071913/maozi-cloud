@@ -19,7 +19,7 @@ import java.lang.reflect.Field;
  * （如 ["java.time.Duration", 7200.000000000]、{"@class":"...OAuth2TokenFormat","value":"reference"} 等）。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Slf4j

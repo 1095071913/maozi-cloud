@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
  * 避免线程饥饿问题。适用于对锁获取顺序有严格要求的业务场景。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Component

@@ -42,7 +42,7 @@ import java.util.Map;
  * 获取用户的权限列表和密码信息，构建并返回Spring Security的UserDetails对象。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Service

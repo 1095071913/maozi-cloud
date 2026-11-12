@@ -21,7 +21,7 @@ import java.util.List;
  * 以及关联的角色列表。通过 QueryMapping 注解自动查询关联数据。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

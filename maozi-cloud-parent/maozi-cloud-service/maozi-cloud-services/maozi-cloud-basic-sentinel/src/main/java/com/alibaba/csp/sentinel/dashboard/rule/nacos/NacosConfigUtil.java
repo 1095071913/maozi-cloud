@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * suffix, e.g. {@code foo-app-flow-rules.json}. Config content is pretty-printed
  * JSON and is published with config type {@code json}.
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public final class NacosConfigUtil {

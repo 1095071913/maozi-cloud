@@ -24,7 +24,7 @@ import java.util.List;
  * 权限服务接口
  * <p>提供权限相关的业务操作，包括权限存在性判断和权限标识查询等功能。</p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public interface PermissionService {

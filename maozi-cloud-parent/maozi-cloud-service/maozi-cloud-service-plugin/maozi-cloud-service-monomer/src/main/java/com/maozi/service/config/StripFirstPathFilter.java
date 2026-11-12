@@ -54,7 +54,7 @@ import java.util.List;
  * <p><b>注：</b>{@code /userinfo} 端点（OIDC UserInfo Endpoint）当前并未包含在
  * 默认排除列表中，若依赖该端点请通过 {@code application.path-strip.excluded-prefixes} 显式补充。</p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Component

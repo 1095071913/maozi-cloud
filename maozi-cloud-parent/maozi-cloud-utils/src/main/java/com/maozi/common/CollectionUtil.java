@@ -20,7 +20,7 @@ import java.util.Set;
  * 以及集合为空时抛出异常的校验方法。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public class CollectionUtil {

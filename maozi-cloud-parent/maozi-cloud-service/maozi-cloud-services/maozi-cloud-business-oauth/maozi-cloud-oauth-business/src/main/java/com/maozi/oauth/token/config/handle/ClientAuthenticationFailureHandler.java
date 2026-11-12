@@ -15,7 +15,7 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
  * "客户端认证授权失败"的错误信息。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public class ClientAuthenticationFailureHandler implements AuthenticationFailureHandler {

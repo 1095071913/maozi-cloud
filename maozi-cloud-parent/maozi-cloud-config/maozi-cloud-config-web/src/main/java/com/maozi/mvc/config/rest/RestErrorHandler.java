@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,7 +30,7 @@ import java.util.Map;
  * 原样抛出，交由对应框架机制处理。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Slf4j
@@ -47,8 +48,14 @@ public class RestErrorHandler {
 	 */
 	@ExceptionHandler(NoHandlerFoundException.class)
 	@ResponseStatus(HttpStatus.NOT_FOUND)
-	public Object handle404() {
+	public Object handleNoHandlerFoundException() {
 		return ResultUtil.error(SystemErrorCode.NOT_RESOURCE_ERROR);
+	}
+
+	@ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+	@ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+	public Object handleHttpRequestMethodNotSupportedException() {
+		return ResultUtil.error(SystemErrorCode.REQUEST_METHOD_ERROR);
 	}
 
 	/**
@@ -63,7 +70,7 @@ public class RestErrorHandler {
 	 */
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
-	public Object handleValidException(MethodArgumentNotValidException e) {
+	public Object handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
 		Map<String, String> errorMap = CollectionUtil.newHashMap();
 		e.getFieldErrors().forEach(error ->
 			errorMap.put(error.getField(), error.getDefaultMessage())
@@ -81,7 +88,7 @@ public class RestErrorHandler {
 	 */
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ExceptionHandler(MissingServletRequestParameterException.class)
-	public Object handleMissingParam() {
+	public Object handleMissingServletRequestParameterException() {
 		return ResultUtil.error(SystemErrorCode.PARAM_ERROR);
 	}
 
@@ -94,7 +101,7 @@ public class RestErrorHandler {
 	 * @return 标准错误响应，包含 PARAM_ERROR 错误码
 	 */
 	@ExceptionHandler(HttpMessageNotReadableException.class)
-	public Object handleHttpMessageNotReadable() {
+	public Object handleHttpMessageNotReadableException() {
 		return ResultUtil.error(SystemErrorCode.PARAM_ERROR);
 	}
 

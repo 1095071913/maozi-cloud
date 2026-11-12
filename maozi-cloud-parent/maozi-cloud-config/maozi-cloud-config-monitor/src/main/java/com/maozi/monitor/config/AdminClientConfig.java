@@ -42,7 +42,7 @@ import java.util.List;
  * 注意不可配置 service-base-url，配置后将使用静态地址导致随机端口失效。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Configuration(proxyBeanMethods = false)

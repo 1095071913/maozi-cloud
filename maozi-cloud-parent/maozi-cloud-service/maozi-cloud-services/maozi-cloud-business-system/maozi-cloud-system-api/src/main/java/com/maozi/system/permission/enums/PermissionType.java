@@ -11,7 +11,7 @@ import lombok.Getter;
  * 实现 BaseEnum 接口，提供枚举值和描述的标准访问方式。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Schema(description = "权限类型",type = "integer")

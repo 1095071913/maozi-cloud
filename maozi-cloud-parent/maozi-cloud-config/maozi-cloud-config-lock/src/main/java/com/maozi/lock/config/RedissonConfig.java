@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Configuration;
  * 使用 NIO 事件循环组提高网络通信性能。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Configuration

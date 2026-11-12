@@ -9,7 +9,7 @@ import com.maozi.common.result.AbstractBaseResult;
  * 定义地区信息相关的 RPC 远程调用方法。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public interface RpcRegionService {

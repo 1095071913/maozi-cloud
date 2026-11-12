@@ -15,7 +15,7 @@ import java.nio.charset.Charset;
  * 保留原始 HTTP 状态码和错误信息。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Component

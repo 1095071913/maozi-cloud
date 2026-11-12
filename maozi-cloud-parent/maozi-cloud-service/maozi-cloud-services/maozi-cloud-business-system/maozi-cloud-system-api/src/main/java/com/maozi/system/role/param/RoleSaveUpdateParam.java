@@ -17,7 +17,7 @@ import java.util.Set;
  * 包含角色的基本信息以及需要绑定/解绑的权限ID列表。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

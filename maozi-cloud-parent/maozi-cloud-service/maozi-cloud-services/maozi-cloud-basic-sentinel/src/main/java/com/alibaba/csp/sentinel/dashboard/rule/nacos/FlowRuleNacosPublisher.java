@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 /**
  * Flow rules publisher backed by Nacos.
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Component("flowRuleNacosPublisher")

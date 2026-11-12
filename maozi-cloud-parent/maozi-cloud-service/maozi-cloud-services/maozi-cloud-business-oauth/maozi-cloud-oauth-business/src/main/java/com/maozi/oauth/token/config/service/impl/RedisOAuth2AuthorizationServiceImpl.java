@@ -71,7 +71,7 @@ import java.util.Set;
  * 并实现{@link OAuth2AuthorizationService}扩展的按用户单个/批量注销授权能力。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 

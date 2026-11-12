@@ -10,7 +10,7 @@ import lombok.Getter;
  * 标识数据记录的启用/禁用状态，常用于账号状态、功能开关等场景。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Schema(description = "状态",type = "integer")

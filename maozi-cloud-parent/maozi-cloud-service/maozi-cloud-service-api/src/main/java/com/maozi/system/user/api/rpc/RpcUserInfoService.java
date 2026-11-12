@@ -9,7 +9,7 @@ import com.maozi.system.user.dto.SystemUser;
  * 定义系统用户信息相关的 RPC 远程调用方法。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public interface RpcUserInfoService {

@@ -21,7 +21,7 @@ import java.util.Map;
  * 并实现了排序参数接口以支持自定义排序，默认按排序值升序、创建时间倒序排列。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

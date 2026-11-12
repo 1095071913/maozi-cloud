@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Configuration;
  * 自动发现并监控注册到 Nacos 的所有微服务实例。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Configuration

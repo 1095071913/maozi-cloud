@@ -9,7 +9,7 @@ import com.maozi.base.plugin.QueryBasePlugin;
  * 实现 {@code WHERE field LIKE '%data%'} 的 SQL 条件拼接（全模糊匹配）。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public class QueryLikePlugin extends QueryBasePlugin{

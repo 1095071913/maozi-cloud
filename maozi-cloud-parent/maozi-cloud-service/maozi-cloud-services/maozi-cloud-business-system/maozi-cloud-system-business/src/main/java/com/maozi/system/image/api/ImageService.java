@@ -13,7 +13,7 @@ import java.util.List;
  * 支持单次上传一个或多个图片文件。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public interface ImageService {

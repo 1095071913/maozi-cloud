@@ -14,7 +14,7 @@ import java.io.Serializable;
  * 用于跨服务 RPC 调用时传输系统用户的基本信息。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

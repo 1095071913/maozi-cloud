@@ -12,7 +12,7 @@ import java.util.Objects;
  * 方法执行结果为 null 或 Boolean false 时判定需要重试，其余情况无需重试。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Component

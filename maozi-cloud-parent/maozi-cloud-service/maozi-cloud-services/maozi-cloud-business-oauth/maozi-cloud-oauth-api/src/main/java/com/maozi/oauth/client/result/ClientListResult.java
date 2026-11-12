@@ -17,7 +17,7 @@ import java.util.Map;
  * 如ID、客户端ID、名称、令牌有效期和状态等。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

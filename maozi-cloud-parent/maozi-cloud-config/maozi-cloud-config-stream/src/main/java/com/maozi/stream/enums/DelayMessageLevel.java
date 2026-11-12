@@ -10,7 +10,7 @@ import lombok.Getter;
  * 对应从 1 秒到 2 小时的不同延迟时间。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 public enum DelayMessageLevel implements BaseEnum {

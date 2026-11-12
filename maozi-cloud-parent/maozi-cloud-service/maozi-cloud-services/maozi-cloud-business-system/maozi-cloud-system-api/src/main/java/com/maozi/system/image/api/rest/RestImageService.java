@@ -19,7 +19,7 @@ import java.util.List;
  * （当前支持阿里云 OSS，通过 oss.store-type 配置）。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Tag(name = "文件存储模块")

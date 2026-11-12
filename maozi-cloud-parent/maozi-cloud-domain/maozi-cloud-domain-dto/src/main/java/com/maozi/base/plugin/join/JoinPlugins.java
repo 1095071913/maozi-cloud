@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  * 可包含多个 {@link JoinPlugin} 配置。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Target(ElementType.TYPE)

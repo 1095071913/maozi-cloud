@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
  * 以 Dubbo 服务地址作为来源记录。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Aspect

@@ -32,7 +32,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
  * 加载 classpath 下 {@code META-INF/run/config/} 中的配置初始化器。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 

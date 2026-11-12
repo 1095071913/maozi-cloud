@@ -38,7 +38,7 @@ import java.util.List;
  * 分页插件适配 MySQL 方言。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Configuration

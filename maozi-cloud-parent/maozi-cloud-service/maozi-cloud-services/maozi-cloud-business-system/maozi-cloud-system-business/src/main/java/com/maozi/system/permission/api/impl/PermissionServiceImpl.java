@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  * <p>实现权限相关的业务逻辑，包括权限存在性判断、权限标识查询、
  * 删除前的绑定关系校验等功能。</p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Service
@@ -58,7 +58,7 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper,Perm
 	 * @return 资源名称字符串
 	 */
 	@Override
-	protected String getResourceName() {
+	public String getResourceName() {
 		return RESOURCE_NAME;
 	}
 
@@ -69,7 +69,7 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper,Perm
 	 * @param id 权限ID
 	 */
 	@Override
-	protected void checkBind(Long id) {
+	public void checkBind(Long id) {
 
 		// 1.校验权限是否被角色绑定，由角色权限关系服务抛出业务异常
 		rolePermissionService.checkRoleBindPermissionByPermission(id);

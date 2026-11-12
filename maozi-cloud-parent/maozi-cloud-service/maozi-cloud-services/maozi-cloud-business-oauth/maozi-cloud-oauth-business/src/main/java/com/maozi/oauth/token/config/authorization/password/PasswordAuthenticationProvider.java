@@ -15,7 +15,7 @@ import java.util.Map;
  * 构建未认证的UsernamePasswordAuthenticationToken交由父类进行密码校验。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Component

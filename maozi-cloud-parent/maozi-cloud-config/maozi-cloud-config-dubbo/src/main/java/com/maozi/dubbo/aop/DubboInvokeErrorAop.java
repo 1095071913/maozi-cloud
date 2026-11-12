@@ -30,7 +30,7 @@ import java.util.Map;
  * 因此实际所有被拦截的异常都会被捕获封装，重新抛出的分支当前不可达。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Slf4j

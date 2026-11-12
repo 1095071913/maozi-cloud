@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  * <p>实现角色与权限绑定关系的管理逻辑，包括绑定关系校验、
  * 批量绑定/解绑、根据角色查询权限以及角色解绑等功能。</p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Service
@@ -60,7 +60,7 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
 	 * @return 资源名称字符串
 	 */
 	@Override
-	protected String getResourceName() {
+	public String getResourceName() {
 		return RESOURCE_NAME;
 	}
 

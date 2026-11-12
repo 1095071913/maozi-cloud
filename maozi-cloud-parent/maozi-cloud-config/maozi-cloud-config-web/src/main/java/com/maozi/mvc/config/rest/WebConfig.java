@@ -19,7 +19,7 @@ import java.util.List;
  * 应用链路上下文拦截器不在此注册，由 {@code maozi-cloud-config-oauth} 模块的 {@code WebSecurityConfig} 负责。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Configuration

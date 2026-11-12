@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  * 实现日志模块与 Sentinel 底层 API 的解耦。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Component

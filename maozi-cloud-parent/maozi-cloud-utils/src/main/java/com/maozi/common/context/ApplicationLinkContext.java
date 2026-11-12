@@ -21,7 +21,7 @@ import java.util.function.Function;
  * 同时提供基于 Function 的用户属性提取和上下文清理功能。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

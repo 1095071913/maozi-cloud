@@ -19,7 +19,7 @@ import java.util.Map;
  * （{@link com.maozi.oauth.token.api.rpc.RpcOauthTokenService}），新业务请直接使用 Dubbo 接口。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Tag(name = "【三方】授权令牌")

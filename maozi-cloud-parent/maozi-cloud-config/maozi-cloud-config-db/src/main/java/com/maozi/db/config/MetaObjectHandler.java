@@ -30,7 +30,7 @@ import java.time.LocalDateTime;
  * 在执行插入操作时自动填充状态（默认启用）、逻辑删除（默认未删除）和创建时间字段。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Configuration

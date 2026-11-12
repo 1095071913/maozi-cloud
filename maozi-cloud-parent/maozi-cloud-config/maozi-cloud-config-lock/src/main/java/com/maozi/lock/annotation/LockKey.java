@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  * 支持通过 SpEL 表达式提取参数中的特定字段作为锁键。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Retention(value = RetentionPolicy.RUNTIME)

@@ -26,7 +26,7 @@ import org.springframework.web.client.RestTemplate;
  * 请求被限流或黑名单拦截时，由 {@link #handleException} 兜底返回对应错误码的 JSON 响应。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Configuration

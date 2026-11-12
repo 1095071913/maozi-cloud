@@ -42,7 +42,7 @@ import java.util.Set;
  * 继承 AbstractBaseDomain 获得公共字段（如id、状态、创建时间等）。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

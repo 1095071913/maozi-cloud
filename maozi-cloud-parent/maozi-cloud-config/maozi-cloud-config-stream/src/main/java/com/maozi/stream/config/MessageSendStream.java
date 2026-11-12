@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  * 自动从服务发现中获取灰度版本信息，在消息头中设置灰度标识。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Component

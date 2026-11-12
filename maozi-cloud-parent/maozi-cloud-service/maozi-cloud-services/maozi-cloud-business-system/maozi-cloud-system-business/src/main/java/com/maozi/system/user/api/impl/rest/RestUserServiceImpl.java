@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 package com.maozi.system.user.api.impl.rest;
@@ -29,6 +29,7 @@ import com.maozi.common.dto.CurrentUserInfo;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.service.api.annotation.RestService;
+import com.maozi.service.api.impl.result.BaseServiceResultImpl;
 import com.maozi.system.redirect.enums.RedirectType;
 import com.maozi.system.redirect.util.RedirectUtil;
 import com.maozi.system.user.api.impl.UserServiceImpl;
@@ -50,11 +51,11 @@ import org.springframework.transaction.annotation.Transactional;
  * 继承自 UserServiceImpl，复用用户基础业务逻辑。
  * </p>
  *
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @RestService
-public class RestUserServiceImpl extends UserServiceImpl implements RestUserService {
+public class RestUserServiceImpl extends BaseServiceResultImpl<UserServiceImpl, Void> implements RestUserService {
 
 	/**
 	 * 分页查询用户列表
@@ -64,7 +65,7 @@ public class RestUserServiceImpl extends UserServiceImpl implements RestUserServ
 	 */
 	@Override
 	public AbstractBaseResult<PageResult<UserListResult>> restList(PageParam<UserListParam> pageParam) {
-		return ResultUtil.success(listRelation(pageParam, UserListResult.class));
+		return ResultUtil.success(service.listRelation(pageParam, UserListResult.class));
 	}
 
 	/**
@@ -75,7 +76,7 @@ public class RestUserServiceImpl extends UserServiceImpl implements RestUserServ
 	 */
 	@Override
 	public AbstractBaseResult<Long> restSave(UserSaveUpdateParam param) {
-		return ResultUtil.success(restSaveUpdate(null,param));
+		return ResultUtil.success(service.restSaveUpdate(null,param));
 	}
 
 	/**
@@ -88,15 +89,15 @@ public class RestUserServiceImpl extends UserServiceImpl implements RestUserServ
 	public AbstractBaseResult<Void> restRemove(Long id) {
 
 		// 先获取用户的用户名和客户端ID，删除后需用于注销认证令牌
-		UserDo user = getById(id, UserDo::getUsername,UserDo::getClientId);
+		UserDo user = service.getById(id, UserDo::getUsername,UserDo::getClientId);
 		if(ObjectUtil.isNullEmpty(user)){
 			return ResultUtil.success();
 		}
 
 		// 删除用户数据库记录
-		if(removeById(id)){
+		if(service.removeById(id)){
 			// 通过RPC调用OAuth服务，根据clientId+用户名销毁该用户的所有OAuth2授权令牌
-			rpcOauthTokenService.rpcDestroyByPrincipal(user.getClientId(), user.getUsername()).getResultDataThrowError();
+			service.rpcOauthTokenService.rpcDestroyByPrincipal(user.getClientId(), user.getUsername()).getResultDataThrowError();
 		}
 
 		return ResultUtil.success();
@@ -126,7 +127,7 @@ public class RestUserServiceImpl extends UserServiceImpl implements RestUserServ
 	 */
 	@Override
 	public AbstractBaseResult<UserInfoResult> restGet(Long id) {
-		return ResultUtil.success(getByIdThrowErrorRelation(id, UserInfoResult.class));
+		return ResultUtil.success(service.getByIdThrowErrorRelation(id, UserInfoResult.class));
 	}
 
 	/**
@@ -142,12 +143,12 @@ public class RestUserServiceImpl extends UserServiceImpl implements RestUserServ
 	@Override
 	public AbstractBaseResult<Void> restUpdate(Long id, UserSaveUpdateParam param) {
 
-		restSaveUpdate(id,param);
+		service.restSaveUpdate(id,param);
 
 		if(Status.DISABLE == param.getStatus()){
 			// 更新后状态为禁用时，销毁该用户的全部OAuth2令牌，强制下线
-			UserDo user = getByIdThrowError(id,UserDo::getUsername,UserDo::getClientId);
-			rpcOauthTokenService.rpcDestroyByPrincipal(user.getClientId(), user.getUsername()).getResultDataThrowError();
+			UserDo user = service.getByIdThrowError(id,UserDo::getUsername,UserDo::getClientId);
+			service.rpcOauthTokenService.rpcDestroyByPrincipal(user.getClientId(), user.getUsername()).getResultDataThrowError();
 		}
 
 		return ResultUtil.success();
@@ -165,13 +166,12 @@ public class RestUserServiceImpl extends UserServiceImpl implements RestUserServ
 	 * @param param 状态参数，包含目标状态值
 	 * @return 操作结果
 	 */
-	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public AbstractBaseResult<Void> updateStatusResult(Long id, RequestParam<Status> param){
 
 		Status status = param.getData();
 
-		UserDo user = getByIdThrowError(id,UserDo::getUsername,UserDo::getClientId,UserDo::getStatus);
+		UserDo user = service.getByIdThrowError(id,UserDo::getUsername,UserDo::getClientId,UserDo::getStatus);
 
 		// 当前状态与目标状态一致时，无需更新，直接返回成功
 		if(user.getStatus() == status){
@@ -180,11 +180,11 @@ public class RestUserServiceImpl extends UserServiceImpl implements RestUserServ
 
 		user.setId(id);
 		user.setStatus(status);
-		updateById(user);
+		service.updateById(user);
 
 		// 禁用用户后销毁其全部OAuth2令牌，强制下线
 		if(Status.DISABLE == status){
-			rpcOauthTokenService.rpcDestroyByPrincipal(user.getClientId(), user.getUsername()).getResultDataThrowError();
+			service.rpcOauthTokenService.rpcDestroyByPrincipal(user.getClientId(), user.getUsername()).getResultDataThrowError();
 		}
 
 		return ResultUtil.success();
@@ -202,7 +202,7 @@ public class RestUserServiceImpl extends UserServiceImpl implements RestUserServ
 	 */
 	@Override
 	public AbstractBaseResult<UserIndividualInfoResult> restIndividualGet() {
-		return ResultUtil.success(getByIdThrowErrorRelation(ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUserId), UserIndividualInfoResult.class));
+		return ResultUtil.success(service.getByIdThrowErrorRelation(ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUserId), UserIndividualInfoResult.class));
 	}
 
 	/**
@@ -227,25 +227,25 @@ public class RestUserServiceImpl extends UserServiceImpl implements RestUserServ
 
 		// 旧密码与新密码同时传入时，先校验旧密码，再将新密码加密
 		if(ObjectUtil.isNotNullEmpty(paramPassword) && ObjectUtil.isNotNullEmpty(paramNewPassword)){
-			UserDo domain = getByIdThrowError(userId, UserDo::getPassword);
+			UserDo domain = service.getByIdThrowError(userId, UserDo::getPassword);
 
 			// 旧密码与库中密文不匹配时抛出业务异常
-			if(!PASSWORD_ENCODER.matches(paramPassword,domain.getPassword())){
+			if(!UserServiceImpl.PASSWORD_ENCODER.matches(paramPassword,domain.getPassword())){
 				throw new BusinessResultException("旧密码不正确");
 			}
 
-			paramNewPassword = PASSWORD_ENCODER.encode(paramNewPassword);
+			paramNewPassword = UserServiceImpl.PASSWORD_ENCODER.encode(paramNewPassword);
 		}
 
 		UserDo domain = CglibUtil.copy(param, UserDo.class);
 		domain.setId(userId);
 		domain.setPassword(paramNewPassword);
-		updateById(domain);
+		service.updateById(domain);
 
 		// 更新成功后销毁当前用户在该客户端下的全部OAuth2令牌，并指示前端跳转登录页，强制重新登录
 		Long clientId = ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getClientId);
 		String username = ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUsername);
-		rpcOauthTokenService.rpcDestroyByPrincipal(clientId, username).getResultDataThrowError();
+		service.rpcOauthTokenService.rpcDestroyByPrincipal(clientId, username).getResultDataThrowError();
 		RedirectUtil.redirect(RedirectType.LOGIN);
 
 		return ResultUtil.success();

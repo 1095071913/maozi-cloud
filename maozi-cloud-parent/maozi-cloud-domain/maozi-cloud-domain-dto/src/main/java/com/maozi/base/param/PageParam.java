@@ -17,7 +17,7 @@ import java.io.Serializable;
  * </p>
  *
  * @param <D> 查询条件数据类型
-  * @author maozi
+ * @author maozi
  * @date 2026/11/08
  */
 @Data

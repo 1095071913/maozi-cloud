@@ -20,8 +20,6 @@ import com.maozi.base.constant.ResultFunName;
 import com.maozi.base.enums.Status;
 import com.maozi.base.enums.StoreClassType;
 import com.maozi.base.param.PageParam;
-import com.maozi.base.param.RequestParam;
-import com.maozi.base.param.SaveUpdateBatch;
 import com.maozi.base.param.plugin.OrderParam;
 import com.maozi.base.param.plugin.TimeParam;
 import com.maozi.base.plugin.StoreClass;
@@ -38,7 +36,6 @@ import com.maozi.base.result.PageResult;
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.ReflectUtil;
-import com.maozi.common.ResultUtil;
 import com.maozi.common.SerializeUtil;
 import com.maozi.common.ValidatorUtil;
 import com.maozi.common.result.AbstractBaseResult;
@@ -48,10 +45,7 @@ import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.db.domain.AbstractBaseDomain;
 import com.maozi.db.domain.AbstractBaseNameDomain;
 import com.maozi.service.api.IBaseMapper;
-import com.maozi.service.api.rpc.BaseServiceResult;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Field;
@@ -90,42 +84,35 @@ import java.util.stream.Collectors;
  * @author maozi
  * @date 2026/11/08
  */
-public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends AbstractBaseDomain, D>
+public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends AbstractBaseDomain>
         extends ServiceImpl<M, T>
-        implements MPJBaseService<T>, BaseServiceResult<D> {
+        implements MPJBaseService<T> {
 
     /** 领域模型（数据库实体）Class 对象 */
     public Class<T> domainClass;
 
-    /** 数据传输对象（DTO）Class 对象 */
-    private Class<D> resultClass;
-
+    /** get 方法名前缀的长度 */
+    private static final int GETTER_PREFIX_LENGTH = 3;
+    /** 资源名称后缀：参数 */
+    private static final String RESOURCE_SUFFIX_PARAM = "参数";
     /** 资源名称后缀：列表 */
     private static final String RESOURCE_SUFFIX_LIST = "列表";
-
-    /** 资源名称后缀：分组 */
-    private static final String RESOURCE_SUFFIX_GROUP = "分组";
-
     /** 资源名称后缀：连接类型 */
     private static final String RESOURCE_SUFFIX_JOIN_TYPE = "连接类型";
     /** 资源名称后缀：查询类型 */
     private static final String RESOURCE_SUFFIX_QUERY_TYPE = "查询类型";
     /** 资源名称后缀：映射关系名称 */
     private static final String RESOURCE_SUFFIX_MAPPING_NAME = "映射关系名称";
+    /** 资源名称后缀：服务不存在 */
+    private static final String RESOURCE_SUFFIX_SERVICE_NOT_EXIST = "服务不存在";
+    /** 领域模型映射关系不存在的提示语 */
+    private static final String DOMAIN_MAPPING_NOT_EXIST = "领域模型映射关系不存在";
     /** 资源名称后缀：映射关系不存在 */
     private static final String RESOURCE_SUFFIX_MAPPING_NOT_EXIST = "映射关系不存在";
     /** 资源名称后缀：映射关系类型错误 */
     private static final String RESOURCE_SUFFIX_MAPPING_TYPE_ERROR = "映射关系类型错误";
-    /** 资源名称后缀：参数 */
-    private static final String RESOURCE_SUFFIX_PARAM = "参数";
-    /** 资源名称后缀：服务不存在 */
-    private static final String RESOURCE_SUFFIX_SERVICE_NOT_EXIST = "服务不存在";
     /** 资源名称后缀：关系字段未设置 */
     private static final String RESOURCE_SUFFIX_RELATION_FIELD_NOT_SET = "关系字段未设置";
-    /** 领域模型映射关系不存在的提示语 */
-    private static final String DOMAIN_MAPPING_NOT_EXIST = "领域模型映射关系不存在";
-    /** get 方法名前缀的长度 */
-    private static final int GETTER_PREFIX_LENGTH = 3;
 
     /**
      * 获取资源名称（供子类实现）
@@ -157,8 +144,6 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
                 domainClass = (Class<T>) type.getActualTypeArguments()[1];
 
-                resultClass = (Class<D>) type.getActualTypeArguments()[2];
-
                 break;
 
             }
@@ -175,26 +160,6 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     @Override
     public Class<T> currentModelClass() {
         return super.currentModelClass();
-    }
-
-    /**
-     * 获取结果 DTO 的 Class 对象
-     * <p>
-     * 如果 resultClass 为 Void 类型，说明未设置响应类型，抛出系统错误。
-     * </p>
-     *
-     * @return 结果 DTO 的 Class 对象
-     * @throws BusinessResultException 当未设置响应类型时抛出异常
-     */
-    public Class<D> getResultClass(){
-
-        if(Void.class.equals(resultClass)) {
-            throw new BusinessResultException(SystemErrorCode.NOT_SET_RESPONSE_ERROR)
-                    .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
-        }
-
-        return resultClass;
-
     }
 
     /**
@@ -856,7 +821,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     public final <R,V> List<V> list(Class<V> voClass, SFunction<R, ?>... columns) {
 
         MPJLambdaWrapper<T> wrapper = MPJWrappers.lambdaJoin();
-        wrapper.selectAsClass(domainClass,voClass);
+        wrapper.selectAsClass(domainClass, voClass);
 
         if(columns.length > 0) {
             wrapper.select(columns);
@@ -890,7 +855,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param target 目标类型的 Supplier
      * @return 转换后的列表
      */
-    public <V> List<V> list(D dto,Supplier<V> target) {
+    public <V> List<V> list(Object dto,Supplier<V> target) {
 
         ObjectUtil.isNullEmptyThrowError(dto, getResourceName());
 
@@ -915,7 +880,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param target 目标类型的 Supplier
      * @return 转换后的列表（未填充关联数据）
      */
-    public <V> List<V> listRelation(D dto,Supplier<V> target) {
+    public <V> List<V> listRelation(Object dto,Supplier<V> target) {
 
         ObjectUtil.isNullEmptyThrowError(dto, getResourceName());
 
@@ -1144,310 +1109,6 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         return super.removeById(id);
 
     }
-
-
-
-
-
-// ========================== 结果集封装 ==========================
-
-    /**
-     * 根据 ID 查询实体并封装为结果（字符串列名方式）
-     *
-     * @param id 实体 ID
-     * @param columns 查询字段列表
-     * @return 包含 DTO 的统一响应结果
-     */
-    @Override
-    public AbstractBaseResult<D> getByIdResult(Long id,String ... columns) {
-        T domain = getById(id, columns);
-        return ResultUtil.success(CglibUtil.copy(domain, getResultClass()));
-    }
-
-    /**
-     * 根据 ID 集合批量查询并封装为以 ID 为键的 Map 结果
-     *
-     * @param ids 实体 ID 集合
-     * @param columns 查询字段列表
-     * @return 包含 Map&lt;Long, D&gt; 的统一响应结果
-     */
-    @Override
-    public AbstractBaseResult<Map<Long,D>> listByIdsResult(Collection<Long> ids,String ... columns) {
-
-        List<T> domains = listByIds(ids, columns);
-
-        List<D> responseItems = CglibUtil.copyList(domains, () -> ReflectUtil.newInstance(getResultClass()));
-
-        return ResultUtil.success(
-
-            responseItems.stream().collect(
-
-                Collectors.toMap(
-                    ReflectUtil::invokeFunGetId
-                    ,
-                    Function.identity()
-                )
-
-            )
-        );
-
-    }
-
-    /**
-     * 根据关联字段分组查询并封装为 Map 结果
-     *
-     * @param ids 关联 ID 集合
-     * @param relationField 关联字段名
-     * @param columns 查询字段列表
-     * @return 包含 Map&lt;Long, List&lt;D&gt;&gt; 的统一响应结果
-     */
-    @Override
-    public AbstractBaseResult<Map<Long, List<D>>> listByRelationIdsResult(
-            Collection<Long> ids, String relationField, String ... columns) {
-
-        CollectionUtil.collectionIsEmptyThrowError(ids,getResourceName() + RESOURCE_SUFFIX_LIST);
-
-        ObjectUtil.isNullEmptyThrowError(relationField, getResourceName() + RESOURCE_SUFFIX_GROUP);
-
-        QueryWrapper<T> wrapper = Wrappers.query();
-        if(columns.length > 0) {
-            wrapper.select(columns);
-        }
-        wrapper.in(relationField,ids);
-
-        List<T> domains = list(wrapper);
-        if(ObjectUtil.isNullEmpty(domains)) {
-            return ResultUtil.success(CollectionUtil.newHashMap());
-        }
-
-        List<D> responseItems = CglibUtil.copyList(domains, () -> ReflectUtil.newInstance(getResultClass()));
-        return ResultUtil.success(
-
-            responseItems.stream().collect(
-                Collectors.groupingBy((resultData) ->
-                    ReflectUtil.invokeGet(resultData, relationField), Collectors.toList()
-                )
-            )
-
-        );
-
-    }
-
-    /**
-     * 根据单个关联 ID 查询关联列表并封装为结果
-     *
-     * @param id 关联 ID
-     * @param relationField 关联字段名
-     * @param columns 查询字段列表
-     * @return 包含 List&lt;D&gt; 的统一响应结果
-     */
-    @Override
-    public AbstractBaseResult<List<D>> listByRelationIdResult(Long id,String relationField,String ... columns) {
-
-        ObjectUtil.isNullEmptyThrowError(id,getResourceName());
-
-        ObjectUtil.isNullEmptyThrowError(relationField, getResourceName() + RESOURCE_SUFFIX_GROUP);
-
-        QueryWrapper<T> wrapper = Wrappers.query();
-        if(columns.length > 0) {
-            wrapper.select(columns);
-        }
-        wrapper.eq(relationField,id);
-
-        return ResultUtil.success(CglibUtil.copyList(list(wrapper), () -> ReflectUtil.newInstance(getResultClass())));
-
-    }
-
-    /**
-     * 根据参数统计记录数并封装为结果
-     *
-     * @param dto 查询参数
-     * @return 包含记录数的统一响应结果
-     */
-    @Override
-    public AbstractBaseResult<Long> getCountByParamResult(D dto){
-        return ResultUtil.success(getCountByParam(dto));
-    }
-
-    /**
-     * 新增或更新实体并封装为结果
-     *
-     * @param <P> 参数类型
-     * @param id 实体 ID（为空时执行新增）
-     * @param param 参数对象
-     * @return 包含实体 ID 的统一响应结果
-     */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public <P> AbstractBaseResult<Long> saveUpdateResult(Long id, P param){
-        return ResultUtil.success(saveUpdate(id, param));
-    }
-
-    /**
-     * 批量新增或更新并封装为结果
-     *
-     * @param collection 新增/更新参数列表
-     * @return 统一响应结果
-     */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public AbstractBaseResult<Void> saveUpdateBatchResult(List<SaveUpdateBatch> collection){
-
-        CollectionUtil.collectionIsEmptyThrowError(collection, getResourceName() + RESOURCE_SUFFIX_LIST);
-
-        List<T> domains = CglibUtil.copyList(collection, ()-> ReflectUtil.newInstance(domainClass));
-        saveUpdateBatch(domains);
-
-        return ResultUtil.success();
-
-    }
-
-    /**
-     * 根据 ID 删除实体并封装为结果
-     *
-     * @param id 实体 ID
-     * @return 统一响应结果
-     */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public AbstractBaseResult<Void> removeByIdResult(Long id) {
-        removeById(id);
-        return ResultUtil.success();
-    }
-
-    /**
-     * 批量删除实体并封装为结果
-     *
-     * @param ids 实体 ID 列表
-     * @return 统一响应结果
-     */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public AbstractBaseResult<Void> removeByIdBatchResult(List<Long> ids) {
-
-        CollectionUtil.collectionIsEmptyThrowError(ids, getResourceName() + RESOURCE_SUFFIX_LIST);
-
-        ids.forEach(this::removeById);
-
-        return ResultUtil.success();
-
-    }
-
-    /**
-     * 检查单个实体是否可用并封装为结果
-     *
-     * @param id 实体 ID
-     * @return 统一响应结果
-     */
-    @Override
-    public AbstractBaseResult<Void> checkAvailableResult(Long id){
-        checkAvailable(id);
-        return ResultUtil.success();
-    }
-
-    /**
-     * 批量检查实体是否可用并封装为结果
-     *
-     * @param ids 实体 ID 列表
-     * @return 统一响应结果
-     */
-    @Override
-    public AbstractBaseResult<Void> checkAvailableResult(List<Long> ids){
-        checkAvailable(ids);
-        return ResultUtil.success();
-    }
-
-    /**
-     * 根据 ID 查询可用实体并封装为结果
-     *
-     * @param id 实体 ID
-     * @param columns 查询字段列表
-     * @return 包含 DTO 的统一响应结果
-     */
-    @Override
-    public AbstractBaseResult<D> getAvailableByIdResult(Long id,String ... columns){
-
-        T domain = getAvailableById(id, columns);
-
-        return ResultUtil.success(CglibUtil.copy(domain, getResultClass()));
-
-    }
-
-    /**
-     * 根据 ID 获取下拉选项并封装为结果
-     *
-     * @param id 实体 ID
-     * @return 包含下拉选项的统一响应结果
-     */
-    @Override
-    public AbstractBaseResult<DropDownResult> dropDownResult(Long id){
-        return ResultUtil.success(dropDown(id));
-    }
-
-    /**
-     * 获取所有启用状态的下拉选项列表并封装为结果
-     *
-     * @return 包含下拉选项列表的统一响应结果
-     */
-    public AbstractBaseResult<List<DropDownResult>> dropDownListResult(){
-        return ResultUtil.success(dropDownList());
-    }
-
-    /**
-     * 根据 ID 集合批量获取下拉选项并封装为结果
-     *
-     * @param ids 实体 ID 集合
-     * @return 包含下拉选项列表的统一响应结果
-     */
-    @Override
-    public AbstractBaseResult<List<DropDownResult>> dropDownListResult(Collection<Long> ids){
-
-        QueryWrapper<T> wrapper = Wrappers.query();
-
-        wrapper.select(getColumns(AbstractBaseNameDomain::getId,AbstractBaseNameDomain::getName));
-
-        wrapper.in(getColumn(AbstractBaseDomain::getId), ids);
-
-        return ResultUtil.success(CglibUtil.copyList(list(wrapper), DropDownResult::new));
-
-    }
-
-    /**
-     * 更新实体状态
-     * <p>
-     * 目标状态为禁用（DISABLE）时先调用 {@link #checkBind(Long)} 检查绑定关系；
-     * 随后仅设置 ID 与状态字段构造新实体并按 ID 更新
-     * （MyBatis-Plus 默认只更新非空字段，即仅变更状态列）。
-     * </p>
-     *
-     * @param id 实体 ID
-     * @param param 携带目标状态的请求参数（data 为空时抛出参数错误异常）
-     * @return 统一响应结果
-     */
-    @SneakyThrows
-    public AbstractBaseResult<Void> updateStatusResult(Long id, RequestParam<Status> param){
-
-        Status status = param.getData();
-        ObjectUtil.isNullEmptyThrowError(status,SystemErrorCode.PARAM_ERROR,"状态");
-
-        // 目标状态为禁用时，需先检查是否存在绑定关系
-        if(param.getData() == Status.DISABLE){
-            checkBind(id);
-        }
-
-        T domain = domainClass.getDeclaredConstructor().newInstance();
-
-        domain.setId(id);
-        domain.setStatus(status);
-
-        updateById(domain);
-
-        return ResultUtil.success();
-
-    }
-
-
-
 
 // ====================== 工具方法 ======================
 

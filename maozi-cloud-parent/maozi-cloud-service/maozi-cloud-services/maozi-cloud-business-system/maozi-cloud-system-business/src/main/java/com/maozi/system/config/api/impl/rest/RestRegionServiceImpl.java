@@ -6,6 +6,7 @@ import com.maozi.base.result.DropDownResult;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.service.api.annotation.RestService;
+import com.maozi.service.api.impl.result.BaseServiceResultImpl;
 import com.maozi.system.config.api.impl.RegionServiceImpl;
 import com.maozi.system.config.api.rest.RestRegionService;
 import com.maozi.system.config.domain.RegionDo;
@@ -23,7 +24,7 @@ import java.util.List;
  * @date 2026/11/08
  */
 @RestService
-public class RestRegionServiceImpl extends RegionServiceImpl implements RestRegionService {
+public class RestRegionServiceImpl extends BaseServiceResultImpl<RegionServiceImpl, Void> implements RestRegionService {
 
 	/**
 	 * 根据父级ID查询子地区下拉列表
@@ -46,7 +47,7 @@ public class RestRegionServiceImpl extends RegionServiceImpl implements RestRegi
 		wrapper.eq(RegionDo::getParentId,parentId);
 
 		// 执行查询并将结果转换为下拉列表格式返回
-		return ResultUtil.success(list(wrapper,DropDownResult::new));
+		return ResultUtil.success(service.list(wrapper,DropDownResult::new));
 
 	}
 

@@ -1,5 +1,7 @@
 package com.maozi.service.api.rpc;
 
+import com.maozi.base.enums.Status;
+import com.maozi.base.param.RequestParam;
 import com.maozi.base.param.SaveUpdateBatch;
 import com.maozi.base.result.DropDownResult;
 import com.maozi.common.result.AbstractBaseResult;
@@ -85,6 +87,8 @@ public interface BaseServiceResult<D> {
      */
     AbstractBaseResult<Void> saveUpdateBatchResult(List<SaveUpdateBatch> params);
 
+    AbstractBaseResult<Void> updateStatusResult(Long id, RequestParam<Status> param);
+
     /**
      * 根据 ID 删除记录
      *
@@ -141,5 +145,7 @@ public interface BaseServiceResult<D> {
      * @return 下拉选择列表
      */
     AbstractBaseResult<List<DropDownResult>> dropDownListResult(Collection<Long> ids);
+
+    AbstractBaseResult<List<DropDownResult>> dropDownListResult();
 
 }

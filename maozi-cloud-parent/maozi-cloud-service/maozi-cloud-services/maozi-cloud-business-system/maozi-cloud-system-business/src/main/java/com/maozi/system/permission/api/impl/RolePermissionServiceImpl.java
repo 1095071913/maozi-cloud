@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  * @date 2026/11/08
  */
 @Service
-public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMapper,RolePermissionDo,Void> implements RolePermissionService {
+public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMapper,RolePermissionDo> implements RolePermissionService {
 
 	/** 资源名称，用于异常提示信息 */
 	private static final String RESOURCE_NAME = "角色权限关系";

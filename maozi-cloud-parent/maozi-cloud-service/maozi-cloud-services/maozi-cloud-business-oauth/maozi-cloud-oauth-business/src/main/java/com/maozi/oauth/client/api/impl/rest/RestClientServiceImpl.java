@@ -9,11 +9,13 @@ import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.oauth.client.api.impl.ClientServiceImpl;
 import com.maozi.oauth.client.api.rest.RestClientService;
+import com.maozi.oauth.client.dto.ClientDto;
 import com.maozi.oauth.client.param.ClientListParam;
 import com.maozi.oauth.client.param.ClientSaveUpdateParam;
 import com.maozi.oauth.client.result.ClientInfoResult;
 import com.maozi.oauth.client.result.ClientListResult;
 import com.maozi.service.api.annotation.RestService;
+import com.maozi.service.api.impl.result.BaseServiceResultImpl;
 
 import java.util.List;
 
@@ -31,7 +33,7 @@ import java.util.List;
  * @date 2026/11/08
  */
 @RestService
-public class RestClientServiceImpl extends ClientServiceImpl implements RestClientService {
+public class RestClientServiceImpl extends BaseServiceResultImpl<ClientServiceImpl, ClientDto> implements RestClientService {
 
 	/**
 	 * 分页查询客户端列表。
@@ -41,7 +43,7 @@ public class RestClientServiceImpl extends ClientServiceImpl implements RestClie
 	 */
 	@Override
 	public AbstractBaseResult<PageResult<ClientListResult>> restList(PageParam<ClientListParam> pageParam) {
-		return ResultUtil.success(superRestList(pageParam));
+		return ResultUtil.success(service.superRestList(pageParam));
 	}
 
 	/**
@@ -52,7 +54,7 @@ public class RestClientServiceImpl extends ClientServiceImpl implements RestClie
 	 */
 	@Override
 	public AbstractBaseResult<Long> restSave(ClientSaveUpdateParam param) {
-		return ResultUtil.success(restSaveUpdate(null,param));
+		return ResultUtil.success(service.restSaveUpdate(null,param));
 	}
 
 	/**
@@ -73,7 +75,7 @@ public class RestClientServiceImpl extends ClientServiceImpl implements RestClie
 	 */
     @Override
     public AbstractBaseResult<ClientInfoResult> restGet(Long id) {
-        return ResultUtil.success(superRestGet(id));
+        return ResultUtil.success(service.superRestGet(id));
     }
 
     /**
@@ -86,7 +88,7 @@ public class RestClientServiceImpl extends ClientServiceImpl implements RestClie
     @Override
     public AbstractBaseResult<Void> restUpdate(Long id, ClientSaveUpdateParam param) {
 
-        restSaveUpdate(id,param);
+		service.restSaveUpdate(id,param);
 
         return ResultUtil.success();
 
@@ -113,7 +115,7 @@ public class RestClientServiceImpl extends ClientServiceImpl implements RestClie
     @Override
     public AbstractBaseResult<Void> restRemove(Long id) {
 
-        removeById(id);
+		service.removeById(id);
 
         return ResultUtil.success();
 

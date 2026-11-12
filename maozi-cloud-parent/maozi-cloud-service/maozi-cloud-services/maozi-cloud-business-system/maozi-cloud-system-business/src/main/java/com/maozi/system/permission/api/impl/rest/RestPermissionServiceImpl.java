@@ -6,6 +6,7 @@ import com.maozi.common.CollectionUtil;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.service.api.annotation.RestService;
+import com.maozi.service.api.impl.result.BaseServiceResultImpl;
 import com.maozi.system.permission.api.impl.PermissionServiceImpl;
 import com.maozi.system.permission.api.rest.RestPermissionService;
 import com.maozi.system.permission.domain.PermissionDo;
@@ -25,7 +26,7 @@ import java.util.List;
  * @date 2026/11/08
  */
 @RestService
-public class RestPermissionServiceImpl extends PermissionServiceImpl implements RestPermissionService {
+public class RestPermissionServiceImpl extends BaseServiceResultImpl<PermissionServiceImpl, Void> implements RestPermissionService {
 
 	/**
 	 * 查询权限列表
@@ -44,7 +45,7 @@ public class RestPermissionServiceImpl extends PermissionServiceImpl implements 
 		// 按权限深度、排序序号降序排列
 		wrapper.orderByDesc(CollectionUtil.newArrayList(getColumns(PermissionDo::getLevel,PermissionDo::getSort)));
 
-		return ResultUtil.success(list(wrapper, PermissionListResult::new));
+		return ResultUtil.success(service.list(wrapper, PermissionListResult::new));
 
 	}
 
@@ -68,7 +69,7 @@ public class RestPermissionServiceImpl extends PermissionServiceImpl implements 
 	 */
 	@Override
 	public AbstractBaseResult<List<PermissionDropDownResult>> restDropDownListResult() {
-		return ResultUtil.success(list(PermissionDropDownResult.class, PermissionDo::getId, PermissionDo::getParentId, PermissionDo::getLevel, PermissionDo::getName, PermissionDo::getType));
+		return ResultUtil.success(service.list(PermissionDropDownResult.class, PermissionDo::getId, PermissionDo::getParentId, PermissionDo::getLevel, PermissionDo::getName, PermissionDo::getType));
 	}
 
 	/**
@@ -79,7 +80,7 @@ public class RestPermissionServiceImpl extends PermissionServiceImpl implements 
 	 */
 	@Override
 	public AbstractBaseResult<PermissionInfoResult> restGet(Long id) {
-		return ResultUtil.success(getByIdThrowError(id, PermissionInfoResult.class, PermissionDo::getParentId,PermissionDo::getName,PermissionDo::getIcon,PermissionDo::getMark,PermissionDo::getRoute,PermissionDo::getServiceUri,PermissionDo::getType,PermissionDo::getSort));
+		return ResultUtil.success(service.getByIdThrowError(id, PermissionInfoResult.class, PermissionDo::getParentId,PermissionDo::getName,PermissionDo::getIcon,PermissionDo::getMark,PermissionDo::getRoute,PermissionDo::getServiceUri,PermissionDo::getType,PermissionDo::getSort));
 	}
 
 	/**
@@ -103,7 +104,7 @@ public class RestPermissionServiceImpl extends PermissionServiceImpl implements 
 	@Override
 	public AbstractBaseResult<Void> restUpdate(Long id, PermissionSaveUpdateParam param) {
 
-		saveUpdate(id,param);
+		service.saveUpdate(id,param);
 
 		return ResultUtil.success();
 

@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  * @date 2026/11/08
  */
 @Service
-public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper,PermissionDo,Void> implements PermissionService {
+public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, PermissionDo> implements PermissionService {
 
 	/** 资源名称，用于异常提示信息 */
 	private static final String RESOURCE_NAME = "权限";

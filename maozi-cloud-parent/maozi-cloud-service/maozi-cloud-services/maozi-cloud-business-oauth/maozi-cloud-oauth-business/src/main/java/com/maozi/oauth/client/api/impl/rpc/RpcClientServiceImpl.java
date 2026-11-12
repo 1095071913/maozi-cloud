@@ -6,6 +6,7 @@ import com.maozi.oauth.client.api.rpc.RpcClientService;
 import com.maozi.oauth.client.dto.ClientDto;
 import com.maozi.oauth.client.param.ClientSaveUpdateParam;
 import com.maozi.service.api.annotation.RemoteService;
+import com.maozi.service.api.impl.result.BaseServiceResultImpl;
 
 /**
  * OAuth2客户端RPC服务实现类
@@ -19,7 +20,7 @@ import com.maozi.service.api.annotation.RemoteService;
  * @date 2026/11/08
  */
 @RemoteService
-public class RpcClientServiceImpl extends ClientServiceImpl implements RpcClientService {
+public class RpcClientServiceImpl extends BaseServiceResultImpl<ClientServiceImpl, ClientDto> implements RpcClientService {
 
     /**
      * 新增客户端并返回保存后的客户端信息
@@ -33,7 +34,7 @@ public class RpcClientServiceImpl extends ClientServiceImpl implements RpcClient
      */
     @Override
     public AbstractBaseResult<ClientDto> rpcAiSave(ClientSaveUpdateParam param) {
-        Long clientId = restSaveUpdate(null, param);
+        Long clientId = service.restSaveUpdate(null, param);
         return getByIdResult(clientId);
     }
 

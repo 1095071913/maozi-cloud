@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
  * @date 2026/11/08
  */
 @Service
-public class RegionServiceImpl extends BaseServiceImpl<RegionMapper,RegionDo,Void> implements RegionService {
+public class RegionServiceImpl extends BaseServiceImpl<RegionMapper, RegionDo> implements RegionService {
 
 	/** 资源名称，用于日志和异常信息中标识当前操作的资源类型 */
 	private static final String RESOURCE_NAME = "地区";

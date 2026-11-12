@@ -13,7 +13,6 @@ import com.maozi.common.ObjectUtil;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.oauth.client.api.ClientService;
 import com.maozi.oauth.client.domain.ClientDo;
-import com.maozi.oauth.client.dto.ClientDto;
 import com.maozi.oauth.client.mapper.ClientMapper;
 import com.maozi.oauth.client.param.ClientListParam;
 import com.maozi.oauth.client.param.ClientSaveUpdateParam;
@@ -47,7 +46,7 @@ import java.util.stream.Collectors;
  * @date 2026/11/08
  */
 @Service
-public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo, ClientDto> implements ClientService {
+public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo> implements ClientService {
 
     /** 资源名称标识，用于日志和异常提示 */
     private static final String RESOURCE_NAME = "客户端";
@@ -79,8 +78,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo, C
 
         OAUTH_OBJECT_MAPPER = new ObjectMapper();
         OAUTH_OBJECT_MAPPER.registerModule(new OAuth2AuthorizationServerJackson2Module());
-        ClassLoader classLoader = RegisteredClientRepository.class.getClassLoader();
-        OAUTH_OBJECT_MAPPER.registerModules(SecurityJackson2Modules.getModules(classLoader));
+        OAUTH_OBJECT_MAPPER.registerModules(SecurityJackson2Modules.getModules(RegisteredClientRepository.class.getClassLoader()));
 
         PASSWORD_ENCODER = PasswordEncoderFactories.createDelegatingPasswordEncoder();
 
@@ -114,7 +112,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo, C
      * @param param 客户端保存/更新参数
      * @return 保存后的客户端主键ID
      */
-    protected Long restSaveUpdate(Long id, ClientSaveUpdateParam param) {
+    public Long restSaveUpdate(Long id, ClientSaveUpdateParam param) {
 
         if(ObjectUtil.isNullEmpty(id)) {
 
@@ -190,7 +188,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo, C
      * @throws BusinessResultException 客户端不存在时抛出 DATA_NOT_EXIST_ERROR，
      * 禁用时抛出 FORBIDDEN_ERROR
      */
-    protected ClientInfoResult superRestGet(Long id) {
+    public ClientInfoResult superRestGet(Long id) {
 
         ClientDo domain = getAvailableById(id,
                 ClientDo::getClientId, ClientDo::getName, ClientDo::getAuthorizationGrantTypes,
@@ -222,7 +220,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo, C
      * @param pageParam 分页查询参数，包含查询条件和分页信息
      * @return 分页结果，包含客户端列表数据
      */
-    protected PageResult<ClientListResult> superRestList(PageParam<ClientListParam> pageParam){
+    public PageResult<ClientListResult> superRestList(PageParam<ClientListParam> pageParam){
 
         Class<ClientListResult> responseClass = ClientListResult.class;
         MPJLambdaWrapper<ClientDo> wrapper = buildQueryWrapper(pageParam.getData(), responseClass);

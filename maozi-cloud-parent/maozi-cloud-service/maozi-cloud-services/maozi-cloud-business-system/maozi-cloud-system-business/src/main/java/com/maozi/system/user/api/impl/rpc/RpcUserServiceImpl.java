@@ -7,6 +7,7 @@ import com.maozi.common.ObjectUtil;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.service.api.annotation.RemoteService;
+import com.maozi.service.api.impl.result.BaseServiceResultImpl;
 import com.maozi.system.user.api.impl.UserServiceImpl;
 import com.maozi.system.user.api.rpc.RpcUserService;
 import com.maozi.system.user.domain.UserDo;
@@ -28,7 +29,7 @@ import java.util.List;
  * @date 2026/11/08
  */
 @RemoteService
-public class RpcUserServiceImpl extends UserServiceImpl implements RpcUserService {
+public class RpcUserServiceImpl extends BaseServiceResultImpl<UserServiceImpl, Void> implements RpcUserService {
 
 	/**
 	 * 根据用户名获取 OAuth 认证所需的用户信息
@@ -44,7 +45,7 @@ public class RpcUserServiceImpl extends UserServiceImpl implements RpcUserServic
 	public AbstractBaseResult<OauthUserInfoResult> rpcGetOauthUserInfoByUsername(String username) {
 
 		// 用户名为空时抛出数据不存在业务异常
-		ObjectUtil.isNullEmptyThrowError(username, getResourceName());
+		ObjectUtil.isNullEmptyThrowError(username, service.getResourceName());
 
 		LambdaQueryWrapper<UserDo> wrapper = Wrappers.lambdaQuery();
 
@@ -52,13 +53,13 @@ public class RpcUserServiceImpl extends UserServiceImpl implements RpcUserServic
 		wrapper.select(UserDo::getId,UserDo::getPassword);
 		wrapper.eq(UserDo::getUsername,username);
 
-		UserDo domain = getOne(wrapper);
+		UserDo domain = service.getOne(wrapper);
 
 		// 用户不存在时抛出业务异常
-		ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
+		ObjectUtil.isNullEmptyThrowError(domain, service.getResourceName());
 
 		Long userId = domain.getId();
-		return ResultUtil.success(new OauthUserInfoResult(userId,domain.getPassword(),getPermissionsByUserId(userId)));
+		return ResultUtil.success(new OauthUserInfoResult(userId, domain.getPassword(), service.getPermissionsByUserId(userId)));
 
 	}
 
@@ -76,17 +77,17 @@ public class RpcUserServiceImpl extends UserServiceImpl implements RpcUserServic
 	@Override
 	public AbstractBaseResult<List<String>> rpcGetPermissionsByUsernameRole(String username, Long roleId) {
 
-		Long id = getAvailableByUsername(username);
+		Long id = service.getAvailableByUsername(username);
 
 		// 校验用户绑定了指定角色，未绑定则抛出异常
-		userRoleService.checkUserBindRole(id,roleId);
+		service.userRoleService.checkUserBindRole(id,roleId);
 
 		List<String> responses = CollectionUtil.newArrayList();
 
 		// 查询角色关联的权限ID集合，并转换为权限标识列表
-		List<Long> permissionIds = rolePermissionService.getPermissionsByRole(roleId);
+		List<Long> permissionIds = service.rolePermissionService.getPermissionsByRole(roleId);
 
-		List<String> marks = permissionService.getMarks(permissionIds);
+		List<String> marks = service.permissionService.getMarks(permissionIds);
 
         responses.addAll(marks);
 
@@ -106,7 +107,7 @@ public class RpcUserServiceImpl extends UserServiceImpl implements RpcUserServic
 	 */
 	@Override
 	public AbstractBaseResult<AiGetUserInfoResult> rpcAiGetUserInfo(Long userId) {
-		return ResultUtil.success(getByIdThrowErrorRelation(userId,AiGetUserInfoResult.class));
+		return ResultUtil.success(service.getByIdThrowErrorRelation(userId, AiGetUserInfoResult.class));
 	}
 
 }

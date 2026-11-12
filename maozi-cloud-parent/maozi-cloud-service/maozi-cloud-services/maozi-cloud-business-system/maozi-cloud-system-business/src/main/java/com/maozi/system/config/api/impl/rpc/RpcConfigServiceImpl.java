@@ -4,6 +4,7 @@ import com.maozi.common.ObjectUtil;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.service.api.annotation.RemoteService;
+import com.maozi.service.api.impl.result.BaseServiceResultImpl;
 import com.maozi.system.config.api.impl.ConfigServiceImpl;
 import com.maozi.system.config.api.rpc.RpcConfigService;
 import com.maozi.system.config.result.ConfigDropDownResult;
@@ -20,7 +21,7 @@ import com.maozi.system.config.result.ConfigDropDownResult;
  * @date 2026/11/08
  */
 @RemoteService
-public class RpcConfigServiceImpl extends ConfigServiceImpl implements RpcConfigService {
+public class RpcConfigServiceImpl extends BaseServiceResultImpl<ConfigServiceImpl, Void> implements RpcConfigService {
 
 	/**
 	 * 根据配置键名远程获取配置值
@@ -34,7 +35,7 @@ public class RpcConfigServiceImpl extends ConfigServiceImpl implements RpcConfig
 	 */
 	@Override
 	public AbstractBaseResult<String> rpcGet(String key) {
-		ConfigDropDownResult configResult = getConfigByName(key);
+		ConfigDropDownResult configResult = service.getConfigByName(key);
 		return ResultUtil.success(ObjectUtil.isNotNullEmpty(configResult) ? configResult.getValue() : null);
 	}
 

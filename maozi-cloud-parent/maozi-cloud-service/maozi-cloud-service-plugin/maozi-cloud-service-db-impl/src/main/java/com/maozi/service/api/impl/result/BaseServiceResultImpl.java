@@ -2,8 +2,11 @@ package com.maozi.service.api.impl.result;
 
 import cn.hutool.extra.cglib.CglibUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
+import com.maozi.base.enums.Status;
+import com.maozi.base.param.RequestParam;
 import com.maozi.base.param.SaveUpdateBatch;
 import com.maozi.base.result.DropDownResult;
 import com.maozi.common.CollectionUtil;
@@ -17,6 +20,7 @@ import com.maozi.db.domain.AbstractBaseDomain;
 import com.maozi.db.domain.AbstractBaseNameDomain;
 import com.maozi.service.api.impl.BaseServiceImpl;
 import com.maozi.service.api.rpc.BaseServiceResult;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -262,6 +266,41 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
 
     }
 
+
+
+    /**
+     * 更新实体状态
+     * <p>
+     * 目标状态为禁用（DISABLE）时先检查绑定关系；
+     * 随后仅设置 ID 与状态字段构造新实体并按 ID 更新
+     * （MyBatis-Plus 默认只更新非空字段，即仅变更状态列）。
+     * </p>
+     *
+     * @param id 实体 ID
+     * @param param 携带目标状态的请求参数（data 为空时抛出参数错误异常）
+     * @return 统一响应结果
+     */
+    @SneakyThrows
+    public AbstractBaseResult<Void> updateStatusResult(Long id, RequestParam<Status> param){
+
+        Status status = param.getData();
+        ObjectUtil.isNullEmptyThrowError(status, SystemErrorCode.PARAM_ERROR, "状态");
+
+        // 目标状态为禁用时，需先检查是否存在绑定关系
+        if(param.getData() == Status.DISABLE){
+            service.checkBind(id);
+        }
+
+        LambdaUpdateWrapper<? extends AbstractBaseDomain> updateWrapper = Wrappers.lambdaUpdate(service.domainClass);
+        updateWrapper.set(AbstractBaseDomain::getStatus, status);
+        updateWrapper.eq(AbstractBaseDomain::getId, id);
+
+        service.update(updateWrapper);
+
+        return ResultUtil.success();
+
+    }
+
     /**
      * 根据 ID 删除实体并封装为结果
      *
@@ -361,6 +400,16 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
 
         return ResultUtil.success(CglibUtil.copyList(service.list(wrapper), DropDownResult::new));
 
+    }
+
+    /**
+     * 获取所有启用状态的下拉选项列表并封装为结果
+     *
+     * @return 包含下拉选项列表的统一响应结果
+     */
+    @Override
+    public AbstractBaseResult<List<DropDownResult>> dropDownListResult(){
+        return ResultUtil.success(service.dropDownList());
     }
 
 }

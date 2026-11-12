@@ -3,6 +3,7 @@ package com.maozi.system.user.api.impl.rpc;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.service.api.annotation.RemoteService;
+import com.maozi.service.api.impl.result.BaseServiceResultImpl;
 import com.maozi.system.user.api.impl.UserServiceImpl;
 import com.maozi.system.user.api.rpc.RpcUserInfoService;
 import com.maozi.system.user.dto.SystemUser;
@@ -18,7 +19,7 @@ import com.maozi.system.user.dto.SystemUser;
  * @date 2026/11/08
  */
 @RemoteService
-public class RpcUserInfoServiceImpl extends UserServiceImpl implements RpcUserInfoService {
+public class RpcUserInfoServiceImpl extends BaseServiceResultImpl<UserServiceImpl, Void> implements RpcUserInfoService {
 
 	/**
 	 * 根据用户 ID 查询系统用户信息
@@ -33,7 +34,7 @@ public class RpcUserInfoServiceImpl extends UserServiceImpl implements RpcUserIn
 	 */
 	@Override
 	public AbstractBaseResult<SystemUser> rpcGet(Long id, String... columns) {
-		return ResultUtil.success(getByIdThrowErrorRelation(id,SystemUser.class));
+		return ResultUtil.success(service.getByIdThrowErrorRelation(id, SystemUser.class));
 	}
 
 }

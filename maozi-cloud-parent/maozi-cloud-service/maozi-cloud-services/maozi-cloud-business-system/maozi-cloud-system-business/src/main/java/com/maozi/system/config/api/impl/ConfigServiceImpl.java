@@ -26,7 +26,7 @@ import java.util.List;
  * @date 2026/11/08
  */
 @Service
-public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper,ConfigDo,Void> implements ConfigService {
+public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper, ConfigDo> implements ConfigService {
 
 	/** 资源名称，用于日志和异常信息中标识当前操作的资源类型 */
 	private static final String RESOURCE_NAME = "配置";
@@ -82,7 +82,7 @@ public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper,ConfigDo,Voi
 	 * @param type 配置类型（必传）
 	 * @return 下拉列表数据，每项包含配置 ID、名称、别名、配置值与排序
 	 */
-	protected List<ConfigDropDownResult> dropDownList(String type) {
+	public List<ConfigDropDownResult> dropDownList(String type) {
 
 		// 配置类型为空时抛出业务异常
 		ObjectUtil.isNullEmptyThrowError(type, getResourceName() + "类型");
@@ -116,7 +116,7 @@ public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper,ConfigDo,Voi
 	 * @param param 配置保存/更新参数
 	 * @return 新增或更新后的配置 ID
 	 */
-	protected Long restSaveUpdate(Long id, ConfigSaveUpdateParam param) {
+	public Long restSaveUpdate(Long id, ConfigSaveUpdateParam param) {
 
 		// 传入配置名称时校验唯一性，更新时排除自身记录；未传入名称则无需校验
 		if(ObjectUtil.isNotNullEmpty(param.getName())) {

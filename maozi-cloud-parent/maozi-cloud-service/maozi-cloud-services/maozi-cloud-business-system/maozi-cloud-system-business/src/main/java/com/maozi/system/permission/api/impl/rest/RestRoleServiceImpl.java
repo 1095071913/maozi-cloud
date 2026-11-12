@@ -6,6 +6,7 @@ import com.maozi.base.result.DropDownResult;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.service.api.annotation.RestService;
+import com.maozi.service.api.impl.result.BaseServiceResultImpl;
 import com.maozi.system.permission.api.impl.RoleServiceImpl;
 import com.maozi.system.permission.api.rest.RestRoleService;
 import com.maozi.system.permission.domain.RoleDo;
@@ -24,7 +25,7 @@ import java.util.List;
  * @date 2026/11/08
  */
 @RestService
-public class RestRoleServiceImpl extends RoleServiceImpl implements RestRoleService {
+public class RestRoleServiceImpl extends BaseServiceResultImpl<RoleServiceImpl, Void> implements RestRoleService {
 
 	/**
 	 * 查询角色列表
@@ -34,7 +35,7 @@ public class RestRoleServiceImpl extends RoleServiceImpl implements RestRoleServ
 	 */
 	@Override
 	public AbstractBaseResult<List<RoleListResult>> restList() {
-		return ResultUtil.success(list(RoleListResult.class, RoleDo::getId,RoleDo::getName));
+		return ResultUtil.success(service.list(RoleListResult.class, RoleDo::getId,RoleDo::getName));
 	}
 
 	/**
@@ -45,7 +46,7 @@ public class RestRoleServiceImpl extends RoleServiceImpl implements RestRoleServ
 	 */
 	@Override
 	public AbstractBaseResult<Long> restSave(RoleSaveUpdateParam param) {
-		return ResultUtil.success(restSaveUpdate(null,param));
+		return ResultUtil.success(service.restSaveUpdate(null,param));
 	}
 
 	/**
@@ -68,7 +69,7 @@ public class RestRoleServiceImpl extends RoleServiceImpl implements RestRoleServ
 	 */
 	@Override
 	public AbstractBaseResult<RoleInfoResult> restGet(Long id) {
-		return ResultUtil.success(getByIdThrowErrorRelation(id, RoleInfoResult.class));
+		return ResultUtil.success(service.getByIdThrowErrorRelation(id, RoleInfoResult.class));
 	}
 
 	/**
@@ -93,7 +94,7 @@ public class RestRoleServiceImpl extends RoleServiceImpl implements RestRoleServ
 	@Override
 	public AbstractBaseResult<Void> restUpdate(Long id, RoleSaveUpdateParam param) {
 
-		restSaveUpdate(id, param);
+		service.restSaveUpdate(id, param);
 
 		return ResultUtil.success();
 

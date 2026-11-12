@@ -60,7 +60,7 @@ import java.util.List;
  * @date 2026/11/08
  */
 @Service
-public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo, Void> implements UserService {
+public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> implements UserService {
 
     /** 资源名称常量，用于异常提示信息 */
     public static final String RESOURCE_NAME = "用户";
@@ -111,7 +111,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo, Void> i
      * @param username 用户名
      * @return 可用用户的ID
      */
-    protected Long getAvailableByUsername(String username) {
+    public Long getAvailableByUsername(String username) {
 
         ObjectUtil.isNullEmptyThrowError(username, getResourceName());
 
@@ -228,7 +228,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo, Void> i
      * @param userId 用户ID
      * @return 该用户拥有的权限标识列表
      */
-    protected List<String> getPermissionsByUserId(Long userId) {
+    public List<String> getPermissionsByUserId(Long userId) {
 
         List<String> responses = CollectionUtil.newArrayList();
 

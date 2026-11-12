@@ -18,6 +18,7 @@ import com.maozi.common.dto.CurrentUserInfo;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.service.api.annotation.RestService;
+import com.maozi.service.api.impl.result.BaseServiceResultImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.memory.ChatMemory;
 
@@ -33,7 +34,7 @@ import org.springframework.ai.chat.memory.ChatMemory;
  */
 @RestService
 @RequiredArgsConstructor
-public class RestChatConversationRecordImpl extends ChatConversationRecordServiceImpl
+public class RestChatConversationRecordImpl extends BaseServiceResultImpl<ChatConversationRecordServiceImpl, Void>
         implements RestChatConversationRecord {
 
     private static final int TITLE_MAX_LENGTH = 20;
@@ -55,16 +56,16 @@ public class RestChatConversationRecordImpl extends ChatConversationRecordServic
             PageParam<ChatConversationRecordListParam> pageParam) {
 
         Long userId = ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUserId);
-        MPJLambdaWrapper<ChatConversationRecordDo> wrapper = buildQueryWrapper(
+        MPJLambdaWrapper<ChatConversationRecordDo> wrapper = service.buildQueryWrapper(
                 pageParam, ChatConversationRecordListResult.class);
         wrapper.eq(ChatConversationRecordDo::getUserId,userId);
 
-        Page<ChatConversationRecordListResult> page = selectJoinListPage(
-                convertPage(pageParam), ChatConversationRecordListResult.class, wrapper);
+        Page<ChatConversationRecordListResult> page = service.selectJoinListPage(
+                service.convertPage(pageParam), ChatConversationRecordListResult.class, wrapper);
 
-        PageResult<ChatConversationRecordListResult> pageResult = convertPageResult(page);
+        PageResult<ChatConversationRecordListResult> pageResult = service.convertPageResult(page);
 
-        setRelationData(pageResult, ChatConversationRecordListResult.class);
+        service.setRelationData(pageResult, ChatConversationRecordListResult.class);
 
         return ResultUtil.success(pageResult);
     }
@@ -92,7 +93,7 @@ public class RestChatConversationRecordImpl extends ChatConversationRecordServic
         domain.setTitle(title.length() > TITLE_MAX_LENGTH ? StrUtil.subPre(title, TITLE_MAX_LENGTH) + "..." : title);
         domain.setUserId(ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUserId));
 
-        save(domain);
+        service.save(domain);
 
         return ResultUtil.success(domain.getId());
 
@@ -124,7 +125,7 @@ public class RestChatConversationRecordImpl extends ChatConversationRecordServic
         ChatConversationRecordDo domain = new ChatConversationRecordDo();
         domain.setId(conversationId);
         domain.setTitle(title);
-        updateById(domain);
+        service.updateById(domain);
 
         return ResultUtil.success();
 
@@ -142,7 +143,7 @@ public class RestChatConversationRecordImpl extends ChatConversationRecordServic
     @Override
     public AbstractBaseResult<Void> restRemove(String conversationId) {
 
-        removeById(conversationId);
+        service.removeById(conversationId);
         chatMemory.clear(conversationId);
 
         return ResultUtil.success();

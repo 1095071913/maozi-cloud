@@ -7,6 +7,7 @@ import com.maozi.base.result.PageResult;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.service.api.annotation.RestService;
+import com.maozi.service.api.impl.result.BaseServiceResultImpl;
 import com.maozi.system.config.api.impl.ConfigServiceImpl;
 import com.maozi.system.config.api.rest.RestConfigService;
 import com.maozi.system.config.param.ConfigListParam;
@@ -30,7 +31,7 @@ import java.util.List;
  * @date 2026/11/08
  */
 @RestService
-public class RestConfigServiceImpl extends ConfigServiceImpl implements RestConfigService {
+public class RestConfigServiceImpl extends BaseServiceResultImpl<ConfigServiceImpl, Void> implements RestConfigService {
 
 	/**
 	 * 分页查询全局配置列表
@@ -40,7 +41,7 @@ public class RestConfigServiceImpl extends ConfigServiceImpl implements RestConf
 	 */
 	@Override
 	public AbstractBaseResult<PageResult<ConfigListResult>> restList(PageParam<ConfigListParam> pageParam) {
-		return ResultUtil.success(listRelation(pageParam, ConfigListResult.class));
+		return ResultUtil.success(service.listRelation(pageParam, ConfigListResult.class));
 	}
 
 	/**
@@ -51,7 +52,7 @@ public class RestConfigServiceImpl extends ConfigServiceImpl implements RestConf
 	 */
 	@Override
 	public AbstractBaseResult<Long> restSave(ConfigSaveUpdateParam param) {
-		return ResultUtil.success(restSaveUpdate(null,param));
+		return ResultUtil.success(service.restSaveUpdate(null,param));
 	}
 
 	/**
@@ -66,7 +67,7 @@ public class RestConfigServiceImpl extends ConfigServiceImpl implements RestConf
 	 */
 	@Override
 	public AbstractBaseResult<List<ConfigDropDownResult>> dropDownListResult(String type) {
-		return ResultUtil.success(dropDownList(type));
+		return ResultUtil.success(service.dropDownList(type));
 	}
 
 	/**
@@ -80,7 +81,7 @@ public class RestConfigServiceImpl extends ConfigServiceImpl implements RestConf
 	 */
 	@Override
 	public AbstractBaseResult<ConfigDropDownResult> restDropDown(String name) {
-		return ResultUtil.success(getConfigByName(name));
+		return ResultUtil.success(service.getConfigByName(name));
 	}
 
 	/**
@@ -91,7 +92,7 @@ public class RestConfigServiceImpl extends ConfigServiceImpl implements RestConf
 	 */
 	@Override
 	public AbstractBaseResult<ConfigInfoResult> restGet(Long id) {
-		return ResultUtil.success(getByIdThrowErrorRelation(id, ConfigInfoResult.class));
+		return ResultUtil.success(service.getByIdThrowErrorRelation(id, ConfigInfoResult.class));
 	}
 
 	/**
@@ -114,7 +115,7 @@ public class RestConfigServiceImpl extends ConfigServiceImpl implements RestConf
 	 */
 	@Override
 	public AbstractBaseResult<Void> restUpdate(Long id, ConfigSaveUpdateParam param) {
-		restSaveUpdate(id,param);
+		service.restSaveUpdate(id,param);
 		return ResultUtil.success();
 	}
 

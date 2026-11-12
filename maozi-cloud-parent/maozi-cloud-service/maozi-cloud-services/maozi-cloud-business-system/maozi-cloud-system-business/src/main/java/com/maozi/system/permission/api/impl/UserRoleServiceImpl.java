@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * @date 2026/11/08
  */
 @Service
-public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper,UserRoleDo,Void> implements UserRoleService {
+public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRoleDo> implements UserRoleService {
 
 	/** 资源名称，用于异常提示信息 */
 	private static final String RESOURCE_NAME = "用户角色关系";

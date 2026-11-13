@@ -6,6 +6,7 @@ import com.maozi.base.param.RequestParam;
 import com.maozi.base.result.PageResult;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
+import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.service.api.annotation.RestService;
 import com.maozi.service.api.impl.result.BaseServiceResultImpl;
 import com.maozi.system.config.api.impl.ConfigServiceImpl;
@@ -21,10 +22,10 @@ import java.util.List;
 /**
  * 全局配置 REST 服务实现类
  * <p>
- * 继承自 ConfigServiceImpl，实现 RestConfigService 接口，
- * 提供全局配置模块的 RESTful API 接口实现，包括配置的
- * 分页查询、新增、详情查询、删除、更新、状态变更、
- * 下拉列表以及按名称获取配置等功能。
+ * 继承 BaseServiceResultImpl 并实现 RestConfigService 接口，
+ * 委托注入的 ConfigServiceImpl（service）完成业务处理，
+ * 提供配置的分页查询、新增、详情查询、删除、更新、
+ * 状态变更、下拉列表以及按名称获取配置等 RESTful 接口。
  * </p>
  *
  * @author maozi
@@ -89,6 +90,7 @@ public class RestConfigServiceImpl extends BaseServiceResultImpl<ConfigServiceIm
 	 *
 	 * @param id 配置 ID
 	 * @return 配置详细信息
+	 * @throws BusinessResultException 当配置不存在时抛出异常
 	 */
 	@Override
 	public AbstractBaseResult<ConfigInfoResult> restGet(Long id) {
@@ -115,7 +117,7 @@ public class RestConfigServiceImpl extends BaseServiceResultImpl<ConfigServiceIm
 	 */
 	@Override
 	public AbstractBaseResult<Void> restUpdate(Long id, ConfigSaveUpdateParam param) {
-		service.restSaveUpdate(id,param);
+		service.restSaveUpdate(id, param);
 		return ResultUtil.success();
 	}
 

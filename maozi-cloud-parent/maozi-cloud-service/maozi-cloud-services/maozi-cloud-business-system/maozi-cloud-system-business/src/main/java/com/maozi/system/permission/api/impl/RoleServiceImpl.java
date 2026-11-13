@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class RoleServiceImpl extends BaseServiceImpl<RoleMapper, RoleDo> implements RoleService {
 
 	/** 资源名称，用于异常提示信息 */
-	private static final String RESOURCE_NAME = "角色";
+	public static final String RESOURCE_NAME = "角色";
 
 	/** 用户角色关系服务，用于校验角色是否被用户绑定 */
 	@Resource(name = "userRoleServiceImpl")
@@ -46,7 +46,7 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleMapper, RoleDo> impleme
 
 	/**
 	 * 校验角色是否被其他资源绑定
-	 * <p>在删除角色前校验该角色是否已被用户绑定。</p>
+	 * <p>角色已被用户绑定时抛出业务异常，删除角色、禁用角色前均会调用本校验。</p>
 	 *
 	 * @param id 角色ID
 	 * @throws com.maozi.common.result.error.exception.BusinessResultException 角色已被用户绑定时抛出

@@ -28,6 +28,7 @@ import org.springframework.security.oauth2.server.authorization.settings.ClientS
 import org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.util.Collection;
@@ -49,19 +50,19 @@ import java.util.stream.Collectors;
 public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo> implements ClientService {
 
     /** 资源名称标识，用于日志和异常提示 */
-    private static final String RESOURCE_NAME = "客户端";
+    public static final String RESOURCE_NAME = "客户端";
 
     /** 授权码存活时间（秒）：5 分钟 */
-    private static final long AUTH_CODE_TTL_SECONDS = 300;
+    protected static final long AUTH_CODE_TTL_SECONDS = 300;
 
     /** 设备码存活时间（秒）：5 分钟 */
-    private static final long DEVICE_CODE_TTL_SECONDS = 300;
+    protected static final long DEVICE_CODE_TTL_SECONDS = 300;
 
     /** 请求令牌（Access Token）默认有效期：2小时 */
-    protected static final Long DEFAULT_ACCESS_TOKEN_VALIDITY_SECONDS = 60 * 60 * 2L;
+    protected static final long DEFAULT_ACCESS_TOKEN_VALIDITY_SECONDS = 60 * 60 * 2L;
 
     /** 刷新令牌（Refresh Token）默认有效期：7天 */
-    protected static final Long DEFAULT_REFRESH_TOKEN_VALIDITY_SECONDS = 60 * 60 * 24 * 7L;
+    protected static final long DEFAULT_REFRESH_TOKEN_VALIDITY_SECONDS = 60 * 60 * 24 * 7L;
 
     /** OAuth2专用的JSON序列化/反序列化对象，注册了Spring Security OAuth2的Jackson模块 */
     public static final ObjectMapper OAUTH_OBJECT_MAPPER;
@@ -112,7 +113,8 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo> i
      * @param param 客户端保存/更新参数
      * @return 保存后的客户端主键ID
      */
-    public Long restSaveUpdate(Long id, ClientSaveUpdateParam param) {
+    @Transactional(rollbackFor = Exception.class)
+    public Long saveUpdate(Long id, ClientSaveUpdateParam param) {
 
         if(ObjectUtil.isNullEmpty(id)) {
 
@@ -172,7 +174,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo> i
 
         }
         
-        return saveUpdate(id, param);
+        return super.saveUpdate(id, param);
         
     }
 

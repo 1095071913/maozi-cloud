@@ -17,38 +17,31 @@
 
 package com.maozi.system.user.api.impl.rest;
 
-import cn.hutool.extra.cglib.CglibUtil;
 import com.maozi.base.enums.Status;
 import com.maozi.base.param.PageParam;
 import com.maozi.base.param.RequestParam;
 import com.maozi.base.result.PageResult;
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.context.ApplicationLinkContext;
 import com.maozi.common.dto.CurrentUserInfo;
 import com.maozi.common.result.AbstractBaseResult;
-import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.service.api.annotation.RestService;
 import com.maozi.service.api.impl.result.BaseServiceResultImpl;
-import com.maozi.system.redirect.enums.RedirectType;
-import com.maozi.system.redirect.util.RedirectUtil;
 import com.maozi.system.user.api.impl.UserServiceImpl;
 import com.maozi.system.user.api.rest.RestUserService;
-import com.maozi.system.user.domain.UserDo;
 import com.maozi.system.user.param.UserIndividualUpdateParam;
 import com.maozi.system.user.param.UserListParam;
 import com.maozi.system.user.param.UserSaveUpdateParam;
 import com.maozi.system.user.result.UserIndividualInfoResult;
 import com.maozi.system.user.result.UserInfoResult;
 import com.maozi.system.user.result.UserListResult;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 用户REST服务实现类
  * <p>
  * 提供用户模块的RESTful API接口实现，包括用户的分页查询、新增、删除、
  * 详情查询、更新、状态变更以及当前登录用户个人信息查询等功能。
- * 继承自 UserServiceImpl，复用用户基础业务逻辑。
+ * 内部持有 UserServiceImpl 作为业务服务，复用用户基础业务逻辑。
  * </p>
  *
  * @author maozi
@@ -76,37 +69,26 @@ public class RestUserServiceImpl extends BaseServiceResultImpl<UserServiceImpl, 
 	 */
 	@Override
 	public AbstractBaseResult<Long> restSave(UserSaveUpdateParam param) {
-		return ResultUtil.success(service.restSaveUpdate(null,param));
+		return ResultUtil.success(service.saveUpdate(null, param));
 	}
 
 	/**
 	 * 删除用户
+	 * <p>委托业务层 {@code remove} 处理：用户不存在时静默返回；删除时解除用户与角色的绑定关系，
+	 * 删除成功后销毁该用户的全部OAuth2令牌，强制下线。</p>
 	 *
 	 * @param id 需要删除的用户ID
 	 * @return 操作结果
 	 */
 	@Override
 	public AbstractBaseResult<Void> restRemove(Long id) {
-
-		// 先获取用户的用户名和客户端ID，删除后需用于注销认证令牌
-		UserDo user = service.getById(id, UserDo::getUsername,UserDo::getClientId);
-		if(ObjectUtil.isNullEmpty(user)){
-			return ResultUtil.success();
-		}
-
-		// 删除用户数据库记录
-		if(service.removeById(id)){
-			// 通过RPC调用OAuth服务，根据clientId+用户名销毁该用户的所有OAuth2授权令牌
-			service.rpcOauthTokenService.rpcDestroyByPrincipal(user.getClientId(), user.getUsername()).getResultDataThrowError();
-		}
-
+		service.remove(id);
 		return ResultUtil.success();
-
 	}
 
 	/**
 	 * 更新用户状态（启用/禁用）
-	 * <p>委托本类重写的 {@code updateStatusResult} 处理：当前状态与目标状态一致时直接返回成功；
+	 * <p>委托业务层 {@code updateStatus} 处理：当前状态与目标状态一致时直接返回；
 	 * 状态变更为禁用后会销毁该用户的全部OAuth2令牌，强制其下线。</p>
 	 *
 	 * @param id 需要更新状态的用户ID
@@ -115,7 +97,8 @@ public class RestUserServiceImpl extends BaseServiceResultImpl<UserServiceImpl, 
 	 */
 	@Override
 	public AbstractBaseResult<Void> restUpdateStatusResult(Long id, RequestParam<Status> param) {
-		return updateStatusResult(id, param);
+		service.updateStatus(id, param);
+		return ResultUtil.success();
 	}
 
 	/**
@@ -133,7 +116,8 @@ public class RestUserServiceImpl extends BaseServiceResultImpl<UserServiceImpl, 
 	/**
 	 * 更新用户信息
 	 * <p>
-	 * 若更新参数中的状态为禁用，更新完成后会远程销毁该用户的全部 OAuth2 令牌，强制其重新登录。
+	 * 委托业务层 {@code saveUpdate} 处理，更新时同步维护用户与角色的绑定关系；
+	 * 若更新参数中的状态为禁用，更新完成后会销毁该用户的全部 OAuth2 令牌，强制其重新登录。
 	 * </p>
 	 *
 	 * @param id    需要更新的用户ID
@@ -142,53 +126,8 @@ public class RestUserServiceImpl extends BaseServiceResultImpl<UserServiceImpl, 
 	 */
 	@Override
 	public AbstractBaseResult<Void> restUpdate(Long id, UserSaveUpdateParam param) {
-
-		service.restSaveUpdate(id,param);
-
-		if(Status.DISABLE == param.getStatus()){
-			// 更新后状态为禁用时，销毁该用户的全部OAuth2令牌，强制下线
-			UserDo user = service.getByIdThrowError(id,UserDo::getUsername,UserDo::getClientId);
-			service.rpcOauthTokenService.rpcDestroyByPrincipal(user.getClientId(), user.getUsername()).getResultDataThrowError();
-		}
-
+		service.saveUpdate(id, param);
 		return ResultUtil.success();
-
-	}
-
-	/**
-	 * 更新用户状态（启用/禁用）
-	 * <p>
-	 * 如果用户当前状态与目标状态一致，则不做任何操作直接返回成功；
-	 * 状态变更为禁用后，会远程销毁该用户的全部 OAuth2 令牌，强制其重新登录。
-	 * </p>
-	 *
-	 * @param id    需要更新状态的用户ID
-	 * @param param 状态参数，包含目标状态值
-	 * @return 操作结果
-	 */
-	@Transactional(rollbackFor = Exception.class)
-	public AbstractBaseResult<Void> updateStatusResult(Long id, RequestParam<Status> param){
-
-		Status status = param.getData();
-
-		UserDo user = service.getByIdThrowError(id,UserDo::getUsername,UserDo::getClientId,UserDo::getStatus);
-
-		// 当前状态与目标状态一致时，无需更新，直接返回成功
-		if(user.getStatus() == status){
-			return ResultUtil.success();
-		}
-
-		user.setId(id);
-		user.setStatus(status);
-		service.updateById(user);
-
-		// 禁用用户后销毁其全部OAuth2令牌，强制下线
-		if(Status.DISABLE == status){
-			service.rpcOauthTokenService.rpcDestroyByPrincipal(user.getClientId(), user.getUsername()).getResultDataThrowError();
-		}
-
-		return ResultUtil.success();
-
 	}
 
 	/**
@@ -202,7 +141,8 @@ public class RestUserServiceImpl extends BaseServiceResultImpl<UserServiceImpl, 
 	 */
 	@Override
 	public AbstractBaseResult<UserIndividualInfoResult> restIndividualGet() {
-		return ResultUtil.success(service.getByIdThrowErrorRelation(ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUserId), UserIndividualInfoResult.class));
+		Long userId = ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUserId);
+		return ResultUtil.success(service.getByIdThrowErrorRelation(userId, UserIndividualInfoResult.class));
 	}
 
 	/**
@@ -217,39 +157,9 @@ public class RestUserServiceImpl extends BaseServiceResultImpl<UserServiceImpl, 
 	 * @return 操作结果
 	 */
 	@Override
-	@Transactional(rollbackFor = Exception.class)
 	public AbstractBaseResult<Void> restIndividualUpdate(UserIndividualUpdateParam param) {
-
-		Long userId = ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUserId);
-
-		String paramPassword = param.getPassword();
-		String paramNewPassword = param.getNewPassword();
-
-		// 旧密码与新密码同时传入时，先校验旧密码，再将新密码加密
-		if(ObjectUtil.isNotNullEmpty(paramPassword) && ObjectUtil.isNotNullEmpty(paramNewPassword)){
-			UserDo domain = service.getByIdThrowError(userId, UserDo::getPassword);
-
-			// 旧密码与库中密文不匹配时抛出业务异常
-			if(!UserServiceImpl.PASSWORD_ENCODER.matches(paramPassword,domain.getPassword())){
-				throw new BusinessResultException("旧密码不正确");
-			}
-
-			paramNewPassword = UserServiceImpl.PASSWORD_ENCODER.encode(paramNewPassword);
-		}
-
-		UserDo domain = CglibUtil.copy(param, UserDo.class);
-		domain.setId(userId);
-		domain.setPassword(paramNewPassword);
-		service.updateById(domain);
-
-		// 更新成功后销毁当前用户在该客户端下的全部OAuth2令牌，并指示前端跳转登录页，强制重新登录
-		Long clientId = ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getClientId);
-		String username = ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUsername);
-		service.rpcOauthTokenService.rpcDestroyByPrincipal(clientId, username).getResultDataThrowError();
-		RedirectUtil.redirect(RedirectType.LOGIN);
-
+		service.individualUpdate(param);
 		return ResultUtil.success();
-
 	}
 
 }

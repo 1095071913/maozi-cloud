@@ -45,14 +45,14 @@ import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.db.domain.AbstractBaseDomain;
 import com.maozi.db.domain.AbstractBaseNameDomain;
 import com.maozi.service.api.IBaseMapper;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -84,12 +84,25 @@ import java.util.stream.Collectors;
  * @author maozi
  * @date 2026/11/08
  */
+@SuppressWarnings("unchecked")
 public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends AbstractBaseDomain>
         extends ServiceImpl<M, T>
         implements MPJBaseService<T> {
 
-    /** 领域模型（数据库实体）Class 对象 */
-    public Class<T> domainClass;
+    /**
+     * 领域模型（数据库实体）Class 对象
+     * -- GETTER --
+     * 获取领域模型的 Class 对象
+     * <p>
+     * 首次调用 {@link #currentModelClass()} 时懒加载并缓存。实例被 CGLIB
+     * 代理时，代理对象与原始实例不共享字段值，直接读代理字段得到的是 null；
+     * 方法调用会委托至原始实例，因此外部取值应走本方法而非直接读字段。
+     * </p>
+     *
+     * @return 领域模型 Class 对象
+     */
+    @Getter
+    private Class<T> domainClass;
 
     /** get 方法名前缀的长度 */
     private static final int GETTER_PREFIX_LENGTH = 3;
@@ -125,41 +138,16 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     public abstract String getResourceName();
 
     /**
-     * 构造方法
-     * <p>
-     * 通过反射获取父类泛型参数的实际类型，初始化 domainClass 和 resultClass。
-     * </p>
-     */
-    @SuppressWarnings("unchecked")
-    public BaseServiceImpl() {
-
-        // 沿继承链向上查找带泛型参数的父类，提取领域模型与 DTO 的泛型实参
-        for (Class<?> superClass = this.getClass();
-                superClass != null && superClass != Object.class;
-                superClass = superClass.getSuperclass()) {
-
-            Type genericSuperclass = superClass.getGenericSuperclass();
-
-            if(genericSuperclass instanceof ParameterizedType type) {
-
-                domainClass = (Class<T>) type.getActualTypeArguments()[1];
-
-                break;
-
-            }
-
-        }
-
-    }
-
-    /**
      * 获取当前领域模型的 Class 对象
      *
      * @return 领域模型 Class 对象
      */
     @Override
     public Class<T> currentModelClass() {
-        return super.currentModelClass();
+        if(ObjectUtil.isNullEmpty(domainClass)){
+            domainClass = super.currentModelClass();
+        }
+        return domainClass;
     }
 
     /**
@@ -277,8 +265,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param functions Lambda 函数引用数组
      * @return 数据库列名数组
      */
-    @SafeVarargs
-    public final <O> String[] getColumns(SFunction<O, ?>... functions) {
+    public <O> String[] getColumns(SFunction<O, ?>... functions) {
 
         String [] columns = new String[functions.length];
 
@@ -397,8 +384,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param columns Lambda 函数引用指定的查询字段
      * @return 实体对象，不存在返回 null
      */
-    @SafeVarargs
-    public final T getById(Long id, SFunction<T, ?>... columns){
+    public T getById(Long id, SFunction<T, ?>... columns){
 
         ObjectUtil.isNullEmptyThrowError(id, getResourceName());
 
@@ -481,8 +467,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 可用的实体对象
      * @throws BusinessResultException 当实体不存在或状态为禁用时抛出异常
      */
-    @SafeVarargs
-    public final T getAvailableById(Long id, SFunction<T, ?>... columns){
+    public T getAvailableById(Long id, SFunction<T, ?>... columns){
         return getAvailableById(id,getColumns(columns));
     }
 
@@ -717,8 +702,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 实体对象
      * @throws BusinessResultException 当实体不存在时抛出异常
      */
-    @SafeVarargs
-    public final <R> T getByIdThrowError(Long id, SFunction<R, ?> ... columns) {
+    public <R> T getByIdThrowError(Long id, SFunction<R, ?> ... columns) {
         return getByIdThrowError(id,getColumns(columns));
     }
 
@@ -733,8 +717,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 转换后的对象
      * @throws BusinessResultException 当实体不存在时抛出异常
      */
-    @SafeVarargs
-    public final <V,R> V getByIdThrowError(Long id, Class<V> clazz, SFunction<R, ?> ... columns){
+    public <V,R> V getByIdThrowError(Long id, Class<V> clazz, SFunction<R, ?> ... columns){
         return CglibUtil.copy(getByIdThrowError(id,columns), clazz);
     }
 
@@ -817,8 +800,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param columns 额外查询的 Lambda 函数引用字段
      * @return VO 列表
      */
-    @SafeVarargs
-    public final <R,V> List<V> list(Class<V> voClass, SFunction<R, ?>... columns) {
+    public <R,V> List<V> list(Class<V> voClass, SFunction<R, ?>... columns) {
 
         MPJLambdaWrapper<T> wrapper = MPJWrappers.lambdaJoin();
         wrapper.selectAsClass(domainClass, voClass);
@@ -1013,7 +995,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param param 参数对象
      * @return 新增或更新后的实体 ID
      */
-    public Long saveUpdate(Long id,Object param) {
+    @Transactional(rollbackFor = Exception.class)
+    public Long saveUpdate(Long id, Object param) {
 
         ObjectUtil.isNullEmptyThrowError(param,getResourceName());
 

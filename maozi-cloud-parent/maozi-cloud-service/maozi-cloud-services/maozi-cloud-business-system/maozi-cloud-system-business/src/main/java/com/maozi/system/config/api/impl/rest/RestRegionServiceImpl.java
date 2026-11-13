@@ -1,7 +1,5 @@
 package com.maozi.system.config.api.impl.rest;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maozi.base.result.DropDownResult;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
@@ -9,14 +7,14 @@ import com.maozi.service.api.annotation.RestService;
 import com.maozi.service.api.impl.result.BaseServiceResultImpl;
 import com.maozi.system.config.api.impl.RegionServiceImpl;
 import com.maozi.system.config.api.rest.RestRegionService;
-import com.maozi.system.config.domain.RegionDo;
 
 import java.util.List;
 
 /**
  * 地区 REST 服务实现类
  * <p>
- * 继承自 RegionServiceImpl，实现 RestRegionService 接口，
+ * 继承 BaseServiceResultImpl 并实现 RestRegionService 接口，
+ * 委托注入的 RegionServiceImpl（service）完成业务处理，
  * 提供 RESTful 风格的地区查询接口，主要用于前端下拉列表数据获取。
  * </p>
  *
@@ -38,17 +36,7 @@ public class RestRegionServiceImpl extends BaseServiceResultImpl<RegionServiceIm
 	 */
 	@Override
 	public AbstractBaseResult<List<DropDownResult>> restList(Long parentId) {
-
-		LambdaQueryWrapper<RegionDo> wrapper = Wrappers.lambdaQuery();
-
-		// 只查询ID和名称字段
-		wrapper.select(RegionDo::getId,RegionDo::getName);
-		// 根据父级ID筛选子地区
-		wrapper.eq(RegionDo::getParentId,parentId);
-
-		// 执行查询并将结果转换为下拉列表格式返回
-		return ResultUtil.success(service.list(wrapper,DropDownResult::new));
-
+		return ResultUtil.success(service.list(parentId));
 	}
 
 }

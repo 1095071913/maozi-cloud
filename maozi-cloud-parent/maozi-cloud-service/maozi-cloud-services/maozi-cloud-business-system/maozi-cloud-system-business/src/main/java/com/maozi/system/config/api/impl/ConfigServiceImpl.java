@@ -59,8 +59,8 @@ public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper, ConfigDo> i
 		LambdaQueryWrapper<ConfigDo> wrapper = Wrappers.lambdaQuery();
 
 		// 仅查询ID、名称、别名和配置值字段
-		wrapper.select(ConfigDo::getId,ConfigDo::getName,ConfigDo::getAlias,ConfigDo::getValue);
-		wrapper.eq(ConfigDo::getName,name);
+		wrapper.select(ConfigDo::getId, ConfigDo::getName, ConfigDo::getAlias, ConfigDo::getValue);
+		wrapper.eq(ConfigDo::getName, name);
 
 		ConfigDo domain = getOne(wrapper);
 
@@ -90,25 +90,25 @@ public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper, ConfigDo> i
 		LambdaQueryWrapper<ConfigDo> wrapper = Wrappers.lambdaQuery();
 
 		// 仅查询ID、名称、别名、配置值和排序字段
-		wrapper.select(ConfigDo::getId,ConfigDo::getName,ConfigDo::getAlias,ConfigDo::getValue,ConfigDo::getSort);
+		wrapper.select(ConfigDo::getId, ConfigDo::getName, ConfigDo::getAlias, ConfigDo::getValue, ConfigDo::getSort);
 
 		// 根据配置类型筛选
-		wrapper.eq(ConfigDo::getType,type);
+		wrapper.eq(ConfigDo::getType, type);
 
 		// 仅查询启用状态的配置
-		wrapper.eq(ConfigDo::getStatus,Status.ENABLE);
+		wrapper.eq(ConfigDo::getStatus, Status.ENABLE);
 
 		// 按排序值升序排列，排序值相同时按创建时间升序排列
-		wrapper.orderByAsc(ConfigDo::getSort,ConfigDo::getCreateTime);
+		wrapper.orderByAsc(ConfigDo::getSort, ConfigDo::getCreateTime);
 
-		return list(wrapper,ConfigDropDownResult::new);
+		return list(wrapper, ConfigDropDownResult::new);
 
 	}
 
 	/**
 	 * 保存/更新配置（REST 层入口）
 	 * <p>
-	 * 新增时各字段必填（由基类触发参数校验），更新时仅更新传入的字段；
+	 * 新增时由基类触发参数校验（必填字段见 ConfigSaveUpdateParam），更新时仅更新传入的字段；
 	 * 传入配置名称时校验其唯一性（更新时排除自身记录），未传入则跳过校验。
 	 * </p>
 	 *
@@ -122,17 +122,17 @@ public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper, ConfigDo> i
 		if(ObjectUtil.isNotNullEmpty(param.getName())) {
 
 			LambdaQueryWrapper<ConfigDo> wrapper = Wrappers.lambdaQuery();
-			wrapper.eq(ConfigDo::getName,param.getName());
+			wrapper.eq(ConfigDo::getName, param.getName());
 
 			if(ObjectUtil.isNotNullEmpty(id)) {
-				wrapper.ne(ConfigDo::getId,id);
+				wrapper.ne(ConfigDo::getId, id);
 			}
 
 			checkNotHas(wrapper);
 
 		}
 
-		return saveUpdate(id,param);
+		return saveUpdate(id, param);
 
 	}
 

@@ -35,11 +35,12 @@ public class RestRoleServiceImpl extends BaseServiceResultImpl<RoleServiceImpl, 
 	 */
 	@Override
 	public AbstractBaseResult<List<RoleListResult>> restList() {
-		return ResultUtil.success(service.list(RoleListResult.class, RoleDo::getId,RoleDo::getName));
+		return ResultUtil.success(service.list(RoleListResult.class, RoleDo::getId, RoleDo::getName));
 	}
 
 	/**
 	 * 新增角色
+	 * <p>保存角色信息，并按参数同步建立角色与权限的绑定关系。</p>
 	 *
 	 * @param param 角色保存参数
 	 * @return 新增角色的ID
@@ -86,6 +87,7 @@ public class RestRoleServiceImpl extends BaseServiceResultImpl<RoleServiceImpl, 
 
 	/**
 	 * 更新角色
+	 * <p>更新角色信息，并按参数同步更新角色与权限的绑定关系。</p>
 	 *
 	 * @param id 角色ID
 	 * @param param 角色更新参数
@@ -93,11 +95,8 @@ public class RestRoleServiceImpl extends BaseServiceResultImpl<RoleServiceImpl, 
 	 */
 	@Override
 	public AbstractBaseResult<Void> restUpdate(Long id, RoleSaveUpdateParam param) {
-
 		service.restSaveUpdate(id, param);
-
 		return ResultUtil.success();
-
 	}
 
 	/**

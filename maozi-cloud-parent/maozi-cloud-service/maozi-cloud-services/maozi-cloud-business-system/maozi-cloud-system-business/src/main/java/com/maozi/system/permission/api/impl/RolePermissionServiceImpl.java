@@ -48,11 +48,11 @@ import java.util.stream.Collectors;
 public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMapper,RolePermissionDo> implements RolePermissionService {
 
 	/** 资源名称，用于异常提示信息 */
-	private static final String RESOURCE_NAME = "角色权限关系";
+	public static final String RESOURCE_NAME = "角色权限关系";
 
 	/** 权限服务，用于校验权限是否存在 */
 	@Resource(name = "permissionServiceImpl")
-	private PermissionService permissionService;
+	protected PermissionService permissionService;
 
 	/**
 	 * 获取资源名称

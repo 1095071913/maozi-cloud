@@ -23,7 +23,8 @@ import java.util.List;
 /**
  * OAuth2客户端REST接口实现类。
  * <p>
- * 继承 ClientServiceImpl 并实现 RestClientService 接口，
+ * 继承 BaseServiceResultImpl 并实现 RestClientService 接口，
+ * 委托注入的 ClientServiceImpl（service）完成业务处理，
  * 作为RESTful API的服务端实现，提供客户端的增删改查、
  * 状态更新、下拉列表等HTTP接口功能。
  * 使用 @RestService 注解标识为REST服务。
@@ -54,7 +55,7 @@ public class RestClientServiceImpl extends BaseServiceResultImpl<ClientServiceIm
 	 */
 	@Override
 	public AbstractBaseResult<Long> restSave(ClientSaveUpdateParam param) {
-		return ResultUtil.success(service.restSaveUpdate(null,param));
+		return ResultUtil.success(service.saveUpdate(null, param));
 	}
 
 	/**
@@ -87,11 +88,8 @@ public class RestClientServiceImpl extends BaseServiceResultImpl<ClientServiceIm
      */
     @Override
     public AbstractBaseResult<Void> restUpdate(Long id, ClientSaveUpdateParam param) {
-
-		service.restSaveUpdate(id,param);
-
+		service.saveUpdate(id, param);
         return ResultUtil.success();
-
     }
 
 	/**
@@ -114,11 +112,8 @@ public class RestClientServiceImpl extends BaseServiceResultImpl<ClientServiceIm
      */
     @Override
     public AbstractBaseResult<Void> restRemove(Long id) {
-
 		service.removeById(id);
-
         return ResultUtil.success();
-
     }
 
 

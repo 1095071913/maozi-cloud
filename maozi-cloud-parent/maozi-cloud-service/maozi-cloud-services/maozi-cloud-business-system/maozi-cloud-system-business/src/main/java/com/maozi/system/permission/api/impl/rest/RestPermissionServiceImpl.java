@@ -1,8 +1,5 @@
 package com.maozi.system.permission.api.impl.rest;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.maozi.common.CollectionUtil;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.service.api.annotation.RestService;
@@ -29,24 +26,13 @@ import java.util.List;
 public class RestPermissionServiceImpl extends BaseServiceResultImpl<PermissionServiceImpl, Void> implements RestPermissionService {
 
 	/**
-	 * 查询权限列表
-	 * <p>按权限深度和排序降序返回所有权限的列表视图数据。</p>
+	 * 查询所有权限的列表数据
 	 *
 	 * @return 权限列表视图数据
 	 */
 	@Override
 	public AbstractBaseResult<List<PermissionListResult>> restList() {
-
-		QueryWrapper<PermissionDo> wrapper = Wrappers.query();
-
-		// 仅查询列表视图对象所需的字段列
-		wrapper.select(getColumns(PermissionListResult.class,false));
-
-		// 按权限深度、排序序号降序排列
-		wrapper.orderByDesc(CollectionUtil.newArrayList(getColumns(PermissionDo::getLevel,PermissionDo::getSort)));
-
-		return ResultUtil.success(service.list(wrapper, PermissionListResult::new));
-
+		return ResultUtil.success(service.adminList());
 	}
 
 	/**
@@ -85,6 +71,7 @@ public class RestPermissionServiceImpl extends BaseServiceResultImpl<PermissionS
 
 	/**
 	 * 删除权限
+	 * <p>删除前校验权限未被角色绑定且不存在子权限，否则抛出业务异常。</p>
 	 *
 	 * @param id 权限ID
 	 * @return 操作结果
@@ -103,11 +90,8 @@ public class RestPermissionServiceImpl extends BaseServiceResultImpl<PermissionS
 	 */
 	@Override
 	public AbstractBaseResult<Void> restUpdate(Long id, PermissionSaveUpdateParam param) {
-
 		service.saveUpdate(id,param);
-
 		return ResultUtil.success();
-
 	}
 
 }

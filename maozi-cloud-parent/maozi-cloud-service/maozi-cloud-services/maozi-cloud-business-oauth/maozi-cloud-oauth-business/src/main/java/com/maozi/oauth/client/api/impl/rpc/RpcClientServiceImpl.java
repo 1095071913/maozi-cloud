@@ -11,9 +11,9 @@ import com.maozi.service.api.impl.result.BaseServiceResultImpl;
 /**
  * OAuth2客户端RPC服务实现类
  * <p>
- * 继承 ClientServiceImpl 并实现 RpcClientService 接口，通过 @RemoteService 注解
- * 将客户端服务能力暴露为微服务间RPC调用；除 rpcAiSave（供AI智能体调用）外，
- * 其余方法均直接继承自 ClientServiceImpl。
+ * 继承 BaseServiceResultImpl 并实现 RpcClientService 接口，通过 @RemoteService 注解
+ * 将客户端服务能力暴露为微服务间RPC调用；除 rpcAiSave（供AI智能体调用）在本类实现外，
+ * 其余方法沿用 BaseServiceResultImpl 的通用实现（内部委托注入的 ClientServiceImpl）。
  * </p>
  *
  * @author maozi
@@ -34,7 +34,7 @@ public class RpcClientServiceImpl extends BaseServiceResultImpl<ClientServiceImp
      */
     @Override
     public AbstractBaseResult<ClientDto> rpcAiSave(ClientSaveUpdateParam param) {
-        Long clientId = service.restSaveUpdate(null, param);
+        Long clientId = service.saveUpdate(null, param);
         return getByIdResult(clientId);
     }
 

@@ -20,7 +20,6 @@ import com.maozi.db.domain.AbstractBaseDomain;
 import com.maozi.db.domain.AbstractBaseNameDomain;
 import com.maozi.service.api.impl.BaseServiceImpl;
 import com.maozi.service.api.rpc.BaseServiceResult;
-import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,11 +32,21 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
+ * 业务结果封装基础实现
+ * <p>
+ * 在 {@link BaseServiceImpl} 通用增删改查能力之上，负责实体到 DTO 的属性拷贝，
+ * 并将业务数据包装为统一响应结果（{@link AbstractBaseResult}）。
+ * </p>
+ *
+ * @param <S> 关联的通用业务服务类型
+ * @param <D> 结果 DTO 类型
  * @author pengjinlong
  * @date 2026/11/11 21:41
  */
+@SuppressWarnings("unchecked")
 public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements BaseServiceResult<D> {
 
+    /** 关联的通用业务服务 */
     @Autowired
     protected S service;
 
@@ -53,13 +62,12 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
     /**
      * 构造方法
      * <p>
-     * 通过反射获取父类泛型参数的实际类型，初始化 domainClass 和 resultClass。
+     * 通过反射获取父类泛型参数的实际类型，初始化 resultClass。
      * </p>
      */
-    @SuppressWarnings("unchecked")
     public BaseServiceResultImpl() {
 
-        // 沿继承链向上查找带泛型参数的父类，提取领域模型与 DTO 的泛型实参
+        // 沿继承链向上查找带泛型参数的父类，提取第二个泛型实参作为结果 DTO 类型
         for (Class<?> superClass = this.getClass();
              superClass != null && superClass != Object.class;
              superClass = superClass.getSuperclass()) {
@@ -98,25 +106,51 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
 
     }
 
-    @SafeVarargs
-    public final <O> String[] getColumns(SFunction<O, ?>... functions) {
+    /**
+     * 批量获取数据库列名
+     *
+     * @param <O> 实体类型
+     * @param functions Lambda 函数引用数组
+     * @return 数据库列名数组
+     */
+    public <O> String[] getColumns(SFunction<O, ?>... functions) {
         return service.getColumns(functions);
     }
 
+    /**
+     * 根据 Lambda 函数引用获取对应的数据库列名
+     *
+     * @param <O> 实体类型
+     * @param sfunction Lambda 函数引用
+     * @return 数据库列名
+     */
     public <O> String getColumn(SFunction<O, ?> sfunction) {
         return service.getColumn(sfunction);
     }
 
+    /**
+     * 根据 Class 对象获取其对应的所有数据库列名（默认为关联查询模式）
+     *
+     * @param clazz Class 对象
+     * @return 数据库列名数组
+     */
     public String[] getColumns(Class<?> clazz){
         return service.getColumns(clazz,true);
     }
 
+    /**
+     * 根据 Class 对象获取其对应的所有数据库列名
+     *
+     * @param clazz Class 对象
+     * @param isJoin 是否为关联查询模式（关联查询时列名会添加表别名前缀）
+     * @return 数据库列名数组
+     */
     public String[] getColumns(Class<?> clazz,Boolean isJoin) {
         return service.getColumns(clazz, isJoin);
     }
 
     /**
-     * 根据 ID 查询实体并封装为结果（字符串列名方式）
+     * 根据 ID 查询实体并封装为 DTO 结果
      *
      * @param id 实体 ID
      * @param columns 查询字段列表
@@ -259,7 +293,7 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
 
         CollectionUtil.collectionIsEmptyThrowError(collection, service.getResourceName() + RESOURCE_SUFFIX_LIST);
 
-        List<?> domains = CglibUtil.copyList(collection, () -> ReflectUtil.newInstance(service.domainClass));
+        List<?> domains = CglibUtil.copyList(collection, () -> ReflectUtil.newInstance(service.getDomainClass()));
         service.saveUpdateBatch(domains);
 
         return ResultUtil.success();
@@ -272,15 +306,13 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
      * 更新实体状态
      * <p>
      * 目标状态为禁用（DISABLE）时先检查绑定关系；
-     * 随后仅设置 ID 与状态字段构造新实体并按 ID 更新
-     * （MyBatis-Plus 默认只更新非空字段，即仅变更状态列）。
+     * 随后通过 UpdateWrapper 按 ID 仅更新状态字段。
      * </p>
      *
      * @param id 实体 ID
      * @param param 携带目标状态的请求参数（data 为空时抛出参数错误异常）
      * @return 统一响应结果
      */
-    @SneakyThrows
     public AbstractBaseResult<Void> updateStatusResult(Long id, RequestParam<Status> param){
 
         Status status = param.getData();
@@ -291,7 +323,7 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
             service.checkBind(id);
         }
 
-        LambdaUpdateWrapper<? extends AbstractBaseDomain> updateWrapper = Wrappers.lambdaUpdate(service.domainClass);
+        LambdaUpdateWrapper<? extends AbstractBaseDomain> updateWrapper = Wrappers.lambdaUpdate(service.getDomainClass());
         updateWrapper.set(AbstractBaseDomain::getStatus, status);
         updateWrapper.eq(AbstractBaseDomain::getId, id);
 

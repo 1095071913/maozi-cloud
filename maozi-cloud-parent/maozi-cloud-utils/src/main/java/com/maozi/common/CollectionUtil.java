@@ -23,6 +23,7 @@ import java.util.Set;
  * @author maozi
  * @date 2026/11/08
  */
+@SuppressWarnings("unchecked")
 public class CollectionUtil {
 
     /**
@@ -42,7 +43,6 @@ public class CollectionUtil {
      * @param <T> 元素类型
      * @return 包含指定元素的 ArrayList
      */
-    @SafeVarargs
     public static <T> List<T> newArrayList(T ... array) {
         ArrayList<T> list = new ArrayList<>(array.length);
         Collections.addAll(list, array);
@@ -92,7 +92,6 @@ public class CollectionUtil {
      * @param <T> 元素类型
      * @return 包含指定元素的 HashSet
      */
-    @SafeVarargs
     public static <T> Set<T> newHashSet(T ... array) {
         return new HashSet<>(newArrayList(array));
     }

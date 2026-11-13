@@ -1,10 +1,15 @@
 package com.maozi.system.config.api.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.maozi.base.result.DropDownResult;
 import com.maozi.service.api.impl.BaseServiceImpl;
 import com.maozi.system.config.api.RegionService;
 import com.maozi.system.config.domain.RegionDo;
 import com.maozi.system.config.mapper.RegionMapper;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * 地区服务实现类
@@ -30,6 +35,26 @@ public class RegionServiceImpl extends BaseServiceImpl<RegionMapper, RegionDo> i
 	@Override
 	public String getResourceName() {
 		return RESOURCE_NAME;
+	}
+
+	/**
+	 * 根据父级 ID 查询子地区下拉列表
+	 *
+	 * @param parentId 父级地区 ID
+	 * @return 子地区下拉列表，每项包含地区 ID 和名称
+	 */
+	public List<DropDownResult> list(Long parentId) {
+
+		LambdaQueryWrapper<RegionDo> wrapper = Wrappers.lambdaQuery();
+
+		// 只查询ID和名称字段
+		wrapper.select(RegionDo::getId,RegionDo::getName);
+		// 根据父级ID筛选子地区
+		wrapper.eq(RegionDo::getParentId,parentId);
+
+		// 执行查询并将结果转换为下拉列表格式返回
+		return list(wrapper,DropDownResult::new);
+
 	}
 
 }

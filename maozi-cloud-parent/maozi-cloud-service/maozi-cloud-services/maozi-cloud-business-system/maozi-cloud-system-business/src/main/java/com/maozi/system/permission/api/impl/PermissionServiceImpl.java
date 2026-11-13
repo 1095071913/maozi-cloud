@@ -18,7 +18,9 @@
 package com.maozi.system.permission.api.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.maozi.common.CollectionUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.service.api.impl.BaseServiceImpl;
@@ -26,6 +28,7 @@ import com.maozi.system.permission.api.PermissionService;
 import com.maozi.system.permission.api.RolePermissionService;
 import com.maozi.system.permission.domain.PermissionDo;
 import com.maozi.system.permission.mapper.PermissionMapper;
+import com.maozi.system.permission.result.PermissionListResult;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
@@ -46,11 +49,11 @@ import java.util.stream.Collectors;
 public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, PermissionDo> implements PermissionService {
 
 	/** 资源名称，用于异常提示信息 */
-	private static final String RESOURCE_NAME = "权限";
+	public static final String RESOURCE_NAME = "权限";
 
 	/** 角色权限关系服务，用于校验权限是否被角色绑定 */
 	@Resource(name = "rolePermissionServiceImpl")
-	private RolePermissionService rolePermissionService;
+	protected RolePermissionService rolePermissionService;
 
 	/**
 	 * 获取资源名称
@@ -107,6 +110,25 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, Per
 		wrapper.in(PermissionDo::getId,ids);
 
 		return list(wrapper).stream().map(PermissionDo::getMark).collect(Collectors.toList());
+
+	}
+
+	/**
+	 * 查询所有权限的列表数据，按权限深度、排序序号降序排列
+	 *
+	 * @return 权限列表视图数据
+	 */
+	public List<PermissionListResult> adminList() {
+
+		QueryWrapper<PermissionDo> wrapper = Wrappers.query();
+
+		// 仅查询列表视图对象所需的字段列
+		wrapper.select(getColumns(PermissionListResult.class,false));
+
+		// 按权限深度、排序序号降序排列
+		wrapper.orderByDesc(CollectionUtil.newArrayList(getColumns(PermissionDo::getLevel,PermissionDo::getSort)));
+
+		return list(wrapper, PermissionListResult::new);
 
 	}
 

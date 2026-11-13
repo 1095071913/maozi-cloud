@@ -4,7 +4,6 @@ import com.maozi.service.api.annotation.RemoteResource;
 import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.bootstrap.DubboBootstrap;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.PropertyValues;
 import org.springframework.beans.factory.BeanFactory;
@@ -27,11 +26,6 @@ import java.util.concurrent.ConcurrentMap;
  * 创建远程引用代理并反射写入（代理按接口类型缓存），同时按字段名将代理注册为 Spring 单例，
  * 供 {@code SpringUtil.getBean(字段名)} 等按名查找使用（如 {@code BaseServiceImpl} 的
  * {@code @QueryMapping(serviceName=...)} 关联数据解析机制）。
- * </p>
- * <p>
- * 属性填充阶段写入的是原始实例；若 Bean 之后被 AOP 包装为 CGLIB 代理（如 {@code @Transactional}），
- * 代理实例的字段不参与方法拦截、默认为 {@code null}，外部经代理直接读字段（如 {@code service.rpcXxx}）
- * 会得到 {@code null}。故本处理器在初始化完成后对 CGLIB 代理实例再同步写入一次字段值。
  * </p>
  *
  * @author pengjinlong
@@ -72,52 +66,15 @@ public class RemoteResourceBeanPostProcessor implements InstantiationAwareBeanPo
 	 */
 	@Override
 	public PropertyValues postProcessProperties(@NotNull PropertyValues pvs, Object bean, @NotNull String beanName) throws BeansException {
-		injectRemoteResourceFields(bean, bean.getClass());
-		return pvs;
-	}
-
-	/**
-	 * 对被 AOP 包装为 CGLIB 代理的 Bean 同步注入 {@link RemoteResource} 字段。
-	 * <p>
-	 * 属性填充阶段写入的是原始实例，而 CGLIB 代理是另行创建的子类实例（不走构造器、字段为默认值），
-	 * 方法调用经代理委托不受影响，但外部直接读代理实例的字段会得到 {@code null}。
-	 * 本处理器未实现 {@code Ordered}，在处理器链中位于事务/AOP 自动代理创建器之后，
-	 * 因此此阶段拿到的 Bean 已是最终代理对象，可安全回填字段。
-	 * </p>
-	 *
-	 * @param bean 初始化完成的 Bean 实例（可能是 CGLIB 代理）
-	 * @param beanName Bean 名称
-	 * @return 原始 Bean 实例（本处理器不替换对象）
-	 * @throws BeansException 创建引用或注入时发生异常
-	 */
-	@Override
-	public Object postProcessAfterInitialization(Object bean, @NotNull String beanName) throws BeansException {
-		if (AopUtils.isCglibProxy(bean)) {
-			injectRemoteResourceFields(bean, AopUtils.getTargetClass(bean));
-		}
-		return bean;
-	}
-
-	/**
-	 * 将 {@link RemoteResource} 标注的非静态字段解析并反射写入指定实例。
-	 * <p>
-	 * 遍历指定类的所有字段（含父类继承的字段），通过 {@link #referenceCache} 按接口类型
-	 * 获取（或创建）Dubbo 引用代理，按字段名注册为单例后写入实例字段；实例可以是原始 Bean，
-	 * 也可以是其 CGLIB 代理（代理是子类实例，写入父类声明的字段合法）。
-	 * </p>
-	 *
-	 * @param instance 待写入的实例（原始 Bean 或 CGLIB 代理）
-	 * @param clazz 字段扫描基准类（代理场景传入 {@link AopUtils#getTargetClass} 的用户类）
-	 */
-	private void injectRemoteResourceFields(Object instance, Class<?> clazz) {
-		ReflectionUtils.doWithFields(clazz, field -> {
+		ReflectionUtils.doWithFields(bean.getClass(), field -> {
 			if (field.isAnnotationPresent(RemoteResource.class) && !Modifier.isStatic(field.getModifiers())) {
 				Object reference = referenceCache.computeIfAbsent(field.getType(), this::createReference);
 				registerSingletonIfAbsent(field.getName(), reference);
 				ReflectionUtils.makeAccessible(field);
-				ReflectionUtils.setField(field, instance, reference);
+				ReflectionUtils.setField(field, bean, reference);
 			}
 		});
+		return pvs;
 	}
 
 	/**

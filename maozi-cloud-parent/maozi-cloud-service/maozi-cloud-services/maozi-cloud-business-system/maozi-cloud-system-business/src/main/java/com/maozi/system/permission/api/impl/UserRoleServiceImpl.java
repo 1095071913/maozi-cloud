@@ -29,11 +29,11 @@ import java.util.stream.Collectors;
 public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRoleDo> implements UserRoleService {
 
 	/** 资源名称，用于异常提示信息 */
-	private static final String RESOURCE_NAME = "用户角色关系";
+	public static final String RESOURCE_NAME = "用户角色关系";
 
 	/** 角色服务，用于校验角色是否存在 */
 	@Resource(name = "roleServiceImpl")
-	private RoleService roleService;
+	protected RoleService roleService;
 
 	/**
 	 * 获取资源名称

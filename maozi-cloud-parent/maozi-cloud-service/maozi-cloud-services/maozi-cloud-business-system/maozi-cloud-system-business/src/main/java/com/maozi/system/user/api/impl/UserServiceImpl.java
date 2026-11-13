@@ -18,12 +18,18 @@
 
 package com.maozi.system.user.api.impl;
 
+import cn.hutool.extra.cglib.CglibUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.yulichang.toolkit.MPJWrappers;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
+import com.maozi.base.enums.Status;
+import com.maozi.base.param.RequestParam;
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.ObjectUtil;
+import com.maozi.common.context.ApplicationLinkContext;
+import com.maozi.common.dto.CurrentUserInfo;
+import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.oauth.client.api.rpc.RpcClientService;
 import com.maozi.oauth.token.api.rpc.RpcOauthTokenService;
 import com.maozi.oauth.token.param.ClientUserParam;
@@ -32,11 +38,16 @@ import com.maozi.service.api.impl.BaseServiceImpl;
 import com.maozi.system.permission.api.PermissionService;
 import com.maozi.system.permission.api.RolePermissionService;
 import com.maozi.system.permission.api.UserRoleService;
+import com.maozi.system.redirect.enums.RedirectType;
+import com.maozi.system.redirect.util.RedirectUtil;
 import com.maozi.system.user.api.UserService;
 import com.maozi.system.user.domain.UserDo;
 import com.maozi.system.user.mapper.UserMapper;
+import com.maozi.system.user.param.UserIndividualUpdateParam;
 import com.maozi.system.user.param.UserSaveUpdateParam;
+import com.maozi.system.user.result.OauthUserInfoResult;
 import jakarta.annotation.Resource;
+import lombok.Data;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -59,6 +70,7 @@ import java.util.List;
  * @author maozi
  * @date 2026/11/08
  */
+@Data
 @Service
 public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> implements UserService {
 
@@ -69,7 +81,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
      * 密码编码器（DelegatingPasswordEncoder 委派模式，默认 {bcrypt} 算法且密文带算法前缀），
      * 用于用户密码的加密及旧密码比对校验
      */
-    public final static PasswordEncoder PASSWORD_ENCODER = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    protected final static PasswordEncoder PASSWORD_ENCODER = PasswordEncoderFactories.createDelegatingPasswordEncoder();
 
     /**
      * 获取资源名称
@@ -83,23 +95,23 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
 
     /** 用户角色服务，用于管理用户与角色的关联关系 */
     @Resource(name = "userRoleServiceImpl")
-    public UserRoleService userRoleService;
-
-    /** 角色权限服务，用于查询角色关联的权限信息 */
-    @Resource(name = "rolePermissionServiceImpl")
-    public RolePermissionService rolePermissionService;
+    protected UserRoleService userRoleService;
 
     /** 权限服务，用于查询权限标识信息 */
     @Resource(name = "permissionServiceImpl")
-    public PermissionService permissionService;
-
-    /** OAuth令牌RPC服务，用于远程调用认证令牌相关接口 */
-    @RemoteResource
-    public RpcOauthTokenService rpcOauthTokenService;
+    protected PermissionService permissionService;
 
     /** 客户端RPC服务，用于远程调用客户端相关接口 */
     @RemoteResource
-    public RpcClientService rpcClientService;
+    protected RpcClientService rpcClientService;
+
+    /** OAuth令牌RPC服务，用于远程调用认证令牌相关接口 */
+    @RemoteResource
+    protected RpcOauthTokenService rpcOauthTokenService;
+
+    /** 角色权限服务，用于查询角色关联的权限信息 */
+    @Resource(name = "rolePermissionServiceImpl")
+    protected RolePermissionService rolePermissionService;
 
     /**
      * 根据用户名获取可用的用户ID
@@ -127,14 +139,15 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
     }
 
     /**
-     * 用户新增或更新的统一处理方法（REST层调用）
+     * 用户新增或更新的统一处理方法
      * <p>
      * 当 id 为空时执行新增操作，当 id 不为空时执行更新操作。
      * 新增时（客户端ID与用户名均非空的前提下）会校验客户端是否可用
      * 以及用户名在对应客户端下是否重复。
      * 更新时不允许修改用户名和客户端ID。
      * 密码不为空时会进行加密处理。
-     * 操作完成后同步更新用户的角色绑定关系。
+     * 操作完成后同步更新用户的角色绑定关系；
+     * 更新后状态为禁用时，销毁该用户的全部OAuth2令牌，强制下线。
      * </p>
      *
      * @param id    用户ID，新增时为空，更新时为已有用户ID
@@ -142,9 +155,10 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
      * @return 新增或更新后的用户ID
      */
     @Transactional(rollbackFor = Exception.class)
-    public Long restSaveUpdate(Long id, UserSaveUpdateParam param) {
+    public Long saveUpdate(Long id, UserSaveUpdateParam param) {
 
-        if(ObjectUtil.isNotNullEmpty(id)) {
+        boolean hasId = ObjectUtil.isNotNullEmpty(id);
+        if(hasId) {
 
             // 更新时不允许修改用户名和客户端ID，置空以忽略这两个字段
             param.setUsername(null);
@@ -173,12 +187,173 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
             param.setPassword(PASSWORD_ENCODER.encode(param.getPassword()));
         }
 
-        id = saveUpdate(id,param);
+        id = super.saveUpdate(id,param);
 
         // 保存后同步更新用户与角色的绑定关系
         userRoleService.updateBind(id, param.getBindRoleIds(), param.getUnbindRoleIds());
 
+        if(hasId && Status.DISABLE == param.getStatus()){
+            // 更新后状态为禁用时，销毁该用户的全部OAuth2令牌，强制下线
+            UserDo user = getByIdThrowError(id, UserDo::getUsername, UserDo::getClientId);
+            rpcOauthTokenService.rpcDestroyByPrincipal(user.getClientId(), user.getUsername()).getResultDataThrowError();
+        }
+
         return id;
+
+    }
+
+    /**
+     * 删除用户
+     * <p>用户不存在时静默返回；删除时解除用户与角色的绑定关系，删除成功后销毁该用户的全部OAuth2令牌，强制下线。</p>
+     *
+     * @param id 需要删除的用户ID
+     */
+    public void remove(Long id) {
+
+        // 先获取用户的用户名和客户端ID，删除后需用于注销认证令牌
+        UserDo user = getById(id, UserDo::getUsername,UserDo::getClientId);
+        if(ObjectUtil.isNullEmpty(user)){
+            return;
+        }
+
+        // 删除用户数据库记录
+        if(removeById(id)){
+            // 通过RPC调用OAuth服务，根据clientId+用户名销毁该用户的所有OAuth2授权令牌
+            rpcOauthTokenService.rpcDestroyByPrincipal(user.getClientId(), user.getUsername()).getResultDataThrowError();
+        }
+
+    }
+
+    /**
+     * 更新用户状态（启用/禁用）
+     * <p>
+     * 如果用户当前状态与目标状态一致，则不做任何操作直接返回；
+     * 状态变更为禁用后，会远程销毁该用户的全部 OAuth2 令牌，强制其重新登录。
+     * </p>
+     *
+     * @param id    需要更新状态的用户ID
+     * @param param 状态参数，包含目标状态值
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void updateStatus(Long id, RequestParam<Status> param){
+
+        Status status = param.getData();
+
+        UserDo user = getByIdThrowError(id, UserDo::getUsername, UserDo::getClientId, UserDo::getStatus);
+
+        // 当前状态与目标状态一致时，无需更新，直接返回
+        if(user.getStatus() == status){
+            return;
+        }
+
+        user.setId(id);
+        user.setStatus(status);
+        updateById(user);
+
+        // 禁用用户后销毁其全部OAuth2令牌，强制下线
+        if(Status.DISABLE == status){
+            rpcOauthTokenService.rpcDestroyByPrincipal(user.getClientId(), user.getUsername()).getResultDataThrowError();
+        }
+
+    }
+
+    /**
+     * 更新当前登录用户的个人信息
+     * <p>
+     * 旧密码与新密码同时传入时先校验旧密码，校验通过后加密新密码一并更新；
+     * 两者均未传入时不修改密码，仅更新其他基本信息。更新成功后销毁当前用户
+     * 在该客户端下的全部 OAuth2 令牌，并通过 {@code X-Redirect} 响应头指示
+     * 前端跳转登录页，强制重新登录。
+     * </p>
+     *
+     * @param param 个人信息更新参数（姓名、头像、旧密码、新密码）
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void individualUpdate(UserIndividualUpdateParam param){
+
+        Long userId = ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUserId);
+
+        String paramPassword = param.getPassword();
+        String paramNewPassword = param.getNewPassword();
+
+        // 旧密码与新密码同时传入时，先校验旧密码，再将新密码加密
+        if(ObjectUtil.isNotNullEmpty(paramPassword) && ObjectUtil.isNotNullEmpty(paramNewPassword)){
+            UserDo domain = getByIdThrowError(userId, UserDo::getPassword);
+
+            // 旧密码与库中密文不匹配时抛出业务异常
+            if(!UserServiceImpl.PASSWORD_ENCODER.matches(paramPassword,domain.getPassword())){
+                throw new BusinessResultException("旧密码不正确");
+            }
+
+            paramNewPassword = UserServiceImpl.PASSWORD_ENCODER.encode(paramNewPassword);
+        }
+
+        UserDo domain = CglibUtil.copy(param, UserDo.class);
+        domain.setId(userId);
+        domain.setPassword(paramNewPassword);
+        updateById(domain);
+
+        // 更新成功后销毁当前用户在该客户端下的全部OAuth2令牌，并指示前端跳转登录页，强制重新登录
+        Long clientId = ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getClientId);
+        String username = ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUsername);
+        rpcOauthTokenService.rpcDestroyByPrincipal(clientId, username).getResultDataThrowError();
+        RedirectUtil.redirect(RedirectType.LOGIN);
+
+    }
+
+    /**
+     * 根据用户名获取 OAuth 认证用户信息
+     * <p>返回用户ID、加密密码及该用户的全部权限标识；用户名为空或用户不存在时抛出业务异常。</p>
+     *
+     * @param username 用户名
+     * @return OAuth 认证用户信息（含 ID、密码、权限标识列表）
+     */
+    public OauthUserInfoResult getOauthUserInfoByUsername(String username){
+
+        // 用户名为空时抛出数据不存在业务异常
+        ObjectUtil.isNullEmptyThrowError(username, getResourceName());
+
+        LambdaQueryWrapper<UserDo> wrapper = Wrappers.lambdaQuery();
+
+        // 仅查询用户ID和密码字段
+        wrapper.select(UserDo::getId,UserDo::getPassword);
+        wrapper.eq(UserDo::getUsername,username);
+
+        UserDo domain = getOne(wrapper);
+
+        // 用户不存在时抛出业务异常
+        ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
+
+        Long userId = domain.getId();
+        List<String> permissions = getPermissionsByUserId(userId);
+
+        return new OauthUserInfoResult(userId, domain.getPassword(), permissions);
+
+    }
+
+    /**
+     * 根据用户名和指定角色ID获取该角色下的权限标识列表
+     * <p>先校验用户可用且已绑定指定角色（未绑定时抛出异常），再查询该角色关联的权限标识。</p>
+     *
+     * @param username 用户名
+     * @param roleId   角色ID
+     * @return 指定角色下的权限标识列表
+     */
+    public List<String> getPermissionsByUsernameRole(String username, Long roleId) {
+
+        Long id = getAvailableByUsername(username);
+
+        // 校验用户绑定了指定角色，未绑定则抛出异常
+        userRoleService.checkUserBindRole(id,roleId);
+
+        List<String> responses = CollectionUtil.newArrayList();
+
+        // 查询角色关联的权限ID集合，并转换为权限标识列表
+        List<Long> permissionIds = rolePermissionService.getPermissionsByRole(roleId);
+        List<String> marks = permissionService.getMarks(permissionIds);
+        responses.addAll(marks);
+
+        return responses;
 
     }
 

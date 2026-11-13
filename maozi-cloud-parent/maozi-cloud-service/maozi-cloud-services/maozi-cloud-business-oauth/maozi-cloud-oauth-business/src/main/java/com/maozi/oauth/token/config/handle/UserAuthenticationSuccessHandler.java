@@ -2,7 +2,7 @@ package com.maozi.oauth.token.config.handle;
 
 import com.maozi.common.ResultUtil;
 import com.maozi.common.WebUtil;
-import com.maozi.oauth.token.dto.OauthTokenDto;
+import com.maozi.oauth.token.dto.OauthTokenDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,7 @@ import java.time.Duration;
  * 用户认证成功处理器
  * <p>
  * 当用户认证授权成功后，将OAuth2令牌信息（AccessToken、RefreshToken、IDToken等）
- * 封装为OauthTokenDto对象，并以统一格式返回给客户端。
+ * 封装为OauthTokenDTO对象，并以统一格式返回给客户端。
  * </p>
  *
  * @author maozi
@@ -30,7 +30,7 @@ public class UserAuthenticationSuccessHandler implements org.springframework.sec
 	 * 处理用户认证成功事件
 	 * <p>
 	 * 从认证结果中提取AccessToken、RefreshToken、IDToken等信息，
-	 * 计算令牌有效期时长（单位秒），封装为OauthTokenDto对象后写入响应。
+	 * 计算令牌有效期时长（单位秒），封装为OauthTokenDTO对象后写入响应。
 	 * </p>
 	 *
 	 * @param request       HTTP请求对象
@@ -43,7 +43,7 @@ public class UserAuthenticationSuccessHandler implements org.springframework.sec
 		OAuth2AccessTokenAuthenticationToken accessTokenAuthentication = (OAuth2AccessTokenAuthenticationToken) authentication;
 		OAuth2AccessToken accessToken = accessTokenAuthentication.getAccessToken();
 
-		OauthTokenDto oauthToken = new OauthTokenDto();
+		OauthTokenDTO oauthToken = new OauthTokenDTO();
 
 		oauthToken.setTokenType(accessToken.getTokenType().getValue());
 		oauthToken.setAccessToken(accessToken.getTokenValue());

@@ -4,7 +4,7 @@ import cn.hutool.core.util.RandomUtil;
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.oauth.client.api.rpc.RpcClientService;
-import com.maozi.oauth.client.dto.ClientDto;
+import com.maozi.oauth.client.dto.ClientDTO;
 import com.maozi.oauth.client.enums.AuthType;
 import com.maozi.oauth.client.param.ClientSaveUpdateParam;
 import com.maozi.service.api.annotation.RemoteResource;
@@ -44,7 +44,7 @@ public class OauthFunctionCall {
      */
     @PreAuthorize("hasAuthority('system:client:save')")
     @Tool(description = "新增客户端")
-    public AbstractBaseResult<ClientDto> saveClient(
+    public AbstractBaseResult<ClientDTO> saveClient(
             @ToolParam(description = "客户端名称") String name,
             @ToolParam(description = "授权令牌有效期 秒 默认2小时") Long accessTokenValiditySeconds,
             @ToolParam(description = "刷新令牌有效期 秒 默认7天") Long refreshTokenValiditySeconds
@@ -58,7 +58,7 @@ public class OauthFunctionCall {
         param.setAccessTokenValiditySeconds(accessTokenValiditySeconds);
         param.setRefreshTokenValiditySeconds(refreshTokenValiditySeconds);
 
-        AbstractBaseResult<ClientDto> result = rpcClientService.rpcAiSave(param);
+        AbstractBaseResult<ClientDTO> result = rpcClientService.rpcAiSave(param);
         if(result.isSuccess()){
             // 保存成功后将生成的明文客户端密钥回填到返回数据，供调用方查看
             result.getData().setClientSecret(param.getClientSecret());

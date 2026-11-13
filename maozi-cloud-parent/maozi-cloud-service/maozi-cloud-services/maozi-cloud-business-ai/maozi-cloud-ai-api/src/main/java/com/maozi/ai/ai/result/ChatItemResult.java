@@ -1,4 +1,4 @@
-package com.maozi.ai.ai.vo;
+package com.maozi.ai.ai.result;
 
 import com.maozi.ai.ai.enums.ChatMessageType;
 import io.swagger.v3.oas.annotations.media.Schema;

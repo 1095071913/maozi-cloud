@@ -11,10 +11,10 @@ import com.maozi.ai.ai.enums.ChatMessageType;
 import com.maozi.ai.ai.enums.ChatType;
 import com.maozi.ai.ai.param.ChatGenerateImageParam;
 import com.maozi.ai.ai.param.ChatParam;
-import com.maozi.ai.ai.vo.ChatGenerateImageResult;
-import com.maozi.ai.ai.vo.ChatItemResult;
-import com.maozi.ai.ai.vo.ChatListResult;
-import com.maozi.ai.ai.vo.ChatResult;
+import com.maozi.ai.ai.result.ChatGenerateImageResult;
+import com.maozi.ai.ai.result.ChatItemResult;
+import com.maozi.ai.ai.result.ChatListResult;
+import com.maozi.ai.ai.result.ChatResult;
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.ResultUtil;
@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
 /**
  * AI对话服务基础实现
  * <p>
- * 提供文生图、会话消息列表查询、增量消息查询、停止对话等能力，
+ * 提供AI流式对话、文生图、会话消息列表查询、增量消息查询、停止对话等能力，
  * 以及对话消息到前端展示结果的通用转换，供 REST 层实现类继承使用。
  * </p>
  *
@@ -89,6 +89,14 @@ public class ChatServiceImpl implements ChatService {
 
     /** 文生图进行中标记 key 前缀：key 被删除表示文生图请求已被停止 */
     protected static final String AI_CHAT_GENERATE_IMAGE_STOP_KEY = RedisUtil.REDIS_KEY_PREFIX + "chat:generate:image:status:";
+
+    /** 支持的图片后缀与 MIME 类型映射 */
+    private static final Map<String, MimeType> IMAGE_MIME_TYPE_MAP = Map.of(
+            ".png", MimeTypeUtils.IMAGE_PNG,
+            ".jpg", MimeTypeUtils.IMAGE_JPEG,
+            ".jpeg", MimeTypeUtils.IMAGE_JPEG,
+            ".gif", MimeTypeUtils.IMAGE_GIF
+    );
 
     /** 图片模型，用于文生图 */
     @Resource
@@ -118,6 +126,19 @@ public class ChatServiceImpl implements ChatService {
     @Value("${spring.ai.dashscope.chat.options.text_image_model:}")
     protected String imageModelName;
 
+    /**
+     * AI流式对话
+     * <p>
+     * 校验会话后构建用户消息（可附带 png/jpg/jpeg/gif 图片进行多模态对话，
+     * 有图片时切换为图生文模型并启用多模态），根据配置 key 从系统配置服务
+     * 获取提示词作为系统消息；通过 Redis 标记支持中途停止对话，
+     * 客户端断开连接时将已生成的部分回复写入会话记忆。
+     * </p>
+     *
+     * @param param 对话参数（会话 ID、消息内容、图片列表、提示词配置 key）
+     * @return AI 回复的分片流（SSE），最后追加一条对话完成（FINISH）消息
+     * @throws BusinessResultException 会话不存在、图片类型不受支持或提示词配置获取失败时抛出
+     */
     @SneakyThrows
     public Flux<AbstractBaseResult<ChatResult>> chat(ChatParam param) {
 
@@ -136,16 +157,11 @@ public class ChatServiceImpl implements ChatService {
             List<Media> medias = CollectionUtil.newArrayList();
             for(String image : images){
                 // 根据图片后缀解析对应的 MIME 类型
-                MimeType mimeType;
-                if(image.endsWith(".png")){
-                    mimeType = MimeTypeUtils.IMAGE_PNG;
-                }else if(image.endsWith(".jpg") || image.endsWith(".jpeg")){
-                    mimeType = MimeTypeUtils.IMAGE_JPEG;
-                }else if(image.endsWith(".gif")){
-                    mimeType = MimeTypeUtils.IMAGE_GIF;
-                }else{
-                    throw new BusinessResultException("不支持该图片类型");
-                }
+                MimeType mimeType = IMAGE_MIME_TYPE_MAP.entrySet().stream()
+                        .filter(entry -> image.endsWith(entry.getKey()))
+                        .map(Map.Entry::getValue)
+                        .findFirst()
+                        .orElseThrow(() -> new BusinessResultException("不支持该图片类型"));
                 medias.add(new Media(mimeType, new URI(image)));
             }
             userMessageBuilder.media(medias);
@@ -231,7 +247,7 @@ public class ChatServiceImpl implements ChatService {
 
                 })
 
-                // 追加完成消息，告诉前端对话流通道已结束 可以关闭连接
+                // 追加完成消息，告知前端对话流已结束，可关闭连接
                 .concatWith(Flux.just(ResultUtil.success(ChatResult.builder().type(ChatType.FINISH).build())));
 
     }

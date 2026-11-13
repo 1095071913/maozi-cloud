@@ -20,24 +20,24 @@ import java.util.Set;
  * @since 2026/8/29 21:30
  */
 @Data
-public class ClientDto implements Serializable {
+public class ClientDTO implements Serializable {
     /** 序列化标识 */
     @Serial
     private static final long serialVersionUID = 1L;
 
-    /** 客户端ID，客户端的唯一标识符 */
+    /** 客户端唯一标识 */
     @Schema(description = "客户端ID")
     private String clientId;
 
-    /** 客户端密钥，用于客户端身份验证的凭证 */
+    /** 客户端密钥，用于身份验证 */
     @Schema(description = "客户端密钥")
     private String clientSecret;
 
-    /** 客户端名称，用于标识和描述客户端 */
+    /** 客户端名称 */
     @Schema(description = "名称")
     private String name;
 
-    /** 授权模式集合，该客户端支持的OAuth2.0授权类型 */
+    /** 授权模式集合，客户端支持的 OAuth2.0 授权类型 */
     @Schema(description = "授权模式", ref = "IntegerArrayList")
     private Set<AuthType> authorizationGrantTypes;
 
@@ -49,11 +49,11 @@ public class ClientDto implements Serializable {
     @Schema(description = "刷新令牌有效期 秒 默认7天")
     private Long refreshTokenValiditySeconds;
 
-    /** 备注信息，记录客户端的额外说明 */
+    /** 备注 */
     @Schema(description = "备注")
     private String remark;
 
-    /** 客户端状态，控制客户端是否启用（ENABLE 启用 / DISABLE 禁用） */
+    /** 客户端状态（ENABLE 启用 / DISABLE 禁用） */
     @Schema(description = "状态")
     private Status status;
 

@@ -2,10 +2,10 @@ package com.maozi.ai.ai.api.rest;
 
 import com.maozi.ai.ai.param.ChatGenerateImageParam;
 import com.maozi.ai.ai.param.ChatParam;
-import com.maozi.ai.ai.vo.ChatGenerateImageResult;
-import com.maozi.ai.ai.vo.ChatItemResult;
-import com.maozi.ai.ai.vo.ChatListResult;
-import com.maozi.ai.ai.vo.ChatResult;
+import com.maozi.ai.ai.result.ChatGenerateImageResult;
+import com.maozi.ai.ai.result.ChatItemResult;
+import com.maozi.ai.ai.result.ChatListResult;
+import com.maozi.ai.ai.result.ChatResult;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.service.annotation.Get;
 import com.maozi.service.annotation.Post;

@@ -3,7 +3,7 @@ package com.maozi.oauth.client.api.impl.rpc;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.oauth.client.api.impl.ClientServiceImpl;
 import com.maozi.oauth.client.api.rpc.RpcClientService;
-import com.maozi.oauth.client.dto.ClientDto;
+import com.maozi.oauth.client.dto.ClientDTO;
 import com.maozi.oauth.client.param.ClientSaveUpdateParam;
 import com.maozi.service.api.annotation.RemoteService;
 import com.maozi.service.api.impl.result.BaseServiceResultImpl;
@@ -20,7 +20,7 @@ import com.maozi.service.api.impl.result.BaseServiceResultImpl;
  * @date 2026/11/08
  */
 @RemoteService
-public class RpcClientServiceImpl extends BaseServiceResultImpl<ClientServiceImpl, ClientDto> implements RpcClientService {
+public class RpcClientServiceImpl extends BaseServiceResultImpl<ClientServiceImpl, ClientDTO> implements RpcClientService {
 
     /**
      * 新增客户端并返回保存后的客户端信息
@@ -33,7 +33,7 @@ public class RpcClientServiceImpl extends BaseServiceResultImpl<ClientServiceImp
      * @return 包含新增客户端信息的统一响应结果
      */
     @Override
-    public AbstractBaseResult<ClientDto> rpcAiSave(ClientSaveUpdateParam param) {
+    public AbstractBaseResult<ClientDTO> rpcAiSave(ClientSaveUpdateParam param) {
         Long clientId = service.saveUpdate(null, param);
         return getByIdResult(clientId);
     }

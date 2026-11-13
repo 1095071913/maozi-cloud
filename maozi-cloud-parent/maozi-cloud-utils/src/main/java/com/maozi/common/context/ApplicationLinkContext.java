@@ -15,7 +15,7 @@ import java.util.function.Function;
  * 应用链路上下文
  * <p>
  * 使用 TransmittableThreadLocal 存储当前请求的链路信息，
- * 包括版本号、当前登录用户信息（{@link CurrentUserInfo}）、
+ * 包括版本号、测试流量标记、当前登录用户信息（{@link CurrentUserInfo}）
  * 以及链路追踪 ID（traceId，并同步写入 MDC 便于日志关联），
  * 支持线程池和异步场景下的上下文传递。
  * 同时提供基于 Function 的用户属性提取和上下文清理功能。
@@ -33,6 +33,9 @@ public class ApplicationLinkContext {
     /** 当前登录用户信息请求头名称 */
     public static final String CURRENT_USER_INFO_KEY = "X-CurrentUserInfo";
 
+    /** 测试流量标记请求头名称 */
+    public static final String TEST_FLOW_KEY = "X-Test-Flow";
+
     /** 链路追踪 ID 请求头名称 */
     public static final String TRACE_ID_KEY = "X-TraceId";
 
@@ -49,13 +52,16 @@ public class ApplicationLinkContext {
     public static final String MDC_TRACE_ID_KEY = "trace_id";
 
     /** 当前线程的链路请求ID */
-    private static TransmittableThreadLocal<String> traceIds = new TransmittableThreadLocal<>();
+    private static final TransmittableThreadLocal<String> traceIds = new TransmittableThreadLocal<>();
 
     /** 当前线程的版本号（用于灰度路由） */
-    private static TransmittableThreadLocal<String> versions = new TransmittableThreadLocal<>();
+    private static final TransmittableThreadLocal<String> versions = new TransmittableThreadLocal<>();
+
+    /** 当前线程的测试流量标记（true 表示测试流量） */
+    private static final TransmittableThreadLocal<Boolean> testFlows = new TransmittableThreadLocal<>();
 
     /** 当前线程的登录用户信息（含用户 ID、客户端 ID、用户名） */
-    private static TransmittableThreadLocal<CurrentUserInfo> currentUserInfos = new TransmittableThreadLocal<>();
+    private static final TransmittableThreadLocal<CurrentUserInfo> currentUserInfos = new TransmittableThreadLocal<>();
 
     /**
      * 获取当前线程的链路追踪 ID
@@ -73,6 +79,15 @@ public class ApplicationLinkContext {
      */
     public static String getVersion() {
         return versions.get();
+    }
+
+    /**
+     * 获取当前线程的测试流量标记
+     *
+     * @return 是否测试流量
+     */
+    public static boolean getTestFlow() {
+        return testFlows.get();
     }
 
     /**
@@ -133,6 +148,15 @@ public class ApplicationLinkContext {
     }
 
     /**
+     * 设置当前线程的测试流量标记
+     *
+     * @param testFlow 测试流量标记字符串，为 "true" 时标记为测试流量
+     */
+    public static void setTestFlow(String testFlow) {
+        testFlows.set(Boolean.TRUE.toString().equals(testFlow));
+    }
+
+    /**
      * 设置当前线程的登录用户信息
      *
      * @param currentUserInfo 当前登录用户信息
@@ -154,13 +178,14 @@ public class ApplicationLinkContext {
     }
 
     /**
-     * 清理当前线程的链路上下文（含 SQL 日志、版本号、用户信息、链路追踪 ID 及 MDC）
+     * 清理当前线程的链路上下文（含 SQL 日志、版本号、测试流量标记、用户信息、链路追踪 ID 及 MDC）
      */
     public static void clearContext(){
         LogUtil.SQL_LOG.remove();
         versions.remove();
-        currentUserInfos.remove();
         traceIds.remove();
+        testFlows.remove();
+        currentUserInfos.remove();
         MDC.clear();
     }
 

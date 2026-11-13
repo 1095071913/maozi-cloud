@@ -9,7 +9,7 @@ import com.maozi.ai.ai.api.ChatConversationRecordService;
 import com.maozi.ai.ai.domain.ChatConversationRecordDo;
 import com.maozi.ai.ai.mapper.ChatConversationRecordMapper;
 import com.maozi.ai.ai.param.ChatConversationRecordListParam;
-import com.maozi.ai.ai.vo.ChatConversationRecordListResult;
+import com.maozi.ai.ai.result.ChatConversationRecordListResult;
 import com.maozi.base.param.PageParam;
 import com.maozi.base.param.RequestParam;
 import com.maozi.base.result.PageResult;

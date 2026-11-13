@@ -9,7 +9,7 @@ import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.oauth.client.api.impl.ClientServiceImpl;
 import com.maozi.oauth.client.api.rest.RestClientService;
-import com.maozi.oauth.client.dto.ClientDto;
+import com.maozi.oauth.client.dto.ClientDTO;
 import com.maozi.oauth.client.param.ClientListParam;
 import com.maozi.oauth.client.param.ClientSaveUpdateParam;
 import com.maozi.oauth.client.result.ClientInfoResult;
@@ -34,7 +34,7 @@ import java.util.List;
  * @date 2026/11/08
  */
 @RestService
-public class RestClientServiceImpl extends BaseServiceResultImpl<ClientServiceImpl, ClientDto> implements RestClientService {
+public class RestClientServiceImpl extends BaseServiceResultImpl<ClientServiceImpl, ClientDTO> implements RestClientService {
 
 	/**
 	 * 分页查询客户端列表。

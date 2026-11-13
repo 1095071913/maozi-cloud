@@ -3,7 +3,7 @@ package com.maozi.ai.ai.api.impl.rest;
 import com.maozi.ai.ai.api.impl.ChatConversationRecordServiceImpl;
 import com.maozi.ai.ai.api.rest.RestChatConversationRecord;
 import com.maozi.ai.ai.param.ChatConversationRecordListParam;
-import com.maozi.ai.ai.vo.ChatConversationRecordListResult;
+import com.maozi.ai.ai.result.ChatConversationRecordListResult;
 import com.maozi.base.param.PageParam;
 import com.maozi.base.param.RequestParam;
 import com.maozi.base.result.PageResult;

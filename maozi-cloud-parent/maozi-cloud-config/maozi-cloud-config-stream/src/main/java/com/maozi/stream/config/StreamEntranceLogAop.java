@@ -22,7 +22,11 @@ import com.maozi.common.EnvironmentUtil;
 import com.maozi.common.LogUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.constant.LogTag;
-import com.maozi.common.context.ApplicationLinkContext;
+import com.maozi.common.context.AbstractRequestContextHolder;
+import com.maozi.common.context.CurrentUserInfoContext;
+import com.maozi.common.context.SqlLogContext;
+import com.maozi.common.context.TestFlowContext;
+import com.maozi.common.context.VersionContext;
 import com.maozi.common.enums.EnvironmentType;
 import com.maozi.common.enums.LogCommonType;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +49,7 @@ import java.util.function.Consumer;
  * <p>
  * 拦截 Spring Cloud Stream 消费者方法，在消息处理前后记录日志信息，
  * 包括消息 ID、Topic、处理函数名、消息参数、SQL 日志和响应时间。
- * 从消息头中提取版本号设置到链路上下文，支持灰度环境标识。
+ * 从消息头中恢复版本号、测试流量标记与当前登录用户信息到链路上下文。
  * 异常时记录错误信息和堆栈行号。
  * </p>
  *
@@ -88,16 +92,22 @@ public class StreamEntranceLogAop {
 
         return (message) -> {
 
+            // 标记消息处理是否发生异常，用于最终日志级别判断
             boolean error = false;
 
+            // 消息处理开始时间戳
             long beginTime = System.currentTimeMillis();
 
+            // 消息体内容
             Object messageData = message.getPayload();
 
+            // 消息头
             MessageHeaders headers = message.getHeaders();
 
+            // 日志信息集合
             Map<String, String> logs = new LinkedHashMap<>(16);
 
+            // 记录消息类型、消息 ID、Topic 与消费方法
             logs.put(LogTag.TYPE, LogCommonType.MQ.getDesc());
             logs.put(LOG_TAG_MESSAGE_ID, Objects.requireNonNull(headers.get(HEADER_ROCKET_MQ_MESSAGE_ID)).toString());
             logs.put(LOG_TAG_TOPIC, Objects.requireNonNull(headers.get(HEADER_ROCKET_MQ_TOPIC)).toString());
@@ -111,37 +121,59 @@ public class StreamEntranceLogAop {
             }
 
             // 从消息头中提取版本号设置到链路上下文
-            ApplicationLinkContext.setVersion(
-                ApplicationLinkContext.getVersionDefault(headers.get(ApplicationLinkContext.VERSION_KEY)));
+            Object versionObj = headers.get(VersionContext.KEY);
+            if(ObjectUtil.isNotNullEmpty(versionObj)){
+                VersionContext.CONTEXT.set(versionObj.toString());
+            }
+
+            // 从消息头中提取测试流量标记设置到链路上下文
+            Object testFlowObj = headers.get(TestFlowContext.KEY);
+            if(ObjectUtil.isNotNullEmpty(testFlowObj)){
+                TestFlowContext.CONTEXT.set(testFlowObj.toString());
+            }
+
+            // 从消息头中提取当前登录用户信息设置到链路上下文
+            Object currentUserInfoObj = headers.get(CurrentUserInfoContext.KEY);
+            if(ObjectUtil.isNotNullEmpty(currentUserInfoObj)){
+                CurrentUserInfoContext.CONTEXT.set(currentUserInfoObj.toString());
+            }
 
             try {
+                // 执行消息消费逻辑
                 resultData.accept(message);
             } catch (Exception e) {
 
+                // 标记消息处理发生异常
                 error = true;
 
-                StackTraceElement stackTraceElement = e.getStackTrace()[0];
-
+                // 生产环境异常时补充记录消息参数
                 if (!isNotProd) {
                     logs.put(LogTag.PARAM, messageData.toString());
                 }
-                logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
-                logs.put(LogTag.ERROR_LINE, stackTraceElement.toString());
 
+                // 记录异常描述与发生的第一行代码位置
+                logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
+                logs.put(LogTag.ERROR_LINE, e.getStackTrace()[0].toString());
+
+                // 异常原样上抛，交由消息容器按消费失败处理
                 throw e;
 
             } finally {
 
-                StringBuilder sqlLog = LogUtil.SQL_LOG.get();
+                // 记录消息处理过程中的 SQL 日志
+                StringBuilder sqlLog = SqlLogContext.CONTEXT.get();
                 if (ObjectUtil.isNotNullEmpty(sqlLog)) {
                     logs.put(LogTag.SQL, sqlLog.toString());
                 }
 
+                // 记录响应时间
                 logs.put(LogTag.RT, String.valueOf(System.currentTimeMillis() - beginTime));
 
+                // 按处理结果以 info/error 级别输出日志
                 LogUtil.log(log, error, logs);
 
-                ApplicationLinkContext.clearContext();
+                // 清理线程上下文，防止线程池复用导致数据泄漏
+                AbstractRequestContextHolder.clearContext();
 
             }
 

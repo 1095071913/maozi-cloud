@@ -14,7 +14,7 @@ import com.maozi.base.param.PageParam;
 import com.maozi.base.param.RequestParam;
 import com.maozi.base.result.PageResult;
 import com.maozi.common.ObjectUtil;
-import com.maozi.common.context.ApplicationLinkContext;
+import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.dto.CurrentUserInfo;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.service.api.impl.BaseServiceImpl;
@@ -75,18 +75,21 @@ public class ChatConversationRecordServiceImpl extends BaseServiceImpl<ChatConve
 	 */
 	public PageResult<ChatConversationRecordListResult> list(PageParam<ChatConversationRecordListParam> pageParam) {
 
-		Long userId = ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUserId);
+		// 当前登录用户 ID
+		Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
 
 		MPJLambdaWrapper<ChatConversationRecordDo> wrapper = buildQueryWrapper(pageParam, ChatConversationRecordListResult.class);
 		// 限定仅查询当前登录用户的会话
 		wrapper.eq(ChatConversationRecordDo::getUserId,userId);
 
+		// 执行分页查询
 		Page<ChatConversationRecordListResult> page = selectJoinListPage(
 				convertPage(pageParam),
 				ChatConversationRecordListResult.class,
 				wrapper
 		);
 
+		// 转换分页结果并填充关联数据
 		PageResult<ChatConversationRecordListResult> pageResult = convertPageResult(page);
 		setRelationData(pageResult, ChatConversationRecordListResult.class);
 
@@ -114,7 +117,7 @@ public class ChatConversationRecordServiceImpl extends BaseServiceImpl<ChatConve
 		ChatConversationRecordDo domain = new ChatConversationRecordDo();
 		// 首条消息作为标题，超长时截断并追加省略号
 		domain.setTitle(title.length() > TITLE_MAX_LENGTH ? StrUtil.subPre(title, TITLE_MAX_LENGTH) + "..." : title);
-		domain.setUserId(ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUserId));
+		domain.setUserId(CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId));
 
 		save(domain);
 

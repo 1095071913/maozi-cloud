@@ -23,7 +23,8 @@ import com.maozi.common.LogUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.constant.LogTag;
-import com.maozi.common.context.ApplicationLinkContext;
+import com.maozi.common.context.CurrentUserInfoContext;
+import com.maozi.common.context.SqlLogContext;
 import com.maozi.common.dto.CurrentUserInfo;
 import com.maozi.common.enums.EnvironmentType;
 import com.maozi.common.enums.LogCommonType;
@@ -90,13 +91,13 @@ public abstract class AbstractRequestEntranceLogAop {
      */
     protected Object doAround(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 
-        /* 请求开始时间戳 */
+        // 请求开始时间戳
         long startTime = System.currentTimeMillis();
 
-        /* 方法参数字符串 */
+        // 方法参数字符串
         String param = Arrays.toString(proceedingJoinPoint.getArgs());
 
-        /* 日志信息集合 */
+        // 日志信息集合
         Map<String, String> logs = requestLog(proceedingJoinPoint);
 
         // 非生产环境记录请求参数
@@ -129,14 +130,18 @@ public abstract class AbstractRequestEntranceLogAop {
             // 记录异常堆栈日志，便于排查问题
             LogUtil.error(log, e);
 
-            // 收集系统错误相关的日志信息
-            // 记录请求参数（系统异常时无论环境均记录）
+            // 系统异常时无论环境均记录请求参数
             logs.put(LogTag.PARAM, param);
-            Long userId = ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUserId);
+
+            // 获取当前登录用户 ID
+            Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
             if (ObjectUtil.isNotNullEmpty(userId)) {
-                logs.put(LogTag.ERROR_USER, userId.toString());   // 记录当前操作用户
+                // 记录当前操作用户
+                logs.put(LogTag.ERROR_USER, userId.toString());
             }
-            logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());                 // 记录异常描述
+
+            // 记录异常描述
+            logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
 
             // 记录异常发生的第一行代码位置
             StackTraceElement[] errorLines = e.getStackTrace();
@@ -149,7 +154,7 @@ public abstract class AbstractRequestEntranceLogAop {
         } finally {
 
             // 记录本次请求过程中执行的 SQL 日志（从 ThreadLocal 中获取）
-            StringBuilder sqlLog = LogUtil.SQL_LOG.get();
+            StringBuilder sqlLog = SqlLogContext.CONTEXT.get();
             if (ObjectUtil.isNotNullEmpty(sqlLog)) {
                 logs.put(LogTag.SQL, sqlLog.toString());
             }
@@ -157,12 +162,11 @@ public abstract class AbstractRequestEntranceLogAop {
             // 记录响应时间
             logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + " ms");
 
-            // 判断结果是否为框架统一响应类型 && 请求失败（业务或系统错误）
+            // 判断结果是否为框架统一响应类型且请求失败（业务或系统错误）
             if (ObjectUtil.isNotNullEmpty(resultData) && resultData instanceof AbstractBaseResult<?> result
                     && !result.isSuccess()) {
 
-                // 触发限流熔断告警组件
-                // （任何请求失败都会调用，Sentinel 实现将本次失败计入阻塞 QPS 统计）
+                // 触发限流熔断告警（Sentinel 实现将本次失败计入阻塞 QPS 统计）
                 if (ObjectUtil.isNotNullEmpty(alarm)) {
                     alarm.alarm();
                 }
@@ -196,7 +200,6 @@ public abstract class AbstractRequestEntranceLogAop {
      */
     private Map<String, String> requestLog(ProceedingJoinPoint proceedingJoinPoint) {
 
-        // 使用 LinkedHashMap 保证日志字段的输出顺序与插入顺序一致
         Map<String, String> logs = new LinkedHashMap<>(16);
 
         // 记录请求类型标识（WEB 或 RPC）

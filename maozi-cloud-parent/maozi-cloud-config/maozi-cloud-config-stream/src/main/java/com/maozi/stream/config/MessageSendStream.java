@@ -2,7 +2,9 @@ package com.maozi.stream.config;
 
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.context.ApplicationEnvironmentContext;
-import com.maozi.common.context.ApplicationLinkContext;
+import com.maozi.common.context.CurrentUserInfoContext;
+import com.maozi.common.context.TestFlowContext;
+import com.maozi.common.context.VersionContext;
 import com.maozi.stream.enums.DelayMessageLevel;
 import jakarta.annotation.Resource;
 import org.apache.rocketmq.common.message.MessageConst;
@@ -53,26 +55,30 @@ public class MessageSendStream {
      */
     public <D> Boolean sendMessage(String bindingName, Message<D> message){
 
+        // 基于原消息构建 MessageBuilder，用于追加消息头
         MessageBuilder<D> messageBuilder = MessageBuilder.fromMessage(message);
 
         // 获取当前服务在注册中心的全部存活实例
         List<ServiceInstance> instances = discoveryClient.getInstances(ApplicationEnvironmentContext.SERVICE_NAME);
 
         // 按实例元数据中的 version（灰度标识）对存活实例分组，用于判断当前版本是否仍有存活实例
-        Map<String,List<ServiceInstance>> applicationClients = instances.stream().collect(Collectors.groupingBy((instance)-> instance.getMetadata().get(ApplicationLinkContext.NACOS_VERSION_KEY)));
+        Map<String,List<ServiceInstance>> applicationClients = instances.stream().collect(Collectors.groupingBy((instance)-> instance.getMetadata().get(VersionContext.NACOS_VERSION_KEY)));
 
         // 当前请求版本号，链路上下文未设置时取默认版本 main
-        String version = ApplicationLinkContext.getVersionDefault(ApplicationLinkContext.getVersion());
+        String version = VersionContext.CONTEXT.get();
 
         // 当前为非默认版本且该版本已无存活实例时，灰度标识回退为默认版本，保证消息仍可被消费
-        if(!ApplicationLinkContext.APPLICATION_DEFAULT_VERSION.equals(version) && ObjectUtil.isNullEmpty(applicationClients.get(version))){
-            version = ApplicationLinkContext.APPLICATION_DEFAULT_VERSION;
+        if(!VersionContext.APPLICATION_DEFAULT_VERSION.equals(version) && ObjectUtil.isNullEmpty(applicationClients.get(version))){
+            version = VersionContext.APPLICATION_DEFAULT_VERSION;
         }
 
         // Gray 头写入用于灰度路由的版本（可能已回退为默认版本）
         messageBuilder.setHeader("Gray", version);
         // X-Version 头透传原始版本号，供消费端恢复链路上下文
-        messageBuilder.setHeader(ApplicationLinkContext.VERSION_KEY, ApplicationLinkContext.getVersion());
+        messageBuilder.setHeader(VersionContext.KEY, VersionContext.CONTEXT.get());
+        // 透传测试流量标记与当前用户信息，供消费端恢复链路上下文
+        messageBuilder.setHeader(TestFlowContext.KEY, TestFlowContext.CONTEXT.get());
+        messageBuilder.setHeader(CurrentUserInfoContext.KEY, CurrentUserInfoContext.CONTEXT.get());
 
         return stream.send(bindingName,messageBuilder.build());
 
@@ -103,6 +109,7 @@ public class MessageSendStream {
 
         MessageBuilder<D> messageBuilder = MessageBuilder.withPayload(data);
 
+        // 设置 RocketMQ 消息标签
         messageBuilder.setHeader(MessageConst.PROPERTY_TAGS, tags);
 
         return sendMessage(bindingName,messageBuilder.build());
@@ -143,6 +150,7 @@ public class MessageSendStream {
 
         MessageBuilder<D> messageBuilder = MessageBuilder.withPayload(data);
 
+        // 设置 RocketMQ 消息标签
         messageBuilder.setHeader(MessageConst.PROPERTY_TAGS, tags);
 
         // RocketMQ 延迟级别从 1 开始计数，枚举值从 0 开始，发送时需 +1 转换

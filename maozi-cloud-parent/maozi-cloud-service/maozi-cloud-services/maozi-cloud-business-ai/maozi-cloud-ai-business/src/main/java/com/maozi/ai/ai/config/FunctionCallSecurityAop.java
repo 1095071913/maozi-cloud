@@ -2,7 +2,7 @@ package com.maozi.ai.ai.config;
 
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.ObjectUtil;
-import com.maozi.common.context.ApplicationLinkContext;
+import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.dto.CurrentUserInfo;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
@@ -69,6 +69,7 @@ public class FunctionCallSecurityAop {
     @Around("@annotation(org.springframework.ai.tool.annotation.Tool)")
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
 
+        // 获取目标方法
         Method method = ((MethodSignature) joinPoint.getSignature()).getMethod();
 
         // 获取方法上的 @PreAuthorize 注解（AnnotationUtils 支持代理对象与注解合并查找），未标注则无需校验直接执行
@@ -93,7 +94,7 @@ public class FunctionCallSecurityAop {
     /**
      * 基于链路上下文当前用户构建认证信息
      * <p>
-     * 从 {@link ApplicationLinkContext}（TransmittableThreadLocal，可跨线程池传递）获取当前登录用户，
+     * 从 {@link CurrentUserInfoContext}（TransmittableThreadLocal，可跨线程池传递）获取当前登录用户，
      * 直接从用户信息中取其权限标识列表（不发起 RPC 查询），构建携带权限的已认证令牌。
      * </p>
      *
@@ -103,7 +104,7 @@ public class FunctionCallSecurityAop {
     private Authentication buildAuthentication() {
 
         // 获取链路上下文中的当前登录用户，未登录时按认证失败处理（收紧校验，不默认放行）
-        CurrentUserInfo currentUserInfo = ApplicationLinkContext.getCurrentUserInfo();
+        CurrentUserInfo currentUserInfo = CurrentUserInfoContext.CONTEXT.get();
         if (ObjectUtil.isNullEmpty(currentUserInfo)) {
             throw new BusinessResultException(SystemErrorCode.PERMISSION_ERROR);
         }

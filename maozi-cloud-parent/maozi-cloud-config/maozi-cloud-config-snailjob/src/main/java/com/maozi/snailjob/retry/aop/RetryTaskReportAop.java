@@ -5,7 +5,9 @@ import com.aizuda.snailjob.client.core.RetryCondition;
 import com.aizuda.snailjob.client.core.retryer.RetryTaskTemplateBuilder;
 import com.aizuda.snailjob.client.core.retryer.RetryType;
 import com.aizuda.snailjob.client.core.retryer.SnailJobTemplate;
-import com.maozi.common.context.ApplicationLinkContext;
+import com.maozi.common.context.TestFlowContext;
+import com.maozi.common.context.TraceIdContext;
+import com.maozi.common.context.VersionContext;
 import com.maozi.snailjob.retry.annotation.RetryTask;
 import com.maozi.snailjob.retry.context.RetryContextHolder;
 import com.maozi.snailjob.retry.executor.RetryExecutorTask;
@@ -59,16 +61,19 @@ public class RetryTaskReportAop {
     @Around(POINT)
     public Object around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 
+        // 获取目标方法及其上的 @RetryTask 注解配置
         MethodSignature signature = (MethodSignature) proceedingJoinPoint.getSignature();
 
         Method method = signature.getMethod();
         RetryTask retryTask = method.getAnnotation(RetryTask.class);
 
+        // 方法执行异常（延迟到本地重试与上报处理后上抛）；是否为重试执行器发起的重试流量
         Throwable ex = null;
         boolean retryTraffic = Boolean.TRUE.equals(RetryContextHolder.getRetry());
 
         try {
 
+            // 执行目标方法
             Object result = proceedingJoinPoint.proceed();
 
             // 若为重试流量则直接返回数据，交给重试执行器处理
@@ -85,7 +90,7 @@ public class RetryTaskReportAop {
             ex = e;
         }
 
-        // 只有抛异常 || (非重试流量 && 结果集校验方法需要重试)才会走到这里
+        // 走到这里说明：方法抛出了异常，或非重试流量下结果集校验判定仍需重试
 
         // 若为非重试流量则执行本地重试与远程上报
         if (!retryTraffic) {
@@ -94,7 +99,7 @@ public class RetryTaskReportAop {
             if (retryTask.retryStrategy() == RetryType.ONLY_LOCAL
                 || retryTask.retryStrategy() == RetryType.LOCAL_REMOTE) {
 
-                // 本地重试成功结束逻辑
+                // 本地重试成功，直接返回重试结果
                 LocalRetryResultDTO localRetryResult =
                     localRetry(retryTask.localTimes(), retryTask.localInterval(), proceedingJoinPoint, retryTask);
                 if (localRetryResult.success()) {
@@ -103,7 +108,7 @@ public class RetryTaskReportAop {
 
             }
 
-            // 重试失败则落库上报
+            // 本地重试未启用或失败后，将方法信息封装为重试任务上报 SnailJob 服务端
             if (retryTask.retryStrategy() == RetryType.ONLY_REMOTE
                 || retryTask.retryStrategy() == RetryType.LOCAL_REMOTE) {
 
@@ -112,14 +117,17 @@ public class RetryTaskReportAop {
                 retryTaskParam.setMethodName(method.getName());
                 retryTaskParam.setParamTypes(signature.getParameterTypes());
                 retryTaskParam.setData(proceedingJoinPoint.getArgs());
-                retryTaskParam.setVersion(
-                    ApplicationLinkContext.getVersionDefault(ApplicationLinkContext.getVersion()));
+                retryTaskParam.setVersion(VersionContext.CONTEXT.get());
+                retryTaskParam.setTestFlow(TestFlowContext.CONTEXT.get());
                 retryTaskParam.setRetryIfResultClassName(retryTask.retryIfResult().getName());
 
                 // OpenTelemetry 无有效追踪上下文时 traceId 为全 0 占位值，此时回退链路上下文中的 traceId
                 String traceId = Span.current().getSpanContext().getTraceId();
-                boolean notHasTraceId = ApplicationLinkContext.TRACE_ID_VALUE.equals(traceId);
-                retryTaskParam.setTraceId(notHasTraceId ? ApplicationLinkContext.getTraceId() : traceId);
+                retryTaskParam.setTraceId(TraceIdContext.TRACE_ID_VALUE.equals(traceId) ?
+                        TraceIdContext.CONTEXT.get()
+                        :
+                        traceId
+                );
 
                 reportRetryTask(retryTask.scene(), retryTaskParam);
 
@@ -210,7 +218,7 @@ public class RetryTaskReportAop {
 
             try {
 
-                // 重试间隙，防止重试过快跟上一次结果一样
+                // 等待重试间隔，避免立即重试得到相同结果
                 if (localInterval > 0) {
                     Thread.sleep(localInterval * SECONDS_TO_MILLIS);
                 }
@@ -241,7 +249,7 @@ public class RetryTaskReportAop {
      *
      * @param success 是否重试成功
      * @param result  重试成功的结果集
-    * @author maozi
+     * @author maozi
      */
      private record LocalRetryResultDTO(boolean success, Object result) {}
 

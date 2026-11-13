@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * 当前登录用户信息
  * <p>
- * 通过 {@code ApplicationLinkContext} 在链路中传递的最小化用户身份信息，
+ * 通过 {@code CurrentUserInfoContext} 在链路中传递的最小化用户身份信息，
  * 仅保留用户 ID、客户端 ID、用户名、权限列表四个核心字段，避免在日志、上下文中暴露完整 User 实体。
  * </p>
  *

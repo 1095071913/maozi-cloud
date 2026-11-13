@@ -22,7 +22,7 @@ import com.maozi.common.LogUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.constant.LogTag;
-import com.maozi.common.context.ApplicationLinkContext;
+import com.maozi.common.context.TraceIdContext;
 import com.maozi.common.enums.LogCommonType;
 import com.maozi.common.result.error.ErrorResult;
 import com.maozi.common.result.error.code.SystemErrorCode;
@@ -61,6 +61,7 @@ import java.util.UUID;
  * 网关全局异常处理器。
  * <p>
  * 实现 ErrorWebExceptionHandler 接口，统一处理网关层所有异常：
+ * - 客户端断连异常（AbortedException）：不记录错误日志，直接透传；
  * - 服务未找到异常（NotFoundException）：返回服务不存在的错误响应；
  * - Sentinel 限流异常（BlockException）：返回限流错误响应；
  * - 其他未知异常：返回系统内部错误响应。
@@ -80,12 +81,7 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
 	/** HTTP 消息写入器列表，用于序列化响应体 */
 	private List<HttpMessageWriter<?>> messageWriters = Collections.emptyList();
 
-	/** 视图解析器列表，用于视图渲染
-     * -- SETTER --
-     *  设置视图解析器列表。
-     *
-     * @param viewResolvers 视图解析器列表
-     */
+	/** 视图解析器列表，用于视图渲染（由 Lombok Setter 暴露设置方法） */
 	@Setter
     private List<ViewResolver> viewResolvers = Collections.emptyList();
 
@@ -112,10 +108,11 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
 	/**
 	 * 渲染错误响应。
 	 * <p>
-	 * 从 ThreadLocal 中获取异常处理结果，构造 JSON 格式的错误响应返回给客户端。
+	 * 以传入的异常处理结果构造 JSON 格式的错误响应返回给客户端。
 	 * </p>
 	 *
 	 * @param request 服务端请求对象
+	 * @param result 异常处理结果
 	 * @return 包含错误信息的 ServerResponse
 	 */
 	protected Mono<ServerResponse> renderErrorResponse(ServerRequest request, ErrorResult<?> result) {
@@ -194,22 +191,25 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
 		}
 
 		// 当 OpenTelemetry 未生成有效 traceId 时，从请求头获取或生成 traceId 写入 MDC；OTel 已有则由其 MDC 集成接管，不覆盖
-		if (ApplicationLinkContext.TRACE_ID_VALUE.equals(Span.current().getSpanContext().getTraceId())) {
-			String traceId = request.getHeaders().getFirst(ApplicationLinkContext.TRACE_ID_KEY);
+		if (TraceIdContext.TRACE_ID_VALUE.equals(Span.current().getSpanContext().getTraceId())) {
+			String traceId = request.getHeaders().getFirst(TraceIdContext.KEY);
 			if (ObjectUtil.isNullEmpty(traceId)) {
 				traceId = UUID.randomUUID().toString();
 			}
-			MDC.put(ApplicationLinkContext.MDC_TRACE_ID_KEY, traceId);
+			MDC.put(TraceIdContext.MDC_TRACE_ID_KEY, traceId);
 		}
 
 		// 构建错误日志信息
 		Map<String, String> logs = new LinkedHashMap<>(8);
 
+		// 记录请求基本信息（类型、IP、URL、方法）
 		logs.put(LogTag.TYPE, LogCommonType.GATEWAY.getDesc());
 		logs.put(LogTag.IP, WebUtil.getRequestHost(request));
 		logs.put(LogTag.URL, request.getURI().toString());
 		logs.put(LogTag.METHOD, Objects.requireNonNull(request.getMethod()).toString());
-        logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
+
+		// 记录异常描述
+		logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
 
 		// 记录异常堆栈日志
 		LogUtil.error(log,e);
@@ -230,13 +230,14 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
 			result = ResultUtil.error(SystemErrorCode.SYSTEM_ERROR).setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
 		}
 
+		// 记录错误响应内容
 		logs.put(LogTag.DATA, result.toString());
 
 		// 记录错误响应日志
 		LogUtil.error(log,logs);
 
-		// 清除 MDC 上下文，防止内存泄漏
-		MDC.remove(ApplicationLinkContext.MDC_TRACE_ID_KEY);
+		// 清理 MDC 上下文，防止线程复用导致数据泄漏
+		MDC.remove(TraceIdContext.MDC_TRACE_ID_KEY);
 
 		// 如果响应已提交（已发送给客户端），则无法修改，直接返回异常
 		if (exchange.getResponse().isCommitted()) {

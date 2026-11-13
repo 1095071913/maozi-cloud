@@ -6,8 +6,10 @@ import com.maozi.common.EnvironmentUtil;
 import com.maozi.common.LogUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.constant.LogTag;
+import com.maozi.common.context.AbstractRequestContextHolder;
 import com.maozi.common.context.ApplicationEnvironmentContext;
-import com.maozi.common.context.ApplicationLinkContext;
+import com.maozi.common.context.SqlLogContext;
+import com.maozi.common.context.VersionContext;
 import com.maozi.common.enums.EnvironmentType;
 import com.maozi.common.enums.LogCommonType;
 import com.maozi.snailjob.job.config.context.SnailJobParamContext;
@@ -68,19 +70,27 @@ public class SnailJobEntranceLogAop {
     @Around(POINT)
     public Object around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 
+        // 标记任务执行是否发生异常，用于最终日志级别判断
         boolean error = false;
 
+        // 任务开始执行时间戳
         long startTime = System.currentTimeMillis();
 
+        // 入口方法入参
         Object[] args = proceedingJoinPoint.getArgs();
+
+        // 提取任务业务参数并写入任务参数上下文，供任务执行过程读取
         JobContext jobContext = (JobContext) args[0];
         String businessParam = (String) jobContext.getJobArgsHolder().getJobParams();
         SnailJobParamContext.setJobParams(businessParam);
 
-        ApplicationLinkContext.setVersion(ApplicationEnvironmentContext.VERSION);
+        // 将当前应用版本写入版本上下文，保证任务内发起的远程调用按版本灰度路由
+        VersionContext.CONTEXT.set(ApplicationEnvironmentContext.VERSION);
 
+        // 日志信息集合
         Map<String, String> logs = new LinkedHashMap<>(16);
 
+        // 记录日志类型与任务执行器信息
         logs.put(LogTag.TYPE, LogCommonType.JOB.getDesc());
         logs.put(LogTag.FUNCTION, getExecutorInfo(proceedingJoinPoint));
 
@@ -96,32 +106,41 @@ public class SnailJobEntranceLogAop {
 
         } catch (Exception e) {
 
+            // 标记任务执行发生异常
             error = true;
 
+            // 记录异常堆栈日志，便于排查问题
             LogUtil.error(log, e);
 
+            // 生产环境异常时补充记录任务参数
             if (!isNotProd) {
                 logs.put(LogTag.PARAM, businessParam);
             }
 
+            // 记录异常描述
             logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
 
+            // 记录异常发生的第一行代码位置
             StackTraceElement[] errorLines = e.getStackTrace();
             if (errorLines.length > 0) {
                 logs.put(LogTag.ERROR_LINE, errorLines[0].toString());
             }
 
+            // 异常原样上抛，由 SnailJob 框架按任务失败处理
             throw e;
 
         } finally {
 
-            StringBuilder sqlLog = LogUtil.SQL_LOG.get();
+            // 记录任务执行过程中的 SQL 日志
+            StringBuilder sqlLog = SqlLogContext.CONTEXT.get();
             if (ObjectUtil.isNotNullEmpty(sqlLog)) {
                 logs.put(LogTag.SQL, sqlLog.toString());
             }
 
+            // 记录调度耗时
             logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + " ms");
 
+            // 按执行结果输出远程日志（上报至 SnailJob 服务端）
             String log = LogUtil.convertLog(logs);
             if (error) {
                 SnailJobLog.REMOTE.error(log);
@@ -129,7 +148,8 @@ public class SnailJobEntranceLogAop {
                 SnailJobLog.REMOTE.info(log);
             }
 
-            ApplicationLinkContext.clearContext();
+            // 清理线程上下文与任务参数，防止线程池复用导致数据泄漏
+            AbstractRequestContextHolder.clearContext();
             SnailJobParamContext.clearJobParams();
 
         }

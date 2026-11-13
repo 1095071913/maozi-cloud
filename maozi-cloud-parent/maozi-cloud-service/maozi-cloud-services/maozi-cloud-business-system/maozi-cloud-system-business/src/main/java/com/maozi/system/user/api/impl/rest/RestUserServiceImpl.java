@@ -22,7 +22,7 @@ import com.maozi.base.param.PageParam;
 import com.maozi.base.param.RequestParam;
 import com.maozi.base.result.PageResult;
 import com.maozi.common.ResultUtil;
-import com.maozi.common.context.ApplicationLinkContext;
+import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.dto.CurrentUserInfo;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.service.api.annotation.RestService;
@@ -133,7 +133,7 @@ public class RestUserServiceImpl extends BaseServiceResultImpl<UserServiceImpl, 
 	/**
 	 * 获取当前登录用户的个人信息
 	 * <p>
-	 * 从应用上下文中获取当前登录用户的用户ID，按关联映射查询并返回该用户的
+	 * 从链路上下文中获取当前登录用户的用户ID，按关联映射查询并返回该用户的
 	 * 姓名、头像以及权限标识列表信息。
 	 * </p>
 	 *
@@ -141,7 +141,7 @@ public class RestUserServiceImpl extends BaseServiceResultImpl<UserServiceImpl, 
 	 */
 	@Override
 	public AbstractBaseResult<UserIndividualInfoResult> restIndividualGet() {
-		Long userId = ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUserId);
+		Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
 		return ResultUtil.success(service.getByIdThrowErrorRelation(userId, UserIndividualInfoResult.class));
 	}
 

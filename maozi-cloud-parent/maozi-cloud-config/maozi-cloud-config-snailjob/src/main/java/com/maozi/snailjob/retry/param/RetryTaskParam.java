@@ -27,7 +27,7 @@ public class RetryTaskParam implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** 重试方法所在 Bean 的名称 */
-    @Schema(description = "重试方法类名")
+    @Schema(description = "重试方法所在 Bean 名称")
     private String beanName;
 
     /** 重试方法名 */
@@ -49,6 +49,10 @@ public class RetryTaskParam implements Serializable {
     /** 上报时保存的应用版本号 */
     @Schema(description = "版本号")
     private String version;
+
+    /** 上报时保存的测试流量标记 */
+    @Schema(description = "是否测试流量")
+    private Boolean testFlow;
 
     /** 重试结果判断器类名，回调后据此判断结果集是否仍需重试 */
     @Schema(description = "重试结果判断器类名")

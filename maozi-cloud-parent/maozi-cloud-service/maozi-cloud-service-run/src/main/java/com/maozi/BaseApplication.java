@@ -22,7 +22,7 @@ import com.maozi.common.ObjectUtil;
 import com.maozi.common.constant.LogTag;
 import com.maozi.common.constant.SpringPropertyConstant;
 import com.maozi.common.context.ApplicationEnvironmentContext;
-import com.maozi.common.context.ApplicationLinkContext;
+import com.maozi.common.context.VersionContext;
 import com.maozi.common.enums.EnvironmentType;
 import com.maozi.common.spi.ConfigInitializer;
 import lombok.SneakyThrows;
@@ -56,12 +56,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * 应用启动基类
  * <p>
- * 微服务应用的统一启动基类，各服务启动入口直接继承此类，或继承 {@code BaseApplicationDB}
- * （组合关系，非继承）并委托本类执行启动。负责统一初始化运行环境、应用名称、
- * 日志等基础启动参数，并在启动前扫描 classpath 下 {@code META-INF/run/config/*.properties}
+ * 微服务应用的统一启动基类，各服务启动入口直接继承此类，
+ * 或继承 {@code BaseApplicationDB}（其内部委托本类执行启动，而非继承本类）。
+ * 负责统一初始化运行环境、应用名称、日志等基础启动参数，
+ * 并在启动前扫描 classpath 下 {@code META-INF/run/config/*.properties}
  * 登记的配置初始化器（{@link ConfigInitializer}），
- * 由各初始化器写入 Nacos 配置中心/服务发现、
- * 缓存、定时任务等组件所需的系统属性。
+ * 由各初始化器写入 Nacos 配置中心/服务发现、缓存、定时任务等组件所需的系统属性。
  * </p>
  * <p>
  * 同时在启动最初阶段安装 {@link BannerFilterPrintStream} 包装标准输出，
@@ -79,9 +79,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class BaseApplication {
 
     /** 运行时配置初始化器扫描模式，匹配 classpath（含 JAR 内）下
-     * META-INF/run/config 目录中的所有 .properties 文件，文件内容为实现类全路径 */
+     * META-INF/run/config 目录中的所有 .properties 文件，每行以实现类全路径作为 key 登记 */
     private static final String CONFIG_LOCATION_PATTERN = "classpath*:META-INF/run/config/*.properties";
 
+    /** 构建产物目录名集合，目录运行时往上跳过这些目录以推导项目根目录名 */
     private static final Set<String> BUILD_DIR_NAMES = Set.of(
         "target", "build", "classes", "bin", "java", "main", "test");
 
@@ -164,41 +165,53 @@ public class BaseApplication {
      */
     protected static void applicationRun(String[] args) {
 
+        // 安装启动 banner 过滤输出流
         initBannerFilter();
 
+        // 初始化系统属性（环境、版本、应用名、日志等）
         initProperties();
 
+        // 加载并执行运行时配置初始化器
         List<ConfigInitializer> initializers = initFileProperties();
 
+        // 启动日志信息集合
         Map<String, String> logs = new LinkedHashMap<>();
 
+        // 启动开始时间戳
         long begin = System.currentTimeMillis();
 
+        // Spring Boot 应用构建器
         SpringApplicationBuilder builder = new SpringApplicationBuilder(BaseApplication.class);
 
         try {
 
+            // 启动应用并记录初始化耗时
             ConfigurableApplicationContext context = builder.bannerMode(Mode.OFF).run(args);
             logs.put(LogTag.INIT_TIME, (System.currentTimeMillis() - begin) + " ms");
 
+            // Web 应用记录实际服务端口
             if (context instanceof WebServerApplicationContext webServerContext) {
                 int actualPort = webServerContext.getWebServer().getPort();
                 logs.put(LogTag.SERVICE_PORT, Integer.toString(actualPort));
             }
 
+            // 追加各初始化器诊断信息并输出启动日志
             appendInitializerLogs(initializers, logs);
             LogUtil.info(log,logs);
 
         } catch (Exception e) {
 
+            // 记录启动异常堆栈
             LogUtil.error(log,e);
 
+            // 追加初始化器诊断信息与错误位置
             appendInitializerLogs(initializers, logs);
             logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
 
             StackTraceElement stackTraceElement = e.getStackTrace()[0];
             logs.put(LogTag.ERROR_LINE, stackTraceElement.toString());
 
+            // 记录错误日志并退出进程
             LogUtil.error(log,logs);
             System.exit(1);
 
@@ -274,7 +287,7 @@ public class BaseApplication {
         if(ObjectUtil.isNullEmpty(version)){
             version = System.getenv(APPLICATION_VERSION_ENV);
             if(ObjectUtil.isNullEmpty(version)){
-                version = ApplicationLinkContext.APPLICATION_DEFAULT_VERSION;
+                version = VersionContext.APPLICATION_DEFAULT_VERSION;
             }
             properties.put(APPLICATION_VERSION_KEY, version);
         }

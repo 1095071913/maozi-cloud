@@ -4,8 +4,10 @@ import com.maozi.common.EnvironmentUtil;
 import com.maozi.common.LogUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.constant.LogTag;
+import com.maozi.common.context.AbstractRequestContextHolder;
 import com.maozi.common.context.ApplicationEnvironmentContext;
-import com.maozi.common.context.ApplicationLinkContext;
+import com.maozi.common.context.SqlLogContext;
+import com.maozi.common.context.VersionContext;
 import com.maozi.common.enums.EnvironmentType;
 import com.maozi.common.enums.LogCommonType;
 import com.xxl.job.core.context.XxlJobHelper;
@@ -43,26 +45,32 @@ public class JobEntranceLogAop {
     /**
      * 环绕通知，记录定时任务执行日志
      * <p>
-     * 任务抛出的 {@code Exception} 会被捕获并记录日志，不再向上抛出，
-     * 仅 {@code Error} 级别的严重错误会继续向上传播。
+     * 任务抛出的 {@code Exception} 会被捕获并记录日志后原样上抛，
+     * 交由 XXL-JOB 框架按任务失败处理。
      * </p>
      *
      * @param proceedingJoinPoint AOP 连接点
-     * @throws Throwable 仅 Error 级别严重错误向上抛出（Exception 已被捕获记录）
+     * @throws Throwable 任务执行异常原样上抛
      */
     @Around(POINT)
     public void around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 
+        // 标记任务执行是否发生异常，用于最终日志级别判断
         boolean error = false;
 
+        // 任务开始执行时间戳
         long startTime = System.currentTimeMillis();
 
+        // 获取任务参数
         String arg = XxlJobHelper.getJobParam();
 
-        ApplicationLinkContext.setVersion(ApplicationEnvironmentContext.VERSION);
+        // 将当前应用版本写入版本上下文，保证任务内发起的远程调用按版本灰度路由
+        VersionContext.CONTEXT.set(ApplicationEnvironmentContext.VERSION);
 
+        // 日志信息集合
         Map<String, String> logs = new LinkedHashMap<>(16);
 
+        // 记录日志类型与任务方法
         logs.put(LogTag.TYPE, LogCommonType.JOB.getDesc());
         logs.put(LogTag.FUNCTION, proceedingJoinPoint.getSignature().getDeclaringTypeName()
             + ":" + proceedingJoinPoint.getSignature().getName());
@@ -74,38 +82,49 @@ public class JobEntranceLogAop {
         }
 
         try {
+            // 执行任务方法
             proceedingJoinPoint.proceed();
         } catch (Exception e) {
 
+            // 标记任务执行发生异常
             error = true;
 
+            // 记录异常堆栈日志，便于排查问题
             LogUtil.error(log, e);
 
+            // 生产环境异常时补充记录任务参数
             if (!isNotProd) {
                 logs.put(LogTag.PARAM, arg);
             }
 
+            // 记录异常描述
             logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
 
+            // 记录异常发生的第一行代码位置
             StackTraceElement[] errorLines = e.getStackTrace();
             if (errorLines.length > 0) {
                 logs.put(LogTag.ERROR_LINE, errorLines[0].toString());
             }
 
+            // 异常原样上抛，交由 XXL-JOB 框架按任务失败处理
             throw e;
 
         } finally {
 
-            StringBuilder sqlLog = LogUtil.SQL_LOG.get();
+            // 记录任务执行过程中的 SQL 日志
+            StringBuilder sqlLog = SqlLogContext.CONTEXT.get();
             if (ObjectUtil.isNotNullEmpty(sqlLog)) {
                 logs.put(LogTag.SQL, sqlLog.toString());
             }
 
+            // 记录任务执行耗时
             logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + " ms");
 
+            // 按执行结果以 info/error 级别输出日志
             LogUtil.log(log, error, logs);
 
-            ApplicationLinkContext.clearContext();
+            // 清理线程上下文，防止线程池复用导致数据泄漏
+            AbstractRequestContextHolder.clearContext();
 
         }
 

@@ -2,7 +2,7 @@ package com.maozi.discovery.config;
 
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.ObjectUtil;
-import com.maozi.common.context.ApplicationLinkContext;
+import com.maozi.common.context.VersionContext;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import org.apache.commons.lang3.StringUtils;
@@ -66,6 +66,7 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
         // 请求头，用于提取版本号进行灰度匹配
         HttpHeaders headers;
 
+        // 负载均衡请求上下文
         Object requestContext = request.getContext();
 
         // 上下文为 DefaultRequestContext 时，从其封装的客户端请求中提取请求头
@@ -108,7 +109,7 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
         }
 
         // 从请求头获取调用方携带的版本号（可能为空，为空时不参与灰度匹配）
-        String version = headers.getFirst(ApplicationLinkContext.VERSION_KEY);
+        String version = headers.getFirst(VersionContext.KEY);
 
         // 主版本（main）实例分组
         List<ServiceInstance> mainApplicationClients = CollectionUtil.newArrayList();
@@ -119,7 +120,7 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
         instances.forEach(instance -> {
 
             // 实例元数据 version 的格式为 "{标识}-{版本}"，按 "-" 分割后取最后一段作为实际版本号参与灰度匹配
-            String [] clientApplicationVersionSplit = instance.getMetadata().get(ApplicationLinkContext.NACOS_VERSION_KEY).split("-");
+            String [] clientApplicationVersionSplit = instance.getMetadata().get(VersionContext.NACOS_VERSION_KEY).split("-");
 
             String clientApplicationVersion = clientApplicationVersionSplit[clientApplicationVersionSplit.length - 1];
 
@@ -129,7 +130,7 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
             }
 
             // 实例版本为主版本时，归入主版本实例分组
-            if(ApplicationLinkContext.APPLICATION_DEFAULT_VERSION.equals(clientApplicationVersion)){
+            if(VersionContext.APPLICATION_DEFAULT_VERSION.equals(clientApplicationVersion)){
                 mainApplicationClients.add(instance);
             }
 

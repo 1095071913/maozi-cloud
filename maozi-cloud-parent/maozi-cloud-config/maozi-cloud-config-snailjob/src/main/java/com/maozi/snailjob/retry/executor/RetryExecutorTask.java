@@ -9,8 +9,12 @@ import com.maozi.common.EnvironmentUtil;
 import com.maozi.common.LogUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.constant.LogTag;
+import com.maozi.common.context.AbstractRequestContextHolder;
 import com.maozi.common.context.ApplicationEnvironmentContext;
-import com.maozi.common.context.ApplicationLinkContext;
+import com.maozi.common.context.SqlLogContext;
+import com.maozi.common.context.TestFlowContext;
+import com.maozi.common.context.TraceIdContext;
+import com.maozi.common.context.VersionContext;
 import com.maozi.common.enums.EnvironmentType;
 import com.maozi.common.enums.LogCommonType;
 import com.maozi.common.result.error.exception.BusinessResultException;
@@ -33,7 +37,7 @@ import java.util.Map;
  * <p>
  * 回调前通过 {@code RetryContextHolder} 标记重试流量（目标方法上的
  * {@code RetryTaskReportAop} 据此放行执行结果，避免重复本地重试与上报），
- * 并恢复上报时保存的链路上下文（链路追踪 Id、版本号）；回调结束后统一清理，
+ * 并恢复上报时保存的链路上下文（链路追踪 Id、版本号、测试流量标记）；回调结束后统一清理，
  * 避免线程复用污染正常流量。
  * </p>
  *
@@ -77,19 +81,23 @@ public class RetryExecutorTask implements ExecutorMethod {
     @Override
     public Object doExecute(Object params) {
 
-        /* 请求开始时间戳 */
+        // 请求开始时间戳
         long startTime = System.currentTimeMillis();
 
+        // 回调参数，第一个元素为重试任务参数
         Object[] args = (Object[]) params;
         RetryTaskParam retryParam = (RetryTaskParam) args[0];
 
-        // 标记当前为远程重试流量,并恢复上报时保存的链路上下文(链路追踪Id、版本号)
+        // 标记当前为远程重试流量，并恢复上报时保存的链路上下文（链路追踪 ID、版本号、测试流量标记）
         RetryContextHolder.setRetry(true);
-        ApplicationLinkContext.setTraceId(retryParam.getTraceId());
-        ApplicationLinkContext.setVersion(ApplicationLinkContext.getVersionDefault(retryParam.getVersion()));
+        TraceIdContext.CONTEXT.set(retryParam.getTraceId());
+        VersionContext.CONTEXT.set(retryParam.getVersion());
+        TestFlowContext.CONTEXT.set(retryParam.getTestFlow());
 
-        /* 日志信息集合 */
+        // 日志信息集合
         Map<String, String> logs = CollectionUtil.newHashMap();
+
+        // 记录日志类型与重试目标方法
         logs.put(LogTag.TYPE, LogCommonType.RPC_RETRY.getDesc());
         logs.put(LogTag.FUNCTION, retryParam.getBeanName() + ":" + retryParam.getMethodName());
         // 非生产环境记录请求参数
@@ -106,6 +114,7 @@ public class RetryExecutorTask implements ExecutorMethod {
 
         } catch (Exception e) {
 
+            // 提取反射调用的根因异常，无根因时取当前异常
             Throwable ex = e.getCause();
             if (ObjectUtil.isNullEmpty(ex)) {
                 ex = e;
@@ -114,9 +123,10 @@ public class RetryExecutorTask implements ExecutorMethod {
             // 记录异常堆栈日志，便于排查问题
             LogUtil.error(log, ex);
 
-            // 异常时补充记录请求参数（生产环境同样记录），并收集错误描述信息
+            // 异常时无论环境均记录请求参数
             logs.put(LogTag.PARAM, Arrays.toString(retryParam.getData()));
 
+            // 记录异常描述
             logs.put(LogTag.ERROR_DESC, ex.getLocalizedMessage());
 
             // 记录异常发生的第一行代码位置
@@ -130,7 +140,7 @@ public class RetryExecutorTask implements ExecutorMethod {
         } finally {
 
             // 记录本次请求过程中执行的 SQL 日志（从 ThreadLocal 中获取）
-            StringBuilder sqlLog = LogUtil.SQL_LOG.get();
+            StringBuilder sqlLog = SqlLogContext.CONTEXT.get();
             if (ObjectUtil.isNotNullEmpty(sqlLog)) {
                 logs.put(LogTag.SQL, sqlLog.toString());
             }
@@ -138,11 +148,12 @@ public class RetryExecutorTask implements ExecutorMethod {
             // 记录响应时间
             logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + " ms");
 
+            // 存在异常描述时以 error 级别输出日志，否则以 info 级别输出
             LogUtil.log(log, logs.containsKey(LogTag.ERROR_DESC), logs);
 
             // 清理重试流量标记与链路上下文
             RetryContextHolder.clear();
-            ApplicationLinkContext.clearContext();
+            AbstractRequestContextHolder.clearContext();
         }
 
         return true;

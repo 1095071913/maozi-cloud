@@ -18204,7 +18204,7 @@
   "commonParameters": {
     "id": 1012352,
     "createdAt": "2026-07-04T22:21:30.000Z",
-    "updatedAt": "2026-07-04T22:21:30.000Z",
+    "updatedAt": "2026-11-13T06:43:53.000Z",
     "deletedAt": null,
     "parameters": {
       "header": [
@@ -18217,7 +18217,20 @@
           "schema": {
             "type": "string",
             "default": "maozi"
-          }
+          },
+          "description": "服务端版本"
+        },
+        {
+          "name": "X-Test-Flow",
+          "defaultEnable": true,
+          "type": "string",
+          "id": "fVHLf38kzP",
+          "defaultValue": "true",
+          "schema": {
+            "type": "string",
+            "default": "true"
+          },
+          "description": "是否测试流量"
         }
       ]
     },

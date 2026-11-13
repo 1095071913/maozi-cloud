@@ -1,6 +1,6 @@
 package com.maozi.gateway.filter;
 
-import com.maozi.common.context.ApplicationLinkContext;
+import com.maozi.common.context.CurrentUserInfoContext;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono;
  * 请求头安全过滤全局过滤器。
  * <p>
  * 网关作为系统对外的唯一入口，必须保证内部服务间传递的信任请求头
- * 不被外部客户端伪造。{@link ApplicationLinkContext#CURRENT_USER_INFO_KEY}
+ * 不被外部客户端伪造。{@link CurrentUserInfoContext#KEY}
  * （X-CurrentUserInfo）用于内部服务（Feign/Dubbo）之间传递登录用户身份，
  * 若允许外部请求直接携带该请求头，将造成用户身份伪造风险。
  * </p>
@@ -32,7 +32,7 @@ public class RequestHeaderFilter implements GlobalFilter, Ordered {
 	 * 过滤器核心逻辑。
 	 * <p>
 	 * 通过 {@link ServerWebExchange#mutate()} 重建请求，
-	 * 移除原始请求中的 {@link ApplicationLinkContext#CURRENT_USER_INFO_KEY} 请求头，
+	 * 移除原始请求中的 {@link CurrentUserInfoContext#KEY} 请求头，
 	 * 随后继续执行过滤器链。
 	 * </p>
 	 *
@@ -45,7 +45,7 @@ public class RequestHeaderFilter implements GlobalFilter, Ordered {
 
 		// 重建请求，移除携带登录用户身份的请求头，防止外部伪造
 		ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
-			.headers(headers -> headers.remove(ApplicationLinkContext.CURRENT_USER_INFO_KEY))
+			.headers(headers -> headers.remove(CurrentUserInfoContext.KEY))
 			.build();
 
 		return chain.filter(exchange.mutate().request(mutatedRequest).build());

@@ -4,7 +4,8 @@ import com.maozi.common.EnvironmentUtil;
 import com.maozi.common.LogUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.constant.LogTag;
-import com.maozi.common.context.ApplicationLinkContext;
+import com.maozi.common.context.CurrentUserInfoContext;
+import com.maozi.common.context.SqlLogContext;
 import com.maozi.common.dto.CurrentUserInfo;
 import com.maozi.common.enums.EnvironmentType;
 import com.maozi.common.enums.LogCommonType;
@@ -57,8 +58,8 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
      * @param requestCallback 请求回调
      * @param responseExtractor 响应提取器
      * @return 响应数据
-     * @throws RestClientException 仅在方法签名上声明；
-     *     实现中所有异常均被捕获并记录日志后返回 null，不会向上抛出
+     * @throws RestClientException 请求执行异常原样上抛，
+     *     其他异常记录日志后包装为 RestClientException 抛出
      */
     @Nullable
     @Override
@@ -75,6 +76,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
         // 使用有序 Map 收集请求全链路日志信息
         Map<String, String> logs = new LinkedHashMap<>();
 
+        // HTTP 响应对象，用于 finally 中统一关闭
         ClientHttpResponse response = null;
 
         try {
@@ -115,7 +117,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
             // 使用响应提取器将响应体反序列化为目标类型
             T data = (responseExtractor != null ? responseExtractor.extractData(response) : null);
 
-            // 记录响应状态码、响应耗时和响应数据到日志
+            // 记录响应状态码和响应数据到日志
             logs.put(LogTag.CODE, Integer.toString(response.getStatusCode().value()));
             if (ObjectUtil.isNotNullEmpty(data)) {
                 logs.put(LogTag.DATA, data.toString());
@@ -128,16 +130,18 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
             // 标记为异常状态
             error = true;
 
+            // 记录异常堆栈日志，便于排查问题
             log.error("", e);
 
             // 记录异常相关的用户、描述和堆栈位置到日志
-            Long userId = ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUserId);
+            Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
             if (ObjectUtil.isNotNullEmpty(userId)) {
                 logs.put(LogTag.ERROR_USER, userId.toString());
             }
             logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
             logs.put(LogTag.ERROR_LINE, e.getStackTrace()[0].toString());
 
+            // RestClientException 原样上抛，其他异常包装为 RestClientException
             throw (e instanceof RestClientException restClientException) ? restClientException
                 : new RestClientException(e.getMessage(), e);
 
@@ -149,7 +153,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
             }
 
             // 收集本次请求链路中累积的 SQL 日志
-            StringBuilder sqlLog = LogUtil.SQL_LOG.get();
+            StringBuilder sqlLog = SqlLogContext.CONTEXT.get();
             if (ObjectUtil.isNotNullEmpty(sqlLog)) {
                 logs.put(LogTag.SQL, sqlLog.toString());
             }

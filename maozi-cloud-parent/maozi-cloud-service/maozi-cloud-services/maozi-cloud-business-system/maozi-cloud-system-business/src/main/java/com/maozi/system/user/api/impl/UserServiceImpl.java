@@ -27,7 +27,7 @@ import com.maozi.base.enums.Status;
 import com.maozi.base.param.RequestParam;
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.ObjectUtil;
-import com.maozi.common.context.ApplicationLinkContext;
+import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.dto.CurrentUserInfo;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.oauth.client.api.rpc.RpcClientService;
@@ -127,6 +127,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
 
         ObjectUtil.isNullEmptyThrowError(username, getResourceName());
 
+        // 构建查询条件：按用户名查询，仅取 ID 字段
         MPJLambdaWrapper<UserDo> wrapper = MPJWrappers.lambdaJoin();
 
         wrapper.select(UserDo::getId);
@@ -246,6 +247,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
             return;
         }
 
+        // 更新用户状态
         user.setId(id);
         user.setStatus(status);
         updateById(user);
@@ -271,8 +273,10 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
     @Transactional(rollbackFor = Exception.class)
     public void individualUpdate(UserIndividualUpdateParam param){
 
-        Long userId = ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUserId);
+        // 当前登录用户 ID
+        Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
 
+        // 旧密码与新密码
         String paramPassword = param.getPassword();
         String paramNewPassword = param.getNewPassword();
 
@@ -288,14 +292,15 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
             paramNewPassword = UserServiceImpl.PASSWORD_ENCODER.encode(paramNewPassword);
         }
 
+        // 复制参数并更新用户基本信息与新密码
         UserDo domain = CglibUtil.copy(param, UserDo.class);
         domain.setId(userId);
         domain.setPassword(paramNewPassword);
         updateById(domain);
 
         // 更新成功后销毁当前用户在该客户端下的全部OAuth2令牌，并指示前端跳转登录页，强制重新登录
-        Long clientId = ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getClientId);
-        String username = ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUsername);
+        Long clientId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getClientId);
+        String username = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUsername);
         rpcOauthTokenService.rpcDestroyByPrincipal(clientId, username).getResultDataThrowError();
         RedirectUtil.redirect(RedirectType.LOGIN);
 
@@ -324,6 +329,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
         // 用户不存在时抛出业务异常
         ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
 
+        // 查询权限标识并组装返回结果
         Long userId = domain.getId();
         List<String> permissions = getPermissionsByUserId(userId);
 
@@ -341,6 +347,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
      */
     public List<String> getPermissionsByUsernameRole(String username, Long roleId) {
 
+        // 校验并获取可用用户 ID
         Long id = getAvailableByUsername(username);
 
         // 校验用户绑定了指定角色，未绑定则抛出异常
@@ -407,10 +414,12 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
 
         List<String> responses = CollectionUtil.newArrayList();
 
+        // 查询用户绑定的角色 ID 列表
         List<Long> roleIds = userRoleService.getRolesByUser(userId);
 
         if(!roleIds.isEmpty()) {
 
+            // 通过角色查询关联的权限 ID 集合并转换为权限标识列表
             Collection<Long> permissionIds = rolePermissionService.getPermissionsByRoles(roleIds);
 
             List<String> marks = permissionService.getMarks(permissionIds);
@@ -453,6 +462,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
 
         CollectionUtil.collectionIsEmptyThrowError(ids, getResourceName() + "列表");
 
+        // 构建查询条件：按用户 ID 列表查询，仅取用户名与客户端 ID 字段
         LambdaQueryWrapper<UserDo> wrapper = Wrappers.lambdaQuery();
 
         wrapper.select(UserDo::getUsername,UserDo::getClientId);

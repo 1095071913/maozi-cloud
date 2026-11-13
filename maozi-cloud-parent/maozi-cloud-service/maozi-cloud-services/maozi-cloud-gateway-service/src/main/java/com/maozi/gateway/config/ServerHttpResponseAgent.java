@@ -4,7 +4,7 @@ import com.maozi.common.JacksonUtil;
 import com.maozi.common.LogUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.constant.LogTag;
-import com.maozi.common.context.ApplicationLinkContext;
+import com.maozi.common.context.TraceIdContext;
 import com.maozi.common.result.success.SuccessResult;
 import io.opentelemetry.api.trace.Span;
 import jakarta.annotation.Nonnull;
@@ -97,6 +97,7 @@ public class ServerHttpResponseAgent extends ServerHttpResponseDecorator {
 
         if (body instanceof Flux<? extends DataBuffer> fluxBody) {
 
+            // 响应缓冲区工厂，用于将合并后的字节重新包装为 DataBuffer
             DataBufferFactory bufferFactory = getDelegate().bufferFactory();
 
             return super.writeWith(fluxBody.buffer().map(dataBuffers -> {
@@ -127,12 +128,12 @@ public class ServerHttpResponseAgent extends ServerHttpResponseDecorator {
 
                 // 当 OpenTelemetry 未生成有效 traceId 时，从请求头获取或生成 traceId 写入 MDC；
                 // OTel 已有则由其 MDC 集成接管，不覆盖
-                if (ApplicationLinkContext.TRACE_ID_VALUE.equals(Span.current().getSpanContext().getTraceId())) {
-                    String traceId = request.getHeaders().getFirst(ApplicationLinkContext.TRACE_ID_KEY);
+                if (TraceIdContext.TRACE_ID_VALUE.equals(Span.current().getSpanContext().getTraceId())) {
+                    String traceId = request.getHeaders().getFirst(TraceIdContext.KEY);
                     if (ObjectUtil.isNullEmpty(traceId)) {
                         traceId = UUID.randomUUID().toString();
                     }
-                    MDC.put(ApplicationLinkContext.MDC_TRACE_ID_KEY, traceId);
+                    MDC.put(TraceIdContext.MDC_TRACE_ID_KEY, traceId);
                 }
 
                 // 记录响应耗时（RT）

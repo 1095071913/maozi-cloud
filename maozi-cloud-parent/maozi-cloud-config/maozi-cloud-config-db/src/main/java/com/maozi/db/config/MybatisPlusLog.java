@@ -1,7 +1,7 @@
 package com.maozi.db.config;
 
-import com.maozi.common.LogUtil;
 import com.maozi.common.ObjectUtil;
+import com.maozi.common.context.SqlLogContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.logging.Log;
@@ -35,6 +35,9 @@ public class MybatisPlusLog implements Log {
 
     /**
      * 是否启用 debug 级别
+     * <p>
+     * 返回 true 使 MyBatis 将 SQL 日志交给 {@link #debug(String)} 收集
+     * </p>
      *
      * @return 始终返回 true
      */
@@ -50,10 +53,10 @@ public class MybatisPlusLog implements Log {
     public boolean isTraceEnabled() {return true;}
 
     /**
-     * 记录 error 日志（当前实现未输出异常堆栈，仅记录日志内容）
+     * 记录 error 日志（含异常堆栈）
      *
      * @param s 日志内容
-     * @param e 异常对象（未被使用，不会随日志输出）
+     * @param e 异常对象
      */
     @Override
     public void error(String s, Throwable e) {log.error(s, e);}
@@ -79,15 +82,12 @@ public class MybatisPlusLog implements Log {
     public void debug(String s) {
 
         // 从线程变量中获取 SQL 日志构建器
-        StringBuilder sqlLog = LogUtil.SQL_LOG.get();
+        StringBuilder sqlLog = SqlLogContext.CONTEXT.get();
 
         // 如果当前线程还没有初始化 SQL 日志构建器，则创建并设置到线程变量中
         if (ObjectUtil.isNullEmpty(sqlLog)) {
-
             sqlLog = new StringBuilder();
-
-            LogUtil.SQL_LOG.set(sqlLog);
-
+            SqlLogContext.CONTEXT.set(sqlLog);
         }
 
         // 处理 SQL 准备语句：提取 SQL 模板（包含 ? 占位符）

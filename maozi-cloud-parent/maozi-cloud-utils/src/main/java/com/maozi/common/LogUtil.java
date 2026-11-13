@@ -10,7 +10,7 @@ import java.util.Map;
  * 日志工具类
  * <p>
  * 封装统一的日志输出方法，支持 info/error 级别的字符串和 Map 格式日志，
- * 以及 SQL 日志的线程本地存储和日志格式化。
+ * 以及日志格式化。
  * </p>
  *
  * @author pengjinlong
@@ -20,9 +20,6 @@ public final class LogUtil {
 
     /** 私有构造器，防止工具类被实例化 */
     private LogUtil() {}
-
-    /** SQL 日志线程变量，用于在同一线程中累积 SQL 日志信息 */
-    public static final ThreadLocal<StringBuilder> SQL_LOG = new ThreadLocal<>();
 
     /**
      * 输出 info 级别日志
@@ -104,9 +101,8 @@ public final class LogUtil {
     /**
      * 将 Map 格式的日志内容转换为字符串
      * <p>
-     * 每个条目按 {@code [ key：value ]  } 拼接，
-     * 并去除整串最前面的 {@code "[ "} 与最后面的 {@code " ]  "}。
-     * 例如两条目时实际输出为：{@code key1：value1 ]  [ key2：value2}
+     * 条目格式为 {@code key：value}，多条目间以 {@code " ]  [ "} 分隔，
+     * 如两条目时输出 {@code key1：value1 ]  [ key2：value2}。
      * </p>
      *
      * @param content 日志内容键值对
@@ -137,15 +133,10 @@ public final class LogUtil {
      * @return 堆栈跟踪字符串
      */
     public static String getStackTraceLog(Throwable t) {
-
         StringWriter sw = new StringWriter();
-
         PrintWriter pw = new PrintWriter(sw);
-
         t.printStackTrace(pw);
-
         return sw.toString();
-
     }
 
 }

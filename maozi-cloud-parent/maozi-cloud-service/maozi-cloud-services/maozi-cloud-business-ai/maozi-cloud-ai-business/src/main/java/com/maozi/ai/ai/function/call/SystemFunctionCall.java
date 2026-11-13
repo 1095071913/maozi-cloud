@@ -1,6 +1,6 @@
 package com.maozi.ai.ai.function.call;
 
-import com.maozi.common.context.ApplicationLinkContext;
+import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.dto.CurrentUserInfo;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.service.api.annotation.RemoteResource;
@@ -33,7 +33,7 @@ public class SystemFunctionCall {
      */
     @Tool(description = "查询用户、客户端、权限等信息")
     public AbstractBaseResult<AiGetUserInfoResult> getUserInfo() {
-        Long userId = ApplicationLinkContext.getCurrentUserInfo(CurrentUserInfo::getUserId);
+        Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
         return rpcUserService.rpcAiGetUserInfo(userId);
     }
 

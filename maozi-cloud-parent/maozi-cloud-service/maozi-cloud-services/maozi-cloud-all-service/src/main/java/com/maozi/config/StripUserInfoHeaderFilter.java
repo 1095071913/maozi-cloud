@@ -1,6 +1,6 @@
 package com.maozi.config;
 
-import com.maozi.common.context.ApplicationLinkContext;
+import com.maozi.common.context.CurrentUserInfoContext;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -22,7 +22,7 @@ import java.util.Set;
  * 用户信息请求头清除过滤器
  * <p>
  * 聚合服务（maozi-cloud-all-service）作为对外入口，直接接收外部请求。
- * {@code X-CurrentUserInfo}（{@link ApplicationLinkContext#CURRENT_USER_INFO_KEY}）
+ * {@code X-CurrentUserInfo}（{@link CurrentUserInfoContext#KEY}）
  * 请求头用于服务间内部传递当前登录用户信息，不应由外部客户端直接注入，
  * 否则攻击者可伪造用户身份绕过认证。
  * </p>
@@ -33,15 +33,16 @@ import java.util.Set;
  * </p>
  * <p>
  * 由于 {@link com.maozi.mvc.filter.ApplicationContextFilter} 以 {@code HIGHEST_PRECEDENCE}
- * 执行并已从该请求头写入 {@link ApplicationLinkContext#currentUserInfos} 线程本地变量，
+ * 执行并已从该请求头写入 {@link CurrentUserInfoContext#CONTEXT} 线程本地变量，
  * 本过滤器在 Security 之前通过 {@link UserInfoHeaderStrippedRequestWrapper} 移除请求中的
  * {@code X-CurrentUserInfo} 头，使下游过滤器链（含内省令牌）与控制器无法读取到该头。
  * 认证完成后，{@code ApplicationUserContextFilter} 拦截器会依据内省结果重新设置真实用户信息。
  * </p>
  * <p>
- * <b>注：</b>当前 {@code doFilterInternal} 仅做请求头包装，并未主动清除
- * {@link ApplicationLinkContext#currentUserInfos} 线程本地变量。若上游 {@code ApplicationContextFilter}
- * 已根据外部请求头写入了用户信息，则需要确认该线程变量是否会在后续被覆盖或清理，否则存在身份残留风险。
+ * <b>注：</b>本过滤器仅移除请求头，不清除上游 {@code ApplicationContextFilter}
+ * 可能已写入的 {@link CurrentUserInfoContext#CONTEXT} 线程本地变量；
+ * 认证成功后 {@code ApplicationUserContextFilter} 会按内省结果覆盖，
+ * 未认证端点上仍存在外部注入身份的残留风险，需注意。
  * </p>
  *
  * @author maozi
@@ -56,7 +57,7 @@ public class StripUserInfoHeaderFilter extends OncePerRequestFilter {
      * <p>
      * 仅以 {@link UserInfoHeaderStrippedRequestWrapper} 包装请求继续过滤器链，
      * 使后续内省令牌与业务处理拿不到 {@code X-CurrentUserInfo} 头；
-     * 本方法不主动清除 {@link ApplicationLinkContext#currentUserInfos} 线程本地变量。
+     * 本方法不主动清除 {@link CurrentUserInfoContext#CONTEXT} 线程本地变量。
      * </p>
      *
      * @param request     原始 HTTP 请求
@@ -78,12 +79,12 @@ public class StripUserInfoHeaderFilter extends OncePerRequestFilter {
      * {@code getHeaderNames} 时均使用 {@code equalsIgnoreCase} 过滤目标头。
      * </p>
      *
-    * @author maozi
+     * @author maozi
      */
     private static class UserInfoHeaderStrippedRequestWrapper extends HttpServletRequestWrapper {
 
         /** 需要移除的请求头名称 */
-        private static final String HEADER_TO_STRIP = ApplicationLinkContext.CURRENT_USER_INFO_KEY;
+        private static final String HEADER_TO_STRIP = CurrentUserInfoContext.KEY;
 
         /**
          * 构造方法

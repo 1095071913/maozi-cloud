@@ -1,9 +1,10 @@
 package com.maozi.dubbo.filter;
 
-import com.maozi.common.JacksonUtil;
 import com.maozi.common.ObjectUtil;
-import com.maozi.common.context.ApplicationLinkContext;
-import com.maozi.common.dto.CurrentUserInfo;
+import com.maozi.common.context.CurrentUserInfoContext;
+import com.maozi.common.context.TestFlowContext;
+import com.maozi.common.context.TraceIdContext;
+import com.maozi.common.context.VersionContext;
 import org.apache.dubbo.rpc.Filter;
 import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
@@ -15,9 +16,9 @@ import org.apache.dubbo.rpc.RpcException;
 /**
  * Dubbo 消费端链路上下文传递过滤器
  * <p>
- * 在 Dubbo 服务消费者端发起 RPC 调用时，将当前线程中的版本号和当前登录用户信息（{@link com.maozi.common.dto.CurrentUserInfo}）
- * 从 {@link ApplicationLinkContext} 读取并写入 RPC 附件（Attachment）中，
- * 传递到服务提供者端，实现跨服务的链路上下文传播。
+ * 在 Dubbo 服务消费者端发起 RPC 调用时，将当前线程中的版本号、测试流量标记、
+ * 当前登录用户信息（{@link com.maozi.common.dto.CurrentUserInfo}）和链路追踪 ID
+ * 写入 RPC 附件（Attachment）中，传递到服务提供者端，实现跨服务的链路上下文传播。
  * </p>
  * <p>
  * 与 {@link ApplicationDubboContextLoadFilter} 配合使用：
@@ -31,24 +32,15 @@ import org.apache.dubbo.rpc.RpcException;
  * </p>
  *
  * @author maozi
- * @see ApplicationLinkContext
+ * @date 2026/11/13
  * @see ApplicationDubboContextLoadFilter
  * @see Filter
  */
 public class ApplicationDubboContextTransmitFilter implements Filter {
 
     /**
-     * 拦截 Dubbo 消费端调用，将链路上下文信息写入 RPC 附件
-     * <p>
-     * 执行流程：
-     * <ol>
-     *   <li>获取 RPC 客户端附件对象</li>
-     *   <li>将当前线程的版本号（version）写入附件，传递给服务提供者</li>
-     *   <li>将当前线程的登录用户信息（CurrentUserInfo）序列化为 JSON 写入附件，传递给服务提供者</li>
-     *   <li>将当前线程的链路追踪 ID（traceId）写入附件，传递给服务提供者</li>
-     *   <li>执行实际的 Dubbo RPC 调用</li>
-     * </ol>
-     * </p>
+     * 拦截 Dubbo 消费端调用，将当前线程的链路上下文信息写入 RPC 附件，
+     * 随请求传递到服务提供者端
      *
      * @param invoker    Dubbo 调用器，封装了被调用的远程服务信息
      * @param invocation 调用信息，包含方法名、参数类型、参数值等
@@ -62,16 +54,19 @@ public class ApplicationDubboContextTransmitFilter implements Filter {
         RpcContextAttachment clientAttachment = RpcContext.getClientAttachment();
 
         // 将当前线程的版本号写入 RPC 附件，供服务提供者读取
-        clientAttachment.setAttachment(ApplicationLinkContext.VERSION_KEY,ApplicationLinkContext.getVersion());
+        clientAttachment.setAttachment(VersionContext.KEY, VersionContext.CONTEXT.get());
+
+        // 将当前线程的测试流量标记写入 RPC 附件，供服务提供者读取
+        clientAttachment.setAttachment(TestFlowContext.KEY, TestFlowContext.CONTEXT.get());
 
         // 将当前线程的用户信息写入 RPC 附件，供服务提供者读取
-        CurrentUserInfo currentUserInfo = ApplicationLinkContext.getCurrentUserInfo();
-        if(ObjectUtil.isNotNullEmpty(currentUserInfo)){
-            clientAttachment.setAttachment(ApplicationLinkContext.CURRENT_USER_INFO_KEY, JacksonUtil.objectToJson(currentUserInfo));
+        String currentUserInfoJson = CurrentUserInfoContext.CONTEXT.getJson();
+        if(ObjectUtil.isNotNullEmpty(currentUserInfoJson)){
+            clientAttachment.setAttachment(CurrentUserInfoContext.KEY, currentUserInfoJson);
         }
 
         // 将当前线程的链路追踪 ID 写入 RPC 附件，供服务提供者延续同一调用链路
-        clientAttachment.setAttachment(ApplicationLinkContext.TRACE_ID_KEY,ApplicationLinkContext.getTraceId());
+        clientAttachment.setAttachment(TraceIdContext.KEY, TraceIdContext.CONTEXT.get());
 
         // 执行实际的 RPC 调用，附件信息会随请求一起发送到服务提供者
         return invoker.invoke(invocation);

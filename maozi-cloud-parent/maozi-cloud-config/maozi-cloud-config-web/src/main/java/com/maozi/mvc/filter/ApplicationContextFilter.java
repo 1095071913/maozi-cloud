@@ -1,7 +1,11 @@
 package com.maozi.mvc.filter;
 
 import com.maozi.common.ObjectUtil;
-import com.maozi.common.context.ApplicationLinkContext;
+import com.maozi.common.context.AbstractRequestContextHolder;
+import com.maozi.common.context.CurrentUserInfoContext;
+import com.maozi.common.context.TestFlowContext;
+import com.maozi.common.context.TraceIdContext;
+import com.maozi.common.context.VersionContext;
 import com.maozi.common.dto.CurrentUserInfo;
 import io.opentelemetry.api.trace.Span;
 import jakarta.annotation.Nonnull;
@@ -18,7 +22,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 /**
- * 应用链路上下文过滤器（版本号、当前用户信息、traceId）
+ * 应用链路上下文过滤器（版本号、测试流量标记、当前用户信息、traceId）
  * <p>
  * 以 Servlet Filter 形式注册，优先级设为最高（{@link Ordered#HIGHEST_PRECEDENCE}），
  * 确保在 Spring Security 过滤器链（包括 {@code BearerTokenAuthenticationFilter}、
@@ -27,10 +31,10 @@ import java.util.UUID;
  * <p>
  * 负责在请求进入时初始化链路上下文：
  * <ul>
- *   <li>从请求头提取版本号（空时取默认版本）写入 {@link ApplicationLinkContext#versions}，
+ *   <li>从请求头提取版本号（空时取默认版本）写入 {@link VersionContext#CONTEXT}，
  *       使版本号在 {@code OpaqueTokenIntrospector} 内省令牌和 {@code /oauth/**} 端点处理时即可读取，
  *       用于灰度路由等场景</li>
- *   <li>从请求头提取测试流量标记（"true" 表示测试流量）写入 {@link ApplicationLinkContext#testFlows}，
+ *   <li>从请求头提取测试流量标记（"true" 表示测试流量）写入 {@link TestFlowContext#CONTEXT}，
  *       用于测试流量识别等场景</li>
  *   <li>上下文中尚无当前用户信息时，尝试从请求头解析并写入（供网关/上游透传用户信息的场景）</li>
  *   <li>当前链路尚未产生有效 traceId 时，从请求头读取（为空则生成随机 UUID），
@@ -59,37 +63,35 @@ public class ApplicationContextFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, @Nonnull HttpServletResponse response, @Nonnull FilterChain filterChain) throws ServletException, IOException {
 
         // 从请求头提取版本号（为空时取默认版本），写入链路上下文，供灰度路由等场景使用
-        String version = ApplicationLinkContext.getVersionDefault(request.getHeader(ApplicationLinkContext.VERSION_KEY));
-        ApplicationLinkContext.setVersion(version);
+        VersionContext.CONTEXT.set(request.getHeader(VersionContext.KEY));
 
         // 从请求头提取测试流量标记（"true" 表示测试流量），写入链路上下文
-        String testFlow = ApplicationLinkContext.getVersionDefault(request.getHeader(ApplicationLinkContext.TEST_FLOW_KEY));
-        ApplicationLinkContext.setTestFlow(testFlow);
+        TestFlowContext.CONTEXT.set(request.getHeader(TestFlowContext.KEY));
 
         // 上下文中尚无当前用户信息时，从请求头解析并补齐（供网关/上游透传用户信息的场景）
-        CurrentUserInfo currentUserInfo = ApplicationLinkContext.getCurrentUserInfo();
+        CurrentUserInfo currentUserInfo = CurrentUserInfoContext.CONTEXT.get();
         if(ObjectUtil.isNullEmpty(currentUserInfo)){
-            ApplicationLinkContext.setCurrentUserInfo(request.getHeader(ApplicationLinkContext.CURRENT_USER_INFO_KEY));
+            CurrentUserInfoContext.CONTEXT.set(request.getHeader(CurrentUserInfoContext.KEY));
         }
 
-        // 当前链路尚未产生有效 traceId（OTel Span 为 32 个 0 的占位值）时，从请求头读取，为空则生成随机 UUID，写入上下文并回写响应头
+        // OTel 尚未产生有效 traceId（32 个 0 占位值）时，从请求头读取，为空则生成随机 UUID，写入上下文并回写响应头
         String traceId = Span.current().getSpanContext().getTraceId();
-        boolean notHasTraceId = ApplicationLinkContext.TRACE_ID_VALUE.equals(traceId);
-        if(notHasTraceId){
-            traceId = request.getHeader(ApplicationLinkContext.TRACE_ID_KEY);
+        if(TraceIdContext.TRACE_ID_VALUE.equals(traceId)){
+            traceId = request.getHeader(TraceIdContext.KEY);
             if(ObjectUtil.isNullEmpty(traceId)){
                 traceId = UUID.randomUUID().toString();
             }
-            ApplicationLinkContext.setTraceId(traceId);
-            response.setHeader(ApplicationLinkContext.TRACE_ID_KEY, ApplicationLinkContext.getTraceId());
+            TraceIdContext.CONTEXT.set(traceId);
+            response.setHeader(TraceIdContext.KEY, traceId);
         }
+
 
         try {
             // 继续执行过滤器链（包括 Spring Security 认证和后续业务处理）
             filterChain.doFilter(request, response);
         } finally {
             // 清理链路上下文，防止线程池复用时数据泄漏
-            ApplicationLinkContext.clearContext();
+            AbstractRequestContextHolder.clearContext();
         }
 
     }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- OpenTelemetry Java Agent 扩展模块，基于 OpenTelemetry Instrumentation 实现链路追踪、指标采集与 MDC 日志增强等可观测性能力 -->
+<!-- OpenTelemetry Java Agent 扩展模块，通过 SPI 提供自定义采样过滤器与网关响应 X-TraceId 注入等 Agent 定制能力 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -25,8 +25,10 @@
 
     </properties>
 
+    <!-- 依赖版本统一管理，通过 BOM 导入方式管理 OpenTelemetry 组件版本 -->
     <dependencyManagement>
         <dependencies>
+            <!-- OpenTelemetry Instrumentation 官方 BOM，统一管理 Instrumentation 依赖版本 -->
             <dependency>
                 <groupId>io.opentelemetry.instrumentation</groupId>
                 <artifactId>opentelemetry-instrumentation-bom</artifactId>

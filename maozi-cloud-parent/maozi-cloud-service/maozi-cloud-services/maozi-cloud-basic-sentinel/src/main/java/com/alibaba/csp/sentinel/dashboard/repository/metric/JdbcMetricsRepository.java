@@ -55,6 +55,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
 
+    /** Logger of this class. */
     private static final Logger logger = LoggerFactory.getLogger(JdbcMetricsRepository.class);
 
     /** Max rows deleted per statement, to keep each DELETE short. */
@@ -163,6 +164,7 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
 
     /** Maps one row of the sentinel_metric table to a {@link MetricEntity}. */
     private final RowMapper<MetricEntity> metricRowMapper = new RowMapper<MetricEntity>() {
+        /** Maps the current result set row to a metric entity. */
         @Override
         public MetricEntity mapRow(ResultSet rs, int rowNum) throws SQLException {
             MetricEntity entity = new MetricEntity();
@@ -182,6 +184,7 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         }
     };
 
+    /** Creates the repository with the JDBC accessor for the metric table. */
     public JdbcMetricsRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -411,6 +414,7 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
     private void doUpsert(List<MetricEntity> validMetrics) {
         try {
             jdbcTemplate.batchUpdate(UPSERT_SQL, new BatchPreparedStatementSetter() {
+                /** Binds the fields of the i-th metric to the upsert statement. */
                 @Override
                 public void setValues(PreparedStatement ps, int i) throws SQLException {
                     MetricEntity metric = validMetrics.get(i);
@@ -429,6 +433,7 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
                     ps.setInt(11, metric.getCount());
                 }
 
+                /** Returns the number of metrics to upsert. */
                 @Override
                 public int getBatchSize() {
                     return validMetrics.size();

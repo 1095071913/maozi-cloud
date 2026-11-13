@@ -25,7 +25,7 @@
 			<version>${maozi-cloud-utils.version}</version>
 		</dependency>
 
-		<!-- Spring Cloud 通用组件，提供 Spring Cloud 基础上下文支持 -->
+		<!-- Spring Cloud 通用组件，提供 DiscoveryClient 用于查询服务实例的灰度版本信息 -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-commons</artifactId>

@@ -61,7 +61,7 @@ public class PermissionDo extends AbstractBaseNameDomain {
 	/** 后端服务请求地址 */
 	private String serviceUri;
 
-	/** 权限类型（如菜单、按钮、接口等） */
+	/** 权限类型（目录、菜单、按钮） */
 	private PermissionType type;
 
 	/** 排序序号，权限列表按深度与该值降序排列，值越大越靠前 */

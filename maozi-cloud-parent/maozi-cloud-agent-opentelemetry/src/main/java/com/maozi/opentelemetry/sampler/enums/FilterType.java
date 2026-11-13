@@ -29,6 +29,13 @@ public enum FilterType {
     ;
 
 
+    /**
+     * 构造过滤器类型
+     *
+     * @param value 枚举的整型值
+     * @param desc 来源类型的英文描述
+     * @param handle 该类型绑定的过滤器实现
+     */
     FilterType(Integer value, String desc, FilterHandle handle){
 
         this.value = value;

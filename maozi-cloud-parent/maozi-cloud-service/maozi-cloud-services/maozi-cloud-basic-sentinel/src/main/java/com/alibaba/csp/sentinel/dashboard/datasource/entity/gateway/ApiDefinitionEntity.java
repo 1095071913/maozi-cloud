@@ -104,81 +104,99 @@ public class ApiDefinitionEntity implements RuleEntity {
         return apiDefinition;
     }
 
+    /** Create an empty entity. */
     public ApiDefinitionEntity() {
 
     }
 
+    /** Create an entity with the given API name and predicate items. */
     public ApiDefinitionEntity(String apiName, Set<ApiPredicateItemEntity> predicateItems) {
         this.apiName = apiName;
         this.predicateItems = predicateItems;
     }
 
+    /** Get the name of the API. */
     public String getApiName() {
         return apiName;
     }
 
+    /** Set the name of the API. */
     public void setApiName(String apiName) {
         this.apiName = apiName;
     }
 
+    /** Get the predicate items of the API. */
     public Set<ApiPredicateItemEntity> getPredicateItems() {
         return predicateItems;
     }
 
+    /** Set the predicate items of the API. */
     public void setPredicateItems(Set<ApiPredicateItemEntity> predicateItems) {
         this.predicateItems = predicateItems;
     }
 
+    /** Get the entity id. */
     @Override
     public Long getId() {
         return id;
     }
 
+    /** Set the entity id. */
     @Override
     public void setId(Long id) {
         this.id = id;
     }
 
+    /** Get the application name. */
     @Override
     public String getApp() {
         return app;
     }
 
+    /** Set the application name. */
     public void setApp(String app) {
         this.app = app;
     }
 
+    /** Get the IP address of the machine. */
     @Override
     public String getIp() {
         return ip;
     }
 
+    /** Set the IP address of the machine. */
     public void setIp(String ip) {
         this.ip = ip;
     }
 
+    /** Get the port of the machine. */
     @Override
     public Integer getPort() {
         return port;
     }
 
+    /** Set the port of the machine. */
     public void setPort(Integer port) {
         this.port = port;
     }
 
+    /** Get the create time. */
     @Override
     public Date getGmtCreate() {
         return gmtCreate;
     }
 
+    /** Set the create time. */
     public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
     }
 
+    /** Get the last modify time. */
     public Date getGmtModified() {
         return gmtModified;
     }
 
+    /** Set the last modify time. */
     public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
     }
@@ -189,6 +207,7 @@ public class ApiDefinitionEntity implements RuleEntity {
         return null;
     }
 
+    /** Whether the given object has the same fields as this entity. */
     @Override
     public boolean equals(Object o) {
         if (this == o) { return true; }
@@ -204,11 +223,13 @@ public class ApiDefinitionEntity implements RuleEntity {
                 Objects.equals(predicateItems, entity.predicateItems);
     }
 
+    /** Get the hash code from all fields of this entity. */
     @Override
     public int hashCode() {
         return Objects.hash(id, app, ip, port, gmtCreate, gmtModified, apiName, predicateItems);
     }
 
+    /** Build a string with all fields of this entity. */
     @Override
     public String toString() {
         return "ApiDefinitionEntity{" +

@@ -9,8 +9,8 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 /**
  * Redis 模板配置
  * <p>
- * 配置 RedisTemplate 的序列化策略：键和哈希键使用字符串序列化，
- * 值和哈希值使用 Java 原生序列化，确保数据可读性和兼容性。
+ * 配置 RedisTemplate 的序列化策略：键和哈希键使用字符串序列化保证键可读，
+ * 值和哈希值使用 Java 原生序列化以兼容任意 Serializable 对象。
  * </p>
  *
  * @author maozi

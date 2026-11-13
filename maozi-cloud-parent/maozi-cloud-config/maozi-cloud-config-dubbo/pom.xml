@@ -43,7 +43,7 @@
 
 
 		<!-- Project Begin -->
-		<!-- 监控配置模块，集成 Spring Boot Admin 相关监控配置 -->
+		<!-- 监控配置模块，提供链路追踪、Spring Boot Admin 与 Prometheus 指标配置 -->
 		<dependency>
 			<groupId>com.maozi</groupId>
 			<artifactId>maozi-cloud-config-monitor</artifactId>
@@ -64,7 +64,7 @@
 			<version>${maozi-cloud-utils.version}</version>
         </dependency>
 
-		<!-- 服务启动运行基础模块，提供 BaseApplication 启动基类（banner 统一过滤特征注册） -->
+		<!-- 服务启动运行基础模块，提供 BaseApplication（注册 Dubbo 启动 banner 过滤特征） -->
 		<dependency>
 			<groupId>com.maozi</groupId>
 			<artifactId>maozi-cloud-service-run</artifactId>

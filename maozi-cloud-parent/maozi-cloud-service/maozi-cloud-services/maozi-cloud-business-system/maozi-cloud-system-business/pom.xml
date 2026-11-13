@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 系统管理服务实现模块，包含业务逻辑实现及可执行应用入口，负责用户、角色、菜单等系统管理功能 -->
+<!-- 系统管理服务实现模块，负责用户、角色、菜单及图片存储等系统管理功能 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -17,6 +17,7 @@
 
     <dependencies>
 
+        <!-- 阿里云 OSS V2 SDK，用于图片等文件的云存储 -->
         <dependency>
             <groupId>com.aliyun</groupId>
             <artifactId>alibabacloud-oss-v2</artifactId>

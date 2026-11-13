@@ -27,8 +27,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 /**
  * 异步线程池配置
  * <p>
- * 配置应用级异步任务线程池，用于 {@code @Async} 注解标注的异步方法执行。
- * 线程池参数：核心线程数 16、最大线程数 256、空闲存活时间 10 秒、队列容量 1024。
+ * 配置应用级异步任务线程池，用于 {@code @Async} 注解标注的异步方法执行，
  * 拒绝策略为 CallerRunsPolicy（由调用线程执行），确保任务不丢失。
  * </p>
  *
@@ -44,23 +43,26 @@ public class AsyncConfig {
 	/** 最大线程数 */
 	private static final int MAX_POOL_SIZE = 256;
 
-	/** 允许线程空闲时间（单位为秒） */
+	/** 超出核心线程数的空闲线程存活时间（秒），超过后回收 */
 	private static final int KEEP_ALIVE_TIME = 10;
 
-	/** 缓冲队列数 */
+	/** 缓冲队列容量 */
 	private static final int QUEUE_CAPACITY = 1024;
 
-	/** 应用关闭时等待任务完成的最长时间（秒），超时后强制关闭线程池 */
+	/** 应用关闭时等待任务完成的最长时间（秒），超时后不再等待，仅记录警告并继续关闭流程 */
 	private static final int AWAIT_TERMINATION = 60;
 
 	/** 应用关闭时是否等待所有异步任务执行完成后再销毁线程池 */
 	private static final Boolean WAIT_FOR_TASKS_TO_COMPLETE_ON_SHUTDOWN = true;
 
-	/** 线程池名前缀 */
+	/** 线程名前缀 */
 	private static final String THREAD_NAME_PREFIX = "Async-Service-";
 
 	/**
 	 * 创建异步任务线程池
+	 * <p>
+	 * Bean 名沿用 {@code applicationTaskExecutor}，替代 Spring Boot 自动配置的默认执行器。
+	 * </p>
 	 *
 	 * @return 配置好的线程池任务执行器
 	 */
@@ -75,7 +77,7 @@ public class AsyncConfig {
 		// 设置最大线程数：在队列满后可扩展的最大线程数量
 		taskExecutor.setMaxPoolSize(MAX_POOL_SIZE);
 
-		// 设置空闲线程存活时间：超过此时间的空闲线程会被回收
+		// 设置空闲线程存活时间：超出核心线程数的空闲线程超过此时间后被回收
 		taskExecutor.setKeepAliveSeconds(KEEP_ALIVE_TIME);
 
 		// 设置缓冲队列容量：核心线程满后，任务先放入队列等待
@@ -87,7 +89,7 @@ public class AsyncConfig {
 		// 应用关闭时等待所有异步任务完成后再销毁线程池
 		taskExecutor.setWaitForTasksToCompleteOnShutdown(WAIT_FOR_TASKS_TO_COMPLETE_ON_SHUTDOWN);
 
-		// 等待任务完成的最长时间（秒），超时后强制关闭
+		// 等待任务完成的最长时间（秒），超时后仅记录警告，不强制中断任务
 		taskExecutor.setAwaitTerminationSeconds(AWAIT_TERMINATION);
 
 		// 设置拒绝策略：队列和最大线程数都满后，由调用线程自己执行任务，避免任务丢失

@@ -55,11 +55,11 @@ public class RestRequestEntranceLogAop extends AbstractRequestEntranceLogAop {
 	private static final String POINT = "execution(" + REST_POINT + ")";
 
 	/**
-	 * 环绕通知，绑定 REST 切点并委托给基类的统一日志逻辑。
+	 * 环绕通知，绑定 REST 切点并委托给基类的统一日志逻辑
 	 *
 	 * @param proceedingJoinPoint AOP 连接点
-	 * @return 业务方法执行结果
-	 * @throws AccessDeniedException 权限拒绝时经基类原样上抛，交由 Spring Security 处理
+	 * @return 业务方法执行结果；业务异常或系统异常时为基类封装的统一错误结果
+	 * @throws Throwable 仅权限拒绝异常（{@link AccessDeniedException}）经基类原样上抛，交由 Spring Security 处理
 	 */
 	@Around(POINT)
 	public Object doAround(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
@@ -89,7 +89,7 @@ public class RestRequestEntranceLogAop extends AbstractRequestEntranceLogAop {
 	/**
 	 * 追加 REST 请求专属日志信息
 	 *
-	 * @param logs 日志容器，写入当前请求的完整 URL
+	 * @param logs 日志容器，写入当前请求的 URL（含协议、主机与路径，不含查询参数）
 	 */
 	@Override
 	protected void requestLog(Map<String, String> logs) {

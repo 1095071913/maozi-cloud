@@ -46,7 +46,11 @@ public class SentinelConfigInitializer implements ConfigInitializer {
         BaseApplication.addBannerFilter(BANNER_FLAG);
     }
 
-    /** 空实现，Sentinel 配置初始化无需向启动日志追加诊断信息。 */
+    /**
+     * 空实现，Sentinel 配置初始化无需向启动日志追加诊断信息
+     *
+     * @param logs 启动诊断日志收集容器（本实现不写入任何内容）
+     */
     @Override
     public void appendLogs(Map<String, String> logs) {}
 

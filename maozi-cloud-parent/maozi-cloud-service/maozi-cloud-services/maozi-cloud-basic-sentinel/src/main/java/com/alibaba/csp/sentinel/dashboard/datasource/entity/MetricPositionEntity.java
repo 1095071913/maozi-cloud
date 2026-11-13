@@ -42,70 +42,87 @@ public class MetricPositionEntity {
     /** The latest timestamp fetched last time. */
     private Date lastFetch;
 
+    /** Get the entity id. */
     public long getId() {
         return id;
     }
 
+    /** Set the entity id. */
     public void setId(long id) {
         this.id = id;
     }
 
+    /** Get the create time. */
     public Date getGmtCreate() {
         return gmtCreate;
     }
 
+    /** Set the create time. */
     public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
     }
 
+    /** Get the last modify time. */
     public Date getGmtModified() {
         return gmtModified;
     }
 
+    /** Set the last modify time. */
     public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
     }
 
+    /** Get the application name. */
     public String getApp() {
         return app;
     }
 
+    /** Set the application name. */
     public void setApp(String app) {
         this.app = app;
     }
 
+    /** Get the IP address of the machine. */
     public String getIp() {
         return ip;
     }
 
+    /** Set the IP address of the machine. */
     public void setIp(String ip) {
         this.ip = ip;
     }
 
+    /** Get the port Sentinel listens on in the application. */
     public int getPort() {
         return port;
     }
 
+    /** Set the port Sentinel listens on in the application. */
     public void setPort(int port) {
         this.port = port;
     }
 
+    /** Get the hostname of the machine. */
     public String getHostname() {
         return hostname;
     }
 
+    /** Set the hostname of the machine. */
     public void setHostname(String hostname) {
         this.hostname = hostname;
     }
 
+    /** Get the latest timestamp fetched last time. */
     public Date getLastFetch() {
         return lastFetch;
     }
 
+    /** Set the latest timestamp fetched last time. */
     public void setLastFetch(Date lastFetch) {
         this.lastFetch = lastFetch;
     }
 
+    /** Build a string with all fields of this entity. */
     @Override
     public String toString() {
         return "MetricPositionEntity{" +

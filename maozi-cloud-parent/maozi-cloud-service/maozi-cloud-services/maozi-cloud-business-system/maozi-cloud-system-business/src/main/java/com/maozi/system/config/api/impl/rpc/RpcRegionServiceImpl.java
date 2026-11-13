@@ -11,7 +11,8 @@ import com.maozi.system.config.api.rpc.RpcRegionService;
 /**
  * 地区 RPC 服务实现类
  * <p>
- * 继承自 RegionServiceImpl，实现 RpcRegionService 接口，
+ * 继承 BaseServiceResultImpl 并实现 RpcRegionService 接口，
+ * 委托注入的 RegionServiceImpl（service）完成业务处理，
  * 基于 Apache Dubbo 协议提供远程过程调用（RPC）服务，
  * 供其他微服务通过 RPC 方式调用地区相关的接口。
  * </p>

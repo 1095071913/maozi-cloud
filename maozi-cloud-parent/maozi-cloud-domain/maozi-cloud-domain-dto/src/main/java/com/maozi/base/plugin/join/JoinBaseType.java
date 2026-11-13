@@ -26,7 +26,7 @@ public enum JoinBaseType {
 	;
 
 	/**
-	 * 构造方法
+	 * 按关联类型标识和名称构造枚举实例
 	 *
 	 * @param type 关联类型标识，用于 SQL 构建时确定 JOIN 方式
 	 * @param name 关联类型的中文名称描述

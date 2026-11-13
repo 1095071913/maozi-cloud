@@ -46,7 +46,7 @@ public class RestImageServiceImpl extends ImageServiceImpl implements RestImageS
 	 */
 	@Override
 	public AbstractBaseResult<List<ImageUploadResult>> restUpload(ImageUploadParam param) {
-		return ResultUtil.success(upload(param));
+		return ResultUtil.success(super.upload(param));
 	}
 
 }

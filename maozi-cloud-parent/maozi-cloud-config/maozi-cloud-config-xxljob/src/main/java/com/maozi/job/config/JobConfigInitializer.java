@@ -39,7 +39,11 @@ public class JobConfigInitializer implements ConfigInitializer {
         );
     }
 
-    /** 空实现，XXL-Job 配置初始化无需向启动日志追加诊断信息。 */
+    /**
+     * 空实现，XXL-Job 配置初始化无需向启动日志追加诊断信息
+     *
+     * @param logs 启动日志容器，本实现不写入
+     */
     @Override
     public void appendLogs(Map<String, String> logs) {}
 

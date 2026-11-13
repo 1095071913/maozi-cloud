@@ -20,6 +20,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ----------------------------
 -- Table structure for oauth2_authorization
 -- ----------------------------
+-- OAuth2 授权信息表：存储授权码、访问/刷新/OIDC/设备码等凭据的值、签发与过期时间及元数据
 DROP TABLE IF EXISTS `oauth2_authorization`;
 CREATE TABLE `oauth2_authorization` (
                                         `id` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
@@ -67,6 +68,7 @@ COMMIT;
 -- ----------------------------
 -- Table structure for oauth2_authorization_consent
 -- ----------------------------
+-- OAuth2 授权同意表：记录用户（principal）对客户端已同意的授权范围
 DROP TABLE IF EXISTS `oauth2_authorization_consent`;
 CREATE TABLE `oauth2_authorization_consent` (
                                                 `registered_client_id` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
@@ -84,6 +86,7 @@ COMMIT;
 -- ----------------------------
 -- Table structure for oauth2_registered_client
 -- ----------------------------
+-- OAuth2 注册客户端表：客户端密钥、认证方式、授权类型、回调地址与令牌设置等配置
 DROP TABLE IF EXISTS `oauth2_registered_client`;
 CREATE TABLE `oauth2_registered_client` (
                                             `id` bigint NOT NULL AUTO_INCREMENT,
@@ -110,6 +113,7 @@ CREATE TABLE `oauth2_registered_client` (
 -- Records of oauth2_registered_client
 -- ----------------------------
 BEGIN;
+-- 预置后台系统客户端 system，密码 bcrypt 加密存储
 INSERT INTO `oauth2_registered_client` (`id`, `client_id`, `client_id_issued_at`, `client_secret`, `client_secret_expires_at`, `client_name`, `remark`, `client_authentication_methods`, `authorization_grant_types`, `redirect_uris`, `post_logout_redirect_uris`, `scopes`, `client_settings`, `token_settings`, `deleted`, `status`, `create_time`) VALUES (1, 'system', '2026-03-06 16:28:46', '{bcrypt}$2a$10$N94nFJjiGDJDC2D2lkj8nOWWHrxyl8KhtsnmvkW2vH0z0EGagM6Ne', NULL, '后台系统', '', 'client_secret_basic', 'refresh_token,password,client_credentials', '', '', '', '{\"@class\":\"java.util.Collections$UnmodifiableMap\",\"settings.client.require-proof-key\":false,\"settings.client.require-authorization-consent\":true}', '{\"@class\":\"java.util.Collections$UnmodifiableMap\",\"settings.token.reuse-refresh-tokens\":false,\"settings.token.id-token-signature-algorithm\":[\"org.springframework.security.oauth2.jose.jws.SignatureAlgorithm\",\"RS256\"],\"settings.token.access-token-time-to-live\":[\"java.time.Duration\",7200.000000000],\"settings.token.access-token-format\":{\"@class\":\"org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat\",\"value\":\"reference\"},\"settings.token.refresh-token-time-to-live\":[\"java.time.Duration\",604800.000000000],\"settings.token.authorization-code-time-to-live\":[\"java.time.Duration\",300.000000000],\"settings.token.device-code-time-to-live\":[\"java.time.Duration\",300.000000000]}', '0', '1', '2026-08-13 08:55:28');
 COMMIT;
 

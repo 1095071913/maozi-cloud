@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 业务服务聚合工程，聚合管理 OAuth 认证服务和系统管理等业务模块 -->
+<!-- 业务服务聚合工程，聚合网关、监控、限流控制台及 OAuth、系统、AI 等各业务服务模块 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -27,13 +27,14 @@
         <module>maozi-cloud-gateway-service</module>
         <!-- 服务监控模块，基于 Spring Boot Admin 实现 -->
         <module>maozi-cloud-basic-monitor</module>
-        <!-- 服务监控模块，基于 Spring Boot Admin 实现 -->
+        <!-- Sentinel 流量防护控制台模块，提供限流熔断规则管理 -->
         <module>maozi-cloud-basic-sentinel</module>
 
         <!-- OAuth 认证授权服务模块 -->
         <module>maozi-cloud-business-oauth</module>
         <!-- 系统管理服务模块 -->
         <module>maozi-cloud-business-system</module>
+        <!-- AI 业务服务模块 -->
         <module>maozi-cloud-business-ai</module>
 
     </modules>

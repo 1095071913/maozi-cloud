@@ -58,7 +58,7 @@ public class RestRoleServiceImpl extends BaseServiceResultImpl<RoleServiceImpl, 
 	 */
 	@Override
 	public AbstractBaseResult<List<DropDownResult>> restDropDownListResult() {
-		return dropDownListResult();
+		return super.dropDownListResult();
 	}
 
 	/**
@@ -73,17 +73,17 @@ public class RestRoleServiceImpl extends BaseServiceResultImpl<RoleServiceImpl, 
 		return ResultUtil.success(service.getByIdThrowErrorRelation(id, RoleInfoResult.class));
 	}
 
-	/**
-	 * 删除角色
-	 * <p>删除前校验角色未被用户绑定，并级联解除该角色与权限的关联关系。</p>
-	 *
-	 * @param id 角色ID
-	 * @return 操作结果
-	 */
-	@Override
-	public AbstractBaseResult<Void> restRemove(Long id) {
-		return removeByIdResult(id);
-	}
+//	/**
+//	 * 删除角色
+//	 * <p>删除前校验角色未被用户绑定，并级联解除该角色与权限的关联关系。</p>
+//	 *
+//	 * @param id 角色ID
+//	 * @return 操作结果
+//	 */
+//	@Override
+//	public AbstractBaseResult<Void> restRemove(Long id) {
+//		return super.removeByIdResult(id);
+//	}
 
 	/**
 	 * 更新角色
@@ -110,7 +110,7 @@ public class RestRoleServiceImpl extends BaseServiceResultImpl<RoleServiceImpl, 
 	 */
 	@Override
 	public AbstractBaseResult<Void> restUpdateStatusResult(Long id, RequestParam<Status> param) {
-		return updateStatusResult(id, param);
+		return super.updateStatusResult(id, param);
 	}
 
 }

@@ -63,6 +63,7 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
         try {
             allMetrics.computeIfAbsent(entity.getApp(), e -> new HashMap<>(16))
                     .computeIfAbsent(entity.getResource(), e -> new LinkedHashMap<Long, MetricEntity>() {
+                        /** Evicts entries older than {@link #MAX_METRIC_LIVE_TIME_MS} on each insertion. */
                         @Override
                         protected boolean removeEldestEntry(Entry<Long, MetricEntity> eldest) {
                             // Metric older than {@link #MAX_METRIC_LIVE_TIME_MS} will be removed.

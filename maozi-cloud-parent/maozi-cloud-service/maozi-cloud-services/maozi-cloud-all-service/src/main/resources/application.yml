@@ -6,30 +6,30 @@
 
 spring:
   config:
-    # 导入各组件子配置文件（classpath 下的 config/ 目录）
+    # 导入各组件子配置文件（config/ 下按 application.environment 选择环境目录，默认 local）
     import:
-      - classpath:config/${application.environment:local}/application.yml        # 环境差异化配置（AI、图片存储等）
-      - classpath:config/${application.environment:local}/boot-default.yml       # 通用默认配置（服务器、Jackson、日志级别等）
-      - classpath:config/${application.environment:local}/boot-db.yml             # 数据库配置（MyBatis-Plus、Flyway）
+      - classpath:config/${application.environment:local}/application.yml        # 环境差异化配置（上传限制、AI、图片存储）
+      - classpath:config/${application.environment:local}/boot-default.yml       # 通用默认配置（服务器、MVC/Jackson、Feign、日志级别）
+      - classpath:config/${application.environment:local}/boot-db.yml             # 数据库配置（数据源、Flyway、MyBatis-Plus）
       - classpath:config/${application.environment:local}/boot-redis.yml          # Redis 缓存配置
       - classpath:config/${application.environment:local}/boot-lock.yml           # 分布式锁（Redisson）配置
       - classpath:config/${application.environment:local}/cloud-oauth.yml         # OAuth2 资源服务器配置
       - classpath:config/${application.environment:local}/boot-monitor.yml        # 监控端点配置（Actuator）
 
-# 项目基础信息（服务端口与 Swagger 文档展示信息）
+# 项目基础信息（服务端口与 Swagger 文档标题/描述，见 ApplicationEnvironmentContext / SwaggerConfig）
 application:
-  port: 1100
-  title: 单体全量业务服务
-  details: 所有服务功能
+  port: 1100                 # 服务端口（供 boot-default.yml 的 server.port 引用）
+  title: 单体全量业务服务      # Swagger 文档标题
+  details: 所有服务功能       # Swagger 文档描述
 
-# 接口白名单（不需要认证的路径，注释掉则全部接口需认证）
+# 接口白名单：在默认白名单（/actuator/**、/v3/api-docs/** 等）基础上追加的免认证路径，逗号分隔
 application-project-whitelist: /config/system/get
 
-# 项目系统信息（用于文档展示与版权声明）
+# 项目系统信息（/config/system/get 接口返回，供前端展示）
 application-project-system:
-  projectName: maozi-cloud
-  corporationName: 网络科技有限公司
-  icon: http://dummyimage.com/100x100
-  environment: ${application.environment}
-  description: 基于 Spring Cloud Alibaba + Dubbo 的一站式分布式解决方案开源封装，内置分布式应用开发所需全套组件，统一团队代码风格，保障代码质量，让开发者专注业务逻辑，实现高效快速开发。
-  copyright: 本网站所有权归《${application-project-system.corporationName}》所有，请勿抄袭和抄袭
+  projectName: maozi-cloud                                                              # 项目名称
+  corporationName: 网络科技有限公司                                                       # 公司名称
+  icon: http://dummyimage.com/100x100                                                   # 系统图标 URL
+  environment: ${application.environment}                                               # 运行环境（复用全局环境标识）
+  description: 基于 Spring Cloud Alibaba + Dubbo 的一站式分布式解决方案开源封装，内置分布式应用开发所需全套组件，统一团队代码风格，保障代码质量，让开发者专注业务逻辑，实现高效快速开发。  # 项目描述
+  copyright: 本网站所有权归《${application-project-system.corporationName}》所有，请勿抄袭和抄袭  # 版权声明

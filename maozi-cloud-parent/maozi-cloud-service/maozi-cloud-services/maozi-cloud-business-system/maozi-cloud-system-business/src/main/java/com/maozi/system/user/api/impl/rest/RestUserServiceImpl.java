@@ -52,6 +52,7 @@ public class RestUserServiceImpl extends BaseServiceResultImpl<UserServiceImpl, 
 
 	/**
 	 * 分页查询用户列表
+	 * <p>关联分页查询并填充关联映射数据（如所属客户端）。</p>
 	 *
 	 * @param pageParam 分页查询参数，包含分页信息和用户列表查询条件
 	 * @return 分页查询结果，包含用户列表数据

@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 @Service
 public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo> implements ClientService {
 
-    /** 资源名称标识，用于日志和异常提示 */
+    /** 资源名称标识，用于异常信息提示 */
     public static final String RESOURCE_NAME = "客户端";
 
     /** 授权码存活时间（秒）：5 分钟 */
@@ -58,7 +58,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo> i
     /** 设备码存活时间（秒）：5 分钟 */
     protected static final long DEVICE_CODE_TTL_SECONDS = 300;
 
-    /** 请求令牌（Access Token）默认有效期：2小时 */
+    /** 访问令牌（Access Token）默认有效期：2小时 */
     protected static final long DEFAULT_ACCESS_TOKEN_VALIDITY_SECONDS = 60 * 60 * 2L;
 
     /** 刷新令牌（Refresh Token）默认有效期：7天 */
@@ -192,7 +192,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo> i
      */
     public ClientInfoResult superRestGet(Long id) {
 
-        ClientDo domain = getAvailableById(id,
+        ClientDo domain = super.getAvailableById(id,
                 ClientDo::getClientId, ClientDo::getName, ClientDo::getAuthorizationGrantTypes,
                 ClientDo::getTokenSettings, ClientDo::getRemark, ClientDo::getStatus);
 
@@ -225,8 +225,8 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo> i
     public PageResult<ClientListResult> superRestList(PageParam<ClientListParam> pageParam){
 
         Class<ClientListResult> responseClass = ClientListResult.class;
-        MPJLambdaWrapper<ClientDo> wrapper = buildQueryWrapper(pageParam.getData(), responseClass);
-        Page<ClientListResult> page = selectJoinListPage(convertPage(pageParam), responseClass,wrapper);
+        MPJLambdaWrapper<ClientDo> wrapper = super.buildQueryWrapper(pageParam.getData(), responseClass);
+        Page<ClientListResult> page = super.selectJoinListPage(super.convertPage(pageParam), responseClass,wrapper);
 
         page.getRecords().forEach(item -> {
 
@@ -237,7 +237,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo> i
 
         });
 
-        return convertPageResult(page);
+        return super.convertPageResult(page);
     }
 
     /**
@@ -249,7 +249,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo> i
      */
     @Override
     public String getClientId(Long id) {
-        return getByIdThrowError(id, ClientDo::getClientId).getClientId();
+        return super.getByIdThrowError(id, ClientDo::getClientId).getClientId();
     }
 
     /**
@@ -267,7 +267,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo> i
         
         wrapper.in(ClientDo::getId, ids);
 
-        return list(wrapper).stream().collect(Collectors.toMap(ClientDo::getId, ClientDo::getClientId, (v1, v2) -> v1));
+        return super.list(wrapper).stream().collect(Collectors.toMap(ClientDo::getId, ClientDo::getClientId, (v1, v2) -> v1));
         
     }
 

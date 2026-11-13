@@ -32,7 +32,7 @@ package com.maozi;
 public class Application extends BaseApplicationDB {
 
     /**
-     * 应用程序主入口方法。
+     * 应用程序主入口方法
      *
      * @param args 启动参数
      */

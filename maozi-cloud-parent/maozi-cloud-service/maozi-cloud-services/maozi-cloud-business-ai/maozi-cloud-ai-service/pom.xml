@@ -1,19 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- AI 服务启动模块，装配 Spring Boot 引导类，作为 AI 服务独立进程部署的入口 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <!-- 继承 AI 业务聚合工程，统一管理依赖版本 -->
     <parent>
         <groupId>com.maozi</groupId>
         <artifactId>maozi-cloud-business-ai</artifactId>
         <version>${revision}</version>
     </parent>
 
+    <!-- AI 服务启动模块构件名称 -->
     <artifactId>maozi-cloud-ai-service</artifactId>
 
     <dependencies>
 
-        <!-- OAuth 业务实现模块，提供 OAuth 服务的具体业务逻辑 -->
+        <!-- AI 业务实现模块，提供 AI 服务的具体业务逻辑 -->
         <dependency>
             <groupId>com.maozi</groupId>
             <artifactId>maozi-cloud-ai-business</artifactId>

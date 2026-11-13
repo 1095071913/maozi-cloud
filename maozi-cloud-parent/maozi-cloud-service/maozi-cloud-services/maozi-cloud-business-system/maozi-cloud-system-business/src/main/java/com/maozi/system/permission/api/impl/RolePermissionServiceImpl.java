@@ -73,7 +73,7 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
 	@Override
 	public void checkRoleBindPermissionByPermission(Long permissionId) {
 		LambdaQueryWrapper<RolePermissionDo> wrapper = Wrappers.lambdaQuery(RolePermissionDo.builder().permissionId(permissionId).build());
-		ObjectUtil.checkConditionThrowError(count(wrapper) < 1,SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE,"【权限】已被角色绑定");
+		ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1,SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE,"【权限】已被角色绑定");
 	}
 
 	/**
@@ -96,8 +96,8 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
 				RolePermissionDo domainSave = RolePermissionDo.builder().roleId(roleId).permissionId(permissionId).build();
 
 				// 绑定关系不存在且权限存在时才保存，避免重复绑定
-				if(count(Wrappers.lambdaQuery(domainSave)) < 1 && permissionService.has(permissionId)) {
-					save(domainSave);
+				if(super.count(Wrappers.lambdaQuery(domainSave)) < 1 && permissionService.has(permissionId)) {
+					super.save(domainSave);
 				}
 
 			};
@@ -110,7 +110,7 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
 
 			Consumer<Long> consumer = (permissionId)->{
 				// 直接删除对应的角色权限绑定记录
-				remove(Wrappers.lambdaQuery(RolePermissionDo.builder().roleId(roleId).permissionId(permissionId).build()));
+				super.remove(Wrappers.lambdaQuery(RolePermissionDo.builder().roleId(roleId).permissionId(permissionId).build()));
 			};
 
 			unbindPermissionIds.forEach(consumer);
@@ -134,7 +134,7 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
 
 		wrapper.in(RolePermissionDo::getRoleId, roleIds);
 
-		return list(wrapper).stream().map(RolePermissionDo::getPermissionId).collect(Collectors.toSet());
+		return super.list(wrapper).stream().map(RolePermissionDo::getPermissionId).collect(Collectors.toSet());
 
 	}
 
@@ -153,7 +153,7 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
 
 		wrapper.eq(RolePermissionDo::getRoleId, roleId);
 
-		return list(wrapper).stream().map(RolePermissionDo::getPermissionId).collect(Collectors.toList());
+		return super.list(wrapper).stream().map(RolePermissionDo::getPermissionId).collect(Collectors.toList());
 
 	}
 
@@ -165,7 +165,7 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
 	 */
 	@Override
 	public void roleUnbind(Long roleId) {
-		remove(Wrappers.lambdaQuery(RolePermissionDo.builder().roleId(roleId).build()));
+		super.remove(Wrappers.lambdaQuery(RolePermissionDo.builder().roleId(roleId).build()));
 	}
 
 }

@@ -133,7 +133,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
         wrapper.select(UserDo::getId);
         wrapper.eq(UserDo::getUsername,username);
 
-        UserDo domain = getAvailableByParam(wrapper);
+        UserDo domain = super.getAvailableByParam(wrapper);
 
         return domain.getId();
 
@@ -174,7 +174,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
                 rpcClientService.checkAvailableResult(param.getClientId()).getResultDataThrowError();
 
                 // 校验同一客户端下用户名未被占用，已存在则抛出异常
-                checkNotHas(MPJWrappers.lambdaJoin(UserDo.builder()
+                super.checkNotHas(MPJWrappers.lambdaJoin(UserDo.builder()
                         .clientId(param.getClientId())
                         .username(param.getUsername())
                         .build()));
@@ -195,7 +195,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
 
         if(hasId && Status.DISABLE == param.getStatus()){
             // 更新后状态为禁用时，销毁该用户的全部OAuth2令牌，强制下线
-            UserDo user = getByIdThrowError(id, UserDo::getUsername, UserDo::getClientId);
+            UserDo user = super.getByIdThrowError(id, UserDo::getUsername, UserDo::getClientId);
             rpcOauthTokenService.rpcDestroyByPrincipal(user.getClientId(), user.getUsername()).getResultDataThrowError();
         }
 
@@ -212,13 +212,13 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
     public void remove(Long id) {
 
         // 先获取用户的用户名和客户端ID，删除后需用于注销认证令牌
-        UserDo user = getById(id, UserDo::getUsername,UserDo::getClientId);
+        UserDo user = super.getById(id, UserDo::getUsername,UserDo::getClientId);
         if(ObjectUtil.isNullEmpty(user)){
             return;
         }
 
         // 删除用户数据库记录
-        if(removeById(id)){
+        if(super.removeById(id)){
             // 通过RPC调用OAuth服务，根据clientId+用户名销毁该用户的所有OAuth2授权令牌
             rpcOauthTokenService.rpcDestroyByPrincipal(user.getClientId(), user.getUsername()).getResultDataThrowError();
         }
@@ -240,7 +240,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
 
         Status status = param.getData();
 
-        UserDo user = getByIdThrowError(id, UserDo::getUsername, UserDo::getClientId, UserDo::getStatus);
+        UserDo user = super.getByIdThrowError(id, UserDo::getUsername, UserDo::getClientId, UserDo::getStatus);
 
         // 当前状态与目标状态一致时，无需更新，直接返回
         if(user.getStatus() == status){
@@ -250,7 +250,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
         // 更新用户状态
         user.setId(id);
         user.setStatus(status);
-        updateById(user);
+        super.updateById(user);
 
         // 禁用用户后销毁其全部OAuth2令牌，强制下线
         if(Status.DISABLE == status){
@@ -282,7 +282,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
 
         // 旧密码与新密码同时传入时，先校验旧密码，再将新密码加密
         if(ObjectUtil.isNotNullEmpty(paramPassword) && ObjectUtil.isNotNullEmpty(paramNewPassword)){
-            UserDo domain = getByIdThrowError(userId, UserDo::getPassword);
+            UserDo domain = super.getByIdThrowError(userId, UserDo::getPassword);
 
             // 旧密码与库中密文不匹配时抛出业务异常
             if(!UserServiceImpl.PASSWORD_ENCODER.matches(paramPassword,domain.getPassword())){
@@ -296,7 +296,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
         UserDo domain = CglibUtil.copy(param, UserDo.class);
         domain.setId(userId);
         domain.setPassword(paramNewPassword);
-        updateById(domain);
+        super.updateById(domain);
 
         // 更新成功后销毁当前用户在该客户端下的全部OAuth2令牌，并指示前端跳转登录页，强制重新登录
         Long clientId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getClientId);
@@ -324,7 +324,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
         wrapper.select(UserDo::getId,UserDo::getPassword);
         wrapper.eq(UserDo::getUsername,username);
 
-        UserDo domain = getOne(wrapper);
+        UserDo domain = super.getOne(wrapper);
 
         // 用户不存在时抛出业务异常
         ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
@@ -370,7 +370,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
      * 从Spring Security上下文中获取当前认证用户的权限标识列表。
      * </p>
      *
-     * @return 当前用户拥有的权限标识列表
+     * @return 当前用户拥有的权限标识列表，无认证信息时返回空列表
      */
     protected List<String> getCurrentPermissions() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -444,7 +444,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
      */
     @Override
     public ClientUserParam getClientUser(Long id) {
-        return getByIdThrowError(id,ClientUserParam.class,UserDo::getUsername,UserDo::getClientId);
+        return super.getByIdThrowError(id,ClientUserParam.class,UserDo::getUsername,UserDo::getClientId);
     }
 
     /**
@@ -469,7 +469,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDo> impleme
 
         wrapper.in(UserDo::getId, ids);
 
-        return list(wrapper, ClientUserParam::new);
+        return super.list(wrapper, ClientUserParam::new);
 
     }
 

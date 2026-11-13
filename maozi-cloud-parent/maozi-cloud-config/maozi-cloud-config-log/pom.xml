@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 日志记录配置模块，基于 Spring AOP 切面提供 REST 入口日志、链路追踪日志格式等日志记录能力 -->
+<!-- 日志记录配置模块，提供请求入口日志切面抽象基类，统一记录请求、响应与异常日志 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">

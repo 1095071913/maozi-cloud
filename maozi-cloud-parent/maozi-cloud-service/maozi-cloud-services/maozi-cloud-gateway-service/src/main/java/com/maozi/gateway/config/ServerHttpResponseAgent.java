@@ -98,7 +98,7 @@ public class ServerHttpResponseAgent extends ServerHttpResponseDecorator {
         if (body instanceof Flux<? extends DataBuffer> fluxBody) {
 
             // 响应缓冲区工厂，用于将合并后的字节重新包装为 DataBuffer
-            DataBufferFactory bufferFactory = getDelegate().bufferFactory();
+            DataBufferFactory bufferFactory = super.getDelegate().bufferFactory();
 
             return super.writeWith(fluxBody.buffer().map(dataBuffers -> {
 
@@ -142,7 +142,7 @@ public class ServerHttpResponseAgent extends ServerHttpResponseDecorator {
                 logs.put(LogTag.DATA, outputStream.toString());
 
                 // 根据响应状态和业务码决定日志级别
-                if (Objects.requireNonNull(getDelegate().getStatusCode()).value() != HttpStatus.OK.value()) {
+                if (Objects.requireNonNull(super.getDelegate().getStatusCode()).value() != HttpStatus.OK.value()) {
                     // HTTP 状态码非 200，记录错误日志
                     LogUtil.error(log, logs);
                 } else if (ObjectUtil.isNotNullEmpty(result) && result.containsKey(RESULT_CODE_KEY)

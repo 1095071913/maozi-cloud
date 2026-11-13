@@ -64,7 +64,7 @@ public class ChatConversationRecordServiceImpl extends BaseServiceImpl<ChatConve
 	public void has(Long conversationId) {
 		LambdaQueryWrapper<ChatConversationRecordDo> wrapper = Wrappers.lambdaQuery();
 		wrapper.eq(ChatConversationRecordDo::getId, conversationId);
-		checkHas(wrapper);
+		super.checkHas(wrapper);
 	}
 
 	/**
@@ -78,20 +78,20 @@ public class ChatConversationRecordServiceImpl extends BaseServiceImpl<ChatConve
 		// 当前登录用户 ID
 		Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
 
-		MPJLambdaWrapper<ChatConversationRecordDo> wrapper = buildQueryWrapper(pageParam, ChatConversationRecordListResult.class);
+		MPJLambdaWrapper<ChatConversationRecordDo> wrapper = super.buildQueryWrapper(pageParam, ChatConversationRecordListResult.class);
 		// 限定仅查询当前登录用户的会话
 		wrapper.eq(ChatConversationRecordDo::getUserId,userId);
 
 		// 执行分页查询
-		Page<ChatConversationRecordListResult> page = selectJoinListPage(
-				convertPage(pageParam),
+		Page<ChatConversationRecordListResult> page = super.selectJoinListPage(
+				super.convertPage(pageParam),
 				ChatConversationRecordListResult.class,
 				wrapper
 		);
 
 		// 转换分页结果并填充关联数据
-		PageResult<ChatConversationRecordListResult> pageResult = convertPageResult(page);
-		setRelationData(pageResult, ChatConversationRecordListResult.class);
+		PageResult<ChatConversationRecordListResult> pageResult = super.convertPageResult(page);
+		super.setRelationData(pageResult, ChatConversationRecordListResult.class);
 
 		return pageResult;
 	}
@@ -119,7 +119,7 @@ public class ChatConversationRecordServiceImpl extends BaseServiceImpl<ChatConve
 		domain.setTitle(title.length() > TITLE_MAX_LENGTH ? StrUtil.subPre(title, TITLE_MAX_LENGTH) + "..." : title);
 		domain.setUserId(CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId));
 
-		save(domain);
+		super.save(domain);
 
 		return domain.getId();
 
@@ -147,7 +147,7 @@ public class ChatConversationRecordServiceImpl extends BaseServiceImpl<ChatConve
 		domain.setId(conversationId);
 		domain.setTitle(title);
 
-		updateById(domain);
+		super.updateById(domain);
 
 	}
 
@@ -157,7 +157,7 @@ public class ChatConversationRecordServiceImpl extends BaseServiceImpl<ChatConve
 	 * @param conversationId 会话 ID
 	 */
 	public void remove(String conversationId){
-		removeById(conversationId);
+		super.removeById(conversationId);
 		chatMemory.clear(conversationId);
 	}
 

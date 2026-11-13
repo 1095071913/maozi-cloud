@@ -70,7 +70,7 @@
 		<redisson.version>3.18.0</redisson.version>
 		<!-- XXL-JOB 分布式任务调度框架版本 -->
 		<xxl-job-core.version>3.4.2</xxl-job-core.version>
-		<!-- SnailJob 分布式任务调度与重试框架版本（2.x 需 JDK 21，当前项目 JDK 17 故使用 1.x 最新版） -->
+		<!-- SnailJob 分布式任务调度与重试框架版本（当前使用 1.x 系列） -->
 		<snail-job.version>1.10.0</snail-job.version>
 		<!-- MyBatis-Plus 增强版 ORM 框架版本 -->
 		<mybatis-plus.version>3.5.6</mybatis-plus.version>
@@ -82,7 +82,7 @@
 		<mybatis-plus-join.version>1.5.7</mybatis-plus-join.version>
 		<!-- SpringDoc OpenAPI 文档工具版本 -->
 		<springdoc-openapi.version>2.8.17</springdoc-openapi.version>
-		<!-- OpenTelemetry Instrumentation 可观测性组件版本（链路追踪、指标、日志 MDC） -->
+		<!-- OpenTelemetry Instrumentation 版本（当前用于 Logback MDC 集成，引用时追加 -alpha 后缀） -->
 		<opentelemetry-instrumentation.version>2.29.0</opentelemetry-instrumentation.version>
 		<!-- Other Component End -->
 
@@ -117,7 +117,7 @@
 		<maozi-cloud-config-feign.version>${revision}</maozi-cloud-config-feign.version>
 		<!-- Seata 分布式事务配置模块版本 -->
 		<maozi-cloud-config-seata.version>${revision}</maozi-cloud-config-seata.version>
-		<!-- 服务发现配置模块版本 -->
+		<!-- Nacos 注册发现与配置中心配置模块版本 -->
 		<maozi-cloud-config-nacos.version>${revision}</maozi-cloud-config-nacos.version>
 		<!-- Stream 消息流配置模块版本 -->
 		<maozi-cloud-config-stream.version>${revision}</maozi-cloud-config-stream.version>
@@ -127,7 +127,7 @@
 		<maozi-cloud-config-snailjob.version>${revision}</maozi-cloud-config-snailjob.version>
 		<!-- Swagger API 文档配置模块版本 -->
 		<maozi-cloud-config-openapi.version>${revision}</maozi-cloud-config-openapi.version>
-		<!-- Spring Boot Admin 监控配置模块版本 -->
+		<!-- 监控配置模块版本（链路追踪、Spring Boot Admin、Prometheus 指标） -->
 		<maozi-cloud-config-monitor.version>${revision}</maozi-cloud-config-monitor.version>
 		<!-- Sentinel 限流熔断配置模块版本 -->
 		<maozi-cloud-config-sentinel.version>${revision}</maozi-cloud-config-sentinel.version>
@@ -155,7 +155,9 @@
 		<!-- OAuth 认证授权服务实现层版本 -->
 		<maozi-cloud-oauth-business.version>${revision}</maozi-cloud-oauth-business.version>
 
+		<!-- AI 服务 API 接口层版本 -->
 		<maozi-cloud-ai-api.version>${revision}</maozi-cloud-ai-api.version>
+		<!-- AI 服务实现层版本 -->
 		<maozi-cloud-ai-business.version>${revision}</maozi-cloud-ai-business.version>
 
 		<!-- Project End -->

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- AI 业务聚合工程，聚合 AI 服务的 API 定义、业务实现与启动模块 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -11,14 +12,16 @@
         <version>${revision}</version>
     </parent>
 
+    <!-- AI 业务聚合工程构件名称 -->
     <artifactId>maozi-cloud-business-ai</artifactId>
     <!-- 打包类型为 pom，表示这是一个聚合工程 -->
     <packaging>pom</packaging>
 
     <!-- 子模块列表 -->
     <modules>
+        <!-- AI 服务 API 接口模块，定义 AI 对话等对外接口与出入参 -->
         <module>maozi-cloud-ai-api</module>
-        <!-- AI 业务实现模块，提供认证授权的具体业务逻辑 -->
+        <!-- AI 业务实现模块，提供 AI 对话等具体业务逻辑 -->
         <module>maozi-cloud-ai-business</module>
         <!-- AI 可执行启动模块，装配 Spring Boot 引导类，作为分布式部署形态的入口（运行时通过 Nacos 拉取配置） -->
         <module>maozi-cloud-ai-service</module>

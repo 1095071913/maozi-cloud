@@ -127,7 +127,7 @@ public class GrayReactiveLoadBalancerClientFilter extends ReactiveLoadBalancerCl
      * </p>
      *
      * @param exchange 服务端 Web 交换上下文
-     * @return 包含选中服务实例的响应 Mono
+     * @return 包含选中服务实例的响应 Mono；请求 URL 属性缺失时返回空 Mono
      */
     private Mono<Response<ServiceInstance>> choose(ServerWebExchange exchange) {
         URI uri = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);

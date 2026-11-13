@@ -86,146 +86,180 @@ public class FlowRuleEntity implements RuleEntity {
         return entity;
     }
 
+    /** Get the IP address of the machine. */
     @Override
     public String getIp() {
         return ip;
     }
 
+    /** Set the IP address of the machine. */
     public void setIp(String ip) {
         this.ip = ip;
     }
 
+    /** Get the port of the machine. */
     @Override
     public Integer getPort() {
         return port;
     }
 
+    /** Set the port of the machine. */
     public void setPort(Integer port) {
         this.port = port;
     }
 
+    /** Get the application name. */
     @Override
     public String getApp() {
         return app;
     }
 
+    /** Set the application name. */
     public void setApp(String app) {
         this.app = app;
     }
 
+    /** Get the entity id. */
     @Override
     public Long getId() {
         return id;
     }
 
+    /** Set the entity id. */
     @Override
     public void setId(Long id) {
         this.id = id;
     }
 
+    /** Get the caller that the rule applies to. */
     public String getLimitApp() {
         return limitApp;
     }
 
+    /** Set the caller that the rule applies to. */
     public void setLimitApp(String limitApp) {
         this.limitApp = limitApp;
     }
 
+    /** Get the resource name. */
     public String getResource() {
         return resource;
     }
 
+    /** Set the resource name. */
     public void setResource(String resource) {
         this.resource = resource;
     }
 
+    /** Get the threshold type: 0 for thread count and 1 for QPS. */
     public Integer getGrade() {
         return grade;
     }
 
+    /** Set the threshold type: 0 for thread count and 1 for QPS. */
     public void setGrade(Integer grade) {
         this.grade = grade;
     }
 
+    /** Get the threshold count of the rule. */
     public Double getCount() {
         return count;
     }
 
+    /** Set the threshold count of the rule. */
     public void setCount(Double count) {
         this.count = count;
     }
 
+    /** Get the flow control strategy. */
     public Integer getStrategy() {
         return strategy;
     }
 
+    /** Set the flow control strategy. */
     public void setStrategy(Integer strategy) {
         this.strategy = strategy;
     }
 
+    /** Get the related resource for association and chain strategy. */
     public String getRefResource() {
         return refResource;
     }
 
+    /** Set the related resource for association and chain strategy. */
     public void setRefResource(String refResource) {
         this.refResource = refResource;
     }
 
+    /** Get the control behavior. */
     public Integer getControlBehavior() {
         return controlBehavior;
     }
 
+    /** Set the control behavior. */
     public void setControlBehavior(Integer controlBehavior) {
         this.controlBehavior = controlBehavior;
     }
 
+    /** Get the warm up period in seconds. */
     public Integer getWarmUpPeriodSec() {
         return warmUpPeriodSec;
     }
 
+    /** Set the warm up period in seconds. */
     public void setWarmUpPeriodSec(Integer warmUpPeriodSec) {
         this.warmUpPeriodSec = warmUpPeriodSec;
     }
 
+    /** Get the max queueing time in milliseconds. */
     public Integer getMaxQueueingTimeMs() {
         return maxQueueingTimeMs;
     }
 
+    /** Set the max queueing time in milliseconds. */
     public void setMaxQueueingTimeMs(Integer maxQueueingTimeMs) {
         this.maxQueueingTimeMs = maxQueueingTimeMs;
     }
 
+    /** Whether the rule works in cluster mode. */
     public boolean isClusterMode() {
         return clusterMode;
     }
 
+    /** Set whether the rule works in cluster mode and return this. */
     public FlowRuleEntity setClusterMode(boolean clusterMode) {
         this.clusterMode = clusterMode;
         return this;
     }
 
+    /** Get the flow rule config for cluster mode. */
     public ClusterFlowConfig getClusterConfig() {
         return clusterConfig;
     }
 
+    /** Set the flow rule config for cluster mode and return this. */
     public FlowRuleEntity setClusterConfig(ClusterFlowConfig clusterConfig) {
         this.clusterConfig = clusterConfig;
         return this;
     }
 
+    /** Get the create time. */
     @Override
     public Date getGmtCreate() {
         return gmtCreate;
     }
 
+    /** Set the create time. */
     public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
     }
 
+    /** Get the last modify time. */
     public Date getGmtModified() {
         return gmtModified;
     }
 
+    /** Set the last modify time. */
     public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
     }

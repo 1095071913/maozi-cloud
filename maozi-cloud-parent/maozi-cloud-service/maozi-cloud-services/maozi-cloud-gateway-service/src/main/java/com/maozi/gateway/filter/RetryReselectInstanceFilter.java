@@ -11,8 +11,14 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 
 /**
- * 重试时恢复 lb:// 地址，让 ReactiveLoadBalancerClientFilter 重新选节点（轮询），
- * 实现 A 不可用时重试到 B。
+ * 重试时恢复 lb:// 地址的负载均衡重选过滤器。
+ * <p>
+ * 首次请求记录原始 lb:// 地址；重试时将已被替换的具体节点地址恢复为 lb://，
+ * 让 ReactiveLoadBalancerClientFilter 重新选节点（轮询），实现 A 不可用时重试到 B。
+ * </p>
+ *
+ * @author maozi
+ * @date 2026/09/29
  */
 @Component
 public class RetryReselectInstanceFilter implements GlobalFilter, Ordered {

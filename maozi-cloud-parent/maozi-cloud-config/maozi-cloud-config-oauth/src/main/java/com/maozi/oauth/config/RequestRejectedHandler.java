@@ -22,13 +22,13 @@ import org.springframework.security.web.firewall.RequestRejectedException;
 @Configuration
 public class RequestRejectedHandler implements org.springframework.security.web.firewall.RequestRejectedHandler {
 
-    /**
-     * 处理被拒绝的请求，返回恶意请求错误响应
-     *
-     * @param request HTTP 请求
-     * @param response HTTP 响应
-     * @param ex 请求拒绝异常
-     */
+   /**
+    * 处理被拒绝的请求，返回恶意请求错误响应
+    *
+    * @param request HTTP 请求
+    * @param response HTTP 响应
+    * @param ex 请求拒绝异常
+    */
    @Override
    public void handle(HttpServletRequest request, HttpServletResponse response,RequestRejectedException ex){
        // 获取恶意请求错误码

@@ -22,6 +22,7 @@ import java.io.Serializable;
 @ConfigurationProperties("application-project-system")
 public class SystemProperties implements Serializable {
 
+    /** 序列化标识 */
     @Serial
     private static final long serialVersionUID = 1L;
 

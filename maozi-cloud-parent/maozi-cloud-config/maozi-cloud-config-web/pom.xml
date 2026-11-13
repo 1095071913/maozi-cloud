@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Web 层配置模块，集成 Undertow 服务器、Nacos 配置中心、自定义消息转换器与全局异常处理等 Web 基础组件 -->
+<!-- Web 层配置模块，集成 Undertow 服务器、自定义消息转换器、REST 入口日志与全局异常处理等 Web 基础组件 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -38,14 +38,14 @@
 		</dependency>
 		<!-- Spring Boot End -->
 
-		<!-- Micrometer Tracing OTel 桥接，基于 OpenTelemetry 实现分布式链路追踪数据上报 -->
+		<!-- Micrometer Tracing OTel 桥接，引入 OpenTelemetry API 用于读取当前链路 traceId -->
 		<dependency>
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-tracing-bridge-otel</artifactId>
 		</dependency>
 
 		<!-- Project Begin -->
-		<!-- 日志记录配置模块，提供 REST 入口日志切面与全局异常处理器 -->
+		<!-- 日志记录配置模块，提供请求入口日志切面抽象基类 AbstractRequestEntranceLogAop -->
         <dependency>
             <groupId>com.maozi</groupId>
 			<artifactId>maozi-cloud-config-log</artifactId>

@@ -10,6 +10,7 @@
      ============================================================ -->
 <configuration>
 
+    <!-- 日志上下文名称 -->
     <contextName>logback</contextName>
     <!-- 关闭 Logback 内部状态输出 -->
     <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
@@ -18,14 +19,15 @@
     <conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
     <conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter" />
 
-    <!-- 从 Spring 配置中读取环境变量，用于日志格式和输出方式判断 -->
+    <!-- 从 Spring Environment 读取属性（yml 配置或环境变量），用于日志格式与输出方式判断 -->
     <springProperty scope="context" name="ENVIRONMENT" source="application.environment"/>
     <springProperty scope="context" name="APPLICATION_NAME" source="spring.application.name"/>
-    <!-- 日志输出方式：默认 ASYNC_CONSOLE（local 环境）/ ASYNC_FILE（非 local 环境） -->
+    <!-- 日志输出方式（logging.appender）：未配置时默认 ASYNC_CONSOLE，非 local 环境部署时应设为 ASYNC_FILE -->
     <springProperty scope="context" name="APPENDER" source="logging.appender" defaultValue="ASYNC_CONSOLE"/>
 
     <!-- 日志文件根目录 -->
     <springProperty scope="context" name="LOG_PATH" source="LOG_PATH" defaultValue="./logs"/>
+    <!-- 日志文件完整路径（默认 ${LOG_PATH}/${APPLICATION_NAME}.log） -->
     <springProperty scope="context" name="LOG_FILE" source="LOG_FILE" defaultValue="${LOG_PATH}/${APPLICATION_NAME}.log"/>
     <!-- 日志输出格式：[ 时间 ] [ Level：级别 ] [ TID：链路追踪ID ] [ Service：服务名 ] [ Environment：环境 ] [ 消息 ] -->
     <property name="LOG_PATTERN" value="%clr([ %d{yyyy-MM-dd HH:mm:ss:SSS} ]){green}  %clr([ Level：%level ]){blue}  %clr([ TID：%X{trace_id:-} ]){magenta}  %clr([ Service：${APPLICATION_NAME} ]){red}  %clr([ Environment：${ENVIRONMENT} ]){yellow}  %clr([ %m ]){cyan}%n"/>
@@ -42,13 +44,13 @@
 
             <!-- 异步控制台输出，避免 IO 阻塞业务线程 -->
             <appender name ="ASYNC_CONSOLE" class= "ch.qos.logback.classic.AsyncAppender">
-                <!-- 队列剩余空间低于 20% 时，会丢弃 TRACE/DEBUG 日志-->
+                <!-- 设为 0：不丢弃任何级别日志（默认队列剩余 20% 时丢 TRACE/DEBUG/INFO）-->
                 <discardingThreshold>0</discardingThreshold>
                 <!-- 异步日志队列大小-->
                 <queueSize>512</queueSize>
-                <!-- 是否收集调用者信息-->
+                <!-- 不收集调用者信息（开启会明显降低性能）-->
                 <includeCallerData>false</includeCallerData>
-                <!-- 队列满时是否阻塞业务线程-->
+                <!-- false：队列满时阻塞业务线程（不丢日志）-->
                 <neverBlock>false</neverBlock>
                 <!-- 最终交给 CONSOLE 这个控制台输出器打印-->
                 <appender-ref ref="CONSOLE"/>
@@ -60,14 +62,14 @@
     <if condition='!property("ENVIRONMENT").contains("local")'>
         <then>
             <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-                <!-- 文件路径 ，注意LOG_PATH是默认值,它的配置对应application.properties里的logging.path值-->
+                <!-- 当前写入的日志文件路径（LOG_FILE 未配置时默认 ${LOG_PATH}/${APPLICATION_NAME}.log）-->
                 <file>${LOG_FILE}</file>
                 <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-                    <!-- 文件名称 -->
+                    <!-- 滚动归档文件名（按天 + 当日序号 %i） -->
                     <fileNamePattern>${LOG_PATH}/${APPLICATION_NAME}/%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-                    <!-- 文件大小切割 -->
+                    <!-- 单文件超过 100MB 触发滚动 -->
                     <maxFileSize>100MB</maxFileSize>
-                    <!-- 文件最大保存历史数量 -->
+                    <!-- 最多保留 30 天历史归档 -->
                     <MaxHistory>30</MaxHistory>
                 </rollingPolicy>
                 <encoder>
@@ -78,6 +80,7 @@
 
             <!-- 异步文件输出，避免 IO 阻塞业务线程 -->
             <appender name="ASYNC_FILE" class= "ch.qos.logback.classic.AsyncAppender">
+                <!-- 参数含义同 ASYNC_CONSOLE -->
                 <discardingThreshold>0</discardingThreshold>
                 <queueSize>512</queueSize>
                 <includeCallerData>false</includeCallerData>

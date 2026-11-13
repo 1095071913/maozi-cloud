@@ -24,6 +24,7 @@ public class CurrentUserInfoContext extends AbstractRequestContextHolder<Current
     /** 单例实例 */
     public static final CurrentUserInfoContext CONTEXT = new CurrentUserInfoContext();
 
+    /** 私有构造器，防止外部实例化 */
     private CurrentUserInfoContext() {}
 
     /**
@@ -45,7 +46,7 @@ public class CurrentUserInfoContext extends AbstractRequestContextHolder<Current
      * @return 目标属性值，未登录时返回 null
      */
     public <R> R get(Function<CurrentUserInfo, R> function) {
-        CurrentUserInfo currentUserInfo = get();
+        CurrentUserInfo currentUserInfo = super.get();
         if (ObjectUtil.isNullEmpty(currentUserInfo)) {
             return null;
         }

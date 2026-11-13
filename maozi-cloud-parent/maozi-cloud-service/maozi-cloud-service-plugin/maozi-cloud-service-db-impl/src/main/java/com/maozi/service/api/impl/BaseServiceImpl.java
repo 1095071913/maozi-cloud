@@ -373,7 +373,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         wrapper.eq(getColumn(AbstractBaseDomain::getId),id);
 
-        return getOne(wrapper);
+        return super.getOne(wrapper);
 
     }
 
@@ -395,7 +395,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         wrapper.eq(AbstractBaseDomain::getId,id);
 
-        return getOne(wrapper);
+        return super.getOne(wrapper);
 
     }
 
@@ -415,7 +415,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         wrapper.eq(getColumn(AbstractBaseDomain::getId),id);
 
-        T domain = getOne(wrapper);
+        T domain = super.getOne(wrapper);
 
         ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
 
@@ -435,7 +435,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * </p>
      *
      * @param ids 实体 ID 列表
-     * @throws BusinessResultException 当任一已存在实体状态为禁用时抛出异常
+     * @throws BusinessResultException 当 ID 集合为空或任一已存在实体状态为禁用时抛出异常
      */
     public void checkAvailable(List<Long> ids){
 
@@ -447,7 +447,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         wrapper.in(getColumn(AbstractBaseDomain::getId),ids);
 
-        List<T> domains = list(wrapper);
+        List<T> domains = super.list(wrapper);
         domains.forEach((domain)->{
 
             if(domain.getStatus() == Status.DISABLE) {
@@ -495,7 +495,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         wrapper.eq(getColumn(AbstractBaseDomain::getId),id);
 
-        T domain = getOne(wrapper);
+        T domain = super.getOne(wrapper);
 
         ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
 
@@ -523,7 +523,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         wrapper.selectAsClass(domainClass,domainClass);
         wrapper.select(getColumn(AbstractBaseDomain::getStatus));
 
-        T domain = getOne(wrapper);
+        T domain = super.getOne(wrapper);
 
         ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
 
@@ -544,7 +544,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public void checkHas(Wrapper<T> wrapper) {
         ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
-        ObjectUtil.checkConditionThrowError(count(wrapper) > 0, errorCode, getResourceName() + errorCode.getMessage());
+        ObjectUtil.checkConditionThrowError(super.count(wrapper) > 0, errorCode, getResourceName() + errorCode.getMessage());
     }
 
     /**
@@ -555,7 +555,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public void checkNotHas(Wrapper<T> wrapper) {
         ErrorCode errorCode = SystemErrorCode.DATA_EXIST_ERROR;
-        ObjectUtil.checkConditionThrowError(count(wrapper) < 1, errorCode, getResourceName() + errorCode.getMessage());
+        ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1, errorCode, getResourceName() + errorCode.getMessage());
     }
 
     /**
@@ -575,7 +575,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         wrapper.eq(getColumn(AbstractBaseDomain::getId), id);
 
-        T domain = getOne(wrapper);
+        T domain = super.getOne(wrapper);
 
         ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
 
@@ -596,7 +596,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         wrapper.eq(getColumn(AbstractBaseDomain::getStatus), Status.ENABLE);
 
-        return CglibUtil.copyList(list(wrapper), DropDownResult::new);
+        return CglibUtil.copyList(super.list(wrapper), DropDownResult::new);
 
     }
 
@@ -620,7 +620,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         wrapper.eq(getColumn(AbstractBaseDomain::getId),id);
 
-        T domain = getOne(wrapper);
+        T domain = super.getOne(wrapper);
 
         ObjectUtil.isNullEmptyThrowError(domain,getResourceName());
 
@@ -642,7 +642,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         wrapper.eq(getColumn(AbstractBaseDomain::getId),id);
 
-        T domain = getOne(wrapper);
+        T domain = super.getOne(wrapper);
 
         ObjectUtil.isNullEmptyThrowError(domain,getResourceName());
 
@@ -661,7 +661,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public <R> R getByParamThrowError(Wrapper<T> wrapper,Class<R> clazz) {
 
-        T domain = getOne(wrapper);
+        T domain = super.getOne(wrapper);
 
         ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
 
@@ -681,7 +681,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public <R> R getByParamThrowErrorRelation(Wrapper<T> wrapper,Class<R> clazz) {
 
-        T domain = getOne(wrapper);
+        T domain = super.getOne(wrapper);
 
         ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
 
@@ -758,7 +758,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         wrapper.select(getColumns(clazz));
 
-        V response = CglibUtil.copy(getOne(wrapper), clazz);
+        V response = CglibUtil.copy(super.getOne(wrapper), clazz);
 
         ObjectUtil.isNullEmptyThrowError(response, getResourceName());
 
@@ -787,7 +787,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         wrapper.in(getColumn(AbstractBaseDomain::getId),ids);
 
-        return list(wrapper);
+        return super.list(wrapper);
 
     }
 
@@ -823,7 +823,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public <R> List<R> list(Wrapper<T> wrapper,Supplier<R> target) {
 
-        List<T> list = list(wrapper);
+        List<T> list = super.list(wrapper);
 
         return CglibUtil.copyList(list, target);
 
@@ -843,7 +843,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         V vo = target.get();
 
-        List<T> list = list(buildQueryWrapper(dto, vo.getClass()));
+        List<T> list = super.list(buildQueryWrapper(dto, vo.getClass()));
 
         return CglibUtil.copyList(list, () -> vo);
 
@@ -868,7 +868,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         V vo = target.get();
 
-        List<T> list = list(buildQueryWrapper(dto,vo.getClass()));
+        List<T> list = super.list(buildQueryWrapper(dto,vo.getClass()));
 
         setRelationData(dto,vo.getClass());
 
@@ -887,7 +887,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public <V> PageResult<V> list(PageParam<?> pageParam,Wrapper<T> wrapper,Supplier<V> target) {
 
-        Page<T> page = page(convertPage(pageParam),wrapper);
+        Page<T> page = super.page(convertPage(pageParam),wrapper);
 
         return convertPageResult(page, target);
 
@@ -917,7 +917,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return MyBatis-Plus 分页对象
      */
     public Page<T> list(PageParam<?> pageParam,Wrapper<T> wrapper) {
-        return page(convertPage(pageParam),wrapper);
+        return super.page(convertPage(pageParam),wrapper);
     }
 
     /**
@@ -949,7 +949,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         ObjectUtil.isNullEmptyThrowError(param,getResourceName());
 
-        return count(buildQueryWrapper(param));
+        return super.count(buildQueryWrapper(param));
 
     }
 
@@ -975,7 +975,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
             wrapper.eq(getColumn(AbstractBaseDomain::getId), domain.getId());
 
             ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
-            ObjectUtil.checkConditionThrowError(count(wrapper) > 0, errorCode,
+            ObjectUtil.checkConditionThrowError(super.count(wrapper) > 0, errorCode,
                 getResourceName() + errorCode.getMessage());
 
         }
@@ -1011,7 +1011,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
             wrapper.eq(getColumn(AbstractBaseDomain::getId), domain.getId());
 
             ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
-            ObjectUtil.checkConditionThrowError(count(wrapper) > 0, errorCode,
+            ObjectUtil.checkConditionThrowError(super.count(wrapper) > 0, errorCode,
                 getResourceName() + errorCode.getMessage());
 
         }else {
@@ -1046,7 +1046,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
                 wrapper.eq(getColumn(AbstractBaseDomain::getId), domain.getId());
 
                 ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
-                ObjectUtil.checkConditionThrowError(count(wrapper) > 0, errorCode,
+                ObjectUtil.checkConditionThrowError(super.count(wrapper) > 0, errorCode,
                     getResourceName() + errorCode.getMessage());
 
             }
@@ -1080,6 +1080,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * </p>
      *
      * @param id 实体 ID
+     * @return 删除是否成功
      */
     public boolean removeById(Long id) {
 

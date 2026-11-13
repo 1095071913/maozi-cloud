@@ -65,7 +65,7 @@ public class RestClientServiceImpl extends BaseServiceResultImpl<ClientServiceIm
 	 */
 	@Override
 	public AbstractBaseResult<List<DropDownResult>> restDropDownListResult() {
-		return dropDownListResult();
+		return super.dropDownListResult();
 	}
 
 	/**
@@ -101,7 +101,7 @@ public class RestClientServiceImpl extends BaseServiceResultImpl<ClientServiceIm
 	 */
 	@Override
 	public AbstractBaseResult<Void> restUpdateStatusResult(Long id, RequestParam<Status> param) {
-		return updateStatusResult(id, param);
+		return super.updateStatusResult(id, param);
 	}
 
 	/**

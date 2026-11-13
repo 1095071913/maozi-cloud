@@ -90,5 +90,6 @@ public final class VersionUtils {
         }
     }
 
+    /** Private constructor to prevent instantiation. */
     private VersionUtils() {}
 }

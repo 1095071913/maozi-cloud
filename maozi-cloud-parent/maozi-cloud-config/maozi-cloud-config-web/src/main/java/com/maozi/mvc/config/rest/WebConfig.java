@@ -16,7 +16,8 @@ import java.util.List;
  * <p>
  * 注册自定义消息转换器：
  * 添加 {@link ReadOnlyMultipartFormDataEndpointConverter} 支持 multipart/form-data 请求体读取。
- * 应用链路上下文拦截器不在此注册，由 {@code maozi-cloud-config-oauth} 模块的 {@code WebSecurityConfig} 负责。
+ * 当前用户信息拦截器不在此注册，由 {@code maozi-cloud-config-oauth} 模块的 {@code WebSecurityConfig} 负责
+ * （版本号、traceId 等链路上下文由本模块的 {@code ApplicationContextFilter} 以 Servlet Filter 方式处理）。
  * </p>
  *
  * @author maozi

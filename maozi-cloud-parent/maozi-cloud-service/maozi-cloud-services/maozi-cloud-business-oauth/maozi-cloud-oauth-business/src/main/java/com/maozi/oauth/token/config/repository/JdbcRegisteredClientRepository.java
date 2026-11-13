@@ -87,8 +87,8 @@ public class JdbcRegisteredClientRepository extends org.springframework.security
 	 */
 	private RegisteredClient findByWithStatus(String filter, Object... args) {
 		String sql = LOAD_SQL + filter + " AND status = " + Status.ENABLE.getValue();
-		List<RegisteredClient> result = getJdbcOperations().query(
-				sql, getRegisteredClientRowMapper(), args);
+		List<RegisteredClient> result = super.getJdbcOperations().query(
+				sql, super.getRegisteredClientRowMapper(), args);
 		return !result.isEmpty() ? result.get(0) : null;
 	}
 

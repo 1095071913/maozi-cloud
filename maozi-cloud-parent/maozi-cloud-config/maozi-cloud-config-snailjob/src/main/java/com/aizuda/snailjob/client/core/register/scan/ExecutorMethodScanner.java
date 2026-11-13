@@ -110,11 +110,9 @@ public class ExecutorMethodScanner implements Scanner, ApplicationContextAware {
     /**
      * 以自定义统一重试处理器注册信息为模板，结合 RetryTask 注解属性构建业务场景注册信息
      * <p>
-     * 复制统一重试处理器的执行器信息（执行器类名、执行方法等保持不变，重试流量统一回调
-     * {@code RetryExecutorTask.doExecute}），将场景值替换为 RetryTask 注解的业务场景值
-     * （拼接版本号前缀 {@code RetryExecutorTask.buildScene}，按应用版本隔离重试流量），
-     * 并采用注解上配置的上报属性（幂等 id 生成器、重试完成回调、业务标识、超时时间、
-     * 超时时间单位、是否强制上报、是否异步上报）与重试属性（上报策略、重试次数、重试间隔时间），
+     * 执行器信息保持不变（重试流量统一回调 {@code RetryExecutorTask.doExecute}），
+     * 场景值替换为带版本号前缀的注解业务场景值（{@code RetryExecutorTask.buildScene}，
+     * 按应用版本隔离重试流量），上报与重试属性改用 {@code RetryTask} 注解配置，
      * 使业务侧通过 {@code RetryTaskTemplateBuilder} 按业务场景值 + 统一处理器上报时可命中对应注册信息。
      * </p>
      *

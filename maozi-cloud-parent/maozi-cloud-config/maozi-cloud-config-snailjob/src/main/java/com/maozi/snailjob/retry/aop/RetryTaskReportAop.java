@@ -28,9 +28,9 @@ import java.util.Objects;
  * <p>
  * 拦截标注了 {@code @RetryTask} 注解的方法，处理方法执行失败（抛出异常或结果集判定需要重试）后的重试逻辑。
  * 非重试流量下按注解上报策略处理：{@link RetryType#ONLY_LOCAL} 与 {@link RetryType#LOCAL_REMOTE}
- * 策略先在本地按次数与间隔同步重试；{@link RetryType#ONLY_REMOTE} 与 {@link RetryType#LOCAL_REMOTE}
- * 策略在本地重试失败后将方法信息封装为 {@link RetryTaskParam} 上报 SnailJob 服务端，
- * 由统一重试处理器 {@link RetryExecutorTask} 在服务端调度时远程回调执行。
+ * 策略先在本地按次数与间隔同步重试；{@link RetryType#ONLY_REMOTE} 策略（以及
+ * {@link RetryType#LOCAL_REMOTE} 本地重试失败后）将方法信息封装为 {@link RetryTaskParam}
+ * 上报 SnailJob 服务端，由统一重试处理器 {@link RetryExecutorTask} 在服务端调度时远程回调执行。
  * </p>
  * <p>
  * 重试流量（{@code RetryContextHolder} 已标记）下方法执行结果或异常直接放行，
@@ -55,7 +55,7 @@ public class RetryTaskReportAop {
      * 环绕通知，处理 {@code @RetryTask} 方法失败后的本地重试与远程上报
      *
      * @param proceedingJoinPoint AOP 连接点
-     * @return 正常执行无需重试时返回方法原结果，本地重试成功时返回重试结果，其余情况返回 {@code null}
+     * @return 正常执行无需重试或重试流量直接放行时返回方法原结果，本地重试成功时返回重试结果，其余情况返回 {@code null}
      * @throws Throwable 方法执行异常在本地重试与上报处理后原样上抛
      */
     @Around(POINT)
@@ -163,7 +163,7 @@ public class RetryTaskReportAop {
     /**
      * 获取代理目标类对应的 Spring Bean 名称
      * <p>
-     * 取目标类简单名并将首字母小写（与 Spring 默认 Bean 命名规则一致），
+     * 取目标类简单名并将首字母小写作为 Bean 名称（常规类名下与 Spring 默认命名一致），
      * 供重试执行器按名称获取 Bean 动态调用。
      * </p>
      *

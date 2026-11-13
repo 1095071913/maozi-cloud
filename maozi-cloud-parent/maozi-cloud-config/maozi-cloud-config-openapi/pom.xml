@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Swagger 接口文档配置模块，集成 SpringDoc OpenAPI 自动生成 API 文档及 OAuth2 授权支持 -->
+<!-- Swagger 接口文档配置模块，集成 SpringDoc OpenAPI 自动生成 API 文档并注入全局 Authorization 请求头 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -17,14 +17,14 @@
 
 	<dependencies>
 
-		<!-- SpringDoc OpenAPI WebMvc 接口，用于自动生成 OpenAPI 3.0 规范的 API 文档 -->
+		<!-- SpringDoc OpenAPI WebMvc 接口，用于自动生成 OpenAPI 3 规范的 API 文档 -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
 			<version>${springdoc-openapi.version}</version>
 		</dependency>
 
-		<!-- 基础枚举定义，提供接口文档相关枚举常量 -->
+		<!-- 基础枚举定义模块，提供 Status、Deleted 等通用枚举 -->
 		<dependency>
 			<groupId>com.maozi</groupId>
 			<artifactId>maozi-cloud-domain-enum</artifactId>

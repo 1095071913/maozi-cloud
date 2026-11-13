@@ -21,28 +21,18 @@ import java.util.Set;
 /**
  * 用户信息请求头清除过滤器
  * <p>
- * 聚合服务（maozi-cloud-all-service）作为对外入口，直接接收外部请求。
- * {@code X-CurrentUserInfo}（{@link CurrentUserInfoContext#KEY}）
- * 请求头用于服务间内部传递当前登录用户信息，不应由外部客户端直接注入，
- * 否则攻击者可伪造用户身份绕过认证。
+ * 聚合服务（maozi-cloud-all-service）直接接收外部请求，而
+ * {@code X-CurrentUserInfo}（{@link CurrentUserInfoContext#KEY}）头
+ * 仅用于服务间内部传递当前登录用户信息，外部注入可伪造身份绕过认证。
+ * 故本过滤器先于 Spring Security 过滤器链（{@code DEFAULT_FILTER_ORDER - 1}）执行，
+ * 通过 {@link UserInfoHeaderStrippedRequestWrapper} 移除该请求头，
+ * 使下游过滤器链（含令牌内省）与控制器无法读取，用户身份仅来源于内省结果。
  * </p>
  * <p>
- * 本过滤器优先级高于 Spring Security 过滤器链（{@code SecurityProperties.DEFAULT_FILTER_ORDER = -100}），
- * 即在 {@code BearerTokenAuthenticationFilter} 触发 {@code OpaqueTokenIntrospector}
- * 内省令牌之前执行，确保用户身份仅来源于令牌内省结果，而非外部请求头。
- * </p>
- * <p>
- * 由于 {@link com.maozi.mvc.filter.ApplicationContextFilter} 以 {@code HIGHEST_PRECEDENCE}
- * 执行并已从该请求头写入 {@link CurrentUserInfoContext#CONTEXT} 线程本地变量，
- * 本过滤器在 Security 之前通过 {@link UserInfoHeaderStrippedRequestWrapper} 移除请求中的
- * {@code X-CurrentUserInfo} 头，使下游过滤器链（含内省令牌）与控制器无法读取到该头。
- * 认证完成后，{@code ApplicationUserContextFilter} 拦截器会依据内省结果重新设置真实用户信息。
- * </p>
- * <p>
- * <b>注：</b>本过滤器仅移除请求头，不清除上游 {@code ApplicationContextFilter}
- * 可能已写入的 {@link CurrentUserInfoContext#CONTEXT} 线程本地变量；
- * 认证成功后 {@code ApplicationUserContextFilter} 会按内省结果覆盖，
- * 未认证端点上仍存在外部注入身份的残留风险，需注意。
+ * <b>注：</b>仅移除请求头，不清除上游 {@code ApplicationContextFilter} 以
+ * {@code HIGHEST_PRECEDENCE} 写入的 {@link CurrentUserInfoContext#CONTEXT} 线程本地变量；
+ * 认证成功后由 {@code ApplicationUserContextFilter} 按内省结果覆盖，
+ * 未认证端点仍存在外部注入身份的残留风险。
  * </p>
  *
  * @author maozi
@@ -87,7 +77,7 @@ public class StripUserInfoHeaderFilter extends OncePerRequestFilter {
         private static final String HEADER_TO_STRIP = CurrentUserInfoContext.KEY;
 
         /**
-         * 构造方法
+         * 基于原始请求构造包装器
          *
          * @param request 原始请求
          */

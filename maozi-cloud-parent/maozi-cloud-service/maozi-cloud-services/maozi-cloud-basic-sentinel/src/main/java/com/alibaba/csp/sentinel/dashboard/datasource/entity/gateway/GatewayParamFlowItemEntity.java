@@ -39,38 +39,47 @@ public class GatewayParamFlowItemEntity {
     /** The strategy to match the pattern. */
     private Integer matchStrategy;
 
+    /** Get the strategy of parsing the parameter value from the request. */
     public Integer getParseStrategy() {
         return parseStrategy;
     }
 
+    /** Set the strategy of parsing the parameter value from the request. */
     public void setParseStrategy(Integer parseStrategy) {
         this.parseStrategy = parseStrategy;
     }
 
+    /** Get the name of the header or parameter to parse. */
     public String getFieldName() {
         return fieldName;
     }
 
+    /** Set the name of the header or parameter to parse. */
     public void setFieldName(String fieldName) {
         this.fieldName = fieldName;
     }
 
+    /** Get the pattern to match the parsed value. */
     public String getPattern() {
         return pattern;
     }
 
+    /** Set the pattern to match the parsed value. */
     public void setPattern(String pattern) {
         this.pattern = pattern;
     }
 
+    /** Get the strategy to match the pattern. */
     public Integer getMatchStrategy() {
         return matchStrategy;
     }
 
+    /** Set the strategy to match the pattern. */
     public void setMatchStrategy(Integer matchStrategy) {
         this.matchStrategy = matchStrategy;
     }
 
+    /** Whether the given object has the same fields as this item. */
     @Override
     public boolean equals(Object o) {
         if (this == o) { return true; }
@@ -82,11 +91,13 @@ public class GatewayParamFlowItemEntity {
                 Objects.equals(matchStrategy, that.matchStrategy);
     }
 
+    /** Get the hash code from all fields of this item. */
     @Override
     public int hashCode() {
         return Objects.hash(parseStrategy, fieldName, pattern, matchStrategy);
     }
 
+    /** Build a string with all fields of this item. */
     @Override
     public String toString() {
         return "GatewayParamFlowItemEntity{" +

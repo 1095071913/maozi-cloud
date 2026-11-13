@@ -20,7 +20,7 @@
 
 		<!-- Project Begin -->
 
-		<!-- 服务 API 接口定义，包含用户、权限等 RPC 接口 -->
+		<!-- 服务 API 接口定义，提供 OauthTokenService 令牌内省接口与 Token 声明常量 -->
 		<dependency>
 			<groupId>com.maozi</groupId>
 			<artifactId>maozi-cloud-service-api</artifactId>
@@ -28,7 +28,8 @@
 		</dependency>
 		<!-- Project End -->
 
-		<!-- SpringCloud Begin -->
+		<!-- Spring Begin -->
+		<!-- Spring WebMVC，提供 WebMvcConfigurer 与 HandlerInterceptor 拦截器注册支持 -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
@@ -39,7 +40,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 		</dependency>
-		<!-- SpringCloud End -->
+		<!-- Spring End -->
 
 	</dependencies>
 

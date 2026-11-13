@@ -75,7 +75,7 @@ CREATE TABLE `system_config_region` (
   `deleted` tinyint NOT NULL DEFAULT '0' COMMENT '逻辑删除',
   `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态',
   `version` int NOT NULL DEFAULT '0' COMMENT '版本号',
-  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 创建时间，默认当前时间戳
   PRIMARY KEY (`id`) USING BTREE,
   KEY `actable_idx_name` (`name`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=900001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='地区';
@@ -3854,7 +3854,7 @@ CREATE TABLE `system_permission` (
                                      `deleted` tinyint NOT NULL DEFAULT '0' COMMENT '逻辑删除',
                                      `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态',
                                      `version` int NOT NULL DEFAULT '0' COMMENT '版本号',
-                                     `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                     `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 创建时间，默认当前时间戳
                                      PRIMARY KEY (`id`) USING BTREE,
                                      KEY `actable_idx_name` (`name`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=271 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='权限';
@@ -3903,7 +3903,7 @@ CREATE TABLE `system_role` (
                                `deleted` tinyint NOT NULL DEFAULT '0' COMMENT '逻辑删除',
                                `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态',
                                `version` int NOT NULL DEFAULT '0' COMMENT '版本号',
-                               `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+                               `create_time` datetime DEFAULT CURRENT_TIMESTAMP, -- 创建时间，默认当前时间戳
                                PRIMARY KEY (`id`) USING BTREE,
                                KEY `actable_idx_name` (`name`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=122 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='角色';
@@ -3926,7 +3926,7 @@ CREATE TABLE `system_role_permission` (
                                           `deleted` tinyint NOT NULL DEFAULT '0' COMMENT '逻辑删除',
                                           `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态',
                                           `version` int NOT NULL DEFAULT '0' COMMENT '版本号',
-                                          `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                          `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 创建时间，默认当前时间戳
                                           PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=2669 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='角色权限关系';
 
@@ -3977,7 +3977,7 @@ CREATE TABLE `system_user` (
                                `deleted` tinyint NOT NULL DEFAULT '0' COMMENT '逻辑删除',
                                `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态',
                                `version` int NOT NULL DEFAULT '0' COMMENT '版本号',
-                               `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                               `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 创建时间，默认当前时间戳
                                PRIMARY KEY (`id`) USING BTREE,
                                KEY `actable_idx_username` (`username`) USING BTREE,
                                KEY `actable_idx_name` (`name`) USING BTREE
@@ -4001,7 +4001,7 @@ CREATE TABLE `system_user_role` (
                                     `deleted` tinyint NOT NULL DEFAULT '0' COMMENT '逻辑删除',
                                     `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态',
                                     `version` int NOT NULL DEFAULT '0' COMMENT '版本号',
-                                    `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                    `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 创建时间，默认当前时间戳
                                     PRIMARY KEY (`id`) USING BTREE,
                                     KEY `actable_idx_role_id` (`role_id`) USING BTREE,
                                     KEY `actable_idx_user_id` (`user_id`) USING BTREE

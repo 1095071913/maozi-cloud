@@ -45,7 +45,11 @@ public class GatewayConfigInitializer implements ConfigInitializer {
 
     }
 
-    /** 本初始化器无需输出额外的启动诊断日志 */
+    /**
+     * 本初始化器无需输出额外的启动诊断日志
+     *
+     * @param logs 启动诊断日志收集容器（本实现不写入任何内容）
+     */
     @Override
     public void appendLogs(Map<String, String> logs) {
     }

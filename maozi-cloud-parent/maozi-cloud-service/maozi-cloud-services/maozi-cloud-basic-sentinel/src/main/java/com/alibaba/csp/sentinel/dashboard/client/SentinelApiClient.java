@@ -169,6 +169,7 @@ public class SentinelApiClient {
         IOReactorConfig ioConfig = IOReactorConfig.custom().setConnectTimeout(3000).setSoTimeout(10000)
             .setIoThreadCount(Runtime.getRuntime().availableProcessors() * 2).build();
         httpClient = HttpAsyncClients.custom().setRedirectStrategy(new DefaultRedirectStrategy() {
+            /** Always returns false to disable redirects for sentinel client commands. */
             @Override
             protected boolean isRedirectable(final String method) {
                 return false;
@@ -359,6 +360,7 @@ public class SentinelApiClient {
     private CompletableFuture<String> executeCommand(HttpUriRequest request) {
         CompletableFuture<String> future = new CompletableFuture<>();
         httpClient.execute(request, new FutureCallback<HttpResponse>() {
+            /** Completes the future with the body on 2xx, otherwise fails it with the mapped exception. */
             @Override
             public void completed(final HttpResponse response) {
                 int statusCode = response.getStatusLine().getStatusCode();
@@ -380,12 +382,14 @@ public class SentinelApiClient {
                 }
             }
 
+            /** Fails the future with the request exception and logs it. */
             @Override
             public void failed(final Exception ex) {
                 future.completeExceptionally(ex);
                 logger.error("HTTP request failed: {}", request.getURI().toString(), ex);
             }
 
+            /** Completes the future with null when the request is cancelled. */
             @Override
             public void cancelled() {
                 future.complete(null);

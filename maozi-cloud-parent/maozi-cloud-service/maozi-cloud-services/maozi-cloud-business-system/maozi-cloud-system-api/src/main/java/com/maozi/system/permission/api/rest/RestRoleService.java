@@ -93,7 +93,7 @@ public interface RestRoleService {
 	 */
 	@Post(value = CURRENT_PATH + "/remove",description = "删除")
 	@PreAuthorize("hasAuthority('system:role:remove')")
-	AbstractBaseResult<Void> restRemove(@PathVariable Long id);
+	AbstractBaseResult<Void> removeByIdResult(@PathVariable Long id);
 
 	/**
 	 * 更新角色信息

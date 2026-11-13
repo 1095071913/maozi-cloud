@@ -11,7 +11,7 @@ import java.io.Serializable;
 /**
  * 自定义重试任务参数
  * <p>
- * {@code @RetryTask} 方法本地重试失败后上报 SnailJob 服务端时携带的方法信息，
+ * {@code @RetryTask} 方法本地重试未启用或失败后上报 SnailJob 服务端时携带的方法信息，
  * 由统一重试处理器 {@code RetryExecutorTask} 在服务端调度时依据本参数动态回调目标方法。
  * </p>
  *

@@ -1,52 +1,51 @@
 # ============================================================
 # 通用默认配置（所有服务共享）
-# 包含项目环境标识、服务器基础配置、Spring MVC/Jackson、
+# 包含服务器基础配置、优雅停机、Spring MVC/Jackson、
 # Feign 远程调用、日志级别等通用设置。
 # ============================================================
 
 server:
-  port: ${APPLICATION_PORT:${application.port:0}}
-  error.path: /application/error # 统一错误处理路径
+  port: ${APPLICATION_PORT:${application.port:0}}  # 服务端口：环境变量 APPLICATION_PORT > application.port > 0（随机端口）
+  error.path: /application/error # 统一错误处理路径（落在 /application/** 免认证白名单内）
   shutdown: graceful # graceful=优雅停机 / immediate=立刻关闭
 
 spring:
   lifecycle:
-    timeout-per-shutdown-phase: 65s # 优雅停机等待最大超时时间，按需调整，一般10~30s
+    timeout-per-shutdown-phase: 65s # 优雅停机每阶段最长等待（Spring 默认 30s）
   main:
-    banner-mode: off                           # 关闭 Spring Boot Banner（由 BaseApplication 自定义输出）
-    log-startup-info: false                    # 关闭启动信息日志（由 BaseApplication 统一记录）
+    banner-mode: off                           # 关闭 Spring Boot Banner（BaseApplication 启动时同样强制关闭）
+    log-startup-info: false                    # 关闭启动信息日志（由 BaseApplication 统一输出启动日志）
   web:
     resources:
-      add-mappings: false                      # 禁用默认静态资源映射（由自定义 WebMvc 配置接管）
+      add-mappings: false                      # 禁用默认静态资源映射，未匹配路径才会抛 NoHandlerFoundException
   mvc:
     throw-exception-if-no-handler-found: true  # 404 时抛出 NoHandlerFoundException，交由全局异常处理器
-    pathmatch.matching-strategy: ant_path_matcher  # 路径匹配策略（兼容 Swagger 等组件）
+    pathmatch.matching-strategy: ant_path_matcher  # 路径匹配策略：AntPathMatcher（Boot 默认 PathPatternParser）
   jackson:
     time-zone: GMT+8                           # Jackson 序列化时区
     date-format: yyyy-MM-dd HH:mm:ss           # 日期格式
     default-property-inclusion: NON_NULL        # 序列化时忽略 null 字段
 
-# Feign 远程调用配置（用于 REST 风格的声明式 HTTP 调用）
+# Feign 远程调用配置（REST 声明式 HTTP 调用）
+# 注意：OpenFeign 4.x（Spring Cloud 2023）属性前缀已改为 spring.cloud.openfeign.*，
+#       本段除 feign.sentinel.enabled（Spring Cloud Alibaba 属性）外的旧前缀键当前不被读取
 feign:
   sentinel:
     enabled: true                              # 启用 Sentinel 对 Feign 的熔断降级适配
   okhttp:
     enabled: true                              # 使用 OkHttp 作为底层 HTTP 客户端（替代默认 HttpURLConnection）
   httpclient:
-    enabled: false                             # 禁用默认 HttpClient
+    enabled: false                             # 禁用 Apache HttpClient
   client:
     config:
       default:
-        connectTimeout: 30000                  # 连接超时 30 秒
-        readTimeout: 30000                     # 读取超时 30 秒
+        connectTimeout: 30000                  # 连接超时 30 秒（毫秒单位）
+        readTimeout: 30000                     # 读取超时 30 秒（毫秒单位）
   compression:
     request:
-      # 开启请求数据的压缩功能
-      enabled: true
-      # 最小压缩值标准，当数据大于 1024 才会进行压缩
-      min-request-size: 1024
-      # 压缩类型
-      mime-types: text/xml,application/xml,application/json
+      enabled: true                            # 开启请求数据压缩
+      min-request-size: 1024                   # 请求体超过 1024 字节才压缩
+      mime-types: text/xml,application/xml,application/json  # 参与压缩的 MIME 类型
     response:
       enabled: true                            # 开启响应数据压缩
 
@@ -54,4 +53,4 @@ feign:
 logging:
   level:
     root: ERROR                                                                       # 根日志级别
-    com.maozi: INFO                                                                   # 项目业务代码日志
+    com.maozi: INFO                                                                   # 项目业务代码（com.maozi 包）日志级别

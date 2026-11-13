@@ -11,9 +11,8 @@ import org.springframework.context.annotation.Configuration;
  * （即各服务 REST API 模块中声明的 Feign 客户端）。
  * </p>
  * <p>
- * 由于本配置类位于 {@code com.maozi.feign.config} 包，若不显式指定 {@link EnableFeignClients#basePackages()}，
- * 默认仅会扫描本类所在包及其子包，导致其它模块（如 {@code com.maozi.oauth.*}）中声明的
- * Feign 客户端无法被注册，故此处必须明确指定基础包。
+ * 因 {@link EnableFeignClients#basePackages()} 缺省时仅扫描本类所在包，
+ * 需显式指定基础包才能注册其它模块中声明的 Feign 客户端。
  * </p>
  *
  * @author maozi

@@ -5,7 +5,7 @@
 # ============================================================
 
 management:
-  # 在 /actuator/info 端点中展示环境信息
+  # 在 /actuator/info 端点中展示以 info. 开头的环境属性
   info.env.enabled: true
   endpoints:
     web:

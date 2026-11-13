@@ -67,96 +67,118 @@ public class SystemRuleEntity implements RuleEntity {
         return entity;
     }
 
+    /** Get the IP address of the machine. */
     @Override
     public String getIp() {
         return ip;
     }
 
+    /** Set the IP address of the machine. */
     public void setIp(String ip) {
         this.ip = ip;
     }
 
+    /** Get the port of the machine. */
     @Override
     public Integer getPort() {
         return port;
     }
 
+    /** Set the port of the machine. */
     public void setPort(Integer port) {
         this.port = port;
     }
 
+    /** Get the entity id. */
     @Override
     public Long getId() {
         return id;
     }
 
+    /** Set the entity id. */
     @Override
     public void setId(Long id) {
         this.id = id;
     }
 
+    /** Get the application name. */
     @Override
     public String getApp() {
         return app;
     }
 
+    /** Set the application name. */
     public void setApp(String app) {
         this.app = app;
     }
 
+    /** Get the highest system load threshold. */
     public Double getHighestSystemLoad() {
         return highestSystemLoad;
     }
 
+    /** Set the highest system load threshold. */
     public void setHighestSystemLoad(Double highestSystemLoad) {
         this.highestSystemLoad = highestSystemLoad;
     }
 
+    /** Get the average RT (ms) threshold for all inbound requests. */
     public Long getAvgRt() {
         return avgRt;
     }
 
+    /** Set the average RT (ms) threshold for all inbound requests. */
     public void setAvgRt(Long avgRt) {
         this.avgRt = avgRt;
     }
 
+    /** Get the max concurrent thread count threshold. */
     public Long getMaxThread() {
         return maxThread;
     }
 
+    /** Set the max concurrent thread count threshold. */
     public void setMaxThread(Long maxThread) {
         this.maxThread = maxThread;
     }
 
+    /** Get the max total QPS of all inbound requests. */
     public Double getQps() {
         return qps;
     }
 
+    /** Set the max total QPS of all inbound requests. */
     public void setQps(Double qps) {
         this.qps = qps;
     }
 
+    /** Get the highest CPU usage threshold. */
     public Double getHighestCpuUsage() {
         return highestCpuUsage;
     }
 
+    /** Set the highest CPU usage threshold. */
     public void setHighestCpuUsage(Double highestCpuUsage) {
         this.highestCpuUsage = highestCpuUsage;
     }
 
+    /** Get the create time. */
     @Override
     public Date getGmtCreate() {
         return gmtCreate;
     }
 
+    /** Set the create time. */
     public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
     }
 
+    /** Get the last modify time. */
     public Date getGmtModified() {
         return gmtModified;
     }
 
+    /** Set the last modify time. */
     public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
     }

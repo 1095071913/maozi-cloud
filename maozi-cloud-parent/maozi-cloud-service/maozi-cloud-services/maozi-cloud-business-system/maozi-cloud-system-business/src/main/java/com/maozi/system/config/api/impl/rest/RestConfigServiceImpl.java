@@ -105,7 +105,7 @@ public class RestConfigServiceImpl extends BaseServiceResultImpl<ConfigServiceIm
 	 */
 	@Override
 	public AbstractBaseResult<Void> restRemove(Long id) {
-		return removeByIdResult(id);
+		return super.removeByIdResult(id);
 	}
 
 	/**
@@ -130,7 +130,7 @@ public class RestConfigServiceImpl extends BaseServiceResultImpl<ConfigServiceIm
 	 */
 	@Override
 	public AbstractBaseResult<Void> restUpdateStatusResult(Long id, RequestParam<Status> param) {
-		return updateStatusResult(id, param);
+		return super.updateStatusResult(id, param);
 	}
 
 }

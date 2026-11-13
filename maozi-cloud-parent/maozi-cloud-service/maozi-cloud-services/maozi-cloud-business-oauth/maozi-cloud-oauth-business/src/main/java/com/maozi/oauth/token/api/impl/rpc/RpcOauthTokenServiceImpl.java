@@ -37,7 +37,7 @@ public class RpcOauthTokenServiceImpl extends OauthTokenServiceImpl implements R
      */
     @Override
     public AbstractBaseResult<Map<String, Object>> rpcIntrospect(String token) {
-        return ResultUtil.success(introspect(token));
+        return ResultUtil.success(super.introspect(token));
     }
 
     /**

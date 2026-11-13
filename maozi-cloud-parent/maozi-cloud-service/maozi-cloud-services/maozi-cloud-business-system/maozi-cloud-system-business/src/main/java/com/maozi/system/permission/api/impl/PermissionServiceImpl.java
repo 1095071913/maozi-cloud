@@ -66,8 +66,8 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, Per
 	}
 
 	/**
-	 * 校验权限是否被其他资源绑定
-	 * <p>在删除权限前校验：1.检查权限是否被角色绑定；2.检查权限是否存在子权限。</p>
+	 * 删除权限前校验绑定关系与子权限
+	 * <p>权限已被角色绑定或存在子权限时抛出业务异常。</p>
 	 *
 	 * @param id 权限ID
 	 */
@@ -79,7 +79,7 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, Per
 
 		// 2.校验当前权限是否存在子权限（查询 parentId = id 的权限记录），存在则禁止删除
 		LambdaQueryWrapper<PermissionDo> wrapper = Wrappers.<PermissionDo>lambdaQuery().eq(PermissionDo::getParentId, id);
-		ObjectUtil.checkConditionThrowError(count(wrapper) < 1, SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE, getResourceName() + "存在子权限，不允许删除");
+		ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1, SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE, getResourceName() + "存在子权限，不允许删除");
 
 	}
 
@@ -91,7 +91,7 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, Per
 	 */
 	@Override
 	public boolean has(Long id) {
-		return count(Wrappers.<PermissionDo>lambdaQuery().eq(PermissionDo::getId,id)) > 0;
+		return super.count(Wrappers.<PermissionDo>lambdaQuery().eq(PermissionDo::getId,id)) > 0;
 	}
 
 	/**
@@ -109,7 +109,7 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, Per
 
 		wrapper.in(PermissionDo::getId,ids);
 
-		return list(wrapper).stream().map(PermissionDo::getMark).collect(Collectors.toList());
+		return super.list(wrapper).stream().map(PermissionDo::getMark).collect(Collectors.toList());
 
 	}
 
@@ -123,12 +123,12 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, Per
 		QueryWrapper<PermissionDo> wrapper = Wrappers.query();
 
 		// 仅查询列表视图对象所需的字段列
-		wrapper.select(getColumns(PermissionListResult.class,false));
+		wrapper.select(super.getColumns(PermissionListResult.class,false));
 
 		// 按权限深度、排序序号降序排列
-		wrapper.orderByDesc(CollectionUtil.newArrayList(getColumns(PermissionDo::getLevel,PermissionDo::getSort)));
+		wrapper.orderByDesc(CollectionUtil.newArrayList(super.getColumns(PermissionDo::getLevel,PermissionDo::getSort)));
 
-		return list(wrapper, PermissionListResult::new);
+		return super.list(wrapper, PermissionListResult::new);
 
 	}
 

@@ -29,7 +29,7 @@ public class RestOauthTokenServiceImpl extends OauthTokenServiceImpl implements 
      */
     @Override
     public AbstractBaseResult<Map<String, Object>> restIntrospect(String token) {
-        return ResultUtil.success(introspect(token));
+        return ResultUtil.success(super.introspect(token));
     }
 
 }

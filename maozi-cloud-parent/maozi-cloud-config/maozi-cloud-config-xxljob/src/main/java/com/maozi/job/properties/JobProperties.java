@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "xxl.job")
 public class JobProperties {
 
-    /** 访问令牌 */
+    /** 与调度中心通信的访问令牌 */
     private String accessToken;
 
     /** 调度中心配置 */
@@ -31,12 +31,12 @@ public class JobProperties {
     /**
      * 调度中心配置
      *
-    * @author maozi
+     * @author maozi
      */
     @Data
     public static class Admin {
 
-        /** 调度中心地址 */
+        /** 调度中心地址，多个地址以英文逗号分隔 */
         private String addresses;
 
     }
@@ -44,7 +44,7 @@ public class JobProperties {
     /**
      * 执行器配置
      *
-    * @author maozi
+     * @author maozi
      */
     @Data
     public static class Executor {
@@ -52,16 +52,16 @@ public class JobProperties {
         /** 执行器应用名称 */
         private String appname;
 
-        /** 执行器 IP */
+        /** 执行器 IP，为空时自动获取本机 IP */
         private String ip;
 
-        /** 执行器端口 */
+        /** 执行器端口，小于等于 0 时自动从 9999 起探测可用端口 */
         private int port;
 
         /** 执行器日志文件路径 */
         private String logpath;
 
-        /** 日志保留天数 */
+        /** 日志保留天数，小于 3 时不启用日志文件清理 */
         private int logretentiondays;
 
     }

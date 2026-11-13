@@ -8,7 +8,7 @@ spring:
     oauth2:
       resourceserver:
         opaquetoken:
-          # 令牌内省模式：http（HTTP 调用 introspection 端点）或 rpc（Dubbo RPC 本地内省）
+          # 令牌内省模式：rpc（Dubbo RPC 调用授权服务器内省）或 http（Feign 调用内省接口）
           # 当前默认使用 rpc 模式（由 maozi-cloud-config-oauth 模块提供 OpaqueTokenIntrospector 实现）
 #          mode: http
           # 客户端id

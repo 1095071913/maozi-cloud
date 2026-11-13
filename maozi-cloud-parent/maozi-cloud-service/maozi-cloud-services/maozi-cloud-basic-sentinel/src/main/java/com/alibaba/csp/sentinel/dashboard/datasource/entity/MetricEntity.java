@@ -110,46 +110,57 @@ public class MetricEntity {
         this.successQps = successQps;
     }
 
+    /** Get the entity id. */
     public Long getId() {
         return id;
     }
 
+    /** Set the entity id. */
     public void setId(Long id) {
         this.id = id;
     }
 
+    /** Get the create time. */
     public Date getGmtCreate() {
         return gmtCreate;
     }
 
+    /** Set the create time. */
     public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
     }
 
+    /** Get the last modify time. */
     public Date getGmtModified() {
         return gmtModified;
     }
 
+    /** Set the last modify time. */
     public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
     }
 
+    /** Get the application name. */
     public String getApp() {
         return app;
     }
 
+    /** Set the application name. */
     public void setApp(String app) {
         this.app = app;
     }
 
+    /** Get the timestamp of the metric. */
     public Date getTimestamp() {
         return timestamp;
     }
 
+    /** Set the timestamp of the metric. */
     public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
     }
 
+    /** Get the resource name. */
     public String getResource() {
         return resource;
     }
@@ -160,58 +171,72 @@ public class MetricEntity {
         this.resourceCode = resource.hashCode();
     }
 
+    /** Get the passed QPS. */
     public Long getPassQps() {
         return passQps;
     }
 
+    /** Set the passed QPS. */
     public void setPassQps(Long passQps) {
         this.passQps = passQps;
     }
 
+    /** Get the blocked QPS. */
     public Long getBlockQps() {
         return blockQps;
     }
 
+    /** Set the blocked QPS. */
     public void setBlockQps(Long blockQps) {
         this.blockQps = blockQps;
     }
 
+    /** Get the exception QPS. */
     public Long getExceptionQps() {
         return exceptionQps;
     }
 
+    /** Set the exception QPS. */
     public void setExceptionQps(Long exceptionQps) {
         this.exceptionQps = exceptionQps;
     }
 
+    /** Get the summary RT of all success exits. */
     public double getRt() {
         return rt;
     }
 
+    /** Set the summary RT of all success exits. */
     public void setRt(double rt) {
         this.rt = rt;
     }
 
+    /** Get the total count of this aggregation. */
     public int getCount() {
         return count;
     }
 
+    /** Set the total count of this aggregation. */
     public void setCount(int count) {
         this.count = count;
     }
 
+    /** Get the hash code of the resource name. */
     public int getResourceCode() {
         return resourceCode;
     }
 
+    /** Get the success QPS. */
     public Long getSuccessQps() {
         return successQps;
     }
 
+    /** Set the success QPS. */
     public void setSuccessQps(Long successQps) {
         this.successQps = successQps;
     }
 
+    /** Build a string with all fields of this entity. */
     @Override
     public String toString() {
         return "MetricEntity{" +

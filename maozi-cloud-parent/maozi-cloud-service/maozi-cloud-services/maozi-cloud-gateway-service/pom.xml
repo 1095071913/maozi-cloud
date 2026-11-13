@@ -44,7 +44,7 @@
 			<version>${maozi-cloud-service-run.version}</version>
 		</dependency>
 
-		<!-- 监控配置模块，集成 Spring Boot Admin 相关配置 -->
+		<!-- 监控配置模块，集成链路追踪、Spring Boot Admin 客户端注册与指标暴露 -->
 		<dependency>
 			<groupId>com.maozi</groupId>
 			<artifactId>maozi-cloud-config-monitor</artifactId>

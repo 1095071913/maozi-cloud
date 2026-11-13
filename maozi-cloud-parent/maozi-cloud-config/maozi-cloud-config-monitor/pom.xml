@@ -26,7 +26,7 @@
 			<version>${opentelemetry-instrumentation.version}-alpha</version>
 		</dependency>
 
-		<!-- Micrometer Tracing OTel 桥接，基于 OpenTelemetry 实现分布式链路追踪数据上报 -->
+		<!-- Micrometer Tracing OTel 桥接，桥接 Micrometer 链路追踪与 OpenTelemetry，配合 Logback MDC 输出 traceId -->
 		<dependency>
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-tracing-bridge-otel</artifactId>

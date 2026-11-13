@@ -41,7 +41,7 @@ public class RestErrorHandler {
 	 * 处理接口不存在异常（404）
 	 * <p>
 	 * 当请求的 URL 没有匹配到任何 Controller 处理方法时触发，
-	 * 返回 404 状态码和"资源不存在"错误信息。
+	 * 返回 404 状态码和"接口不存在"错误信息。
 	 * </p>
 	 *
 	 * @return 标准错误响应，包含 NOT_RESOURCE_ERROR 错误码
@@ -52,6 +52,15 @@ public class RestErrorHandler {
 		return ResultUtil.error(SystemErrorCode.NOT_RESOURCE_ERROR);
 	}
 
+	/**
+	 * 处理请求方法不支持异常（405）
+	 * <p>
+	 * 当请求方法与 Controller 映射不匹配（如对 POST 接口发起 GET 请求）时触发，
+	 * 返回 405 状态码和"请求方法错误"错误信息。
+	 * </p>
+	 *
+	 * @return 标准错误响应，包含 REQUEST_METHOD_ERROR 错误码
+	 */
 	@ExceptionHandler(HttpRequestMethodNotSupportedException.class)
 	@ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
 	public Object handleHttpRequestMethodNotSupportedException() {
@@ -156,7 +165,7 @@ public class RestErrorHandler {
 	/**
 	 * 处理上传文件大小超限异常
 	 * <p>
-	 * 当上传的文件大小超过配置的最大限制（spring.servlet.multipart.max-file-size）时触发，
+	 * 当上传的文件或请求大小超过配置的最大限制（spring.servlet.multipart.max-file-size / max-request-size）时触发，
 	 * 返回请求数据过大错误响应。
 	 * </p>
 	 *

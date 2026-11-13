@@ -298,8 +298,8 @@ public class ChatServiceImpl implements ChatService {
      * 用户输入与生成结果均写入会话记忆，结束后清除标记。
      * </p>
      *
-     * @param param 文生图参数
-     * @return 提示消息与生成图片的地址列表（被停止时图片列表为空）
+     * @param param 文生图参数（继承对话参数，另有生成数量与宽高）
+     * @return 提示消息与生成图片的地址列表（被停止时提示消息为 null、图片列表为空）
      */
     @SneakyThrows
     public ChatGenerateImageResult generateImage(ChatGenerateImageParam param) {

@@ -18,7 +18,7 @@ import java.io.Serializable;
  */
 @Data
 public class SystemPropertiesResult implements Serializable {
-    /** 序列化标识 */
+	/** 序列化标识 */
 	@Serial
     private static final long serialVersionUID = 1L;
 

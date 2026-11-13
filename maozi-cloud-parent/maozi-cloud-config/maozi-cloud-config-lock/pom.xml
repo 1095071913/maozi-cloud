@@ -31,13 +31,14 @@
         </dependency>
 
         <!-- Project Begin -->
-        <!-- 基础枚举定义，提供锁相关枚举常量 -->
+        <!-- 基础枚举定义模块，提供 Status、Deleted 等通用枚举 -->
         <dependency>
             <groupId>com.maozi</groupId>
             <artifactId>maozi-cloud-domain-enum</artifactId>
             <version>${maozi-cloud-domain-enum.version}</version>
         </dependency>
 
+        <!-- Redis 缓存配置模块，提供 Redis 客户端配置与工具类支持 -->
         <dependency>
             <groupId>com.maozi</groupId>
             <artifactId>maozi-cloud-config-redis</artifactId>

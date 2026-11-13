@@ -1,3 +1,3 @@
 # Dubbo ProviderFirstParams SPI 扩展声明
-# 注册自定义参数提供器，在服务注册时附加 version 等元数据，供灰度路由使用
+# 声明以提供者端优先的 URL 参数集合（含 application.version），供灰度路由按版本元数据匹配
 providerFirstParams=com.maozi.dubbo.provider.ProviderFirstParams

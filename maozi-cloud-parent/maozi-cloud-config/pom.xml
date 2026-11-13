@@ -19,7 +19,7 @@
     <modules>
       <!-- Feign 远程调用配置模块 -->
       <module>maozi-cloud-config-feign</module>
-      <!-- Spring Boot Admin 监控配置模块 -->
+      <!-- 监控配置模块（链路追踪、Spring Boot Admin、Prometheus 指标） -->
       <module>maozi-cloud-config-monitor</module>
       <!-- Sentinel 限流熔断配置模块 -->
       <module>maozi-cloud-config-sentinel</module>
@@ -39,7 +39,7 @@
       <module>maozi-cloud-config-dubbo</module>
       <!-- Redis 缓存配置模块 -->
       <module>maozi-cloud-config-redis</module>
-      <!-- 服务发现配置模块 -->
+      <!-- Nacos 注册发现与配置中心配置模块 -->
       <module>maozi-cloud-config-nacos</module>
       <!-- Stream 消息流配置模块 -->
       <module>maozi-cloud-config-stream</module>

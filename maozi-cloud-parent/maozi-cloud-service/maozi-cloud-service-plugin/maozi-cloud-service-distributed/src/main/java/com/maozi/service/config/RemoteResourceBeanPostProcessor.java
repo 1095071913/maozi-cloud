@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * {@link RemoteResource} 字段注入处理器（微服务模式）。
  * <p>
- * {@link RemoteResource} 是纯标记注解，无法借助 {@code @DubboReference} 元注解方式完成注入；
+ * {@link RemoteResource} 未组合 {@code @DubboReference}，无法借助 Dubbo 元注解方式完成注入；
  * 本处理器扫描其标注的字段，通过 Dubbo 编程式 API（{@link ReferenceConfig} + {@link DubboBootstrap}）
  * 创建远程引用代理并反射写入（代理按接口类型缓存），同时按字段名将代理注册为 Spring 单例，
  * 供 {@code SpringUtil.getBean(字段名)} 等按名查找使用（如 {@code BaseServiceImpl} 的

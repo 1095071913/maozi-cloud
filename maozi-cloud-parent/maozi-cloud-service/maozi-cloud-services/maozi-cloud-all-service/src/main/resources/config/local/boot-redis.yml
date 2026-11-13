@@ -15,14 +15,15 @@ spring:
       # 可选，客户端标识，方便redis client list排查
       client-name: ${spring.application.name}
       lettuce:
-        # 命令超时，建议500ms，根据业务微调，不要超过1s
+        # ★ 命令超时：lettuce 节点下没有 timeout 属性，此处配置不生效，实际为 Lettuce 默认 60s
+        # 生效需移到 spring.data.redis.timeout，内网建议 500ms，不要超过 1s
         timeout: 500ms
         # 应用关闭时等待在途命令排空的时间
         shutdown-timeout: 300ms
         pool:
           # 最大活跃连接，根据单实例QPS，一般80~200
           max-active: 120
-          # 获取连接最大等待时间1s
+          # 获取连接最大等待 1s（不配置默认 -1 无限等待）
           max-wait: 1000ms
           # 最大空闲连接
           max-idle: 60

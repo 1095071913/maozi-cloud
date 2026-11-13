@@ -95,7 +95,7 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
 		this.messageReaders = messageReaders;
 	}
 
-    /**
+	/**
 	 * 设置 HTTP 消息写入器。
 	 *
 	 * @param messageWriters 消息写入器列表
@@ -177,7 +177,7 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
 	 *
 	 * @param exchange 服务端 Web 交换上下文
 	 * @param e        捕获到的异常
-	 * @return 异常处理完成的 Void Mono
+	 * @return 写入错误响应后完成的空 Mono；客户端断连或响应已提交时返回包含原异常的 Mono.error
 	 */
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange, @Nonnull Throwable e) {

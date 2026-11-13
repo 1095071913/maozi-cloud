@@ -138,7 +138,7 @@ public class SwaggerGlobalFilter implements GlobalFilter, Ordered {
                         headers.setContentLength(length);
 
                         // 将改写后的 JSON 包装为 DataBuffer 返回
-                        DataBuffer buffer = bufferFactory().wrap(response.getBytes(StandardCharsets.UTF_8));
+                        DataBuffer buffer = super.bufferFactory().wrap(response.getBytes(StandardCharsets.UTF_8));
                         return super.writeWith(Mono.just(buffer));
 
                     });

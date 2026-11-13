@@ -43,7 +43,7 @@ public class RestPermissionServiceImpl extends BaseServiceResultImpl<PermissionS
 	 */
 	@Override
 	public AbstractBaseResult<Long> restSave(PermissionSaveUpdateParam param) {
-		return saveUpdateResult(null,param);
+		return super.saveUpdateResult(null,param);
 	}
 
 	/**
@@ -78,7 +78,7 @@ public class RestPermissionServiceImpl extends BaseServiceResultImpl<PermissionS
 	 */
 	@Override
 	public AbstractBaseResult<Void> restRemove(Long id) {
-		return removeByIdResult(id);
+		return super.removeByIdResult(id);
 	}
 
 	/**

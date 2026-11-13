@@ -26,7 +26,7 @@ import java.lang.reflect.Type;
 public class ReadOnlyMultipartFormDataEndpointConverter extends MappingJackson2HttpMessageConverter {
 
     /**
-     * 构造方法
+     * 基于指定的 ObjectMapper 构造转换器
      *
      * @param objectMapper Jackson ObjectMapper 实例
      */
@@ -37,7 +37,7 @@ public class ReadOnlyMultipartFormDataEndpointConverter extends MappingJackson2H
     /**
      * 判断是否可以读取指定的媒体类型
      * <p>
-     * 仅在以下条件全部满足时返回 true：
+     * 仅在以下条件全部满足时才继续委托父类判断，任一不满足直接返回 false：
      * <ol>
      *   <li>当前存在 HTTP 请求上下文</li>
      *   <li>能获取到处理方法信息</li>
@@ -49,7 +49,7 @@ public class ReadOnlyMultipartFormDataEndpointConverter extends MappingJackson2H
      * @param type 目标类型
      * @param contextClass 上下文类
      * @param mediaType 媒体类型
-     * @return 是否可以读取
+     * @return 上述条件均满足且父类判定可读时为 true，否则为 false
      */
     @Override
     public boolean canRead(@Nonnull Type type, Class<?> contextClass, MediaType mediaType) {
@@ -63,7 +63,7 @@ public class ReadOnlyMultipartFormDataEndpointConverter extends MappingJackson2H
         if (handlerMethod == null) {
             return false;
         }
-        // 获取处理器方法上的 @RequestMapping 注解
+        // 获取处理器方法上的 @RequestMapping 注解（含 @PostMapping 等组合注解）
         RequestMapping requestMapping = handlerMethod.getMethodAnnotation(RequestMapping.class);
         if (requestMapping == null) {
             return false;

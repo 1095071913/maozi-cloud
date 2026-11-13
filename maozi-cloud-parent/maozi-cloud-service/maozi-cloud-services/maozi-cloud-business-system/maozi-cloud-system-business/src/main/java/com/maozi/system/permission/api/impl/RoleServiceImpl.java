@@ -75,7 +75,7 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleMapper, RoleDo> impleme
 	 */
 	@Override
 	public boolean has(Long id) {
-		return count(Wrappers.<RoleDo>lambdaQuery().eq(RoleDo::getId,id)) > 0;
+		return super.count(Wrappers.<RoleDo>lambdaQuery().eq(RoleDo::getId,id)) > 0;
 	}
 
 	/**
@@ -89,7 +89,7 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleMapper, RoleDo> impleme
 	@Transactional(rollbackFor = Exception.class)
 	public Long restSaveUpdate(Long id, RoleSaveUpdateParam param) {
 
-		id = saveUpdate(id,param);
+		id = super.saveUpdate(id,param);
 
 		rolePermissionService.updateBind(id, param.getBindPermissionIds(), param.getUnbindPermissionIds());
 

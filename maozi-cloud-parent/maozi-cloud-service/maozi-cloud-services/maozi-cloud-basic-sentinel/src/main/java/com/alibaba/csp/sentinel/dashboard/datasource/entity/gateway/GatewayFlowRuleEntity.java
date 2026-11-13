@@ -195,48 +195,58 @@ public class GatewayFlowRuleEntity implements RuleEntity {
         return entity;
     }
 
+    /** Get the entity id. */
     @Override
     public Long getId() {
         return id;
     }
 
+    /** Set the entity id. */
     @Override
     public void setId(Long id) {
         this.id = id;
     }
 
+    /** Get the application name. */
     @Override
     public String getApp() {
         return app;
     }
 
+    /** Set the application name. */
     public void setApp(String app) {
         this.app = app;
     }
 
+    /** Get the IP address of the machine. */
     @Override
     public String getIp() {
         return ip;
     }
 
+    /** Set the IP address of the machine. */
     public void setIp(String ip) {
         this.ip = ip;
     }
 
+    /** Get the port of the machine. */
     @Override
     public Integer getPort() {
         return port;
     }
 
+    /** Set the port of the machine. */
     public void setPort(Integer port) {
         this.port = port;
     }
 
+    /** Get the create time. */
     @Override
     public Date getGmtCreate() {
         return gmtCreate;
     }
 
+    /** Set the create time. */
     public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
     }
@@ -247,94 +257,117 @@ public class GatewayFlowRuleEntity implements RuleEntity {
         return null;
     }
 
+    /** Get the last modify time. */
     public Date getGmtModified() {
         return gmtModified;
     }
 
+    /** Set the last modify time. */
     public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
     }
 
+    /** Get the parameter flow item, null if the rule is not parameter-based. */
     public GatewayParamFlowItemEntity getParamItem() {
         return paramItem;
     }
 
+    /** Set the parameter flow item for parameter-based control. */
     public void setParamItem(GatewayParamFlowItemEntity paramItem) {
         this.paramItem = paramItem;
     }
 
+    /** Get the resource name the rule applies to. */
     public String getResource() {
         return resource;
     }
 
+    /** Set the resource name the rule applies to. */
     public void setResource(String resource) {
         this.resource = resource;
     }
 
+    /** Get the resource mode: route ID (0) or custom API name (1). */
     public Integer getResourceMode() {
         return resourceMode;
     }
 
+    /** Set the resource mode: route ID (0) or custom API name (1). */
     public void setResourceMode(Integer resourceMode) {
         this.resourceMode = resourceMode;
     }
 
+    /** Get the threshold type: 0 for thread count and 1 for QPS. */
     public Integer getGrade() {
         return grade;
     }
 
+    /** Set the threshold type: 0 for thread count and 1 for QPS. */
     public void setGrade(Integer grade) {
         this.grade = grade;
     }
 
+    /** Get the threshold count. */
     public Double getCount() {
         return count;
     }
 
+    /** Set the threshold count. */
     public void setCount(Double count) {
         this.count = count;
     }
 
+    /** Get the statistic interval, in the unit of intervalUnit. */
     public Long getInterval() {
         return interval;
     }
 
+    /** Set the statistic interval, in the unit of intervalUnit. */
     public void setInterval(Long interval) {
         this.interval = interval;
     }
 
+    /** Get the unit of the statistic interval. */
     public Integer getIntervalUnit() {
         return intervalUnit;
     }
 
+    /** Set the unit of the statistic interval. */
     public void setIntervalUnit(Integer intervalUnit) {
         this.intervalUnit = intervalUnit;
     }
 
+    /** Get the control behavior. */
     public Integer getControlBehavior() {
         return controlBehavior;
     }
 
+    /** Set the control behavior. */
     public void setControlBehavior(Integer controlBehavior) {
         this.controlBehavior = controlBehavior;
     }
 
+    /** Get the burst count allowed when the threshold is exceeded. */
     public Integer getBurst() {
         return burst;
     }
 
+    /** Set the burst count allowed when the threshold is exceeded. */
     public void setBurst(Integer burst) {
         this.burst = burst;
     }
 
+    /** Get the max queueing timeout in milliseconds. */
     public Integer getMaxQueueingTimeoutMs() {
         return maxQueueingTimeoutMs;
     }
 
+    /** Set the max queueing timeout in milliseconds. */
     public void setMaxQueueingTimeoutMs(Integer maxQueueingTimeoutMs) {
         this.maxQueueingTimeoutMs = maxQueueingTimeoutMs;
     }
 
+    /** Whether the given object has the same fields as this entity. */
     @Override
     public boolean equals(Object o) {
         if (this == o) { return true; }
@@ -358,11 +391,13 @@ public class GatewayFlowRuleEntity implements RuleEntity {
                 Objects.equals(paramItem, that.paramItem);
     }
 
+    /** Get the hash code from all fields of this entity. */
     @Override
     public int hashCode() {
         return Objects.hash(id, app, ip, port, gmtCreate, gmtModified, resource, resourceMode, grade, count, interval, intervalUnit, controlBehavior, burst, maxQueueingTimeoutMs, paramItem);
     }
 
+    /** Build a string with all fields of this entity. */
     @Override
     public String toString() {
         return "GatewayFlowRuleEntity{" +

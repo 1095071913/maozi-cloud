@@ -1,122 +1,147 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Sentinel 流量防护控制台模块（官方 Dashboard 源码），提供限流熔断规则的可视化管理，规则持久化至 Nacos、监控数据落地 MySQL -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- 继承 Sentinel 官方父工程，与 Dashboard 源码依赖版本保持一致 -->
     <parent>
         <groupId>com.alibaba.csp</groupId>
         <artifactId>sentinel-parent</artifactId>
         <version>1.8.8</version>
     </parent>
 
+    <!-- Sentinel 控制台模块构件名称 -->
     <artifactId>maozi-cloud-basic-sentinel</artifactId>
+    <!-- 打包为 jar，构建为可执行控制台应用 -->
     <packaging>jar</packaging>
 
     <properties>
+        <!-- 资源过滤占位符分隔符改为 @，避免与 Spring ${} 占位符冲突 -->
         <resource.delimiter>@</resource.delimiter>
+        <!-- 控制台使用的 Spring Boot 版本 -->
         <spring.boot.version>2.5.12</spring.boot.version>
+        <!-- Curator（ZooKeeper 客户端）版本，沿自官方 Dashboard 的预留配置，本模块未直接使用 -->
         <curator.version>4.0.1</curator.version>
+        <!-- MySQL 驱动版本，监控指标持久化使用 -->
         <mysql.version>8.3.0</mysql.version>
+        <!-- Nacos 客户端版本，限流规则持久化使用 -->
         <nacos.client.version>2.4.2</nacos.client.version>
     </properties>
 
     <dependencies>
+        <!-- Sentinel 核心库，提供限流熔断基础能力 -->
         <dependency>
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-core</artifactId>
         </dependency>
+        <!-- Sentinel Web Servlet 适配，拦截请求应用流控规则 -->
         <dependency>
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-web-servlet</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- 简单 HTTP 传输模块，客户端与控制台通信上报心跳与规则 -->
         <dependency>
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-transport-simple-http</artifactId>
         </dependency>
+        <!-- 热点参数限流，支持按参数维度流控 -->
         <dependency>
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-parameter-flow-control</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- 网关流控适配公共库，支持网关路由维度限流 -->
         <dependency>
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-api-gateway-adapter-common</artifactId>
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Spring Boot Web，控制台自身的 Web 容器与接口 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
             <version>${spring.boot.version}</version>
         </dependency>
 
+        <!-- Spring Boot 日志组件 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-logging</artifactId>
             <version>${spring.boot.version}</version>
         </dependency>
 
-        <!-- Metric persistence in MySQL -->
+        <!-- JDBC 支持，监控指标持久化到 MySQL -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
             <version>${spring.boot.version}</version>
         </dependency>
 
+        <!-- MySQL JDBC 驱动 -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
             <version>${mysql.version}</version>
         </dependency>
 
+        <!-- Log4j 1.x，Dashboard 沿用的旧版日志组件 -->
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
             <version>1.2.17</version>
         </dependency>
 
+        <!-- Commons Lang 2.x 通用工具库 -->
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
             <version>2.6</version>
         </dependency>
 
+        <!-- Apache HttpClient，控制台对外通信的 HTTP 客户端 -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>4.5.13</version>
         </dependency>
 
+        <!-- HttpClient 底层同步 HTTP 核心库 -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpcore</artifactId>
             <version>4.4.5</version>
         </dependency>
 
+        <!-- Apache 异步 HTTP 客户端 -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpasyncclient</artifactId>
             <version>4.1.3</version>
         </dependency>
 
+        <!-- 异步 HTTP 的 NIO 核心库 -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpcore-nio</artifactId>
             <version>4.4.6</version>
         </dependency>
 
+        <!-- Fastjson JSON 序列化库 -->
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
         </dependency>
 
-        <!-- Rules persisted to Nacos -->
+        <!-- Sentinel Nacos 数据源，限流规则持久化到 Nacos -->
         <dependency>
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-datasource-nacos</artifactId>
         </dependency>
 
+        <!-- Nacos 客户端，读写配置中心的规则数据 -->
         <dependency>
             <groupId>com.alibaba.nacos</groupId>
             <artifactId>nacos-client</artifactId>
@@ -126,9 +151,11 @@
     </dependencies>
 
     <build>
+        <!-- 打包后的文件名 -->
         <finalName>${artifactId}</finalName>
         <pluginManagement>
             <plugins>
+                <!-- 资源过滤插件，统一使用 @ 分隔符替换占位符 -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
@@ -142,23 +169,28 @@
             </plugins>
         </pluginManagement>
         <plugins>
+            <!-- Spring Boot Maven 插件，将控制台打包为可执行 JAR -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring.boot.version}</version>
                 <configuration>
+                    <!-- 在独立进程中运行应用 -->
                     <fork>true</fork>
+                    <!-- 指定控制台启动主类 -->
                     <mainClass>com.alibaba.csp.sentinel.dashboard.DashboardApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>
                         <goals>
+                            <!-- 重新打包为可执行 JAR -->
                             <goal>repackage</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
 
+            <!-- 跳过 deploy，控制台不发布到远程仓库 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
@@ -170,11 +202,13 @@
         </plugins>
 
         <resources>
+            <!-- 配置资源目录，开启 @ 占位符过滤 -->
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
             </resource>
 
+            <!-- 控制台前端页面资源，排除 node_modules 目录 -->
             <resource>
                 <directory>src/main/webapp</directory>
                 <excludes>

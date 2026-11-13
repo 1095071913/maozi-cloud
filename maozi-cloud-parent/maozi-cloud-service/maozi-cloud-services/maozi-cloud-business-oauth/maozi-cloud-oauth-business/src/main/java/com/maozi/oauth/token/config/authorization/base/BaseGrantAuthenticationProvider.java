@@ -201,7 +201,7 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
                 metadata.put(OAuth2Authorization.Token.CLAIMS_METADATA_NAME, claims);
             });
         } else {
-            // 对于 opaque token，将用户权限存入 claims metadata，以便 introspection 端点返回权限信息
+            // 对于 opaque token，将用户权限与用户附加属性存入 claims metadata，以便 introspection 端点返回
             Map<String, Object> claims = new HashMap<>();
             List<String> authorities = userAuthenticationToken.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
@@ -277,11 +277,15 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
     }
 
     /**
-     * 获取认证过的scope
+     * 校验请求的scope并确定最终授权的scope
+     * <p>
+     * 请求scope为空时默认使用客户端配置的scope，否则逐一校验请求scope
+     * 是否在客户端配置范围内，超出范围则抛出INVALID_REQUEST异常
+     * </p>
      *
-     * @param registeredClient 客户端
-     * @param requestedScopes  请求中的scope
-     * @return 认证过的scope
+     * @param registeredClient 已注册客户端，提供允许的scope范围
+     * @param requestedScopes  请求中的scope，可为null或空
+     * @return 校验通过的最终授权scope集合
      */
     private Set<String> getAuthorizedScopes(RegisteredClient registeredClient, Set<String> requestedScopes) {
         // 默认使用客户端配置的scope

@@ -1,23 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- AI 业务实现模块，基于 Spring AI Alibaba 接入通义千问，提供 AI 对话、对话记录等业务逻辑 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <!-- 继承 AI 业务聚合工程，统一管理依赖版本 -->
     <parent>
         <groupId>com.maozi</groupId>
         <artifactId>maozi-cloud-business-ai</artifactId>
         <version>${revision}</version>
     </parent>
 
+    <!-- AI 业务实现模块构件名称 -->
     <artifactId>maozi-cloud-ai-business</artifactId>
 
     <properties>
+        <!-- Spring AI 版本号 -->
         <spring-ai.version>1.0.0</spring-ai.version>
+        <!-- Spring AI Alibaba 版本号 -->
         <spring-ai-alibaba.version>1.0.0.2</spring-ai-alibaba.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <!-- 引入 Spring AI BOM，统一管理 Spring AI 相关依赖版本 -->
             <dependency>
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-bom</artifactId>
@@ -26,6 +32,7 @@
                 <scope>import</scope>
             </dependency>
 
+            <!-- 引入 Spring AI Alibaba BOM，统一管理 Alibaba 扩展依赖版本 -->
             <dependency>
                 <groupId>com.alibaba.cloud.ai</groupId>
                 <artifactId>spring-ai-alibaba-bom</artifactId>
@@ -38,6 +45,7 @@
 
     <dependencies>
 
+        <!-- 阿里 DashScope（通义千问）模型 Starter，接入大模型对话能力 -->
         <dependency>
             <groupId>com.alibaba.cloud.ai</groupId>
             <artifactId>spring-ai-alibaba-starter-dashscope</artifactId>
@@ -51,6 +59,7 @@
             </exclusions>
         </dependency>
 
+        <!-- 预留的其他模型 Starter（OpenAI / 智谱），需要时取消注释启用 -->
 <!--        <dependency>-->
 <!--            <groupId>org.springframework.ai</groupId>-->
 <!--            <artifactId>spring-ai-starter-model-openai</artifactId>-->
@@ -81,24 +90,28 @@
             <version>${maozi-cloud-service-api.version}</version>
         </dependency>
 
+        <!-- Redis 配置模块，提供对话记忆等缓存存储 -->
         <dependency>
             <groupId>com.maozi</groupId>
             <artifactId>maozi-cloud-config-redis</artifactId>
             <version>${maozi-cloud-config-redis.version}</version>
         </dependency>
 
+        <!-- AI 服务 API 模块，提供本业务对外接口与出入参定义 -->
         <dependency>
             <groupId>com.maozi</groupId>
             <artifactId>maozi-cloud-ai-api</artifactId>
             <version>${maozi-cloud-ai-api.version}</version>
         </dependency>
 
+        <!-- 系统服务 API，调用系统管理服务的接口定义 -->
         <dependency>
             <groupId>com.maozi</groupId>
             <artifactId>maozi-cloud-system-api</artifactId>
             <version>${maozi-cloud-system-api.version}</version>
         </dependency>
 
+        <!-- OAuth 服务 API，调用认证授权服务的接口定义 -->
         <dependency>
             <groupId>com.maozi</groupId>
             <artifactId>maozi-cloud-oauth-api</artifactId>

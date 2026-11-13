@@ -1,35 +1,34 @@
 spring:
   datasource:
-    # 连接池实现类，HikariCP 是 Spring Boot 2.x 起的默认连接池，主打轻量高性能
+    # 连接池实现：HikariCP（Spring Boot 默认连接池）
     type: com.zaxxer.hikari.HikariDataSource
-    # MySQL 8.x 驱动（Connector/J 8+ 类名带 cj，5.x 是 com.mysql.jdbc.Driver）
+    # MySQL 驱动（Connector/J 8.x，类名带 cj）
     driver-class-name: com.mysql.cj.jdbc.Driver
-    # JDBC 连接串，主机/库名支持占位符覆盖，不覆盖时取默认值：
-    #   主机端口 -> ${application-datasource-jdbc-url}，默认容器内基础 MySQL 服务
-    #   库名 -> ${application-datasource-db-name}，默认「应用名-环境-db」，每个服务独立库
+    # JDBC 连接串：主机端口取 ${APPLICATION_MYSQL_SERVER}，库名取 ${APPLICATION_MYSQL_SERVER_DB}
+    # 未覆盖时默认容器内基础 MySQL 服务 / 「应用名-环境-db」（每个服务独立库）
     # 连接参数：
     #   useSSL=false             内网直连关闭 SSL，避免自签证书告警
     #   serverTimezone=Asia/Shanghai  指定时区，不配可能报时区无法识别或时间偏差8小时
     #   characterEncoding=utf8   字符编码
-    #   nullCatalogMeansCurrent=true  元数据查询只查当前库；MySQL 8 驱动默认 false 会扫出所有库，影响代码生成器/Flyway 等按 catalog 查表的场景
+    #   nullCatalogMeansCurrent=true  元数据查询限定当前库（MySQL 8 驱动默认会扫出所有库）
     url: jdbc:mysql://${APPLICATION_MYSQL_SERVER:maozi-cloud-basic-mysql:3306}/${APPLICATION_MYSQL_SERVER_DB:${spring.application.name}-${application.environment}-db}?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&nullCatalogMeansCurrent=true
-    # 账号密码，生产环境通过配置中心/环境变量覆盖，这里仅本地默认值
+    # 账号密码：支持环境变量覆盖，默认 root / password
     username: ${APPLICATION_MYSQL_SERVER_USERNAME:root}
     password: ${APPLICATION_MYSQL_SERVER_PASSWORD:password}
     # Hikari 连接池参数
     hikari:
-      # 最大连接，根据业务压测调整，默认推荐10~20，不要直接50
+      # 最大连接数（按压测调整，经验值 10~20）
       maximum-pool-size: 15
-      # 获取连接等待超时时间（6s），池耗尽时最多等这么久，超时抛异常快速失败，避免请求线程被长时间挂起
+      # 获取连接超时（6s）：池耗尽时最多等待，超时快速失败
       connection-timeout: 6000
-      # 不配置minimum-idle，Hikari官方推荐，最小空闲连接等于最大连接（固定大小池，避免频繁建连）
+      # 未配置 minimum-idle：最小空闲连接默认等于最大连接（HikariCP 官方推荐的固定大小池）
       # minimum-idle: 10
-      # 空闲连接超时（5min），注意必须小于max-lifetime
+      # 空闲连接超时（5min），须小于 max-lifetime；min=max 固定池下该项实际不生效
       idle-timeout: 300000
-      # 连接最大存活时间（540s=9min），比mysql wait_timeout小至少60s，到期连接异步关闭重建，避免拿到已被服务端断开的连接
+      # 连接最大存活（540s=9min）：须比 MySQL wait_timeout 小 60s 以上，到期滚动重建
       max-lifetime: 540000
-      # 删掉 connection-test-query，Hikari用JDBC4 isValid校验
-  # Flyway 数据库版本迁移配置
+      # 不配置 connection-test-query：Hikari 用 JDBC4 isValid 校验
+  # Flyway 数据库版本迁移配置（启动时按版本号执行脚本）
   flyway:
     enabled: true                                            # 启用 Flyway
     table: system_table_flyway                               # 迁移历史记录表名
@@ -43,30 +42,30 @@ spring:
 # MyBatis-Plus 增强版 ORM 配置
 mybatis-plus:
   mapper-locations: classpath:com/maozi/*/*/mapper/*.xml   # Mapper XML 扫描路径
-  # typeEnumsPackage: com.maozi.${application-project-abbreviation}.*.enums  # 枚举包路径（按需开启）
+  # typeEnumsPackage: com.maozi.${application-project-abbreviation}.*.enums  # 旧属性（MP 3.x 已废弃，由 default-enum-type-handler 接管）
   configuration:
     map-underscore-to-camel-case: true                     # 下划线转驼峰
-    log-impl: com.maozi.db.config.MybatisPlusLog           # 自定义 SQL 日志输出（集成链路日志）
-    default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler  # 枚举类型处理器
+    log-impl: com.maozi.db.config.MybatisPlusLog           # 自定义日志实现（收集 SQL 与参数，随请求日志统一输出）
+    default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler  # 默认枚举类型处理器（覆盖默认 EnumTypeHandler）
     # log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 控制台输出 SQL（调试用）
   global-config:
-    refresh: false                                          # 关闭配置热刷新
+    refresh: false                                          # MP 2.x 旧属性（3.5.x 已移除，当前不生效）
     banner: false                                           # 关闭 MyBatis-Plus Banner
     db-config:
-      db-type: mysql                                        # 数据库类型
+      db-type: mysql                                        # 旧属性（MP 3.x 已移除，当前不生效）
       id-type: AUTO                                         # 主键策略：数据库自增
-      field-strategy: NOT_NULL                              # 字段插入/更新策略：非空才操作
-      column-like: false                                    # 关闭自动 LIKE
-      capital-mode: true                                    # 开启大写命名识别
-      logic-delete-value: 1                                 # 逻辑删除标记值
-      logic-not-delete-value: 0                             # 未删除标记值
+      field-strategy: NOT_NULL                              # 旧属性（3.x 已拆分为 insert/update/select-strategy，当前不生效）
+      column-like: false                                    # 旧属性（MP 3.x 已移除，当前不生效）
+      capital-mode: true                                    # 开启大写命名（列名驼峰转下划线后再转大写）
+      logic-delete-value: 1                                 # 逻辑已删除值
+      logic-not-delete-value: 0                             # 逻辑未删除值
 
 # MyBatis-Plus-Join 多表连接查询插件配置
 mybatis-plus-join:
   banner: false                                              # 关闭 Banner
-  table-alias: main                                          # 默认主表别名（用于排序字段前缀）
+  table-alias: main                                          # MPJ 主表别名（默认 t），项目同时用作排序字段前缀
 
-# 原生 MyBatis 配置
+# 原生 MyBatis 配置（classpath 无 mybatis-spring-boot-starter，mybatis.* 前缀当前不被读取）
 mybatis:
   configuration:
-    cache-enabled: false                                     # 关闭二级缓存（由业务层 Redis 缓存替代）
+    cache-enabled: false                                     # 关闭二级缓存（业务层由 Redis 缓存替代）

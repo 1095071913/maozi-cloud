@@ -42,66 +42,82 @@ public class MachineEntity {
     /** The port of the machine. */
     private Integer port;
 
+    /** Get the entity id. */
     public long getId() {
         return id;
     }
 
+    /** Set the entity id. */
     public void setId(long id) {
         this.id = id;
     }
 
+    /** Get the create time. */
     public Date getGmtCreate() {
         return gmtCreate;
     }
 
+    /** Set the create time. */
     public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
     }
 
+    /** Get the last modify time. */
     public Date getGmtModified() {
         return gmtModified;
     }
 
+    /** Set the last modify time. */
     public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
     }
 
+    /** Get the application name. */
     public String getApp() {
         return app;
     }
 
+    /** Set the application name. */
     public void setApp(String app) {
         this.app = app;
     }
 
+    /** Get the IP address of the machine. */
     public String getIp() {
         return ip;
     }
 
+    /** Set the IP address of the machine. */
     public void setIp(String ip) {
         this.ip = ip;
     }
 
+    /** Get the hostname of the machine. */
     public String getHostname() {
         return hostname;
     }
 
+    /** Set the hostname of the machine. */
     public void setHostname(String hostname) {
         this.hostname = hostname;
     }
 
+    /** Get the heartbeat timestamp of the machine. */
     public Date getTimestamp() {
         return timestamp;
     }
 
+    /** Set the heartbeat timestamp of the machine. */
     public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
     }
 
+    /** Get the port of the machine. */
     public Integer getPort() {
         return port;
     }
 
+    /** Set the port of the machine. */
     public void setPort(Integer port) {
         this.port = port;
     }
@@ -123,6 +139,7 @@ public class MachineEntity {
         return machineInfo;
     }
 
+    /** Build a string with all fields of this entity. */
     @Override
     public String toString() {
         return "MachineEntity{" +

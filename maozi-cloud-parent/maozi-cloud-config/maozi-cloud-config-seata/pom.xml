@@ -17,20 +17,22 @@
 
 	<dependencies>
 
+		<!-- Project Begin -->
+		<!-- 项目通用工具类库 -->
 		<dependency>
 			<groupId>com.maozi</groupId>
 			<artifactId>maozi-cloud-utils</artifactId>
 			<version>${maozi-cloud-utils.version}</version>
 		</dependency>
+		<!-- Project End -->
 
-		<!-- SpringBoot Begin -->
+		<!-- Spring Cloud Alibaba Begin -->
 		<!-- Spring Cloud Alibaba Seata，提供分布式事务 AT 模式支持 -->
 		<dependency>
 			<groupId>com.alibaba.cloud</groupId>
 			<artifactId>spring-cloud-starter-alibaba-seata</artifactId>
 		</dependency>
-		<!-- SpringBoot End -->
-		<!-- Project End -->
+		<!-- Spring Cloud Alibaba End -->
 
 
 	</dependencies>

@@ -53,7 +53,7 @@ public class RegionServiceImpl extends BaseServiceImpl<RegionMapper, RegionDo> i
 		wrapper.eq(RegionDo::getParentId,parentId);
 
 		// 执行查询并将结果转换为下拉列表格式返回
-		return list(wrapper,DropDownResult::new);
+		return super.list(wrapper,DropDownResult::new);
 
 	}
 

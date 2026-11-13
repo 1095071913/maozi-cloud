@@ -280,7 +280,8 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
      * 将 JSON 反序列化为消息对象
      * <p>
      * 根据消息类型构建对应的 Spring AI 消息：
-     * SYSTEM / USER / ASSISTANT / TOOL，其中 USER 与 ASSISTANT 消息会还原媒体与元数据等信息。
+     * SYSTEM / USER / ASSISTANT / TOOL，其中 USER 与 ASSISTANT 消息会还原媒体与元数据，
+     * TOOL 消息还原元数据，SYSTEM 消息仅还原文本。
      * </p>
      *
      * @param json 消息 JSON

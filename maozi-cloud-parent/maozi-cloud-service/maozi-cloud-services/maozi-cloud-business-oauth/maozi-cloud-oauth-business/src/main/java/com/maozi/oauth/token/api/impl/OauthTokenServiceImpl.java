@@ -83,6 +83,18 @@ public class OauthTokenServiceImpl implements OauthTokenService {
 
     }
 
+    /**
+     * 构建令牌内省响应的声明集合
+     * <p>
+     * 填充 active、sub、client_id、token_type 基本声明后，合并访问令牌原有
+     * claims 并移除 iss（issuer）声明
+     * </p>
+     *
+     * @param authorization 授权记录，提供 sub（principalName）声明，不可为空
+     * @param authorizedClient 令牌对应的已注册客户端，提供 client_id 声明，不可为空
+     * @param accessToken 授权记录中有效的访问令牌，提供 token_type 与原有 claims
+     * @return 内省响应声明集合，始终非空
+     */
     @Nonnull
     private static Map<String, Object> getClaims(OAuth2Authorization authorization,
             RegisteredClient authorizedClient, OAuth2Authorization.Token<OAuth2AccessToken> accessToken) {

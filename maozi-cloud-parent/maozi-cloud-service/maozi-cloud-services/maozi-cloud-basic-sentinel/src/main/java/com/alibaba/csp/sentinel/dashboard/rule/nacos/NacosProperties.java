@@ -51,18 +51,22 @@ public class NacosProperties {
     @Value("${nacos.group:SENTINEL_GROUP}")
     private String group;
 
+    /** Returns the Nacos server address. */
     public String getServerAddr() {
         return serverAddr;
     }
 
+    /** Returns the Nacos namespace, empty string for the default namespace. */
     public String getNamespace() {
         return namespace;
     }
 
+    /** Returns the Nacos username, empty when auth is disabled. */
     public String getUsername() {
         return username;
     }
 
+    /** Returns the Nacos password, empty when auth is disabled. */
     public String getPassword() {
         return password;
     }

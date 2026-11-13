@@ -36,13 +36,11 @@ public class SentinelConfigInitializer implements ConfigInitializer {
     private static final String HEARTBEAT_API_PATH_VALUE = "/sentinel/registry/machine";
 
     /**
-     * 导入 Sentinel 共享配置文件，设置心跳上报路径，并屏蔽 Sentinel 初始化日志输出。
+     * 设置心跳上报路径，导入 Sentinel 共享配置文件，并屏蔽 Sentinel 初始化日志输出。
      * <p>
-     * 先将 {@code cloud-sentinel.yml} 以 optional 前缀合并到
-     * {@code spring.config.import} 导入列表；再设置 Sentinel 客户端
-     * 心跳上报接口路径；最后将 Sentinel 初始化日志特征注册到
-     * {@code BaseApplication} 的统一过滤列表，由其启动时安装的
-     * 标准输出包装器丢弃对应输出。
+     * 依次写入心跳上报接口路径，将 {@code cloud-sentinel.yml} 以 optional
+     * 前插方式合并到 {@code spring.config.import} 导入列表，并将 Sentinel
+     * 初始化日志特征注册到 {@code BaseApplication} 的统一过滤列表。
      * </p>
      *
      * @param properties 系统属性容器

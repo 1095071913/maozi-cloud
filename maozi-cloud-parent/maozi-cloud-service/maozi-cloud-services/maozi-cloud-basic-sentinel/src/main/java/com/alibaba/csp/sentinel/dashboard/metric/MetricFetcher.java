@@ -76,25 +76,25 @@ public class MetricFetcher {
     private static final long MAX_LAST_FETCH_INTERVAL_MS = 1000 * 15;
     /** Length in seconds of each fetch time window. */
     private static final long FETCH_INTERVAL_SECOND = 6;
-    /** 拉取 HTTP 请求的连接超时时间（毫秒） */
+    /** Connect timeout in milliseconds for the fetch HTTP requests. */
     private static final int HTTP_CONNECT_TIMEOUT_MS = 3000;
-    /** 拉取 HTTP 请求的读超时时间（毫秒） */
+    /** Socket read timeout in milliseconds for the fetch HTTP requests. */
     private static final int HTTP_SO_TIMEOUT_MS = 3000;
-    /** 异步 HTTP 客户端的最大总连接数 */
+    /** Max total connections of the async HTTP client. */
     private static final int MAX_CONN_TOTAL = 4000;
-    /** 异步 HTTP 客户端每个路由的最大连接数 */
+    /** Max connections per route of the async HTTP client. */
     private static final int MAX_CONN_PER_ROUTE = 1000;
-    /** 定时拉取任务的初始延迟（秒） */
+    /** Initial delay in seconds of the scheduled fetch task. */
     private static final long FETCH_INITIAL_DELAY_SECONDS = 10;
-    /** 指标聚合 Map 的初始容量 */
+    /** Initial capacity of the metric aggregation map. */
     private static final int METRIC_MAP_INITIAL_CAPACITY = 16;
-    /** CPU 核心数乘数，用于计算拉取线程数与 IO 线程数 */
+    /** CPU core multiplier used to size the fetch and IO thread pools. */
     private static final int CPU_CORE_MULTIPLIER = 2;
-    /** 一秒对应的毫秒数 */
+    /** Milliseconds in one second. */
     private static final long ONE_SECOND_MS = 1000L;
-    /** 拉取窗口距当前时间小于该秒数时跳过本轮，留待下次拉取 */
+    /** Skip the round when the fetch window ends within this many seconds of now. */
     private static final int NEAR_SKIP_WINDOW_SECONDS = 2;
-    /** 单次拉取等待 HTTP 客户端返回的最长秒数 */
+    /** Max seconds a single fetch waits for the HTTP client. */
     private static final int MAX_WAIT_SECONDS = 5;
     /** Charset used to decode the response body when it declares none. */
     private static final Charset DEFAULT_CHARSET = Charset.forName(SentinelConfig.charset());
@@ -355,7 +355,7 @@ public class MetricFetcher {
                 charset = contentType.getCharset();
             }
         } catch (Exception ignore) {
-            // Content-Type 解析失败时忽略，后续回退到 DEFAULT_CHARSET 解码
+            // Ignore Content-Type parse failures and fall back to DEFAULT_CHARSET below.
         }
         String body = EntityUtils.toString(response.getEntity(), charset != null ? charset : DEFAULT_CHARSET);
         if (StringUtil.isEmpty(body) || body.startsWith(NO_METRICS)) {
@@ -425,9 +425,9 @@ public class MetricFetcher {
 
     /** Resources excluded from aggregation: total inbound requests, system load and CPU usage. */
     private static final Set<String> RES_EXCLUSION_SET = new HashSet<String>() {{
-       add(Constants.TOTAL_IN_RESOURCE_NAME);
-       add(Constants.SYSTEM_LOAD_RESOURCE_NAME);
-       add(Constants.CPU_USAGE_RESOURCE_NAME);
+       super.add(Constants.TOTAL_IN_RESOURCE_NAME);
+       super.add(Constants.SYSTEM_LOAD_RESOURCE_NAME);
+       super.add(Constants.CPU_USAGE_RESOURCE_NAME);
     }};
 
 }

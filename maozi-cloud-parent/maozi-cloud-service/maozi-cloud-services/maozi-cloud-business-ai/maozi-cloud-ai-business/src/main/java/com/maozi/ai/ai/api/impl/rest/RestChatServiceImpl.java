@@ -53,7 +53,7 @@ public class RestChatServiceImpl extends ChatServiceImpl implements RestChatServ
      */
     @Override
     public Flux<AbstractBaseResult<ChatResult>> restChat(ChatParam param) {
-        return chat(param);
+        return super.chat(param);
     }
 
     /**
@@ -71,7 +71,7 @@ public class RestChatServiceImpl extends ChatServiceImpl implements RestChatServ
     @Override
     @SneakyThrows
     public AbstractBaseResult<ChatGenerateImageResult> restGenerateImage(ChatGenerateImageParam param) {
-        return ResultUtil.success(generateImage(param));
+        return ResultUtil.success(super.generateImage(param));
     }
 
     /**
@@ -86,7 +86,7 @@ public class RestChatServiceImpl extends ChatServiceImpl implements RestChatServ
      */
     @Override
     public AbstractBaseResult<ChatListResult> restList(String conversationId) {
-        return ResultUtil.success(list(conversationId));
+        return ResultUtil.success(super.list(conversationId));
     }
 
 
@@ -103,7 +103,7 @@ public class RestChatServiceImpl extends ChatServiceImpl implements RestChatServ
      */
     @Override
     public AbstractBaseResult<Void> restStop(String conversationId) {
-        stop(conversationId);
+        super.stop(conversationId);
         return ResultUtil.success();
     }
 
@@ -119,7 +119,7 @@ public class RestChatServiceImpl extends ChatServiceImpl implements RestChatServ
      */
     @Override
     public AbstractBaseResult<List<ChatItemResult>> restGetAfterMessages(String conversationId, Long createTime) {
-        return ResultUtil.success(getAfterMessages(conversationId, createTime));
+        return ResultUtil.success(super.getAfterMessages(conversationId, createTime));
     }
 
     /**

@@ -35,7 +35,7 @@ public class RpcClientServiceImpl extends BaseServiceResultImpl<ClientServiceImp
     @Override
     public AbstractBaseResult<ClientDTO> rpcAiSave(ClientSaveUpdateParam param) {
         Long clientId = service.saveUpdate(null, param);
-        return getByIdResult(clientId);
+        return super.getByIdResult(clientId);
     }
 
 }

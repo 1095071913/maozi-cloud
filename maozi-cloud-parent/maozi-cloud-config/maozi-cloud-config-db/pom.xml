@@ -19,7 +19,7 @@
 	<dependencies>
 
 		<!-- Project Begin -->
-		<!-- 基础枚举定义，如日志类型枚举等 -->
+		<!-- 基础枚举定义，提供 Status、Deleted 等通用状态枚举 -->
 		<dependency>
 			<groupId>com.maozi</groupId>
 			<artifactId>maozi-cloud-domain-enum</artifactId>

@@ -53,12 +53,14 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
      * SQL 日志收集。
      * </p>
      *
-     * @param url 请求 URL
-     * @param method HTTP 方法
-     * @param requestCallback 请求回调
-     * @param responseExtractor 响应提取器
-     * @return 响应数据
-     * @throws RestClientException 请求执行异常原样上抛，
+     * @param url 请求 URL，不能为空
+     * @param uriTemplate URI 模板（本实现未使用，仅为匹配父类方法签名）
+     * @param method HTTP 方法，不能为空
+     * @param requestCallback 请求回调，用于写入请求头和请求体，可为空
+     * @param responseExtractor 响应提取器，用于反序列化响应体，可为空
+     * @param <T> 响应数据类型
+     * @return 响应提取器解析出的数据，未提供响应提取器时返回 null
+     * @throws RestClientException RestClientException 原样上抛，
      *     其他异常记录日志后包装为 RestClientException 抛出
      */
     @Nullable
@@ -86,7 +88,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
             Assert.notNull(method, "HttpMethod is required");
 
             // 创建 HTTP 请求对象
-            ClientHttpRequest request = createRequest(url, method);
+            ClientHttpRequest request = super.createRequest(url, method);
 
             // 记录请求类型、URI 和 HTTP 方法到日志
             logs.put(LogTag.TYPE, LogCommonType.REST_TEMPLATE.getDesc());
@@ -112,7 +114,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
             response = request.execute();
 
             // 处理响应状态码，错误状态码（4xx/5xx）时抛出异常
-            handleResponse(url, method, response);
+            super.handleResponse(url, method, response);
 
             // 使用响应提取器将响应体反序列化为目标类型
             T data = (responseExtractor != null ? responseExtractor.extractData(response) : null);
@@ -190,7 +192,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
      * 将所有数据合并为字节数组返回。用于从请求体流中提取参数内容。
      * </p>
      *
-     * @param inStream 输入流
+     * @param inStream 输入流，读取完成后会被关闭
      * @return 包含流中全部数据的字节数组
      * @throws Exception 流读取异常
      */

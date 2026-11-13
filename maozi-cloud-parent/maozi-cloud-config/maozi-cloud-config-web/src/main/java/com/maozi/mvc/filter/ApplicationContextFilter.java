@@ -29,17 +29,8 @@ import java.util.UUID;
  * {@code OpaqueTokenIntrospector} 以及 {@code /oauth/**} 端点）之前执行。
  * </p>
  * <p>
- * 负责在请求进入时初始化链路上下文：
- * <ul>
- *   <li>从请求头提取版本号（空时取默认版本）写入 {@link VersionContext#CONTEXT}，
- *       使版本号在 {@code OpaqueTokenIntrospector} 内省令牌和 {@code /oauth/**} 端点处理时即可读取，
- *       用于灰度路由等场景</li>
- *   <li>从请求头提取测试流量标记（"true" 表示测试流量）写入 {@link TestFlowContext#CONTEXT}，
- *       用于测试流量识别等场景</li>
- *   <li>上下文中尚无当前用户信息时，尝试从请求头解析并写入（供网关/上游透传用户信息的场景）</li>
- *   <li>当前链路尚未产生有效 traceId 时，从请求头读取（为空则生成随机 UUID），
- *       写入上下文并回写到响应头</li>
- * </ul>
+ * 请求进入时从请求头初始化版本号、测试流量标记、当前用户信息和 traceId 上下文
+ * （各字段的提取条件见 {@link #doFilterInternal} 内注释），
  * 请求完成后自动清理上下文，防止线程池复用导致的数据泄漏。
  * </p>
  *

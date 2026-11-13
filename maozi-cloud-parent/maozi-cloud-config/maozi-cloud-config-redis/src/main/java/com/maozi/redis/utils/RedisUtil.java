@@ -26,7 +26,7 @@ public class RedisUtil {
     private static final StringRedisTemplate REDIS_CLIENT;
 
     // 类加载时通过 SpringUtil 获取 StringRedisTemplate Bean，并基于服务名拼接全局键前缀
-    // 注意：本类的首次访问必须晚于 Spring 容器就绪，否则 SpringUtil.getBean 会抛出 NPE
+    // 注意：本类的首次访问必须晚于 Spring 容器就绪，否则 SpringUtil.getBean 会因上下文未注入而抛出异常
     static {
 
         REDIS_CLIENT = SpringUtil.getBean(StringRedisTemplate.class);

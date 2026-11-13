@@ -60,7 +60,7 @@ public class OAuth2SettingsTypeHandler extends JacksonTypeHandler {
     @Override
     public Object parse(String json) {
         TypeFactory typeFactory = OAUTH2_OBJECT_MAPPER.getTypeFactory();
-        JavaType javaType = typeFactory.constructType(this.getFieldType());
+        JavaType javaType = typeFactory.constructType(super.getFieldType());
         try {
             return OAUTH2_OBJECT_MAPPER.readValue(json, javaType);
         } catch (JacksonException e) {

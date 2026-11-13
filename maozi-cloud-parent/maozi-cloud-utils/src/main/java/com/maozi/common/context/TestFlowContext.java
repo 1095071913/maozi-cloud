@@ -20,6 +20,7 @@ public class TestFlowContext extends AbstractRequestContextHolder<Boolean> {
     /** 单例实例 */
     public static final TestFlowContext CONTEXT = new TestFlowContext();
 
+    /** 私有构造器，防止外部实例化 */
     private TestFlowContext() {}
 
     /**

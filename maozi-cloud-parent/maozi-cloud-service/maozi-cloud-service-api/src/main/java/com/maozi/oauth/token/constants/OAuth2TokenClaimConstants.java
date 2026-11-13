@@ -33,9 +33,7 @@ public final class OAuth2TokenClaimConstants {
 	/** 令牌签发者 */
 	public static final String ISS = "iss";
 
-	/**
-	 * 常量类私有化构造，禁止实例化
-	 */
+	/** 常量类私有构造，禁止实例化 */
 	private OAuth2TokenClaimConstants() {
 	}
 

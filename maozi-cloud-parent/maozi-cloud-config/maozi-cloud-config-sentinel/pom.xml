@@ -18,7 +18,7 @@
 
 	<dependencies>
 
-		<!-- Spring 上下文，用于获取 Bean 完成 Sentinel 规则加载 -->
+		<!-- Spring 上下文，提供 ApplicationContextInitializer 启动初始化与组件注册支持 -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
@@ -30,32 +30,34 @@
 			<artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
 		</dependency>
 
-		<!-- Sentinel 数据源 Nacos 扩展，将限流规则持久化到 Nacos 配置中心 -->
+		<!-- Sentinel Nacos 数据源，从 Nacos 配置中心读取限流熔断规则，实现规则持久化 -->
 		<dependency>
 			<groupId>com.alibaba.csp</groupId>
 			<artifactId>sentinel-datasource-nacos</artifactId>
 		</dependency>
 
+		<!-- Sentinel Apache HttpClient 适配器，为 HttpClient 出站调用提供限流熔断支持 -->
 		<dependency>
 			<groupId>com.alibaba.csp</groupId>
 			<artifactId>sentinel-apache-httpclient-adapter</artifactId>
 			<version>${sentinel-adapter.version}</version>
 		</dependency>
 
+		<!-- Sentinel OkHttp 适配器，为 OkHttp 出站调用（如 Feign）提供限流熔断支持 -->
 		<dependency>
 			<groupId>com.alibaba.csp</groupId>
 			<artifactId>sentinel-okhttp-adapter</artifactId>
 			<version>${sentinel-adapter.version}</version>
 		</dependency>
 
-		<!-- Sentinel Apache Dubbo 适配器，为 Dubbo RPC 调用提供限流支持 -->
+		<!-- Sentinel Apache Dubbo3 适配器，为 Dubbo RPC 调用提供限流熔断支持 -->
 		<dependency>
 			<groupId>com.alibaba.csp</groupId>
 			<artifactId>sentinel-apache-dubbo3-adapter</artifactId>
 			<version>${sentinel-adapter.version}</version>
 		</dependency>
 
-		<!-- 服务启动运行基础模块，提供 BaseApplication 启动基类（banner 统一过滤特征注册） -->
+		<!-- 服务启动运行基础模块，提供 BaseApplication（注册 Sentinel 初始化日志过滤特征） -->
 		<dependency>
 			<groupId>com.maozi</groupId>
 			<artifactId>maozi-cloud-service-run</artifactId>

@@ -31,6 +31,9 @@ public class EnumConfig {
     /** 全局枚举映射表，键为枚举类名（首字母小写），值为枚举常量列表（仅类内部可写，外部通过 {@link #getEnums()} 只读视图访问） */
     private static final Map<String, List<BaseEnum>> ENUMS = CollectionUtil.newHashMap();
 
+    /**
+     * 启动时初始化全局枚举映射表：先加载基础枚举包，再按当前服务加载业务枚举包
+     */
     @PostConstruct
     public void init() {
 

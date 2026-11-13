@@ -46,7 +46,7 @@ public class SecuritySecureConfig {
 	private final SecurityProperties security;
 
 	/**
-	 * 构造方法，注入 Admin Server 属性与安全属性配置。
+	 * 构造方法，注入 Admin Server 属性与安全属性配置
 	 *
 	 * @param adminServer Spring Boot Admin 服务端属性（提供监控台路径前缀）
 	 * @param security    Spring Security 安全属性（含监控台登录用户名密码）
@@ -57,9 +57,9 @@ public class SecuritySecureConfig {
 	}
 
 	/**
-	 * 安全过滤链：配置认证授权、表单登录、CSRF、Remember-Me 等。
+	 * 安全过滤链：配置认证授权、表单登录、CSRF、Remember-Me 等
 	 *
-	 * @param http HttpSecurity对象，用于构建监控台的安全过滤器链
+	 * @param http HttpSecurity 对象，用于构建监控台的安全过滤器链
 	 * @return 配置完成的监控台安全过滤器链
 	 * @throws Exception 配置过程中可能抛出的异常
 	 */
@@ -134,7 +134,7 @@ public class SecuritySecureConfig {
 	}
 
 	/**
-	 * 内存用户详情服务：为 Remember-Me 及表单登录提供用户认证信息。
+	 * 内存用户详情服务：为 Remember-Me 及表单登录提供用户认证信息
 	 * <p>
 	 * 密码使用 {noop} 前缀，表示明文存储（不经过 PasswordEncoder 加密），
 	 * 由 Spring Security 的 DelegatingPasswordEncoder 识别。

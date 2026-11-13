@@ -1,22 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- AI 服务 API 接口模块，定义 AI 对话等对外接口与出入参模型 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <!-- 继承 AI 业务聚合工程，统一管理依赖版本 -->
     <parent>
         <groupId>com.maozi</groupId>
         <artifactId>maozi-cloud-business-ai</artifactId>
         <version>${revision}</version>
     </parent>
 
+    <!-- AI 服务 API 模块构件名称 -->
     <artifactId>maozi-cloud-ai-api</artifactId>
 
     <properties>
+        <!-- Spring AI 版本号 -->
         <spring-ai.version>1.0.0</spring-ai.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <!-- 引入 Spring AI BOM，统一管理 Spring AI 相关依赖版本 -->
             <dependency>
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-bom</artifactId>
@@ -57,6 +62,7 @@
             <version>${maozi-cloud-service-api.version}</version>
         </dependency>
 
+        <!-- Reactor 响应式流核心库，支撑 AI 对话流式输出接口 -->
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-core</artifactId>

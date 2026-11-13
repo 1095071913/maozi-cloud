@@ -62,7 +62,7 @@ public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper, ConfigDo> i
 		wrapper.select(ConfigDo::getId, ConfigDo::getName, ConfigDo::getAlias, ConfigDo::getValue);
 		wrapper.eq(ConfigDo::getName, name);
 
-		ConfigDo domain = getOne(wrapper);
+		ConfigDo domain = super.getOne(wrapper);
 
 		// 配置不存在时返回 null
 		if(ObjectUtil.isNullEmpty(domain)){
@@ -101,7 +101,7 @@ public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper, ConfigDo> i
 		// 按排序值升序排列，排序值相同时按创建时间升序排列
 		wrapper.orderByAsc(ConfigDo::getSort, ConfigDo::getCreateTime);
 
-		return list(wrapper, ConfigDropDownResult::new);
+		return super.list(wrapper, ConfigDropDownResult::new);
 
 	}
 
@@ -128,11 +128,11 @@ public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper, ConfigDo> i
 				wrapper.ne(ConfigDo::getId, id);
 			}
 
-			checkNotHas(wrapper);
+			super.checkNotHas(wrapper);
 
 		}
 
-		return saveUpdate(id, param);
+		return super.saveUpdate(id, param);
 
 	}
 

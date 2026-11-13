@@ -25,7 +25,7 @@
 			<version>${maozi-cloud-utils.version}</version>
 		</dependency>
 
-		<!-- 服务启动运行基础模块，提供 BaseApplication 启动基类（banner 统一过滤特征注册） -->
+		<!-- 服务启动运行基础模块，提供 BaseApplication（注册 SnailJob 启动 banner 过滤特征） -->
 		<dependency>
 			<groupId>com.maozi</groupId>
 			<artifactId>maozi-cloud-service-run</artifactId>
@@ -59,7 +59,7 @@
 			<artifactId>spring-boot-starter-aop</artifactId>
 		</dependency>
 
-		<!-- Micrometer Tracing OTel 桥接，基于 OpenTelemetry 实现分布式链路追踪数据上报 -->
+		<!-- Micrometer Tracing OTel 桥接，引入 OpenTelemetry API 用于读取当前链路 traceId -->
 		<dependency>
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-tracing-bridge-otel</artifactId>

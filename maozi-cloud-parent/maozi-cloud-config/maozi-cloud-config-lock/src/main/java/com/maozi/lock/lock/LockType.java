@@ -88,7 +88,7 @@ public enum LockType implements BaseEnum {
     }
 
     /**
-     * 编程式加锁并执行回调（默认超时策略：持续获取）
+     * 编程式加锁并执行回调（默认等待与持有时间各 60 秒，超时策略：持续获取）
      *
      * @param key 锁键名
      * @param supplier 业务逻辑回调
@@ -173,7 +173,7 @@ public enum LockType implements BaseEnum {
     }
 
     /**
-     * 获取锁（使用默认超时参数，持续获取策略）
+     * 获取锁（默认等待与持有时间各 60 秒，持续获取策略）
      *
      * @param key 锁键名
      */

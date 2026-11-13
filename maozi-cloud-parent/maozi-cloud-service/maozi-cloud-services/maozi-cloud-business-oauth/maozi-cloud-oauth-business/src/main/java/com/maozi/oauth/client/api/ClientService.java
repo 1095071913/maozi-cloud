@@ -8,7 +8,7 @@ import java.util.Map;
  * <p>
  * 定义客户端信息的查询方法，包括根据主键获取客户端ID
  * 以及批量获取客户端ID映射关系，由 ClientServiceImpl 提供实现，
- * 并随其子类（RPC/REST 服务实现）一并承载。
+ * 并注入到 RPC/REST 服务实现中使用。
  * </p>
  *
  * @author maozi

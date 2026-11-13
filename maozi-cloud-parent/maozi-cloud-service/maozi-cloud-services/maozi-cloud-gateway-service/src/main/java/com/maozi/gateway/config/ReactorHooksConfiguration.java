@@ -9,16 +9,13 @@ import reactor.netty.channel.AbortedException;
 /**
  * Reactor 全局丢弃异常钩子配置
  * <p>
- * 客户端在网关响应发送前断开连接（请求取消、客户端超时、浏览器中断等）时，
- * Reactor Netty 会抛出 {@link AbortedException}（Connection has been closed
- * BEFORE send operation）。此时响应链路已被取消，异常无订阅者接收，最终进入
- * {@code Operators.onErrorDropped} 默认钩子，以 ERROR 级别输出
- * "Operator called default onErrorDropped" 日志。该异常发生在
- * {@code ErrorWebExceptionHandler} 之后，GatewayExceptionHandler 无法拦截。
- * <p>
- * 本配置通过 {@link Hooks#onErrorDropped} 注册自定义钩子：
- * - 客户端断连类异常（{@link AbortedException}）：视为正常现象，静默丢弃，不记录日志；
- * - 其他丢弃异常：保持 ERROR 级别记录，避免遗漏真实错误。
+ * 客户端在网关响应发送前断开连接时，Reactor Netty 抛出的 {@link AbortedException}
+ * 因响应链路已取消而无订阅者接收，最终进入默认 onErrorDropped 钩子并以 ERROR
+ * 级别输出日志；该异常发生在 {@code ErrorWebExceptionHandler} 之后，
+ * GatewayExceptionHandler 无法拦截。本配置通过 {@link Hooks#onErrorDropped}
+ * 注册自定义钩子：客户端断连类异常视为正常现象静默丢弃，其他丢弃异常保持
+ * ERROR 级别记录，避免遗漏真实错误
+ * </p>
  *
  * @author maozi
  * @date 2026/11/08

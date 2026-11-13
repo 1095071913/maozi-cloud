@@ -12,7 +12,7 @@ import com.maozi.system.user.dto.SystemUser;
  * 用户信息RPC服务实现类
  * <p>
  * 提供用户信息的Dubbo RPC远程调用接口实现，用于跨服务查询用户基本信息。
- * 继承自 UserServiceImpl，复用用户基础业务逻辑。
+ * 内部持有 UserServiceImpl 作为业务服务，复用用户基础业务逻辑。
  * </p>
  *
  * @author maozi
@@ -24,7 +24,7 @@ public class RpcUserInfoServiceImpl extends BaseServiceResultImpl<UserServiceImp
 	/**
 	 * 根据用户 ID 查询系统用户信息
 	 * <p>
-	 * 携带关联数据映射（Relation）转换为 {@link SystemUser}，查询不到时抛出业务异常。
+	 * 按 ID 查询用户并转换为 {@link SystemUser}，用户不存在时抛出业务异常。
 	 * </p>
 	 *
 	 * @param id 用户 ID

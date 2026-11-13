@@ -84,8 +84,8 @@ public final class TokenRevocationAuthenticationProvider implements Authenticati
 	 * 支持解析的令牌类型包括：access_token、refresh_token、code、state、user_code、device_code、id_token。
 	 * </p>
 	 *
-	 * @param tokenTypeHint 令牌类型提示字符串
-	 * @return 对应的OAuth2TokenType对象，如果无法识别则返回null
+	 * @param tokenTypeHint 令牌类型提示字符串，可为null
+	 * @return 对应的OAuth2TokenType对象，提示为空或无法识别时返回null
 	 */
 	@Nullable
 	private OAuth2TokenType resolveTokenType(@Nullable String tokenTypeHint) {

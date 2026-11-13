@@ -87,6 +87,16 @@ public interface BaseServiceResult<D> {
      */
     AbstractBaseResult<Void> saveUpdateBatchResult(List<SaveUpdateBatch> params);
 
+    /**
+     * 更新记录状态
+     * <p>
+     * 目标状态为禁用（DISABLE）时会先校验记录的绑定关系，随后仅更新状态字段。
+     * </p>
+     *
+     * @param id 主键 ID
+     * @param param 携带目标状态的请求参数，data 为空时抛出参数错误
+     * @return 操作结果
+     */
     AbstractBaseResult<Void> updateStatusResult(Long id, RequestParam<Status> param);
 
     /**
@@ -124,7 +134,7 @@ public interface BaseServiceResult<D> {
     /**
      * 根据 ID 查询可用的单条记录
      *
-     * @param id 主键 ID`
+     * @param id 主键 ID
      * @param columns 查询字段列表
      * @return 查询结果
      */
@@ -146,6 +156,11 @@ public interface BaseServiceResult<D> {
      */
     AbstractBaseResult<List<DropDownResult>> dropDownListResult(Collection<Long> ids);
 
+    /**
+     * 获取全部启用状态记录的下拉选择项
+     *
+     * @return 下拉选择列表
+     */
     AbstractBaseResult<List<DropDownResult>> dropDownListResult();
 
 }

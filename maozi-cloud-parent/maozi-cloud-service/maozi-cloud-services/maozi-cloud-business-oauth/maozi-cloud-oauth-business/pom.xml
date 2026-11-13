@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- OAuth 认证服务实现模块，包含认证授权业务逻辑实现及可执行应用入口，基于 Spring Authorization Server 提供统一认证能力 -->
+<!-- OAuth 认证服务实现模块，基于 Spring Authorization Server 提供统一认证授权能力 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -42,6 +42,7 @@
             <version>${maozi-cloud-service-api.version}</version>
         </dependency>
 
+        <!-- Redis 配置模块，用于存储令牌等 OAuth2 授权信息 -->
         <dependency>
             <groupId>com.maozi</groupId>
             <artifactId>maozi-cloud-config-redis</artifactId>

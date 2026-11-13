@@ -18,7 +18,7 @@
 package com.maozi;
 
 /**
- * 监控服务启动类。
+ * 监控服务启动类
  * <p>
  * 继承 BaseApplication 以复用公共的应用启动逻辑（如 Nacos 配置加载、日志初始化等），
  * 作为 Spring Boot Admin Server 的入口点，提供微服务监控仪表盘功能，
@@ -31,7 +31,7 @@ package com.maozi;
 public class Application extends BaseApplication {
 
     /**
-     * 应用程序主入口方法。
+     * 应用程序主入口方法
      *
      * @param args 命令行启动参数
      */

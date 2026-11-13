@@ -12,7 +12,8 @@ import com.maozi.system.config.result.ConfigDropDownResult;
 /**
  * 全局配置 RPC 服务实现类
  * <p>
- * 继承自 ConfigServiceImpl，实现 RpcConfigService 接口，
+ * 继承 BaseServiceResultImpl 并实现 RpcConfigService 接口，
+ * 委托注入的 ConfigServiceImpl（service）完成业务处理，
  * 基于 Apache Dubbo 协议提供远程过程调用（RPC）服务，
  * 供其他微服务通过 RPC 方式获取系统全局配置。
  * </p>

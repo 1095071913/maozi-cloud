@@ -15,6 +15,7 @@ public class SqlLogContext extends AbstractRequestContextHolder<StringBuilder> {
     /** 单例实例 */
     public static final SqlLogContext CONTEXT = new SqlLogContext();
 
+    /** 私有构造器，防止外部实例化 */
     private SqlLogContext() {}
 
 }

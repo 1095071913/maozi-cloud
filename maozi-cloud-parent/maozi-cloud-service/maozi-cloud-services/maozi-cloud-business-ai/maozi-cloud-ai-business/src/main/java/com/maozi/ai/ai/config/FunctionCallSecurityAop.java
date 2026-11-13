@@ -37,17 +37,10 @@ import java.util.stream.Collectors;
  * <p>
  * 背景：AI 流式对话（SSE）中工具方法在 Reactor 线程上执行，SecurityContext
  * 不会随线程传递，导致原生 {@code @PreAuthorize} 方法级拦截器因获取不到认证信息而失败。
- * 本切面先于原生拦截器（Order 小于 {@link AuthorizationInterceptorsOrder#PRE_AUTHORIZE}）执行：
- * <ul>
- *   <li>基于链路上下文（TransmittableThreadLocal，可跨线程池传递）获取当前登录用户，
- *       直接从用户信息中取权限标识列表构建认证信息，不发起用户服务 RPC 查询</li>
- *   <li>无论当前线程是否已有认证信息，均将构建的认证信息临时写入 SecurityContext 后放行，
- *       保证流式线程与普通请求线程行为一致</li>
- *   <li>本切面不自行求值权限表达式，实际校验由内层原生 {@code @PreAuthorize} 拦截器完成
- *       （支持 hasAuthority、hasAnyAuthority、hasRole 等标准写法），使其在流式线程上也能正常工作，
- *       校验不通过抛出权限不足异常</li>
- *   <li>执行完毕清空 SecurityContext，避免认证信息残留到线程池线程</li>
- * </ul>
+ * 本切面先于原生拦截器（Order 小于 {@link AuthorizationInterceptorsOrder#PRE_AUTHORIZE}）执行，
+ * 无论当前线程是否已有认证信息均覆盖写入构建的认证信息（基于 TransmittableThreadLocal
+ * 链路上下文获取当前登录用户，不发起用户服务 RPC 查询），执行完毕清空 SecurityContext，
+ * 避免认证信息残留到线程池线程。
  * </p>
  *
  * @author pengjinlong
@@ -72,7 +65,7 @@ public class FunctionCallSecurityAop {
         // 获取目标方法
         Method method = ((MethodSignature) joinPoint.getSignature()).getMethod();
 
-        // 获取方法上的 @PreAuthorize 注解（AnnotationUtils 支持代理对象与注解合并查找），未标注则无需校验直接执行
+        // 获取方法上的 @PreAuthorize 注解（AnnotationUtils 会沿父类、接口方法及元注解查找），未标注则无需校验直接执行
         PreAuthorize preAuthorize = AnnotationUtils.findAnnotation(method, PreAuthorize.class);
         if (preAuthorize == null) {
             return joinPoint.proceed();
@@ -103,7 +96,7 @@ public class FunctionCallSecurityAop {
      */
     private Authentication buildAuthentication() {
 
-        // 获取链路上下文中的当前登录用户，未登录时按认证失败处理（收紧校验，不默认放行）
+        // 获取链路上下文中的当前登录用户，未登录时抛出权限不足异常（收紧校验，不默认放行）
         CurrentUserInfo currentUserInfo = CurrentUserInfoContext.CONTEXT.get();
         if (ObjectUtil.isNullEmpty(currentUserInfo)) {
             throw new BusinessResultException(SystemErrorCode.PERMISSION_ERROR);

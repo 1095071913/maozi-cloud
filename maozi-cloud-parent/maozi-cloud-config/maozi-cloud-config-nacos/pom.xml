@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 服务发现配置模块，集成 Nacos 服务注册与发现及 Spring Cloud 负载均衡器 -->
+<!-- Nacos 配置模块，集成 Nacos 服务注册发现、配置中心及 Spring Cloud 负载均衡器 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -12,7 +12,7 @@
 		<version>${revision}</version>
 	</parent>
 
-	<!-- 服务发现配置模块构件名称 -->
+	<!-- Nacos 配置模块构件名称 -->
 	<artifactId>maozi-cloud-config-nacos</artifactId>
 
 

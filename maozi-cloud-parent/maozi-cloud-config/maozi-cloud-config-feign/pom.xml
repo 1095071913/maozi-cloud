@@ -32,7 +32,7 @@
 		</dependency>
 		<!-- Spring Cloud End -->
 
-		<!-- JAX-RS API 定义，提供 RESTful 规范接口注解（部分 Feign 契约会用到） -->
+		<!-- JAX-RS API 定义，提供 RESTful 规范注解（当前模块代码未直接使用） -->
 		<dependency>
 			<groupId>javax.ws.rs</groupId>
 			<artifactId>javax.ws.rs-api</artifactId>

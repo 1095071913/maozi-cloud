@@ -60,6 +60,7 @@ public final class NacosConfigUtil {
         /** Wall-clock timestamp (in ms) of the publish. */
         private final long publishTime;
 
+        /** Records the published content and its publish timestamp. */
         private PublishSnapshot(String content, long publishTime) {
             this.content = content;
             this.publishTime = publishTime;

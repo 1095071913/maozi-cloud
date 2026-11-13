@@ -45,69 +45,83 @@ public abstract class AbstractRuleEntity<T extends AbstractRule> implements Rule
     /** The last modify time. */
     private Date gmtModified;
 
+    /** Get the entity id. */
     @Override
     public Long getId() {
         return id;
     }
 
+    /** Set the entity id. */
     @Override
     public void setId(Long id) {
         this.id = id;
     }
 
+    /** Get the application name. */
     @Override
     public String getApp() {
         return app;
     }
 
+    /** Set the application name and return this. */
     public AbstractRuleEntity<T> setApp(String app) {
         this.app = app;
         return this;
     }
 
+    /** Get the IP address of the machine. */
     @Override
     public String getIp() {
         return ip;
     }
 
+    /** Set the IP address of the machine and return this. */
     public AbstractRuleEntity<T> setIp(String ip) {
         this.ip = ip;
         return this;
     }
 
+    /** Get the port of the machine. */
     @Override
     public Integer getPort() {
         return port;
     }
 
+    /** Set the port of the machine and return this. */
     public AbstractRuleEntity<T> setPort(Integer port) {
         this.port = port;
         return this;
     }
 
+    /** Get the wrapped rule object. */
     public T getRule() {
         return rule;
     }
 
+    /** Set the wrapped rule object and return this. */
     public AbstractRuleEntity<T> setRule(T rule) {
         this.rule = rule;
         return this;
     }
 
+    /** Get the create time. */
     @Override
     public Date getGmtCreate() {
         return gmtCreate;
     }
 
+    /** Set the create time and return this. */
     public AbstractRuleEntity<T> setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
         return this;
     }
 
+    /** Get the last modify time. */
     public Date getGmtModified() {
         return gmtModified;
     }
 
+    /** Set the last modify time and return this. */
     public AbstractRuleEntity<T> setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
         return this;

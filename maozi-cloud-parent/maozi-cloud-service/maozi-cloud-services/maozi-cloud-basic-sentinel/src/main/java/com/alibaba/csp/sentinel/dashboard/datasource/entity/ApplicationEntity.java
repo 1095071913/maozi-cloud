@@ -41,58 +41,72 @@ public class ApplicationEntity {
     /** The last fetch time. */
     private Date lastFetch;
 
+    /** Get the entity id. */
     public long getId() {
         return id;
     }
 
+    /** Set the entity id. */
     public void setId(long id) {
         this.id = id;
     }
 
+    /** Get the create time. */
     public Date getGmtCreate() {
         return gmtCreate;
     }
 
+    /** Set the create time. */
     public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
     }
 
+    /** Get the last modified time. */
     public Date getGmtModified() {
         return gmtModified;
     }
 
+    /** Set the last modified time. */
     public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
     }
 
+    /** Get the app name. */
     public String getApp() {
         return app;
     }
 
+    /** Set the app name. */
     public void setApp(String app) {
         this.app = app;
     }
 
+    /** Get the type of the application. */
     public Integer getAppType() {
         return appType;
     }
 
+    /** Set the type of the application. */
     public void setAppType(Integer appType) {
         this.appType = appType;
     }
 
+    /** Get the active console address of the application. */
     public String getActiveConsole() {
         return activeConsole;
     }
 
+    /** Get the last fetch time. */
     public Date getLastFetch() {
         return lastFetch;
     }
 
+    /** Set the last fetch time. */
     public void setLastFetch(Date lastFetch) {
         this.lastFetch = lastFetch;
     }
 
+    /** Set the active console address of the application. */
     public void setActiveConsole(String activeConsole) {
         this.activeConsole = activeConsole;
     }
@@ -102,6 +116,7 @@ public class ApplicationEntity {
         return new AppInfo(app, appType);
     }
 
+    /** Build a string with the fields of this entity except appType. */
     @Override
     public String toString() {
         return "ApplicationEntity{" +

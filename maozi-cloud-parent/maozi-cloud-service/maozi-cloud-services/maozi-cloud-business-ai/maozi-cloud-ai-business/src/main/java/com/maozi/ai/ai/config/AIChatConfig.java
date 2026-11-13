@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AIChatConfig {
 
+    /** 对话记忆每个会话最大保留的消息条数 */
     private static final int CHAT_MEMORY_MAX_MESSAGES = 200;
 
 //    @Bean

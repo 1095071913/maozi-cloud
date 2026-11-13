@@ -43,6 +43,7 @@ import java.util.TimeZone;
 @Slf4j
 public class JacksonUtil {
 
+    /** 日期时间序列化/反序列化格式（含毫秒） */
     private static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss.SSS";
 
     /** 全局 ObjectMapper 实例 */
@@ -53,6 +54,11 @@ public class JacksonUtil {
         OBJECT_MAPPER = initObjectMapperConfig();
     }
 
+    /**
+     * 获取全局共享的 ObjectMapper 实例
+     *
+     * @return 初始化配置完成后的全局 ObjectMapper
+     */
     public static ObjectMapper getObjectMapper(){
         return OBJECT_MAPPER;
     }
@@ -99,6 +105,7 @@ public class JacksonUtil {
         // 空字符串反序列化为 null
         module.addDeserializer(String.class, new StdDeserializer<>(String.class) {
 
+            /** 反序列化字符串，并将空字符串转为 null */
             @Override
             public String deserialize(JsonParser jsonParser,
                     DeserializationContext deserializationContext) throws IOException {
@@ -162,7 +169,7 @@ public class JacksonUtil {
      *
      * @param json JSON 字符串
      * @param <T> 列表元素类型
-     * @return List 对象，异常时返回 null
+     * @return List 对象，异常时返回空列表
      */
     public static <T> List<T> jsonToList(String json) {
 
@@ -180,7 +187,7 @@ public class JacksonUtil {
      *
      * @param json JSON 字符串
      * @param <T> Map 值类型
-     * @return Map 对象，异常时返回 null
+     * @return Map 对象，异常时返回空 Map
      */
     public static <T> Map<String, T> jsonToMap(String json) {
 
@@ -198,7 +205,7 @@ public class JacksonUtil {
      *
      * @param data Java 对象
      * @param <T> Map 值类型
-     * @return Map 对象，异常时返回 null
+     * @return Map 对象，异常时返回空 Map
      */
     public static <T> Map<String, T> objectToMap(Object data) {
 
@@ -252,7 +259,7 @@ public class JacksonUtil {
      *
      * @param data Map 列表
      * @param <T> 目标类型泛型
-     * @return 对象列表，异常时返回 null
+     * @return 对象列表，异常时返回空列表
      */
     public static <T> List<T> mapListToListObject(List<Map<String,Object>> data) {
 
@@ -269,7 +276,7 @@ public class JacksonUtil {
      * 将对象列表转换为 Map 列表
      *
      * @param data 对象列表
-     * @return Map 列表，异常时返回 null
+     * @return Map 列表，异常时返回空列表
      */
     public static <T> List<Map<String,Object>> listObjectToMapList(List<?> data) {
 

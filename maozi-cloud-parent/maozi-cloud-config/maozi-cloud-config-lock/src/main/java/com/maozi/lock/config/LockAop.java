@@ -136,8 +136,8 @@ public class LockAop {
         // 收集通过 @LockKey 注解标记的参数值作为锁键
         keyList.addAll(getParameterKey(method.getParameters(), joinPoint.getArgs()));
 
-        // 每个业务键前拼接 "_"，键之间不加分隔符，形如 "_key1_key2"
-        // （分隔符为空、前缀 "_"、后缀为空）
+        // 每个业务键前后各拼接 "_"，键之间不加分隔符，形如 "_key1__key2_"
+        // （分隔符为空、前缀 "_"、后缀 "_"）
         return StringUtils.collectionToDelimitedString(keyList, "", "_", "_");
 
     }

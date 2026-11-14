@@ -139,9 +139,10 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
         try {
             UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = subAuthenticate(authenticationToken);
             userAuthenticationToken = daoAuthenticationProvider.authenticate(usernamePasswordAuthenticationToken);
-        } catch (Exception e) {
-            // 认证异常统一转为OAuth2认证异常返回
-            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, e.getMessage(), ERROR_URI));
+        } catch (AuthenticationException e) {
+            // 认证异常统一转为OAuth2认证异常返回，并保留原始异常链、记录日志
+            log.warn("Custom grant sub authentication failed.", e);
+            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, e.getMessage(), ERROR_URI), e);
         }
 
         // 以下令牌生成流程参考OAuth2AuthorizationCodeAuthenticationProvider实现
@@ -195,7 +196,7 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
             });
         } else {
             // 不透明令牌：直接将用户权限与用户附加属性构建为claims metadata
-            Map<String, Object> claims = new HashMap<>();
+            Map<String, Object> claims = new HashMap<>(8);
             List<String> authorities = userAuthenticationToken.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toList());
@@ -210,7 +211,7 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
         OAuth2RefreshToken refreshToken = null;
         if (registeredClient.getAuthorizationGrantTypes().contains(AuthorizationGrantType.REFRESH_TOKEN) &&
                 // 不向公共客户端颁发refresh token
-                !clientPrincipal.getClientAuthenticationMethod().equals(ClientAuthenticationMethod.NONE)) {
+                !ClientAuthenticationMethod.NONE.equals(clientPrincipal.getClientAuthenticationMethod())) {
 
             tokenContext = tokenContextBuilder.tokenType(OAuth2TokenType.REFRESH_TOKEN).build();
             OAuth2Token generatedRefreshToken = this.tokenGenerator.generate(tokenContext);

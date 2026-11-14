@@ -18,6 +18,7 @@ import java.util.Set;
  * </p>
  *
  * @author vains
+ * @date 2026/06/19
  */
 @Getter
 public class BaseGrantAuthenticationToken extends AbstractAuthenticationToken {

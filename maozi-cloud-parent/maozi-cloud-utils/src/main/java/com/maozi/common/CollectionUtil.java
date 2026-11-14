@@ -50,6 +50,17 @@ public class CollectionUtil {
     }
 
     /**
+     * 创建指定初始容量的 ArrayList
+     *
+     * @param initialCapacity 初始容量（预期元素个数）
+     * @param <T> 元素类型
+     * @return 指定初始容量的 ArrayList
+     */
+    public static <T> List<T> newArrayList(int initialCapacity) {
+        return new ArrayList<>(initialCapacity);
+    }
+
+    /**
      * 创建空的 HashMap
      *
      * @param <K> 键类型
@@ -58,6 +69,21 @@ public class CollectionUtil {
      */
     public static <K,V> Map<K,V> newHashMap() {
         return new HashMap<>();
+    }
+
+    /**
+     * 创建指定预期元素个数的 HashMap
+     * <p>
+     * 按负载因子 0.75 换算实际初始容量，避免写入预期数量元素时触发扩容 rehash。
+     * </p>
+     *
+     * @param expectedSize 预期元素个数
+     * @param <K> 键类型
+     * @param <V> 值类型
+     * @return 按预期元素个数定容的 HashMap
+     */
+    public static <K,V> Map<K,V> newHashMap(int expectedSize) {
+        return new HashMap<>((int) (expectedSize / 0.75f) + 1);
     }
 
     /**
@@ -83,6 +109,20 @@ public class CollectionUtil {
      */
     public static <T> Set<T> newHashSet() {
         return new HashSet<>();
+    }
+
+    /**
+     * 创建指定预期元素个数的 HashSet
+     * <p>
+     * 按负载因子 0.75 换算实际初始容量，避免写入预期数量元素时触发扩容 rehash。
+     * </p>
+     *
+     * @param expectedSize 预期元素个数
+     * @param <T> 元素类型
+     * @return 按预期元素个数定容的 HashSet
+     */
+    public static <T> Set<T> newHashSet(int expectedSize) {
+        return new HashSet<>((int) (expectedSize / 0.75f) + 1);
     }
 
     /**

@@ -44,6 +44,27 @@ public class ChatMessage implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    /** Media JSON 字段名：MIME 类型对象 */
+    private static final String FIELD_MIME_TYPE = "mimeType";
+
+    /** Media JSON 字段名：MIME 主类型 */
+    private static final String FIELD_TYPE = "type";
+
+    /** Media JSON 字段名：MIME 子类型 */
+    private static final String FIELD_SUBTYPE = "subtype";
+
+    /** Media JSON 字段名：MIME 参数表 */
+    private static final String FIELD_PARAMETERS = "parameters";
+
+    /** Media JSON 字段名：媒体数据（byte[] 数组或 URI 字符串） */
+    private static final String FIELD_DATA = "data";
+
+    /** Media JSON 字段名：媒体 ID */
+    private static final String FIELD_ID = "id";
+
+    /** Media JSON 字段名：媒体名称 */
+    private static final String FIELD_NAME = "name";
+
     /** 消息类型（SYSTEM / USER / ASSISTANT / TOOL 等） */
     private String messageType;
 
@@ -92,18 +113,31 @@ public class ChatMessage implements Serializable {
 
             JsonNode node = parser.getCodec().readTree(parser);
 
-            // 解析 MIME 类型节点及其携带的参数
-            JsonNode mimeTypeNode = node.get("mimeType");
+            // 解析 MIME 类型节点及其携带的参数（字段缺失时视为脏数据快速失败，避免 NPE）
+            JsonNode mimeTypeNode = node.get(FIELD_MIME_TYPE);
+            if (mimeTypeNode == null || mimeTypeNode.isNull()) {
+                throw new IOException("Media JSON 缺少 mimeType 字段");
+            }
+            JsonNode typeNode = mimeTypeNode.get(FIELD_TYPE);
+            JsonNode subtypeNode = mimeTypeNode.get(FIELD_SUBTYPE);
+            if (typeNode == null || typeNode.isNull() || subtypeNode == null || subtypeNode.isNull()) {
+                throw new IOException("Media JSON 缺少 MIME 主/子类型字段");
+            }
 
-            Map<String, String> parameters = new LinkedHashMap<>();
-            JsonNode parametersNode = mimeTypeNode.get("parameters");
-            parametersNode.fieldNames().forEachRemaining(name -> parameters.put(name, parametersNode.get(name).asText()));
+            Map<String, String> parameters = new LinkedHashMap<>(8);
+            JsonNode parametersNode = mimeTypeNode.get(FIELD_PARAMETERS);
+            if (parametersNode != null) {
+                parametersNode.fieldNames().forEachRemaining(name -> parameters.put(name, parametersNode.get(name).asText()));
+            }
 
             Media.Builder builder = Media.builder()
-                    .mimeType(new MimeType(mimeTypeNode.get("type").asText(), mimeTypeNode.get("subtype").asText(), parameters));
+                    .mimeType(new MimeType(typeNode.asText(), subtypeNode.asText(), parameters));
 
             // data 为整型数组（byte[]）时按字节还原，否则按 URI 字符串处理
-            JsonNode dataNode = node.get("data");
+            JsonNode dataNode = node.get(FIELD_DATA);
+            if (dataNode == null || dataNode.isNull()) {
+                throw new IOException("Media JSON 缺少 data 字段");
+            }
             if (dataNode.isArray()) {
                 byte[] data = new byte[dataNode.size()];
                 for (int i = 0; i < data.length; i++) {
@@ -115,12 +149,12 @@ public class ChatMessage implements Serializable {
             }
 
             // id 与 name 为可选字段，序列化时可能不存在，存在时才回填
-            if (node.hasNonNull("id")) {
-                builder.id(node.get("id").asText());
+            if (node.hasNonNull(FIELD_ID)) {
+                builder.id(node.get(FIELD_ID).asText());
             }
 
-            if (node.hasNonNull("name")) {
-                builder.name(node.get("name").asText());
+            if (node.hasNonNull(FIELD_NAME)) {
+                builder.name(node.get(FIELD_NAME).asText());
             }
 
             return builder.build();
@@ -155,29 +189,29 @@ public class ChatMessage implements Serializable {
             generator.writeStartObject();
 
             if (media.getId() != null) {
-                generator.writeStringField("id", media.getId());
+                generator.writeStringField(FIELD_ID, media.getId());
             }
 
             MimeType mimeType = media.getMimeType();
-            generator.writeObjectFieldStart("mimeType");
-            generator.writeStringField("type", mimeType.getType());
-            generator.writeStringField("subtype", mimeType.getSubtype());
-            generator.writeObjectField("parameters", mimeType.getParameters());
+            generator.writeObjectFieldStart(FIELD_MIME_TYPE);
+            generator.writeStringField(FIELD_TYPE, mimeType.getType());
+            generator.writeStringField(FIELD_SUBTYPE, mimeType.getSubtype());
+            generator.writeObjectField(FIELD_PARAMETERS, mimeType.getParameters());
             generator.writeEndObject();
 
             // data 为 byte[] 时输出整型数组（与反序列化对称），其余（URI 等）输出字符串
             Object data = media.getData();
             if (data instanceof byte[] bytes) {
-                generator.writeArrayFieldStart("data");
+                generator.writeArrayFieldStart(FIELD_DATA);
                 for (byte item : bytes) {
                     generator.writeNumber(item);
                 }
                 generator.writeEndArray();
             } else {
-                generator.writeStringField("data", String.valueOf(data));
+                generator.writeStringField(FIELD_DATA, String.valueOf(data));
             }
 
-            generator.writeStringField("name", media.getName());
+            generator.writeStringField(FIELD_NAME, media.getName());
 
             generator.writeEndObject();
 

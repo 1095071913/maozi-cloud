@@ -105,7 +105,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
 
         if(ObjectUtil.isNullEmpty(id)) {
 
-            //新增：自动生成客户端标识（clientId）
+            // 新增：自动生成客户端标识（clientId）
             param.setClientId(String.valueOf(IdWorker.getId()));
 
             if(ObjectUtil.isNullEmpty(param.getAccessTokenValiditySeconds())){
@@ -116,16 +116,16 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
                 param.setRefreshTokenValiditySeconds(DEFAULT_REFRESH_TOKEN_VALIDITY_SECONDS);
             }
 
-            //不需要确认授权
+            // 不需要确认授权
             ClientSettings clientSettings = ClientSettings.builder().requireAuthorizationConsent(Boolean.FALSE).build();
             param.setClientSettings(clientSettings.getSettings());
 
         }else{
-            //更新：清空clientId，防止客户端标识被修改
+            // 更新：清空clientId，防止客户端标识被修改
             param.setClientId(null);
         }
         
-        //客户端密钥非空时加密存储（更新未传密钥则保持原值）
+        // 客户端密钥非空时加密存储（更新未传密钥则保持原值）
         if(ObjectUtil.isNotNullEmpty(param.getClientSecret())) {
             param.setClientSecret(PASSWORD_ENCODER.encode(param.getClientSecret()));
         }
@@ -137,7 +137,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
 
             TokenSettings.Builder builder = TokenSettings.builder();
 
-            //不透明令牌（REFERENCE），令牌值不携带信息，需通过内省端点校验
+            // 不透明令牌（REFERENCE），令牌值不携带信息，需通过内省端点校验
             builder.accessTokenFormat(OAuth2TokenFormat.REFERENCE);
             builder.authorizationCodeTimeToLive(Duration.ofSeconds(AUTH_CODE_TTL_SECONDS));
             builder.deviceCodeTimeToLive(Duration.ofSeconds(DEVICE_CODE_TTL_SECONDS));
@@ -179,14 +179,14 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
                 ClientDO::getClientId, ClientDO::getName, ClientDO::getAuthorizationGrantTypes,
                 ClientDO::getTokenSettings, ClientDO::getRemark, ClientDO::getStatus);
 
-        //防御性判空（getAvailableById在数据不存在时已抛出异常，正常不会进入该分支）
+        // 防御性判空（getAvailableById在数据不存在时已抛出异常，正常不会进入该分支）
         if(ObjectUtil.isNullEmpty(domain)){
             return null;
         }
 
         ClientInfoResult response = CglibUtil.copy(domain, ClientInfoResult.class);
 
-        //从tokenSettings中解析Access/Refresh Token有效期（秒）
+        // 从tokenSettings中解析Access/Refresh Token有效期（秒）
         TokenSettings tokenSettings = TokenSettings.withSettings(domain.getTokenSettings()).build();
         response.setAccessTokenValiditySeconds(tokenSettings.getAccessTokenTimeToLive().getSeconds());
         response.setRefreshTokenValiditySeconds(tokenSettings.getRefreshTokenTimeToLive().getSeconds());
@@ -213,7 +213,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
 
         page.getRecords().forEach(item -> {
 
-            //从tokenSettings中解析Access/Refresh Token有效期（秒）
+            // 从tokenSettings中解析Access/Refresh Token有效期（秒）
             TokenSettings tokenSettings = TokenSettings.withSettings(item.getTokenSettings()).build();
             item.setAccessTokenValiditySeconds(tokenSettings.getAccessTokenTimeToLive().getSeconds());
             item.setRefreshTokenValiditySeconds(tokenSettings.getRefreshTokenTimeToLive().getSeconds());

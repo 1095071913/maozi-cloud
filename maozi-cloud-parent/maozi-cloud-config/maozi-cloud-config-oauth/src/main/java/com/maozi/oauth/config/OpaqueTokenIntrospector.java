@@ -1,5 +1,6 @@
 package com.maozi.oauth.config;
 
+import com.maozi.common.WebUtil;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.oauth.token.api.OauthTokenService;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -84,7 +86,7 @@ public class OpaqueTokenIntrospector implements org.springframework.security.oau
         Set<GrantedAuthority> authorities = extractAuthorities(claims);
         // 主体名称取 sub 声明，缺省为 unknown
         return new DefaultOAuth2AuthenticatedPrincipal(
-                (String) claims.getOrDefault(OAuth2TokenIntrospectionClaimNames.SUB, "unknown"), claims, authorities);
+                (String) claims.getOrDefault(OAuth2TokenIntrospectionClaimNames.SUB, WebUtil.UNKNOWN), claims, authorities);
     }
 
     /**
@@ -100,7 +102,8 @@ public class OpaqueTokenIntrospector implements org.springframework.security.oau
             return Collections.emptySet();
         }
         return list.stream()
-                .map(item -> new SimpleGrantedAuthority(item.toString()))
+                .filter(Objects::nonNull)
+                .map(item -> new SimpleGrantedAuthority(String.valueOf(item)))
                 .collect(Collectors.toSet());
     }
 

@@ -47,6 +47,9 @@ public class CrossOriginFilter extends OncePerRequestFilter {
 	/** CORS 预检请求缓存时间（秒） */
 	private static final String MAX_AGE = "3600";
 
+	/** Access-Control-Allow-Credentials 响应头取值：允许携带凭证 */
+	private static final String ALLOW_CREDENTIALS_VALUE = "true";
+
 	/**
 	 * 为跨域请求补充 CORS 响应头
 	 * <p>
@@ -73,7 +76,7 @@ public class CrossOriginFilter extends OncePerRequestFilter {
 		// 允许请求来源域（回显 Origin，配合允许凭证时不可使用 *）
 		response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, request.getHeader(HttpHeaders.ORIGIN));
 		// 允许携带凭证（Cookies）
-		response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+		response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, ALLOW_CREDENTIALS_VALUE);
 		// 暴露给前端的响应头
 		response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, ALL);
 

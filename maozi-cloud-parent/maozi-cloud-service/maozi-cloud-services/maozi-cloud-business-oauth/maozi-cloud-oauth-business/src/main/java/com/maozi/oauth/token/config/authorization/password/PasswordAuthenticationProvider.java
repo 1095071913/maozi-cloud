@@ -3,6 +3,7 @@ package com.maozi.oauth.token.config.authorization.password;
 import com.maozi.oauth.token.config.authorization.base.BaseGrantAuthenticationProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -37,8 +38,8 @@ public class PasswordAuthenticationProvider extends BaseGrantAuthenticationProvi
 
         // 从附加参数中取出用户名和密码
         Map<String, Object> additionalParameters = authentication.getAdditionalParameters();
-        String username = (String) additionalParameters.get("username");
-        String password = (String) additionalParameters.get("password");
+        String username = (String) additionalParameters.get(OAuth2ParameterNames.USERNAME);
+        String password = (String) additionalParameters.get(OAuth2ParameterNames.PASSWORD);
 
         return UsernamePasswordAuthenticationToken.unauthenticated(username,password);
 

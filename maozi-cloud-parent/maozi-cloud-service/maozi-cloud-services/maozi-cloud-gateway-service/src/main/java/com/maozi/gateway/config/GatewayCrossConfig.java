@@ -41,6 +41,9 @@ public class GatewayCrossConfig {
 	/** CORS 预检请求缓存时间（秒）；注意值带 long 后缀 L，浏览器会收到字面 "3600L"，如需修正请改为 "3600" */
 	private static final String MAX_AGE = "3600L";
 
+	/** Access-Control-Allow-Credentials 响应头取值：允许携带凭证 */
+	private static final String ALLOW_CREDENTIALS_VALUE = "true";
+
 	/**
 	 * 基于服务发现的路由定义定位器。
 	 * <p>
@@ -107,7 +110,7 @@ public class GatewayCrossConfig {
 				headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, requestMethod.name());
 			}
 			// 允许携带凭证
-			headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+			headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, ALLOW_CREDENTIALS_VALUE);
 			// 暴露给前端的响应头
 			headers.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, ALL);
 			// 预检请求缓存时间

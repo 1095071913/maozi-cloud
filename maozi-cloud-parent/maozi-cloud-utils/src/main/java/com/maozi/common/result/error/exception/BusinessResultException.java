@@ -73,6 +73,20 @@ public class BusinessResultException extends RuntimeException {
     }
 
     /**
+     * 根据错误码对象和原始异常构造
+     * <p>
+     * 保留原始异常堆栈，保证异常排查链路完整。
+     * </p>
+     *
+     * @param errorCode 错误码
+     * @param cause 原始异常
+     */
+    public BusinessResultException(ErrorCode errorCode,Throwable cause) {
+        super(errorCode.getExceptionMessage(),cause);
+        this.errorResult = ResultUtil.error(errorCode);
+    }
+
+    /**
      * 根据错误码对象和附加数据构造
      *
      * @param errorCode 错误码

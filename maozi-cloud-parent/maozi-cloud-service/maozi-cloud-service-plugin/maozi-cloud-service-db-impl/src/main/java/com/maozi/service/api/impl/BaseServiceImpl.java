@@ -29,8 +29,8 @@ import com.maozi.base.plugin.join.JoinPlugins;
 import com.maozi.base.plugin.mapping.QueryMapping;
 import com.maozi.base.plugin.query.QueryBaseType;
 import com.maozi.base.plugin.query.QueryPlugin;
-import com.maozi.base.plugin.type.JoinType;
-import com.maozi.base.plugin.type.QueryType;
+import com.maozi.base.plugin.type.JoinTypeEnum;
+import com.maozi.base.plugin.type.QueryTypeEnum;
 import com.maozi.base.result.DropDownResult;
 import com.maozi.base.result.PageResult;
 import com.maozi.common.CollectionUtil;
@@ -111,6 +111,10 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     private static final String RESOURCE_SUFFIX_MAPPING_TYPE_ERROR = "映射关系类型错误";
     /** 资源名称后缀：关系字段未设置 */
     private static final String RESOURCE_SUFFIX_RELATION_FIELD_NOT_SET = "关系字段未设置";
+    /** 分页默认页码 */
+    private static final long DEFAULT_PAGE_CURRENT = 1L;
+    /** 分页默认每页条数 */
+    private static final long DEFAULT_PAGE_SIZE = 10L;
 
     /**
      * 获取资源名称（供子类实现）
@@ -143,8 +147,10 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return MyBatis-Plus 分页对象
      */
     public <R> com.baomidou.mybatisplus.extension.plugins.pagination.Page<R> convertPage(PageParam<?> pageParam){
-        return new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(pageParam.getCurrent(),
-                pageParam.getSize());
+        // 分页参数未传时兜底：默认第 1 页、每页 10 条
+        long current = pageParam.getCurrent() == null ? DEFAULT_PAGE_CURRENT : pageParam.getCurrent();
+        long size = pageParam.getSize() == null ? DEFAULT_PAGE_SIZE : pageParam.getSize();
+        return new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(current, size);
     }
 
     /**
@@ -236,7 +242,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
             return propertyName;
 
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            throw new BusinessResultException(SystemErrorCode.SYSTEM_ERROR).setResource(getResourceName());
+            throw new BusinessResultException(SystemErrorCode.SYSTEM_ERROR, e).setResource(getResourceName());
         }
 
     }
@@ -289,7 +295,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public String[] getColumns(Class<?> clazz,Boolean isJoin) {
 
-        List<String> columns = CollectionUtil.newArrayList();
+        List<String> columns = CollectionUtil.newArrayList(32);
 
         for( ; !Object.class.getName().equals(clazz.getName()); clazz = clazz.getSuperclass()){
 
@@ -320,7 +326,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
                     String fieldName = StringUtils.isNotBlank(annotation.field()) ?
                         annotation.field() : StrUtil.toUnderlineCase(field.getName());
 
-                    fieldName = isJoin ? tableName + "." + fieldName : fieldName;
+                    if (Boolean.TRUE.equals(isJoin)) {
+                        fieldName = String.join(".", tableName, fieldName);
+                    }
 
                     columns.add(fieldName);
 
@@ -1120,7 +1128,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
                     ObjectUtil.isNullEmptyThrowError(value.getType(), getResourceName() + RESOURCE_SUFFIX_JOIN_TYPE);
 
-                    JoinType joinType = JoinType.get(value.getType());
+                    JoinTypeEnum joinType = JoinTypeEnum.get(value.getType());
 
                     ObjectUtil.isNullEmptyThrowError(joinType, getResourceName() + RESOURCE_SUFFIX_JOIN_TYPE);
 
@@ -1168,7 +1176,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
                 ObjectUtil.isNullEmptyThrowError(value.getType(), getResourceName() + RESOURCE_SUFFIX_QUERY_TYPE);
 
-                QueryType queryType = QueryType.get(value.getType());
+                QueryTypeEnum queryType = QueryTypeEnum.get(value.getType());
 
                 ObjectUtil.isNullEmptyThrowError(queryType, getResourceName() + RESOURCE_SUFFIX_QUERY_TYPE);
 
@@ -1178,7 +1186,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
                 }
 
                 if (StringUtils.isNotBlank(tableName)) {
-                    fieldName = tableName + "." + fieldName;
+                    fieldName = String.join(".", tableName, fieldName);
                 }
 
                 Objects.requireNonNull(queryType).getQueryPlugin().apply(wrapper, fieldName, data);
@@ -1190,11 +1198,11 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
             if(data instanceof TimeParam timeParam) {
 
                 if(ObjectUtil.isNotNullEmpty(timeParam.getStartTime())) {
-                    QueryType.GE.getQueryPlugin().apply(wrapper, fieldName, timeParam.getStartTime());
+                    QueryTypeEnum.GE.getQueryPlugin().apply(wrapper, fieldName, timeParam.getStartTime());
                 }
 
                 if(ObjectUtil.isNotNullEmpty(timeParam.getEndTime())) {
-                    QueryType.LE.getQueryPlugin().apply(wrapper, fieldName, timeParam.getEndTime());
+                    QueryTypeEnum.LE.getQueryPlugin().apply(wrapper, fieldName, timeParam.getEndTime());
                 }
 
             }
@@ -1448,7 +1456,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         // 自定义方法分支：按关联字段收集参数统一调用，再按关联字段取回并分发结果
         if (StringUtils.isNotBlank(functionName)) {
 
-            Set<Object> param = CollectionUtil.newHashSet();
+            Set<Object> param = CollectionUtil.newHashSet(responses.size());
             for (Object response : responses) {
                 param.add(ReflectUtil.invokeGet(response, relationFieldName));
             }
@@ -1467,7 +1475,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         // 一对多分支：以对象自身主键 ID 作为关联值，按关联字段分组取回列表
         } else if (type.equals(List.class)) {
 
-            Set<Long> relationIds = CollectionUtil.newHashSet();
+            Set<Long> relationIds = CollectionUtil.newHashSet(responses.size());
             for (Object response : responses) {
                 relationIds.add(ReflectUtil.invokeFunGetId(response));
             }
@@ -1476,7 +1484,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
                 AbstractBaseResult<Map<Long, List<?>>> rpcResult = ReflectUtil.invoke(
                     service, ResultFunName.LIST_BY_RELATION_IDS_RESULT, relationIds,
                     relationFieldName, getColumns(field.getClass()));
-                Map<Long, List<?>> resultData = rpcResult.getResultDataThrowError();
+                Map<Long, List<?>> resultData = rpcResult.getResultNotNullDataThrowError(getResourceName());
                 for (Object response : responses) {
                     Long id = ReflectUtil.invokeFunGetId(response);
                     List<?> list = resultData.get(id);
@@ -1489,7 +1497,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         // 下拉关联分支：按关联字段批量取回下拉选项，转 Map 后按 ID 分发
         } else if (DropDownResult.class.equals(type)) {
 
-            Set<Long> relationIds = CollectionUtil.newHashSet();
+            Set<Long> relationIds = CollectionUtil.newHashSet(responses.size());
             for (Object response : responses) {
                 relationIds.add(ReflectUtil.invokeGet(response, relationFieldName));
             }
@@ -1497,7 +1505,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
             if (ObjectUtil.isNotNullEmpty(relationIds)) {
                 AbstractBaseResult<List<DropDownResult>> rpcResult = ReflectUtil.invoke(
                     service, ResultFunName.DROP_DOWN_LIST_RESULT, relationIds);
-                List<DropDownResult> resultData = rpcResult.getResultDataThrowError();
+                List<DropDownResult> resultData = rpcResult.getResultNotNullDataThrowError(getResourceName());
                 Map<Long, DropDownResult> relationsMap = toMapByIds(resultData, DropDownResult::getId);
                 for (Object response : responses) {
                     Long id = ReflectUtil.invokeGet(response, relationFieldName);
@@ -1511,7 +1519,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         // 一对一分支：按关联字段批量取回关联对象，转 Map 后按 ID 分发
         } else {
 
-            Set<Long> relationIds = CollectionUtil.newHashSet();
+            Set<Long> relationIds = CollectionUtil.newHashSet(responses.size());
             for (Object response : responses) {
                 relationIds.add(ReflectUtil.invokeGet(response, relationFieldName));
             }
@@ -1519,7 +1527,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
             if (ObjectUtil.isNotNullEmpty(relationIds)) {
                 AbstractBaseResult<Map<Long, Object>> rpcResult = ReflectUtil.invoke(
                     service, ResultFunName.LIST_BY_IDS_RESULT, relationIds, getColumns(field.getClass()));
-                Map<Long, Object> resultData = rpcResult.getResultDataThrowError();
+                Map<Long, Object> resultData = rpcResult.getResultNotNullDataThrowError(getResourceName());
                 for (Object response : responses) {
                     Long id = ReflectUtil.invokeGet(response, relationFieldName);
                     Object relation = resultData.get(id);

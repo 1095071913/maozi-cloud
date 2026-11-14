@@ -25,21 +25,21 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class PageParam<D> implements Serializable {
 
-	/** 序列化标识 */
-	@Serial
-	private static final long serialVersionUID = 1L;
+    /** 序列化标识 */
+    @Serial
+    private static final long serialVersionUID = 1L;
 
-	/** 当前页码，默认第 1 页 */
-	@Schema(description = "页数",defaultValue = "1")
-	private Long current = 1L;
+    /** 当前页码（未传时默认取第 1 页，由分页转换处兜底） */
+    @Schema(description = "页数",defaultValue = "1")
+    private Long current;
 
-	/** 每页数据条数，默认 10 条 */
-	@Schema(description = "每页数量",defaultValue = "10")
-	private Long size = 10L;
+    /** 每页数据条数（未传时默认每页 10 条，由分页转换处兜底） */
+    @Schema(description = "每页数量",defaultValue = "10")
+    private Long size;
 
-	/** 查询条件数据 */
-	@Valid
-	@Schema(description = "查询条件")
-	private D data;
+    /** 查询条件数据 */
+    @Valid
+    @Schema(description = "查询条件")
+    private D data;
 
 }

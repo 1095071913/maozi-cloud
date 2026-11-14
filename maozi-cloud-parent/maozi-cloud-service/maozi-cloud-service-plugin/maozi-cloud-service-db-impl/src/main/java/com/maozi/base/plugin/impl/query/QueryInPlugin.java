@@ -1,7 +1,7 @@
 package com.maozi.base.plugin.impl.query;
 
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
-import com.maozi.base.plugin.QueryBasePlugin;
+import com.maozi.base.plugin.BaseQueryPlugin;
 
 /**
  * IN 查询条件插件
@@ -12,7 +12,7 @@ import com.maozi.base.plugin.QueryBasePlugin;
  * @author maozi
  * @date 2026/11/08
  */
-public class QueryInPlugin extends QueryBasePlugin {
+public class QueryInPlugin extends BaseQueryPlugin {
 
     /**
      * 应用 IN 条件

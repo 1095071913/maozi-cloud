@@ -1,6 +1,5 @@
 package com.maozi.system.image.properties;
 
-import com.maozi.system.image.enums.ImageStorageType;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -27,11 +26,11 @@ public class ImageStorageProperties implements Serializable {
 	@Serial
 	private static final long serialVersionUID = 1L;
 
-	/** 图片存储类型（对应 ImageStorageType 的 code，如 aliyun），默认 aliyun */
-	private String storeType = ImageStorageType.ALIYUN_OSS.getCode();
+	/** 图片存储类型（对应 ImageStorageType 的 code，如 aliyun），未配置时默认 aliyun（由使用处兜底） */
+	private String storeType;
 
 	/** 阿里云 OSS 配置 */
-	private Aliyun aliyun = new Aliyun();
+	private Aliyun aliyun;
 
 	/**
 	 * 阿里云 OSS 配置项

@@ -4,6 +4,7 @@ import com.maozi.common.ObjectUtil;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -17,6 +18,11 @@ import java.util.Objects;
  * @date 2026/11/08
  */
 public class WebUtil {
+
+	/** 获取客户端真实 IP 的代理请求头，按优先级从高到低排列 */
+	private static final List<String> CLIENT_IP_HEADERS = List.of(
+			"x-forwarded-for", "Proxy-Client-IP", "WL-Proxy-Client-IP",
+			"HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR", "X-Real-IP");
 
 	/**
 	 * 获取客户端真实 IP 地址
@@ -35,25 +41,13 @@ public class WebUtil {
 
 		HttpHeaders headers = request.getHeaders();
 
-		// 优先从反向代理 header 中获取
-		String requestHost = headers.getFirst("x-forwarded-for");
-
-		// 依次检查常用代理 IP 头
-		if (isBlankOrUnknown(requestHost)) {
-			requestHost = headers.getFirst("Proxy-Client-IP");
-		}
-		if (isBlankOrUnknown(requestHost)) {
-			requestHost = headers.getFirst("WL-Proxy-Client-IP");
-		}
-		if (isBlankOrUnknown(requestHost)) {
-			requestHost = headers.getFirst("HTTP_CLIENT_IP");
-		}
-		if (isBlankOrUnknown(requestHost)) {
-			requestHost = headers.getFirst("HTTP_X_FORWARDED_FOR");
-		}
-
-		if (isBlankOrUnknown(requestHost)) {
-			requestHost = headers.getFirst("X-Real-IP");
+		// 按优先级依次从反向代理 header 中获取
+		String requestHost = null;
+		for (String header : CLIENT_IP_HEADERS) {
+			requestHost = headers.getFirst(header);
+			if (!isBlankOrUnknown(requestHost)) {
+				break;
+			}
 		}
 
 		// 兜底：直接获取远程地址
@@ -83,7 +77,7 @@ public class WebUtil {
 	 * @return 如果 IP 为空、空白或 "unknown" 则返回 true
 	 */
 	private static boolean isBlankOrUnknown(String ip) {
-		return ObjectUtil.isNullEmpty(ip) || ip.isBlank() || "unknown".equalsIgnoreCase(ip);
+		return ObjectUtil.isNullEmpty(ip) || ip.isBlank() || com.maozi.common.WebUtil.UNKNOWN.equalsIgnoreCase(ip);
 	}
 
 }

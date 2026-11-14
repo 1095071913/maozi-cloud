@@ -1,6 +1,6 @@
 package com.maozi.base.plugin.type;
 
-import com.maozi.base.plugin.QueryBasePlugin;
+import com.maozi.base.plugin.BaseQueryPlugin;
 import com.maozi.base.plugin.impl.query.QueryEqPlugin;
 import com.maozi.base.plugin.impl.query.QueryGePlugin;
 import com.maozi.base.plugin.impl.query.QueryInPlugin;
@@ -22,7 +22,7 @@ import lombok.Getter;
  * @date 2026/11/08
  */
 @Getter
-public enum QueryType {
+public enum QueryTypeEnum {
 
     /** 等于 */
     EQ(QueryBaseType.EQ, new QueryEqPlugin()),
@@ -48,7 +48,7 @@ public enum QueryType {
     private final QueryBaseType type;
 
     /** 查询插件实例 */
-    private final QueryBasePlugin queryPlugin;
+    private final BaseQueryPlugin queryPlugin;
 
     /**
      * 构造方法
@@ -56,7 +56,7 @@ public enum QueryType {
      * @param type 查询基础类型
      * @param queryPlugin 查询插件实例
      */
-    QueryType(QueryBaseType type,QueryBasePlugin queryPlugin) {
+    QueryTypeEnum(QueryBaseType type,BaseQueryPlugin queryPlugin) {
 
         this.type = type;
 
@@ -70,11 +70,11 @@ public enum QueryType {
      * @param type 类型字符串
      * @return 对应的查询类型枚举，未匹配时返回 null
      */
-    public static QueryType get(String type) {
+    public static QueryTypeEnum get(String type) {
 
-        QueryType[] queryTypes = QueryType.values();
+        QueryTypeEnum[] queryTypes = QueryTypeEnum.values();
 
-        for(QueryType queryType : queryTypes) {
+        for(QueryTypeEnum queryType : queryTypes) {
 
             if(queryType.getType().getType().equals(type)) {
                 return queryType;

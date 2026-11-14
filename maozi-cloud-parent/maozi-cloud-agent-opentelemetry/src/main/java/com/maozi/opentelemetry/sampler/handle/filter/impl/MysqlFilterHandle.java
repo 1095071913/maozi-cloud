@@ -1,6 +1,6 @@
 package com.maozi.opentelemetry.sampler.handle.filter.impl;
 
-import com.maozi.opentelemetry.sampler.handle.filter.FilterHandle;
+import com.maozi.opentelemetry.sampler.handle.filter.BaseFilterHandle;
 import io.opentelemetry.api.common.AttributeType;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.internal.InternalAttributeKeyImpl;
@@ -19,10 +19,11 @@ import java.util.Objects;
  * </p>
  *
  * @author pengjinlong
+ * @date 2026/07/04
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class MysqlFilterHandle extends FilterHandle {
+public class MysqlFilterHandle extends BaseFilterHandle {
 
     /** 来源标识，匹配 Span 属性 {@code db.system} */
     private List<String> names = List.of("mysql");
@@ -63,13 +64,16 @@ public class MysqlFilterHandle extends FilterHandle {
     public Boolean filter(Attributes attributes) {
 
         // 读取 db.system 来源标识，非 mysql 来源不过滤
-        String type = attributes.get(InternalAttributeKeyImpl.create("db.system", AttributeType.STRING));
+        String type = attributes.get(InternalAttributeKeyImpl.create(ATTR_DB_SYSTEM, AttributeType.STRING));
         if(Objects.isNull(type) || !getNames().contains(type)){
             return false;
         }
 
-        // 比对 db.statement 是否命中排除语句列表
-        String statement = attributes.get(InternalAttributeKeyImpl.create("db.statement", AttributeType.STRING));
+        // 比对 db.statement 是否命中排除语句列表（属性缺失时不过滤，避免不可变集合 contains(null) 抛 NPE）
+        String statement = attributes.get(InternalAttributeKeyImpl.create(ATTR_DB_STATEMENT, AttributeType.STRING));
+        if(Objects.isNull(statement)){
+            return false;
+        }
         return EXCLUDED_STATEMENT.contains(statement);
 
     }

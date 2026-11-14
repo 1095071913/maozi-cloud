@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -31,6 +32,7 @@ import java.util.Set;
  *
  * @param <T> 自定义授权令牌类型，必须继承自BaseGrantAuthenticationToken
  * @author vains
+ * @date 2026/06/19
  */
 public abstract class BaseGrantAuthenticationConverter<T extends BaseGrantAuthenticationToken> implements AuthenticationConverter {
 
@@ -94,7 +96,7 @@ public abstract class BaseGrantAuthenticationConverter<T extends BaseGrantAuthen
     public Authentication convert(HttpServletRequest request) {
 
         String grantType = request.getParameter(OAuth2ParameterNames.GRANT_TYPE);
-        if (!getGrantType().equals(grantType)) {
+        if (!Objects.equals(getGrantType(), grantType)) {
             return null;
         }
 
@@ -120,10 +122,10 @@ public abstract class BaseGrantAuthenticationConverter<T extends BaseGrantAuthen
         checkParams(request);
 
         // 提取附加参数（排除grant_type与client_id）
-        Map<String, Object> additionalParameters = new HashMap<>();
+        Map<String, Object> additionalParameters = new HashMap<>((int) (parameters.size() / 0.75f) + 1);
         parameters.forEach((key, value) -> {
-            if (!key.equals(OAuth2ParameterNames.GRANT_TYPE) &&
-                    !key.equals(OAuth2ParameterNames.CLIENT_ID)) {
+            if (!OAuth2ParameterNames.GRANT_TYPE.equals(key) &&
+                    !OAuth2ParameterNames.CLIENT_ID.equals(key)) {
                 additionalParameters.put(key, value.get(0));
             }
         });

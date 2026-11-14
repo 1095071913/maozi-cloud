@@ -18,9 +18,6 @@ package com.maozi.dubbo.provider;
 
 import org.apache.dubbo.registry.support.DefaultProviderFirstParams;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 import static org.apache.dubbo.common.constants.CommonConstants.DUBBO_VERSION_KEY;
@@ -51,6 +48,7 @@ import static org.apache.dubbo.common.constants.CommonConstants.TIMESTAMP_KEY;
  * </p>
  *
  * @author maozi
+ * @date 2024/01/01
  * @see DefaultProviderFirstParams
  */
 public class ProviderFirstParams extends DefaultProviderFirstParams {
@@ -61,13 +59,13 @@ public class ProviderFirstParams extends DefaultProviderFirstParams {
     /**
      * 服务提供者优先参数集合
      * <p>
-     * 使用不可变集合（unmodifiableSet）包装，防止运行时被修改。
-     * 集合中的参数在服务注册时会以提供者端的值为准，
+     * 使用不可变集合（Set.of）承载，防止运行时被修改。
+     * 集合中的参数在服务注册时会以提供者的值为准，
      * 消费者即使传递了相同名称的参数也不会覆盖提供者的值。
      * </p>
      */
-    private static final Set<String> PARAMS = Collections.unmodifiableSet(
-        new HashSet<>(Arrays.asList(RELEASE_KEY, DUBBO_VERSION_KEY, METHODS_KEY, TIMESTAMP_KEY, TAG_KEY, APPLICATION_VERSION_KEY))
+    private static final Set<String> PARAMS = Set.of(
+        RELEASE_KEY, DUBBO_VERSION_KEY, METHODS_KEY, TIMESTAMP_KEY, TAG_KEY, APPLICATION_VERSION_KEY
     );
 
     /**

@@ -36,6 +36,8 @@ public class ImageServiceImpl implements ImageService {
 	@Resource
 	private ImageStorageProperties imageStorageProperties;
 
+	private final static String DEFAULT_IMAGE_STORAGE_TYPE_CODE = ImageStorageType.ALIYUN_OSS.getCode();
+
 	/** 存储处理器索引，键为存储类型，值为对应处理器 */
 	private final Map<ImageStorageType,ImageStorageHandler> handlerMap = new EnumMap<>(ImageStorageType.class);
 
@@ -66,12 +68,19 @@ public class ImageServiceImpl implements ImageService {
 	@Override
 	public List<ImageUploadResult> upload(ImageUploadParam param) {
 
-		ImageStorageType storeType = ImageStorageType.get(imageStorageProperties.getStoreType());
+		// 存储类型未配置时默认使用阿里云 OSS
+		String storeTypeCode = imageStorageProperties.getStoreType();
+		storeTypeCode = ObjectUtil.isNullEmpty(storeTypeCode) ?
+				DEFAULT_IMAGE_STORAGE_TYPE_CODE
+				:
+				storeTypeCode;
+
+		ImageStorageType storeType = ImageStorageType.get(storeTypeCode);
 
 		ImageStorageHandler handler = handlerMap.get(storeType);
 
 		if(ObjectUtil.isNullEmpty(handler)) {
-			throw new BusinessResultException("未知的图片存储类型：" + imageStorageProperties.getStoreType());
+			throw new BusinessResultException("未知的图片存储类型：" + storeTypeCode);
 		}
 
 		List<ImageUploadResult> results = new ArrayList<>(param.getFiles().size());

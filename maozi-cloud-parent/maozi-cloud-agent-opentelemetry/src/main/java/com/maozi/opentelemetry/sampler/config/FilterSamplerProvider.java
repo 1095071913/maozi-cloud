@@ -14,6 +14,7 @@ import io.opentelemetry.sdk.trace.samplers.Sampler;
  * </p>
  *
  * @author pengjinlong
+ * @date 2026/07/04
  */
 @AutoService(ConfigurableSamplerProvider.class)
 public class FilterSamplerProvider implements ConfigurableSamplerProvider {

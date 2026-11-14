@@ -1,6 +1,6 @@
 package com.maozi.base.plugin.type;
 
-import com.maozi.base.plugin.JoinBasePlugin;
+import com.maozi.base.plugin.BaseJoinPlugin;
 import com.maozi.base.plugin.impl.join.QueryInnerJoinPlugin;
 import com.maozi.base.plugin.impl.join.QueryLeftJoinPlugin;
 import com.maozi.base.plugin.impl.join.QueryRightJoinPlugin;
@@ -18,7 +18,7 @@ import lombok.Getter;
  * @date 2026/11/08
  */
 @Getter
-public enum JoinType {
+public enum JoinTypeEnum {
 
     /** 内连接 */
     INNER_JOIN(JoinBaseType.INNER_JOIN, new QueryInnerJoinPlugin()),
@@ -35,7 +35,7 @@ public enum JoinType {
     private final JoinBaseType type;
 
     /** 关联插件实例 */
-    private final JoinBasePlugin joinPlugin;
+    private final BaseJoinPlugin joinPlugin;
 
     /**
      * 构造方法
@@ -43,7 +43,7 @@ public enum JoinType {
      * @param type 关联基础类型
      * @param joinPlugin 关联插件实例
      */
-    JoinType(JoinBaseType type, JoinBasePlugin joinPlugin) {
+    JoinTypeEnum(JoinBaseType type, BaseJoinPlugin joinPlugin) {
 
         this.type = type;
 
@@ -57,11 +57,11 @@ public enum JoinType {
      * @param type 类型字符串
      * @return 对应的关联类型枚举，未匹配时返回 null
      */
-    public static JoinType get(String type) {
+    public static JoinTypeEnum get(String type) {
 
-        JoinType[] joinTypes = JoinType.values();
+        JoinTypeEnum[] joinTypes = JoinTypeEnum.values();
 
-        for(JoinType joinType : joinTypes) {
+        for(JoinTypeEnum joinType : joinTypes) {
 
             if(joinType.getType().getType().equals(type)) {
                 return joinType;

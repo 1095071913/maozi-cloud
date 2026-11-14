@@ -55,14 +55,14 @@ public class JobProperties {
         /** 执行器 IP，为空时自动获取本机 IP */
         private String ip;
 
-        /** 执行器端口，小于等于 0 时自动从 9999 起探测可用端口 */
-        private int port;
+        /** 执行器端口，未配置或小于等于 0 时自动从 9999 起探测可用端口 */
+        private Integer port;
 
         /** 执行器日志文件路径 */
         private String logpath;
 
-        /** 日志保留天数，小于 3 时不启用日志文件清理 */
-        private int logretentiondays;
+        /** 日志保留天数，未配置或小于 3 时不启用日志文件清理 */
+        private Integer logRetentionDays;
 
     }
 

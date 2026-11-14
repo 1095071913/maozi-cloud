@@ -24,122 +24,126 @@ import java.util.Map;
  */
 public interface OrderParam {
 
-	/** 排序字段 key：创建时间（构建排序条件时转换为下划线列名 create_time） */
-	String CREATE_TIME_KEY = "createTime";
+    /** 排序字段 key：创建时间（构建排序条件时转换为下划线列名 create_time） */
+    String CREATE_TIME_KEY = "createTime";
 
-	/** 排序字段 key：更新时间（构建排序条件时转换为下划线列名 update_time） */
-	String UPDATE_TIME_KEY = "updateTime";
+    /** 排序字段 key：更新时间（构建排序条件时转换为下划线列名 update_time） */
+    String UPDATE_TIME_KEY = "updateTime";
 
-	/**
-	 * 获取排序字段映射
-	 *
-	 * @return key 为排序字段，value 为排序方向（true 降序、false 升序、null 不排序）
-	 */
-	@Schema(description = "排序组件 key:排序字段 value: true降序、false升序、null不做排序、空字符串字段")
-	Map<String,Boolean> getOrderFieldMap();
+    /**
+     * 获取排序字段映射
+     *
+     * @return key 为排序字段，value 为排序方向（true 降序、false 升序、null 不排序）
+     */
+    @Schema(description = "排序组件 key:排序字段 value: true降序、false升序、null不做排序、空字符串字段")
+    Map<String,Boolean> getOrderFieldMap();
 
-	/**
-	 * 获取主表可排序字段映射
-	 *
-	 * @return key 为主表别名，value 为该表下可排序的字段及默认排序方向
-	 */
-	@JsonIgnore
-	Map<String,Map<String,Boolean>> getOrderMainFieldsMap();
+    /**
+     * 获取主表可排序字段映射
+     *
+     * @return key 为主表别名，value 为该表下可排序的字段及默认排序方向
+     */
+    @JsonIgnore
+    Map<String,Map<String,Boolean>> getOrderMainFieldsMap();
 
-	/**
-	 * 获取升序排序字段映射
-	 *
-	 * @return key 为主表别名，value 为该表下需要升序排序的字段列表
-	 */
-	@JsonIgnore
-	Map<String,List<String>> getOrderAscFieldsMap();
+    /**
+     * 获取升序排序字段映射
+     *
+     * @return key 为主表别名，value 为该表下需要升序排序的字段列表
+     */
+    @JsonIgnore
+    Map<String,List<String>> getOrderAscFieldsMap();
 
-	/**
-	 * 设置升序排序字段映射
-	 *
-	 * @param orderAscFieldsMap 升序排序字段映射
-	 */
-	@JsonIgnore
-	void setOrderAscFieldsMap(Map<String,List<String>> orderAscFieldsMap);
+    /**
+     * 设置升序排序字段映射
+     *
+     * @param orderAscFieldsMap 升序排序字段映射
+     */
+    @JsonIgnore
+    void setOrderAscFieldsMap(Map<String,List<String>> orderAscFieldsMap);
 
-	/**
-	 * 获取降序排序字段映射
-	 *
-	 * @return key 为主表别名，value 为该表下需要降序排序的字段列表
-	 */
-	@JsonIgnore
-	Map<String,List<String>> getOrderDescFieldsMap();
+    /**
+     * 获取降序排序字段映射
+     *
+     * @return key 为主表别名，value 为该表下需要降序排序的字段列表
+     */
+    @JsonIgnore
+    Map<String,List<String>> getOrderDescFieldsMap();
 
-	/**
-	 * 设置降序排序字段映射
-	 *
-	 * @param orderDescFieldsMap 降序排序字段映射
-	 */
-	@JsonIgnore
-	void setOrderDescFieldsMap(Map<String,List<String>> orderDescFieldsMap);
+    /**
+     * 设置降序排序字段映射
+     *
+     * @param orderDescFieldsMap 降序排序字段映射
+     */
+    @JsonIgnore
+    void setOrderDescFieldsMap(Map<String,List<String>> orderDescFieldsMap);
 
-	/**
-	 * 初始化排序参数
-	 * <p>
-	 * 遍历主表可排序字段，结合前端传入的排序规则，将排序字段按升序/降序分组，
-	 * 并转换为 "表别名.下划线字段名" 格式存储。
-	 * </p>
-	 */
-	default void initOrderParam() {
+    /**
+     * 初始化排序参数
+     * <p>
+     * 遍历主表可排序字段，结合前端传入的排序规则，将排序字段按升序/降序分组，
+     * 并转换为 "表别名.下划线字段名" 格式存储。
+     * </p>
+     */
+    default void initOrderParam() {
 
-		Map<String, Map<String, Boolean>> orderMainFieldsMap = getOrderMainFieldsMap();
+        Map<String, Map<String, Boolean>> orderMainFieldsMap = getOrderMainFieldsMap();
 
-		Map<String,List<String>> orderAscFieldsMap = CollectionUtil.newHashMap();
+        Map<String,List<String>> orderAscFieldsMap = CollectionUtil.newHashMap(orderMainFieldsMap.size());
 
-		Map<String,List<String>> orderDescFieldsMap = CollectionUtil.newHashMap();
+        Map<String,List<String>> orderDescFieldsMap = CollectionUtil.newHashMap(orderMainFieldsMap.size());
 
-		for(String key : orderMainFieldsMap.keySet()) {
+        for (Map.Entry<String, Map<String, Boolean>> orderMainEntry : orderMainFieldsMap.entrySet()) {
 
-			Map<String,Boolean> orderMainFields = orderMainFieldsMap.get(key);
+            String key = orderMainEntry.getKey();
 
-			List<String> orderAscFields = CollectionUtil.newArrayList();
+            Map<String,Boolean> orderMainFields = orderMainEntry.getValue();
 
-			List<String> orderDescFields = CollectionUtil.newArrayList();
+            List<String> orderAscFields = CollectionUtil.newArrayList(orderMainFields.size());
 
-			for(String orderMainField : orderMainFields.keySet()) {
+            List<String> orderDescFields = CollectionUtil.newArrayList(orderMainFields.size());
 
-				Map<String, Boolean> orderFieldMap = getOrderFieldMap();
+            for (Map.Entry<String, Boolean> orderMainFieldEntry : orderMainFields.entrySet()) {
 
-				// 前端未传入排序规则时使用空 Map，避免空指针
-				if(ObjectUtil.isNullEmpty(orderFieldMap)){
-					orderFieldMap = CollectionUtil.newHashMap();
-				}
+                String orderMainField = orderMainFieldEntry.getKey();
 
-				// 优先使用前端传入的排序方向，未指定时使用字段默认排序方向
-				Boolean orderMainFieldValue = orderFieldMap.containsKey(orderMainField) ? orderFieldMap.get(orderMainField) : orderMainFields.get(orderMainField);
+                Map<String, Boolean> orderFieldMap = getOrderFieldMap();
 
-				if(ObjectUtil.isNotNullEmpty(orderMainFieldValue)) {
+                // 前端未传入排序规则时使用空 Map，避免空指针
+                if (ObjectUtil.isNullEmpty(orderFieldMap)) {
+                    orderFieldMap = CollectionUtil.newHashMap();
+                }
 
-					String underlineCase = StrUtil.toUnderlineCase(key);
+                // 优先使用前端传入的排序方向，未指定时使用字段默认排序方向
+                Boolean orderMainFieldValue = orderFieldMap.getOrDefault(orderMainField, orderMainFieldEntry.getValue());
 
-					// 表别名非空时拼接为 "表别名.下划线字段名"；为空时仅取表别名的下划线形式（结果不含字段名）
-					String field = StringUtils.isEmpty(key) ? underlineCase : String.join(".", underlineCase, StrUtil.toUnderlineCase(orderMainField));
+                if (ObjectUtil.isNotNullEmpty(orderMainFieldValue)) {
 
-					if(orderMainFieldValue) {
-						orderDescFields.add(field);
-					}else {
-						orderAscFields.add(field);
-					}
+                    String underlineCase = StrUtil.toUnderlineCase(key);
 
-				}
+                    // 表别名非空时拼接为 "表别名.下划线字段名"；为空时仅取表别名的下划线形式（结果不含字段名）
+                    String field = StringUtils.isEmpty(key) ? underlineCase : String.join(".", underlineCase, StrUtil.toUnderlineCase(orderMainField));
 
-			}
+                    if (orderMainFieldValue) {
+                        orderDescFields.add(field);
+                    }else {
+                        orderAscFields.add(field);
+                    }
 
-			orderAscFieldsMap.put(key, orderAscFields);
+                }
 
-			orderDescFieldsMap.put(key, orderDescFields);
+            }
 
-		}
+            orderAscFieldsMap.put(key, orderAscFields);
 
-		setOrderAscFieldsMap(orderAscFieldsMap);
+            orderDescFieldsMap.put(key, orderDescFields);
 
-		setOrderDescFieldsMap(orderDescFieldsMap);
+        }
 
-	}
+        setOrderAscFieldsMap(orderAscFieldsMap);
+
+        setOrderDescFieldsMap(orderDescFieldsMap);
+
+    }
 
 }

@@ -1,6 +1,6 @@
 package com.maozi.opentelemetry.sampler.handle.filter.impl;
 
-import com.maozi.opentelemetry.sampler.handle.filter.FilterHandle;
+import com.maozi.opentelemetry.sampler.handle.filter.BaseFilterHandle;
 import io.opentelemetry.api.common.AttributeType;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.internal.InternalAttributeKeyImpl;
@@ -20,17 +20,48 @@ import java.util.regex.Pattern;
  * </p>
  *
  * @author pengjinlong
+ * @date 2026/07/04
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class HttpFilterHandle extends FilterHandle {
+public class HttpFilterHandle extends BaseFilterHandle {
 
     /** 需要排除的 URL 路径模式列表（支持 ** 通配符） */
-    private List<String> names = List.of(
+    private static final List<String> names = List.of(
             "/actuator",
             "/actuator/**",
             "/v3/api-docs/**"
     );
+
+    /** 与 {@link #names} 对应的预编译正则列表（** 转为 .*），避免热路径上重复编译 */
+    private static final List<Pattern> EXCLUDED_PATH_PATTERNS = names.stream()
+            .map(excludedPath -> Pattern.compile(excludedPath.replace("**", ".*")))
+            .toList();
+
+    /** Span 属性键：HTTP 请求路径 */
+    private static final String ATTR_URL_PATH = "url.path";
+
+    /** Span 属性键：HTTP 完整 URL */
+    private static final String ATTR_URL_FULL = "url.full";
+
+    /** HTTP 协议前缀 */
+    private static final String PROTOCOL_HTTP = "http://";
+
+    /** HTTPS 协议前缀 */
+    private static final String PROTOCOL_HTTPS = "https://";
+
+    /** 协议分隔符 */
+    private static final String PROTOCOL_SEPARATOR = "://";
+
+    /**
+     * 返回需要排除的 URL 路径模式列表
+     *
+     * @return 排除路径模式列表
+     */
+    @Override
+    public List<String> getNames() {
+        return names;
+    }
 
     /**
      * 根据 Span 属性中的请求路径判断是否过滤该 Span
@@ -46,10 +77,10 @@ public class HttpFilterHandle extends FilterHandle {
     public Boolean filter(Attributes attributes) {
 
         // 优先取 url.path 属性
-        String httpPath = attributes.get(InternalAttributeKeyImpl.create("url.path", AttributeType.STRING));
+        String httpPath = attributes.get(InternalAttributeKeyImpl.create(ATTR_URL_PATH, AttributeType.STRING));
         if(Objects.isNull(httpPath)){
             // url.path 缺失时回退到 url.full
-            httpPath = attributes.get(InternalAttributeKeyImpl.create("url.full", AttributeType.STRING));
+            httpPath = attributes.get(InternalAttributeKeyImpl.create(ATTR_URL_FULL, AttributeType.STRING));
         }
 
         // 无路径信息，不过滤
@@ -58,9 +89,9 @@ public class HttpFilterHandle extends FilterHandle {
         }
 
         // 完整 URL：剥离协议与域名，仅保留路径部分
-        if(httpPath.contains("http://") || httpPath.contains("https://")){
+        if(httpPath.contains(PROTOCOL_HTTP) || httpPath.contains(PROTOCOL_HTTPS)){
 
-            httpPath = httpPath.split("://")[1];
+            httpPath = httpPath.split(PROTOCOL_SEPARATOR)[1];
 
             // 定位域名后的首个 "/"，截取路径部分
             int index = httpPath.indexOf("/");
@@ -83,7 +114,7 @@ public class HttpFilterHandle extends FilterHandle {
     /**
      * 检查请求路径是否匹配需要排除的路径模式。
      * <p>
-     * 将排除规则中的 {@code **} 通配符转为正则 {@code .*} 后进行匹配。
+     * 使用预编译正则（排除规则中的 {@code **} 通配符已转为 {@code .*}）与请求路径整串匹配。
      * </p>
      *
      * @param path HTTP 请求路径
@@ -91,11 +122,10 @@ public class HttpFilterHandle extends FilterHandle {
      */
     public boolean matchPath(String path){
 
-        for(String excludedPath : names){
+        for(Pattern excludedPattern : EXCLUDED_PATH_PATTERNS){
 
-            // 将 ** 通配符转为正则 .*，与请求路径整串匹配
-            String regex = excludedPath.replace("**", ".*");
-            if(Pattern.matches(regex, path)){
+            // 使用预编译正则与请求路径整串匹配
+            if(excludedPattern.matcher(path).matches()){
                 return true;
             }
 

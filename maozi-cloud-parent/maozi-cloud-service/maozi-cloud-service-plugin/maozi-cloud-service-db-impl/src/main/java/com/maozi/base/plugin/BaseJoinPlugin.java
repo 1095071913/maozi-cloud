@@ -13,7 +13,7 @@ import com.maozi.base.plugin.join.JoinPlugin;
  * @author maozi
  * @date 2026/11/08
  */
-public abstract class JoinBasePlugin {
+public abstract class BaseJoinPlugin {
 
 	/**
 	 * 将关联查询条件应用到 Wrapper 中

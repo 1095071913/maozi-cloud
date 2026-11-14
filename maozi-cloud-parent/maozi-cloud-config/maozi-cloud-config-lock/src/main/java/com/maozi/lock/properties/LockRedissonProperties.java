@@ -26,15 +26,15 @@ public class LockRedissonProperties {
     private String password;
 
     /** Redis 数据库编号，默认为 0 */
-    private int database = 0;
+    private Integer database = 0;
 
     /** Redis 集群节点地址列表 */
     private String[] nodeAddresses;
 
     /** 获取锁的默认等待时间（秒），默认 60 秒 */
-    private long waitTime = 60;
+    private Long waitTime = 60L;
 
     /** 锁的默认持有时间（秒），超时后自动释放，默认 60 秒 */
-    private long leaseTime = 60;
+    private Long leaseTime = 60L;
 
 }

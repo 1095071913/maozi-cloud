@@ -35,6 +35,9 @@ public final class WebUtil {
     /** 本地回环 IP 地址（IPv6） */
     public static final String LOCAL_LOOPBACK_IP = "0:0:0:0:0:0:0:1";
 
+    /** 代理头中无法识别客户端 IP 时的占位值 */
+    public static final String UNKNOWN = "unknown";
+
     /**
      * 判断当前线程是否处于 HTTP 请求上下文
      *
@@ -89,9 +92,9 @@ public final class WebUtil {
      * @param response HTTP 响应对象
      * @param data 要写入的数据对象
      */
-    public static void writeResponseBody(HttpServletResponse response,Object data){
+    public static void writeResponseBody(HttpServletResponse response, Object data) {
 
-        if(ObjectUtil.isNullEmpty(response) || ObjectUtil.isNullEmpty(data)){
+        if (ObjectUtil.isNullEmpty(response) || ObjectUtil.isNullEmpty(data)) {
             return;
         }
 
@@ -122,7 +125,7 @@ public final class WebUtil {
      * @return 为 null、空白或 "unknown"（不区分大小写）时返回 true
      */
     private static boolean isBlankOrUnknown(String ip) {
-        return ObjectUtil.isNullEmpty(ip) || ip.isBlank() || "unknown".equalsIgnoreCase(ip);
+        return ObjectUtil.isNullEmpty(ip) || ip.isBlank() || UNKNOWN.equalsIgnoreCase(ip);
     }
 
 }

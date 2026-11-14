@@ -155,15 +155,15 @@
             </div>
           </div>
 
-          <!-- 初始化清单：状态瓦片（已完成=绿、待执行=蓝、执行中=转圈点击看日志） -->
+          <!-- 初始化清单：状态瓦片（已完成=绿、待执行=蓝、执行中=转圈点击看日志；镜像瓦片完成后仍可点开清单） -->
           <div class="pci-grid">
             <button
               v-for="t in prepTiles"
               :key="t.key"
               type="button"
               class="pci-tile"
-              :class="t.done ? 'done' : 'todo'"
-              :disabled="t.done"
+              :class="[t.done ? 'done' : 'todo', { reopen: t.doneClickable }]"
+              :disabled="t.done && !t.doneClickable"
               :title="t.tip"
               @click="t.act()"
             >
@@ -1755,7 +1755,18 @@
               <span class="pim-name mono-text" :title="img.name">{{ img.name }}</span>
               <span class="pim-dir mono-text" :title="img.dir">{{ img.dir }}</span>
             </div>
-            <span v-if="img.exists" class="pim-tag ok">✓ 已存在</span>
+            <template v-if="img.exists">
+              <span class="pim-tag ok">✓ 已存在</span>
+              <button
+                class="pim-build force"
+                type="button"
+                title="忽略已存在状态，重新执行 docker buildx build 覆盖镜像"
+                :disabled="runningOf((a) => a.type === 'initImage' && a.image === img.name)"
+                @click="onInitImageBuild(img.name)"
+              >
+                {{ runningOf((a) => a.type === 'initImage' && a.image === img.name) ? '⏳ 构建中' : '🔁 强制重新构建' }}
+              </button>
+            </template>
             <template v-else>
               <span class="pim-tag miss">未构建</span>
               <button
@@ -5859,13 +5870,14 @@ const prepReady = computed(
     initImagesReady.value
 )
 
-/** 环境准备清单瓦片：done=已完成（不可点）/ running=执行中（点击看日志）/ todo=待执行 */
+/** 环境准备清单瓦片：done=已完成（默认不可点，doneClickable 例外：完成后仍可点开，如镜像清单）/ running=执行中（点击看日志）/ todo=待执行 */
 const prepTiles = computed(() => {
   const tiles: Array<{
     key: string
     icon: string
     name: string
     done: boolean
+    doneClickable: boolean
     running: boolean
     sub: string
     tip: string
@@ -5878,6 +5890,7 @@ const prepTiles = computed(() => {
     icon: '🌐',
     name: 'Hosts 映射',
     done: hosts.initialized,
+    doneClickable: false,
     running: hostsRun,
     sub: hosts.initialized
       ? '已写入系统 /etc/hosts'
@@ -5897,6 +5910,7 @@ const prepTiles = computed(() => {
       icon: '🔗',
       name: '容器网段',
       done: n.exists,
+      doneClickable: false,
       running: run,
       sub: n.exists ? `网络 ${n.name} 已存在` : run ? '执行中 · 点击查看日志' : '待创建 docker 网络',
       tip: n.exists ? `容器网络 ${n.name} 已存在于 docker` : `创建 compose 引用的外部网络 ${n.name}`,
@@ -5911,6 +5925,7 @@ const prepTiles = computed(() => {
       icon: '🗄️',
       name: '数据库初始化',
       done: d.initialized,
+      doneClickable: false,
       running: run,
       sub: d.initialized ? `已导入 ${d.count} 个脚本` : run ? '执行中 · 点击查看日志' : `待导入 ${d.count} 个脚本`,
       tip: d.initialized
@@ -5925,13 +5940,16 @@ const prepTiles = computed(() => {
     icon: '📦',
     name: '初始化镜像',
     done: initImagesReady.value,
+    doneClickable: true,
     running: false,
     sub: initImagesReady.value
       ? `${imgs.length} 个镜像均已构建`
       : imgs.length
         ? `${imgs.filter((i) => i.exists).length}/${imgs.length} 已构建`
         : '待查看镜像清单',
-    tip: initImagesReady.value ? 'init_base_image.json 定义的镜像均已构建' : '打开镜像清单，按需 docker buildx build',
+    tip: initImagesReady.value
+      ? 'init_base_image.json 定义的镜像均已构建 · 点击查看清单 / 强制重新构建'
+      : '打开镜像清单，按需 docker buildx build',
     act: openInitImages
   })
   return tiles
@@ -8157,6 +8175,17 @@ onMounted(loadState)
   cursor: default;
   background: linear-gradient(135deg, #f0fdf6, #f7fef9 70%);
   border-color: #bbf0cf;
+}
+
+/* 已完成但仍可点开清单的瓦片（初始化镜像）：恢复指针与悬浮反馈 */
+.pci-tile.done.reopen {
+  cursor: pointer;
+}
+
+.pci-tile.done.reopen:hover {
+  transform: translateY(-2px);
+  border-color: #6ee7b7;
+  box-shadow: 0 8px 18px rgba(5, 150, 105, 0.14);
 }
 
 .pci-ico {
@@ -12500,6 +12529,16 @@ onMounted(loadState)
 .pim-build:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+/* 强制重新构建按钮：镜像已存在时展示，绿色区分于首次构建的琥珀色 */
+.pim-build.force {
+  background: linear-gradient(135deg, #34d399, #059669);
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.28);
+}
+
+.pim-build.force:hover:not(:disabled) {
+  box-shadow: 0 4px 10px rgba(5, 150, 105, 0.4);
 }
 
 /* ===== Maven 配置弹窗：信息横幅 + 代码编辑器卡（行号 / XML 校验 / 状态栏） ===== */

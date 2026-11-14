@@ -49,6 +49,18 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
 	/** OSS 同步客户端，应用启动时初始化 */
 	private OSSClient ossClient;
 
+	/** 目录前缀为空时的默认目录 */
+	private static final String DEFAULT_DIRECTORY = "image";
+
+	/** 对象路径中的日期目录格式（预编译复用，避免每次调用重新解析 pattern） */
+	private static final DateTimeFormatter DATE_PATH_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+
+	/** 默认公网访问协议前缀 */
+	private static final String HTTPS_SCHEME_PREFIX = "https://";
+
+	/** 协议分隔符 */
+	private static final String PROTOCOL_SEPARATOR = "://";
+
 	/**
 	 * 初始化 OSS 客户端
 	 * <p>
@@ -60,6 +72,11 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
 	public void init() {
 
 		ImageStorageProperties.Aliyun aliyun = imageStorageProperties.getAliyun();
+
+		// 阿里云连接配置缺失时快速失败，给出明确的配置提示
+		if(aliyun == null) {
+			throw new IllegalStateException("图片存储配置 oss.aliyun 未配置，无法初始化阿里云 OSS 客户端");
+		}
 
 		OSSClientBuilder builder = OSSClient.newBuilder()
 			.region(aliyun.getRegion());
@@ -138,7 +155,8 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
 			return new ImageUploadResult(file.getOriginalFilename(),"/" + fileKey,buildAccessUrl(fileKey), file.getSize());
 
 		} catch (Exception e) {
-			// 上传过程中的任意异常统一转换为业务异常抛出
+			// 上传过程中的任意异常统一转换为业务异常抛出，并记录原始堆栈便于排查
+			log.error("Upload file to oss failed, file: {}", file.getOriginalFilename(), e);
 			throw new BusinessResultException(e.getMessage(),new ErrorCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE,"文件上传失败"));
 		}
 
@@ -159,11 +177,11 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
 	 */
 	private String buildObjectKey(String path,String originalFilename) {
 
-		String directory = StringUtils.defaultIfEmpty(StringUtils.strip(path,"/"),"image");
+		String directory = StringUtils.defaultIfEmpty(StringUtils.strip(path,"/"),DEFAULT_DIRECTORY);
 
 		String extension = StringUtils.substringAfterLast(originalFilename,".");
 
-		String datePath = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+		String datePath = LocalDate.now().format(DATE_PATH_FORMATTER);
 
 		String fileName = UUID.randomUUID().toString().replace("-","");
 
@@ -194,11 +212,11 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
 
 			URI endpoint = URI.create(aliyun.getEndpoint());
 
-			return endpoint.getScheme() + "://" + aliyun.getBucket() + "." + endpoint.getHost() + "/" + fileKey;
+			return endpoint.getScheme() + PROTOCOL_SEPARATOR + aliyun.getBucket() + "." + endpoint.getHost() + "/" + fileKey;
 
 		}
 
-		return "https://" + aliyun.getBucket() + ".oss-" + aliyun.getRegion() + ".aliyuncs.com/" + fileKey;
+		return HTTPS_SCHEME_PREFIX + aliyun.getBucket() + ".oss-" + aliyun.getRegion() + ".aliyuncs.com/" + fileKey;
 
 	}
 

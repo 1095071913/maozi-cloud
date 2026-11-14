@@ -37,10 +37,10 @@ public class JobConfig {
         xxlJobSpringExecutor.setAdminAddresses(properties.getAdmin().getAddresses());
         xxlJobSpringExecutor.setAppname(executor.getAppname());
         xxlJobSpringExecutor.setIp(executor.getIp());
-        xxlJobSpringExecutor.setPort(executor.getPort());
+        xxlJobSpringExecutor.setPort(executor.getPort() == null ? 0 : executor.getPort());
         xxlJobSpringExecutor.setAccessToken(properties.getAccessToken());
         xxlJobSpringExecutor.setLogPath(executor.getLogpath());
-        xxlJobSpringExecutor.setLogRetentionDays(executor.getLogretentiondays());
+        xxlJobSpringExecutor.setLogRetentionDays(executor.getLogRetentionDays() == null ? 0 : executor.getLogRetentionDays());
         return xxlJobSpringExecutor;
     }
 

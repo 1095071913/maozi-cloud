@@ -1,7 +1,7 @@
 package com.maozi.base.plugin.impl.join;
 
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
-import com.maozi.base.plugin.JoinBasePlugin;
+import com.maozi.base.plugin.BaseJoinPlugin;
 import com.maozi.base.plugin.join.JoinPlugin;
 import com.maozi.common.ObjectUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -16,7 +16,7 @@ import org.apache.commons.lang3.StringUtils;
  * @author maozi
  * @date 2026/11/08
  */
-public class QueryInnerJoinPlugin extends JoinBasePlugin {
+public class QueryInnerJoinPlugin extends BaseJoinPlugin {
 
     /**
      * 应用内连接条件

@@ -89,13 +89,8 @@ public class LocalRemoteResourceBeanPostProcessor implements InstantiationAwareB
 	 * @param singleton 依赖实例
 	 */
 	private void registerSingletonIfAbsent(String name, Object singleton) {
-		if (beanFactory != null && registeredNames.add(name)) {
-			try {
-				beanFactory.registerSingleton(name, singleton);
-			} catch (IllegalStateException e) {
-				// 容器中已存在同名 bean，回退标记并跳过
-				registeredNames.remove(name);
-			}
+		if (beanFactory != null && !beanFactory.containsSingleton(name) && registeredNames.add(name)) {
+			beanFactory.registerSingleton(name, singleton);
 		}
 	}
 

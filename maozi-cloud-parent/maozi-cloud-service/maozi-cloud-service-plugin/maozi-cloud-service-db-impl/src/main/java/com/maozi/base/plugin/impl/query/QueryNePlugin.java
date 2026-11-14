@@ -1,7 +1,7 @@
 package com.maozi.base.plugin.impl.query;
 
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
-import com.maozi.base.plugin.QueryBasePlugin;
+import com.maozi.base.plugin.BaseQueryPlugin;
 
 /**
  * 不等于查询条件插件
@@ -12,7 +12,7 @@ import com.maozi.base.plugin.QueryBasePlugin;
  * @author maozi
  * @date 2026/11/08
  */
-public class QueryNePlugin extends QueryBasePlugin{
+public class QueryNePlugin extends BaseQueryPlugin{
 
     /**
      * 应用不等于条件

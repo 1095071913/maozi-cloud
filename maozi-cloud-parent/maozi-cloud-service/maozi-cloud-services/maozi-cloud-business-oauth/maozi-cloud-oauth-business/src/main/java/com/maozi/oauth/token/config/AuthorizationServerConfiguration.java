@@ -89,29 +89,29 @@ public class AuthorizationServerConfiguration {
 
 		http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
 
-			//开启端点
+			// 开启端点
 			.oidc(Customizer.withDefaults())
 
-			//客户端认证失败
+			// 客户端认证失败
 			.clientAuthentication(client -> client
 				.errorResponseHandler(new ClientAuthenticationFailureHandler())
 			)
 
 			.tokenRevocationEndpoint(tokenRevocationEndpoint -> tokenRevocationEndpoint
-				//销毁令牌成功响应
+				// 销毁令牌成功响应
 				.revocationResponseHandler(new TokenRevocationSuccessHandler())
-				//自定义撤销处理器：撤销令牌后物理删除对应授权记录
+				// 自定义撤销处理器：撤销令牌后物理删除对应授权记录
 				.authenticationProvider(SpringUtil.getBean(TokenRevocationAuthenticationProvider.class))
 			)
 
 			.tokenEndpoint(tokenEndpoint -> tokenEndpoint
-				//用户认证授权成功响应
+				// 用户认证授权成功响应
 				.accessTokenResponseHandler(new UserAuthenticationSuccessHandler())
-				//注册各种登陆参数转换器
+				// 注册各种登陆参数转换器
 				.accessTokenRequestConverter(accessTokenRequestConverter())
-				//用户认证授权失败
+				// 用户认证授权失败
 				.errorResponseHandler(new UserAuthenticationFailureHandler())
-				//替换默认的刷新Token处理器，添加权限信息
+				// 替换默认的刷新Token处理器，添加权限信息
 				.authenticationProviders(authenticationProviders -> {
 					authenticationProviders.removeIf(provider -> provider instanceof OAuth2RefreshTokenAuthenticationProvider);
 					RefreshTokenAuthenticationProvider refreshProvider = SpringUtil.getBean(RefreshTokenAuthenticationProvider.class);
@@ -122,12 +122,12 @@ public class AuthorizationServerConfiguration {
 
 		;
 
-		//客户端未认证授权
+		// 客户端未认证授权
 		http.exceptionHandling(ex -> ex.authenticationEntryPoint(new ClientAuthenticationEntryPoint()));
 
 		DefaultSecurityFilterChain securityFilterChain = http.build();
 
-		//注册各种认证模式
+		// 注册各种认证模式
 		addCustomOAuth2GrantAuthenticationProvider(http);
 
 		return securityFilterChain;
@@ -161,7 +161,7 @@ public class AuthorizationServerConfiguration {
 
 		OAuth2TokenGenerator<?> tokenGenerator = http.getSharedObject(OAuth2TokenGenerator.class);
 
-		//密码模式
+		// 密码模式
 		PasswordAuthenticationProvider passwordProvider = SpringUtil.getBean(PasswordAuthenticationProvider.class);
 		passwordProvider.setTokenGenerator(tokenGenerator);
 		http.authenticationProvider(passwordProvider);
@@ -181,11 +181,6 @@ public class AuthorizationServerConfiguration {
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) {
 		return authenticationConfiguration.getAuthenticationManager();
 	}
-
-//	@Bean
-//	public OAuth2AuthorizationService authorizationService(JdbcTemplate jdbcTemplate, RegisteredClientRepository registeredClientRepository) {
-//		return new JdbcOAuth2AuthorizationService(jdbcTemplate, registeredClientRepository);
-//	}
 
 	/**
 	 * 配置基于db的授权确认管理服务

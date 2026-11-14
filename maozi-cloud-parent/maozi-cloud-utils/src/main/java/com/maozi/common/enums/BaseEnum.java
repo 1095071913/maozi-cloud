@@ -10,15 +10,16 @@ import com.baomidou.mybatisplus.annotation.IEnum;
  * </p>
  *
  * @author maozi
+ * @date 2024/09/17
  * @see IEnum MyBatis-Plus 枚举接口
  */
 public interface BaseEnum extends IEnum<Integer> {
 
-	/**
-	 * 获取枚举的描述
-	 *
-	 * @return 枚举的描述
-	 */
-	String getDesc();
+    /**
+     * 获取枚举的描述
+     *
+     * @return 枚举的描述
+     */
+    String getDesc();
 
 }

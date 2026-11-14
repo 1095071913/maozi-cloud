@@ -29,24 +29,25 @@ package org.springframework.security.access;
  * </p>
  *
  * @author Ben Alex
+ * @date 2026/06/23
  */
 public class AccessDeniedException extends RuntimeException {
 
-	/**
-	 * 使用指定的详细消息构造 <code>AccessDeniedException</code>
-	 * @param msg 详细消息
-	 */
-	public AccessDeniedException(String msg) {
-		super(msg);
-	}
+    /**
+     * 使用指定的详细消息构造 <code>AccessDeniedException</code>
+     * @param msg 详细消息
+     */
+    public AccessDeniedException(String msg) {
+        super(msg);
+    }
 
-	/**
-	 * 使用指定的详细消息和根原因构造 <code>AccessDeniedException</code>
-	 * @param msg 详细消息
-	 * @param cause 根原因
-	 */
-	public AccessDeniedException(String msg, Throwable cause) {
-		super(msg, cause);
-	}
+    /**
+     * 使用指定的详细消息和根原因构造 <code>AccessDeniedException</code>
+     * @param msg 详细消息
+     * @param cause 根原因
+     */
+    public AccessDeniedException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
 
 }

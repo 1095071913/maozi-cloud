@@ -12,8 +12,15 @@ import java.util.List;
  * </p>
  *
  * @author pengjinlong
+ * @date 2026/07/04
  */
-public abstract class FilterHandle {
+public abstract class BaseFilterHandle {
+
+     /** Span 属性键：数据库来源类型（如 mysql、redis） */
+     protected static final String ATTR_DB_SYSTEM = "db.system";
+
+     /** Span 属性键：数据库执行语句 */
+     protected static final String ATTR_DB_STATEMENT = "db.statement";
 
      /**
       * 返回该过滤器关注的匹配标识列表，语义因来源类型而异：

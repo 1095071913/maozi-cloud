@@ -6,6 +6,8 @@ import jakarta.validation.ConstraintValidatorContext;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Set;
+
 /**
  * 图片文件校验器
  * <p>
@@ -18,6 +20,11 @@ import org.springframework.web.multipart.MultipartFile;
  * @date 2026/11/08
  */
 public class ImageFileValidator implements ConstraintValidator<ImageFile, MultipartFile> {
+
+    private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp", "bmp");
+
+    /** 图片 Content-Type 前缀 */
+    private static final String IMAGE_CONTENT_TYPE_PREFIX = "image";
 
     /**
      * 初始化校验器
@@ -37,15 +44,19 @@ public class ImageFileValidator implements ConstraintValidator<ImageFile, Multip
     @Override
     public boolean isValid(MultipartFile file, ConstraintValidatorContext context) {
 
-        // 文件为空时跳过校验，交给 @NotNull 等注解处理非空逻辑
-        if(ObjectUtil.isNullEmpty(file) || file.isEmpty()) {
+        if (ObjectUtil.isNullEmpty(file) || file.isEmpty()) {
             return true;
         }
 
-        // 检查文件的 Content-Type 是否以 "image" 开头，判断是否为图片格式
+        // getOriginalFilename 可能为 null（lowerCase 对 null 安全地返回 null），扩展名为空直接不通过
         String contentType = file.getContentType();
-        return StringUtils.isNotEmpty(contentType) && contentType.startsWith("image");
-
+        String extension = StringUtils.lowerCase(StringUtils.substringAfterLast(file.getOriginalFilename(), "."));
+        if(ObjectUtil.isNullEmpty(extension)) {
+            return false;
+        }
+        return ALLOWED_IMAGE_EXTENSIONS.contains(extension)
+                && StringUtils.isNotEmpty(contentType)
+                && contentType.startsWith(IMAGE_CONTENT_TYPE_PREFIX);
     }
 
 }

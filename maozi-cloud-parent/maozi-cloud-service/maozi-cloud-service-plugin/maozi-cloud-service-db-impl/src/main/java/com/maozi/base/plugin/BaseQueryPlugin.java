@@ -12,7 +12,7 @@ import com.github.yulichang.wrapper.MPJLambdaWrapper;
  * @author maozi
  * @date 2026/11/08
  */
-public abstract class QueryBasePlugin {
+public abstract class BaseQueryPlugin {
 
     /**
      * 将查询条件应用到 Wrapper 中

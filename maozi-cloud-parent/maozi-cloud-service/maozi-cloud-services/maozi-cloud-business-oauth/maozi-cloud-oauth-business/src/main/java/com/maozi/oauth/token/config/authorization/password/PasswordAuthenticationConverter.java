@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
@@ -24,7 +25,20 @@ import org.springframework.util.StringUtils;
 public class PasswordAuthenticationConverter extends BaseGrantAuthenticationConverter<PasswordAuthenticationToken> {
 
     /** 授权类型标识：密码模式 */
-    private final String grantType = "password";
+    private static final String GRANT_TYPE = OAuth2ParameterNames.PASSWORD;
+
+    /** 参数缺失或重复时的 OAuth2 错误码 */
+    private static final String ERROR_CODE_BAD_REQUEST = "400";
+
+    /**
+     * 返回当前转换器支持的授权类型
+     *
+     * @return 授权类型标识（password）
+     */
+    @Override
+    public String getGrantType() {
+        return GRANT_TYPE;
+    }
 
     /**
      * 校验请求参数
@@ -41,14 +55,14 @@ public class PasswordAuthenticationConverter extends BaseGrantAuthenticationConv
 
         MultiValueMap<String, String> parameters = getParameters(request);
 
-        String username = parameters.getFirst("username");
-        if (!StringUtils.hasText(username) || parameters.get("username").size() != 1) {
-            throw new OAuth2AuthenticationException(new OAuth2Error("400","账号不能为空",ACCESS_TOKEN_REQUEST_ERROR_URI));
+        String username = parameters.getFirst(OAuth2ParameterNames.USERNAME);
+        if (!StringUtils.hasText(username) || parameters.get(OAuth2ParameterNames.USERNAME).size() != 1) {
+            throw new OAuth2AuthenticationException(new OAuth2Error(ERROR_CODE_BAD_REQUEST,"账号不能为空",ACCESS_TOKEN_REQUEST_ERROR_URI));
         }
 
-        String password = parameters.getFirst("password");
-        if (!StringUtils.hasText(password) || parameters.get("password").size() != 1) {
-            throw new OAuth2AuthenticationException(new OAuth2Error("400", "密码不能为空", ACCESS_TOKEN_REQUEST_ERROR_URI));
+        String password = parameters.getFirst(OAuth2ParameterNames.PASSWORD);
+        if (!StringUtils.hasText(password) || parameters.get(OAuth2ParameterNames.PASSWORD).size() != 1) {
+            throw new OAuth2AuthenticationException(new OAuth2Error(ERROR_CODE_BAD_REQUEST, "密码不能为空", ACCESS_TOKEN_REQUEST_ERROR_URI));
         }
 
     }

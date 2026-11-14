@@ -26,7 +26,7 @@ import java.util.Map;
 @FeignClient(value = ApplicationNameConstant.MAOZI_CLOUD_OAUTH_SERVICE, fallbackFactory = RestOauthTokenServiceFallBackFactory.class)
 public interface RestOauthTokenService {
 
-    /** 基础路径 */
+    /** REST 接口基础路径 */
 	String PATH = RemoteConstant.REMOTE_PREFIX_PATH + "/oauth/token";
 
     /**
@@ -36,6 +36,6 @@ public interface RestOauthTokenService {
      * @return 令牌内省结果，包含 active、sub、authorities 等字段，令牌无效时 active 为 false
      */
 	@Get(value = PATH + "/{token}/introspect",description = "内省令牌")
-	AbstractBaseResult<Map<String, Object>> restIntrospect(@PathVariable("token") String token);
+	AbstractBaseResult<Map<String, Object>> introspectResult(@PathVariable("token") String token);
 
 }

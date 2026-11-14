@@ -11,24 +11,19 @@ import java.util.Map;
 /**
  * OAuth 令牌服务 REST 实现层
  * <p>
- * 继承 {@link OauthTokenServiceImpl} 复用本地内省逻辑，
- * 以 REST 接口形式对外提供令牌内省能力，供资源服务器通过 HTTP（Feign）调用。
- * </p>
+ * 继承 {@link OauthTokenServiceImpl} 复用本地内省逻辑，以 REST 接口对外提供令牌内省能力，供资源服务器通过 HTTP 调用。
  *
- * @author pengjinlong
- * @since 2026/7/8 17:15
+ * @author maozi
+ * @date 2026/7/8 17:15
  */
 @RestService
 public class RestOauthTokenServiceImpl extends OauthTokenServiceImpl implements RestOauthTokenService {
 
     /**
-     * REST 令牌内省
-     *
-     * @param token 访问令牌
-     * @return 内省声明信息封装的统一结果
+     * REST 令牌内省，返回统一结果封装
      */
     @Override
-    public AbstractBaseResult<Map<String, Object>> restIntrospect(String token) {
+    public AbstractBaseResult<Map<String, Object>> introspectResult(String token) {
         return ResultUtil.success(super.introspect(token));
     }
 

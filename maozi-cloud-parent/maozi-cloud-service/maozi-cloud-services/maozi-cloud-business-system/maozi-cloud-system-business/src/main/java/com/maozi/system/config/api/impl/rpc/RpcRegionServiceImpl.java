@@ -11,10 +11,7 @@ import com.maozi.system.config.api.rpc.RpcRegionService;
 /**
  * 地区 RPC 服务实现类
  * <p>
- * 继承 BaseServiceResultImpl 并实现 RpcRegionService 接口，
- * 委托注入的 RegionServiceImpl（service）完成业务处理，
- * 基于 Apache Dubbo 协议提供远程过程调用（RPC）服务，
- * 供其他微服务通过 RPC 方式调用地区相关的接口。
+ * 委托注入的 RegionServiceImpl 完成业务处理，基于 Dubbo RPC 供其他微服务调用地区相关接口。
  * </p>
  *
  * @author maozi
@@ -26,16 +23,14 @@ public class RpcRegionServiceImpl extends BaseServiceResultImpl<RegionServiceImp
 	/**
 	 * 根据ID远程获取地区下拉信息
 	 * <p>
-	 * 通过地区ID查询对应的地区信息，并转换为下拉选项格式返回（仅包含地区 ID 与名称）；
 	 * 地区ID为空或地区不存在时抛出业务异常。
 	 * </p>
 	 *
-	 * @param id 地区ID，用于查询对应的地区记录
-	 * @return 返回包含地区下拉信息的统一响应结果
+	 * @param id 地区ID
+	 * @return 地区下拉信息，仅包含地区 ID 与名称
 	 */
 	@Override
-	public AbstractBaseResult<DropDownResult> rpcGet(Long id) {
-		// 根据ID查询地区信息并转换为下拉选项格式
+	public AbstractBaseResult<DropDownResult> getResult(Long id) {
 		return ResultUtil.success(service.dropDown(id));
 	}
 

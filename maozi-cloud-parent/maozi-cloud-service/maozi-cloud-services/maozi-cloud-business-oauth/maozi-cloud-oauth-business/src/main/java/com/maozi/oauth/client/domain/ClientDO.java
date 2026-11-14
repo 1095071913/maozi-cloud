@@ -37,9 +37,8 @@ import java.util.Set;
 /**
  * OAuth2客户端实体类。
  * <p>
- * 对应数据库表 oauth2_registered_client，存储OAuth2注册客户端的完整信息，
- * 包括客户端标识、密钥、授权方式、授权范围、重定向地址、客户端设置和令牌设置等。
- * 继承 AbstractBaseDomain 获得公共字段（如id、状态、创建时间等）。
+ * 对应数据库表 oauth2_registered_client，存储OAuth2注册客户端的完整信息；
+ * 继承 AbstractBaseDomain 获得id、状态等公共字段。
  * </p>
  *
  * @author maozi
@@ -51,7 +50,7 @@ import java.util.Set;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @TableName(value = "oauth2_registered_client",autoResultMap = true)
-public class ClientDo extends AbstractBaseDomain {
+public class ClientDO extends AbstractBaseDomain {
 	/** 序列化标识 */
 	@Serial
 	private static final long serialVersionUID = 1L;

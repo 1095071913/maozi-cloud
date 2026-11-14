@@ -13,14 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 /**
  * AI会话管理服务 REST 接口
- * <p>
- * 提供AI对话会话的 RESTful API 接口定义，
- * 包括当前用户的会话分页列表查询、会话创建、
- * 会话标题更新以及会话删除等操作。
- * </p>
  *
- * @author pengjinlong
- * @since 2026/8/16 21:35
+ * @author maozi
+ * @date 2026/11/14
  */
 @Tag(name = "AI会话模块")
 public interface RestChatConversationRecord {
@@ -31,11 +26,11 @@ public interface RestChatConversationRecord {
     /**
      * 查询当前用户的会话分页列表
      *
-     * @param pageParam 分页查询参数，包含页码、每页数量以及会话列表的排序条件
-     * @return 返回会话分页列表数据，包含会话 ID、标题等信息
+     * @param pageParam 分页查询参数
+     * @return 当前用户的会话分页列表，条目包含会话 ID 与标题
      */
     @Post(value = PATH + "/list", description = "列表")
-    AbstractBaseResult<PageResult<ChatConversationRecordListResult>> restList(@RequestBody PageParam<ChatConversationRecordListParam> pageParam);
+    AbstractBaseResult<PageResult<ChatConversationRecordListResult>> listResult(@RequestBody PageParam<ChatConversationRecordListParam> pageParam);
 
     /**
      * 创建会话
@@ -44,7 +39,7 @@ public interface RestChatConversationRecord {
      * @return 返回新建会话的 ID
      */
     @Post(value = PATH + "/create", description = "保存")
-    AbstractBaseResult<Long> restCreate(@RequestBody RequestParam<String> param);
+    AbstractBaseResult<Long> createResult(@RequestBody RequestParam<String> param);
 
 
     /** 当前会话基础路径，携带会话 ID 路径变量 */
@@ -58,7 +53,7 @@ public interface RestChatConversationRecord {
      * @return 空结果
      */
     @Post(value = CURRENT_PATH + "/updateTitle", description = "更新标题")
-    AbstractBaseResult<Void> restUpdateTitle(@PathVariable Long conversationId, @RequestBody RequestParam<String> param);
+    AbstractBaseResult<Void> updateTitleResult(@PathVariable Long conversationId, @RequestBody RequestParam<String> param);
 
     /**
      * 删除会话
@@ -67,6 +62,6 @@ public interface RestChatConversationRecord {
      * @return 空结果
      */
     @Post(value = CURRENT_PATH + "/remove", description = "删除")
-    AbstractBaseResult<Void> restRemove(@PathVariable String conversationId);
+    AbstractBaseResult<Void> removeResult(@PathVariable String conversationId);
 
 }

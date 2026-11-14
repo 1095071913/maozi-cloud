@@ -17,11 +17,11 @@ import org.springframework.stereotype.Component;
  * OAuth 客户端 AI 工具调用
  * <p>
  * 供 AI 对话通过 Spring AI 工具调用（Function Call）方式操作 OAuth 客户端，
- * 当前提供新增客户端能力，方法标注 {@code @PreAuthorize}，执行前会进行权限校验。
+ * 工具方法标注 {@code @PreAuthorize}，执行前会进行权限校验。
  * </p>
  *
- * @author pengjinlong
- * @since 2026/8/29 21:21
+ * @author maozi
+ * @date 2026/11/14
  */
 @Component
 public class OauthFunctionCall {
@@ -33,8 +33,7 @@ public class OauthFunctionCall {
     /**
      * 新增客户端
      * <p>
-     * 随机生成 32 位客户端密钥，默认授予密码、刷新令牌、客户端凭证三种授权类型，
-     * 组装参数后调用客户端服务保存。
+     * 随机生成 32 位客户端密钥，默认授予密码、刷新令牌、客户端凭证三种授权类型。
      * </p>
      *
      * @param name 客户端名称
@@ -53,12 +52,11 @@ public class OauthFunctionCall {
         ClientSaveUpdateParam param = new ClientSaveUpdateParam();
         param.setName(name);
         param.setClientSecret(RandomUtil.randomString(32));
-        // 默认授予密码、刷新令牌、客户端凭证三种授权类型
         param.setAuthorizationGrantTypes(CollectionUtil.newHashSet(AuthType.PASSWORD,AuthType.REFRESH_TOKEN,AuthType.CLIENT_CREDENTIALS));
         param.setAccessTokenValiditySeconds(accessTokenValiditySeconds);
         param.setRefreshTokenValiditySeconds(refreshTokenValiditySeconds);
 
-        AbstractBaseResult<ClientDTO> result = rpcClientService.rpcAiSave(param);
+        AbstractBaseResult<ClientDTO> result = rpcClientService.aiSaveResult(param);
         if(result.isSuccess()){
             // 保存成功后将生成的明文客户端密钥回填到返回数据，供调用方查看
             result.getData().setClientSecret(param.getClientSecret());

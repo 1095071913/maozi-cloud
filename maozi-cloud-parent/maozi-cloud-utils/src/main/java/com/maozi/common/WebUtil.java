@@ -20,8 +20,8 @@ import java.util.Objects;
  * 主要用于在非 Controller 层（如 Service、Utils 等）中访问 Web 上下文信息。
  * </p>
  *
- * @author pengjinlong
- * @since 2026/4/24 14:11
+ * @author maozi
+ * @date 2026/4/24 14:11
  */
 @Slf4j
 public final class WebUtil {
@@ -42,6 +42,15 @@ public final class WebUtil {
      */
     public static Boolean isHttpRequest() {
         return ObjectUtil.isNotNullEmpty(getRequest());
+    }
+
+    /**
+     * 判断当前线程是否不在 HTTP 请求上下文
+     *
+     * @return 不在 Web 请求线程中返回 true，否则返回 false
+     */
+    public static Boolean notHttpRequest() {
+        return !isHttpRequest();
     }
 
     /**
@@ -108,12 +117,9 @@ public final class WebUtil {
 
     /**
      * 判断 IP 地址字符串是否为空、空白或 "unknown"
-     * <p>
-     * 用于在获取客户端 IP 时判断各个代理头字段是否有效。
-     * </p>
      *
      * @param ip 待判断的 IP 字符串
-     * @return 如果为 null、空白或 "unknown"（不区分大小写），返回 true
+     * @return 为 null、空白或 "unknown"（不区分大小写）时返回 true
      */
     private static boolean isBlankOrUnknown(String ip) {
         return ObjectUtil.isNullEmpty(ip) || ip.isBlank() || "unknown".equalsIgnoreCase(ip);

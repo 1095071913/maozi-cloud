@@ -11,8 +11,7 @@ import com.maozi.system.user.dto.SystemUser;
 /**
  * 用户信息RPC服务实现类
  * <p>
- * 提供用户信息的Dubbo RPC远程调用接口实现，用于跨服务查询用户基本信息。
- * 内部持有 UserServiceImpl 作为业务服务，复用用户基础业务逻辑。
+ * 提供用户信息的 Dubbo RPC 远程调用接口实现，内部持有 UserServiceImpl 复用用户基础业务逻辑。
  * </p>
  *
  * @author maozi
@@ -23,9 +22,7 @@ public class RpcUserInfoServiceImpl extends BaseServiceResultImpl<UserServiceImp
 
 	/**
 	 * 根据用户 ID 查询系统用户信息
-	 * <p>
-	 * 按 ID 查询用户并转换为 {@link SystemUser}，用户不存在时抛出业务异常。
-	 * </p>
+	 * <p>用户不存在时抛出业务异常。</p>
 	 *
 	 * @param id 用户 ID
 	 * @param columns 查询列（保留参数，当前未使用）
@@ -33,7 +30,7 @@ public class RpcUserInfoServiceImpl extends BaseServiceResultImpl<UserServiceImp
 	 * @throws com.maozi.common.result.error.exception.BusinessResultException 用户不存在时抛出
 	 */
 	@Override
-	public AbstractBaseResult<SystemUser> rpcGet(Long id, String... columns) {
+	public AbstractBaseResult<SystemUser> getResult(Long id, String... columns) {
 		return ResultUtil.success(service.getByIdThrowErrorRelation(id, SystemUser.class));
 	}
 

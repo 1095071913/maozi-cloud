@@ -14,9 +14,7 @@ import java.util.List;
 /**
  * 图片模块 REST 服务实现类
  * <p>
- * 继承自 ImageServiceImpl，实现 RestImageService 接口，
- * 提供图片上传的 RESTful API 接口实现，
- * 上传请求根据配置路由到对应的存储处理器处理。
+ * 继承 ImageServiceImpl 并实现 RestImageService 接口，提供图片上传的 RESTful 接口。
  * </p>
  *
  * @author maozi
@@ -27,12 +25,8 @@ public class RestImageServiceImpl extends ImageServiceImpl implements RestImageS
 
 	/**
 	 * 构造方法
-	 * <p>
-	 * 将容器内的存储处理器列表传递给父类，
-	 * 由父类按存储类型建立索引供上传路由使用。
-	 * </p>
 	 *
-	 * @param handlers 容器内的存储处理器列表
+	 * @param handlers 容器内的存储处理器列表，由父类按存储类型建立索引
 	 */
 	public RestImageServiceImpl(List<ImageStorageHandler> handlers) {
 		super(handlers);
@@ -41,11 +35,11 @@ public class RestImageServiceImpl extends ImageServiceImpl implements RestImageS
 	/**
 	 * 上传图片
 	 *
-	 * @param param 图片上传参数，包含上传的图片文件列表与保存路径（目录前缀）
-	 * @return 上传结果列表，每张图片对应一项，包含文件原始名称、对象存储路径、访问地址与文件大小
+	 * @param param 图片上传参数，包含图片文件列表与保存路径
+	 * @return 上传结果列表，每张图片对应一项
 	 */
 	@Override
-	public AbstractBaseResult<List<ImageUploadResult>> restUpload(ImageUploadParam param) {
+	public AbstractBaseResult<List<ImageUploadResult>> uploadResult(ImageUploadParam param) {
 		return ResultUtil.success(super.upload(param));
 	}
 

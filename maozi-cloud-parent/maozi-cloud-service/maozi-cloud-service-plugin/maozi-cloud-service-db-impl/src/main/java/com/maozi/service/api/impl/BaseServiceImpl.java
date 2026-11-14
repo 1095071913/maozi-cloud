@@ -67,18 +67,8 @@ import java.util.stream.Collectors;
 /**
  * 基础服务实现类
  * <p>
- * 提供通用的数据库 CRUD 操作封装，包括单条查询、列表查询、分页查询、
- * 下拉数据查询、新增/更新/删除操作，以及结果集封装方法。
- * 支持基于注解的动态查询条件构建（QueryPlugin）和关联查询（JoinPlugins），
- * 并通过 QueryMapping 注解实现关联数据的自动填充。
- * </p>
- * <p>
- * 泛型参数说明：
- * <ul>
- *   <li>M - MyBatis-Plus Mapper 接口类型</li>
- *   <li>T - 领域模型（数据库实体）类型</li>
- *   <li>D - 数据传输对象（DTO）类型</li>
- * </ul>
+ * 提供通用的数据库 CRUD 封装与结果转换，支持基于 QueryPlugin 注解的动态条件构建
+ * 和基于 QueryMapping 注解的关联数据自动填充。泛型：M 为 Mapper 类型，T 为领域模型类型。
  * </p>
  *
  * @author maozi
@@ -92,12 +82,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     /**
      * 领域模型（数据库实体）Class 对象
      * -- GETTER --
-     * 获取领域模型的 Class 对象
-     * <p>
-     * 首次调用 {@link #currentModelClass()} 时懒加载并缓存。实例被 CGLIB
-     * 代理时，代理对象与原始实例不共享字段值，直接读代理字段得到的是 null；
-     * 方法调用会委托至原始实例，因此外部取值应走本方法而非直接读字段。
-     * </p>
+     * 获取领域模型 Class 对象（懒加载缓存；CGLIB 代理下直接读字段得到 null，须经本方法获取）
      *
      * @return 领域模型 Class 对象
      */
@@ -213,8 +198,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     /**
      * 根据 Lambda 函数引用获取对应的数据库列名
      * <p>
-     * 通过序列化 Lambda 表达式获取属性名，再转换为下划线格式的数据库列名。
-     * 优先从 MyBatis-Plus 的 TableInfo 中获取映射关系。
+     * 将 Lambda 属性引用解析为下划线列名，优先取 TableInfo 中的主键/字段映射，未命中时回退属性名。
      * </p>
      *
      * @param <O> 实体类型
@@ -295,13 +279,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     /**
      * 根据 Class 对象获取其对应的所有数据库列名
      * <p>
-     * 遍历类及其父类的所有字段，根据 QueryMapping 注解决定列名的映射规则：
-     * <ul>
-     *   <li>无注解：直接使用字段名的下划线形式</li>
-     *   <li>注解标记 ignore 且指定了 field 或 tableName：使用注解配置的列名</li>
-     *   <li>其余带注解字段（未标记 ignore，或标记 ignore 但未指定 field 与 tableName）：
-     *   跳过，不生成查询列</li>
-     * </ul>
+     * 遍历类及其父类字段：无注解的取字段名下划线形式；QueryMapping 注解标记
+     * ignore 且指定 field/tableName 的按注解配置生成；其余注解字段跳过。
      * </p>
      *
      * @param clazz Class 对象
@@ -608,7 +587,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 实体对象
      * @throws BusinessResultException 当实体不存在时抛出异常
      */
-    public T getByIdThrowError(Long id,String ... columns){
+    public T getByIdThrowError(Long id, String ... columns){
 
         ObjectUtil.isNullEmptyThrowError(id, getResourceName());
 
@@ -636,7 +615,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 实体对象
      * @throws BusinessResultException 当实体不存在时抛出异常
      */
-    public T getByIdThrowError(Long id,MPJLambdaWrapper<T> wrapper){
+    public T getByIdThrowError(Long id, MPJLambdaWrapper<T> wrapper){
 
         ObjectUtil.isNullEmptyThrowError(id, getResourceName());
 
@@ -703,7 +682,20 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @throws BusinessResultException 当实体不存在时抛出异常
      */
     public <R> T getByIdThrowError(Long id, SFunction<R, ?> ... columns) {
-        return getByIdThrowError(id,getColumns(columns));
+        return getByIdThrowError(id, getColumns(columns));
+    }
+
+    /**
+     * 根据 ID 查询实体并转换为指定类型，不存在则抛出异常
+     *
+     * @param <V> 目标类型
+     * @param id 实体 ID
+     * @param clazz 目标类型 Class 对象
+     * @return 转换后的对象
+     * @throws BusinessResultException 当实体不存在时抛出异常
+     */
+    public <V> V getByIdThrowError(Long id, Class<V> clazz){
+        return CglibUtil.copy(getByIdThrowError(id, getColumns(clazz,false)), clazz);
     }
 
     /**
@@ -718,7 +710,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @throws BusinessResultException 当实体不存在时抛出异常
      */
     public <V,R> V getByIdThrowError(Long id, Class<V> clazz, SFunction<R, ?> ... columns){
-        return CglibUtil.copy(getByIdThrowError(id,columns), clazz);
+        return CglibUtil.copy(getByIdThrowError(id, columns), clazz);
     }
 
     /**
@@ -732,7 +724,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public <V> V getByIdThrowErrorRelation(Long id,Class<V> clazz) {
 
-        V response = CglibUtil.copy(getByIdThrowError(id,getColumns(clazz,false)), clazz);
+        V response = CglibUtil.copy(getByIdThrowError(id,getColumns(clazz, false)), clazz);
 
         setRelationData(response, clazz);
 
@@ -750,11 +742,11 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 转换后且填充了关联数据的对象
      * @throws BusinessResultException 当查询参数为空或实体不存在时抛出异常
      */
-    public <V,R> V getByParamThrowErrorRelation(R dto,Class<V> clazz) {
+    public <V,R> V getByParamThrowErrorRelation(R dto, Class<V> clazz) {
 
         ObjectUtil.isNullEmptyThrowError(dto, getResourceName());
 
-        MPJLambdaWrapper<T> wrapper = buildQueryWrapper(dto,clazz);
+        MPJLambdaWrapper<T> wrapper = buildQueryWrapper(dto, clazz);
 
         wrapper.select(getColumns(clazz));
 
@@ -776,16 +768,16 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 实体列表
      * @throws BusinessResultException 当 ID 集合为空时抛出异常
      */
-    public List<T> listByIds(Collection<?> ids,String ... columns) {
+    public List<T> listByIds(Collection<?> ids, String ... columns) {
 
-        CollectionUtil.collectionIsEmptyThrowError(ids,getResourceName() + RESOURCE_SUFFIX_LIST);
+        CollectionUtil.collectionIsEmptyThrowError(ids, getResourceName() + RESOURCE_SUFFIX_LIST);
 
         QueryWrapper<T> wrapper = Wrappers.query();
         if(columns.length > 0) {
             wrapper.select(columns);
         }
 
-        wrapper.in(getColumn(AbstractBaseDomain::getId),ids);
+        wrapper.in(getColumn(AbstractBaseDomain::getId), ids);
 
         return super.list(wrapper);
 
@@ -1033,6 +1025,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      *
      * @param domains 实体列表
      */
+    @Transactional(rollbackFor = Exception.class)
     public void saveUpdateBatch(List<T> domains) {
 
         CollectionUtil.collectionIsEmptyThrowError(domains, getResourceName() + RESOURCE_SUFFIX_LIST);
@@ -1082,6 +1075,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param id 实体 ID
      * @return 删除是否成功
      */
+    @Transactional(rollbackFor = Exception.class)
     public boolean removeById(Long id) {
 
         ObjectUtil.isNullEmptyThrowError(id,getResourceName());
@@ -1099,15 +1093,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     /**
      * 根据参数对象的注解信息构建查询条件
      * <p>
-     * 处理流程：
-     * <ol>
-     *   <li>解析类级别的 JoinPlugins 注解，构建关联查询条件</li>
-     *   <li>遍历参数对象的所有字段（值为空的字段跳过），
-     *   根据 QueryPlugin 注解构建查询条件</li>
-     *   <li>处理注解标记 nest=true 的嵌套参数对象，
-     *   以注解指定的表名递归解析其内部条件</li>
-     *   <li>处理 TimeParam 类型的字段，自动生成范围查询条件</li>
-     * </ol>
+     * 先应用类级 JoinPlugins 注解拼接关联查询，再遍历字段：值为空的跳过，
+     * QueryPlugin 注解按查询类型拼接（nest 嵌套参数递归解析），TimeParam 字段生成时间范围条件。
      * </p>
      *
      * @param tableName 表别名
@@ -1220,8 +1207,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     /**
      * 设置查询映射关联（MPJ 关联查询的 selectCollection/selectAssociation）
      * <p>
-     * 遍历 VO 类中带有 QueryMapping 注解且未标记 ignore、isService 的字段，
-     * 根据注解配置自动构建 MyBatis-Plus-Join 的 selectCollection 或 selectAssociation 映射。
+     * 遍历 VO 类中带 QueryMapping 注解且未标记 ignore、isService 的字段，
+     * 按注解表名从 StoreClass 解析关联实体后构建映射。
      * </p>
      *
      * @param clazz VO 类型 Class 对象
@@ -1271,12 +1258,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     /**
      * 构建关联查询条件（指定 VO 类型）
      * <p>
-     * 根据参数对象和 VO 类型构建 MPJLambdaWrapper，自动处理：
-     * <ul>
-     *   <li>select 字段映射</li>
-     *   <li>基于 QueryPlugin 注解的动态查询条件</li>
-     *   <li>基于 OrderParam 的排序条件</li>
-     * </ul>
+     * 自动处理 select 字段映射、QueryPlugin 动态查询条件和 OrderParam 排序条件。
      * </p>
      *
      * @param param 查询参数对象（支持 PageParam 自动解包）
@@ -1336,14 +1318,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     /**
      * 设置关联数据
      * <p>
-     * 根据 VO 类中 QueryMapping 注解的配置，通过 RPC 或本地服务调用
-     * 自动填充关联数据。支持以下关联类型：
-     * <ul>
-     *   <li>通过 functionName 自定义方法调用</li>
-     *   <li>List 类型：一对多关联</li>
-     *   <li>DropDownResult 类型：下拉选项关联</li>
-     *   <li>其他类型：一对一关联</li>
-     * </ul>
+     * 根据 VO 类中 QueryMapping 注解的配置，通过服务调用自动填充关联数据；
+     * List 走批量填充，其余走单个填充。
      * </p>
      *
      * @param data 响应数据对象（支持 PageResult、List 和单个对象）
@@ -1454,10 +1430,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     /**
      * 批量模式：设置单个字段的关联数据
      * <p>
-     * 根据字段类型进行 4 路分发：functionName 自定义方法、List 一对多、
-     * DropDownResult 下拉、其他一对一。
-     * 批量收集 ID 后统一调用服务获取关联数据，再分发回各响应对象
-     * （一对多关联收集对象自身主键 ID 作为关联值，其余分支收集关联字段的值）。
+     * 按字段类型分发：functionName 自定义方法、List 一对多、DropDownResult 下拉、其余一对一；
+     * 批量收集 ID 统一调用服务后分发回各响应对象（一对多以对象自身主键为关联值）。
      * </p>
      *
      * @param responses 响应数据列表
@@ -1562,9 +1536,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     /**
      * 单对象模式：设置单个字段的关联数据
      * <p>
-     * 根据字段类型进行 4 路分发：functionName 自定义方法、List 一对多、
-     * DropDownResult 下拉、其他一对一。
-     * 针对单个对象调用服务获取关联数据。
+     * 按字段类型分发：functionName 自定义方法、List 一对多、DropDownResult 下拉、其余一对一。
      * </p>
      *
      * @param data 响应数据对象

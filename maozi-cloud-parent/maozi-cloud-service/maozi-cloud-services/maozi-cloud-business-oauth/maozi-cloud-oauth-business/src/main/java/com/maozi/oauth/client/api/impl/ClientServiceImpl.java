@@ -12,7 +12,7 @@ import com.maozi.base.result.PageResult;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.oauth.client.api.ClientService;
-import com.maozi.oauth.client.domain.ClientDo;
+import com.maozi.oauth.client.domain.ClientDO;
 import com.maozi.oauth.client.mapper.ClientMapper;
 import com.maozi.oauth.client.param.ClientListParam;
 import com.maozi.oauth.client.param.ClientSaveUpdateParam;
@@ -38,16 +38,15 @@ import java.util.stream.Collectors;
 /**
  * OAuth2客户端服务实现类。
  * <p>
- * 继承 BaseServiceImpl，实现 ClientService 接口。
- * 提供客户端的增删改查、Token设置、客户端设置等核心业务逻辑，
- * 包括客户端密钥加密、令牌有效期配置、OAuth2相关设置的构建等功能。
+ * 提供客户端的增删改查及OAuth2客户端设置、令牌设置的构建，
+ * 涵盖客户端密钥加密与令牌有效期配置等核心逻辑。
  * </p>
  *
  * @author maozi
  * @date 2026/11/08
  */
 @Service
-public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo> implements ClientService {
+public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> implements ClientService {
 
     /** 资源名称标识，用于异常信息提示 */
     public static final String RESOURCE_NAME = "客户端";
@@ -70,11 +69,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo> i
     /** 密码编码器，用于对客户端密钥进行加密存储 */
     protected static final PasswordEncoder PASSWORD_ENCODER;
 
-    /*
-      静态初始化块。
-      初始化OAuth2专用的ObjectMapper（注册OAuth2授权服务器和安全模块）
-      以及密码编码器（使用委托式密码编码器，支持多种加密算法）。
-     */
+    // 初始化OAuth2专用ObjectMapper与委托式密码编码器
     static {
 
         OAUTH_OBJECT_MAPPER = new ObjectMapper();
@@ -88,8 +83,6 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo> i
 
     /**
      * 获取资源名称。
-     *
-     * @return 资源名称字符串
      */
     @Override
     public String getResourceName() {
@@ -97,16 +90,10 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo> i
     }
 
     /**
-     * 客户端新增或更新的统一处理方法。
+     * 客户端新增或更新的统一处理。
      * <p>
-     * 新增时：自动生成clientId，设置默认令牌有效期，
-     * 构建默认客户端设置（不需要确认授权）。
-     * 更新时：清除clientId防止被修改。
-     * 通用处理：对非空的客户端密钥进行加密；
-     * 当Access Token和Refresh Token有效期均已提供时，
-     * 构建令牌设置（包括不透明令牌（REFERENCE）格式、授权码存活时间、
-     * 设备码存活时间、不重用刷新令牌、Access Token和Refresh Token存活时间等），
-     * 否则不重建令牌设置（沿用参数中传入的值）。
+     * 新增时自动生成clientId并填充默认令牌有效期与客户端设置，更新时清空clientId防止被修改；
+     * 密钥非空时加密存储，两种令牌有效期均已提供时构建令牌设置，否则不重建。
      * </p>
      *
      * @param id    客户端主键ID，新增时为null
@@ -114,7 +101,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo> i
      * @return 保存后的客户端主键ID
      */
     @Transactional(rollbackFor = Exception.class)
-    public Long saveUpdate(Long id, ClientSaveUpdateParam param) {
+    public Long adminSaveUpdate(Long id, ClientSaveUpdateParam param) {
 
         if(ObjectUtil.isNullEmpty(id)) {
 
@@ -152,20 +139,16 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo> i
 
             //不透明令牌（REFERENCE），令牌值不携带信息，需通过内省端点校验
             builder.accessTokenFormat(OAuth2TokenFormat.REFERENCE);
-            // 授权码存活时间：5分钟
             builder.authorizationCodeTimeToLive(Duration.ofSeconds(AUTH_CODE_TTL_SECONDS));
-            // 设备码存活时间：5分钟
             builder.deviceCodeTimeToLive(Duration.ofSeconds(DEVICE_CODE_TTL_SECONDS));
-            // 不重用 Refresh Token（每次刷新令牌时签发新的 Refresh Token）
+            // 不重用 Refresh Token（每次刷新时签发新的 Refresh Token）
             builder.reuseRefreshTokens(Boolean.FALSE);
 
 
-            // Access Token 存活时间
             if(ObjectUtil.isNotNullEmpty(accessTokenValiditySeconds)){
                 builder.accessTokenTimeToLive(Duration.ofSeconds(accessTokenValiditySeconds));
             }
 
-            // Refresh Token 存活时间
             if(ObjectUtil.isNotNullEmpty(refreshTokenValiditySeconds)) {
                 builder.refreshTokenTimeToLive(Duration.ofSeconds(refreshTokenValiditySeconds));
             }
@@ -190,11 +173,11 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo> i
      * @throws BusinessResultException 客户端不存在时抛出 DATA_NOT_EXIST_ERROR，
      * 禁用时抛出 FORBIDDEN_ERROR
      */
-    public ClientInfoResult superRestGet(Long id) {
+    public ClientInfoResult adminGet(Long id) {
 
-        ClientDo domain = super.getAvailableById(id,
-                ClientDo::getClientId, ClientDo::getName, ClientDo::getAuthorizationGrantTypes,
-                ClientDo::getTokenSettings, ClientDo::getRemark, ClientDo::getStatus);
+        ClientDO domain = super.getAvailableById(id,
+                ClientDO::getClientId, ClientDO::getName, ClientDO::getAuthorizationGrantTypes,
+                ClientDO::getTokenSettings, ClientDO::getRemark, ClientDO::getStatus);
 
         //防御性判空（getAvailableById在数据不存在时已抛出异常，正常不会进入该分支）
         if(ObjectUtil.isNullEmpty(domain)){
@@ -222,10 +205,10 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo> i
      * @param pageParam 分页查询参数，包含查询条件和分页信息
      * @return 分页结果，包含客户端列表数据
      */
-    public PageResult<ClientListResult> superRestList(PageParam<ClientListParam> pageParam){
+    public PageResult<ClientListResult> adminList(PageParam<ClientListParam> pageParam){
 
         Class<ClientListResult> responseClass = ClientListResult.class;
-        MPJLambdaWrapper<ClientDo> wrapper = super.buildQueryWrapper(pageParam.getData(), responseClass);
+        MPJLambdaWrapper<ClientDO> wrapper = super.buildQueryWrapper(pageParam.getData(), responseClass);
         Page<ClientListResult> page = super.selectJoinListPage(super.convertPage(pageParam), responseClass,wrapper);
 
         page.getRecords().forEach(item -> {
@@ -249,7 +232,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo> i
      */
     @Override
     public String getClientId(Long id) {
-        return super.getByIdThrowError(id, ClientDo::getClientId).getClientId();
+        return super.getByIdThrowError(id, ClientDO::getClientId).getClientId();
     }
 
     /**
@@ -261,13 +244,13 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDo> i
     @Override
     public Map<Long,String> getClientIdsMap(Collection<Long> ids) {
 
-        LambdaQueryWrapper<ClientDo> wrapper = Wrappers.lambdaQuery();
+        LambdaQueryWrapper<ClientDO> wrapper = Wrappers.lambdaQuery();
 
-        wrapper.select(ClientDo::getId,ClientDo::getClientId);
+        wrapper.select(ClientDO::getId,ClientDO::getClientId);
         
-        wrapper.in(ClientDo::getId, ids);
+        wrapper.in(ClientDO::getId, ids);
 
-        return super.list(wrapper).stream().collect(Collectors.toMap(ClientDo::getId, ClientDo::getClientId, (v1, v2) -> v1));
+        return super.list(wrapper).stream().collect(Collectors.toMap(ClientDO::getId, ClientDO::getClientId, (v1, v2) -> v1));
         
     }
 

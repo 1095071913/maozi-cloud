@@ -21,11 +21,6 @@ import java.util.List;
 
 /**
  * AI对话服务 REST 接口
- * <p>
- * 提供AI对话的 RESTful API 接口定义，
- * 包括AI流式对话、文生图、对话消息列表查询、
- * 停止对话、增量获取消息以及删除指定消息等操作。
- * </p>
  *
  * @author maozi
  * @date 2026/11/08
@@ -43,7 +38,7 @@ public interface RestChatService {
 	 * @return 返回 AI 回复的分片流（SSE），最后追加一条对话完成（FINISH）消息
 	 */
 	@Post(value = PATH, produces = MediaType.TEXT_EVENT_STREAM_VALUE, description = "发起")
-    Flux<AbstractBaseResult<ChatResult>> restChat(@RequestBody @Valid ChatParam param);
+    Flux<AbstractBaseResult<ChatResult>> chatResult(@RequestBody @Valid ChatParam param);
 
 	/**
 	 * AI文生图
@@ -52,7 +47,7 @@ public interface RestChatService {
 	 * @return 返回提示消息与生成图片的地址列表
 	 */
 	@Post(value = PATH + "/generate/image", description = "发起图片生成")
-	AbstractBaseResult<ChatGenerateImageResult> restGenerateImage(@RequestBody @Valid ChatGenerateImageParam param);
+	AbstractBaseResult<ChatGenerateImageResult> generateImageResult(@RequestBody @Valid ChatGenerateImageParam param);
 
 
 	/** 当前会话基础路径，携带会话 ID 路径变量 */
@@ -65,7 +60,7 @@ public interface RestChatService {
 	 * @return 返回会话是否正在对话中以及该会话的对话消息列表
 	 */
 	@Get(value = CURRENT_PATH + "/list", description = "列表")
-	AbstractBaseResult<ChatListResult> restList(@PathVariable String conversationId);
+	AbstractBaseResult<ChatListResult> listResult(@PathVariable String conversationId);
 
 	/**
 	 * 停止会话进行中的对话或文生图
@@ -74,7 +69,7 @@ public interface RestChatService {
 	 * @return 空结果
 	 */
 	@Post(value = CURRENT_PATH + "/stop", description = "停止")
-	AbstractBaseResult<Void> restStop(@PathVariable String conversationId);
+	AbstractBaseResult<Void> stopResult(@PathVariable String conversationId);
 
 	/**
 	 * 查询会话中指定时间之后的消息列表
@@ -84,7 +79,7 @@ public interface RestChatService {
 	 * @return 返回该时间之后写入的增量消息列表
 	 */
 	@Get(value = CURRENT_PATH + "/getAfterMessages", description = "获取后续消息列表")
-	AbstractBaseResult<List<ChatItemResult>> restGetAfterMessages(@PathVariable String conversationId, @RequestParam Long createTime);
+	AbstractBaseResult<List<ChatItemResult>> getAfterMessagesResult(@PathVariable String conversationId, @RequestParam Long createTime);
 
 	/**
 	 * 删除会话中的指定消息
@@ -94,6 +89,6 @@ public interface RestChatService {
 	 * @return 空结果
 	 */
 	@Post(value = CURRENT_PATH + "/{messageId}/remove", description = "删除消息")
-	AbstractBaseResult<Void> restRemoveMessage(@PathVariable String conversationId, @PathVariable String messageId);
+	AbstractBaseResult<Void> removeMessageResult(@PathVariable String conversationId, @PathVariable String messageId);
 
 }

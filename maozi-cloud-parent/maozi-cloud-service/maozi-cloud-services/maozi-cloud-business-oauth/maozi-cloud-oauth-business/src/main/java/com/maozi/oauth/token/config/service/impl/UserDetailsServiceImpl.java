@@ -21,7 +21,7 @@ import com.maozi.common.CollectionUtil;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.oauth.token.config.domain.SecurityUserDetails;
-import com.maozi.oauth.token.constants.OAuth2TokenClaimConstants;
+import com.maozi.oauth.token.constants.OAuth2TokenUserClaimConstants;
 import com.maozi.service.api.annotation.RemoteResource;
 import com.maozi.system.user.api.rpc.RpcUserService;
 import com.maozi.system.user.result.OauthUserInfoResult;
@@ -53,25 +53,18 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	private RpcUserService rpcUserService;
 
 	/**
-	 * 根据用户名加载用户详情
-	 * <p>
-	 * 通过RPC远程调用获取用户的权限列表和加密密码，
-	 * 构建包含用户名、密码和权限列表的UserDetails对象，
-	 * 并将用户ID写入附加属性attributes（后续随令牌claims一并颁发）。
-	 * 如果用户不存在或RPC调用失败，会根据异常类型返回对应的错误信息。
-	 * </p>
+	 * 根据用户名加载用户详情，通过RPC获取用户权限与加密密码，并将用户ID写入附加属性（随令牌claims一并颁发）
 	 *
 	 * @param username 用户名
 	 * @return 包含用户名、密码和权限的UserDetails对象
-	 * @throws BusinessResultException 用户不存在等业务错误时抛出 USER_AUTH_ERROR，
-	 *                                  其他异常统一抛出 SYSTEM_ERROR（不会抛出 UsernameNotFoundException）
+	 * @throws BusinessResultException 业务错误（如用户不存在）抛出USER_AUTH_ERROR，其余异常统一抛出SYSTEM_ERROR
 	 */
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		
 		try{
 
-			OauthUserInfoResult oauthUserInfo = rpcUserService.rpcGetOauthUserInfoByUsername(username).getResultDataThrowError();
+			OauthUserInfoResult oauthUserInfo = rpcUserService.getOauthUserInfoByUsernameResult(username).getResultDataThrowError();
 
 			List<GrantedAuthority> grantedAuthorities = CollectionUtil.newArrayList();
 			oauthUserInfo.getAuthorities().forEach((permission)->{
@@ -80,12 +73,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 			// 将用户ID写入附加属性，颁发令牌时会合并进claims
 			Map<String, Object> attributes = CollectionUtil.newHashMap();
-			attributes.put(OAuth2TokenClaimConstants.USER_ID,oauthUserInfo.getUserId());
+			attributes.put(OAuth2TokenUserClaimConstants.USER_ID,oauthUserInfo.getUserId());
 
 			return new SecurityUserDetails(username,oauthUserInfo.getPassword(), grantedAuthorities, attributes);
 
 		}catch (Exception e){
 
+			// 业务错误（如用户不存在）转为用户认证失败，其余统一转为系统错误
 			if(e instanceof BusinessResultException be && be.getErrorResult().isBusinessError()){
 				throw new BusinessResultException(SystemErrorCode.USER_AUTH_ERROR);
 			}

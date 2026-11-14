@@ -51,8 +51,11 @@ public class RestRequestEntranceLogAop extends AbstractRequestEntranceLogAop {
 	/** REST 实现层切点表达式（匹配 api.impl.rest 包下的方法） */
 	private static final String REST_POINT = "* " + ApplicationEnvironmentContext.PACKAGE_PREFIX + ".*.*.api.impl.rest..*(..)";
 
+	/** 基础服务实现类切点表达式 */
+	private static final String BASE_RPC_POINT = ApplicationEnvironmentContext.PACKAGE_PREFIX + ".common.result.AbstractBaseResult " + ApplicationEnvironmentContext.PACKAGE_PREFIX + ".service.api.impl.result.BaseServiceResultImpl.*(..)";
+
 	/** 组合切点表达式 */
-	private static final String POINT = "execution(" + REST_POINT + ")";
+	private static final String POINT = "execution(" + REST_POINT + ") || execution(" + BASE_RPC_POINT + ")";
 
 	/**
 	 * 环绕通知，绑定 REST 切点并委托给基类的统一日志逻辑
@@ -63,6 +66,12 @@ public class RestRequestEntranceLogAop extends AbstractRequestEntranceLogAop {
 	 */
 	@Around(POINT)
 	public Object doAround(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+
+		// 非 HTTP 流量时直接放行，不记录 HTTP 入口日志
+		if(WebUtil.notHttpRequest()){
+			return proceedingJoinPoint.proceed();
+		}
+
 		return super.doAround(proceedingJoinPoint);
 	}
 

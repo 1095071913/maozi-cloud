@@ -13,9 +13,8 @@ import java.util.List;
 /**
  * 地区 REST 服务实现类
  * <p>
- * 继承 BaseServiceResultImpl 并实现 RestRegionService 接口，
- * 委托注入的 RegionServiceImpl（service）完成业务处理，
- * 提供 RESTful 风格的地区查询接口，主要用于前端下拉列表数据获取。
+ * 委托注入的 RegionServiceImpl 完成业务处理，提供地区数据的 RESTful 查询接口，
+ * 主要用于前端下拉列表数据获取。
  * </p>
  *
  * @author maozi
@@ -26,17 +25,13 @@ public class RestRegionServiceImpl extends BaseServiceResultImpl<RegionServiceIm
 
 	/**
 	 * 根据父级ID查询子地区下拉列表
-	 * <p>
-	 * 根据指定的父级地区ID，查询其下所有子地区信息，
-	 * 并将结果转换为下拉列表（DropDownResult）格式返回。
-	 * </p>
 	 *
-	 * @param parentId 父级地区ID，用于筛选子地区数据
-	 * @return 返回包含下拉列表数据的统一响应结果，列表中每个元素包含地区的ID和名称
+	 * @param parentId 父级地区ID
+	 * @return 子地区下拉列表，每项包含地区ID和名称
 	 */
 	@Override
-	public AbstractBaseResult<List<DropDownResult>> restList(Long parentId) {
-		return ResultUtil.success(service.list(parentId));
+	public AbstractBaseResult<List<DropDownResult>> listResult(Long parentId) {
+		return ResultUtil.success(service.commonList(parentId));
 	}
 
 }

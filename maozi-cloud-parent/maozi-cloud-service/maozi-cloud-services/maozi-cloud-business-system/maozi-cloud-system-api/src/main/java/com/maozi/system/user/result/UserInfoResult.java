@@ -17,8 +17,7 @@ import java.util.List;
 /**
  * 用户详情视图对象
  * <p>
- * 用于展示用户的详细信息，包括账号、姓名、所属客户端、头像、状态
- * 以及关联的角色列表。通过 QueryMapping 注解自动查询关联数据。
+ * 所属客户端与关联的角色ID列表通过 QueryMapping 注解自动查询填充。
  * </p>
  *
  * @author maozi
@@ -66,7 +65,7 @@ public class UserInfoResult implements Serializable {
 
 	/** 用户关联的角色ID列表，通过用户角色服务查询自动填充 */
 	@Schema(description = "角色列表",ref = "StringArrayList")
-	@QueryMapping(isService = true,serviceName = "userRoleServiceImpl",functionName = "getRolesByUser",relationField = "id")
+	@QueryMapping(isService = true, serviceName = "userRoleServiceImpl", functionName = "getRolesByUser", relationField = "id")
 	private List<Long> roleIds;
 
 }

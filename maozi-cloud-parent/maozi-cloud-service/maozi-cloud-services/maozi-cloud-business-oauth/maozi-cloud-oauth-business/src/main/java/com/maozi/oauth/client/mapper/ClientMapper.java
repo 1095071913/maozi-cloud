@@ -17,18 +17,17 @@
 
 package com.maozi.oauth.client.mapper;
 
-import com.maozi.oauth.client.domain.ClientDo;
+import com.maozi.oauth.client.domain.ClientDO;
 import com.maozi.service.api.IBaseMapper;
 
 
 /**
  * OAuth2客户端Mapper接口。
  * <p>
- * 继承 IBaseMapper<ClientDo>，提供客户端实体与数据库表 oauth2_registered_client
- * 之间的ORM映射操作，包括基础的增删改查和关联查询功能。
+ * 提供客户端实体与数据库表 oauth2_registered_client 之间的ORM映射操作。
  * </p>
  *
  * @author maozi
  * @date 2026/11/08
  */
-public interface ClientMapper extends IBaseMapper<ClientDo>{}
+public interface ClientMapper extends IBaseMapper<ClientDO>{}

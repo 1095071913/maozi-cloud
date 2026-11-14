@@ -24,6 +24,6 @@ public interface RpcConfigService {
 	 * @param key 配置键名（对应配置名称），不能为空
 	 * @return 返回包含配置值的统一响应结果，配置不存在时配置值为空（null）
 	 */
-	AbstractBaseResult<String> rpcGet(String key);
+	AbstractBaseResult<String> getResult(String key);
 
 }

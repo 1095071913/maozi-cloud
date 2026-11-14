@@ -26,7 +26,7 @@ import java.io.Serial;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @TableName("system_config")
-public class ConfigDo extends AbstractBaseNameDomain {
+public class ConfigDO extends AbstractBaseNameDomain {
 	/** 序列化标识 */
 	@Serial
 	private static final long serialVersionUID = 1L;

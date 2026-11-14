@@ -7,7 +7,7 @@ import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.service.api.impl.BaseServiceImpl;
 import com.maozi.system.permission.api.RoleService;
 import com.maozi.system.permission.api.UserRoleService;
-import com.maozi.system.permission.domain.UserRoleDo;
+import com.maozi.system.permission.domain.UserRoleDO;
 import com.maozi.system.permission.mapper.UserRoleMapper;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * @date 2026/11/08
  */
 @Service
-public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRoleDo> implements UserRoleService {
+public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRoleDO> implements UserRoleService {
 
 	/** 资源名称，用于异常提示信息 */
 	public static final String RESOURCE_NAME = "用户角色关系";
@@ -35,11 +35,7 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
 	@Resource(name = "roleServiceImpl")
 	protected RoleService roleService;
 
-	/**
-	 * 获取资源名称
-	 *
-	 * @return 资源名称字符串
-	 */
+	/** 获取资源名称 */
 	@Override
 	public String getResourceName() {
 		return RESOURCE_NAME;
@@ -47,14 +43,13 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
 
 	/**
 	 * 检查指定角色是否已被用户绑定
-	 * <p>如果角色已被用户绑定，则抛出业务异常。</p>
 	 *
 	 * @param roleId 角色ID
 	 * @throws com.maozi.common.result.error.exception.BusinessResultException 角色已被用户绑定时抛出
 	 */
 	@Override
 	public void checkUserBindRoleByRole(Long roleId) {
-		LambdaQueryWrapper<UserRoleDo> wrapper = Wrappers.<UserRoleDo>lambdaQuery().eq(UserRoleDo::getRoleId,roleId);
+		LambdaQueryWrapper<UserRoleDO> wrapper = Wrappers.<UserRoleDO>lambdaQuery().eq(UserRoleDO::getRoleId,roleId);
 		ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1, SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE,"【角色】已被用户绑定");
 	}
 
@@ -75,7 +70,7 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
 
 			Consumer<Long> consumer = (roleId)->{
 
-				UserRoleDo domainSave = UserRoleDo.builder().userId(userId).roleId(roleId).build();
+				UserRoleDO domainSave = UserRoleDO.builder().userId(userId).roleId(roleId).build();
 				// 绑定关系不存在且角色存在时才保存，避免重复绑定
 				if(super.count(Wrappers.lambdaQuery(domainSave)) < 1 && roleService.has(roleId)) {
 					super.save(domainSave);
@@ -90,7 +85,7 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
 		if(ObjectUtil.isNotNullEmpty(unbindRoleIds)) {
 
 			Consumer<Long> consumer = (roleId) -> super.remove(
-			    Wrappers.lambdaQuery(UserRoleDo.builder().userId(userId).roleId(roleId).build()
+			    Wrappers.lambdaQuery(UserRoleDO.builder().userId(userId).roleId(roleId).build()
 			));
 
 			unbindRoleIds.forEach(consumer);
@@ -108,17 +103,16 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
 	@Override
 	public List<Long> getRolesByUser(Long userId) {
 
-		LambdaQueryWrapper<UserRoleDo> wrapper = Wrappers.lambdaQuery();
-		wrapper.select(UserRoleDo::getRoleId);
-		wrapper.eq(UserRoleDo::getUserId,userId);
+		LambdaQueryWrapper<UserRoleDO> wrapper = Wrappers.lambdaQuery();
+		wrapper.select(UserRoleDO::getRoleId);
+		wrapper.eq(UserRoleDO::getUserId,userId);
 
-		return super.list(wrapper).stream().map(UserRoleDo::getRoleId).collect(Collectors.toList());
+		return super.list(wrapper).stream().map(UserRoleDO::getRoleId).collect(Collectors.toList());
 
 	}
 
 	/**
 	 * 检查指定用户是否绑定了指定角色
-	 * <p>如果用户未绑定该角色，则抛出业务异常。</p>
 	 *
 	 * @param userId 用户ID
 	 * @param roleId 角色ID
@@ -127,9 +121,9 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
 	@Override
 	public void checkUserBindRole(Long userId, Long roleId) {
 
-		LambdaQueryWrapper<UserRoleDo> wrapper = Wrappers.lambdaQuery();
-		wrapper.eq(UserRoleDo::getUserId,userId);
-		wrapper.eq(UserRoleDo::getRoleId,roleId);
+		LambdaQueryWrapper<UserRoleDO> wrapper = Wrappers.lambdaQuery();
+		wrapper.eq(UserRoleDO::getUserId,userId);
+		wrapper.eq(UserRoleDO::getRoleId,roleId);
 
 		ObjectUtil.checkConditionThrowError(super.count(wrapper) > 0,SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE,"【用户】未绑定该角色");
 	}
@@ -143,12 +137,12 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
 	@Override
 	public List<Long> getUsersByRole(Long roleId) {
 
-		LambdaQueryWrapper<UserRoleDo> wrapper = Wrappers.lambdaQuery(UserRoleDo.builder().roleId(roleId).build());
+		LambdaQueryWrapper<UserRoleDO> wrapper = Wrappers.lambdaQuery(UserRoleDO.builder().roleId(roleId).build());
 
-		wrapper.select(UserRoleDo::getUserId);
-		wrapper.eq(UserRoleDo::getRoleId,roleId);
+		wrapper.select(UserRoleDO::getUserId);
+		wrapper.eq(UserRoleDO::getRoleId,roleId);
 
-		return super.list(wrapper).stream().map(UserRoleDo::getUserId).collect(Collectors.toList());
+		return super.list(wrapper).stream().map(UserRoleDO::getUserId).collect(Collectors.toList());
 
 	}
 
@@ -160,7 +154,7 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
 	 */
 	@Override
 	public void userUnbind(Long userId) {
-		super.remove(Wrappers.lambdaQuery(UserRoleDo.builder().userId(userId).build()));
+		super.remove(Wrappers.lambdaQuery(UserRoleDO.builder().userId(userId).build()));
 	}
 
 }

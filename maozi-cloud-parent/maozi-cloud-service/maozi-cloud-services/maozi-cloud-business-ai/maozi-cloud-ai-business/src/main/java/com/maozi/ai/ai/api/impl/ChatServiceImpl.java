@@ -61,12 +61,11 @@ import java.util.stream.Collectors;
 /**
  * AI对话服务基础实现
  * <p>
- * 提供AI流式对话、文生图、会话消息列表查询、增量消息查询、停止对话等能力，
- * 以及对话消息到前端展示结果的通用转换，供 REST 层实现类继承使用。
+ * 提供流式对话、文生图与消息查询等基础能力，供 REST 层实现类继承使用。
  * </p>
  *
- * @author pengjinlong
- * @since 2026/8/16 10:05
+ * @author maozi
+ * @date 2026/11/14
  */
 @Service
 @RequiredArgsConstructor
@@ -129,10 +128,9 @@ public class ChatServiceImpl implements ChatService {
     /**
      * AI流式对话
      * <p>
-     * 校验会话后构建用户消息（可附带 png/jpg/jpeg/gif 图片进行多模态对话，
-     * 有图片时切换为图生文模型并启用多模态），根据配置 key 从系统配置服务
-     * 获取提示词作为系统消息；通过 Redis 标记支持中途停止对话，
-     * 客户端断开连接时将已生成的部分回复写入会话记忆。
+     * 支持携带 png/jpg/jpeg/gif 图片进行多模态对话（有图片时切换为图生文模型），
+     * 可按配置 key 从系统配置服务获取提示词作为系统消息；
+     * 通过 Redis 标记支持中途停止对话，客户端断开时已生成的部分回复仍写入会话记忆。
      * </p>
      *
      * @param param 对话参数（会话 ID、消息内容、图片列表、提示词配置 key）
@@ -140,14 +138,13 @@ public class ChatServiceImpl implements ChatService {
      * @throws BusinessResultException 会话不存在、图片类型不受支持或提示词配置获取失败时抛出
      */
     @SneakyThrows
-    public Flux<AbstractBaseResult<ChatResult>> chat(ChatParam param) {
+    public Flux<AbstractBaseResult<ChatResult>> chatResult(ChatParam param) {
 
         Long conversationId = param.getConversationId();
 
         // 校验会话是否存在
         chatConversationRecordService.has(conversationId);
 
-        // 构建用户消息
         UserMessage.Builder userMessageBuilder = UserMessage.builder().text(param.getMessage());
 
         // 携带图片时构建多模态消息
@@ -171,15 +168,14 @@ public class ChatServiceImpl implements ChatService {
         ChatClient.ChatClientRequestSpec chatClientRequest;
         if(hasImage){
 
-            // 设置消息格式为图片
             userMessage.getMetadata().put(DashScopeApiConstants.MESSAGE_FORMAT, MessageFormat.IMAGE);
 
             // 有图片时使用图生文（视觉理解）模型，启用多模态与高分辨率图片处理
             Prompt chatPrompt = new Prompt(userMessage,
                     DashScopeChatOptions.builder()
-                            .withModel(imageModelName)        // 使用视觉模型
-                            .withMultiModel(true)             // 启用多模态
-                            .withVlHighResolutionImages(true) // 启用高分辨率图片处理
+                            .withModel(imageModelName)
+                            .withMultiModel(true)
+                            .withVlHighResolutionImages(true)
                             .withTemperature(VISION_MODEL_TEMPERATURE)
                             .build());
 
@@ -193,7 +189,7 @@ public class ChatServiceImpl implements ChatService {
         // 配置了提示词 key 时，从系统配置服务获取提示词内容作为系统消息
         String promptConfig = param.getPromptConfig();
         if(ObjectUtil.isNotNullEmpty(promptConfig)){
-            promptConfig = rpcConfigService.rpcGet(promptConfig).getResultDataThrowError();
+            promptConfig = rpcConfigService.getResult(promptConfig).getResultDataThrowError();
             if(ObjectUtil.isNotNullEmpty(promptConfig)){
                 chatClientRequest.system(promptConfig);
             }
@@ -302,7 +298,7 @@ public class ChatServiceImpl implements ChatService {
      * @return 提示消息与生成图片的地址列表（被停止时提示消息为 null、图片列表为空）
      */
     @SneakyThrows
-    public ChatGenerateImageResult generateImage(ChatGenerateImageParam param) {
+    public ChatGenerateImageResult adminGenerateImage(ChatGenerateImageParam param) {
 
         StringRedisTemplate redisClient = RedisUtil.getRedisClient();
         ValueOperations<String, String> stringValueOperations = redisClient.opsForValue();
@@ -376,7 +372,7 @@ public class ChatServiceImpl implements ChatService {
      * @param conversationId 会话 ID
      * @return 会话是否正在对话中以及该会话的对话消息列表
      */
-    public ChatListResult list(String conversationId) {
+    public ChatListResult adminList(String conversationId) {
 
         // 是否对话中：对话进行中标记存在即正在对话
         Boolean isLocked = RedisUtil.getRedisClient().hasKey(AI_CHAT_STOP_KEY + conversationId);
@@ -401,7 +397,7 @@ public class ChatServiceImpl implements ChatService {
      *
      * @param conversationId 会话 ID
      */
-    public void stop(String conversationId) {
+    public void adminStop(String conversationId) {
         RedisUtil.getRedisClient().delete(
                 CollectionUtil.newArrayList(
                         AI_CHAT_STOP_KEY + conversationId,
@@ -417,7 +413,7 @@ public class ChatServiceImpl implements ChatService {
      * @param createTime 时间毫秒值，查询写入时间晚于该值的消息
      * @return 该时间之后写入的增量消息列表
      */
-    public List<ChatItemResult> getAfterMessages(String conversationId, Long createTime) {
+    public List<ChatItemResult> adminGetAfterMessages(String conversationId, Long createTime) {
 
         List<Message> messages = chatMemoryRepository.findRecordAfterTimestamp(conversationId, createTime);
         if(ObjectUtil.isNullEmpty(messages)){

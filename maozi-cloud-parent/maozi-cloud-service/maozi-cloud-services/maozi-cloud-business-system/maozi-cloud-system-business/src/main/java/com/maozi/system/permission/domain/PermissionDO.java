@@ -16,19 +16,19 @@
 package com.maozi.system.permission.domain;
 
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.maozi.db.domain.AbstractBaseDomain;
+import com.maozi.db.domain.AbstractBaseNameDomain;
+import com.maozi.system.permission.enums.PermissionType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serial;
 
 /**
- * 角色权限关系实体类
- * <p>对应数据库表 system_role_permission，存储角色与权限的多对多关联关系，
- * 一个角色可以拥有多个权限，一个权限也可以分配给多个角色。</p>
+ * 权限实体类
+ * <p>对应数据库表 system_permission，存储系统权限的详细信息，
+ * 包括权限的层级结构、图标、标识、路由、类型等属性。</p>
  *
  * @author maozi
  * @date 2026/11/08
@@ -37,17 +37,34 @@ import java.io.Serial;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
-@EqualsAndHashCode(callSuper = true)
-@TableName("system_role_permission")
-public class RolePermissionDo extends AbstractBaseDomain {
+@TableName("system_permission")
+public class PermissionDO extends AbstractBaseNameDomain {
 	/** 序列化标识 */
 	@Serial
 	private static final long serialVersionUID = 1L;
 
-	/** 角色ID，关联 system_role 表 */
-	private Long roleId;
+	/** 父权限ID，用于构建权限树形结构 */
+	private Long parentId;
 
-	/** 权限ID，关联 system_permission 表 */
-	private Long permissionId;
+	/** 权限图标 */
+	private String icon;
+
+	/** 权限标识，用于权限匹配的唯一编码 */
+	private String mark;
+
+	/** 权限深度（层级），表示在树形结构中的层级 */
+	private Integer level;
+
+	/** 前端路由路径 */
+	private String route;
+
+	/** 后端服务请求地址 */
+	private String serviceUri;
+
+	/** 权限类型（目录、菜单、按钮） */
+	private PermissionType type;
+
+	/** 排序序号，值越大越靠前 */
+	private Integer sort;
 
 }

@@ -7,11 +7,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * 系统配置服务 REST 接口
- * <p>
- * 提供系统配置信息的 RESTful API 接口定义，
- * 主要用于获取系统属性配置信息，包含项目名称、公司名称、图标、
- * 运行环境、项目描述与版权信息等。
- * </p>
  *
  * @author maozi
  * @date 2026/11/08
@@ -28,6 +23,6 @@ public interface RestSystemService {
 	 * @return 返回系统属性配置信息，包含项目名称、公司名称、图标、运行环境、项目描述与版权信息
 	 */
 	@Get(value = PATH + "/system/get",description = "详情")
-	AbstractBaseResult<SystemPropertiesResult> restGet();
+	AbstractBaseResult<SystemPropertiesResult> getResult();
 
 }

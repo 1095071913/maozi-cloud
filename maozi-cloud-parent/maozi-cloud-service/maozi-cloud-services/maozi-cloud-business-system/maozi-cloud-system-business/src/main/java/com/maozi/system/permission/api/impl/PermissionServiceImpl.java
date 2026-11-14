@@ -26,7 +26,7 @@ import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.service.api.impl.BaseServiceImpl;
 import com.maozi.system.permission.api.PermissionService;
 import com.maozi.system.permission.api.RolePermissionService;
-import com.maozi.system.permission.domain.PermissionDo;
+import com.maozi.system.permission.domain.PermissionDO;
 import com.maozi.system.permission.mapper.PermissionMapper;
 import com.maozi.system.permission.result.PermissionListResult;
 import jakarta.annotation.Resource;
@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
  * @date 2026/11/08
  */
 @Service
-public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, PermissionDo> implements PermissionService {
+public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, PermissionDO> implements PermissionService {
 
 	/** 资源名称，用于异常提示信息 */
 	public static final String RESOURCE_NAME = "权限";
@@ -55,11 +55,7 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, Per
 	@Resource(name = "rolePermissionServiceImpl")
 	protected RolePermissionService rolePermissionService;
 
-	/**
-	 * 获取资源名称
-	 *
-	 * @return 资源名称字符串
-	 */
+	/** 获取资源名称 */
 	@Override
 	public String getResourceName() {
 		return RESOURCE_NAME;
@@ -67,18 +63,18 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, Per
 
 	/**
 	 * 删除权限前校验绑定关系与子权限
-	 * <p>权限已被角色绑定或存在子权限时抛出业务异常。</p>
 	 *
 	 * @param id 权限ID
+	 * @throws com.maozi.common.result.error.exception.BusinessResultException 权限已被角色绑定或存在子权限时抛出
 	 */
 	@Override
 	public void checkBind(Long id) {
 
-		// 1.校验权限是否被角色绑定，由角色权限关系服务抛出业务异常
+		// 1.校验权限是否被角色绑定
 		rolePermissionService.checkRoleBindPermissionByPermission(id);
 
-		// 2.校验当前权限是否存在子权限（查询 parentId = id 的权限记录），存在则禁止删除
-		LambdaQueryWrapper<PermissionDo> wrapper = Wrappers.<PermissionDo>lambdaQuery().eq(PermissionDo::getParentId, id);
+		// 2.存在子权限则禁止删除
+		LambdaQueryWrapper<PermissionDO> wrapper = Wrappers.<PermissionDO>lambdaQuery().eq(PermissionDO::getParentId, id);
 		ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1, SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE, getResourceName() + "存在子权限，不允许删除");
 
 	}
@@ -91,7 +87,7 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, Per
 	 */
 	@Override
 	public boolean has(Long id) {
-		return super.count(Wrappers.<PermissionDo>lambdaQuery().eq(PermissionDo::getId,id)) > 0;
+		return super.count(Wrappers.<PermissionDO>lambdaQuery().eq(PermissionDO::getId,id)) > 0;
 	}
 
 	/**
@@ -103,13 +99,13 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, Per
 	@Override
 	public List<String> getMarks(Collection<Long> ids) {
 
-		LambdaQueryWrapper<PermissionDo> wrapper = Wrappers.lambdaQuery();
+		LambdaQueryWrapper<PermissionDO> wrapper = Wrappers.lambdaQuery();
 
-		wrapper.select(PermissionDo::getMark);
+		wrapper.select(PermissionDO::getMark);
 
-		wrapper.in(PermissionDo::getId,ids);
+		wrapper.in(PermissionDO::getId,ids);
 
-		return super.list(wrapper).stream().map(PermissionDo::getMark).collect(Collectors.toList());
+		return super.list(wrapper).stream().map(PermissionDO::getMark).collect(Collectors.toList());
 
 	}
 
@@ -120,13 +116,12 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, Per
 	 */
 	public List<PermissionListResult> adminList() {
 
-		QueryWrapper<PermissionDo> wrapper = Wrappers.query();
+		QueryWrapper<PermissionDO> wrapper = Wrappers.query();
 
 		// 仅查询列表视图对象所需的字段列
 		wrapper.select(super.getColumns(PermissionListResult.class,false));
 
-		// 按权限深度、排序序号降序排列
-		wrapper.orderByDesc(CollectionUtil.newArrayList(super.getColumns(PermissionDo::getLevel,PermissionDo::getSort)));
+		wrapper.orderByDesc(CollectionUtil.newArrayList(super.getColumns(PermissionDO::getLevel,PermissionDO::getSort)));
 
 		return super.list(wrapper, PermissionListResult::new);
 

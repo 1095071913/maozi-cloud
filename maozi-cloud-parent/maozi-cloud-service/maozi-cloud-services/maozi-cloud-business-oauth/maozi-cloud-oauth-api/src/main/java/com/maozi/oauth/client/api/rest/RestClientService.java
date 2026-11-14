@@ -22,8 +22,8 @@ import java.util.List;
 /**
  * 客户端管理 REST API 接口
  * <p>
- * 提供客户端（OAuth2 Client）的增删改查、状态更新及下拉列表等 REST 风格的 HTTP 接口定义。
- * 所有接口均基于 /client 路径，并通过 Spring Security 权限注解进行访问控制。
+ * 提供客户端（OAuth2 Client）的增删改查、状态更新及下拉列表等 HTTP 接口定义，
+ * 各接口通过 Spring Security 权限注解进行访问控制。
  * </p>
  *
  * @author maozi
@@ -43,7 +43,7 @@ public interface RestClientService {
 	 */
 	@Post(value = PATH + "/list",description = "列表")
 	@PreAuthorize("hasAuthority('system:client:list')")
-	AbstractBaseResult<PageResult<ClientListResult>> restList(@RequestBody PageParam<ClientListParam> pageParam);
+	AbstractBaseResult<PageResult<ClientListResult>> listResult(@RequestBody PageParam<ClientListParam> pageParam);
 
 	/**
 	 * 保存（新增）客户端信息
@@ -53,20 +53,16 @@ public interface RestClientService {
 	 */
 	@Post(value = PATH + "/save",description = "保存")
 	@PreAuthorize("hasAuthority('system:client:save')")
-	AbstractBaseResult<Long> restSave(@RequestBody ClientSaveUpdateParam param);
+	AbstractBaseResult<Long> saveResult(@RequestBody ClientSaveUpdateParam param);
 
 	/**
-	 * 获取客户端下拉列表数据
-	 * <p>
-	 * 用于前端下拉选择框等场景，返回精简的客户端信息列表。
-	 * 需要 system:client:list 权限。
-	 * </p>
+	 * 获取客户端下拉列表数据，用于前端下拉选择框等场景
 	 *
 	 * @return 返回客户端下拉选项列表
 	 */
 	@Get(value = PATH + "/dropDownList",description = "下拉列表")
 	@PreAuthorize("hasAuthority('system:client:list')")
-	AbstractBaseResult<List<DropDownResult>> restDropDownListResult();
+	AbstractBaseResult<List<? extends DropDownResult>> dropDownListResult();
 
 
 
@@ -85,7 +81,7 @@ public interface RestClientService {
 	 */
 	@Get(value = CURRENT_PATH + "/get",description = "详情")
 	@PreAuthorize("hasAuthority('system:client:get')")
-	AbstractBaseResult<ClientInfoResult> restGet(@PathVariable Long id);
+	AbstractBaseResult<ClientInfoResult> getResult(@PathVariable Long id);
 
 	/**
 	 * 根据客户端 ID 更新客户端信息
@@ -96,7 +92,7 @@ public interface RestClientService {
 	 */
 	@Post(value = CURRENT_PATH + "/update",description = "更新")
 	@PreAuthorize("hasAuthority('system:client:update')")
-	AbstractBaseResult<Void> restUpdate(@PathVariable Long id,@RequestBody ClientSaveUpdateParam param);
+	AbstractBaseResult<Void> updateResult(@PathVariable Long id,@RequestBody ClientSaveUpdateParam param);
 
 	/**
 	 * 根据客户端 ID 更新客户端状态（启用/禁用）
@@ -107,7 +103,7 @@ public interface RestClientService {
 	 */
 	@Post(value = CURRENT_PATH + "/updateStatus",description = "更新状态")
 	@PreAuthorize("hasAuthority('system:client:update')")
-	AbstractBaseResult<Void> restUpdateStatusResult(@PathVariable Long id, @RequestBody RequestParam<Status> param);
+	AbstractBaseResult<Void> updateStatusResult(@PathVariable Long id, @RequestBody RequestParam<Status> param);
 
 	/**
 	 * 根据客户端 ID 删除客户端
@@ -117,6 +113,6 @@ public interface RestClientService {
 	 */
 	@Post(value = CURRENT_PATH + "/delete",description = "删除")
 	@PreAuthorize("hasAuthority('system:client:remove')")
-	AbstractBaseResult<Void> restRemove(@PathVariable Long id);
+	AbstractBaseResult<Void> removeByIdResult(@PathVariable Long id);
 
 }

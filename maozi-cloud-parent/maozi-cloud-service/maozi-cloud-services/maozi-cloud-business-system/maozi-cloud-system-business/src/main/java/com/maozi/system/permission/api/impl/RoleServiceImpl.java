@@ -5,7 +5,7 @@ import com.maozi.service.api.impl.BaseServiceImpl;
 import com.maozi.system.permission.api.RolePermissionService;
 import com.maozi.system.permission.api.RoleService;
 import com.maozi.system.permission.api.UserRoleService;
-import com.maozi.system.permission.domain.RoleDo;
+import com.maozi.system.permission.domain.RoleDO;
 import com.maozi.system.permission.mapper.RoleMapper;
 import com.maozi.system.role.param.RoleSaveUpdateParam;
 import jakarta.annotation.Resource;
@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @date 2026/11/08
  */
 @Service
-public class RoleServiceImpl extends BaseServiceImpl<RoleMapper, RoleDo> implements RoleService {
+public class RoleServiceImpl extends BaseServiceImpl<RoleMapper, RoleDO> implements RoleService {
 
 	/** 资源名称，用于异常提示信息 */
 	public static final String RESOURCE_NAME = "角色";
@@ -34,11 +34,7 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleMapper, RoleDo> impleme
 	@Resource(name = "rolePermissionServiceImpl")
 	protected RolePermissionService rolePermissionService;
 
-	/**
-	 * 获取资源名称
-	 *
-	 * @return 资源名称字符串
-	 */
+	/** 获取资源名称 */
 	@Override
 	public String getResourceName() {
 		return RESOURCE_NAME;
@@ -46,7 +42,7 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleMapper, RoleDo> impleme
 
 	/**
 	 * 校验角色是否被其他资源绑定
-	 * <p>角色已被用户绑定时抛出业务异常，删除角色、禁用角色前均会调用本校验。</p>
+	 * <p>删除角色、禁用角色前均会调用本校验。</p>
 	 *
 	 * @param id 角色ID
 	 * @throws com.maozi.common.result.error.exception.BusinessResultException 角色已被用户绑定时抛出
@@ -75,21 +71,20 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleMapper, RoleDo> impleme
 	 */
 	@Override
 	public boolean has(Long id) {
-		return super.count(Wrappers.<RoleDo>lambdaQuery().eq(RoleDo::getId,id)) > 0;
+		return super.count(Wrappers.<RoleDO>lambdaQuery().eq(RoleDO::getId, id)) > 0;
 	}
 
 	/**
-	 * REST接口用的角色保存或更新方法
-	 * <p>保存或更新角色信息，并同步更新角色与权限的绑定关系。</p>
+	 * 保存或更新角色，并同步更新角色与权限的绑定关系
 	 *
 	 * @param id 角色ID，新增时为null
 	 * @param param 角色保存/更新参数
 	 * @return 保存后的角色ID
 	 */
 	@Transactional(rollbackFor = Exception.class)
-	public Long restSaveUpdate(Long id, RoleSaveUpdateParam param) {
+	public Long adminSaveUpdate(Long id, RoleSaveUpdateParam param) {
 
-		id = super.saveUpdate(id,param);
+		id = super.saveUpdate(id, param);
 
 		rolePermissionService.updateBind(id, param.getBindPermissionIds(), param.getUnbindPermissionIds());
 

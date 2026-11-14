@@ -26,7 +26,7 @@ import java.io.Serial;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @TableName("system_config_region")
-public class RegionDo extends AbstractBaseNameDomain {
+public class RegionDO extends AbstractBaseNameDomain {
 	/** 序列化标识 */
 	@Serial
 	private static final long serialVersionUID = 1L;

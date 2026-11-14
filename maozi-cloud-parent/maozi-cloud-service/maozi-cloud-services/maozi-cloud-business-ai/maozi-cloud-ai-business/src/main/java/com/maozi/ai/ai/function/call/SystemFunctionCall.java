@@ -16,8 +16,8 @@ import org.springframework.stereotype.Component;
  * 当前登录用户的用户、客户端、权限等信息。
  * </p>
  *
- * @author pengjinlong
- * @since 2026/8/29 07:03
+ * @author maozi
+ * @date 2026/11/14
  */
 @Component
 public class SystemFunctionCall {
@@ -34,7 +34,7 @@ public class SystemFunctionCall {
     @Tool(description = "查询用户、客户端、权限等信息")
     public AbstractBaseResult<AiGetUserInfoResult> getUserInfo() {
         Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
-        return rpcUserService.rpcAiGetUserInfo(userId);
+        return rpcUserService.aiGetUserInfoResult(userId);
     }
 
 }

@@ -18,7 +18,7 @@
 package com.maozi.system.permission.mapper;
 
 import com.maozi.service.api.IBaseMapper;
-import com.maozi.system.permission.domain.RoleDo;
+import com.maozi.system.permission.domain.RoleDO;
 
 /**
  * 角色Mapper接口
@@ -27,4 +27,4 @@ import com.maozi.system.permission.domain.RoleDo;
  * @author maozi
  * @date 2026/11/08
  */
-public interface RoleMapper extends IBaseMapper<RoleDo>{}
+public interface RoleMapper extends IBaseMapper<RoleDO>{}

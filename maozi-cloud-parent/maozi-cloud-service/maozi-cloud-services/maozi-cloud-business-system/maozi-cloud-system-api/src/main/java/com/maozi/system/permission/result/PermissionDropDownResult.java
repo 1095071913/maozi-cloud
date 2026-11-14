@@ -8,13 +8,13 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 /**
  * 权限下拉选择结果
  * <p>
- * 用于权限下拉列表选择时返回的结果对象。
- * 继承自通用下拉结果基类（提供 ID 与名称选项字段），
- * 额外包含上级权限ID、层级深度、类型及排序信息，
- * 以支持树形结构的权限选择。
+ * 继承通用下拉结果基类（提供 ID 与名称字段），扩展上级权限ID、层级深度等字段以支持树形权限选择。
  * </p>
  *
  * @author maozi
@@ -24,7 +24,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class PermissionDropDownResult extends DropDownResult {
+public class PermissionDropDownResult extends DropDownResult implements Serializable {
+
+	/** 序列化标识 */
+	@Serial
+	private static final long serialVersionUID = 1L;
 
 	/** 上级权限ID，用于构建权限树形结构 */
 	@Schema(description = "上级ID")

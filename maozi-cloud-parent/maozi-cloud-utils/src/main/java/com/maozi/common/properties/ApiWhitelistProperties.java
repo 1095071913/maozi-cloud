@@ -35,7 +35,7 @@ public class ApiWhitelistProperties {
 
         // OAuth2 令牌内省端点，供资源服务器验证令牌有效性
         DEFAULT_WHITE_LIST.add("/oauth2/introspect");
-        DEFAULT_WHITE_LIST.add("/oauth/token/**/introspect");
+        DEFAULT_WHITE_LIST.add("/remote/oauth/token/**/introspect");
         // Swagger UI 依赖的静态资源路径
         DEFAULT_WHITE_LIST.add("/webjars/**");
         // Spring Boot Actuator 监控端点，用于健康检查和运维监控

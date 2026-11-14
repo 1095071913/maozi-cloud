@@ -39,7 +39,7 @@ import java.io.Serial;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @TableName("system_user_role")
-public class UserRoleDo extends AbstractBaseDomain {
+public class UserRoleDO extends AbstractBaseDomain {
 	/** 序列化标识 */
 	@Serial
 	private static final long serialVersionUID = 1L;

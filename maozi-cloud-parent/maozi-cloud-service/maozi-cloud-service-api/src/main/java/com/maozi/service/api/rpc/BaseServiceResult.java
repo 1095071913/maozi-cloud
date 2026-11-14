@@ -13,8 +13,8 @@ import java.util.Map;
 /**
  * 基础服务结果接口
  * <p>
- * 定义通用的 CRUD 服务方法签名，由 {@code BaseServiceImpl} 统一实现，业务服务继承后即具备这些能力。
- * 提供单条查询、批量查询、关联查询、计数、新增/修改、删除、可用性校验和下拉列表等标准操作。
+ * 定义通用的 CRUD 服务方法签名，由 {@code BaseServiceResultImpl} 基于 {@code BaseServiceImpl} 统一实现，
+ * 业务服务继承后即具备这些能力，涵盖查询、计数、新增/修改、删除、可用性校验和下拉列表等标准操作。
  * </p>
  *
  * @param <D> 数据传输对象类型
@@ -77,7 +77,7 @@ public interface BaseServiceResult<D> {
      * @param <P> 参数类型
      * @return 操作后的记录 ID
      */
-    <P> AbstractBaseResult<Long> saveUpdateResult(Long id,P param);
+    <P> AbstractBaseResult<Long> saveUpdateResult(Long id, P param);
 
     /**
      * 批量新增或更新记录
@@ -119,7 +119,8 @@ public interface BaseServiceResult<D> {
      * 校验单条记录是否可用
      *
      * @param id 主键 ID
-     * @return 校验结果
+     * @return 校验通过的空结果
+     * @throws com.maozi.common.result.error.exception.BusinessResultException 记录不存在或已禁用时抛出
      */
     AbstractBaseResult<Void> checkAvailableResult(Long id);
 
@@ -127,7 +128,8 @@ public interface BaseServiceResult<D> {
      * 校验多条记录是否可用
      *
      * @param ids 主键 ID 集合
-     * @return 校验结果
+     * @return 校验通过的空结果
+     * @throws com.maozi.common.result.error.exception.BusinessResultException 集合为空或任一已存在记录已禁用时抛出
      */
     AbstractBaseResult<Void> checkAvailableResult(List<Long> ids);
 
@@ -137,6 +139,7 @@ public interface BaseServiceResult<D> {
      * @param id 主键 ID
      * @param columns 查询字段列表
      * @return 查询结果
+     * @throws com.maozi.common.result.error.exception.BusinessResultException 记录不存在或已禁用时抛出
      */
     AbstractBaseResult<D> getAvailableByIdResult(Long id,String ... columns);
 
@@ -146,7 +149,7 @@ public interface BaseServiceResult<D> {
      * @param id 主键 ID
      * @return 下拉选择结果
      */
-    AbstractBaseResult<DropDownResult> dropDownResult(Long id);
+    AbstractBaseResult<? extends DropDownResult> dropDownResult(Long id);
 
     /**
      * 根据 ID 集合批量获取下拉选择项
@@ -154,13 +157,13 @@ public interface BaseServiceResult<D> {
      * @param ids 主键 ID 集合
      * @return 下拉选择列表
      */
-    AbstractBaseResult<List<DropDownResult>> dropDownListResult(Collection<Long> ids);
+    AbstractBaseResult<List<? extends DropDownResult>> dropDownListResult(Collection<Long> ids);
 
     /**
      * 获取全部启用状态记录的下拉选择项
      *
      * @return 下拉选择列表
      */
-    AbstractBaseResult<List<DropDownResult>> dropDownListResult();
+    AbstractBaseResult<List<? extends DropDownResult>> dropDownListResult();
 
 }

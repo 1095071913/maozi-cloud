@@ -1,7 +1,7 @@
 package com.maozi.system.config.mapper;
 
 import com.maozi.service.api.IBaseMapper;
-import com.maozi.system.config.domain.RegionDo;
+import com.maozi.system.config.domain.RegionDO;
 
 /**
  * 地区 Mapper 接口
@@ -12,4 +12,4 @@ import com.maozi.system.config.domain.RegionDo;
  * @author maozi
  * @date 2026/11/08
  */
-public interface RegionMapper extends IBaseMapper<RegionDo>{}
+public interface RegionMapper extends IBaseMapper<RegionDO>{}

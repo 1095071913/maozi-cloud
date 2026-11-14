@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
  *
  * @param <S> 关联的通用业务服务类型
  * @param <D> 结果 DTO 类型
- * @author pengjinlong
+ * @author maozi
  * @date 2026/11/11 21:41
  */
 @SuppressWarnings("unchecked")
@@ -277,7 +277,7 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public <P> AbstractBaseResult<Long> saveUpdateResult(Long id, P param){
+    public AbstractBaseResult<Long> saveUpdateResult(Long id, Object param){
         return ResultUtil.success(service.saveUpdate(id, param));
     }
 
@@ -422,7 +422,7 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
      * @return 包含下拉选项列表的统一响应结果
      */
     @Override
-    public AbstractBaseResult<List<DropDownResult>> dropDownListResult(Collection<Long> ids){
+    public AbstractBaseResult<List<? extends DropDownResult>> dropDownListResult(Collection<Long> ids){
 
         QueryWrapper<AbstractBaseDomain> wrapper = Wrappers.query();
 
@@ -440,7 +440,7 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
      * @return 包含下拉选项列表的统一响应结果
      */
     @Override
-    public AbstractBaseResult<List<DropDownResult>> dropDownListResult(){
+    public AbstractBaseResult<List<? extends DropDownResult>> dropDownListResult(){
         return ResultUtil.success(service.dropDownList());
     }
 

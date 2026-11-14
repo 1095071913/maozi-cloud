@@ -1,7 +1,7 @@
 package com.maozi.system.config.mapper;
 
 import com.maozi.service.api.IBaseMapper;
-import com.maozi.system.config.domain.ConfigDo;
+import com.maozi.system.config.domain.ConfigDO;
 
 /**
  * 全局配置 Mapper 接口
@@ -12,4 +12,4 @@ import com.maozi.system.config.domain.ConfigDo;
  * @author maozi
  * @date 2026/11/08
  */
-public interface ConfigMapper extends IBaseMapper<ConfigDo>{}
+public interface ConfigMapper extends IBaseMapper<ConfigDO>{}

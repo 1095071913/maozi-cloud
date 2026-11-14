@@ -6,7 +6,7 @@ import com.maozi.common.result.AbstractBaseResult;
 /**
  * 地区 RPC 服务接口
  * <p>
- * 定义地区信息相关的 RPC 远程调用方法。
+ * 提供地区下拉信息的 Dubbo RPC 远程查询能力。
  * </p>
  *
  * @author maozi
@@ -20,6 +20,6 @@ public interface RpcRegionService {
      * @param id 地区 ID
      * @return 地区下拉结果
      */
-	AbstractBaseResult<DropDownResult> rpcGet(Long id);
+	AbstractBaseResult<DropDownResult> getResult(Long id);
 
 }

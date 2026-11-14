@@ -11,9 +11,7 @@ import com.maozi.system.config.result.SystemPropertiesResult;
 /**
  * 系统 REST 服务实现类
  * <p>
- * 继承自 SystemServiceImpl，实现 RestSystemService 接口，
- * 提供 RESTful 风格的系统配置信息查询接口，
- * 将系统属性配置转换为 SystemPropertiesResult 结果对象返回给前端使用。
+ * 继承 SystemServiceImpl 并实现 RestSystemService 接口，提供系统配置信息的 RESTful 查询接口。
  * </p>
  *
  * @author maozi
@@ -24,15 +22,11 @@ public class RestSystemServiceImpl extends SystemServiceImpl implements RestSyst
 
 	/**
 	 * 获取系统配置属性信息
-	 * <p>
-	 * 将 SystemProperties 配置对象拷贝为 SystemPropertiesResult 结果对象，
-	 * 供前端展示和使用。
-	 * </p>
 	 *
-	 * @return 返回包含系统配置属性信息的统一响应结果
+	 * @return 包含系统配置属性信息的统一响应结果
 	 */
 	@Override
-	public AbstractBaseResult<SystemPropertiesResult> restGet() {
+	public AbstractBaseResult<SystemPropertiesResult> getResult() {
 		return ResultUtil.success(CglibUtil.copy(systemProperties, SystemPropertiesResult.class));
 	}
 

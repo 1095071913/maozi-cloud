@@ -13,8 +13,7 @@ import java.util.List;
 /**
  * 用户个人信息视图对象
  * <p>
- * 用于展示当前登录用户的个人信息，包括用户名称、头像
- * 以及该用户拥有的权限标识列表。
+ * 用于展示当前登录用户的个人信息，权限标识列表通过 QueryMapping 注解自动查询填充。
  * </p>
  *
  * @author maozi
@@ -38,7 +37,7 @@ public class UserIndividualInfoResult implements Serializable {
 
 	/** 当前登录用户拥有的权限标识列表，通过用户服务查询自动填充 */
 	@Schema(description = "权限列表")
-	@QueryMapping(isService = true,serviceName = "userServiceImpl",functionName = "getCurrentPermissions")
+	@QueryMapping(isService = true, serviceName = "userServiceImpl", functionName = "getCurrentPermissions")
 	private List<String> permissions;
 
 }

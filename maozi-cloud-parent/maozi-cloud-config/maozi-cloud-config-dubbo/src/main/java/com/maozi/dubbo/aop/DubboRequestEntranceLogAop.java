@@ -18,6 +18,7 @@
 
 package com.maozi.dubbo.aop;
 
+import com.maozi.common.ObjectUtil;
 import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.common.enums.LogCommonType;
 import com.maozi.log.config.AbstractRequestEntranceLogAop;
@@ -46,13 +47,17 @@ public class DubboRequestEntranceLogAop extends AbstractRequestEntranceLogAop {
 	private static final String RPC_POINT = "* " + ApplicationEnvironmentContext.PACKAGE_PREFIX + ".*.*.api.impl.rpc..*(..)";
 
 	/** 基础服务实现类切点表达式 */
-	private static final String BASE_RPC_POINT = ApplicationEnvironmentContext.PACKAGE_PREFIX + ".common.result.AbstractBaseResult " + ApplicationEnvironmentContext.PACKAGE_PREFIX + ".service.api.impl.BaseServiceImpl.*(..)";
+	private static final String BASE_RPC_POINT = ApplicationEnvironmentContext.PACKAGE_PREFIX + ".common.result.AbstractBaseResult " + ApplicationEnvironmentContext.PACKAGE_PREFIX + ".service.api.impl.result.BaseServiceResultImpl.*(..)";
 
 	/** 组合切点表达式 */
 	private static final String POINT = "execution(" + RPC_POINT + ") || execution(" + BASE_RPC_POINT + ")";
 
 	/**
 	 * 环绕通知，绑定 RPC 切点并委托给基类的统一日志逻辑。
+	 * <p>
+	 * 通过 {@link RpcContext} 服务上下文中的远端地址识别 Dubbo 流量，
+	 * 非 Dubbo 流量（如本地调用）不记录入口日志，直接放行。
+	 * </p>
 	 *
 	 * @param proceedingJoinPoint AOP 连接点
 	 * @return 业务方法执行结果
@@ -61,6 +66,12 @@ public class DubboRequestEntranceLogAop extends AbstractRequestEntranceLogAop {
 	@Around(POINT)
 	@Override
 	public Object doAround(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+
+		// 非 Dubbo 流量时直接放行，不记录 RPC 入口日志
+		if (ObjectUtil.isNullEmpty(RpcContext.getServiceContext().getRemoteAddress())) {
+			return proceedingJoinPoint.proceed();
+		}
+
 		return super.doAround(proceedingJoinPoint);
 	}
 

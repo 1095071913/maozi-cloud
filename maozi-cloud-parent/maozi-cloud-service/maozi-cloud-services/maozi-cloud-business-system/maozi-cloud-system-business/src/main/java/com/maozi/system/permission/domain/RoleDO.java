@@ -13,24 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.maozi.system.user.domain;
+package com.maozi.system.permission.domain;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.maozi.db.domain.AbstractBaseNameDomain;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serial;
 
 /**
- * 用户实体类
- * <p>
- * 对应数据库表 system_user，继承自 AbstractBaseNameDomain（包含ID、名称、状态、逻辑删除标志、创建时间等基础字段）。
- * 用于存储系统用户的核心信息，包括用户账号、密码、头像图标以及所属客户端ID。
- * </p>
+ * 角色实体类
+ * <p>对应数据库表 system_role，存储角色的基本信息，用于实现基于角色的访问控制（RBAC）。</p>
  *
  * @author maozi
  * @date 2026/11/08
@@ -39,23 +35,13 @@ import java.io.Serial;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
-@EqualsAndHashCode(callSuper = true)
-@TableName("system_user")
-public class UserDo extends AbstractBaseNameDomain {
+@TableName(value = "system_role",autoResultMap = true)
+public class RoleDO extends AbstractBaseNameDomain {
 	/** 序列化标识 */
 	@Serial
 	private static final long serialVersionUID = 1L;
 
-	/** 用户账号，用于系统登录的唯一标识 */
-	private String username;
-
-	/** 用户密码，加密存储 */
-	private String password;
-
-	/** 用户头像图标地址 */
-	private String icon;
-
-	/** 所属客户端ID，关联客户端表 */
-	private Long clientId;
+	/** 角色描述信息 */
+	private String description;
 
 }

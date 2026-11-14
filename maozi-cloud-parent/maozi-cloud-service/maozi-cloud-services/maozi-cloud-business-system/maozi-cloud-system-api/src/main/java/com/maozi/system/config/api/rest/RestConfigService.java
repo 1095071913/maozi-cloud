@@ -22,10 +22,6 @@ import java.util.List;
 
 /**
  * 全局配置 REST 接口
- * <p>
- * 提供系统全局配置的 RESTful API 接口定义，
- * 涵盖配置的查询、新增、更新、删除、状态变更与下拉数据获取等操作。
- * </p>
  *
  * @author maozi
  * @date 2026/11/08
@@ -47,7 +43,7 @@ public interface RestConfigService {
 	 */
 	@Post(value = PATH + "/list",description = "配置列表")
 	@PreAuthorize("hasAuthority('system:config:list')")
-	AbstractBaseResult<PageResult<ConfigListResult>> restList(@RequestBody @Valid PageParam<ConfigListParam> pageParam);
+	AbstractBaseResult<PageResult<ConfigListResult>> listResult(@RequestBody @Valid PageParam<ConfigListParam> pageParam);
 
 	/**
 	 * 保存新增全局配置
@@ -60,7 +56,7 @@ public interface RestConfigService {
 	 */
 	@Post(value = PATH + "/save",description = "配置保存")
 	@PreAuthorize("hasAuthority('system:config:save')")
-	AbstractBaseResult<Long> restSave(@RequestBody @Valid ConfigSaveUpdateParam param);
+	AbstractBaseResult<Long> saveResult(@RequestBody @Valid ConfigSaveUpdateParam param);
 
 	/**
 	 * 获取指定类型的配置下拉列表
@@ -77,15 +73,14 @@ public interface RestConfigService {
 	/**
 	 * 根据配置名称获取配置
 	 * <p>
-	 * 配置名称为全局唯一键，用于前端按名称直接获取对应的配置信息。
 	 * 配置名称为空时抛出业务异常，配置不存在时返回空数据。
 	 * </p>
 	 *
-	 * @param name 配置名称，用于查询对应的配置记录
+	 * @param name 配置名称（全局唯一键），用于查询对应的配置记录
 	 * @return 返回该配置名称对应的配置信息，包含配置 ID、名称、别名与配置值
 	 */
 	@Get(value = PATH + "/{name}/dropDown",description = "名称获取配置")
-	AbstractBaseResult<ConfigDropDownResult> restDropDown(@PathVariable("name") String name);
+	AbstractBaseResult<ConfigDropDownResult> dropDownResult(@PathVariable("name") String name);
 
 //	===================== 单资源 =======================
 
@@ -103,7 +98,7 @@ public interface RestConfigService {
 	 */
 	@Get(value = CURRENT_PATH + "/get",description = "配置详情")
 	@PreAuthorize("hasAuthority('system:config:get')")
-	AbstractBaseResult<ConfigInfoResult> restGet(@PathVariable Long id);
+	AbstractBaseResult<ConfigInfoResult> getResult(@PathVariable Long id);
 
 	/**
 	 * 删除配置
@@ -113,13 +108,13 @@ public interface RestConfigService {
 	 */
 	@Post(value = CURRENT_PATH + "/remove",description = "配置删除")
 	@PreAuthorize("hasAuthority('system:config:remove')")
-	AbstractBaseResult<Void> restRemove(@PathVariable Long id);
+	AbstractBaseResult<Void> removeByIdResult(@PathVariable Long id);
 
 	/**
 	 * 更新配置信息（动态更新）
 	 * <p>
 	 * 仅更新传入的字段（名称、别名、类型、配置值、排序值），未传入的字段保持原值；
-	 * 传入配置名称时校验唯一性（排除自身记录），重复时抛出业务异常。
+	 * 配置不存在时抛出业务异常。
 	 * </p>
 	 *
 	 * @param id    配置 ID，指定需要更新的配置记录
@@ -128,7 +123,7 @@ public interface RestConfigService {
 	 */
 	@Post(value = CURRENT_PATH + "/update",description = "配置更新")
 	@PreAuthorize("hasAuthority('system:config:update')")
-	AbstractBaseResult<Void> restUpdate(@PathVariable Long id, @RequestBody ConfigSaveUpdateParam param);
+	AbstractBaseResult<Void> updateResult(@PathVariable Long id, @RequestBody ConfigSaveUpdateParam param);
 
 	/**
 	 * 更新配置状态（启用/禁用）
@@ -139,6 +134,6 @@ public interface RestConfigService {
 	 */
 	@Post(value = CURRENT_PATH + "/updateStatus",description = "配置更新状态")
 	@PreAuthorize("hasAuthority('system:config:update')")
-	AbstractBaseResult<Void> restUpdateStatusResult(@PathVariable Long id, @RequestBody RequestParam<Status> param);
+	AbstractBaseResult<Void> updateStatusResult(@PathVariable Long id, @RequestBody RequestParam<Status> param);
 
 }

@@ -16,8 +16,7 @@ import java.util.List;
 /**
  * 角色详情视图对象
  * <p>
- * 用于展示角色的详细信息，包括角色名称、描述、状态以及关联的权限列表。
- * 通过 QueryMapping 注解自动查询角色关联的权限ID列表。
+ * 关联的权限ID列表通过 QueryMapping 注解自动查询填充。
  * </p>
  *
  * @author maozi
@@ -51,7 +50,7 @@ public class RoleInfoResult implements Serializable {
 
 	/** 角色关联的权限ID列表，通过角色权限关系服务查询自动填充 */
 	@Schema(description = "权限列表",ref = "StringArrayList")
-	@QueryMapping(isService = true,serviceName = "rolePermissionServiceImpl",functionName = "getPermissionsByRole",relationField = "id")
+	@QueryMapping(isService = true, serviceName = "rolePermissionServiceImpl", functionName = "getPermissionsByRole",relationField = "id")
 	private List<Long> permissionIds;
 
 }

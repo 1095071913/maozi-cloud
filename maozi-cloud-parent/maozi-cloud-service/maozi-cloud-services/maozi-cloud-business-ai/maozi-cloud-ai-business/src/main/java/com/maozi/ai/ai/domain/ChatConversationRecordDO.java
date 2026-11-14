@@ -14,8 +14,7 @@ import java.io.Serial;
 
 /**
  * AI交互会话实体类
- * <p>对应数据库表 ai_chat_conversation_record，存储用户与 AI 的交互会话基本信息，
- * 包括所属用户、会话标识和会话标题等属性。</p>
+ * <p>对应数据库表 ai_chat_conversation_record，存储用户与 AI 的交互会话基本信息。</p>
  *
  * @author maozi
  * @date 2026/11/08
@@ -26,7 +25,7 @@ import java.io.Serial;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @TableName("ai_chat_conversation_record")
-public class ChatConversationRecordDo extends AbstractBaseDomain {
+public class ChatConversationRecordDO extends AbstractBaseDomain {
 	/** 序列化标识 */
 	@Serial
 	private static final long serialVersionUID = 1L;

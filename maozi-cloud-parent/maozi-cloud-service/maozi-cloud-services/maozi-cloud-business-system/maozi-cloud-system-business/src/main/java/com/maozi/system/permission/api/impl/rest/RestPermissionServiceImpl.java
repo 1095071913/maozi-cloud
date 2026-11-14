@@ -1,12 +1,12 @@
 package com.maozi.system.permission.api.impl.rest;
 
+import com.maozi.base.result.DropDownResult;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.service.api.annotation.RestService;
 import com.maozi.service.api.impl.result.BaseServiceResultImpl;
 import com.maozi.system.permission.api.impl.PermissionServiceImpl;
 import com.maozi.system.permission.api.rest.RestPermissionService;
-import com.maozi.system.permission.domain.PermissionDo;
 import com.maozi.system.permission.param.PermissionSaveUpdateParam;
 import com.maozi.system.permission.result.PermissionDropDownResult;
 import com.maozi.system.permission.result.PermissionInfoResult;
@@ -16,8 +16,7 @@ import java.util.List;
 
 /**
  * 权限REST服务实现类
- * <p>提供权限管理的RESTful接口实现，包括权限列表查询、
- * 权限新增、权限详情查询、权限更新、权限删除以及下拉列表等功能。</p>
+ * <p>提供权限的列表、详情、新增、更新及下拉列表等RESTful接口，删除等通用接口由基类默认实现。</p>
  *
  * @author maozi
  * @date 2026/11/08
@@ -31,7 +30,7 @@ public class RestPermissionServiceImpl extends BaseServiceResultImpl<PermissionS
 	 * @return 权限列表视图数据
 	 */
 	@Override
-	public AbstractBaseResult<List<PermissionListResult>> restList() {
+	public AbstractBaseResult<List<PermissionListResult>> listResult() {
 		return ResultUtil.success(service.adminList());
 	}
 
@@ -42,20 +41,19 @@ public class RestPermissionServiceImpl extends BaseServiceResultImpl<PermissionS
 	 * @return 新增权限的ID
 	 */
 	@Override
-	public AbstractBaseResult<Long> restSave(PermissionSaveUpdateParam param) {
-		return super.saveUpdateResult(null,param);
+	public AbstractBaseResult<Long> saveResult(PermissionSaveUpdateParam param) {
+		return ResultUtil.success(service.saveUpdate(null, param));
 	}
 
 	/**
 	 * 查询权限下拉列表
-	 * <p>区别于基类通用下拉（仅ID和名称），此处直接指定权限下拉所需的查询列，
-	 * 返回包含ID、父ID、深度、名称和类型的下拉选项数据。</p>
+	 * <p>区别于基类通用下拉仅返回ID和名称，此处额外返回父ID、深度、类型、排序字段，用于构建权限树。</p>
 	 *
 	 * @return 权限下拉选项列表
 	 */
 	@Override
-	public AbstractBaseResult<List<PermissionDropDownResult>> restDropDownListResult() {
-		return ResultUtil.success(service.list(PermissionDropDownResult.class, PermissionDo::getId, PermissionDo::getParentId, PermissionDo::getLevel, PermissionDo::getName, PermissionDo::getType));
+	public AbstractBaseResult<List<? extends DropDownResult>> dropDownListResult() {
+		return ResultUtil.success(service.list(PermissionDropDownResult.class));
 	}
 
 	/**
@@ -65,20 +63,8 @@ public class RestPermissionServiceImpl extends BaseServiceResultImpl<PermissionS
 	 * @return 权限详情视图数据
 	 */
 	@Override
-	public AbstractBaseResult<PermissionInfoResult> restGet(Long id) {
-		return ResultUtil.success(service.getByIdThrowError(id, PermissionInfoResult.class, PermissionDo::getParentId,PermissionDo::getName,PermissionDo::getIcon,PermissionDo::getMark,PermissionDo::getRoute,PermissionDo::getServiceUri,PermissionDo::getType,PermissionDo::getSort));
-	}
-
-	/**
-	 * 删除权限
-	 * <p>删除前校验权限未被角色绑定且不存在子权限，否则抛出业务异常。</p>
-	 *
-	 * @param id 权限ID
-	 * @return 操作结果
-	 */
-	@Override
-	public AbstractBaseResult<Void> restRemove(Long id) {
-		return super.removeByIdResult(id);
+	public AbstractBaseResult<PermissionInfoResult> getResult(Long id) {
+		return ResultUtil.success(service.getByIdThrowError(id, PermissionInfoResult.class));
 	}
 
 	/**
@@ -89,8 +75,8 @@ public class RestPermissionServiceImpl extends BaseServiceResultImpl<PermissionS
 	 * @return 操作结果
 	 */
 	@Override
-	public AbstractBaseResult<Void> restUpdate(Long id, PermissionSaveUpdateParam param) {
-		service.saveUpdate(id,param);
+	public AbstractBaseResult<Void> saveUpdateResult(Long id, PermissionSaveUpdateParam param) {
+		service.saveUpdate(id, param);
 		return ResultUtil.success();
 	}
 

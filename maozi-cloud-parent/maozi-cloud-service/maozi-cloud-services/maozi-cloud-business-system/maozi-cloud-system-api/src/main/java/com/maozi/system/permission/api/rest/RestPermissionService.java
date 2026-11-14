@@ -1,10 +1,10 @@
 package com.maozi.system.permission.api.rest;
 
+import com.maozi.base.result.DropDownResult;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.service.annotation.Get;
 import com.maozi.service.annotation.Post;
 import com.maozi.system.permission.param.PermissionSaveUpdateParam;
-import com.maozi.system.permission.result.PermissionDropDownResult;
 import com.maozi.system.permission.result.PermissionInfoResult;
 import com.maozi.system.permission.result.PermissionListResult;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,11 +17,6 @@ import java.util.List;
 
 /**
  * 权限管理服务 REST 接口
- * <p>
- * 提供系统权限（菜单/按钮权限）的 RESTful API 接口定义，
- * 包括权限列表查询、权限新增、权限详情查询、权限删除、权限更新以及权限下拉列表等操作。
- * 所有接口均需要相应的权限授权才能访问。
- * </p>
  *
  * @author maozi
  * @date 2026/11/08
@@ -35,16 +30,14 @@ public interface RestPermissionService {
 	/**
 	 * 获取权限列表
 	 * <p>
-	 * 查询系统中所有权限的列表数据，返回平铺的权限列表
-	 * （结果带有上级 ID，可由前端据此组装为树形结构），
-	 * 列表按深度与排序序号降序排列。
+	 * 返回平铺的权限列表（带上级 ID，可由前端组装为树形结构），按深度与排序序号降序排列。
 	 * </p>
 	 *
 	 * @return 返回权限列表数据，包含权限 ID、名称、类型、父级 ID 等信息
 	 */
 	@Get(value = PATH + "/list",description = "列表")
 	@PreAuthorize("hasAuthority('system:permission:list')")
-	AbstractBaseResult<List<PermissionListResult>> restList();
+	AbstractBaseResult<List<PermissionListResult>> listResult();
 
 	/**
 	 * 保存新增权限
@@ -54,19 +47,19 @@ public interface RestPermissionService {
 	 */
 	@Post(value = PATH + "/save",description = "保存")
 	@PreAuthorize("hasAuthority('system:permission:save')")
-	AbstractBaseResult<Long> restSave(@RequestBody @Valid PermissionSaveUpdateParam param);
+	AbstractBaseResult<Long> saveResult(@RequestBody @Valid PermissionSaveUpdateParam param);
 
 	/**
 	 * 获取权限下拉列表
 	 * <p>
-	 * 用于新增或更新权限时选择父级权限的下拉列表数据。
+	 * 用于新增或更新权限时选择父级权限。
 	 * </p>
 	 *
 	 * @return 返回权限下拉列表结果，包含权限 ID、名称、上级 ID、层级深度及类型等信息
 	 */
 	@Get(value = PATH + "/dropDownList",description = "下拉列表")
 	@PreAuthorize("hasAuthority('system:permission:save') or hasAuthority('system:permission:update')")
-	AbstractBaseResult<List<PermissionDropDownResult>> restDropDownListResult();
+	AbstractBaseResult<List<? extends DropDownResult>> dropDownListResult();
 
 
 
@@ -85,7 +78,7 @@ public interface RestPermissionService {
 	 */
 	@Get(value = CURRENT_PATH + "/get",description = "详情")
 	@PreAuthorize("hasAuthority('system:permission:get')")
-	AbstractBaseResult<PermissionInfoResult> restGet(@PathVariable Long id);
+	AbstractBaseResult<PermissionInfoResult> getResult(@PathVariable Long id);
 
 	/**
 	 * 删除权限
@@ -95,7 +88,7 @@ public interface RestPermissionService {
 	 */
 	@Post(value = CURRENT_PATH + "/remove",description = "删除")
 	@PreAuthorize("hasAuthority('system:permission:remove')")
-	AbstractBaseResult<Void> restRemove(@PathVariable Long id);
+	AbstractBaseResult<Void> removeByIdResult(@PathVariable Long id);
 
 	/**
 	 * 更新权限信息
@@ -106,6 +99,6 @@ public interface RestPermissionService {
 	 */
 	@Post(value = CURRENT_PATH + "/update",description = "更新")
 	@PreAuthorize("hasAuthority('system:permission:update')")
-	AbstractBaseResult<Void> restUpdate(@PathVariable Long id,@RequestBody PermissionSaveUpdateParam param);
+	AbstractBaseResult<Void> saveUpdateResult(@PathVariable Long id, @RequestBody PermissionSaveUpdateParam param);
 
 }

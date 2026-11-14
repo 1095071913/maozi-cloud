@@ -39,9 +39,7 @@ import com.maozi.system.user.result.UserListResult;
 /**
  * 用户REST服务实现类
  * <p>
- * 提供用户模块的RESTful API接口实现，包括用户的分页查询、新增、删除、
- * 详情查询、更新、状态变更以及当前登录用户个人信息查询等功能。
- * 内部持有 UserServiceImpl 作为业务服务，复用用户基础业务逻辑。
+ * 提供用户模块的 REST 接口实现，内部持有 UserServiceImpl 复用用户基础业务逻辑。
  * </p>
  *
  * @author maozi
@@ -52,114 +50,102 @@ public class RestUserServiceImpl extends BaseServiceResultImpl<UserServiceImpl, 
 
 	/**
 	 * 分页查询用户列表
-	 * <p>关联分页查询并填充关联映射数据（如所属客户端）。</p>
+	 * <p>关联查询并填充关联映射数据（如所属客户端）。</p>
 	 *
-	 * @param pageParam 分页查询参数，包含分页信息和用户列表查询条件
-	 * @return 分页查询结果，包含用户列表数据
+	 * @param pageParam 分页查询参数
+	 * @return 用户列表分页结果
 	 */
 	@Override
-	public AbstractBaseResult<PageResult<UserListResult>> restList(PageParam<UserListParam> pageParam) {
+	public AbstractBaseResult<PageResult<UserListResult>> listResult(PageParam<UserListParam> pageParam) {
 		return ResultUtil.success(service.listRelation(pageParam, UserListResult.class));
 	}
 
 	/**
 	 * 新增用户
 	 *
-	 * @param param 用户新增参数，包含用户基本信息和角色绑定信息
+	 * @param param 用户新增参数
 	 * @return 新增用户的ID
 	 */
 	@Override
-	public AbstractBaseResult<Long> restSave(UserSaveUpdateParam param) {
-		return ResultUtil.success(service.saveUpdate(null, param));
+	public AbstractBaseResult<Long> saveResult(UserSaveUpdateParam param) {
+		return ResultUtil.success(service.adminSaveUpdate(null, param));
 	}
 
 	/**
 	 * 删除用户
-	 * <p>委托业务层 {@code remove} 处理：用户不存在时静默返回；删除时解除用户与角色的绑定关系，
-	 * 删除成功后销毁该用户的全部OAuth2令牌，强制下线。</p>
+	 * <p>用户不存在时静默返回；删除时解除角色绑定，删除成功后销毁该用户全部 OAuth2 令牌，强制下线。</p>
 	 *
-	 * @param id 需要删除的用户ID
+	 * @param id 用户ID
 	 * @return 操作结果
 	 */
 	@Override
-	public AbstractBaseResult<Void> restRemove(Long id) {
-		service.remove(id);
+	public AbstractBaseResult<Void> removeByIdResult(Long id) {
+		service.adminRemove(id);
 		return ResultUtil.success();
 	}
 
 	/**
 	 * 更新用户状态（启用/禁用）
-	 * <p>委托业务层 {@code updateStatus} 处理：当前状态与目标状态一致时直接返回；
-	 * 状态变更为禁用后会销毁该用户的全部OAuth2令牌，强制其下线。</p>
+	 * <p>当前状态与目标状态一致时直接返回；状态变更为禁用后销毁该用户全部 OAuth2 令牌，强制下线。</p>
 	 *
-	 * @param id 需要更新状态的用户ID
-	 * @param param 状态参数，包含目标状态值
+	 * @param id 用户ID
+	 * @param param 状态参数
 	 * @return 操作结果
 	 */
 	@Override
-	public AbstractBaseResult<Void> restUpdateStatusResult(Long id, RequestParam<Status> param) {
-		service.updateStatus(id, param);
+	public AbstractBaseResult<Void> updateStatusResult(Long id, RequestParam<Status> param) {
+		service.adminUpdateStatus(id, param);
 		return ResultUtil.success();
 	}
 
 	/**
 	 * 查询用户详情
-	 * <p>按ID查询用户详情并填充关联映射数据（如所属客户端、关联角色ID列表），用户不存在时抛出业务异常。</p>
+	 * <p>按ID查询并填充关联映射数据（如所属客户端、关联角色ID列表），用户不存在时抛出业务异常。</p>
 	 *
 	 * @param id 用户ID
 	 * @return 用户详细信息
 	 */
 	@Override
-	public AbstractBaseResult<UserInfoResult> restGet(Long id) {
+	public AbstractBaseResult<UserInfoResult> getResult(Long id) {
 		return ResultUtil.success(service.getByIdThrowErrorRelation(id, UserInfoResult.class));
 	}
 
 	/**
 	 * 更新用户信息
-	 * <p>
-	 * 委托业务层 {@code saveUpdate} 处理，更新时同步维护用户与角色的绑定关系；
-	 * 若更新参数中的状态为禁用，更新完成后会销毁该用户的全部 OAuth2 令牌，强制其重新登录。
-	 * </p>
+	 * <p>更新时同步维护用户与角色的绑定关系；更新后状态为禁用时销毁该用户全部 OAuth2 令牌，强制下线。</p>
 	 *
-	 * @param id    需要更新的用户ID
-	 * @param param 用户更新参数，包含需要更新的用户信息
+	 * @param id    用户ID
+	 * @param param 用户更新参数
 	 * @return 操作结果
 	 */
 	@Override
-	public AbstractBaseResult<Void> restUpdate(Long id, UserSaveUpdateParam param) {
-		service.saveUpdate(id, param);
+	public AbstractBaseResult<Void> updateResult(Long id, UserSaveUpdateParam param) {
+		service.adminSaveUpdate(id, param);
 		return ResultUtil.success();
 	}
 
 	/**
 	 * 获取当前登录用户的个人信息
-	 * <p>
-	 * 从链路上下文中获取当前登录用户的用户ID，按关联映射查询并返回该用户的
-	 * 姓名、头像以及权限标识列表信息。
-	 * </p>
+	 * <p>从链路上下文获取当前用户ID，关联查询姓名、头像及权限标识列表。</p>
 	 *
 	 * @return 当前登录用户的个人信息
 	 */
 	@Override
-	public AbstractBaseResult<UserIndividualInfoResult> restIndividualGet() {
+	public AbstractBaseResult<UserIndividualInfoResult> individualGetResult() {
 		Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
 		return ResultUtil.success(service.getByIdThrowErrorRelation(userId, UserIndividualInfoResult.class));
 	}
 
 	/**
 	 * 更新当前登录用户的个人信息
-	 * <p>
-	 * 旧密码与新密码同时传入时先校验旧密码，校验通过后加密新密码一并更新；
-	 * 两者均未传入时不修改密码，仅更新其他基本信息。更新成功后销毁该用户在该客户端下的全部
-	 * OAuth2 令牌强制重新登录，并设置 {@code X-Redirect} 响应头指示前端跳转登录页。
-	 * </p>
+	 * <p>修改密码时需同时传入旧密码与新密码；更新成功后销毁该用户在当前客户端下的全部 OAuth2 令牌并指示前端跳转登录页，强制重新登录。</p>
 	 *
 	 * @param param 个人信息更新参数（姓名、头像、旧密码、新密码）
 	 * @return 操作结果
 	 */
 	@Override
-	public AbstractBaseResult<Void> restIndividualUpdate(UserIndividualUpdateParam param) {
-		service.individualUpdate(param);
+	public AbstractBaseResult<Void> individualUpdateResult(UserIndividualUpdateParam param) {
+		service.adminIndividualUpdate(param);
 		return ResultUtil.success();
 	}
 

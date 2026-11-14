@@ -2,7 +2,7 @@ package com.maozi.oauth.token.config.authorization.base;
 
 import com.baomidou.mybatisplus.core.toolkit.ReflectionKit;
 import com.maozi.oauth.token.config.domain.SecurityUserDetails;
-import com.maozi.oauth.token.constants.OAuth2TokenClaimConstants;
+import com.maozi.oauth.token.constants.OAuth2TokenUserClaimConstants;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -110,18 +110,9 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
     public abstract UsernamePasswordAuthenticationToken subAuthenticate(T authentication);
 
     /**
-     * 执行认证流程
-     * <p>
-     * 完整的认证流程包括：
-     * 1. 验证客户端是否已认证
-     * 2. 验证客户端是否支持该授权模式
-     * 3. 验证请求的scope是否合法
-     * 4. 调用子类实现进行用户认证
-     * 5. 生成AccessToken（claims中写入用户权限与用户附加属性）
-     * 6. 可选地生成RefreshToken
-     * 7. 可选地生成IDToken（当scope包含openid时）
-     * 8. 保存授权信息并返回
-     * </p>
+     * 执行认证流程：校验客户端、授权模式与scope后，委托子类完成用户认证，
+     * 再生成AccessToken（claims中写入用户权限与用户附加属性）、可选的RefreshToken与IDToken（scope含openid时），
+     * 最后保存授权信息并返回
      *
      * @param authentication 认证请求对象
      * @return 认证结果（OAuth2AccessTokenAuthenticationToken）
@@ -143,16 +134,17 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
         // 验证scope
         Set<String> authorizedScopes = getAuthorizedScopes(registeredClient, authenticationToken.getScopes());
 
-        // 进行认证
+        // 调用子类认证逻辑构造用户名密码令牌，再由DAO认证提供者完成密码校验
         Authentication userAuthenticationToken = null;
         try {
             UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = subAuthenticate(authenticationToken);
             userAuthenticationToken = daoAuthenticationProvider.authenticate(usernamePasswordAuthenticationToken);
         } catch (Exception e) {
+            // 认证异常统一转为OAuth2认证异常返回
             throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, e.getMessage(), ERROR_URI));
         }
 
-        // 以下内容摘抄自OAuth2AuthorizationCodeAuthenticationProvider
+        // 以下令牌生成流程参考OAuth2AuthorizationCodeAuthenticationProvider实现
         DefaultOAuth2TokenContext.Builder tokenContextBuilder = DefaultOAuth2TokenContext.builder()
                 .registeredClient(registeredClient)
                 .principal(userAuthenticationToken)
@@ -163,7 +155,7 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
 
         // 初始化OAuth2Authorization构建器
         OAuth2Authorization.Builder authorizationBuilder = OAuth2Authorization.withRegisteredClient(registeredClient)
-                // 2023-07-15修改逻辑，加入当前用户认证信息，防止刷新token时因获取不到认证信息而抛出空指针异常
+                // 加入当前用户认证信息，防止刷新token时因获取不到认证信息而抛出空指针异常
                 // 存入授权scope
                 .authorizedScopes(authorizedScopes)
                 // 当前授权用户名称
@@ -187,6 +179,7 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
         OAuth2AccessToken accessToken = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER,
                 generatedAccessToken.getTokenValue(), generatedAccessToken.getIssuedAt(),
                 generatedAccessToken.getExpiresAt(), tokenContext.getAuthorizedScopes());
+        // JWT类型令牌：在生成器产出的claims基础上补充用户权限与用户附加属性
         if (generatedAccessToken instanceof ClaimAccessor) {
             Authentication finalUserAuthenticationToken = userAuthenticationToken;
             authorizationBuilder.token(accessToken, (metadata) -> {
@@ -194,19 +187,19 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
                 List<String> authorities = finalUserAuthenticationToken.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.toList());
-                claims.put(OAuth2TokenClaimConstants.AUTHORITIES, authorities);
+                claims.put(OAuth2TokenUserClaimConstants.AUTHORITIES, authorities);
                 if(finalUserAuthenticationToken.getPrincipal() instanceof SecurityUserDetails securityUserDetails){
                     claims.putAll(securityUserDetails.getAttributes());
                 }
                 metadata.put(OAuth2Authorization.Token.CLAIMS_METADATA_NAME, claims);
             });
         } else {
-            // 对于 opaque token，将用户权限与用户附加属性存入 claims metadata，以便 introspection 端点返回
+            // 不透明令牌：直接将用户权限与用户附加属性构建为claims metadata
             Map<String, Object> claims = new HashMap<>();
             List<String> authorities = userAuthenticationToken.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toList());
-            claims.put(OAuth2TokenClaimConstants.AUTHORITIES, authorities);
+            claims.put(OAuth2TokenUserClaimConstants.AUTHORITIES, authorities);
             if(userAuthenticationToken.getPrincipal() instanceof SecurityUserDetails securityUserDetails){
                 claims.putAll(securityUserDetails.getAttributes());
             }

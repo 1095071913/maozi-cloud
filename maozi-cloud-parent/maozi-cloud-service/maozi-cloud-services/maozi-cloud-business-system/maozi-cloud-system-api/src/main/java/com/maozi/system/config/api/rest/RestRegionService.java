@@ -10,10 +10,6 @@ import java.util.List;
 
 /**
  * 地区服务 REST 接口
- * <p>
- * 提供地区数据的 RESTful API 接口定义，主要用于查询地区下拉列表信息。
- * 支持根据父级地区 ID 获取对应的子地区列表。
- * </p>
  *
  * @author maozi
  * @date 2026/11/08
@@ -31,6 +27,6 @@ public interface RestRegionService {
 	 * @return 返回地区下拉列表结果，仅包含地区 ID 和名称两项基本信息
 	 */
 	@Get(value = PATH + "/region/{parentId}/list",description = "列表")
-	AbstractBaseResult<List<DropDownResult>> restList(@PathVariable("parentId") Long parentId);
+	AbstractBaseResult<List<DropDownResult>> listResult(@PathVariable("parentId") Long parentId);
 
 }

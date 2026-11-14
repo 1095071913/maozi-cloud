@@ -11,9 +11,8 @@ import java.util.List;
 /**
  * 客户端管理 RPC 接口
  * <p>
- * 提供客户端（OAuth2 Client）的远程过程调用（RPC）接口定义，
- * 用于微服务之间的内部调用，包括新增客户端、客户端可用性校验
- * 以及单个和批量获取客户端下拉信息等功能。
+ * 提供客户端（OAuth2 Client）的RPC接口定义，供微服务之间内部调用，
+ * 包括新增、可用性校验及下拉信息查询等功能。
  * </p>
  *
  * @author maozi
@@ -22,16 +21,12 @@ import java.util.List;
 public interface RpcClientService {
 
 	/**
-	 * 新增客户端并返回保存后的客户端信息
-	 * <p>
-	 * 供AI智能体等远程调用方使用：先以新增方式保存客户端，
-	 * 再根据保存后的主键ID查询并返回客户端详细信息DTO。
-	 * </p>
+	 * 新增客户端并按保存后的主键ID查询返回客户端DTO
 	 *
 	 * @param param 客户端保存参数
 	 * @return 返回包含新增客户端信息的DTO结果
 	 */
-	AbstractBaseResult<ClientDTO> rpcAiSave(ClientSaveUpdateParam param);
+	AbstractBaseResult<ClientDTO> aiSaveResult(ClientSaveUpdateParam param);
 
 	/**
 	 * 校验指定客户端是否可用（存在且未禁用）
@@ -48,7 +43,7 @@ public interface RpcClientService {
 	 * @param id 客户端唯一标识 ID
 	 * @return 返回客户端的下拉选项结果
 	 */
-	AbstractBaseResult<DropDownResult> dropDownResult(Long id);
+	AbstractBaseResult<? extends DropDownResult> dropDownResult(Long id);
 
 	/**
 	 * 根据客户端 ID 集合批量获取客户端的下拉选项信息列表
@@ -56,6 +51,6 @@ public interface RpcClientService {
 	 * @param ids 客户端唯一标识 ID 集合
 	 * @return 返回客户端下拉选项结果列表
 	 */
-	AbstractBaseResult<List<DropDownResult>> dropDownListResult(Collection<Long> ids);
+	AbstractBaseResult<List<? extends DropDownResult>> dropDownListResult(Collection<Long> ids);
 
 }

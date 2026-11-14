@@ -1,7 +1,7 @@
 package com.maozi.oauth.token.config.authorization.refresh;
 
 import com.maozi.oauth.token.config.domain.SecurityUserDetails;
-import com.maozi.oauth.token.constants.OAuth2TokenClaimConstants;
+import com.maozi.oauth.token.constants.OAuth2TokenUserClaimConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -77,9 +77,10 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 		Assert.notNull(this.delegate, "tokenGenerator must be set via setTokenGenerator()");
 
-		// 委托给默认的刷新Token处理器
+		// 委托给默认的刷新Token处理器执行刷新
 		Authentication result = this.delegate.authenticate(authentication);
 
+		// 刷新成功后为新AccessToken补充用户权限与附加属性
 		if (result instanceof OAuth2AccessTokenAuthenticationToken accessTokenAuth) {
 			enrichAuthorizationWithAuthorities(accessTokenAuth.getAccessToken());
 		}
@@ -96,6 +97,7 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
 		OAuth2Authorization authorization = authorizationService.findByToken(
 				accessToken.getTokenValue(), OAuth2TokenType.ACCESS_TOKEN);
 
+		// 未找到授权记录则跳过
 		if (authorization == null) {
 			return;
 		}
@@ -112,7 +114,7 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
 				? accessTokenToken.getClaims()
 				: Collections.emptyMap();
 		Map<String, Object> claims = new HashMap<>(existingClaims);
-		claims.put(OAuth2TokenClaimConstants.AUTHORITIES, authorities);
+		claims.put(OAuth2TokenUserClaimConstants.AUTHORITIES, authorities);
 		if(userDetails instanceof SecurityUserDetails securityUserDetails){
 			claims.putAll(securityUserDetails.getAttributes());
 		}

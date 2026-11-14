@@ -18,7 +18,7 @@
 package com.maozi.system.user.mapper;
 
 import com.maozi.service.api.IBaseMapper;
-import com.maozi.system.user.domain.UserDo;
+import com.maozi.system.user.domain.UserDO;
 
 /**
  * 用户Mapper接口
@@ -29,4 +29,4 @@ import com.maozi.system.user.domain.UserDo;
  * @author maozi
  * @date 2026/11/08
  */
-public interface UserMapper extends IBaseMapper<UserDo>{}
+public interface UserMapper extends IBaseMapper<UserDO>{}

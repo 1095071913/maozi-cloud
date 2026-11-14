@@ -22,24 +22,24 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImageUploadResult implements Serializable {
-	/** 序列化标识 */
-	@Serial
-	private static final long serialVersionUID = 1L;
+    /** 序列化标识 */
+    @Serial
+    private static final long serialVersionUID = 1L;
 
-	/** 文件原始名称 */
-	@Schema(description = "文件原始名称")
-	private String fileName;
+    /** 文件原始名称 */
+    @Schema(description = "文件原始名称")
+    private String fileName;
 
-	/** 对象存储文件路径（Object Key） */
-	@Schema(description = "对象存储文件路径")
-	private String fileKey;
+    /** 对象存储文件路径（Object Key） */
+    @Schema(description = "对象存储文件路径")
+    private String fileKey;
 
-	/** 文件访问地址 */
-	@Schema(description = "文件访问地址")
-	private String url;
+    /** 文件访问地址 */
+    @Schema(description = "文件访问地址")
+    private String url;
 
-	/** 文件大小（字节） */
-	@Schema(description = "文件大小（字节）")
-	private Long fileSize;
+    /** 文件大小（字节） */
+    @Schema(description = "文件大小（字节）")
+    private Long fileSize;
 
 }

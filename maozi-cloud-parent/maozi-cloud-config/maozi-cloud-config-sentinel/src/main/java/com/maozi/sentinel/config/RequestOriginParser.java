@@ -17,15 +17,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class RequestOriginParser implements com.alibaba.csp.sentinel.adapter.spring.webmvc_v6x.callback.RequestOriginParser {
 
-	/**
-	 * 解析请求来源
-	 *
-	 * @param request HTTP 请求
-	 * @return 请求来源标识（客户端真实 IP 地址，优先取反向代理头中的地址）
-	 */
-	@Override
-	public String parseOrigin(HttpServletRequest request) {
-		return JakartaServletUtil.getClientIP(request);
-	}
+    /**
+     * 解析请求来源
+     *
+     * @param request HTTP 请求
+     * @return 请求来源标识（客户端真实 IP 地址，优先取反向代理头中的地址）
+     */
+    @Override
+    public String parseOrigin(HttpServletRequest request) {
+        return JakartaServletUtil.getClientIP(request);
+    }
 
 }

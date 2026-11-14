@@ -17,7 +17,7 @@
 
 package com.maozi.system.user.api.impl.rest;
 
-import com.maozi.base.enums.Status;
+import com.maozi.base.enums.StatusEnum;
 import com.maozi.base.param.PageParam;
 import com.maozi.base.param.RequestParam;
 import com.maozi.base.result.PageResult;
@@ -48,105 +48,105 @@ import com.maozi.system.user.result.UserListResult;
 @RestService
 public class RestUserServiceImpl extends BaseServiceResultImpl<UserServiceImpl, Void> implements RestUserService {
 
-	/**
-	 * 分页查询用户列表
-	 * <p>关联查询并填充关联映射数据（如所属客户端）。</p>
-	 *
-	 * @param pageParam 分页查询参数
-	 * @return 用户列表分页结果
-	 */
-	@Override
-	public AbstractBaseResult<PageResult<UserListResult>> listResult(PageParam<UserListParam> pageParam) {
-		return ResultUtil.success(service.listRelation(pageParam, UserListResult.class));
-	}
+    /**
+     * 分页查询用户列表
+     * <p>关联查询并填充关联映射数据（如所属客户端）。</p>
+     *
+     * @param pageParam 分页查询参数
+     * @return 用户列表分页结果
+     */
+    @Override
+    public AbstractBaseResult<PageResult<UserListResult>> listResult(PageParam<UserListParam> pageParam) {
+        return ResultUtil.success(service.listRelation(pageParam, UserListResult.class));
+    }
 
-	/**
-	 * 新增用户
-	 *
-	 * @param param 用户新增参数
-	 * @return 新增用户的ID
-	 */
-	@Override
-	public AbstractBaseResult<Long> saveResult(UserSaveUpdateParam param) {
-		return ResultUtil.success(service.adminSaveUpdate(null, param));
-	}
+    /**
+     * 新增用户
+     *
+     * @param param 用户新增参数
+     * @return 新增用户的ID
+     */
+    @Override
+    public AbstractBaseResult<Long> saveResult(UserSaveUpdateParam param) {
+        return ResultUtil.success(service.adminSaveUpdate(null, param));
+    }
 
-	/**
-	 * 删除用户
-	 * <p>用户不存在时静默返回；删除时解除角色绑定，删除成功后销毁该用户全部 OAuth2 令牌，强制下线。</p>
-	 *
-	 * @param id 用户ID
-	 * @return 操作结果
-	 */
-	@Override
-	public AbstractBaseResult<Void> removeByIdResult(Long id) {
-		service.adminRemove(id);
-		return ResultUtil.success();
-	}
+    /**
+     * 删除用户
+     * <p>用户不存在时静默返回；删除时解除角色绑定，删除成功后销毁该用户全部 OAuth2 令牌，强制下线。</p>
+     *
+     * @param id 用户ID
+     * @return 操作结果
+     */
+    @Override
+    public AbstractBaseResult<Void> removeByIdResult(Long id) {
+        service.adminRemove(id);
+        return ResultUtil.success();
+    }
 
-	/**
-	 * 更新用户状态（启用/禁用）
-	 * <p>当前状态与目标状态一致时直接返回；状态变更为禁用后销毁该用户全部 OAuth2 令牌，强制下线。</p>
-	 *
-	 * @param id 用户ID
-	 * @param param 状态参数
-	 * @return 操作结果
-	 */
-	@Override
-	public AbstractBaseResult<Void> updateStatusResult(Long id, RequestParam<Status> param) {
-		service.adminUpdateStatus(id, param);
-		return ResultUtil.success();
-	}
+    /**
+     * 更新用户状态（启用/禁用）
+     * <p>当前状态与目标状态一致时直接返回；状态变更为禁用后销毁该用户全部 OAuth2 令牌，强制下线。</p>
+     *
+     * @param id 用户ID
+     * @param param 状态参数
+     * @return 操作结果
+     */
+    @Override
+    public AbstractBaseResult<Void> updateStatusResult(Long id, RequestParam<StatusEnum> param) {
+        service.adminUpdateStatus(id, param);
+        return ResultUtil.success();
+    }
 
-	/**
-	 * 查询用户详情
-	 * <p>按ID查询并填充关联映射数据（如所属客户端、关联角色ID列表），用户不存在时抛出业务异常。</p>
-	 *
-	 * @param id 用户ID
-	 * @return 用户详细信息
-	 */
-	@Override
-	public AbstractBaseResult<UserInfoResult> getResult(Long id) {
-		return ResultUtil.success(service.getByIdThrowErrorRelation(id, UserInfoResult.class));
-	}
+    /**
+     * 查询用户详情
+     * <p>按ID查询并填充关联映射数据（如所属客户端、关联角色ID列表），用户不存在时抛出业务异常。</p>
+     *
+     * @param id 用户ID
+     * @return 用户详细信息
+     */
+    @Override
+    public AbstractBaseResult<UserInfoResult> getResult(Long id) {
+        return ResultUtil.success(service.getByIdThrowErrorRelation(id, UserInfoResult.class));
+    }
 
-	/**
-	 * 更新用户信息
-	 * <p>更新时同步维护用户与角色的绑定关系；更新后状态为禁用时销毁该用户全部 OAuth2 令牌，强制下线。</p>
-	 *
-	 * @param id    用户ID
-	 * @param param 用户更新参数
-	 * @return 操作结果
-	 */
-	@Override
-	public AbstractBaseResult<Void> updateResult(Long id, UserSaveUpdateParam param) {
-		service.adminSaveUpdate(id, param);
-		return ResultUtil.success();
-	}
+    /**
+     * 更新用户信息
+     * <p>更新时同步维护用户与角色的绑定关系；更新后状态为禁用时销毁该用户全部 OAuth2 令牌，强制下线。</p>
+     *
+     * @param id    用户ID
+     * @param param 用户更新参数
+     * @return 操作结果
+     */
+    @Override
+    public AbstractBaseResult<Void> updateResult(Long id, UserSaveUpdateParam param) {
+        service.adminSaveUpdate(id, param);
+        return ResultUtil.success();
+    }
 
-	/**
-	 * 获取当前登录用户的个人信息
-	 * <p>从链路上下文获取当前用户ID，关联查询姓名、头像及权限标识列表。</p>
-	 *
-	 * @return 当前登录用户的个人信息
-	 */
-	@Override
-	public AbstractBaseResult<UserIndividualInfoResult> individualGetResult() {
-		Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
-		return ResultUtil.success(service.getByIdThrowErrorRelation(userId, UserIndividualInfoResult.class));
-	}
+    /**
+     * 获取当前登录用户的个人信息
+     * <p>从链路上下文获取当前用户ID，关联查询姓名、头像及权限标识列表。</p>
+     *
+     * @return 当前登录用户的个人信息
+     */
+    @Override
+    public AbstractBaseResult<UserIndividualInfoResult> individualGetResult() {
+        Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
+        return ResultUtil.success(service.getByIdThrowErrorRelation(userId, UserIndividualInfoResult.class));
+    }
 
-	/**
-	 * 更新当前登录用户的个人信息
-	 * <p>修改密码时需同时传入旧密码与新密码；更新成功后销毁该用户在当前客户端下的全部 OAuth2 令牌并指示前端跳转登录页，强制重新登录。</p>
-	 *
-	 * @param param 个人信息更新参数（姓名、头像、旧密码、新密码）
-	 * @return 操作结果
-	 */
-	@Override
-	public AbstractBaseResult<Void> individualUpdateResult(UserIndividualUpdateParam param) {
-		service.adminIndividualUpdate(param);
-		return ResultUtil.success();
-	}
+    /**
+     * 更新当前登录用户的个人信息
+     * <p>修改密码时需同时传入旧密码与新密码；更新成功后销毁该用户在当前客户端下的全部 OAuth2 令牌并指示前端跳转登录页，强制重新登录。</p>
+     *
+     * @param param 个人信息更新参数（姓名、头像、旧密码、新密码）
+     * @return 操作结果
+     */
+    @Override
+    public AbstractBaseResult<Void> individualUpdateResult(UserIndividualUpdateParam param) {
+        service.adminIndividualUpdate(param);
+        return ResultUtil.success();
+    }
 
 }

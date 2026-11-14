@@ -1,6 +1,6 @@
 package com.maozi.service.api.rpc;
 
-import com.maozi.base.enums.Status;
+import com.maozi.base.enums.StatusEnum;
 import com.maozi.base.param.RequestParam;
 import com.maozi.base.param.SaveUpdateBatch;
 import com.maozi.base.result.DropDownResult;
@@ -97,7 +97,7 @@ public interface BaseServiceResult<D> {
      * @param param 携带目标状态的请求参数，data 为空时抛出参数错误
      * @return 操作结果
      */
-    AbstractBaseResult<Void> updateStatusResult(Long id, RequestParam<Status> param);
+    AbstractBaseResult<Void> updateStatusResult(Long id, RequestParam<StatusEnum> param);
 
     /**
      * 根据 ID 删除记录

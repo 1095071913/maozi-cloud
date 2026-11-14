@@ -25,16 +25,16 @@ public class LockRedissonProperties {
     /** Redis 连接密码 */
     private String password;
 
-    /** Redis 数据库编号，默认为 0 */
-    private Integer database = 0;
+    /** Redis 数据库编号（缺省值由 boot-lock.yml 提供） */
+    private Integer database;
 
     /** Redis 集群节点地址列表 */
     private String[] nodeAddresses;
 
-    /** 获取锁的默认等待时间（秒），默认 60 秒 */
-    private Long waitTime = 60L;
+    /** 获取锁的默认等待时间（秒）（缺省值由 boot-lock.yml 提供，未配置时兜底 LockTypeEnum.DEFAULT_LOCK_TIME） */
+    private Long waitTime;
 
-    /** 锁的默认持有时间（秒），超时后自动释放，默认 60 秒 */
-    private Long leaseTime = 60L;
+    /** 锁的默认持有时间（秒），超时后自动释放（缺省值由 boot-lock.yml 提供，未配置时兜底 LockTypeEnum.DEFAULT_LOCK_TIME） */
+    private Long leaseTime;
 
 }

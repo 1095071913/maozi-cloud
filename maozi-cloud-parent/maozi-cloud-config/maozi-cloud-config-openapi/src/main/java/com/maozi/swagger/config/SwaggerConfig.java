@@ -62,6 +62,12 @@ public class SwaggerConfig {
     /** 项目主页 URL */
     private static final String OFFICIAL_URL = "https://github.com/1095071913";
 
+    /** OpenAPI Schema int64 格式标识 */
+    private static final String FORMAT_INT64 = "int64";
+
+    /** OpenAPI Schema string 类型标识 */
+    private static final String TYPE_STRING = "string";
+
     /** API 白名单配置 */
     @Resource
     private ApiWhitelistProperties apiWhitelistProperties;
@@ -75,9 +81,9 @@ public class SwaggerConfig {
     public OpenAPI openApi() {
         return new OpenAPI().info(
             new Info()
-                .title(ApplicationEnvironmentContext.TITLE)
-                .version(ApplicationEnvironmentContext.VERSION)
-                .description(ApplicationEnvironmentContext.DETAILS)
+                .title(ApplicationEnvironmentContext.title)
+                .version(ApplicationEnvironmentContext.version)
+                .description(ApplicationEnvironmentContext.details)
                 .termsOfService(OFFICIAL_URL)
                 .license(new License().name(LICENSE_NAME).url(OFFICIAL_URL))
         );
@@ -159,9 +165,9 @@ public class SwaggerConfig {
                 Map<String, Schema> properties = schema.getProperties();
                 properties.forEach((fieldName, fieldSchema) -> {
                     // Long 字段在文档中呈现为 int64，改为 string 避免 JS 精度丢失
-                    if ("int64".equals(fieldSchema.getFormat())) {
+                    if (FORMAT_INT64.equals(fieldSchema.getFormat())) {
                         Set<String> types = CollectionUtil.newHashSet();
-                        types.add("string");
+                        types.add(TYPE_STRING);
                         fieldSchema.setTypes(types);
                         fieldSchema.setFormat(null);
                     }

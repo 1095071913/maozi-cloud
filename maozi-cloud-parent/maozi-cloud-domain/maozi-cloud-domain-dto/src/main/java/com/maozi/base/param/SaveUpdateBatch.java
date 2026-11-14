@@ -23,12 +23,12 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class SaveUpdateBatch implements Serializable {
 
-	/** 序列化标识 */
+    /** 序列化标识 */
     @Serial
     private static final long serialVersionUID = 1L;
 
-	/** 数据主键标识 */
-	@Schema(description = "标识")
-	private Long id;
+    /** 数据主键标识 */
+    @Schema(description = "标识")
+    private Long id;
 
 }

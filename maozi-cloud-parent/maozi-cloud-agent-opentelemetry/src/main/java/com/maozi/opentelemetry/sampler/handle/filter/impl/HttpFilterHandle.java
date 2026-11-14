@@ -27,16 +27,19 @@ import java.util.regex.Pattern;
 public class HttpFilterHandle extends BaseFilterHandle {
 
     /** 需要排除的 URL 路径模式列表（支持 ** 通配符） */
-    private static final List<String> names = List.of(
+    private static final List<String> EXCLUDED_URL_PATHS = List.of(
             "/actuator",
             "/actuator/**",
             "/v3/api-docs/**"
     );
 
-    /** 与 {@link #names} 对应的预编译正则列表（** 转为 .*），避免热路径上重复编译 */
-    private static final List<Pattern> EXCLUDED_PATH_PATTERNS = names.stream()
+    /** 与 {@link #EXCLUDED_URL_PATHS} 对应的预编译正则列表（** 转为 .*），避免热路径上重复编译 */
+    private static final List<Pattern> EXCLUDED_PATH_PATTERNS = EXCLUDED_URL_PATHS.stream()
             .map(excludedPath -> Pattern.compile(excludedPath.replace("**", ".*")))
             .toList();
+
+    /** 查询参数分隔符切分模式（去除 URL 查询参数用，预编译） */
+    private static final Pattern QUERY_PARAM_PATTERN = Pattern.compile("\\?");
 
     /** Span 属性键：HTTP 请求路径 */
     private static final String ATTR_URL_PATH = "url.path";
@@ -60,7 +63,7 @@ public class HttpFilterHandle extends BaseFilterHandle {
      */
     @Override
     public List<String> getNames() {
-        return names;
+        return EXCLUDED_URL_PATHS;
     }
 
     /**
@@ -101,7 +104,7 @@ public class HttpFilterHandle extends BaseFilterHandle {
                 httpPath = httpPath.substring(index);
 
                 // 去除查询参数
-                httpPath = httpPath.split("\\?")[0];
+                httpPath = QUERY_PARAM_PATTERN.split(httpPath)[0];
 
             }
 

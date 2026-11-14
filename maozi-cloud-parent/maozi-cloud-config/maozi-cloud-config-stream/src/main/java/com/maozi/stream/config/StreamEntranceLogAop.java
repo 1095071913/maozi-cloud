@@ -27,8 +27,8 @@ import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.context.SqlLogContext;
 import com.maozi.common.context.TestFlowContext;
 import com.maozi.common.context.VersionContext;
-import com.maozi.common.enums.EnvironmentType;
-import com.maozi.common.enums.LogCommonType;
+import com.maozi.common.enums.EnvironmentTypeEnum;
+import com.maozi.common.enums.LogCommonTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -41,7 +41,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -75,7 +74,7 @@ public class StreamEntranceLogAop {
     private static final String HEADER_ROCKET_MQ_MESSAGE_ID = "ROCKET_MQ_MESSAGE_ID";
 
     /** Stream 消费者方法切点表达式 */
-    private final String POINT = "execution(java.util.function.Consumer com.maozi.*.*.stream..*(..))";
+    private static final String POINT = "execution(java.util.function.Consumer com.maozi.*.*.stream..*(..))";
 
     /**
      * 环绕通知，包装消息消费者并记录处理日志
@@ -92,9 +91,6 @@ public class StreamEntranceLogAop {
 
         return (message) -> {
 
-            // 标记消息处理是否发生异常，用于最终日志级别判断
-            boolean error = false;
-
             // 消息处理开始时间戳
             long beginTime = System.currentTimeMillis();
 
@@ -108,14 +104,24 @@ public class StreamEntranceLogAop {
             Map<String, String> logs = new LinkedHashMap<>(16);
 
             // 记录消息类型、消息 ID、Topic 与消费方法
-            logs.put(LogTag.TYPE, LogCommonType.MQ.getDesc());
-            logs.put(LOG_TAG_MESSAGE_ID, Objects.requireNonNull(headers.get(HEADER_ROCKET_MQ_MESSAGE_ID)).toString());
-            logs.put(LOG_TAG_TOPIC, Objects.requireNonNull(headers.get(HEADER_ROCKET_MQ_TOPIC)).toString());
+            logs.put(LogTag.TYPE, LogCommonTypeEnum.MQ.getDesc());
+
+            // 非 RocketMQ 绑定器传输时消息头不存在，判空后按需记录，避免消费前置逻辑 NPE
+            Object messageId = headers.get(HEADER_ROCKET_MQ_MESSAGE_ID);
+            if (messageId != null) {
+                logs.put(LOG_TAG_MESSAGE_ID, messageId.toString());
+            }
+
+            Object topic = headers.get(HEADER_ROCKET_MQ_TOPIC);
+            if (topic != null) {
+                logs.put(LOG_TAG_TOPIC, topic.toString());
+            }
+
             logs.put(LogTag.FUNCTION, proceedingJoinPoint.getSignature().getDeclaringTypeName()
                 + ":" + proceedingJoinPoint.getSignature().getName());
 
             // 非生产环境直接记录消息参数；生产环境为避免参数外泄，仅在异常时补充记录
-            boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentType.PROD);
+            boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD);
             if (isNotProd) {
                 logs.put(LogTag.PARAM, messageData.toString());
             }
@@ -138,22 +144,25 @@ public class StreamEntranceLogAop {
                 CurrentUserInfoContext.CONTEXT.set(currentUserInfoObj.toString());
             }
 
+            Exception ex = null;
             try {
                 // 执行消息消费逻辑
                 resultData.accept(message);
             } catch (Exception e) {
-
-                // 标记消息处理发生异常
-                error = true;
+                
+                ex = e;
 
                 // 生产环境异常时补充记录消息参数
                 if (!isNotProd) {
                     logs.put(LogTag.PARAM, messageData.toString());
                 }
 
-                // 记录异常描述与发生的第一行代码位置
+                // 记录异常描述与发生的第一行代码位置（热点异常在 JVM fast-throw 优化下堆栈可能为空，需判长度）
                 logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
-                logs.put(LogTag.ERROR_LINE, e.getStackTrace()[0].toString());
+                StackTraceElement[] errorLines = e.getStackTrace();
+                if (errorLines.length > 0) {
+                    logs.put(LogTag.ERROR_LINE, errorLines[0].toString());
+                }
 
                 // 异常原样上抛，交由消息容器按消费失败处理
                 throw e;
@@ -170,7 +179,7 @@ public class StreamEntranceLogAop {
                 logs.put(LogTag.RT, String.valueOf(System.currentTimeMillis() - beginTime));
 
                 // 按处理结果以 info/error 级别输出日志
-                LogUtil.log(log, error, logs);
+                LogUtil.log(log, ObjectUtil.isNotNullEmpty(ex), logs, ex);
 
                 // 清理线程上下文，防止线程池复用导致数据泄漏
                 AbstractRequestContextHolder.clearContext();

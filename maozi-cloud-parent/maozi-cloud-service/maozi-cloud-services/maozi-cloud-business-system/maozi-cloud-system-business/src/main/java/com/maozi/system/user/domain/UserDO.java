@@ -42,20 +42,20 @@ import java.io.Serial;
 @EqualsAndHashCode(callSuper = true)
 @TableName("system_user")
 public class UserDO extends AbstractBaseNameDomain {
-	/** 序列化标识 */
-	@Serial
-	private static final long serialVersionUID = 1L;
+    /** 序列化标识 */
+    @Serial
+    private static final long serialVersionUID = 1L;
 
-	/** 用户账号（登录名），同一客户端下唯一 */
-	private String username;
+    /** 用户账号（登录名），同一客户端下唯一 */
+    private String username;
 
-	/** 用户密码，加密存储 */
-	private String password;
+    /** 用户密码，加密存储 */
+    private String password;
 
-	/** 用户头像图标地址 */
-	private String icon;
+    /** 用户头像图标地址 */
+    private String icon;
 
-	/** 所属客户端ID，关联客户端表 */
-	private Long clientId;
+    /** 所属客户端ID，关联客户端表 */
+    private Long clientId;
 
 }

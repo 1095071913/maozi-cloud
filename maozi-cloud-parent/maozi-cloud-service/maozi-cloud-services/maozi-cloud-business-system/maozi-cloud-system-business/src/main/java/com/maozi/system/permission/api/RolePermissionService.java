@@ -32,45 +32,45 @@ import java.util.Set;
  */
 public interface RolePermissionService {
 
-	/**
-	 * 检查指定权限是否已被角色绑定
-	 * <p>如果权限已被角色绑定，则抛出业务异常。</p>
-	 *
-	 * @param permissionId 权限ID
-	 */
-	void checkRoleBindPermissionByPermission(Long permissionId);
+    /**
+     * 检查指定权限是否已被角色绑定
+     * <p>如果权限已被角色绑定，则抛出业务异常。</p>
+     *
+     * @param permissionId 权限ID
+     */
+    void checkRoleBindPermissionByPermission(Long permissionId);
 
-	/**
-	 * 更新角色与权限的绑定关系
-	 * <p>批量绑定和解绑角色与权限的关联关系。</p>
-	 *
-	 * @param roleId 角色ID
-	 * @param bindPermissionIds 需要绑定的权限ID集合
-	 * @param unbindPermissionIds 需要解绑的权限ID集合
-	 */
-	void updateBind(Long roleId, Set<Long> bindPermissionIds, Set<Long> unbindPermissionIds);
+    /**
+     * 更新角色与权限的绑定关系
+     * <p>批量绑定和解绑角色与权限的关联关系。</p>
+     *
+     * @param roleId 角色ID
+     * @param bindPermissionIds 需要绑定的权限ID集合
+     * @param unbindPermissionIds 需要解绑的权限ID集合
+     */
+    void updateBind(Long roleId, Set<Long> bindPermissionIds, Set<Long> unbindPermissionIds);
 
-	/**
-	 * 根据多个角色ID获取关联的权限ID集合
-	 *
-	 * @param roleIds 角色ID列表
-	 * @return 权限ID集合（去重）
-	 */
-	Collection<Long> getPermissionsByRoles(List<Long> roleIds);
+    /**
+     * 根据多个角色ID获取关联的权限ID集合
+     *
+     * @param roleIds 角色ID列表
+     * @return 权限ID集合（去重）
+     */
+    Collection<Long> getPermissionsByRoles(List<Long> roleIds);
 
-	/**
-	 * 根据单个角色ID获取关联的权限ID列表
-	 *
-	 * @param roleId 角色ID
-	 * @return 权限ID列表
-	 */
-	List<Long> getPermissionsByRole(Long roleId);
+    /**
+     * 根据单个角色ID获取关联的权限ID列表
+     *
+     * @param roleId 角色ID
+     * @return 权限ID列表
+     */
+    List<Long> getPermissionsByRole(Long roleId);
 
-	/**
-	 * 解除角色与所有权限的绑定关系
-	 *
-	 * @param roleId 角色ID
-	 */
-	void roleUnbind(Long roleId);
+    /**
+     * 解除角色与所有权限的绑定关系
+     *
+     * @param roleId 角色ID
+     */
+    void roleUnbind(Long roleId);
 
 }

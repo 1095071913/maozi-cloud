@@ -30,7 +30,7 @@ public class AgentHttpResponseCustomizer implements HttpServerResponseCustomizer
     private static final String TRACE_ID_HEADER_KEY = "X-TraceId";
 
     /** 需要注入追踪 ID 的响应类型（网关转发的 Netty 响应） */
-    private final List<String> ADD_TRACEID_CLASS = Collections.unmodifiableList(
+    private static final List<String> ADD_TRACEID_CLASS = Collections.unmodifiableList(
         Arrays.asList("io.netty.handler.codec.http.DefaultHttpResponse","io.netty.handler.codec.http.DefaultFullHttpResponse")
     );
 

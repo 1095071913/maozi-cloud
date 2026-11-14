@@ -33,42 +33,42 @@ import org.springframework.stereotype.Component;
 @Component
 public class LocalRemoteServiceRegistrar implements BeanDefinitionRegistryPostProcessor {
 
-	/** 扫描根包，覆盖所有业务模块 */
-	private static final String BASE_PACKAGE = "com.maozi";
+    /** 扫描根包，覆盖所有业务模块 */
+    private static final String BASE_PACKAGE = "com.maozi";
 
-	/**
-	 * 扫描 {@link RemoteService} 类并注册为本地 Bean 定义。
-	 * <p>
-	 * 使用 {@link ClassPathScanningCandidateComponentProvider} 按注解过滤，
-	 * 关闭默认的 {@code @Component} 过滤器以精确匹配 {@link RemoteService}。
-	 * 每个候选设 {@code autowireCandidate = false} 后注册，避免共享接口歧义。
-	 * </p>
-	 *
-	 * @param registry Bean 定义注册表
-	 */
-	@Override
-	public void postProcessBeanDefinitionRegistry(@Nonnull BeanDefinitionRegistry registry) {
+    /**
+     * 扫描 {@link RemoteService} 类并注册为本地 Bean 定义。
+     * <p>
+     * 使用 {@link ClassPathScanningCandidateComponentProvider} 按注解过滤，
+     * 关闭默认的 {@code @Component} 过滤器以精确匹配 {@link RemoteService}。
+     * 每个候选设 {@code autowireCandidate = false} 后注册，避免共享接口歧义。
+     * </p>
+     *
+     * @param registry Bean 定义注册表
+     */
+    @Override
+    public void postProcessBeanDefinitionRegistry(@Nonnull BeanDefinitionRegistry registry) {
 
-		ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
-		scanner.addIncludeFilter(new AnnotationTypeFilter(RemoteService.class));
+        ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
+        scanner.addIncludeFilter(new AnnotationTypeFilter(RemoteService.class));
 
-		AnnotationBeanNameGenerator nameGenerator = new AnnotationBeanNameGenerator();
+        AnnotationBeanNameGenerator nameGenerator = new AnnotationBeanNameGenerator();
 
-		for (BeanDefinition candidate : scanner.findCandidateComponents(BASE_PACKAGE)) {
-			String beanName = nameGenerator.generateBeanName(candidate, registry);
-			candidate.setAutowireCandidate(false);
-			registry.registerBeanDefinition(beanName, candidate);
-		}
+        for (BeanDefinition candidate : scanner.findCandidateComponents(BASE_PACKAGE)) {
+            String beanName = nameGenerator.generateBeanName(candidate, registry);
+            candidate.setAutowireCandidate(false);
+            registry.registerBeanDefinition(beanName, candidate);
+        }
 
-	}
+    }
 
-	/**
-	 * Bean 工厂后处理，本注册器无需额外处理。
-	 *
-	 * @param beanFactory 可配置的 Bean 工厂
-	 */
-	@Override
-	public void postProcessBeanFactory(@Nonnull ConfigurableListableBeanFactory beanFactory) {
-	}
+    /**
+     * Bean 工厂后处理，本注册器无需额外处理。
+     *
+     * @param beanFactory 可配置的 Bean 工厂
+     */
+    @Override
+    public void postProcessBeanFactory(@Nonnull ConfigurableListableBeanFactory beanFactory) {
+    }
 
 }

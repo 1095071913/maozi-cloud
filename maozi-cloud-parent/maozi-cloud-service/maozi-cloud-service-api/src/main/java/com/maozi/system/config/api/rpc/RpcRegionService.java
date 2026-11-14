@@ -20,6 +20,6 @@ public interface RpcRegionService {
      * @param id 地区 ID
      * @return 地区下拉结果
      */
-	AbstractBaseResult<DropDownResult> getResult(Long id);
+    AbstractBaseResult<DropDownResult> getResult(Long id);
 
 }

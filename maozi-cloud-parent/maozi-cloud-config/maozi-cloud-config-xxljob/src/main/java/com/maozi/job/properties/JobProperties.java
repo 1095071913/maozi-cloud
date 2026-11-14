@@ -22,11 +22,11 @@ public class JobProperties {
     /** 与调度中心通信的访问令牌 */
     private String accessToken;
 
-    /** 调度中心配置 */
-    private Admin admin = new Admin();
+    /** 调度中心配置（缺省值由 boot-xxljob.yml 提供） */
+    private Admin admin;
 
-    /** 执行器配置 */
-    private Executor executor = new Executor();
+    /** 执行器配置（缺省值由 boot-xxljob.yml 提供） */
+    private Executor executor;
 
     /**
      * 调度中心配置
@@ -50,7 +50,7 @@ public class JobProperties {
     public static class Executor {
 
         /** 执行器应用名称 */
-        private String appname;
+        private String appName;
 
         /** 执行器 IP，为空时自动获取本机 IP */
         private String ip;
@@ -59,7 +59,7 @@ public class JobProperties {
         private Integer port;
 
         /** 执行器日志文件路径 */
-        private String logpath;
+        private String logPath;
 
         /** 日志保留天数，未配置或小于 3 时不启用日志文件清理 */
         private Integer logRetentionDays;

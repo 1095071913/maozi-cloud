@@ -26,20 +26,20 @@ import java.io.Serializable;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class ConfigDropDownResult extends DropDownResult implements Serializable {
-	/** 序列化标识 */
-	@Serial
-	private static final long serialVersionUID = 1L;
+    /** 序列化标识 */
+    @Serial
+    private static final long serialVersionUID = 1L;
 
-	/** 配置别名 */
-	@Schema(description = "别名")
-	private String alias;
+    /** 配置别名 */
+    @Schema(description = "别名")
+    private String alias;
 
-	/** 配置值 */
-	@Schema(description = "配置值")
-	private String value;
+    /** 配置值 */
+    @Schema(description = "配置值")
+    private String value;
 
-	/** 排序序号，值越小越靠前 */
-	@Schema(description = "排序")
-	private Integer sort;
+    /** 排序序号，值越小越靠前 */
+    @Schema(description = "排序")
+    private Integer sort;
 
 }

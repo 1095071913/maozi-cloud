@@ -46,7 +46,7 @@ import java.util.Objects;
 public class RetryTaskReportAop {
 
     /** RetryTask 注解切点表达式 */
-    private final String POINT = "@annotation(com.maozi.snailjob.retry.annotation.RetryTask)";
+    private static final String POINT = "@annotation(com.maozi.snailjob.retry.annotation.RetryTask)";
 
     /** 秒转毫秒换算因子 */
     private static final long SECONDS_TO_MILLIS = 1000L;
@@ -216,25 +216,50 @@ public class RetryTaskReportAop {
 
         do {
 
-            try {
-
-                // 等待重试间隔，避免立即重试得到相同结果
-                if (localInterval > 0) {
-                    Thread.sleep(localInterval * SECONDS_TO_MILLIS);
-                }
-
-                Object result = proceedingJoinPoint.proceed();
-                if (retryCondition(retryTask, result)) {
-                    return new LocalRetryResultDTO(true, result);
-                }
-
-            } catch (Throwable e) {
-                log.warn("local retry invoke error, times={}", currentLocalTimes, e);
+            // 执行单次重试，执行异常或结果校验不通过时继续下一轮
+            LocalRetryResultDTO retryResult = doSingleRetry(localInterval, proceedingJoinPoint, retryTask);
+            if (retryResult.success()) {
+                return retryResult;
             }
 
             ++currentLocalTimes;
 
         } while (currentLocalTimes < localTimes);
+
+        return new LocalRetryResultDTO(false, null);
+
+    }
+
+    /**
+     * 执行单次本地重试
+     * <p>
+     * 等待重试间隔后重新执行目标方法：执行成功且结果集校验无需重试即视为本次重试成功；
+     * 期间抛出的异常忽略并视为本次失败，交由调用方继续下一轮。
+     * </p>
+     *
+     * @param localInterval 本地重试间隔时间（秒）
+     * @param proceedingJoinPoint AOP 连接点
+     * @param retryTask RetryTask 注解
+     * @return 本次重试结果
+     */
+    private LocalRetryResultDTO doSingleRetry(int localInterval, ProceedingJoinPoint proceedingJoinPoint,
+        RetryTask retryTask) {
+
+        try {
+
+            // 等待重试间隔，避免立即重试得到相同结果
+            if (localInterval > 0) {
+                Thread.sleep(localInterval * SECONDS_TO_MILLIS);
+            }
+
+            Object result = proceedingJoinPoint.proceed();
+            if (retryCondition(retryTask, result)) {
+                return new LocalRetryResultDTO(true, result);
+            }
+
+        } catch (Throwable e) {
+            log.warn("local retry invoke error", e);
+        }
 
         return new LocalRetryResultDTO(false, null);
 

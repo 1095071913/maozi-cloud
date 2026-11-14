@@ -19,6 +19,9 @@ import org.springframework.web.multipart.MultipartFile;
  */
 public class VideoFileValidator implements ConstraintValidator<VideoFile, MultipartFile> {
 
+    /** 视频 Content-Type 前缀 */
+    private static final String VIDEO_CONTENT_TYPE_PREFIX = "video/";
+
     /**
      * 初始化校验器
      *
@@ -42,9 +45,9 @@ public class VideoFileValidator implements ConstraintValidator<VideoFile, Multip
             return true;
         }
 
-        // 检查文件的 Content-Type 是否以 "video/" 开头，判断是否为视频格式
+        // 检查文件的 Content-Type 是否以视频前缀开头，判断是否为视频格式
         String contentType = file.getContentType();
-        return StringUtils.isNotEmpty(contentType) && contentType.startsWith("video/");
+        return StringUtils.isNotEmpty(contentType) && contentType.startsWith(VIDEO_CONTENT_TYPE_PREFIX);
 
     }
 

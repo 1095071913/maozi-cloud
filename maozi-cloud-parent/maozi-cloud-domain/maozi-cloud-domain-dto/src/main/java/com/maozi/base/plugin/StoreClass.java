@@ -1,6 +1,6 @@
 package com.maozi.base.plugin;
 
-import com.maozi.base.enums.StoreClassType;
+import com.maozi.base.enums.StoreClassTypeEnum;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,6 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class StoreClass {
 
     /** 存储类型 -> (表名 -> 实体Class对象) 的映射 */
-    public static final Map<StoreClassType, Map<String, Class<?>>> storeClassMap = new ConcurrentHashMap<>();
+    public static final Map<StoreClassTypeEnum, Map<String, Class<?>>> STORE_CLASS_MAP = new ConcurrentHashMap<>();
 
 }

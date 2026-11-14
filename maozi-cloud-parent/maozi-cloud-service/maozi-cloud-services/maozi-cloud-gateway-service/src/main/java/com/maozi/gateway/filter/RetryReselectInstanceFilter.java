@@ -26,6 +26,12 @@ public class RetryReselectInstanceFilter implements GlobalFilter, Ordered {
     /** 本 exchange 首次解析前的 lb 地址 */
     public static final String ORIGINAL_LB_URL_ATTR = "gatewayOriginalLbUrl";
 
+    /** 负载均衡 URI 协议 scheme */
+    private static final String SCHEME_LB = "lb";
+
+    /** 过滤器顺序：须小于负载均衡过滤器（10150），大于 Retry（2） */
+    private static final int FILTER_ORDER = 10140;
+
     /**
      * 返回过滤器执行顺序
      * <p>
@@ -38,7 +44,7 @@ public class RetryReselectInstanceFilter implements GlobalFilter, Ordered {
      */
     @Override
     public int getOrder() {
-        return 10140;
+        return FILTER_ORDER;
     }
 
     /**
@@ -57,7 +63,7 @@ public class RetryReselectInstanceFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         URI url = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
 
-        if (url != null && "lb".equals(url.getScheme())) {
+        if (url != null && SCHEME_LB.equals(url.getScheme())) {
             // 首次尝试：LB 还没解析，记录 lb 地址
             exchange.getAttributes().put(ORIGINAL_LB_URL_ATTR, url);
 

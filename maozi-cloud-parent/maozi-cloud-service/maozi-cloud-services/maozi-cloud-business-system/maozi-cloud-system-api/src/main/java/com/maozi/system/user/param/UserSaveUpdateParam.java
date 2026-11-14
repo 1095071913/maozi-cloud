@@ -17,7 +17,7 @@
 
 package com.maozi.system.user.param;
 
-import com.maozi.base.enums.Status;
+import com.maozi.base.enums.StatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -47,42 +47,42 @@ public class UserSaveUpdateParam implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-	/** 用户登录账号 */
-	@NotEmpty(message = "账号不能为空")
-	@Schema(description = "账号")
-	private String username;
+    /** 用户登录账号 */
+    @NotEmpty(message = "账号不能为空")
+    @Schema(description = "账号")
+    private String username;
 
-	/** 用户姓名 */
-	@NotEmpty(message = "名称不能为空")
-	@Schema(description = "名称")
-	private String name;
+    /** 用户姓名 */
+    @NotEmpty(message = "名称不能为空")
+    @Schema(description = "名称")
+    private String name;
 
-	/** 用户登录密码 */
-	@NotEmpty(message = "密码不能为空")
-	@Schema(description = "密码")
-	private String password;
+    /** 用户登录密码 */
+    @NotEmpty(message = "密码不能为空")
+    @Schema(description = "密码")
+    private String password;
 
-	/** 所属客户端ID */
-	@NotNull(message = "客户端不能为空")
-	@Schema(description = "客户端")
-	private Long clientId;
+    /** 所属客户端ID */
+    @NotNull(message = "客户端不能为空")
+    @Schema(description = "客户端")
+    private Long clientId;
 
-	/** 用户头像图标 */
-	@NotEmpty(message = "图标不能为空")
-	@Schema(description = "图标")
-	private String icon;
+    /** 用户头像图标 */
+    @NotEmpty(message = "图标不能为空")
+    @Schema(description = "图标")
+    private String icon;
 
-	/** 用户状态（启用/禁用） */
-	@NotNull(message = "状态不能为空")
-	@Schema(description = "状态")
-	private Status status;
+    /** 用户状态（启用/禁用） */
+    @NotNull(message = "状态不能为空")
+    @Schema(description = "状态")
+    private StatusEnum status;
 
-	/** 需要绑定的角色ID列表 */
-	@Schema(description = "绑定角色列表")
-	private List<Long> bindRoleIds;
+    /** 需要绑定的角色ID列表 */
+    @Schema(description = "绑定角色列表")
+    private List<Long> bindRoleIds;
 
-	/** 需要解绑的角色ID列表 */
-	@Schema(description = "解绑角色列表")
-	private List<Long> unbindRoleIds;
+    /** 需要解绑的角色ID列表 */
+    @Schema(description = "解绑角色列表")
+    private List<Long> unbindRoleIds;
 
 }

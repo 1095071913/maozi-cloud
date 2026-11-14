@@ -27,20 +27,20 @@ import java.io.Serial;
 @EqualsAndHashCode(callSuper = true)
 @TableName("system_config")
 public class ConfigDO extends AbstractBaseNameDomain {
-	/** 序列化标识 */
-	@Serial
-	private static final long serialVersionUID = 1L;
+    /** 序列化标识 */
+    @Serial
+    private static final long serialVersionUID = 1L;
 
-	/** 配置别名 */
-	private String alias;
+    /** 配置别名 */
+    private String alias;
 
-	/** 配置类型 */
-	private String type;
+    /** 配置类型 */
+    private String type;
 
-	/** 配置值 */
-	private String value;
+    /** 配置值 */
+    private String value;
 
-	/** 排序序号，值越小越靠前 */
-	private Integer sort;
+    /** 排序序号，值越小越靠前 */
+    private Integer sort;
 
 }

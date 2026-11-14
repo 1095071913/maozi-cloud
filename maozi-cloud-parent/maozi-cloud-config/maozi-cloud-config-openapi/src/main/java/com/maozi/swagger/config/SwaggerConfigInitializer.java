@@ -1,7 +1,7 @@
 package com.maozi.swagger.config;
 
 import com.maozi.common.constant.RemoteConstant;
-import com.maozi.common.enums.EnvironmentType;
+import com.maozi.common.enums.EnvironmentTypeEnum;
 import com.maozi.common.spi.ConfigInitializer;
 
 import java.util.Map;
@@ -27,6 +27,15 @@ public class SwaggerConfigInitializer implements ConfigInitializer {
     /** 排除的接口路径前缀（Ant 风格），用于屏蔽内部 /remote 接口文档 */
     private static final String EXCLUDE_REMOTE_PATHS = RemoteConstant.REMOTE_PREFIX_PATH + "/**";
 
+    /** 运行环境属性键 */
+    private static final String ENVIRONMENT_KEY = "environment";
+
+    /** API 文档开关属性键 */
+    private static final String SPRINGDOC_API_DOCS_ENABLED_KEY = "springdoc.api-docs.enabled";
+
+    /** API 文档排除路径属性键 */
+    private static final String SPRINGDOC_PATHS_TO_EXCLUDE_KEY = "springdoc.paths-to-exclude";
+
     /**
      * 根据运行环境设置 API 文档开关，并排除内部接口路径。
      * <p>
@@ -39,9 +48,9 @@ public class SwaggerConfigInitializer implements ConfigInitializer {
      */
     @Override
     public void initialize(Properties properties) {
-        String environment = (String) properties.get("environment");
-        properties.put("springdoc.api-docs.enabled", !EnvironmentType.PROD.getDesc().equals(environment));
-        properties.put("springdoc.paths-to-exclude", EXCLUDE_REMOTE_PATHS);
+        String environment = (String) properties.get(ENVIRONMENT_KEY);
+        properties.put(SPRINGDOC_API_DOCS_ENABLED_KEY, !EnvironmentTypeEnum.PROD.getDesc().equals(environment));
+        properties.put(SPRINGDOC_PATHS_TO_EXCLUDE_KEY, EXCLUDE_REMOTE_PATHS);
     }
 
     /** 空实现，Swagger 配置初始化无需向启动日志追加诊断信息。 */

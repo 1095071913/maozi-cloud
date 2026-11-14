@@ -19,14 +19,14 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 @Configuration
 public class RestInterfaceMappingConfig implements WebMvcRegistrations {
 
-	/**
-	 * 获取自定义的请求映射处理器
-	 *
-	 * @return 支持接口声明路由、父类继承实现的请求映射处理器
-	 */
-	@Override
-	public RequestMappingHandlerMapping getRequestMappingHandlerMapping() {
-		return new InterfaceMethodRequestMappingHandlerMapping();
-	}
+    /**
+     * 获取自定义的请求映射处理器
+     *
+     * @return 支持接口声明路由、父类继承实现的请求映射处理器
+     */
+    @Override
+    public RequestMappingHandlerMapping getRequestMappingHandlerMapping() {
+        return new InterfaceMethodRequestMappingHandlerMapping();
+    }
 
 }

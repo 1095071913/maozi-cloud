@@ -3,7 +3,7 @@ package com.maozi.lock.config;
 import com.maozi.common.CollectionUtil;
 import com.maozi.lock.annotation.Lock;
 import com.maozi.lock.annotation.LockKey;
-import com.maozi.lock.lock.LockType;
+import com.maozi.lock.lock.LockTypeEnum;
 import com.maozi.lock.properties.LockRedissonProperties;
 import com.maozi.redis.utils.RedisUtil;
 import jakarta.annotation.Resource;
@@ -70,7 +70,7 @@ public class LockAop {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
 
         // 获取注解中配置的锁类型（可重入锁、公平锁、读锁、写锁）
-        LockType type = annotation.type();
+        LockTypeEnum type = annotation.type();
 
         // 解析业务键名称（来自 SpEL 表达式或 @LockKey 注解的参数）
         String businessKeyName = getKeyName(joinPoint, annotation);
@@ -84,15 +84,17 @@ public class LockAop {
 
         // 拼接锁键名：maozi-cloud:服务名:lock:锁名称_业务键名
         // （REDIS_KEY_PREFIX 尾部自带冒号，业务键以 "_" 为前缀连接）
-        lockName = RedisUtil.REDIS_KEY_PREFIX + "lock:" + lockName + businessKeyName;
+        lockName = RedisUtil.REDIS_KEY_PREFIX + LockTypeEnum.LOCK_PREFIX + lockName + businessKeyName;
 
-        // 获取等待时间：如果注解未指定（Long.MIN_VALUE），则使用全局配置的默认值
+        // 获取等待时间：如果注解未指定（Long.MIN_VALUE），则使用全局配置的默认值（判空防止自动拆箱 NPE）
+        Long configuredWaitTime = lockRedissonProperties.getWaitTime();
         long waitTime = annotation.waitTime() == Long.MIN_VALUE
-                ? lockRedissonProperties.getWaitTime() : annotation.waitTime();
+                ? (configuredWaitTime == null ? LockTypeEnum.DEFAULT_LOCK_TIME : configuredWaitTime) : annotation.waitTime();
 
-        // 获取持有时间：如果注解未指定（Long.MIN_VALUE），则使用全局配置的默认值
+        // 获取持有时间：如果注解未指定（Long.MIN_VALUE），则使用全局配置的默认值（判空防止自动拆箱 NPE）
+        Long configuredLeaseTime = lockRedissonProperties.getLeaseTime();
         long leaseTime = annotation.leaseTime() == Long.MIN_VALUE
-                ? lockRedissonProperties.getLeaseTime() : annotation.leaseTime();
+                ? (configuredLeaseTime == null ? LockTypeEnum.DEFAULT_LOCK_TIME : configuredLeaseTime) : annotation.leaseTime();
 
         // 执行加锁操作，如果加锁失败则根据配置的策略进行处理
         type.lock(lockName, waitTime, leaseTime, annotation.lockTimeoutStrategy());

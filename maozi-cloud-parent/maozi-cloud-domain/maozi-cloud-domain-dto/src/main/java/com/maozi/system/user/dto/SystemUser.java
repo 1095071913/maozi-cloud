@@ -27,19 +27,19 @@ public class SystemUser implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** 用户标识 */
-	@Schema(description = "标识")
-	private Long id;
+    @Schema(description = "标识")
+    private Long id;
 
     /** 用户账号 */
-	@Schema(description = "账号")
-	private String username;
+    @Schema(description = "账号")
+    private String username;
 
     /** 用户名称 */
-	@Schema(description = "名称")
-	private String name;
+    @Schema(description = "名称")
+    private String name;
 
     /** 用户头像 */
-	@Schema(description = "头像")
-	private String icon;
+    @Schema(description = "头像")
+    private String icon;
 
 }

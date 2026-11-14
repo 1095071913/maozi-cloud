@@ -5,7 +5,7 @@ import com.maozi.common.CollectionUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.oauth.client.api.rpc.RpcClientService;
 import com.maozi.oauth.client.dto.ClientDTO;
-import com.maozi.oauth.client.enums.AuthType;
+import com.maozi.oauth.client.enums.AuthTypeEnum;
 import com.maozi.oauth.client.param.ClientSaveUpdateParam;
 import com.maozi.service.api.annotation.RemoteResource;
 import org.springframework.ai.tool.annotation.Tool;
@@ -25,6 +25,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class OauthFunctionCall {
+
+    /** 随机生成的客户端密钥长度 */
+    private static final int CLIENT_SECRET_LENGTH = 32;
 
     /** OAuth 客户端 RPC 服务，用于保存客户端 */
     @RemoteResource
@@ -51,8 +54,8 @@ public class OauthFunctionCall {
 
         ClientSaveUpdateParam param = new ClientSaveUpdateParam();
         param.setName(name);
-        param.setClientSecret(RandomUtil.randomString(32));
-        param.setAuthorizationGrantTypes(CollectionUtil.newHashSet(AuthType.PASSWORD,AuthType.REFRESH_TOKEN,AuthType.CLIENT_CREDENTIALS));
+        param.setClientSecret(RandomUtil.randomString(CLIENT_SECRET_LENGTH));
+        param.setAuthorizationGrantTypes(CollectionUtil.newHashSet(AuthTypeEnum.PASSWORD,AuthTypeEnum.REFRESH_TOKEN,AuthTypeEnum.CLIENT_CREDENTIALS));
         param.setAccessTokenValiditySeconds(accessTokenValiditySeconds);
         param.setRefreshTokenValiditySeconds(refreshTokenValiditySeconds);
 

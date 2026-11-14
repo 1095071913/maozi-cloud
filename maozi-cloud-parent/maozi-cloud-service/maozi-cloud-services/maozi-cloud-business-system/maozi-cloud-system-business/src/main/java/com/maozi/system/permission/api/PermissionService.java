@@ -29,20 +29,20 @@ import java.util.List;
  */
 public interface PermissionService {
 
-	/**
-	 * 判断指定权限是否存在
-	 *
-	 * @param id 权限ID
-	 * @return 如果权限存在返回true，否则返回false
-	 */
-	boolean has(Long id);
+    /**
+     * 判断指定权限是否存在
+     *
+     * @param id 权限ID
+     * @return 如果权限存在返回true，否则返回false
+     */
+    boolean has(Long id);
 
-	/**
-	 * 根据权限ID集合获取权限标识列表
-	 *
-	 * @param ids 权限ID集合
-	 * @return 权限标识（mark）列表
-	 */
-	List<String> getMarks(Collection<Long> ids);
+    /**
+     * 根据权限ID集合获取权限标识列表
+     *
+     * @param ids 权限ID集合
+     * @return 权限标识（mark）列表
+     */
+    List<String> getMarks(Collection<Long> ids);
 
 }

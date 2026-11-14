@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
+import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
 import org.springframework.security.oauth2.server.authorization.authentication.OAuth2AccessTokenAuthenticationToken;
 
 import java.time.Duration;
@@ -26,53 +27,53 @@ import java.time.Duration;
 @Slf4j
 public class UserAuthenticationSuccessHandler implements org.springframework.security.web.authentication.AuthenticationSuccessHandler {
 
-	/**
-	 * 处理用户认证成功事件
-	 * <p>
-	 * 从认证结果中提取AccessToken、RefreshToken、IDToken等信息，
-	 * 计算令牌有效期时长（单位秒），封装为OauthTokenDTO对象后写入响应。
-	 * </p>
-	 *
-	 * @param request       HTTP请求对象
-	 * @param response      HTTP响应对象
-	 * @param authentication 认证结果（OAuth2AccessTokenAuthenticationToken）
-	 */
-	@Override
-	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,Authentication authentication) {
+    /**
+     * 处理用户认证成功事件
+     * <p>
+     * 从认证结果中提取AccessToken、RefreshToken、IDToken等信息，
+     * 计算令牌有效期时长（单位秒），封装为OauthTokenDTO对象后写入响应。
+     * </p>
+     *
+     * @param request       HTTP请求对象
+     * @param response      HTTP响应对象
+     * @param authentication 认证结果（OAuth2AccessTokenAuthenticationToken）
+     */
+    @Override
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,Authentication authentication) {
 
-		OAuth2AccessTokenAuthenticationToken accessTokenAuthentication = (OAuth2AccessTokenAuthenticationToken) authentication;
-		OAuth2AccessToken accessToken = accessTokenAuthentication.getAccessToken();
+        OAuth2AccessTokenAuthenticationToken accessTokenAuthentication = (OAuth2AccessTokenAuthenticationToken) authentication;
+        OAuth2AccessToken accessToken = accessTokenAuthentication.getAccessToken();
 
-		OauthTokenDTO oauthToken = new OauthTokenDTO();
+        OauthTokenDTO oauthToken = new OauthTokenDTO();
 
-		oauthToken.setTokenType(accessToken.getTokenType().getValue());
-		oauthToken.setAccessToken(accessToken.getTokenValue());
+        oauthToken.setTokenType(accessToken.getTokenType().getValue());
+        oauthToken.setAccessToken(accessToken.getTokenValue());
 
-		if (accessToken.getIssuedAt() != null && accessToken.getExpiresAt() != null) {
-			long expiresIn = Duration.between(accessToken.getIssuedAt(), accessToken.getExpiresAt()).getSeconds();
-			oauthToken.setExpiresIn(expiresIn);
-		}
+        if (accessToken.getIssuedAt() != null && accessToken.getExpiresAt() != null) {
+            long expiresIn = Duration.between(accessToken.getIssuedAt(), accessToken.getExpiresAt()).getSeconds();
+            oauthToken.setExpiresIn(expiresIn);
+        }
 
-		OAuth2RefreshToken refreshToken = accessTokenAuthentication.getRefreshToken();
-		if (refreshToken != null) {
+        OAuth2RefreshToken refreshToken = accessTokenAuthentication.getRefreshToken();
+        if (refreshToken != null) {
 
-			oauthToken.setRefreshToken(refreshToken.getTokenValue());
+            oauthToken.setRefreshToken(refreshToken.getTokenValue());
 
-			if (refreshToken.getIssuedAt() != null && refreshToken.getExpiresAt() != null) {
-				oauthToken.setRefreshTokenExpiresIn(Duration.between(refreshToken.getIssuedAt(), refreshToken.getExpiresAt()).getSeconds());
-			}
+            if (refreshToken.getIssuedAt() != null && refreshToken.getExpiresAt() != null) {
+                oauthToken.setRefreshTokenExpiresIn(Duration.between(refreshToken.getIssuedAt(), refreshToken.getExpiresAt()).getSeconds());
+            }
 
-		}
+        }
 
-		oauthToken.setScope(String.join(" ",accessToken.getScopes()));
+        oauthToken.setScope(String.join(" ",accessToken.getScopes()));
 
-		Object idToken = accessTokenAuthentication.getAdditionalParameters().get("id_token");
-		if (idToken != null) {
-			oauthToken.setIdToken(idToken.toString());
-		}
+        Object idToken = accessTokenAuthentication.getAdditionalParameters().get(OidcParameterNames.ID_TOKEN);
+        if (idToken != null) {
+            oauthToken.setIdToken(idToken.toString());
+        }
 
-		WebUtil.writeResponseBody(response, ResultUtil.success(oauthToken));
+        WebUtil.writeResponseBody(response, ResultUtil.success(oauthToken));
 
-	}
+    }
 
 }

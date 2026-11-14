@@ -13,6 +13,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.regex.Pattern;
 
 /**
  * 数据库自动初始化处理器（基于 BeanFactoryPostProcessor）
@@ -45,6 +46,9 @@ public class DatabaseInitBeanFactoryPostProcessor implements BeanFactoryPostProc
 
     /** JDBC MySQL 前缀 */
     private static final String JDBC_MYSQL_PREFIX = "jdbc:mysql://";
+
+    /** 合法数据库名标识符（DDL 拼接前校验用，预编译） */
+    private static final Pattern VALID_DB_NAME_PATTERN = Pattern.compile("[A-Za-z0-9_-]+");
 
     /** Spring 环境上下文，用于读取数据源配置 */
     private Environment environment;
@@ -102,7 +106,7 @@ public class DatabaseInitBeanFactoryPostProcessor implements BeanFactoryPostProc
                         // 数据库不存在，使用 utf8mb4 字符集创建，
                         // 支持完整的 Unicode 字符（包括 Emoji）
                         // DDL 中库名无法使用占位符，先以正则校验合法标识符再拼接
-                        if (!dbName.matches("[A-Za-z0-9_-]+")) {
+                        if (!VALID_DB_NAME_PATTERN.matcher(dbName).matches()) {
                             throw new IllegalArgumentException("非法数据库名称: " + dbName);
                         }
                         try (Statement createStmt = connection.createStatement()) {

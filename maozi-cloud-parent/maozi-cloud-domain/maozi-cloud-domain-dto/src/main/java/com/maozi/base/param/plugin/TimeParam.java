@@ -22,16 +22,16 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class TimeParam implements Serializable {
 
-	/** 序列化标识 */
+    /** 序列化标识 */
     @Serial
     private static final long serialVersionUID = 1L;
 
-	/** 开始时间（时间戳） */
-	@Schema(description = "开始时间 时间戳")
-	private Long startTime;
+    /** 开始时间（时间戳） */
+    @Schema(description = "开始时间 时间戳")
+    private Long startTime;
 
-	/** 结束时间（时间戳） */
-	@Schema(description = "结束时间 时间戳")
-	private Long endTime;
+    /** 结束时间（时间戳） */
+    @Schema(description = "结束时间 时间戳")
+    private Long endTime;
 
 }

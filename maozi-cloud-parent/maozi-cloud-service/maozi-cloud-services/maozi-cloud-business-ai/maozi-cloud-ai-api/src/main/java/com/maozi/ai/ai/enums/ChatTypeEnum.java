@@ -14,7 +14,7 @@ import lombok.Getter;
  * @since 2026/8/16 18:45
  */
 @Schema(description = "AI对话类型",type = "integer")
-public enum ChatType {
+public enum ChatTypeEnum {
 
     /** 完成对话（对话流已结束） */
     FINISH(0,"完成对话"),
@@ -30,11 +30,11 @@ public enum ChatType {
      * @param value AI对话类型的数值编码
      * @param desc  AI对话类型的中文描述
      */
-    ChatType(Integer value,String desc) {
+    ChatTypeEnum(Integer value,String desc) {
 
-		this.value = value;
+        this.value = value;
 
-		this.desc = desc;
+        this.desc = desc;
 
     }
 

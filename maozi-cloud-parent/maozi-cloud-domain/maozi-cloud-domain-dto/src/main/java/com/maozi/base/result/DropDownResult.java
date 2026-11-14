@@ -40,16 +40,16 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class DropDownResult implements Serializable {
 
-	/** 序列化标识 */
+    /** 序列化标识 */
     @Serial
     private static final long serialVersionUID = 1L;
 
-	/** 选项 ID */
-	@Schema(description = "ID")
-	private Long id;
+    /** 选项 ID */
+    @Schema(description = "ID")
+    private Long id;
 
-	/** 选项名称 */
-	@Schema(description = "名称")
-	private String name;
+    /** 选项名称 */
+    @Schema(description = "名称")
+    private String name;
 
 }

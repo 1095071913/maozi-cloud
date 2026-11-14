@@ -26,18 +26,18 @@ import java.io.Serial;
 @EqualsAndHashCode(callSuper = true)
 @TableName("ai_chat_conversation_record")
 public class ChatConversationRecordDO extends AbstractBaseDomain {
-	/** 序列化标识 */
-	@Serial
-	private static final long serialVersionUID = 1L;
+    /** 序列化标识 */
+    @Serial
+    private static final long serialVersionUID = 1L;
 
-	/** 主键ID，采用雪花算法自动分配 */
-	@TableId(type = IdType.ASSIGN_ID)
-	private Long id;
+    /** 主键ID，采用雪花算法自动分配 */
+    @TableId(type = IdType.ASSIGN_ID)
+    private Long id;
 
-	/** 用户ID，标识对话所属的用户 */
-	private Long userId;
+    /** 用户ID，标识对话所属的用户 */
+    private Long userId;
 
-	/** 对话标题 */
-	private String title;
+    /** 对话标题 */
+    private String title;
 
 }

@@ -19,27 +19,27 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 @Configuration
 public class RedisTemplateConfig {
 
-	/**
-	 * 创建 RedisTemplate 实例
-	 *
-	 * @param factory Redis 连接工厂
-	 * @return 配置好序列化器的 RedisTemplate
-	 */
-	@Bean
-	public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
+    /**
+     * 创建 RedisTemplate 实例
+     *
+     * @param factory Redis 连接工厂
+     * @return 配置好序列化器的 RedisTemplate
+     */
+    @Bean
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
 
-		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
-		redisTemplate.setConnectionFactory(factory);
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(factory);
 
-		redisTemplate.setKeySerializer(RedisSerializer.string());
-		redisTemplate.setHashKeySerializer(RedisSerializer.string());
-		redisTemplate.setValueSerializer(RedisSerializer.java());
-		redisTemplate.setHashValueSerializer(RedisSerializer.java());
+        redisTemplate.setKeySerializer(RedisSerializer.string());
+        redisTemplate.setHashKeySerializer(RedisSerializer.string());
+        redisTemplate.setValueSerializer(RedisSerializer.java());
+        redisTemplate.setHashValueSerializer(RedisSerializer.java());
 
-		redisTemplate.afterPropertiesSet();
+        redisTemplate.afterPropertiesSet();
 
-		return redisTemplate;
+        return redisTemplate;
 
-	}
+    }
 
 }

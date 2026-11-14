@@ -2,8 +2,8 @@ package com.maozi.lock.lock;
 
 import cn.hutool.extra.spring.SpringUtil;
 import com.maozi.common.enums.BaseEnum;
-import com.maozi.lock.error.strategy.impl.LockTimeoutStrategy;
-import com.maozi.lock.error.strategy.impl.UnLockTimeoutStrategy;
+import com.maozi.lock.error.strategy.impl.LockTimeoutStrategyEnum;
+import com.maozi.lock.error.strategy.impl.UnLockTimeoutStrategyEnum;
 import com.maozi.lock.lock.impl.FairLock;
 import com.maozi.lock.lock.impl.ReadLock;
 import com.maozi.lock.lock.impl.ReentrantLock;
@@ -24,7 +24,7 @@ import java.util.function.Supplier;
  * @author maozi
  * @date 2026/11/08
  */
-public enum LockType implements BaseEnum {
+public enum LockTypeEnum implements BaseEnum {
 
     /** 可重入锁：允许同一线程多次获取同一把锁 */
     REENTRANT(0, "可重入锁", ReentrantLock.class),
@@ -40,6 +40,12 @@ public enum LockType implements BaseEnum {
 
     ;
 
+    /** 编程式加锁默认等待与持有时间（秒） */
+    public static final Long DEFAULT_LOCK_TIME = 60L;
+
+    /** 锁键名段标识（拼于 Redis 键前缀之后） */
+    public static final String LOCK_PREFIX = "lock:";
+
     /**
      * 构造方法
      *
@@ -47,7 +53,7 @@ public enum LockType implements BaseEnum {
      * @param desc 枚举描述
      * @param lockClass 锁实现类
      */
-    LockType(Integer value,String desc, Class< ? extends Lock> lockClass) {
+    LockTypeEnum(Integer value,String desc, Class< ? extends Lock> lockClass) {
 
         this.value = value;
 
@@ -97,7 +103,7 @@ public enum LockType implements BaseEnum {
      */
     public <T> T lock(String key, Supplier<T> supplier) {
 
-        lock(key,60L,60L,LockTimeoutStrategy.KEEP_ACQUIRE);
+        lock(key, DEFAULT_LOCK_TIME, DEFAULT_LOCK_TIME, LockTimeoutStrategyEnum.KEEP_ACQUIRE);
 
         T t = supplier.get();
 
@@ -116,9 +122,9 @@ public enum LockType implements BaseEnum {
      * @param <T> 返回值类型
      * @return 业务逻辑执行结果
      */
-    public <T> T lock(String key, LockTimeoutStrategy strategy, Supplier<T> supplier) {
+    public <T> T lock(String key, LockTimeoutStrategyEnum strategy, Supplier<T> supplier) {
 
-        lock(key,60L,60L,strategy);
+        lock(key, DEFAULT_LOCK_TIME, DEFAULT_LOCK_TIME, strategy);
 
         T t = supplier.get();
 
@@ -138,9 +144,9 @@ public enum LockType implements BaseEnum {
      * @param <T> 返回值类型
      * @return 业务逻辑执行结果
      */
-    public <T> T lock(String key, LockTimeoutStrategy lockTimeoutStrategy,UnLockTimeoutStrategy unLockTimeoutStrategy, Supplier<T> supplier) {
+    public <T> T lock(String key, LockTimeoutStrategyEnum lockTimeoutStrategy,UnLockTimeoutStrategyEnum unLockTimeoutStrategy, Supplier<T> supplier) {
 
-        lock(key,60L,60L,lockTimeoutStrategy);
+        lock(key, DEFAULT_LOCK_TIME, DEFAULT_LOCK_TIME, lockTimeoutStrategy);
 
         T t = supplier.get();
 
@@ -162,11 +168,11 @@ public enum LockType implements BaseEnum {
      */
     public <T> T lock(String key, Long waitTime,Long leaseTime, Supplier<T> supplier) {
 
-        lock(key,waitTime,leaseTime,LockTimeoutStrategy.KEEP_ACQUIRE);
+        lock(key,waitTime,leaseTime,LockTimeoutStrategyEnum.KEEP_ACQUIRE);
 
         T t = supplier.get();
 
-        unlock(key,UnLockTimeoutStrategy.NO_OPERATION);
+        unlock(key,UnLockTimeoutStrategyEnum.NO_OPERATION);
 
         return t;
 
@@ -178,7 +184,7 @@ public enum LockType implements BaseEnum {
      * @param key 锁键名
      */
     public void lock(String key)  {
-        lock(key,60L,60L,LockTimeoutStrategy.KEEP_ACQUIRE);
+        lock(key, DEFAULT_LOCK_TIME, DEFAULT_LOCK_TIME, LockTimeoutStrategyEnum.KEEP_ACQUIRE);
     }
 
     /**
@@ -187,8 +193,8 @@ public enum LockType implements BaseEnum {
      * @param key 锁键名
      * @param strategy 加锁超时策略
      */
-    public void lock(String key, LockTimeoutStrategy strategy) {
-        lock(key,60L,60L,strategy);
+    public void lock(String key, LockTimeoutStrategyEnum strategy) {
+        lock(key, DEFAULT_LOCK_TIME, DEFAULT_LOCK_TIME, strategy);
     }
 
     /**
@@ -203,13 +209,13 @@ public enum LockType implements BaseEnum {
      * @param leaseTime 锁的持有时间（秒）
      * @param strategy 加锁超时策略
      */
-    public void lock(String key,Long waitTime,Long leaseTime, LockTimeoutStrategy strategy) {
+    public void lock(String key,Long waitTime,Long leaseTime, LockTimeoutStrategyEnum strategy) {
 
         // 从 Spring 容器中获取当前锁类型对应的锁实现类实例
         Lock lock = getLock();
 
         // 在键名前添加服务名前缀，确保不同服务的锁不会冲突
-        key = RedisUtil.REDIS_KEY_PREFIX + "lock:" + key;
+        key = RedisUtil.REDIS_KEY_PREFIX + LOCK_PREFIX + key;
 
         // 尝试获取锁，如果获取失败则交由超时策略处理
         if(!lock.lock(key,waitTime,leaseTime)) {
@@ -224,7 +230,7 @@ public enum LockType implements BaseEnum {
      * @param key 锁键名
      */
     public void unlock(String key) {
-        unlock(key,UnLockTimeoutStrategy.NO_OPERATION);
+        unlock(key,UnLockTimeoutStrategyEnum.NO_OPERATION);
     }
 
     /**
@@ -237,13 +243,13 @@ public enum LockType implements BaseEnum {
      * @param key 锁键名
      * @param strategy 解锁超时策略
      */
-    public void unlock(String key, UnLockTimeoutStrategy strategy) {
+    public void unlock(String key, UnLockTimeoutStrategyEnum strategy) {
 
         // 从 Spring 容器中获取当前锁类型对应的锁实现类实例
         Lock lock = getLock();
 
         // 在键名前添加服务名前缀，与加锁时的键名保持一致
-        key = RedisUtil.REDIS_KEY_PREFIX + "lock:" + key;
+        key = RedisUtil.REDIS_KEY_PREFIX + LOCK_PREFIX + key;
 
         // 尝试释放锁，如果释放失败则交由解锁超时策略处理
         if (!lock.unLock(key)) {
@@ -263,7 +269,7 @@ public enum LockType implements BaseEnum {
         Lock lock = getLock();
 
         // 在键名前添加服务名前缀，与加锁时的键名保持一致
-        key = RedisUtil.REDIS_KEY_PREFIX + "lock:" + key;
+        key = RedisUtil.REDIS_KEY_PREFIX + LOCK_PREFIX + key;
 
         return lock.isLocked(key);
 

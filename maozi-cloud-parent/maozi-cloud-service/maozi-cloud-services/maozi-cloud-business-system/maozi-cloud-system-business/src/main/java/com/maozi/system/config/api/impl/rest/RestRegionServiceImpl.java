@@ -23,15 +23,15 @@ import java.util.List;
 @RestService
 public class RestRegionServiceImpl extends BaseServiceResultImpl<RegionServiceImpl, Void> implements RestRegionService {
 
-	/**
-	 * 根据父级ID查询子地区下拉列表
-	 *
-	 * @param parentId 父级地区ID
-	 * @return 子地区下拉列表，每项包含地区ID和名称
-	 */
-	@Override
-	public AbstractBaseResult<List<DropDownResult>> listResult(Long parentId) {
-		return ResultUtil.success(service.commonList(parentId));
-	}
+    /**
+     * 根据父级ID查询子地区下拉列表
+     *
+     * @param parentId 父级地区ID
+     * @return 子地区下拉列表，每项包含地区ID和名称
+     */
+    @Override
+    public AbstractBaseResult<List<DropDownResult>> listResult(Long parentId) {
+        return ResultUtil.success(service.commonList(parentId));
+    }
 
 }

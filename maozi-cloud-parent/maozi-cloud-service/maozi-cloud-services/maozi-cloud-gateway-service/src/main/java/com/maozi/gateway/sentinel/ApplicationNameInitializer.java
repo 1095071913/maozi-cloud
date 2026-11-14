@@ -32,43 +32,43 @@ import org.springframework.core.env.ConfigurableEnvironment;
  */
 public class ApplicationNameInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext>, Ordered {
 
-	/** Sentinel 应用名称覆盖配置项，配置后 Sentinel 以该值注册，而非 spring.application.name */
-	private static final String APPLICATION_NAME_KEY = "spring.cloud.sentinel.name";
+    /** Sentinel 应用名称覆盖配置项，配置后 Sentinel 以该值注册，而非 spring.application.name */
+    private static final String APPLICATION_NAME_KEY = "spring.cloud.sentinel.name";
 
-	/**
-	 * 返回最高优先级
-	 * <p>
-	 * 保证先于 Spring Cloud Alibaba 的 Sentinel 上下文初始化器执行。
-	 * </p>
-	 *
-	 * @return 排序优先级
-	 */
-	@Override
-	public int getOrder() {
-		return Ordered.HIGHEST_PRECEDENCE;
-	}
+    /**
+     * 返回最高优先级
+     * <p>
+     * 保证先于 Spring Cloud Alibaba 的 Sentinel 上下文初始化器执行。
+     * </p>
+     *
+     * @return 排序优先级
+     */
+    @Override
+    public int getOrder() {
+        return Ordered.HIGHEST_PRECEDENCE;
+    }
 
-	/**
-	 * 以 spring.cloud.sentinel.name 覆盖 Sentinel 应用名称
-	 * <p>
-	 * 环境此时已完成配置装载（含 Nacos 导入文件），读取
-	 * {@code spring.cloud.sentinel.name} 并在非空时写入系统属性
-	 * {@code csp.sentinel.app.name}，占位后 Spring Cloud Alibaba
-	 * 不再用 {@code spring.application.name} 覆写。
-	 * </p>
-	 *
-	 * @param applicationContext 应用上下文
-	 */
-	@Override
-	public void initialize(ConfigurableApplicationContext applicationContext) {
+    /**
+     * 以 spring.cloud.sentinel.name 覆盖 Sentinel 应用名称
+     * <p>
+     * 环境此时已完成配置装载（含 Nacos 导入文件），读取
+     * {@code spring.cloud.sentinel.name} 并在非空时写入系统属性
+     * {@code csp.sentinel.app.name}，占位后 Spring Cloud Alibaba
+     * 不再用 {@code spring.application.name} 覆写。
+     * </p>
+     *
+     * @param applicationContext 应用上下文
+     */
+    @Override
+    public void initialize(ConfigurableApplicationContext applicationContext) {
 
-		ConfigurableEnvironment environment = applicationContext.getEnvironment();
-		String applicationName = environment.getProperty(APPLICATION_NAME_KEY);
+        ConfigurableEnvironment environment = applicationContext.getEnvironment();
+        String applicationName = environment.getProperty(APPLICATION_NAME_KEY);
 
-		if (ObjectUtil.isNotNullEmpty(applicationName)) {
-			System.setProperty(SentinelConfig.APP_NAME_PROP_KEY, applicationName);
-		}
+        if (ObjectUtil.isNotNullEmpty(applicationName)) {
+            System.setProperty(SentinelConfig.APP_NAME_PROP_KEY, applicationName);
+        }
 
-	}
+    }
 
 }

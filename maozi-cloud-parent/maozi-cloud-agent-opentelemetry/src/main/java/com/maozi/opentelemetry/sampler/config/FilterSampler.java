@@ -37,7 +37,7 @@ public class FilterSampler implements Sampler {
     private static final String MAIN_THREAD_NAME = "main";
 
     /** 需要直接丢弃的 Span 名称列表（如 Nacos 心跳） */
-    private final List<String> EXCLUDED_TARGETS = List.of("NacosDiscoveryHeartBeatPublisher$$Lambda.run");
+    private static final List<String> EXCLUDED_TARGETS = List.of("NacosDiscoveryHeartBeatPublisher$$Lambda.run");
 
     /**
      * 返回采样器名称，与 SPI 提供者注册名一致
@@ -93,7 +93,8 @@ public class FilterSampler implements Sampler {
         // 若异常则不过滤（放行采样），兜底保证采样链路不中断
         }catch (RuntimeException e){
 
-            LOGGER.log(Level.WARNING, "Span filter error, fallback to sample. spanName=" + name, e);
+            // 使用 Supplier 延迟构造日志消息，避免无谓的字符串拼接开销（JUL 惰性重载签名：Level, Throwable, Supplier）
+            LOGGER.log(Level.WARNING, e, () -> "Span filter error, fallback to sample. spanName=" + name);
 
             return SamplingResult.create(SamplingDecision.RECORD_AND_SAMPLE);
 

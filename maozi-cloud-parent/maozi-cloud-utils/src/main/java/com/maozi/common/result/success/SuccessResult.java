@@ -43,34 +43,34 @@ import java.io.Serializable;
 @Schema(description = "接口成功结果集")
 public class SuccessResult<D> extends AbstractBaseResult<D> implements Serializable {
 
-	/** 序列化标识 */
-	@Serial
-	private static final long serialVersionUID = 1L;
+    /** 序列化标识 */
+    @Serial
+    private static final long serialVersionUID = 1L;
 
-	/** 结果集成功默认码 */
-	public static final Integer RESULT_SUCCESS_DEFAULT_CODE = 200;
+    /** 结果集成功默认码 */
+    public static final Integer RESULT_SUCCESS_DEFAULT_CODE = 200;
 
-	/**
-	 * 获取业务内码
-	 *
-	 * @return 固定返回 200
-	 */
-	@Override
-	public Integer getCode() {
-		return RESULT_SUCCESS_DEFAULT_CODE;
-	}
+    /**
+     * 获取业务内码
+     *
+     * @return 固定返回 200
+     */
+    @Override
+    public Integer getCode() {
+        return RESULT_SUCCESS_DEFAULT_CODE;
+    }
 
-	/** 响应数据 */
-	@Getter
-	private D data;
+    /** 响应数据 */
+    @Getter
+    private D data;
 
-	/**
-	 * 构造成功结果
-	 *
-	 * @param data 响应数据
-	 */
-	public SuccessResult(D data) {
-		this.data = data;
-	}
+    /**
+     * 构造成功结果
+     *
+     * @param data 响应数据
+     */
+    public SuccessResult(D data) {
+        this.data = data;
+    }
 
 }

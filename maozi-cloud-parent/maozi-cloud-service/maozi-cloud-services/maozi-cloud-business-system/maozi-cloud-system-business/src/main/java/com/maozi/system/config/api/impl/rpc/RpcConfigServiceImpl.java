@@ -21,19 +21,19 @@ import com.maozi.system.config.result.ConfigDropDownResult;
 @RemoteService
 public class RpcConfigServiceImpl extends BaseServiceResultImpl<ConfigServiceImpl, Void> implements RpcConfigService {
 
-	/**
-	 * 根据配置键名远程获取配置值
-	 * <p>
-	 * 配置键名即配置名称，全局唯一；为空时抛出业务异常。
-	 * </p>
-	 *
-	 * @param key 配置键名，即配置名称
-	 * @return 配置值；配置不存在时 data 为 null
-	 */
-	@Override
-	public AbstractBaseResult<String> getResult(String key) {
-		ConfigDropDownResult configResult = service.commonGetConfigByName(key);
-		return ResultUtil.success(ObjectUtil.isNotNullEmpty(configResult) ? configResult.getValue() : null);
-	}
+    /**
+     * 根据配置键名远程获取配置值
+     * <p>
+     * 配置键名即配置名称，全局唯一；为空时抛出业务异常。
+     * </p>
+     *
+     * @param key 配置键名，即配置名称
+     * @return 配置值；配置不存在时 data 为 null
+     */
+    @Override
+    public AbstractBaseResult<String> getResult(String key) {
+        ConfigDropDownResult configResult = service.commonGetConfigByName(key);
+        return ResultUtil.success(ObjectUtil.isNotNullEmpty(configResult) ? configResult.getValue() : null);
+    }
 
 }

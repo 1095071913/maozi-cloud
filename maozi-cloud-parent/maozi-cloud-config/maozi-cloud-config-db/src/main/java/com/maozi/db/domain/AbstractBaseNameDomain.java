@@ -41,11 +41,11 @@ import java.io.Serial;
 @EqualsAndHashCode(callSuper = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class AbstractBaseNameDomain extends AbstractBaseDomain {
-	/** 序列化标识 */
-	@Serial
-	private static final long serialVersionUID = 1L;
+    /** 序列化标识 */
+    @Serial
+    private static final long serialVersionUID = 1L;
 
-	/** 名称（如角色名称、权限名称、分类名称） */
-	private String name;
+    /** 名称（如角色名称、权限名称、分类名称） */
+    private String name;
 
 }

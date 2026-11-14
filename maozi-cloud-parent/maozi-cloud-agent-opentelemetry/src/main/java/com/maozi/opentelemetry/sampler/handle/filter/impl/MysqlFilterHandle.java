@@ -29,7 +29,7 @@ public class MysqlFilterHandle extends BaseFilterHandle {
     private List<String> names = List.of("mysql");
 
     /** 需要排除的 SQL 语句列表（连接探活、版本查询、锁检测等框架内部维护 SQL） */
-    private final List<String> EXCLUDED_STATEMENT = List.of(
+    private static final List<String> EXCLUDED_STATEMENT = List.of(
 
             "SELECT ?",
             "SELECT version()",

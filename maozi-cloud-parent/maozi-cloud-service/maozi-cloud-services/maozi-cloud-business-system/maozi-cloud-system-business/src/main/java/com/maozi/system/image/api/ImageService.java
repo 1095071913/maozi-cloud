@@ -18,17 +18,17 @@ import java.util.List;
  */
 public interface ImageService {
 
-	/**
-	 * 上传图片
-	 * <p>
-	 * 根据配置项 oss.store-type 匹配存储类型，
-	 * 路由到对应的存储处理器处理上传，
-	 * 保存路径作为目录前缀传递给处理器。
-	 * </p>
-	 *
-	 * @param param 图片上传参数，包含上传的图片文件列表与保存路径（目录前缀）
-	 * @return 上传结果列表，每张图片对应一项，包含文件原始名称、对象存储路径、访问地址与文件大小
-	 */
-	List<ImageUploadResult> upload(ImageUploadParam param);
+    /**
+     * 上传图片
+     * <p>
+     * 根据配置项 oss.store-type 匹配存储类型，
+     * 路由到对应的存储处理器处理上传，
+     * 保存路径作为目录前缀传递给处理器。
+     * </p>
+     *
+     * @param param 图片上传参数，包含上传的图片文件列表与保存路径（目录前缀）
+     * @return 上传结果列表，每张图片对应一项，包含文件原始名称、对象存储路径、访问地址与文件大小
+     */
+    List<ImageUploadResult> upload(ImageUploadParam param);
 
 }

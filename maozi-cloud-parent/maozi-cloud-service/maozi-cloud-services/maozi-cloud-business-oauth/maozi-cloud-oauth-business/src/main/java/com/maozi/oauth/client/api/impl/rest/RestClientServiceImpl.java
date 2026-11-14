@@ -28,21 +28,21 @@ import com.maozi.service.api.impl.result.BaseServiceResultImpl;
 @RestService
 public class RestClientServiceImpl extends BaseServiceResultImpl<ClientServiceImpl, ClientDTO> implements RestClientService {
 
-	/**
-	 * 分页查询客户端列表。
-	 */
-	@Override
-	public AbstractBaseResult<PageResult<ClientListResult>> listResult(PageParam<ClientListParam> pageParam) {
-		return ResultUtil.success(service.adminList(pageParam));
-	}
+    /**
+     * 分页查询客户端列表。
+     */
+    @Override
+    public AbstractBaseResult<PageResult<ClientListResult>> listResult(PageParam<ClientListParam> pageParam) {
+        return ResultUtil.success(service.adminList(pageParam));
+    }
 
-	/**
-	 * 新增客户端。
-	 */
-	@Override
-	public AbstractBaseResult<Long> saveResult(ClientSaveUpdateParam param) {
-		return ResultUtil.success(service.adminSaveUpdate(null, param));
-	}
+    /**
+     * 新增客户端。
+     */
+    @Override
+    public AbstractBaseResult<Long> saveResult(ClientSaveUpdateParam param) {
+        return ResultUtil.success(service.adminSaveUpdate(null, param));
+    }
 
     /**
      * 根据主键ID获取客户端详细信息。
@@ -57,7 +57,7 @@ public class RestClientServiceImpl extends BaseServiceResultImpl<ClientServiceIm
      */
     @Override
     public AbstractBaseResult<Void> updateResult(Long id, ClientSaveUpdateParam param) {
-		service.adminSaveUpdate(id, param);
+        service.adminSaveUpdate(id, param);
         return ResultUtil.success();
     }
 

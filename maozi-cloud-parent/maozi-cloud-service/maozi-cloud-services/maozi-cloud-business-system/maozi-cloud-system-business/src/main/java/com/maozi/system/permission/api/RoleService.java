@@ -9,12 +9,12 @@ package com.maozi.system.permission.api;
  */
 public interface RoleService {
 
-	/**
-	 * 判断指定角色是否存在
-	 *
-	 * @param id 角色ID
-	 * @return 如果角色存在返回true，否则返回false
-	 */
-	boolean has(Long id);
+    /**
+     * 判断指定角色是否存在
+     *
+     * @param id 角色ID
+     * @return 如果角色存在返回true，否则返回false
+     */
+    boolean has(Long id);
 
 }

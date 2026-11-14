@@ -20,14 +20,14 @@ import com.maozi.system.config.result.SystemPropertiesResult;
 @RestService
 public class RestSystemServiceImpl extends SystemServiceImpl implements RestSystemService {
 
-	/**
-	 * 获取系统配置属性信息
-	 *
-	 * @return 包含系统配置属性信息的统一响应结果
-	 */
-	@Override
-	public AbstractBaseResult<SystemPropertiesResult> getResult() {
-		return ResultUtil.success(CglibUtil.copy(systemProperties, SystemPropertiesResult.class));
-	}
+    /**
+     * 获取系统配置属性信息
+     *
+     * @return 包含系统配置属性信息的统一响应结果
+     */
+    @Override
+    public AbstractBaseResult<SystemPropertiesResult> getResult() {
+        return ResultUtil.success(CglibUtil.copy(systemProperties, SystemPropertiesResult.class));
+    }
 
 }

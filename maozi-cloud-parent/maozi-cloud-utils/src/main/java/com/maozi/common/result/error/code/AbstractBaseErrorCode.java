@@ -19,8 +19,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class AbstractBaseErrorCode implements Serializable {
 
-	/** 序列化标识 */
-	@Serial
-	private static final long serialVersionUID = 1L;
+    /** 序列化标识 */
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 }

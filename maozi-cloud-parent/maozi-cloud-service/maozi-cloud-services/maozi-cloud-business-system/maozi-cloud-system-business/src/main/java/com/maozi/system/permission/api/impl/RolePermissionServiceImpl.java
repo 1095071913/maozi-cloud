@@ -47,120 +47,120 @@ import java.util.stream.Collectors;
 @Service
 public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMapper,RolePermissionDO> implements RolePermissionService {
 
-	/** 资源名称，用于异常提示信息 */
-	public static final String RESOURCE_NAME = "角色权限关系";
+    /** 资源名称，用于异常提示信息 */
+    public static final String RESOURCE_NAME = "角色权限关系";
 
-	/** 权限服务，用于校验权限是否存在 */
-	@Resource(name = "permissionServiceImpl")
-	protected PermissionService permissionService;
+    /** 权限服务，用于校验权限是否存在 */
+    @Resource(name = "permissionServiceImpl")
+    protected PermissionService permissionService;
 
-	/** 获取资源名称 */
-	@Override
-	public String getResourceName() {
-		return RESOURCE_NAME;
-	}
+    /** 获取资源名称 */
+    @Override
+    public String getResourceName() {
+        return RESOURCE_NAME;
+    }
 
-	/**
-	 * 检查指定权限是否已被角色绑定
-	 *
-	 * @param permissionId 权限ID
-	 * @throws com.maozi.common.result.error.exception.BusinessResultException 权限已被角色绑定时抛出
-	 */
-	@Override
-	public void checkRoleBindPermissionByPermission(Long permissionId) {
-		LambdaQueryWrapper<RolePermissionDO> wrapper = Wrappers.lambdaQuery(RolePermissionDO.builder().permissionId(permissionId).build());
-		ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1,SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE,"【权限】已被角色绑定");
-	}
+    /**
+     * 检查指定权限是否已被角色绑定
+     *
+     * @param permissionId 权限ID
+     * @throws com.maozi.common.result.error.exception.BusinessResultException 权限已被角色绑定时抛出
+     */
+    @Override
+    public void checkRoleBindPermissionByPermission(Long permissionId) {
+        LambdaQueryWrapper<RolePermissionDO> wrapper = Wrappers.lambdaQuery(RolePermissionDO.builder().permissionId(permissionId).build());
+        ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1,SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE,"【权限】已被角色绑定");
+    }
 
-	/**
-	 * 更新角色与权限的绑定关系
-	 * <p>批量绑定：对每个待绑定权限ID，校验权限存在且尚未绑定后进行保存；
-	 * 批量解绑：对每个待解绑权限ID，直接删除对应的绑定记录。</p>
-	 *
-	 * @param roleId 角色ID
-	 * @param bindPermissionIds 需要绑定的权限ID集合
-	 * @param unbindPermissionIds 需要解绑的权限ID集合
-	 */
-	@Override
-	@Transactional(rollbackFor = Exception.class)
-	public void updateBind(Long roleId, Set<Long> bindPermissionIds, Set<Long> unbindPermissionIds) {
+    /**
+     * 更新角色与权限的绑定关系
+     * <p>批量绑定：对每个待绑定权限ID，校验权限存在且尚未绑定后进行保存；
+     * 批量解绑：对每个待解绑权限ID，直接删除对应的绑定记录。</p>
+     *
+     * @param roleId 角色ID
+     * @param bindPermissionIds 需要绑定的权限ID集合
+     * @param unbindPermissionIds 需要解绑的权限ID集合
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateBind(Long roleId, Set<Long> bindPermissionIds, Set<Long> unbindPermissionIds) {
 
-		if(ObjectUtil.isNotNullEmpty(bindPermissionIds)) {
+        if(ObjectUtil.isNotNullEmpty(bindPermissionIds)) {
 
-			Consumer<Long> consumer = (permissionId)->{
+            Consumer<Long> consumer = (permissionId)->{
 
-				RolePermissionDO domainSave = RolePermissionDO.builder().roleId(roleId).permissionId(permissionId).build();
+                RolePermissionDO domainSave = RolePermissionDO.builder().roleId(roleId).permissionId(permissionId).build();
 
-				// 绑定关系不存在且权限存在时才保存，避免重复绑定
-				if(super.count(Wrappers.lambdaQuery(domainSave)) < 1 && permissionService.has(permissionId)) {
-					super.save(domainSave);
-				}
+                // 绑定关系不存在且权限存在时才保存，避免重复绑定
+                if(super.count(Wrappers.lambdaQuery(domainSave)) < 1 && permissionService.has(permissionId)) {
+                    super.save(domainSave);
+                }
 
-			};
+            };
 
-			bindPermissionIds.forEach(consumer);
+            bindPermissionIds.forEach(consumer);
 
-		}
+        }
 
-		if(ObjectUtil.isNotNullEmpty(unbindPermissionIds)) {
+        if(ObjectUtil.isNotNullEmpty(unbindPermissionIds)) {
 
-			Consumer<Long> consumer = (permissionId)->{
-				super.remove(Wrappers.lambdaQuery(RolePermissionDO.builder().roleId(roleId).permissionId(permissionId).build()));
-			};
+            Consumer<Long> consumer = (permissionId)->{
+                super.remove(Wrappers.lambdaQuery(RolePermissionDO.builder().roleId(roleId).permissionId(permissionId).build()));
+            };
 
-			unbindPermissionIds.forEach(consumer);
+            unbindPermissionIds.forEach(consumer);
 
-		}
+        }
 
-	}
+    }
 
-	/**
-	 * 根据多个角色ID获取关联的权限ID集合（去重）
-	 *
-	 * @param roleIds 角色ID列表
-	 * @return 权限ID集合
-	 */
-	@Override
-	public Collection<Long> getPermissionsByRoles(List<Long> roleIds) {
+    /**
+     * 根据多个角色ID获取关联的权限ID集合（去重）
+     *
+     * @param roleIds 角色ID列表
+     * @return 权限ID集合
+     */
+    @Override
+    public Collection<Long> getPermissionsByRoles(List<Long> roleIds) {
 
-		LambdaQueryWrapper<RolePermissionDO> wrapper = Wrappers.lambdaQuery();
+        LambdaQueryWrapper<RolePermissionDO> wrapper = Wrappers.lambdaQuery();
 
-		wrapper.select(RolePermissionDO::getPermissionId);
+        wrapper.select(RolePermissionDO::getPermissionId);
 
-		wrapper.in(RolePermissionDO::getRoleId, roleIds);
+        wrapper.in(RolePermissionDO::getRoleId, roleIds);
 
-		return super.list(wrapper).stream().map(RolePermissionDO::getPermissionId).collect(Collectors.toSet());
+        return super.list(wrapper).stream().map(RolePermissionDO::getPermissionId).collect(Collectors.toSet());
 
-	}
+    }
 
-	/**
-	 * 根据单个角色ID获取关联的权限ID列表
-	 *
-	 * @param roleId 角色ID
-	 * @return 权限ID列表
-	 */
-	@Override
-	public List<Long> getPermissionsByRole(Long roleId) {
+    /**
+     * 根据单个角色ID获取关联的权限ID列表
+     *
+     * @param roleId 角色ID
+     * @return 权限ID列表
+     */
+    @Override
+    public List<Long> getPermissionsByRole(Long roleId) {
 
-		LambdaQueryWrapper<RolePermissionDO> wrapper = Wrappers.lambdaQuery();
+        LambdaQueryWrapper<RolePermissionDO> wrapper = Wrappers.lambdaQuery();
 
-		wrapper.select(RolePermissionDO::getPermissionId);
+        wrapper.select(RolePermissionDO::getPermissionId);
 
-		wrapper.eq(RolePermissionDO::getRoleId, roleId);
+        wrapper.eq(RolePermissionDO::getRoleId, roleId);
 
-		return super.list(wrapper).stream().map(RolePermissionDO::getPermissionId).collect(Collectors.toList());
+        return super.list(wrapper).stream().map(RolePermissionDO::getPermissionId).collect(Collectors.toList());
 
-	}
+    }
 
-	/**
-	 * 解除角色与所有权限的绑定关系
-	 * <p>删除指定角色关联的所有角色权限记录。</p>
-	 *
-	 * @param roleId 角色ID
-	 */
-	@Override
-	public void roleUnbind(Long roleId) {
-		super.remove(Wrappers.lambdaQuery(RolePermissionDO.builder().roleId(roleId).build()));
-	}
+    /**
+     * 解除角色与所有权限的绑定关系
+     * <p>删除指定角色关联的所有角色权限记录。</p>
+     *
+     * @param roleId 角色ID
+     */
+    @Override
+    public void roleUnbind(Long roleId) {
+        super.remove(Wrappers.lambdaQuery(RolePermissionDO.builder().roleId(roleId).build()));
+    }
 
 }

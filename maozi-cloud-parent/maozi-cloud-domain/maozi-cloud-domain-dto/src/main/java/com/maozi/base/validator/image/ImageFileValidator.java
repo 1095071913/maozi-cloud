@@ -21,6 +21,7 @@ import java.util.Set;
  */
 public class ImageFileValidator implements ConstraintValidator<ImageFile, MultipartFile> {
 
+    /** 允许上传的图片扩展名集合 */
     private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp", "bmp");
 
     /** 图片 Content-Type 前缀 */

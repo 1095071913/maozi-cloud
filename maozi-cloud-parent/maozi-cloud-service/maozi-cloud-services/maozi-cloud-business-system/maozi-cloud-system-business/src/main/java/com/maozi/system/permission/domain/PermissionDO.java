@@ -17,7 +17,7 @@ package com.maozi.system.permission.domain;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.maozi.db.domain.AbstractBaseNameDomain;
-import com.maozi.system.permission.enums.PermissionType;
+import com.maozi.system.permission.enums.PermissionTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -39,32 +39,32 @@ import java.io.Serial;
 @SuperBuilder(toBuilder = true)
 @TableName("system_permission")
 public class PermissionDO extends AbstractBaseNameDomain {
-	/** 序列化标识 */
-	@Serial
-	private static final long serialVersionUID = 1L;
+    /** 序列化标识 */
+    @Serial
+    private static final long serialVersionUID = 1L;
 
-	/** 父权限ID，用于构建权限树形结构 */
-	private Long parentId;
+    /** 父权限ID，用于构建权限树形结构 */
+    private Long parentId;
 
-	/** 权限图标 */
-	private String icon;
+    /** 权限图标 */
+    private String icon;
 
-	/** 权限标识，用于权限匹配的唯一编码 */
-	private String mark;
+    /** 权限标识，用于权限匹配的唯一编码 */
+    private String mark;
 
-	/** 权限深度（层级），表示在树形结构中的层级 */
-	private Integer level;
+    /** 权限深度（层级），表示在树形结构中的层级 */
+    private Integer level;
 
-	/** 前端路由路径 */
-	private String route;
+    /** 前端路由路径 */
+    private String route;
 
-	/** 后端服务请求地址 */
-	private String serviceUri;
+    /** 后端服务请求地址 */
+    private String serviceUri;
 
-	/** 权限类型（目录、菜单、按钮） */
-	private PermissionType type;
+    /** 权限类型（目录、菜单、按钮） */
+    private PermissionTypeEnum type;
 
-	/** 排序序号，值越大越靠前 */
-	private Integer sort;
+    /** 排序序号，值越大越靠前 */
+    private Integer sort;
 
 }

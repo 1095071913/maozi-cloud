@@ -17,8 +17,8 @@
 
 package com.maozi.db.config;
 
-import com.maozi.base.enums.Deleted;
-import com.maozi.base.enums.Status;
+import com.maozi.base.enums.DeletedEnum;
+import com.maozi.base.enums.StatusEnum;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.context.annotation.Configuration;
 
@@ -53,9 +53,9 @@ public class MetaObjectHandler implements com.baomidou.mybatisplus.core.handlers
     @Override
     public void insertFill(MetaObject metaObject) {
         // 自动填充状态字段，默认值为启用（ENABLE）
-        this.strictInsertFill(metaObject, STATUS, Status.class, Status.ENABLE);
+        this.strictInsertFill(metaObject, STATUS, StatusEnum.class, StatusEnum.ENABLE);
         // 自动填充逻辑删除字段，默认值为未删除（NONE）
-        this.strictInsertFill(metaObject, DELETED, Deleted.class, Deleted.NONE);
+        this.strictInsertFill(metaObject, DELETED, DeletedEnum.class, DeletedEnum.NONE);
         // 自动填充创建时间字段，默认值为当前时间
         this.strictInsertFill(metaObject, CREATE_TIME, LocalDateTime.class, LocalDateTime.now());
     }

@@ -63,7 +63,7 @@ public class ValidatorUtil {
             return;
         }
 
-        Map<String, String> errorMap = CollectionUtil.newHashMap();
+        Map<String, String> errorMap = CollectionUtil.newHashMap(violations.size());
         for (ConstraintViolation<Object> v : violations) {
             errorMap.put(v.getPropertyPath().toString(), v.getMessage());
         }

@@ -24,20 +24,20 @@ import java.util.List;
 @AllArgsConstructor
 public class UserIndividualInfoResult implements Serializable {
     /** 序列化标识 */
-	@Serial
+    @Serial
     private static final long serialVersionUID = 1L;
 
-	/** 用户名称 */
-	@Schema(description = "名称")
-	private String name;
+    /** 用户名称 */
+    @Schema(description = "名称")
+    private String name;
 
-	/** 用户头像图标 */
-	@Schema(description = "头像")
-	private String icon;
+    /** 用户头像图标 */
+    @Schema(description = "头像")
+    private String icon;
 
-	/** 当前登录用户拥有的权限标识列表，通过用户服务查询自动填充 */
-	@Schema(description = "权限列表")
-	@QueryMapping(isService = true, serviceName = "userServiceImpl", functionName = "getCurrentPermissions")
-	private List<String> permissions;
+    /** 当前登录用户拥有的权限标识列表，通过用户服务查询自动填充 */
+    @Schema(description = "权限列表")
+    @QueryMapping(isService = true, serviceName = "userServiceImpl", functionName = "getCurrentPermissions")
+    private List<String> permissions;
 
 }

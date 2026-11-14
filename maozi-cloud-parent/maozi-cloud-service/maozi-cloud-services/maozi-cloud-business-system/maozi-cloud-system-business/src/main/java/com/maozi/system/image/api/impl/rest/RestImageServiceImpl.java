@@ -23,24 +23,24 @@ import java.util.List;
 @RestService
 public class RestImageServiceImpl extends ImageServiceImpl implements RestImageService {
 
-	/**
-	 * 构造方法
-	 *
-	 * @param handlers 容器内的存储处理器列表，由父类按存储类型建立索引
-	 */
-	public RestImageServiceImpl(List<ImageStorageHandler> handlers) {
-		super(handlers);
-	}
+    /**
+     * 构造方法
+     *
+     * @param handlers 容器内的存储处理器列表，由父类按存储类型建立索引
+     */
+    public RestImageServiceImpl(List<ImageStorageHandler> handlers) {
+        super(handlers);
+    }
 
-	/**
-	 * 上传图片
-	 *
-	 * @param param 图片上传参数，包含图片文件列表与保存路径
-	 * @return 上传结果列表，每张图片对应一项
-	 */
-	@Override
-	public AbstractBaseResult<List<ImageUploadResult>> uploadResult(ImageUploadParam param) {
-		return ResultUtil.success(super.upload(param));
-	}
+    /**
+     * 上传图片
+     *
+     * @param param 图片上传参数，包含图片文件列表与保存路径
+     * @return 上传结果列表，每张图片对应一项
+     */
+    @Override
+    public AbstractBaseResult<List<ImageUploadResult>> uploadResult(ImageUploadParam param) {
+        return ResultUtil.success(super.upload(param));
+    }
 
 }

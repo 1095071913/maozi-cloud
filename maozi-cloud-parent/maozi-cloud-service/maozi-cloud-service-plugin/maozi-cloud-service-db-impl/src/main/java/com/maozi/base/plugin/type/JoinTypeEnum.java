@@ -4,7 +4,7 @@ import com.maozi.base.plugin.BaseJoinPlugin;
 import com.maozi.base.plugin.impl.join.QueryInnerJoinPlugin;
 import com.maozi.base.plugin.impl.join.QueryLeftJoinPlugin;
 import com.maozi.base.plugin.impl.join.QueryRightJoinPlugin;
-import com.maozi.base.plugin.join.JoinBaseType;
+import com.maozi.base.plugin.join.JoinBaseTypeEnum;
 import lombok.Getter;
 
 /**
@@ -21,18 +21,18 @@ import lombok.Getter;
 public enum JoinTypeEnum {
 
     /** 内连接 */
-    INNER_JOIN(JoinBaseType.INNER_JOIN, new QueryInnerJoinPlugin()),
+    INNER_JOIN(JoinBaseTypeEnum.INNER_JOIN, new QueryInnerJoinPlugin()),
 
     /** 左连接 */
-    LEFT_JOIN(JoinBaseType.LEFT_JOIN, new QueryLeftJoinPlugin()),
+    LEFT_JOIN(JoinBaseTypeEnum.LEFT_JOIN, new QueryLeftJoinPlugin()),
 
     /** 右连接 */
-    RIGHT_JOIN(JoinBaseType.RIGHT_JOIN, new QueryRightJoinPlugin()),
+    RIGHT_JOIN(JoinBaseTypeEnum.RIGHT_JOIN, new QueryRightJoinPlugin()),
 
     ;
 
     /** 关联基础类型 */
-    private final JoinBaseType type;
+    private final JoinBaseTypeEnum type;
 
     /** 关联插件实例 */
     private final BaseJoinPlugin joinPlugin;
@@ -43,7 +43,7 @@ public enum JoinTypeEnum {
      * @param type 关联基础类型
      * @param joinPlugin 关联插件实例
      */
-    JoinTypeEnum(JoinBaseType type, BaseJoinPlugin joinPlugin) {
+    JoinTypeEnum(JoinBaseTypeEnum type, BaseJoinPlugin joinPlugin) {
 
         this.type = type;
 

@@ -1,6 +1,6 @@
 package com.maozi.ai.ai.result;
 
-import com.maozi.ai.ai.enums.ChatMessageType;
+import com.maozi.ai.ai.enums.ChatMessageTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,7 +37,7 @@ public class ChatItemResult implements Serializable {
 
     /** 消息类型（用户消息 / AI消息） */
     @Schema(description = "AI对话消息类型")
-    private ChatMessageType type;
+    private ChatMessageTypeEnum type;
 
     /** 消息文本内容 */
     @Schema(description = "消息")

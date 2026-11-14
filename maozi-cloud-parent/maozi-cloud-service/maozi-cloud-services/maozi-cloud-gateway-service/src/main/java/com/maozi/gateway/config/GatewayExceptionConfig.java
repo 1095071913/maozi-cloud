@@ -60,10 +60,10 @@ public class GatewayExceptionConfig {
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public ErrorWebExceptionHandler errorWebExceptionHandler(ObjectProvider<List<ViewResolver>> viewResolversProvider, ServerCodecConfigurer serverCodecConfigurer) {
-    	GatewayExceptionHandler gatewayExceptionHandler = new GatewayExceptionHandler();
-    	gatewayExceptionHandler.setViewResolvers(viewResolversProvider.getIfAvailable(Collections::emptyList));
-    	gatewayExceptionHandler.setMessageWriters(serverCodecConfigurer.getWriters());
-    	gatewayExceptionHandler.setMessageReaders(serverCodecConfigurer.getReaders());
+        GatewayExceptionHandler gatewayExceptionHandler = new GatewayExceptionHandler();
+        gatewayExceptionHandler.setViewResolvers(viewResolversProvider.getIfAvailable(Collections::emptyList));
+        gatewayExceptionHandler.setMessageWriters(serverCodecConfigurer.getWriters());
+        gatewayExceptionHandler.setMessageReaders(serverCodecConfigurer.getReaders());
         return gatewayExceptionHandler;
     }
 

@@ -17,7 +17,7 @@
 
 package com.maozi.system.permission.param;
 
-import com.maozi.system.permission.enums.PermissionType;
+import com.maozi.system.permission.enums.PermissionTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -46,45 +46,45 @@ public class PermissionSaveUpdateParam implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-	/** 上级权限ID，用于构建权限树形结构 */
-	@Schema(description = "上级ID")
-	private Long parentId;
+    /** 上级权限ID，用于构建权限树形结构 */
+    @Schema(description = "上级ID")
+    private Long parentId;
 
-	/** 权限名称 */
-	@Schema(description = "名称")
-	@NotEmpty(message = "名称不能为空")
-	private String name;
+    /** 权限名称 */
+    @Schema(description = "名称")
+    @NotEmpty(message = "名称不能为空")
+    private String name;
 
-	/** 权限图标 */
-	@Schema(description = "图标")
-	@NotEmpty(message = "图标不能为空")
-	private String icon;
+    /** 权限图标 */
+    @Schema(description = "图标")
+    @NotEmpty(message = "图标不能为空")
+    private String icon;
 
-	/** 权限唯一标识编码 */
-	@Schema(description = "标识")
-	@NotEmpty(message = "标识不能为空")
-	private String mark;
+    /** 权限唯一标识编码 */
+    @Schema(description = "标识")
+    @NotEmpty(message = "标识不能为空")
+    private String mark;
 
-	/** 权限在树形结构中的深度层级 */
-	@Schema(description = "深度")
-	@NotNull(message = "深度不能为空")
-	private Integer level;
+    /** 权限在树形结构中的深度层级 */
+    @Schema(description = "深度")
+    @NotNull(message = "深度不能为空")
+    private Integer level;
 
-	/** 前端路由路径 */
-	@Schema(description = "路由")
-	private String route;
+    /** 前端路由路径 */
+    @Schema(description = "路由")
+    private String route;
 
-	/** 后端服务地址URI */
-	@Schema(description = "服务地址")
-	private String serviceUri;
+    /** 后端服务地址URI */
+    @Schema(description = "服务地址")
+    private String serviceUri;
 
-	/** 权限类型（目录/菜单/按钮） */
-	@Schema(description = "类型")
-	@NotNull(message = "类型不能为空")
-	private PermissionType type;
+    /** 权限类型（目录/菜单/按钮） */
+    @Schema(description = "类型")
+    @NotNull(message = "类型不能为空")
+    private PermissionTypeEnum type;
 
-	/** 排序序号，用于控制同级权限的显示顺序 */
-	@Schema(description = "排序")
-	private Integer sort;
+    /** 排序序号，用于控制同级权限的显示顺序 */
+    @Schema(description = "排序")
+    private Integer sort;
 
 }

@@ -26,16 +26,14 @@ import com.maozi.common.constant.LogTag;
 import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.context.SqlLogContext;
 import com.maozi.common.dto.CurrentUserInfo;
-import com.maozi.common.enums.EnvironmentType;
-import com.maozi.common.enums.LogCommonType;
-import com.maozi.common.monitor.Alarm;
+import com.maozi.common.enums.EnvironmentTypeEnum;
+import com.maozi.common.enums.LogCommonTypeEnum;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.common.result.error.ErrorResult;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDeniedException;
@@ -69,10 +67,6 @@ import java.util.Map;
 @Order(value = Ordered.HIGHEST_PRECEDENCE + 1)
 public abstract class AbstractRequestEntranceLogAop {
 
-    /** 限流熔断告警组件，由监控模块（如 Sentinel）提供实现并通过依赖注入获取 */
-    @Autowired(required = false)
-    private Alarm alarm;
-
     /**
      * 环绕通知：记录请求日志、执行业务逻辑并记录响应日志。
      * <p>
@@ -101,12 +95,13 @@ public abstract class AbstractRequestEntranceLogAop {
         Map<String, String> logs = requestLog(proceedingJoinPoint);
 
         // 非生产环境记录请求参数
-        if (EnvironmentUtil.notEnvironment(EnvironmentType.PROD)) {
+        if (EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD)) {
             logs.put(LogTag.PARAM, param);
         }
 
         // 方法返回结果，初始为 null
         Object resultData = null;
+        Throwable ex = null;
 
         // 执行目标业务方法
         try {
@@ -123,12 +118,12 @@ public abstract class AbstractRequestEntranceLogAop {
         // 未预期的系统异常：封装为统一的系统错误结果，并记录详细的错误日志
         } catch (Throwable e) {
 
+            // 记录异常堆栈日志，便于排查问题
+            ex = e;
+
             // 构建系统级错误响应
             resultData = ResultUtil.error(SystemErrorCode.SYSTEM_ERROR)
                     .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
-
-            // 记录异常堆栈日志，便于排查问题
-            LogUtil.error(log, e);
 
             // 系统异常时无论环境均记录请求参数
             logs.put(LogTag.PARAM, param);
@@ -163,22 +158,18 @@ public abstract class AbstractRequestEntranceLogAop {
             logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + " ms");
 
             // 判断结果是否为框架统一响应类型且请求失败（业务或系统错误）
-            if (ObjectUtil.isNotNullEmpty(resultData) && resultData instanceof AbstractBaseResult<?> result
-                    && !result.isSuccess()) {
-
-                // 触发限流熔断告警（Sentinel 实现将本次失败计入阻塞 QPS 统计）
-                if (ObjectUtil.isNotNullEmpty(alarm)) {
-                    alarm.alarm();
-                }
+            if (ObjectUtil.isNotNullEmpty(resultData) 
+                && resultData instanceof AbstractBaseResult<?> result
+                && !result.isSuccess()
+            ) {
 
                 // 获取错误详情，用于判断是业务错误还是系统错误
                 ErrorResult<?> errorResult = result.getErrorResult();
-
                 // 业务错误使用 warn 级别，系统错误使用 error 级别
                 if (errorResult.autoIdentifyHttpCode().isBusinessError()) {
                     log.warn(LogUtil.convertLog(logs));
                 } else {
-                    LogUtil.error(log, logs);
+                    LogUtil.error(log, logs, ex);
                 }
 
             } else {
@@ -234,7 +225,7 @@ public abstract class AbstractRequestEntranceLogAop {
      *
      * @return 日志类型标识（如 WEB、RPC）
      */
-    protected abstract LogCommonType getType();
+    protected abstract LogCommonTypeEnum getType();
 
     /**
      * 钩子方法：子类可重写以追加自定义的日志字段

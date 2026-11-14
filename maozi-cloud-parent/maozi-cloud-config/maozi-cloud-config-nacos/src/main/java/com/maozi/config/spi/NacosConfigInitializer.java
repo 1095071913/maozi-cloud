@@ -108,7 +108,7 @@ public class NacosConfigInitializer implements ConfigInitializer {
     /** 追加 Nacos 配置中心地址到启动日志。 */
     @Override
     public void appendLogs(Map<String, String> logs) {
-        logs.put(LogTag.NACOS, ApplicationEnvironmentContext.CONFIG_ADDR);
+        logs.put(LogTag.NACOS, ApplicationEnvironmentContext.configAddr);
     }
 
 }

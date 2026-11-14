@@ -38,11 +38,24 @@ public class ChatConversationRecordListParam implements OrderParam, Serializable
     /** 降序排序字段映射，key为表别名，value为该表下需降序排序的字段列表 */
     private Map<String, List<String>> orderDescFieldsMap;
 
-    /** 主排序字段映射，key为默认表别名，value为可排序字段及默认排序方向，默认按创建时间倒序排列 */
-    private final Map<String, Map<String, Boolean>> orderMainFieldsMap = Map.of(
-        QueryEnvironmentContext.DEFAULT_ORDER_KEY, Map.of(
-            CREATE_TIME_KEY, true
-        )
-    );
+    /** 主排序字段映射，key为默认表别名，value为可排序字段及默认排序方向，未设置时按默认规则兜底 */
+    private Map<String, Map<String, Boolean>> orderMainFieldsMap;
+
+    /**
+     * 获取主排序字段映射，未设置时按默认规则兜底（默认表别名 + 创建时间倒序）
+     *
+     * @return 主排序字段映射
+     */
+    @Override
+    public Map<String, Map<String, Boolean>> getOrderMainFieldsMap() {
+        if (orderMainFieldsMap == null) {
+            orderMainFieldsMap = Map.of(
+                QueryEnvironmentContext.defaultOrderKey, Map.of(
+                    CREATE_TIME_KEY, Boolean.TRUE
+                )
+            );
+        }
+        return orderMainFieldsMap;
+    }
 
 }

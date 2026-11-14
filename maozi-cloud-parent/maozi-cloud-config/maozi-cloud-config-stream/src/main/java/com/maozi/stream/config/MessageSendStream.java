@@ -5,7 +5,7 @@ import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.context.TestFlowContext;
 import com.maozi.common.context.VersionContext;
-import com.maozi.stream.enums.DelayMessageLevel;
+import com.maozi.stream.enums.DelayMessageLevelEnum;
 import jakarta.annotation.Resource;
 import org.apache.rocketmq.common.message.MessageConst;
 import org.springframework.cloud.client.ServiceInstance;
@@ -33,6 +33,9 @@ import java.util.stream.Collectors;
 @Component
 public class MessageSendStream {
 
+    /** Gray 灰度版本消息头键（写入用于灰度路由的版本号） */
+    private static final String HEADER_GRAY = "Gray";
+
     /** Stream 桥接器，用于动态发送消息 */
     @Resource
     private StreamBridge stream;
@@ -59,10 +62,14 @@ public class MessageSendStream {
         MessageBuilder<D> messageBuilder = MessageBuilder.fromMessage(message);
 
         // 获取当前服务在注册中心的全部存活实例
-        List<ServiceInstance> instances = discoveryClient.getInstances(ApplicationEnvironmentContext.SERVICE_NAME);
+        List<ServiceInstance> instances = discoveryClient.getInstances(ApplicationEnvironmentContext.serviceName);
 
         // 按实例元数据中的 version（灰度标识）对存活实例分组，用于判断当前版本是否仍有存活实例
-        Map<String,List<ServiceInstance>> applicationClients = instances.stream().collect(Collectors.groupingBy((instance)-> instance.getMetadata().get(VersionContext.NACOS_VERSION_KEY)));
+        // （元数据缺失 version 的实例归入默认版本分组，避免 groupingBy 分类函数返回 null 抛 NPE）
+        Map<String,List<ServiceInstance>> applicationClients = instances.stream().collect(Collectors.groupingBy((instance)-> {
+            String instanceVersion = instance.getMetadata().get(VersionContext.NACOS_VERSION_KEY);
+            return instanceVersion != null ? instanceVersion : VersionContext.APPLICATION_DEFAULT_VERSION;
+        }));
 
         // 当前请求版本号，链路上下文未设置时取默认版本 main
         String version = VersionContext.CONTEXT.get();
@@ -73,7 +80,7 @@ public class MessageSendStream {
         }
 
         // Gray 头写入用于灰度路由的版本（可能已回退为默认版本）
-        messageBuilder.setHeader("Gray", version);
+        messageBuilder.setHeader(HEADER_GRAY, version);
         // X-Version 头透传原始版本号，供消费端恢复链路上下文
         messageBuilder.setHeader(VersionContext.KEY, VersionContext.CONTEXT.get());
         // 透传测试流量标记与当前用户信息，供消费端恢复链路上下文
@@ -125,7 +132,7 @@ public class MessageSendStream {
      * @param <D> 数据类型
      * @return 是否发送成功
      */
-    public <D> Boolean sendMessage(String bindingName, D data, DelayMessageLevel level){
+    public <D> Boolean sendMessage(String bindingName, D data, DelayMessageLevelEnum level){
 
         MessageBuilder<D> messageBuilder = MessageBuilder.withPayload(data);
 
@@ -146,7 +153,7 @@ public class MessageSendStream {
      * @param <D> 数据类型
      * @return 是否发送成功
      */
-    public <D> Boolean sendMessage(String bindingName, D data,String tags,DelayMessageLevel level){
+    public <D> Boolean sendMessage(String bindingName, D data,String tags,DelayMessageLevelEnum level){
 
         MessageBuilder<D> messageBuilder = MessageBuilder.withPayload(data);
 

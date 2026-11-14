@@ -44,6 +44,9 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 @Component
 public class GrayReactiveLoadBalancerClientFilter extends ReactiveLoadBalancerClientFilter {
 
+    /** 负载均衡 URI 协议 scheme */
+    private static final String SCHEME_LB = "lb";
+
     /** 负载均衡客户端工厂，用于获取服务实例列表 */
     private final LoadBalancerClientFactory grayClientFactory;
 
@@ -82,8 +85,14 @@ public class GrayReactiveLoadBalancerClientFilter extends ReactiveLoadBalancerCl
         // 获取路由方案前缀
         String schemePrefix = exchange.getAttribute(GATEWAY_SCHEME_PREFIX_ATTR);
 
+        // 无请求 URL 时直接放行
+        if (ObjectUtil.isNullEmpty(url)) {
+            return chain.filter(exchange);
+        }
+
         // 非 lb（负载均衡）协议的请求直接放行
-        if (ObjectUtil.isNullEmpty(url) || (!"lb".equals(url.getScheme()) && !"lb".equals(schemePrefix))) {
+        boolean isLoadBalancerRoute = SCHEME_LB.equals(url.getScheme()) || SCHEME_LB.equals(schemePrefix);
+        if (!isLoadBalancerRoute) {
             return chain.filter(exchange);
         }
 

@@ -19,16 +19,16 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface QueryPlugin {
 
-	/** 查询字段名，为空时使用被注解字段的名称 */
-	String field() default "";
+    /** 查询字段名，为空时使用被注解字段的名称 */
+    String field() default "";
 
-	/** 查询类型 */
-	QueryBaseType value();
+    /** 查询类型 */
+    QueryBaseTypeEnum value();
 
-	/** 是否为嵌套查询条件 */
-	boolean nest() default false;
+    /** 是否为嵌套查询条件 */
+    boolean nest() default false;
 
-	/** 关联表名 */
-	String tableName() default "";
+    /** 关联表名 */
+    String tableName() default "";
 
 }

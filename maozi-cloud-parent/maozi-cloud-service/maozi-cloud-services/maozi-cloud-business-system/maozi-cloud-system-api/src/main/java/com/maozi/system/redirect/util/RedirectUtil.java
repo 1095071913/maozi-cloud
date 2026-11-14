@@ -2,7 +2,7 @@ package com.maozi.system.redirect.util;
 
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.WebUtil;
-import com.maozi.system.redirect.enums.RedirectType;
+import com.maozi.system.redirect.enums.RedirectTypeEnum;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
@@ -28,7 +28,7 @@ public class RedirectUtil {
      *
      * @param redirectType 重定向类型
      */
-    public static void redirect(RedirectType redirectType){
+    public static void redirect(RedirectTypeEnum redirectType){
         HttpServletResponse response = WebUtil.getResponse();
         if(ObjectUtil.isNotNullEmpty(response)){
             response.setHeader(REDIRECT_KEY,redirectType.getValue().toString());

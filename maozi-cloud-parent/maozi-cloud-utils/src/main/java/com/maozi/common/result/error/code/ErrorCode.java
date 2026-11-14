@@ -20,6 +20,7 @@ package com.maozi.common.result.error.code;
 import com.maozi.common.ObjectUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -35,51 +36,52 @@ import java.io.Serializable;
  */
 @Getter
 @AllArgsConstructor
+@ToString
 public class ErrorCode implements Serializable {
 
-	/** 序列化标识 */
-	@Serial
+    /** 序列化标识 */
+    @Serial
     private static final long serialVersionUID = 1L;
 
-	/** 错误内码 */
-	private final Integer code;
+    /** 错误内码 */
+    private final Integer code;
 
-	/** 错误信息 */
-	private final String message;
+    /** 错误信息 */
+    private final String message;
 
-	/** 异常错误信息 */
-	private final String exceptionMessage;
+    /** 异常错误信息 */
+    private final String exceptionMessage;
 
-	/**
-	 * 仅指定错误信息的构造方法（默认编码 400）
-	 *
-	 * @param message 错误信息
-	 */
-	public ErrorCode(String message) {
-		this.code = 400;
-		this.message = message;
-		this.exceptionMessage = message;
-	}
+    /**
+     * 仅指定错误信息的构造方法（默认编码 400）
+     *
+     * @param message 错误信息
+     */
+    public ErrorCode(String message) {
+        this.code = SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE;
+        this.message = message;
+        this.exceptionMessage = message;
+    }
 
-	/**
-	 * 指定编码和错误信息的构造方法
-	 *
-	 * @param code 错误编码
-	 * @param message 错误信息
-	 */
-	public ErrorCode(Integer code, String message) {
-		this.code = code;
-		this.message = message;
-		this.exceptionMessage = message;
-	}
+    /**
+     * 指定编码和错误信息的构造方法
+     *
+     * @param code 错误编码
+     * @param message 错误信息
+     */
+    public ErrorCode(Integer code, String message) {
+        this.code = code;
+        this.message = message;
+        this.exceptionMessage = message;
+    }
 
-	/**
-	 * 获取异常信息，为空时返回错误信息
-	 *
-	 * @return 异常信息
-	 */
-	public String getExceptionMessage() {
-		return ObjectUtil.isNotNullEmpty(this.exceptionMessage) ? this.exceptionMessage : this.message;
-	}
+    /**
+     * 获取异常信息，为空时返回错误信息
+     *
+     * @return 异常信息
+     */
+    public String getExceptionMessage() {
+        return ObjectUtil.isNotNullEmpty(this.exceptionMessage) ? this.exceptionMessage : this.message;
+    }
 
 }

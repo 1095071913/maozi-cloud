@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
-import com.maozi.base.enums.Status;
+import com.maozi.base.enums.StatusEnum;
 import com.maozi.base.param.RequestParam;
 import com.maozi.base.param.SaveUpdateBatch;
 import com.maozi.base.result.DropDownResult;
@@ -58,6 +58,9 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
 
     /** 资源名称后缀：分组 */
     private static final String RESOURCE_SUFFIX_GROUP = "分组";
+
+    /** 资源名称后缀：状态 */
+    private static final String RESOURCE_SUFFIX_STATUS = "状态";
 
     /**
      * 构造方法
@@ -313,13 +316,13 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
      * @param param 携带目标状态的请求参数（data 为空时抛出参数错误异常）
      * @return 统一响应结果
      */
-    public AbstractBaseResult<Void> updateStatusResult(Long id, RequestParam<Status> param){
+    public AbstractBaseResult<Void> updateStatusResult(Long id, RequestParam<StatusEnum> param){
 
-        Status status = param.getData();
-        ObjectUtil.isNullEmptyThrowError(status, SystemErrorCode.PARAM_ERROR, "状态");
+        StatusEnum status = param.getData();
+        ObjectUtil.isNullEmptyThrowError(status, SystemErrorCode.PARAM_ERROR, RESOURCE_SUFFIX_STATUS);
 
         // 目标状态为禁用时，需先检查是否存在绑定关系
-        if(param.getData() == Status.DISABLE){
+        if(param.getData() == StatusEnum.DISABLE){
             service.checkBind(id);
         }
 

@@ -40,14 +40,14 @@ import java.io.Serial;
 @EqualsAndHashCode(callSuper = true)
 @TableName("system_role_permission")
 public class RolePermissionDO extends AbstractBaseDomain {
-	/** 序列化标识 */
-	@Serial
-	private static final long serialVersionUID = 1L;
+    /** 序列化标识 */
+    @Serial
+    private static final long serialVersionUID = 1L;
 
-	/** 角色ID，关联 system_role 表 */
-	private Long roleId;
+    /** 角色ID，关联 system_role 表 */
+    private Long roleId;
 
-	/** 权限ID，关联 system_permission 表 */
-	private Long permissionId;
+    /** 权限ID，关联 system_permission 表 */
+    private Long permissionId;
 
 }

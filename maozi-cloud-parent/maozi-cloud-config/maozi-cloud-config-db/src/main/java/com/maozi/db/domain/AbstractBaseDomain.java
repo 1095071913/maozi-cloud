@@ -22,8 +22,8 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.maozi.base.enums.Deleted;
-import com.maozi.base.enums.Status;
+import com.maozi.base.enums.DeletedEnum;
+import com.maozi.base.enums.StatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -50,24 +50,24 @@ import java.time.LocalDateTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class AbstractBaseDomain implements Serializable {
     /** 序列化标识 */
-	@Serial
+    @Serial
     private static final long serialVersionUID = 1L;
 
-	/** 主键 ID，由数据库自增策略生成 */
-	@TableId(type = IdType.AUTO)
-	private Long id;
+    /** 主键 ID，由数据库自增策略生成 */
+    @TableId(type = IdType.AUTO)
+    private Long id;
 
-	/** 逻辑删除标志，删除操作转为更新此字段，插入时自动填充默认值 */
-	@TableLogic
-	@TableField(fill = FieldFill.INSERT)
-	private Deleted deleted;
+    /** 逻辑删除标志，删除操作转为更新此字段，插入时自动填充默认值 */
+    @TableLogic
+    @TableField(fill = FieldFill.INSERT)
+    private DeletedEnum deleted;
 
-	/** 业务状态（启用/禁用），插入时自动填充默认值 */
-	@TableField(fill = FieldFill.INSERT)
-	private Status status;
+    /** 业务状态（启用/禁用），插入时自动填充默认值 */
+    @TableField(fill = FieldFill.INSERT)
+    private StatusEnum status;
 
-	/** 创建时间，插入时自动填充为当前时间 */
-	@TableField(fill = FieldFill.INSERT)
-	private LocalDateTime createTime;
+    /** 创建时间，插入时自动填充为当前时间 */
+    @TableField(fill = FieldFill.INSERT)
+    private LocalDateTime createTime;
 
 }

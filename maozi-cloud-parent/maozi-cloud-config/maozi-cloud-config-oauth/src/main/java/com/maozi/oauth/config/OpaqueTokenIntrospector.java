@@ -61,11 +61,13 @@ public class OpaqueTokenIntrospector implements org.springframework.security.oau
             // 令牌无效异常直接抛出，由上层框架处理（返回401）
             throw e;
         } catch (OAuth2IntrospectionException e) {
-            // OAuth2内省过程中的其他异常，转换为令牌无效异常并包装为系统错误
-            throw new BadOpaqueTokenException(e.getMessage(), new BusinessResultException(SystemErrorCode.SYSTEM_ERROR).setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE));
+            // OAuth2内省过程中的其他异常，转换为令牌无效异常并包装为系统错误（保留原始异常堆栈）
+            throw new BadOpaqueTokenException(e.getMessage(), new BusinessResultException(SystemErrorCode.SYSTEM_ERROR, e).setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE));
         }catch (BusinessResultException e){
-            // 业务异常（如RPC调用返回的业务错误），转换为令牌无效异常并保留原始业务错误信息
-            throw new BadOpaqueTokenException(e.getMessage(), new BusinessResultException(e.getErrorResult()));
+            // 业务异常（如RPC调用返回的业务错误），转换为令牌无效异常并保留原始业务错误信息与堆栈
+            BusinessResultException businessException = new BusinessResultException(e.getErrorResult());
+            businessException.initCause(e);
+            throw new BadOpaqueTokenException(e.getMessage(), businessException);
         }
     }
 

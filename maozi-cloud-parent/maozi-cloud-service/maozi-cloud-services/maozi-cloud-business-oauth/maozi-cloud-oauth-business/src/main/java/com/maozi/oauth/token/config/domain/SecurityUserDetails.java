@@ -32,7 +32,7 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SecurityUserDetails extends User implements Serializable {
     /** 序列化标识 */
-	@Serial
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /** 用户附加属性（如用户ID），颁发令牌时会合并进令牌的claims */

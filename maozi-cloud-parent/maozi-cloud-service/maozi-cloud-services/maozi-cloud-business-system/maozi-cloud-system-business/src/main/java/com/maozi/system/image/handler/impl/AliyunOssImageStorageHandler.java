@@ -9,7 +9,7 @@ import com.maozi.common.ObjectUtil;
 import com.maozi.common.result.error.code.ErrorCode;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
-import com.maozi.system.image.enums.ImageStorageType;
+import com.maozi.system.image.enums.ImageStorageTypeEnum;
 import com.maozi.system.image.handler.ImageStorageHandler;
 import com.maozi.system.image.properties.ImageStorageProperties;
 import com.maozi.system.image.result.ImageUploadResult;
@@ -42,182 +42,182 @@ import java.util.UUID;
 @Component
 public class AliyunOssImageStorageHandler implements ImageStorageHandler {
 
-	/** 图片存储配置属性 */
-	@Resource
-	private ImageStorageProperties imageStorageProperties;
+    /** 图片存储配置属性 */
+    @Resource
+    private ImageStorageProperties imageStorageProperties;
 
-	/** OSS 同步客户端，应用启动时初始化 */
-	private OSSClient ossClient;
+    /** OSS 同步客户端，应用启动时初始化 */
+    private OSSClient ossClient;
 
-	/** 目录前缀为空时的默认目录 */
-	private static final String DEFAULT_DIRECTORY = "image";
+    /** 目录前缀为空时的默认目录 */
+    private static final String DEFAULT_DIRECTORY = "image";
 
-	/** 对象路径中的日期目录格式（预编译复用，避免每次调用重新解析 pattern） */
-	private static final DateTimeFormatter DATE_PATH_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+    /** 对象路径中的日期目录格式（预编译复用，避免每次调用重新解析 pattern） */
+    private static final DateTimeFormatter DATE_PATH_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd");
 
-	/** 默认公网访问协议前缀 */
-	private static final String HTTPS_SCHEME_PREFIX = "https://";
+    /** 默认公网访问协议前缀 */
+    private static final String HTTPS_SCHEME_PREFIX = "https://";
 
-	/** 协议分隔符 */
-	private static final String PROTOCOL_SEPARATOR = "://";
+    /** 协议分隔符 */
+    private static final String PROTOCOL_SEPARATOR = "://";
 
-	/**
-	 * 初始化 OSS 客户端
-	 * <p>
-	 * 根据配置的地域、访问域名与访问凭证创建客户端，
-	 * 访问域名未配置时由 SDK 根据地域自动解析。
-	 * </p>
-	 */
-	@PostConstruct
-	public void init() {
+    /**
+     * 初始化 OSS 客户端
+     * <p>
+     * 根据配置的地域、访问域名与访问凭证创建客户端，
+     * 访问域名未配置时由 SDK 根据地域自动解析。
+     * </p>
+     */
+    @PostConstruct
+    public void init() {
 
-		ImageStorageProperties.Aliyun aliyun = imageStorageProperties.getAliyun();
+        ImageStorageProperties.Aliyun aliyun = imageStorageProperties.getAliyun();
 
-		// 阿里云连接配置缺失时快速失败，给出明确的配置提示
-		if(aliyun == null) {
-			throw new IllegalStateException("图片存储配置 oss.aliyun 未配置，无法初始化阿里云 OSS 客户端");
-		}
+        // 阿里云连接配置缺失时快速失败，给出明确的配置提示
+        if(aliyun == null) {
+            throw new IllegalStateException("图片存储配置 oss.aliyun 未配置，无法初始化阿里云 OSS 客户端");
+        }
 
-		OSSClientBuilder builder = OSSClient.newBuilder()
-			.region(aliyun.getRegion());
+        OSSClientBuilder builder = OSSClient.newBuilder()
+            .region(aliyun.getRegion());
 
-		if(StringUtils.isNotEmpty(aliyun.getEndpoint())) {
-			builder.endpoint(aliyun.getEndpoint());
-		}
+        if(StringUtils.isNotEmpty(aliyun.getEndpoint())) {
+            builder.endpoint(aliyun.getEndpoint());
+        }
 
-		ossClient = builder
-			.credentialsProvider(new StaticCredentialsProvider(aliyun.getAccessKeyId(),aliyun.getAccessKeySecret()))
-			.build();
+        ossClient = builder
+            .credentialsProvider(new StaticCredentialsProvider(aliyun.getAccessKeyId(),aliyun.getAccessKeySecret()))
+            .build();
 
-	}
+    }
 
-	/**
-	 * 释放 OSS 客户端资源
-	 */
-	@PreDestroy
-	public void destroy() {
-		if(ossClient != null) {
-			try {
-				ossClient.close();
-			} catch (Exception e) {
-				// 应用关闭阶段，客户端资源释放失败时忽略
-				log.warn("close oss client failed on shutdown", e);
-			}
-		}
-	}
+    /**
+     * 释放 OSS 客户端资源
+     */
+    @PreDestroy
+    public void destroy() {
+        if(ossClient != null) {
+            try {
+                ossClient.close();
+            } catch (Exception e) {
+                // 应用关闭阶段，客户端资源释放失败时忽略
+                log.warn("close oss client failed on shutdown", e);
+            }
+        }
+    }
 
-	/**
-	 * 获取处理器支持的存储类型
-	 *
-	 * @return 阿里云 OSS 存储类型
-	 */
-	@Override
-	public ImageStorageType getType() {
-		return ImageStorageType.ALIYUN_OSS;
-	}
+    /**
+     * 获取处理器支持的存储类型
+     *
+     * @return 阿里云 OSS 存储类型
+     */
+    @Override
+    public ImageStorageTypeEnum getType() {
+        return ImageStorageTypeEnum.ALIYUN_OSS;
+    }
 
-	/**
-	 * 上传图片到阿里云 OSS
-	 * <p>
-	 * 校验文件非空后，按生成的对象路径将文件流写入配置的 Bucket，
-	 * 上传成功后返回文件原始名称、对象存储路径、访问地址与文件大小。
-	 * </p>
-	 *
-	 * @param file 上传的图片文件
-	 * @param path 保存路径（目录前缀）
-	 * @return 上传结果，包含文件原始名称、对象存储路径、访问地址与文件大小
-	 * @throws BusinessResultException 上传文件为空或上传过程发生异常时抛出
-	 */
-	@Override
-	public ImageUploadResult upload(MultipartFile file,String path) {
+    /**
+     * 上传图片到阿里云 OSS
+     * <p>
+     * 校验文件非空后，按生成的对象路径将文件流写入配置的 Bucket，
+     * 上传成功后返回文件原始名称、对象存储路径、访问地址与文件大小。
+     * </p>
+     *
+     * @param file 上传的图片文件
+     * @param path 保存路径（目录前缀）
+     * @return 上传结果，包含文件原始名称、对象存储路径、访问地址与文件大小
+     * @throws BusinessResultException 上传文件为空或上传过程发生异常时抛出
+     */
+    @Override
+    public ImageUploadResult upload(MultipartFile file,String path) {
 
-		// 上传文件为空时抛出业务异常
-		if(ObjectUtil.isNullEmpty(file) || file.isEmpty()) {
-			throw new BusinessResultException(new ErrorCode("上传文件不能为空"));
-		}
+        // 上传文件为空时抛出业务异常
+        if(ObjectUtil.isNullEmpty(file) || file.isEmpty()) {
+            throw new BusinessResultException(new ErrorCode("上传文件不能为空"));
+        }
 
-		try {
+        try {
 
-			ImageStorageProperties.Aliyun aliyun = imageStorageProperties.getAliyun();
+            ImageStorageProperties.Aliyun aliyun = imageStorageProperties.getAliyun();
 
-			String fileKey = buildObjectKey(path,file.getOriginalFilename());
+            String fileKey = buildObjectKey(path,file.getOriginalFilename());
 
-			PutObjectRequest request = PutObjectRequest.newBuilder()
-				.bucket(aliyun.getBucket())
-				.key(fileKey)
-				.contentType(file.getContentType())
-				.body(BinaryData.fromStream(file.getInputStream(),file.getSize()))
-				.build();
+            PutObjectRequest request = PutObjectRequest.newBuilder()
+                .bucket(aliyun.getBucket())
+                .key(fileKey)
+                .contentType(file.getContentType())
+                .body(BinaryData.fromStream(file.getInputStream(),file.getSize()))
+                .build();
 
-			ossClient.putObject(request);
+            ossClient.putObject(request);
 
-			// 对象存储路径统一补上前导斜杠后返回
-			return new ImageUploadResult(file.getOriginalFilename(),"/" + fileKey,buildAccessUrl(fileKey), file.getSize());
+            // 对象存储路径统一补上前导斜杠后返回
+            return new ImageUploadResult(file.getOriginalFilename(),"/" + fileKey,buildAccessUrl(fileKey), file.getSize());
 
-		} catch (Exception e) {
-			// 上传过程中的任意异常统一转换为业务异常抛出，并记录原始堆栈便于排查
-			log.error("Upload file to oss failed, file: {}", file.getOriginalFilename(), e);
-			throw new BusinessResultException(e.getMessage(),new ErrorCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE,"文件上传失败"));
-		}
+        } catch (Exception e) {
+            // 上传过程中的任意异常统一转换为业务异常抛出，并保留原始异常堆栈便于排查
+            log.error("Upload file to oss failed, file: {}", file.getOriginalFilename(), e);
+            throw new BusinessResultException(new ErrorCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE,"文件上传失败"), e);
+        }
 
-	}
+    }
 
-	/**
-	 * 构建对象存储路径
-	 * <p>
-	 * 格式为 目录前缀/yyyy/MM/dd/UUID.扩展名，
-	 * 目录前缀取入参传递的保存路径（接口层已校验非空，首尾斜杠会被清除，清除后为空时默认 image），
-	 * 使用随机 UUID 避免同名文件覆盖（UUID 中的连字符会被去除），
-	 * 扩展名统一转为小写（文件无扩展名时省略），日期目录便于按时间归类管理。
-	 * </p>
-	 *
-	 * @param path 保存路径（目录前缀）
-	 * @param originalFilename 文件原始名称
-	 * @return 对象存储路径（Object Key）
-	 */
-	private String buildObjectKey(String path,String originalFilename) {
+    /**
+     * 构建对象存储路径
+     * <p>
+     * 格式为 目录前缀/yyyy/MM/dd/UUID.扩展名，
+     * 目录前缀取入参传递的保存路径（接口层已校验非空，首尾斜杠会被清除，清除后为空时默认 image），
+     * 使用随机 UUID 避免同名文件覆盖（UUID 中的连字符会被去除），
+     * 扩展名统一转为小写（文件无扩展名时省略），日期目录便于按时间归类管理。
+     * </p>
+     *
+     * @param path 保存路径（目录前缀）
+     * @param originalFilename 文件原始名称
+     * @return 对象存储路径（Object Key）
+     */
+    private String buildObjectKey(String path,String originalFilename) {
 
-		String directory = StringUtils.defaultIfEmpty(StringUtils.strip(path,"/"),DEFAULT_DIRECTORY);
+        String directory = StringUtils.defaultIfEmpty(StringUtils.strip(path,"/"),DEFAULT_DIRECTORY);
 
-		String extension = StringUtils.substringAfterLast(originalFilename,".");
+        String extension = StringUtils.substringAfterLast(originalFilename,".");
 
-		String datePath = LocalDate.now().format(DATE_PATH_FORMATTER);
+        String datePath = LocalDate.now().format(DATE_PATH_FORMATTER);
 
-		String fileName = UUID.randomUUID().toString().replace("-","");
+        String fileName = UUID.randomUUID().toString().replace("-","");
 
-		return directory + "/" + datePath + "/" + fileName + (StringUtils.isNotEmpty(extension) ? "." + extension.toLowerCase() : "");
+        return directory + "/" + datePath + "/" + fileName + (StringUtils.isNotEmpty(extension) ? "." + extension.toLowerCase() : "");
 
-	}
+    }
 
-	/**
-	 * 构建文件访问地址
-	 * <p>
-	 * 配置了自定义访问域名时基于该域名生成；
-	 * 否则基于访问域名（Endpoint）拼接 Bucket 子域名生成；
-	 * 两者均未配置时按地域默认公网域名生成。
-	 * </p>
-	 *
-	 * @param fileKey 对象存储路径（Object Key）
-	 * @return 文件访问地址
-	 */
-	private String buildAccessUrl(String fileKey) {
+    /**
+     * 构建文件访问地址
+     * <p>
+     * 配置了自定义访问域名时基于该域名生成；
+     * 否则基于访问域名（Endpoint）拼接 Bucket 子域名生成；
+     * 两者均未配置时按地域默认公网域名生成。
+     * </p>
+     *
+     * @param fileKey 对象存储路径（Object Key）
+     * @return 文件访问地址
+     */
+    private String buildAccessUrl(String fileKey) {
 
-		ImageStorageProperties.Aliyun aliyun = imageStorageProperties.getAliyun();
+        ImageStorageProperties.Aliyun aliyun = imageStorageProperties.getAliyun();
 
-		if(StringUtils.isNotEmpty(aliyun.getDomain())) {
-			return StringUtils.removeEnd(aliyun.getDomain(),"/") + "/" + fileKey;
-		}
+        if(StringUtils.isNotEmpty(aliyun.getDomain())) {
+            return StringUtils.removeEnd(aliyun.getDomain(),"/") + "/" + fileKey;
+        }
 
-		if(StringUtils.isNotEmpty(aliyun.getEndpoint())) {
+        if(StringUtils.isNotEmpty(aliyun.getEndpoint())) {
 
-			URI endpoint = URI.create(aliyun.getEndpoint());
+            URI endpoint = URI.create(aliyun.getEndpoint());
 
-			return endpoint.getScheme() + PROTOCOL_SEPARATOR + aliyun.getBucket() + "." + endpoint.getHost() + "/" + fileKey;
+            return endpoint.getScheme() + PROTOCOL_SEPARATOR + aliyun.getBucket() + "." + endpoint.getHost() + "/" + fileKey;
 
-		}
+        }
 
-		return HTTPS_SCHEME_PREFIX + aliyun.getBucket() + ".oss-" + aliyun.getRegion() + ".aliyuncs.com/" + fileKey;
+        return HTTPS_SCHEME_PREFIX + aliyun.getBucket() + ".oss-" + aliyun.getRegion() + ".aliyuncs.com/" + fileKey;
 
-	}
+    }
 
 }

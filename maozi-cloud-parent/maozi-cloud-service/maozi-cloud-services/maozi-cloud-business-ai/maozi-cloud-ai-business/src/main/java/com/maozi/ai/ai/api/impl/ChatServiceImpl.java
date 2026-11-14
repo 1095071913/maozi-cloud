@@ -7,8 +7,8 @@ import com.maozi.ai.ai.api.ChatConversationRecordService;
 import com.maozi.ai.ai.api.ChatService;
 import com.maozi.ai.ai.config.ChatMemoryRepository;
 import com.maozi.ai.ai.constant.ChatMessageConstant;
-import com.maozi.ai.ai.enums.ChatMessageType;
-import com.maozi.ai.ai.enums.ChatType;
+import com.maozi.ai.ai.enums.ChatMessageTypeEnum;
+import com.maozi.ai.ai.enums.ChatTypeEnum;
 import com.maozi.ai.ai.param.ChatGenerateImageParam;
 import com.maozi.ai.ai.param.ChatParam;
 import com.maozi.ai.ai.result.ChatGenerateImageResult;
@@ -54,6 +54,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -239,12 +240,12 @@ public class ChatServiceImpl implements ChatService {
 
                     aiChatOutputMessage.append(aiChat);
 
-                    return (AbstractBaseResult<ChatResult>) ResultUtil.success(new ChatResult(ChatType.OUTPUT, aiChat));
+                    return (AbstractBaseResult<ChatResult>) ResultUtil.success(new ChatResult(ChatTypeEnum.OUTPUT, aiChat));
 
                 })
 
                 // 追加完成消息，告知前端对话流已结束，可关闭连接
-                .concatWith(Flux.just(ResultUtil.success(ChatResult.builder().type(ChatType.FINISH).build())));
+                .concatWith(Flux.just(ResultUtil.success(ChatResult.builder().type(ChatTypeEnum.FINISH).build())));
 
     }
 
@@ -264,8 +265,16 @@ public class ChatServiceImpl implements ChatService {
                 .map(message -> {
 
                     Map<String, Object> metadata = message.getMetadata();
-                    String id = metadata.get(ChatMessageConstant.ID).toString();
-                    LocalDateTime createTime = Instant.ofEpochMilli(Long.parseLong(metadata.get(ChatMessageConstant.CREATE_TIME).toString()))
+
+                    // 元数据缺失 ID/写入时间的消息视为脏数据（历史/外部写入），跳过避免级联调用 NPE
+                    Object idValue = metadata.get(ChatMessageConstant.ID);
+                    Object createTimeValue = metadata.get(ChatMessageConstant.CREATE_TIME);
+                    if(idValue == null || createTimeValue == null){
+                        return null;
+                    }
+
+                    String id = idValue.toString();
+                    LocalDateTime createTime = Instant.ofEpochMilli(Long.parseLong(createTimeValue.toString()))
                             .atZone(ZoneId.systemDefault())
                             .toLocalDateTime();
 
@@ -278,10 +287,13 @@ public class ChatServiceImpl implements ChatService {
                         assistantMessage.getMedia().forEach(media -> images.add(media.getData().toString()));
                     }
 
-                    ChatMessageType chatMessageType = message.getMessageType() == MessageType.ASSISTANT ? ChatMessageType.AI : ChatMessageType.USER;
+                    ChatMessageTypeEnum chatMessageType = message.getMessageType() == MessageType.ASSISTANT ? ChatMessageTypeEnum.AI : ChatMessageTypeEnum.USER;
                     return new ChatItemResult(id, chatMessageType, message.getText(), images, createTime);
 
                 })
+
+                // 过滤脏数据映射出的 null 元素
+                .filter(Objects::nonNull)
 
                 .toList();
 
@@ -328,7 +340,7 @@ public class ChatServiceImpl implements ChatService {
             ImageOptions options = ImageOptionsBuilder.builder()
                     .height(ObjectUtil.isNotNullEmpty(height) ? height : DEFAULT_IMAGE_SIZE)
                     .width(ObjectUtil.isNotNullEmpty(width) ? width : DEFAULT_IMAGE_SIZE)
-                    .N(ObjectUtil.isNotNullEmpty(count) ? count : 1)
+                    .N(count)
                     .build();
 
             // 调用图片模型生成图片并收集图片地址

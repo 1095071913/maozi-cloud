@@ -48,46 +48,46 @@ import java.util.Map;
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-	/** 用户服务RPC接口，通过Dubbo远程调用获取用户信息 */
-	@RemoteResource
-	private RpcUserService rpcUserService;
+    /** 用户服务RPC接口，通过Dubbo远程调用获取用户信息 */
+    @RemoteResource
+    private RpcUserService rpcUserService;
 
-	/**
-	 * 根据用户名加载用户详情，通过RPC获取用户权限与加密密码，并将用户ID写入附加属性（随令牌claims一并颁发）
-	 *
-	 * @param username 用户名
-	 * @return 包含用户名、密码和权限的UserDetails对象
-	 * @throws BusinessResultException 业务错误（如用户不存在）抛出USER_AUTH_ERROR，其余异常统一抛出SYSTEM_ERROR
-	 */
-	@Override
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		
-		try{
+    /**
+     * 根据用户名加载用户详情，通过RPC获取用户权限与加密密码，并将用户ID写入附加属性（随令牌claims一并颁发）
+     *
+     * @param username 用户名
+     * @return 包含用户名、密码和权限的UserDetails对象
+     * @throws BusinessResultException 业务错误（如用户不存在）抛出USER_AUTH_ERROR，其余异常统一抛出SYSTEM_ERROR
+     */
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        
+        try{
 
-			OauthUserInfoResult oauthUserInfo = rpcUserService.getOauthUserInfoByUsernameResult(username).getResultDataThrowError();
+            OauthUserInfoResult oauthUserInfo = rpcUserService.getOauthUserInfoByUsernameResult(username).getResultDataThrowError();
 
-			List<GrantedAuthority> grantedAuthorities = CollectionUtil.newArrayList();
-			oauthUserInfo.getAuthorities().forEach((permission)->{
-				grantedAuthorities.add(new SimpleGrantedAuthority(permission));
-			});
+            List<GrantedAuthority> grantedAuthorities = CollectionUtil.newArrayList();
+            oauthUserInfo.getAuthorities().forEach((permission)->{
+                grantedAuthorities.add(new SimpleGrantedAuthority(permission));
+            });
 
-			// 将用户ID写入附加属性，颁发令牌时会合并进claims
-			Map<String, Object> attributes = CollectionUtil.newHashMap();
-			attributes.put(OAuth2TokenUserClaimConstants.USER_ID,oauthUserInfo.getUserId());
+            // 将用户ID写入附加属性，颁发令牌时会合并进claims
+            Map<String, Object> attributes = CollectionUtil.newHashMap();
+            attributes.put(OAuth2TokenUserClaimConstants.USER_ID,oauthUserInfo.getUserId());
 
-			return new SecurityUserDetails(username,oauthUserInfo.getPassword(), grantedAuthorities, attributes);
+            return new SecurityUserDetails(username,oauthUserInfo.getPassword(), grantedAuthorities, attributes);
 
-		}catch (Exception e){
+        }catch (Exception e){
 
-			// 业务错误（如用户不存在）转为用户认证失败，其余统一转为系统错误
-			if(e instanceof BusinessResultException be && be.getErrorResult().isBusinessError()){
-				throw new BusinessResultException(SystemErrorCode.USER_AUTH_ERROR);
-			}
+            // 业务错误（如用户不存在）转为用户认证失败，其余统一转为系统错误（均保留原始异常链）
+            if(e instanceof BusinessResultException be && be.getErrorResult().isBusinessError()){
+                throw new BusinessResultException(SystemErrorCode.USER_AUTH_ERROR, e);
+            }
 
-			throw new BusinessResultException(SystemErrorCode.SYSTEM_ERROR);
+            throw new BusinessResultException(SystemErrorCode.SYSTEM_ERROR, e);
 
-		}
+        }
 
-	}
+    }
 
 }

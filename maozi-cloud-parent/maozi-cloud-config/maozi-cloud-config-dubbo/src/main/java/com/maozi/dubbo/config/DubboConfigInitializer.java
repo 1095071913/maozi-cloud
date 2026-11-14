@@ -36,6 +36,12 @@ public class DubboConfigInitializer implements ConfigInitializer {
     /** Dubbo 启动 banner 特征片段，用于识别并丢弃 banner 输出 */
     private static final String BANNER_FLAG = ":: Dubbo (v";
 
+    /** Spring 日志级别属性键前缀 */
+    private static final String LOGGING_LEVEL_PREFIX = "logging.level.";
+
+    /** 日志级别：关闭输出 */
+    private static final String LOG_LEVEL_OFF = "OFF";
+
     /**
      * 导入 Dubbo 共享配置文件，并屏蔽 Dubbo 启动 banner 输出。
      * <p>
@@ -58,7 +64,7 @@ public class DubboConfigInitializer implements ConfigInitializer {
                 (existing, incoming) -> incoming + "," + existing
         );
 
-        properties.put("logging.level." + WELCOME_LOGO_LOGGER, "OFF");
+        properties.put(LOGGING_LEVEL_PREFIX + WELCOME_LOGO_LOGGER, LOG_LEVEL_OFF);
 
         BaseApplication.addBannerFilter(BANNER_FLAG);
 

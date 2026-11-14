@@ -18,7 +18,7 @@ import com.maozi.lock.error.strategy.UnLockTimeoutHandler;
  * @author maozi
  * @date 2026/11/08
  */
-public enum UnLockTimeoutStrategy implements UnLockTimeoutHandler {
+public enum UnLockTimeoutStrategyEnum implements UnLockTimeoutHandler {
 
     /** 不做任何处理 */
     NO_OPERATION() {

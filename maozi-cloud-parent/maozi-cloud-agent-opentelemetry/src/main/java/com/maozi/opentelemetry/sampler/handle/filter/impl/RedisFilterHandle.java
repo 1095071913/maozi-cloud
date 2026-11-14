@@ -29,7 +29,7 @@ public class RedisFilterHandle extends BaseFilterHandle {
     private final List<String> names = List.of("redis");
 
     /** 需要排除的 Redis 指令列表（连接保活、认证等指令） */
-    private final List<String> EXCLUDED_STATEMENT = List.of(
+    private static final List<String> EXCLUDED_STATEMENT = List.of(
             "PING",
             "AUTH ?",
             "INFO server",

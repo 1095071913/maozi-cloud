@@ -6,6 +6,7 @@ import com.maozi.common.result.success.SuccessResult;
 import feign.FeignException;
 import feign.Response;
 import feign.codec.Decoder;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +79,9 @@ public class ResultDecoder implements Decoder {
          *
          * @author maozi
          */
+    @Slf4j
     public static final class FeignResponseAdapter implements ClientHttpResponse {
+
 
         /** Feign 原始响应 */
         private final Response response;
@@ -125,7 +128,8 @@ public class ResultDecoder implements Decoder {
                 this.response.body().close();
             }
             catch (IOException ex) {
-                // 关闭响应体时的异常可忽略，不影响主流程
+                // 关闭失败不影响主流程，保留 debug 日志便于排查资源泄漏
+                log.debug("Close feign response body failed", ex);
             }
         }
 

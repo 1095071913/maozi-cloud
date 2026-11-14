@@ -22,7 +22,7 @@ import cn.hutool.extra.cglib.CglibUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.yulichang.toolkit.MPJWrappers;
-import com.maozi.base.enums.Status;
+import com.maozi.base.enums.StatusEnum;
 import com.maozi.base.param.RequestParam;
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.ObjectUtil;
@@ -37,7 +37,7 @@ import com.maozi.service.api.impl.BaseServiceImpl;
 import com.maozi.system.permission.api.PermissionService;
 import com.maozi.system.permission.api.RolePermissionService;
 import com.maozi.system.permission.api.UserRoleService;
-import com.maozi.system.redirect.enums.RedirectType;
+import com.maozi.system.redirect.enums.RedirectTypeEnum;
 import com.maozi.system.redirect.util.RedirectUtil;
 import com.maozi.system.user.api.UserService;
 import com.maozi.system.user.domain.UserDO;
@@ -55,6 +55,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -198,7 +199,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
         // 保存后同步更新用户与角色的绑定关系
         userRoleService.updateBind(id, param.getBindRoleIds(), param.getUnbindRoleIds());
 
-        if(hasId && Status.DISABLE == param.getStatus()){
+        if(hasId && StatusEnum.DISABLE == param.getStatus()){
             // 更新后状态为禁用时，销毁该用户的全部OAuth2令牌，强制下线
             UserDO user = super.getByIdThrowError(id, UserDO::getUsername, UserDO::getClientId);
             rpcOauthTokenService.destroyByPrincipalResult(user.getClientId(), user.getUsername()).getResultDataThrowError();
@@ -241,9 +242,9 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
      * @param param 状态参数，包含目标状态值
      */
     @Transactional(rollbackFor = Exception.class)
-    public void adminUpdateStatus(Long id, RequestParam<Status> param){
+    public void adminUpdateStatus(Long id, RequestParam<StatusEnum> param){
 
-        Status status = param.getData();
+        StatusEnum status = param.getData();
 
         UserDO user = super.getByIdThrowError(id, UserDO::getUsername, UserDO::getClientId, UserDO::getStatus);
 
@@ -258,7 +259,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
         super.updateById(user);
 
         // 禁用用户后销毁其全部OAuth2令牌，强制下线
-        if(Status.DISABLE == status){
+        if(StatusEnum.DISABLE == status){
             rpcOauthTokenService.destroyByPrincipalResult(user.getClientId(), user.getUsername()).getResultDataThrowError();
         }
 
@@ -303,7 +304,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
         Long clientId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getClientId);
         String username = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUsername);
         rpcOauthTokenService.destroyByPrincipalResult(clientId, username).getResultDataThrowError();
-        RedirectUtil.redirect(RedirectType.LOGIN);
+        RedirectUtil.redirect(RedirectTypeEnum.LOGIN);
 
     }
 
@@ -362,23 +363,18 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
      */
     public List<String> getPermissionsByUserId(Long userId) {
 
-        List<String> responses = CollectionUtil.newArrayList();
-
         // 查询用户绑定的角色 ID 列表
         List<Long> roleIds = userRoleService.getRolesByUser(userId);
 
-        if(!roleIds.isEmpty()) {
-
-            // 通过角色查询关联的权限 ID 集合并转换为权限标识列表
-            Collection<Long> permissionIds = rolePermissionService.getPermissionsByRoles(roleIds);
-
-            List<String> marks = permissionService.getMarks(permissionIds);
-
-            responses.addAll(marks);
-
+        // 未绑定角色时卫语句直接返回，避免无效的空集合创建与整体拷贝
+        if(roleIds.isEmpty()) {
+            return CollectionUtil.newArrayList();
         }
 
-        return responses;
+        // 通过角色查询关联的权限 ID 集合并转换为权限标识列表，按已知结果规模构造返回集合
+        Collection<Long> permissionIds = rolePermissionService.getPermissionsByRoles(roleIds);
+
+        return new ArrayList<>(permissionService.getMarks(permissionIds));
 
     }
 

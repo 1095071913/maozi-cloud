@@ -32,6 +32,9 @@ public class MicrometerConfiguration {
     /** URI 标签未知占位值 */
     private static final String UNKNOWN = "UNKNOWN";
 
+    /** URL 路径分隔符切分模式（预编译） */
+    private static final java.util.regex.Pattern PATH_SPLIT_PATTERN = java.util.regex.Pattern.compile("/");
+
     /**
      * 创建自定义请求观测约定，修复 URI 标签为 UNKNOWN 的问题
      *
@@ -61,7 +64,7 @@ public class MicrometerConfiguration {
 
                     String path = context.getCarrier().getPath().value();
 
-                    String[] pathSection = path.split("/");
+                    String[] pathSection = PATH_SPLIT_PATTERN.split(path);
 
                     path = pathSection.length > 2 ? "/"+pathSection[1]+"/"+pathSection[2]+"/**" : UNKNOWN;
 

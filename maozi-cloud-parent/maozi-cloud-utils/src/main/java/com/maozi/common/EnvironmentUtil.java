@@ -1,18 +1,20 @@
 package com.maozi.common;
 
 import com.maozi.common.context.ApplicationEnvironmentContext;
-import com.maozi.common.enums.EnvironmentType;
+import com.maozi.common.enums.EnvironmentTypeEnum;
+
+import java.util.Objects;
 
 /**
  * 环境工具类
  * <p>
  * 基于 {@link ApplicationEnvironmentContext} 中存储的环境标识
- * 与 {@link EnvironmentType} 枚举描述值比对，判断当前运行环境类型。
+ * 与 {@link EnvironmentTypeEnum} 枚举描述值比对，判断当前运行环境类型。
  * </p>
  *
  * @author pengjinlong
  * @since 2026/4/26 09:27
- * @see EnvironmentType 环境类型枚举
+ * @see EnvironmentTypeEnum 环境类型枚举
  * @see ApplicationEnvironmentContext 应用环境上下文
  */
 public class EnvironmentUtil {
@@ -23,8 +25,9 @@ public class EnvironmentUtil {
      * @param type 目标环境类型
      * @return 一致时返回 true，否则返回 false
      */
-    public static boolean isEnvironment(EnvironmentType type) {
-        return ApplicationEnvironmentContext.ENVIRONMENT.equals(type.getDesc());
+    public static boolean isEnvironment(EnvironmentTypeEnum type) {
+        // 环境标识由静态上下文运行时注入（可能为 null），使用 Objects.equals 防止 NPE
+        return Objects.equals(ApplicationEnvironmentContext.environment, type.getDesc());
     }
 
     /**
@@ -33,7 +36,7 @@ public class EnvironmentUtil {
      * @param type 目标环境类型
      * @return 不一致时返回 true，一致时返回 false
      */
-    public static boolean notEnvironment(EnvironmentType type) {
+    public static boolean notEnvironment(EnvironmentTypeEnum type) {
         return !isEnvironment(type);
     }
 

@@ -27,35 +27,35 @@ import reactor.core.publisher.Flux;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class FluxReturnWrapAop {
 
-	/** 切点表达式：拦截 api.impl 包及其子包下返回值类型为 Flux 的方法 */
-	private static final String POINT = "execution(public reactor.core.publisher.Flux com.maozi.ai.ai.api.impl..*(..))";
+    /** 切点表达式：拦截 api.impl 包及其子包下返回值类型为 Flux 的方法 */
+    private static final String POINT = "execution(public reactor.core.publisher.Flux com.maozi.ai.ai.api.impl..*(..))";
 
-	/**
-	 * 环绕通知：执行目标方法后，若返回值不是 Flux 则用 Flux.just 包装。
-	 *
-	 * @param proceedingJoinPoint AOP 连接点
-	 * @return Flux 包装后的方法执行结果
-	 * @throws Throwable 目标方法执行失败时抛出
-	 */
-	@Around(POINT)
-	public Object doAround(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+    /**
+     * 环绕通知：执行目标方法后，若返回值不是 Flux 则用 Flux.just 包装。
+     *
+     * @param proceedingJoinPoint AOP 连接点
+     * @return Flux 包装后的方法执行结果
+     * @throws Throwable 目标方法执行失败时抛出
+     */
+    @Around(POINT)
+    public Object doAround(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 
-		// 执行目标业务方法（含内层入口日志切面的异常兜底处理）
-		Object result = proceedingJoinPoint.proceed();
+        // 执行目标业务方法（含内层入口日志切面的异常兜底处理）
+        Object result = proceedingJoinPoint.proceed();
 
-		// 返回值已经是 Flux 则原样返回
-		if (result instanceof Flux) {
-			return result;
-		}
+        // 返回值已经是 Flux 则原样返回
+        if (result instanceof Flux) {
+            return result;
+        }
 
-		// 返回值为空时返回空流，避免 Flux.just 包装空指针
-		if (result == null) {
-			return Flux.empty();
-		}
+        // 返回值为空时返回空流，避免 Flux.just 包装空指针
+        if (result == null) {
+            return Flux.empty();
+        }
 
-		// 非 Flux 返回值（如日志切面兜底的统一错误结果）用 Flux.just 包装
-		return Flux.just(result);
+        // 非 Flux 返回值（如日志切面兜底的统一错误结果）用 Flux.just 包装
+        return Flux.just(result);
 
-	}
+    }
 
 }

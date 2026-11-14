@@ -1,6 +1,6 @@
 package com.maozi.ai.ai.result;
 
-import com.maozi.ai.ai.enums.ChatType;
+import com.maozi.ai.ai.enums.ChatTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,7 +31,7 @@ public class ChatResult implements Serializable {
 
     /** 对话流状态类型：OUTPUT 持续输出中 / FINISH 对话已结束 */
     @Schema(description = "AI对话类型")
-    private ChatType type;
+    private ChatTypeEnum type;
 
     /** 当前分片的回复内容 */
     @Schema(description = "消息")
@@ -47,7 +47,7 @@ public class ChatResult implements Serializable {
      * @param type    AI对话流状态类型
      * @param message 消息内容
      */
-    public ChatResult(ChatType type, String message){
+    public ChatResult(ChatTypeEnum type, String message){
         this.type = type;
         this.message = message;
     }

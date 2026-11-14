@@ -28,18 +28,18 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImageUploadParam implements Serializable {
-	/** 序列化标识 */
-	@Serial
-	private static final long serialVersionUID = 1L;
+    /** 序列化标识 */
+    @Serial
+    private static final long serialVersionUID = 1L;
 
-	/** 上传的图片文件列表 */
-	@Schema(description = "上传的图片文件列表")
-	@NotEmpty(message = "上传文件不能为空")
-	private List<@ImageFile MultipartFile> files;
+    /** 上传的图片文件列表 */
+    @Schema(description = "上传的图片文件列表")
+    @NotEmpty(message = "上传文件不能为空")
+    private List<@ImageFile MultipartFile> files;
 
-	/** 保存路径，作为对象存储的目录前缀，如 avatar、product/banner */
-	@Schema(description = "保存路径（对象存储目录前缀）",requiredMode = Schema.RequiredMode.REQUIRED)
-	@NotEmpty(message = "保存路径不能为空")
-	private String path;
+    /** 保存路径，作为对象存储的目录前缀，如 avatar、product/banner */
+    @Schema(description = "保存路径（对象存储目录前缀）",requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotEmpty(message = "保存路径不能为空")
+    private String path;
 
 }

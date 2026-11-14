@@ -365,13 +365,13 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
         if (tokenData == null || tokenData.value() == null) {
             return;
         }
-        if (tokenData.type() == TokenKind.AUTHORIZATION_CODE) {
+        if (tokenData.type() == TokenKindEnum.AUTHORIZATION_CODE) {
             OAuth2AuthorizationCode token = new OAuth2AuthorizationCode(
                     tokenData.value(), tokenData.issuedAt(), tokenData.expiresAt());
             builder.token(token, metadata -> metadata.putAll(tokenData.metadata()));
             return;
         }
-        if (tokenData.type() == TokenKind.ACCESS_TOKEN) {
+        if (tokenData.type() == TokenKindEnum.ACCESS_TOKEN) {
             OAuth2AccessToken.TokenType tokenType = OAuth2AccessToken.TokenType.BEARER;
             Set<String> scopes = tokenData.scopes() != null ? tokenData.scopes() : Collections.emptySet();
             OAuth2AccessToken token = new OAuth2AccessToken(tokenType, tokenData.value(),
@@ -379,7 +379,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
             builder.token(token, metadata -> metadata.putAll(tokenData.metadata()));
             return;
         }
-        if (tokenData.type() == TokenKind.OIDC_ID_TOKEN) {
+        if (tokenData.type() == TokenKindEnum.OIDC_ID_TOKEN) {
             @SuppressWarnings("unchecked")
             Map<String, Object> claims = (Map<String, Object>) tokenData.metadata()
                     .getOrDefault(OAuth2Authorization.Token.CLAIMS_METADATA_NAME, Collections.emptyMap());
@@ -387,18 +387,18 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
             builder.token(token, metadata -> metadata.putAll(tokenData.metadata()));
             return;
         }
-        if (tokenData.type() == TokenKind.REFRESH_TOKEN) {
+        if (tokenData.type() == TokenKindEnum.REFRESH_TOKEN) {
             OAuth2RefreshToken token = new OAuth2RefreshToken(
                     tokenData.value(), tokenData.issuedAt(), tokenData.expiresAt());
             builder.token(token, metadata -> metadata.putAll(tokenData.metadata()));
             return;
         }
-        if (tokenData.type() == TokenKind.USER_CODE) {
+        if (tokenData.type() == TokenKindEnum.USER_CODE) {
             OAuth2UserCode token = new OAuth2UserCode(tokenData.value(), tokenData.issuedAt(), tokenData.expiresAt());
             builder.token(token, metadata -> metadata.putAll(tokenData.metadata()));
             return;
         }
-        if (tokenData.type() == TokenKind.DEVICE_CODE) {
+        if (tokenData.type() == TokenKindEnum.DEVICE_CODE) {
             OAuth2DeviceCode token = new OAuth2DeviceCode(
                     tokenData.value(), tokenData.issuedAt(), tokenData.expiresAt());
             builder.token(token, metadata -> metadata.putAll(tokenData.metadata()));
@@ -593,7 +593,8 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
         // 1. 根据每个用户的clientId和username计算主体索引键，
         // 通过SMEMBERS获取每个用户在该客户端下的所有授权ID
         List<String> principalIndexKeys = new ArrayList<>();
-        Set<String> allAuthIds = new HashSet<>();
+        // 预估容量：每个用户可能持有多个授权 ID，按用户数 8 倍预分配减少扩容 rehash
+        Set<String> allAuthIds = new HashSet<>(Math.max(16, clientUsers.size() * 8));
         for (ClientUserParam clientUser : clientUsers) {
             String pKey = principalIndexKey(clientUser.getClientId().toString(), clientUser.getUsername());
             principalIndexKeys.add(pKey);
@@ -674,7 +675,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
     }
 
     /** 令牌类型枚举，用于标识不同种类的OAuth2令牌 */
-    private enum TokenKind {
+    private enum TokenKindEnum {
         /** 授权码 */
         AUTHORIZATION_CODE,
         /** 访问令牌 */
@@ -693,7 +694,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
     private record TokenIndex(String type, String value) {}
 
     /** 令牌数据记录，包含令牌的完整信息 */
-    private record TokenData<T extends OAuth2Token>(TokenKind type, String value,
+    private record TokenData<T extends OAuth2Token>(TokenKindEnum type, String value,
                                                     @Nullable Instant issuedAt, @Nullable Instant expiresAt,
                                                     Map<String, Object> metadata, @Nullable Set<String> scopes) {
     }
@@ -734,12 +735,12 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
                             : Collections.emptySet(),
                     attributes,
                     state,
-                    toTokenData(TokenKind.AUTHORIZATION_CODE, authorization.getToken(OAuth2AuthorizationCode.class)),
-                    toTokenData(TokenKind.ACCESS_TOKEN, authorization.getToken(OAuth2AccessToken.class)),
-                    toTokenData(TokenKind.OIDC_ID_TOKEN, authorization.getToken(OidcIdToken.class)),
-                    toTokenData(TokenKind.REFRESH_TOKEN, authorization.getRefreshToken()),
-                    toTokenData(TokenKind.USER_CODE, authorization.getToken(OAuth2UserCode.class)),
-                    toTokenData(TokenKind.DEVICE_CODE, authorization.getToken(OAuth2DeviceCode.class)));
+                    toTokenData(TokenKindEnum.AUTHORIZATION_CODE, authorization.getToken(OAuth2AuthorizationCode.class)),
+                    toTokenData(TokenKindEnum.ACCESS_TOKEN, authorization.getToken(OAuth2AccessToken.class)),
+                    toTokenData(TokenKindEnum.OIDC_ID_TOKEN, authorization.getToken(OidcIdToken.class)),
+                    toTokenData(TokenKindEnum.REFRESH_TOKEN, authorization.getRefreshToken()),
+                    toTokenData(TokenKindEnum.USER_CODE, authorization.getToken(OAuth2UserCode.class)),
+                    toTokenData(TokenKindEnum.DEVICE_CODE, authorization.getToken(OAuth2DeviceCode.class)));
         }
 
         /**
@@ -813,7 +814,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
          * @param <T>   OAuth2令牌类型
          * @return 转换后的TokenData记录，如果输入token为null则返回null
          */
-        private static <T extends OAuth2Token> TokenData<T> toTokenData(TokenKind kind,
+        private static <T extends OAuth2Token> TokenData<T> toTokenData(TokenKindEnum kind,
                 @Nullable OAuth2Authorization.Token<T> token) {
             if (token == null) {
                 return null;

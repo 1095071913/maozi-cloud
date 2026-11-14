@@ -15,8 +15,8 @@ import com.maozi.common.context.SqlLogContext;
 import com.maozi.common.context.TestFlowContext;
 import com.maozi.common.context.TraceIdContext;
 import com.maozi.common.context.VersionContext;
-import com.maozi.common.enums.EnvironmentType;
-import com.maozi.common.enums.LogCommonType;
+import com.maozi.common.enums.EnvironmentTypeEnum;
+import com.maozi.common.enums.LogCommonTypeEnum;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.snailjob.retry.context.RetryContextHolder;
 import com.maozi.snailjob.retry.param.RetryTaskParam;
@@ -52,7 +52,7 @@ public class RetryExecutorTask implements ExecutorMethod {
     public static final String SCENE = "retryExecutorTask";
 
     /**
-     * 构建带版本号前缀的业务场景值（{@code ApplicationEnvironmentContext.VERSION + "_" + 场景值}）
+     * 构建带版本号前缀的业务场景值（{@code ApplicationEnvironmentContext.version + "_" + 场景值}）
      * <p>
      * 重试注册（{@code ExecutorMethodScanner} 扫描 {@code @RetryTask} 方法）与重试上报
      * （{@code RetryTaskReportAop} 构建上报模板）统一经本方法拼接场景值，
@@ -63,7 +63,7 @@ public class RetryExecutorTask implements ExecutorMethod {
      * @return 带版本号前缀的场景值
      */
     public static String buildScene(String scene) {
-        return ApplicationEnvironmentContext.VERSION + "_" + scene;
+        return ApplicationEnvironmentContext.version + "_" + scene;
     }
 
     /**
@@ -98,13 +98,14 @@ public class RetryExecutorTask implements ExecutorMethod {
         Map<String, String> logs = CollectionUtil.newHashMap();
 
         // 记录日志类型与重试目标方法
-        logs.put(LogTag.TYPE, LogCommonType.RPC_RETRY.getDesc());
+        logs.put(LogTag.TYPE, LogCommonTypeEnum.RPC_RETRY.getDesc());
         logs.put(LogTag.FUNCTION, retryParam.getBeanName() + ":" + retryParam.getMethodName());
         // 非生产环境记录请求参数
-        if (EnvironmentUtil.notEnvironment(EnvironmentType.PROD)) {
+        if (EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD)) {
             logs.put(LogTag.PARAM, Arrays.toString(retryParam.getData()));
         }
-
+        
+        Throwable ex = null;
         try {
 
             boolean result = executeTask(retryParam);
@@ -115,13 +116,10 @@ public class RetryExecutorTask implements ExecutorMethod {
         } catch (Exception e) {
 
             // 提取反射调用的根因异常，无根因时取当前异常
-            Throwable ex = e.getCause();
+            ex = e.getCause();
             if (ObjectUtil.isNullEmpty(ex)) {
                 ex = e;
             }
-
-            // 记录异常堆栈日志，便于排查问题
-            LogUtil.error(log, ex);
 
             // 异常时无论环境均记录请求参数
             logs.put(LogTag.PARAM, Arrays.toString(retryParam.getData()));
@@ -149,7 +147,7 @@ public class RetryExecutorTask implements ExecutorMethod {
             logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + " ms");
 
             // 存在异常描述时以 error 级别输出日志，否则以 info 级别输出
-            LogUtil.log(log, logs.containsKey(LogTag.ERROR_DESC), logs);
+            LogUtil.log(log, ObjectUtil.isNotNullEmpty(ex), logs, ex);
 
             // 清理重试流量标记与链路上下文
             RetryContextHolder.clear();

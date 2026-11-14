@@ -23,37 +23,37 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 @Configuration
 public class JacksonConfig {
 
-	/**
-	 * 创建全局 Jackson ObjectMapper
-	 *
-	 * @param builder Jackson 构建器
-	 * @return 配置好的 ObjectMapper 实例
-	 */
-	@Bean
-	public ObjectMapper jacksonObjectMapper(Jackson2ObjectMapperBuilder builder) {
+    /**
+     * 创建全局 Jackson ObjectMapper
+     *
+     * @param builder Jackson 构建器
+     * @return 配置好的 ObjectMapper 实例
+     */
+    @Bean
+    public ObjectMapper jacksonObjectMapper(Jackson2ObjectMapperBuilder builder) {
 
-		// 通过 Spring 提供的构建器创建 ObjectMapper（非 XML 模式）
-		ObjectMapper objectMapper = builder.createXmlMapper(false).build();
+        // 通过 Spring 提供的构建器创建 ObjectMapper（非 XML 模式）
+        ObjectMapper objectMapper = builder.createXmlMapper(false).build();
 
-		// 初始化自定义的序列化/反序列化配置（如日期格式、空值处理等）
-		return JacksonUtil.initObjectMapperConfig(objectMapper);
+        // 初始化自定义的序列化/反序列化配置（如日期格式、空值处理等）
+        return JacksonUtil.initObjectMapperConfig(objectMapper);
 
-	}
+    }
 
-	/**
-	 * 创建 HTTP 消息转换器，配置枚举类以整数格式序列化
-	 *
-	 * @param objectMapper 全局 ObjectMapper 实例
-	 * @return 配置好的 MappingJackson2HttpMessageConverter
-	 */
-	@Bean
+    /**
+     * 创建 HTTP 消息转换器，配置枚举类以整数格式序列化
+     *
+     * @param objectMapper 全局 ObjectMapper 实例
+     * @return 配置好的 MappingJackson2HttpMessageConverter
+     */
+    @Bean
     public MappingJackson2HttpMessageConverter httpMessageConverter(ObjectMapper objectMapper) {
 
-		// 扫描项目基础包下的所有类，将枚举类统一配置为输出整数值（而非字符串名称）
+        // 扫描项目基础包下的所有类，将枚举类统一配置为输出整数值（而非字符串名称）
         ClassUtil.scanPackage(ApplicationEnvironmentContext.PACKAGE_PREFIX).forEach(item -> {
-        	if(item.isEnum()) {
-        		objectMapper.configOverride(item).setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER_INT));
-        	}
+            if(item.isEnum()) {
+                objectMapper.configOverride(item).setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER_INT));
+            }
         });
 
         return new MappingJackson2HttpMessageConverter(objectMapper);

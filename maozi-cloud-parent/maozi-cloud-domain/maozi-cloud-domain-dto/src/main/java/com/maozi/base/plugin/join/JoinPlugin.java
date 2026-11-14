@@ -20,16 +20,16 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface JoinPlugin {
 
-	/** 关联类型 */
-	JoinBaseType value();
+    /** 关联类型 */
+    JoinBaseTypeEnum value();
 
-	/** 关联条件，如 "a.id = b.a_id" */
-	String on() default "";
+    /** 关联条件，如 "a.id = b.a_id" */
+    String on() default "";
 
-	/** 关联表名 */
-	String tableName() default "";
+    /** 关联表名 */
+    String tableName() default "";
 
-	/** 关联表别名 */
-	String tableAlias() default "";
+    /** 关联表别名 */
+    String tableAlias() default "";
 
 }

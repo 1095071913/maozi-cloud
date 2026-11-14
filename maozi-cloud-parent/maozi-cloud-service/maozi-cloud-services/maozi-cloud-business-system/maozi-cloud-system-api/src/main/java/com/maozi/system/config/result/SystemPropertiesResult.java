@@ -18,32 +18,32 @@ import java.io.Serializable;
  */
 @Data
 public class SystemPropertiesResult implements Serializable {
-	/** 序列化标识 */
-	@Serial
+    /** 序列化标识 */
+    @Serial
     private static final long serialVersionUID = 1L;
 
-	/** 项目名称 */
-	@Schema(description = "项目名称")
-	private String projectName;
+    /** 项目名称 */
+    @Schema(description = "项目名称")
+    private String projectName;
 
-	/** 公司名称 */
-	@Schema(description = "公司名称")
-	private String corporationName;
+    /** 公司名称 */
+    @Schema(description = "公司名称")
+    private String corporationName;
 
-	/** 项目图标 */
-	@Schema(description = "项目图标")
-	private String icon;
+    /** 项目图标 */
+    @Schema(description = "项目图标")
+    private String icon;
 
-	/** 项目运行环境（如dev/test/prod） */
-	@Schema(description = "项目环境")
-	private String environment;
+    /** 项目运行环境（如dev/test/prod） */
+    @Schema(description = "项目环境")
+    private String environment;
 
-	/** 项目描述信息 */
-	@Schema(description = "项目描述")
-	private String description;
+    /** 项目描述信息 */
+    @Schema(description = "项目描述")
+    private String description;
 
-	/** 项目版权声明 */
-	@Schema(description = "项目版权")
-	private String copyright;
+    /** 项目版权声明 */
+    @Schema(description = "项目版权")
+    private String copyright;
 
 }

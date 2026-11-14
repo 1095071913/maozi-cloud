@@ -23,7 +23,7 @@ import com.maozi.common.constant.LogTag;
 import com.maozi.common.constant.SpringPropertyConstant;
 import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.common.context.VersionContext;
-import com.maozi.common.enums.EnvironmentType;
+import com.maozi.common.enums.EnvironmentTypeEnum;
 import com.maozi.common.spi.ConfigInitializer;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -201,9 +201,6 @@ public class BaseApplication {
 
         } catch (Exception e) {
 
-            // 记录启动异常堆栈
-            LogUtil.error(log,e);
-
             // 追加初始化器诊断信息与错误位置
             appendInitializerLogs(initializers, logs);
             logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
@@ -212,7 +209,7 @@ public class BaseApplication {
             logs.put(LogTag.ERROR_LINE, stackTraceElement.toString());
 
             // 记录错误日志并退出进程
-            LogUtil.error(log,logs);
+            LogUtil.error(log, logs, e);
             System.exit(1);
 
         }
@@ -278,7 +275,7 @@ public class BaseApplication {
         if(ObjectUtil.isNullEmpty(environment)){
             environment = System.getenv(APPLICATION_ENVIRONMENT_ENV);
             if(ObjectUtil.isNullEmpty(environment)){
-                environment = EnvironmentType.LOCAL.getDesc();
+                environment = EnvironmentTypeEnum.LOCAL.getDesc();
             }
             properties.put(APPLICATION_ENVIRONMENT_KEY,environment);
         }
@@ -308,7 +305,7 @@ public class BaseApplication {
 
         properties.put(LOGGING_LEVEL_ROOT_KEY, LOG_LEVEL_ERROR);
         properties.put(LOGGING_LEVEL_PROJECT_KEY, LOG_LEVEL_INFO);
-        if(!Objects.equals(environment, EnvironmentType.LOCAL.getDesc())){
+        if(!Objects.equals(environment, EnvironmentTypeEnum.LOCAL.getDesc())){
             properties.put(LOGGING_APPENDER_KEY,APPENDER_ASYNC_FILE);
             properties.put(LOGGING_FILE_NAME_KEY,"logs/${spring.application.name}.log");
         }else{

@@ -38,29 +38,29 @@ import org.springframework.security.web.AuthenticationEntryPoint;
  */
 public class ClientAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-	/** 未认证的HTTP状态码 */
-	private static final int NO_AUTHENTICATION_CODE = 401;
+    /** 未认证的HTTP状态码 */
+    private static final int NO_AUTHENTICATION_CODE = 401;
 
-	/** 未认证的错误码和错误信息 */
-	private static final ErrorCode NO_AUTHENTICATION_CODE_DATA = new ErrorCode(NO_AUTHENTICATION_CODE,"客户端未认证授权");
+    /** 未认证的错误码和错误信息 */
+    private static final ErrorCode NO_AUTHENTICATION_CODE_DATA = new ErrorCode(NO_AUTHENTICATION_CODE,"客户端未认证授权");
 
-	/**
-	 * 处理未认证的客户端请求
-	 * <p>
-	 * 当客户端未提供有效的认证信息时，向响应中写入401错误和对应的错误信息。
-	 * </p>
-	 *
-	 * @param request       HTTP请求对象
-	 * @param response      HTTP响应对象
-	 * @param authException 认证异常信息
-	 */
-	@Override
-	public void commence(HttpServletRequest request,HttpServletResponse response,AuthenticationException authException) {
+    /**
+     * 处理未认证的客户端请求
+     * <p>
+     * 当客户端未提供有效的认证信息时，向响应中写入401错误和对应的错误信息。
+     * </p>
+     *
+     * @param request       HTTP请求对象
+     * @param response      HTTP响应对象
+     * @param authException 认证异常信息
+     */
+    @Override
+    public void commence(HttpServletRequest request,HttpServletResponse response,AuthenticationException authException) {
 
-		AbstractBaseResult<Object> error = ResultUtil.error(NO_AUTHENTICATION_CODE_DATA).autoIdentifyHttpCode(NO_AUTHENTICATION_CODE);
-			
-		WebUtil.writeResponseBody(response,error);
-		
-	}
-	
+        AbstractBaseResult<Object> error = ResultUtil.error(NO_AUTHENTICATION_CODE_DATA).autoIdentifyHttpCode(NO_AUTHENTICATION_CODE);
+            
+        WebUtil.writeResponseBody(response,error);
+        
+    }
+    
 }

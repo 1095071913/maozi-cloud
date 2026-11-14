@@ -1,6 +1,6 @@
 package com.maozi.system.role.result;
 
-import com.maozi.base.enums.Status;
+import com.maozi.base.enums.StatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -21,27 +21,27 @@ import java.time.LocalDateTime;
 @Data
 public class RoleListResult implements Serializable {
     /** 序列化标识 */
-	@Serial
+    @Serial
     private static final long serialVersionUID = 1L;
 
-	/** 角色ID */
-	@Schema(description = "标识")
-	private Long id;
+    /** 角色ID */
+    @Schema(description = "标识")
+    private Long id;
 
-	/** 角色名称 */
-	@Schema(description = "名称")
-	private String name;
+    /** 角色名称 */
+    @Schema(description = "名称")
+    private String name;
 
-	/** 角色描述 */
-	@Schema(description = "描述")
-	private String description;
+    /** 角色描述 */
+    @Schema(description = "描述")
+    private String description;
 
-	/** 角色创建时间 */
-	@Schema(description = "创建时间")
-	private LocalDateTime createTime;
+    /** 角色创建时间 */
+    @Schema(description = "创建时间")
+    private LocalDateTime createTime;
 
-	/** 角色状态（启用/禁用） */
-	@Schema(description = "状态")
-	private Status status;
+    /** 角色状态（启用/禁用） */
+    @Schema(description = "状态")
+    private StatusEnum status;
 
 }

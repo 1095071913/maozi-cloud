@@ -20,7 +20,7 @@ import org.springframework.http.HttpHeaders;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -39,8 +39,11 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
     /** 服务实例列表提供者 */
     private final ObjectProvider<ServiceInstanceListSupplier> serviceInstanceListSupplierProvider;
 
-    /** 轮询位置计数器 */
-    private final AtomicInteger position = new AtomicInteger(new Random().nextInt(1000));
+    /** 初始轮询位置随机上界 */
+    private static final int INITIAL_POSITION_BOUND = 1000;
+
+    /** 轮询位置计数器（初始位置随机打散，多实例错峰；并发场景使用 ThreadLocalRandom 避免共享竞争） */
+    private final AtomicInteger position = new AtomicInteger(ThreadLocalRandom.current().nextInt(INITIAL_POSITION_BOUND));
 
     /**
      * 构造方法
@@ -120,7 +123,14 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
         instances.forEach(instance -> {
 
             // 实例元数据 version 的格式为 "{标识}-{版本}"，按 "-" 分割后取最后一段作为实际版本号参与灰度匹配
-            String [] clientApplicationVersionSplit = instance.getMetadata().get(VersionContext.NACOS_VERSION_KEY).split("-");
+            String versionMetadata = instance.getMetadata().get(VersionContext.NACOS_VERSION_KEY);
+
+            // 元数据缺失 version 时跳过该实例，避免级联调用 NPE
+            if(StringUtils.isBlank(versionMetadata)){
+                return;
+            }
+
+            String[] clientApplicationVersionSplit = versionMetadata.split("-");
 
             String clientApplicationVersion = clientApplicationVersionSplit[clientApplicationVersionSplit.length - 1];
 

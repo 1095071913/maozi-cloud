@@ -48,83 +48,83 @@ import java.util.stream.Collectors;
 @Service
 public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, PermissionDO> implements PermissionService {
 
-	/** 资源名称，用于异常提示信息 */
-	public static final String RESOURCE_NAME = "权限";
+    /** 资源名称，用于异常提示信息 */
+    public static final String RESOURCE_NAME = "权限";
 
-	/** 角色权限关系服务，用于校验权限是否被角色绑定 */
-	@Resource(name = "rolePermissionServiceImpl")
-	protected RolePermissionService rolePermissionService;
+    /** 角色权限关系服务，用于校验权限是否被角色绑定 */
+    @Resource(name = "rolePermissionServiceImpl")
+    protected RolePermissionService rolePermissionService;
 
-	/** 获取资源名称 */
-	@Override
-	public String getResourceName() {
-		return RESOURCE_NAME;
-	}
+    /** 获取资源名称 */
+    @Override
+    public String getResourceName() {
+        return RESOURCE_NAME;
+    }
 
-	/**
-	 * 删除权限前校验绑定关系与子权限
-	 *
-	 * @param id 权限ID
-	 * @throws com.maozi.common.result.error.exception.BusinessResultException 权限已被角色绑定或存在子权限时抛出
-	 */
-	@Override
-	public void checkBind(Long id) {
+    /**
+     * 删除权限前校验绑定关系与子权限
+     *
+     * @param id 权限ID
+     * @throws com.maozi.common.result.error.exception.BusinessResultException 权限已被角色绑定或存在子权限时抛出
+     */
+    @Override
+    public void checkBind(Long id) {
 
-		// 1.校验权限是否被角色绑定
-		rolePermissionService.checkRoleBindPermissionByPermission(id);
+        // 1.校验权限是否被角色绑定
+        rolePermissionService.checkRoleBindPermissionByPermission(id);
 
-		// 2.存在子权限则禁止删除
-		LambdaQueryWrapper<PermissionDO> wrapper = Wrappers.<PermissionDO>lambdaQuery().eq(PermissionDO::getParentId, id);
-		ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1, SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE, getResourceName() + "存在子权限，不允许删除");
+        // 2.存在子权限则禁止删除
+        LambdaQueryWrapper<PermissionDO> wrapper = Wrappers.<PermissionDO>lambdaQuery().eq(PermissionDO::getParentId, id);
+        ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1, SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE, getResourceName() + "存在子权限，不允许删除");
 
-	}
+    }
 
-	/**
-	 * 判断指定权限是否存在
-	 *
-	 * @param id 权限ID
-	 * @return 如果权限存在返回true，否则返回false
-	 */
-	@Override
-	public boolean has(Long id) {
-		return super.count(Wrappers.<PermissionDO>lambdaQuery().eq(PermissionDO::getId,id)) > 0;
-	}
+    /**
+     * 判断指定权限是否存在
+     *
+     * @param id 权限ID
+     * @return 如果权限存在返回true，否则返回false
+     */
+    @Override
+    public boolean has(Long id) {
+        return super.count(Wrappers.<PermissionDO>lambdaQuery().eq(PermissionDO::getId,id)) > 0;
+    }
 
-	/**
-	 * 根据权限ID集合获取权限标识列表
-	 *
-	 * @param ids 权限ID集合
-	 * @return 权限标识（mark）列表
-	 */
-	@Override
-	public List<String> getMarks(Collection<Long> ids) {
+    /**
+     * 根据权限ID集合获取权限标识列表
+     *
+     * @param ids 权限ID集合
+     * @return 权限标识（mark）列表
+     */
+    @Override
+    public List<String> getMarks(Collection<Long> ids) {
 
-		LambdaQueryWrapper<PermissionDO> wrapper = Wrappers.lambdaQuery();
+        LambdaQueryWrapper<PermissionDO> wrapper = Wrappers.lambdaQuery();
 
-		wrapper.select(PermissionDO::getMark);
+        wrapper.select(PermissionDO::getMark);
 
-		wrapper.in(PermissionDO::getId,ids);
+        wrapper.in(PermissionDO::getId,ids);
 
-		return super.list(wrapper).stream().map(PermissionDO::getMark).collect(Collectors.toList());
+        return super.list(wrapper).stream().map(PermissionDO::getMark).collect(Collectors.toList());
 
-	}
+    }
 
-	/**
-	 * 查询所有权限的列表数据，按权限深度、排序序号降序排列
-	 *
-	 * @return 权限列表视图数据
-	 */
-	public List<PermissionListResult> adminList() {
+    /**
+     * 查询所有权限的列表数据，按权限深度、排序序号降序排列
+     *
+     * @return 权限列表视图数据
+     */
+    public List<PermissionListResult> adminList() {
 
-		QueryWrapper<PermissionDO> wrapper = Wrappers.query();
+        QueryWrapper<PermissionDO> wrapper = Wrappers.query();
 
-		// 仅查询列表视图对象所需的字段列
-		wrapper.select(super.getColumns(PermissionListResult.class,false));
+        // 仅查询列表视图对象所需的字段列
+        wrapper.select(super.getColumns(PermissionListResult.class,false));
 
-		wrapper.orderByDesc(CollectionUtil.newArrayList(super.getColumns(PermissionDO::getLevel,PermissionDO::getSort)));
+        wrapper.orderByDesc(CollectionUtil.newArrayList(super.getColumns(PermissionDO::getLevel,PermissionDO::getSort)));
 
-		return super.list(wrapper, PermissionListResult::new);
+        return super.list(wrapper, PermissionListResult::new);
 
-	}
+    }
 
 }

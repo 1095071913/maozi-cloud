@@ -24,28 +24,28 @@ import reactor.netty.channel.AbortedException;
 @Configuration
 public class ReactorHooksConfiguration {
 
-	/**
-	 * 注册全局丢弃异常钩子
-	 * <p>
-	 * 在容器刷新阶段执行（早于 Netty 服务启动接收请求），
-	 * 确保运行期所有丢弃异常均经过自定义钩子处理。
-	 * </p>
-	 */
-	@PostConstruct
-	public void registerOnErrorDroppedHook() {
+    /**
+     * 注册全局丢弃异常钩子
+     * <p>
+     * 在容器刷新阶段执行（早于 Netty 服务启动接收请求），
+     * 确保运行期所有丢弃异常均经过自定义钩子处理。
+     * </p>
+     */
+    @PostConstruct
+    public void registerOnErrorDroppedHook() {
 
-		Hooks.onErrorDropped(e -> {
+        Hooks.onErrorDropped(e -> {
 
-			// 客户端主动断开连接导致的 AbortedException 属于正常业务现象，静默丢弃，不记录日志
-			if (e instanceof AbortedException) {
-				return;
-			}
+            // 客户端主动断开连接导致的 AbortedException 属于正常业务现象，静默丢弃，不记录日志
+            if (e instanceof AbortedException) {
+                return;
+            }
 
-			// 其他丢弃异常保持 ERROR 级别记录，避免遗漏真实错误
-			log.error("Operator called custom onErrorDropped", e);
+            // 其他丢弃异常保持 ERROR 级别记录，避免遗漏真实错误
+            log.error("Operator called custom onErrorDropped", e);
 
-		});
+        });
 
-	}
+    }
 
 }

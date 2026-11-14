@@ -38,7 +38,7 @@ spring:
     #   embedding:
     #     enabled: false                             # 是否启用向量嵌入
 
-# 图片存储配置（store-type 决定上传路由到的存储处理器，取值见 ImageStorageType 枚举 code）
+# 图片存储配置（store-type 决定上传路由到的存储处理器，取值见 ImageStorageTypeEnum 枚举 code）
 oss:
   # 路由到阿里云处理器
   store-type: aliyun

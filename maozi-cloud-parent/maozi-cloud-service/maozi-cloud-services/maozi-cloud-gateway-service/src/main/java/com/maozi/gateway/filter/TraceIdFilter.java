@@ -32,62 +32,62 @@ import java.util.UUID;
 @Component
 public class TraceIdFilter implements GlobalFilter, Ordered {
 
-	/**
-	 * 过滤器核心逻辑。
-	 * <p>
-	 * 1. 判断 OpenTelemetry 是否已存在有效链路追踪；
-	 * 2. 若不存在，则复用或生成 traceId，并写入请求头供下游路由服务延续链路；
-	 * 3. 将 traceId 写入 MDC 与线程上下文，使网关日志可关联链路；
-	 * 4. 请求结束后（无论成功或失败）清理 MDC 与链路上下文。
-	 * </p>
-	 *
-	 * @param exchange 服务端 Web 交换上下文
-	 * @param chain    网关过滤器链
-	 * @return 过滤器链执行结果
-	 */
-	@Override
-	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+    /**
+     * 过滤器核心逻辑。
+     * <p>
+     * 1. 判断 OpenTelemetry 是否已存在有效链路追踪；
+     * 2. 若不存在，则复用或生成 traceId，并写入请求头供下游路由服务延续链路；
+     * 3. 将 traceId 写入 MDC 与线程上下文，使网关日志可关联链路；
+     * 4. 请求结束后（无论成功或失败）清理 MDC 与链路上下文。
+     * </p>
+     *
+     * @param exchange 服务端 Web 交换上下文
+     * @param chain    网关过滤器链
+     * @return 过滤器链执行结果
+     */
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
-		// 当 OpenTelemetry 未生成有效 traceId 时，使用自定义链路追踪 ID
-		if (TraceIdContext.TRACE_ID_VALUE.equals(Span.current().getSpanContext().getTraceId())) {
+        // 当 OpenTelemetry 未生成有效 traceId 时，使用自定义链路追踪 ID
+        if (TraceIdContext.TRACE_ID_VALUE.equals(Span.current().getSpanContext().getTraceId())) {
 
-			// 优先复用请求头中携带的 traceId，缺失时生成 UUID
-			String traceId = exchange.getRequest().getHeaders().getFirst(TraceIdContext.KEY);
-			if (ObjectUtil.isNullEmpty(traceId)) {
-				traceId = UUID.randomUUID().toString();
-			}
+            // 优先复用请求头中携带的 traceId，缺失时生成 UUID
+            String traceId = exchange.getRequest().getHeaders().getFirst(TraceIdContext.KEY);
+            if (ObjectUtil.isNullEmpty(traceId)) {
+                traceId = UUID.randomUUID().toString();
+            }
 
-			// 将 traceId 写入请求头，供下游路由服务延续链路
-			ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
-				.header(TraceIdContext.KEY, traceId)
-				.build();
+            // 将 traceId 写入请求头，供下游路由服务延续链路
+            ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
+                .header(TraceIdContext.KEY, traceId)
+                .build();
 
-			// 写入 MDC 与线程上下文，使当前线程的网关日志可关联链路追踪 ID
-			TraceIdContext.CONTEXT.set(traceId);
+            // 写入 MDC 与线程上下文，使当前线程的网关日志可关联链路追踪 ID
+            TraceIdContext.CONTEXT.set(traceId);
 
-			return chain.filter(exchange.mutate().request(mutatedRequest).build())
-				// 请求结束后清理 MDC 与链路上下文，防止线程复用导致的数据泄漏
-				.doFinally(signal -> AbstractRequestContextHolder.clearContext());
+            return chain.filter(exchange.mutate().request(mutatedRequest).build())
+                // 请求结束后清理 MDC 与链路上下文，防止线程复用导致的数据泄漏
+                .doFinally(signal -> AbstractRequestContextHolder.clearContext());
 
-		}
+        }
 
-		// OpenTelemetry 已存在有效链路追踪，由其 MDC 集成接管 traceId，直接放行
-		return chain.filter(exchange);
+        // OpenTelemetry 已存在有效链路追踪，由其 MDC 集成接管 traceId，直接放行
+        return chain.filter(exchange);
 
-	}
+    }
 
-	/**
-	 * 获取过滤器执行顺序。
-	 * <p>
-	 * 设置为 HIGHEST_PRECEDENCE，确保在请求进入网关的第一时间建立链路追踪上下文，
-	 * 使后续过滤器（如请求日志记录）的日志可关联到 traceId。
-	 * </p>
-	 *
-	 * @return 过滤器顺序值
-	 */
-	@Override
-	public int getOrder() {
-		return Ordered.HIGHEST_PRECEDENCE;
-	}
+    /**
+     * 获取过滤器执行顺序。
+     * <p>
+     * 设置为 HIGHEST_PRECEDENCE，确保在请求进入网关的第一时间建立链路追踪上下文，
+     * 使后续过滤器（如请求日志记录）的日志可关联到 traceId。
+     * </p>
+     *
+     * @return 过滤器顺序值
+     */
+    @Override
+    public int getOrder() {
+        return Ordered.HIGHEST_PRECEDENCE;
+    }
 
 }

@@ -71,143 +71,143 @@ import java.util.Arrays;
 @Configuration
 public class AuthorizationServerConfiguration {
 
-	/**
-	 * 配置授权服务器的安全过滤器链
-	 * <p>
-	 * 设置OAuth2授权服务器的默认安全配置，包括OIDC端点、客户端认证失败处理、
-	 * 令牌撤销端点、令牌端点（用户认证成功/失败处理、登录参数转换器、刷新Token处理器）等。
-	 * </p>
-	 *
-	 * @param http HttpSecurity对象，用于构建安全过滤器链
-	 * @return SecurityFilterChain 授权服务器的安全过滤器链
-	 * @throws Exception 配置过程中可能抛出的异常
-	 */
-	@Bean
-	public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
+    /**
+     * 配置授权服务器的安全过滤器链
+     * <p>
+     * 设置OAuth2授权服务器的默认安全配置，包括OIDC端点、客户端认证失败处理、
+     * 令牌撤销端点、令牌端点（用户认证成功/失败处理、登录参数转换器、刷新Token处理器）等。
+     * </p>
+     *
+     * @param http HttpSecurity对象，用于构建安全过滤器链
+     * @return SecurityFilterChain 授权服务器的安全过滤器链
+     * @throws Exception 配置过程中可能抛出的异常
+     */
+    @Bean
+    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
 
-		OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
 
-		http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
+        http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
 
-			// 开启端点
-			.oidc(Customizer.withDefaults())
+            // 开启端点
+            .oidc(Customizer.withDefaults())
 
-			// 客户端认证失败
-			.clientAuthentication(client -> client
-				.errorResponseHandler(new ClientAuthenticationFailureHandler())
-			)
+            // 客户端认证失败
+            .clientAuthentication(client -> client
+                .errorResponseHandler(new ClientAuthenticationFailureHandler())
+            )
 
-			.tokenRevocationEndpoint(tokenRevocationEndpoint -> tokenRevocationEndpoint
-				// 销毁令牌成功响应
-				.revocationResponseHandler(new TokenRevocationSuccessHandler())
-				// 自定义撤销处理器：撤销令牌后物理删除对应授权记录
-				.authenticationProvider(SpringUtil.getBean(TokenRevocationAuthenticationProvider.class))
-			)
+            .tokenRevocationEndpoint(tokenRevocationEndpoint -> tokenRevocationEndpoint
+                // 销毁令牌成功响应
+                .revocationResponseHandler(new TokenRevocationSuccessHandler())
+                // 自定义撤销处理器：撤销令牌后物理删除对应授权记录
+                .authenticationProvider(SpringUtil.getBean(TokenRevocationAuthenticationProvider.class))
+            )
 
-			.tokenEndpoint(tokenEndpoint -> tokenEndpoint
-				// 用户认证授权成功响应
-				.accessTokenResponseHandler(new UserAuthenticationSuccessHandler())
-				// 注册各种登陆参数转换器
-				.accessTokenRequestConverter(accessTokenRequestConverter())
-				// 用户认证授权失败
-				.errorResponseHandler(new UserAuthenticationFailureHandler())
-				// 替换默认的刷新Token处理器，添加权限信息
-				.authenticationProviders(authenticationProviders -> {
-					authenticationProviders.removeIf(provider -> provider instanceof OAuth2RefreshTokenAuthenticationProvider);
-					RefreshTokenAuthenticationProvider refreshProvider = SpringUtil.getBean(RefreshTokenAuthenticationProvider.class);
-					refreshProvider.setTokenGenerator(http.getSharedObject(OAuth2TokenGenerator.class));
-					authenticationProviders.add(refreshProvider);
-				})
-			)
+            .tokenEndpoint(tokenEndpoint -> tokenEndpoint
+                // 用户认证授权成功响应
+                .accessTokenResponseHandler(new UserAuthenticationSuccessHandler())
+                // 注册各种登陆参数转换器
+                .accessTokenRequestConverter(accessTokenRequestConverter())
+                // 用户认证授权失败
+                .errorResponseHandler(new UserAuthenticationFailureHandler())
+                // 替换默认的刷新Token处理器，添加权限信息
+                .authenticationProviders(authenticationProviders -> {
+                    authenticationProviders.removeIf(provider -> provider instanceof OAuth2RefreshTokenAuthenticationProvider);
+                    RefreshTokenAuthenticationProvider refreshProvider = SpringUtil.getBean(RefreshTokenAuthenticationProvider.class);
+                    refreshProvider.setTokenGenerator(http.getSharedObject(OAuth2TokenGenerator.class));
+                    authenticationProviders.add(refreshProvider);
+                })
+            )
 
-		;
+        ;
 
-		// 客户端未认证授权
-		http.exceptionHandling(ex -> ex.authenticationEntryPoint(new ClientAuthenticationEntryPoint()));
+        // 客户端未认证授权
+        http.exceptionHandling(ex -> ex.authenticationEntryPoint(new ClientAuthenticationEntryPoint()));
 
-		DefaultSecurityFilterChain securityFilterChain = http.build();
+        DefaultSecurityFilterChain securityFilterChain = http.build();
 
-		// 注册各种认证模式
-		addCustomOAuth2GrantAuthenticationProvider(http);
+        // 注册各种认证模式
+        addCustomOAuth2GrantAuthenticationProvider(http);
 
-		return securityFilterChain;
+        return securityFilterChain;
 
-	}
+    }
 
-	/**
-	 * 注册各种登陆参数校验转换器
-	 *
-	 * @return DelegatingAuthenticationConverter 委托式认证转换器，聚合密码模式、刷新令牌、
-	 *         客户端凭证、授权码及授权码请求等转换器
-	 */
-	private AuthenticationConverter accessTokenRequestConverter() {
-		return new DelegatingAuthenticationConverter(
-			Arrays.asList(
-				new PasswordAuthenticationConverter(),
-				new OAuth2RefreshTokenAuthenticationConverter(),
-				new OAuth2ClientCredentialsAuthenticationConverter(),
-				new OAuth2AuthorizationCodeAuthenticationConverter(),
-				new OAuth2AuthorizationCodeRequestAuthenticationConverter()
-			)
-		);
-	}
+    /**
+     * 注册各种登陆参数校验转换器
+     *
+     * @return DelegatingAuthenticationConverter 委托式认证转换器，聚合密码模式、刷新令牌、
+     *         客户端凭证、授权码及授权码请求等转换器
+     */
+    private AuthenticationConverter accessTokenRequestConverter() {
+        return new DelegatingAuthenticationConverter(
+            Arrays.asList(
+                new PasswordAuthenticationConverter(),
+                new OAuth2RefreshTokenAuthenticationConverter(),
+                new OAuth2ClientCredentialsAuthenticationConverter(),
+                new OAuth2AuthorizationCodeAuthenticationConverter(),
+                new OAuth2AuthorizationCodeRequestAuthenticationConverter()
+            )
+        );
+    }
 
-	/**
-	 * 注册自定义登陆模式的认证处理器（当前仅密码模式）
-	 *
-	 * @param http HttpSecurity对象，用于注册认证处理器并获取共享的令牌生成器
-	 */
-	private void addCustomOAuth2GrantAuthenticationProvider(HttpSecurity http){
+    /**
+     * 注册自定义登陆模式的认证处理器（当前仅密码模式）
+     *
+     * @param http HttpSecurity对象，用于注册认证处理器并获取共享的令牌生成器
+     */
+    private void addCustomOAuth2GrantAuthenticationProvider(HttpSecurity http){
 
-		OAuth2TokenGenerator<?> tokenGenerator = http.getSharedObject(OAuth2TokenGenerator.class);
+        OAuth2TokenGenerator<?> tokenGenerator = http.getSharedObject(OAuth2TokenGenerator.class);
 
-		// 密码模式
-		PasswordAuthenticationProvider passwordProvider = SpringUtil.getBean(PasswordAuthenticationProvider.class);
-		passwordProvider.setTokenGenerator(tokenGenerator);
-		http.authenticationProvider(passwordProvider);
+        // 密码模式
+        PasswordAuthenticationProvider passwordProvider = SpringUtil.getBean(PasswordAuthenticationProvider.class);
+        passwordProvider.setTokenGenerator(tokenGenerator);
+        http.authenticationProvider(passwordProvider);
 
-	}
+    }
 
 
 
-	/**
-	 * 将AuthenticationManager注入ioc中，其它需要使用地方可以直接从ioc中获取
-	 *
-	 * @param authenticationConfiguration 导出认证配置
-	 * @return AuthenticationManager 认证管理器
-	 */
-	@Bean
-	@SneakyThrows
-	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) {
-		return authenticationConfiguration.getAuthenticationManager();
-	}
+    /**
+     * 将AuthenticationManager注入ioc中，其它需要使用地方可以直接从ioc中获取
+     *
+     * @param authenticationConfiguration 导出认证配置
+     * @return AuthenticationManager 认证管理器
+     */
+    @Bean
+    @SneakyThrows
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
 
-	/**
-	 * 配置基于db的授权确认管理服务
-	 *
-	 * @param jdbcTemplate               db数据源信息
-	 * @param registeredClientRepository 客户端repository
-	 * @return JdbcOAuth2AuthorizationConsentService
-	 */
-	@Bean
-	public OAuth2AuthorizationConsentService authorizationConsentService(JdbcTemplate jdbcTemplate, RegisteredClientRepository registeredClientRepository) {
-		return new JdbcOAuth2AuthorizationConsentService(jdbcTemplate, registeredClientRepository);
-	}
+    /**
+     * 配置基于db的授权确认管理服务
+     *
+     * @param jdbcTemplate               db数据源信息
+     * @param registeredClientRepository 客户端repository
+     * @return JdbcOAuth2AuthorizationConsentService
+     */
+    @Bean
+    public OAuth2AuthorizationConsentService authorizationConsentService(JdbcTemplate jdbcTemplate, RegisteredClientRepository registeredClientRepository) {
+        return new JdbcOAuth2AuthorizationConsentService(jdbcTemplate, registeredClientRepository);
+    }
 
-	/**
-	 * 配置密码编码器
-	 * <p>
-	 * 使用委托式密码编码器（DelegatingPasswordEncoder），默认使用BCrypt算法进行密码匹配。
-	 * 支持多种密码编码格式的兼容。
-	 * </p>
-	 *
-	 * @return PasswordEncoder 密码编码器实例
-	 */
-	@Bean
-	public PasswordEncoder passwordEncoder() {
-		DelegatingPasswordEncoder passwordEncoder = (DelegatingPasswordEncoder) PasswordEncoderFactories.createDelegatingPasswordEncoder();
-		passwordEncoder.setDefaultPasswordEncoderForMatches(new BCryptPasswordEncoder());
-		return passwordEncoder;
-	}
+    /**
+     * 配置密码编码器
+     * <p>
+     * 使用委托式密码编码器（DelegatingPasswordEncoder），默认使用BCrypt算法进行密码匹配。
+     * 支持多种密码编码格式的兼容。
+     * </p>
+     *
+     * @return PasswordEncoder 密码编码器实例
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        DelegatingPasswordEncoder passwordEncoder = (DelegatingPasswordEncoder) PasswordEncoderFactories.createDelegatingPasswordEncoder();
+        passwordEncoder.setDefaultPasswordEncoderForMatches(new BCryptPasswordEncoder());
+        return passwordEncoder;
+    }
 
 }

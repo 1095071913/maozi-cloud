@@ -6,6 +6,8 @@ import jakarta.annotation.Resource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Objects;
+
 /**
  * XXL-Job 分布式任务调度配置
  * <p>
@@ -31,15 +33,20 @@ public class JobConfig {
     @Bean
     public XxlJobSpringExecutor xxlJobExecutor() {
 
+        JobProperties.Admin admin = properties.getAdmin();
         JobProperties.Executor executor = properties.getExecutor();
 
+        // 配置缺失时快速失败并给出明确提示，避免无默认值后的空指针难以定位
+        Objects.requireNonNull(admin, "xxl.job.admin 调度中心配置缺失");
+        Objects.requireNonNull(executor, "xxl.job.executor 执行器配置缺失");
+
         XxlJobSpringExecutor xxlJobSpringExecutor = new XxlJobSpringExecutor();
-        xxlJobSpringExecutor.setAdminAddresses(properties.getAdmin().getAddresses());
-        xxlJobSpringExecutor.setAppname(executor.getAppname());
+        xxlJobSpringExecutor.setAdminAddresses(admin.getAddresses());
+        xxlJobSpringExecutor.setAppname(executor.getAppName());
         xxlJobSpringExecutor.setIp(executor.getIp());
         xxlJobSpringExecutor.setPort(executor.getPort() == null ? 0 : executor.getPort());
         xxlJobSpringExecutor.setAccessToken(properties.getAccessToken());
-        xxlJobSpringExecutor.setLogPath(executor.getLogpath());
+        xxlJobSpringExecutor.setLogPath(executor.getLogPath());
         xxlJobSpringExecutor.setLogRetentionDays(executor.getLogRetentionDays() == null ? 0 : executor.getLogRetentionDays());
         return xxlJobSpringExecutor;
     }

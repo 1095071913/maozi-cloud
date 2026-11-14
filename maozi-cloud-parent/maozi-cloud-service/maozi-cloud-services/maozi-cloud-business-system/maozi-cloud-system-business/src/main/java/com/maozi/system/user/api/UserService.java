@@ -35,20 +35,20 @@ import java.util.List;
  */
 public interface UserService {
 
-	/**
-	 * 根据用户ID获取客户端用户信息
-	 *
-	 * @param id 用户ID
-	 * @return 客户端用户信息参数对象，包含用户名和客户端ID
-	 */
-	ClientUserParam getClientUser(Long id);
+    /**
+     * 根据用户ID获取客户端用户信息
+     *
+     * @param id 用户ID
+     * @return 客户端用户信息参数对象，包含用户名和客户端ID
+     */
+    ClientUserParam getClientUser(Long id);
 
-	/**
-	 * 根据用户ID列表批量获取客户端用户信息
-	 *
-	 * @param ids 用户ID列表
-	 * @return 客户端用户信息参数对象列表
-	 */
-	List<ClientUserParam> getClientUsers(List<Long> ids);
+    /**
+     * 根据用户ID列表批量获取客户端用户信息
+     *
+     * @param ids 用户ID列表
+     * @return 客户端用户信息参数对象列表
+     */
+    List<ClientUserParam> getClientUsers(List<Long> ids);
 
 }

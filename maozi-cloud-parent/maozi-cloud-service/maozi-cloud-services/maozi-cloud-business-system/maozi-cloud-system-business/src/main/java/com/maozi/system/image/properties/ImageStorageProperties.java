@@ -22,48 +22,48 @@ import java.io.Serializable;
 @Configuration
 @ConfigurationProperties("oss")
 public class ImageStorageProperties implements Serializable {
-	/** 序列化标识 */
-	@Serial
-	private static final long serialVersionUID = 1L;
+    /** 序列化标识 */
+    @Serial
+    private static final long serialVersionUID = 1L;
 
-	/** 图片存储类型（对应 ImageStorageType 的 code，如 aliyun），未配置时默认 aliyun（由使用处兜底） */
-	private String storeType;
+    /** 图片存储类型（对应 ImageStorageTypeEnum 的 code，如 aliyun），未配置时默认 aliyun（由使用处兜底） */
+    private String storeType;
 
-	/** 阿里云 OSS 配置 */
-	private Aliyun aliyun;
+    /** 阿里云 OSS 配置 */
+    private Aliyun aliyun;
 
-	/**
-	 * 阿里云 OSS 配置项
-	 * <p>
-	 * 包含访问凭证、地域、访问域名、存储空间等连接 OSS 所需的配置。
-	 * </p>
-	 *
-	 * @author maozi
-	 */
-	@Data
-	public static class Aliyun implements Serializable {
-		/** 序列化标识 */
-		@Serial
-		private static final long serialVersionUID = 1L;
+    /**
+     * 阿里云 OSS 配置项
+     * <p>
+     * 包含访问凭证、地域、访问域名、存储空间等连接 OSS 所需的配置。
+     * </p>
+     *
+     * @author maozi
+     */
+    @Data
+    public static class Aliyun implements Serializable {
+        /** 序列化标识 */
+        @Serial
+        private static final long serialVersionUID = 1L;
 
-		/** 访问凭证 AccessKey ID */
-		private String accessKeyId;
+        /** 访问凭证 AccessKey ID */
+        private String accessKeyId;
 
-		/** 访问凭证 AccessKey Secret */
-		private String accessKeySecret;
+        /** 访问凭证 AccessKey Secret */
+        private String accessKeySecret;
 
-		/** 地域（Region），如 cn-hangzhou */
-		private String region;
+        /** 地域（Region），如 cn-hangzhou */
+        private String region;
 
-		/** 访问域名（Endpoint），如 https://oss-cn-hangzhou.aliyuncs.com，未配置时由地域自动解析 */
-		private String endpoint;
+        /** 访问域名（Endpoint），如 https://oss-cn-hangzhou.aliyuncs.com，未配置时由地域自动解析 */
+        private String endpoint;
 
-		/** 存储空间（Bucket）名称 */
-		private String bucket;
+        /** 存储空间（Bucket）名称 */
+        private String bucket;
 
-		/** 自定义访问域名（可选），如 CDN 加速域名，配置后文件访问地址基于该域名生成 */
-		private String domain;
+        /** 自定义访问域名（可选），如 CDN 加速域名，配置后文件访问地址基于该域名生成 */
+        private String domain;
 
-	}
+    }
 
 }

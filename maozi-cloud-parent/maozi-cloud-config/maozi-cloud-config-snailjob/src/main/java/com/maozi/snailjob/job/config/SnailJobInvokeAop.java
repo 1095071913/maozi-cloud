@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 public class SnailJobInvokeAop {
 
     /** JobExecutor 注解切点表达式 */
-    private final String POINT = "@annotation(com.aizuda.snailjob.client.job.core.annotation.JobExecutor)";
+    private static final String POINT = "@annotation(com.aizuda.snailjob.client.job.core.annotation.JobExecutor)";
 
     /**
      * 环绕通知，按方法声明的返回类型包装任务执行结果

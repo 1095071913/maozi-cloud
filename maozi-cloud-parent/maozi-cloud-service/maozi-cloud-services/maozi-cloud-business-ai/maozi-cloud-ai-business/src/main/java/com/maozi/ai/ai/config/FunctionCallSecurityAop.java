@@ -48,8 +48,13 @@ import java.util.stream.Collectors;
  */
 @Aspect
 @Component
-@Order(199)
+@Order(FunctionCallSecurityAop.ORDER_BEFORE_PRE_AUTHORIZE)
 public class FunctionCallSecurityAop {
+
+    /**
+     * 切面顺序：须先于原生 {@code @PreAuthorize} 方法拦截器（{@code AuthorizationInterceptorsOrder.PRE_AUTHORIZE}，顺序 200）执行
+     */
+    public static final int ORDER_BEFORE_PRE_AUTHORIZE = 199;
 
     /**
      * 环绕通知：为标注 {@code @PreAuthorize} 的 AI 工具方法临时补齐当前用户认证信息后执行目标方法，

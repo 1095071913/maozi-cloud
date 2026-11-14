@@ -12,13 +12,13 @@ package com.maozi.oauth.token.constants;
  */
 public final class OAuth2TokenUserClaimConstants {
 
-	/** 用户ID */
-	public static final String USER_ID = "user_id";
+    /** 用户ID */
+    public static final String USER_ID = "user_id";
 
-	/** 用户权限列表 */
-	public static final String AUTHORITIES = "authorities";
+    /** 用户权限列表 */
+    public static final String AUTHORITIES = "authorities";
 
-	/** 常量类私有构造，禁止实例化 */
-	private OAuth2TokenUserClaimConstants() {}
+    /** 常量类私有构造，禁止实例化 */
+    private OAuth2TokenUserClaimConstants() {}
 
 }

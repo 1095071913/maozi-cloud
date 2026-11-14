@@ -1,6 +1,6 @@
 package com.maozi.system.permission.result;
 
-import com.maozi.system.permission.enums.PermissionType;
+import com.maozi.system.permission.enums.PermissionTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,32 +27,32 @@ public class PermissionListResult implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-	/** 权限ID */
-	@Schema(description = "标识")
-	private Long id;
+    /** 权限ID */
+    @Schema(description = "标识")
+    private Long id;
 
-	/** 上级权限ID */
-	@Schema(description = "上级ID")
-	private Long parentId;
+    /** 上级权限ID */
+    @Schema(description = "上级ID")
+    private Long parentId;
 
-	/** 权限名称 */
-	@Schema(description = "名称")
-	private String name;
+    /** 权限名称 */
+    @Schema(description = "名称")
+    private String name;
 
-	/** 权限图标 */
-	@Schema(description = "图标")
-	private String icon;
+    /** 权限图标 */
+    @Schema(description = "图标")
+    private String icon;
 
-	/** 权限唯一标识编码 */
-	@Schema(description = "标识")
-	private String mark;
+    /** 权限唯一标识编码 */
+    @Schema(description = "标识")
+    private String mark;
 
-	/** 权限类型（目录/菜单/按钮） */
-	@Schema(description = "类型")
-	private PermissionType type;
+    /** 权限类型（目录/菜单/按钮） */
+    @Schema(description = "类型")
+    private PermissionTypeEnum type;
 
-	/** 排序序号，越大越靠前（列表按深度与排序降序返回） */
-	@Schema(description = "排序")
-	private Integer sort;
+    /** 排序序号，越大越靠前（列表按深度与排序降序返回） */
+    @Schema(description = "排序")
+    private Integer sort;
 
 }

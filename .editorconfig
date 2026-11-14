@@ -1,0 +1,21 @@
+# EditorConfig: https://editorconfig.org
+# 依据《阿里巴巴Java开发手册》代码格式条款：Java 缩进采用 4 个空格，禁止使用 Tab
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = false
+
+[*.java]
+indent_style = space
+indent_size = 4
+
+[*.{yml,yaml,properties}]
+indent_style = space
+indent_size = 2
+
+[*.xml]
+indent_style = space
+indent_size = 4

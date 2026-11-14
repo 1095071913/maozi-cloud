@@ -7,8 +7,8 @@ import com.maozi.common.constant.LogTag;
 import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.context.SqlLogContext;
 import com.maozi.common.dto.CurrentUserInfo;
-import com.maozi.common.enums.EnvironmentType;
-import com.maozi.common.enums.LogCommonType;
+import com.maozi.common.enums.EnvironmentTypeEnum;
+import com.maozi.common.enums.LogCommonTypeEnum;
 import jakarta.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
@@ -75,8 +75,8 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
         // 记录请求开始时间，用于计算响应耗时
         long startTime = System.currentTimeMillis();
 
-        // 使用有序 Map 收集请求全链路日志信息
-        Map<String, String> logs = new LinkedHashMap<>();
+        // 使用有序 Map 收集请求全链路日志信息（后续固定写入 IP/TYPE/URL/METHOD 等标签，指定初始容量）
+        Map<String, String> logs = new LinkedHashMap<>(16);
 
         // HTTP 响应对象，用于 finally 中统一关闭
         ClientHttpResponse response = null;
@@ -91,7 +91,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
             ClientHttpRequest request = super.createRequest(url, method);
 
             // 记录请求类型、URI 和 HTTP 方法到日志
-            logs.put(LogTag.TYPE, LogCommonType.REST_TEMPLATE.getDesc());
+            logs.put(LogTag.TYPE, LogCommonTypeEnum.REST_TEMPLATE.getDesc());
             logs.put(LogTag.URL, request.getURI().toString());
             logs.put(LogTag.METHOD, request.getMethod().toString());
 
@@ -105,7 +105,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
             String requestParam = new String(readStream(paramData));
 
             // 非生产环境才记录请求参数，避免生产环境敏感信息写入日志
-            boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentType.PROD);
+            boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD);
             if (isNotProd) {
                 logs.put(LogTag.PARAM, requestParam);
             }
@@ -141,7 +141,12 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
                 logs.put(LogTag.ERROR_USER, userId.toString());
             }
             logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
-            logs.put(LogTag.ERROR_LINE, e.getStackTrace()[0].toString());
+
+            // 记录异常发生的第一行代码位置（热点异常在 JVM fast-throw 优化下堆栈可能为空，需判长度）
+            StackTraceElement[] errorLines = e.getStackTrace();
+            if (errorLines.length > 0) {
+                logs.put(LogTag.ERROR_LINE, errorLines[0].toString());
+            }
 
             // RestClientException 原样上抛，其他异常包装为 RestClientException
             throw (e instanceof RestClientException restClientException) ? restClientException
@@ -197,13 +202,13 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
      * @throws Exception 流读取异常
      */
     public byte[] readStream(InputStream inStream) throws Exception {
-        try (inStream; ByteArrayOutputStream outSteam = new ByteArrayOutputStream()) {
+        try (inStream; ByteArrayOutputStream outStream = new ByteArrayOutputStream()) {
             byte[] buffer = new byte[BUFFER_SIZE];
             int len;
             while ((len = inStream.read(buffer)) != -1) {
-                outSteam.write(buffer, 0, len);
+                outStream.write(buffer, 0, len);
             }
-            return outSteam.toByteArray();
+            return outStream.toByteArray();
         }
     }
 

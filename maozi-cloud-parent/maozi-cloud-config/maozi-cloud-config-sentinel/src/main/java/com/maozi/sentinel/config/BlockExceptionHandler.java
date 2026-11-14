@@ -25,23 +25,23 @@ import org.springframework.stereotype.Component;
 @Component
 public class BlockExceptionHandler implements com.alibaba.csp.sentinel.adapter.spring.webmvc_v6x.callback.BlockExceptionHandler {
 
-	/**
-	 * 处理被 Sentinel 拦截的请求，按拦截类型返回黑名单或限流错误响应
-	 *
-	 * @param request HTTP 请求
-	 * @param response HTTP 响应
-	 * @param resourceName 被拦截的资源名称
-	 * @param exception Sentinel 阻塞异常
-	 */
-	@Override
-	public void handle(HttpServletRequest request, HttpServletResponse response, String resourceName, BlockException exception) {
-		ErrorCode errorCode = exception instanceof AuthorityException ?
-				SystemErrorCode.BLACKLIST_ERROR
-				:
-				SystemErrorCode.CURRENT_LIMITING_ERROR;
-		WebUtil.writeResponseBody(response, ResultUtil.error(errorCode).autoIdentifyHttpCode(errorCode.getCode()));
-	}
+    /**
+     * 处理被 Sentinel 拦截的请求，按拦截类型返回黑名单或限流错误响应
+     *
+     * @param request HTTP 请求
+     * @param response HTTP 响应
+     * @param resourceName 被拦截的资源名称
+     * @param exception Sentinel 阻塞异常
+     */
+    @Override
+    public void handle(HttpServletRequest request, HttpServletResponse response, String resourceName, BlockException exception) {
+        ErrorCode errorCode = exception instanceof AuthorityException ?
+                SystemErrorCode.BLACKLIST_ERROR
+                :
+                SystemErrorCode.CURRENT_LIMITING_ERROR;
+        WebUtil.writeResponseBody(response, ResultUtil.error(errorCode).autoIdentifyHttpCode(errorCode.getCode()));
+    }
 
-	
+    
 
 }

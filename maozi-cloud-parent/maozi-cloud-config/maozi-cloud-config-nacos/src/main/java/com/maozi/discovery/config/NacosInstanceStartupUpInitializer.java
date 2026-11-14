@@ -22,6 +22,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class NacosInstanceStartupUpInitializer {
 
+    /** 注册中心实例状态：上线 */
+    private static final String STATUS_UP = "UP";
+
     /** 注册中心操作入口（Nacos 实现为 NacosServiceRegistry） */
     private final ServiceRegistry<Registration> serviceRegistry;
 
@@ -43,6 +46,6 @@ public class NacosInstanceStartupUpInitializer {
      */
     @EventListener(ApplicationReadyEvent.class)
     public void forceUp() {
-        serviceRegistry.setStatus(registration, "UP");
+        serviceRegistry.setStatus(registration, STATUS_UP);
     }
 }

@@ -28,25 +28,25 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface QueryMapping {
 
-	/** 是否通过远程服务获取数据 */
-	boolean isService() default false;
+    /** 是否通过远程服务获取数据 */
+    boolean isService() default false;
 
-	/** 远程服务名称 */
-	String serviceName() default "";
+    /** 远程服务名称 */
+    String serviceName() default "";
 
-	/** 关联字段名 */
-	String relationField() default "";
+    /** 关联字段名 */
+    String relationField() default "";
 
-	/** 是否忽略该字段的映射 */
-	boolean ignore() default false;
+    /** 是否忽略该字段的映射 */
+    boolean ignore() default false;
 
-	/** 映射处理函数名称 */
-	String functionName() default "";
+    /** 映射处理函数名称 */
+    String functionName() default "";
 
-	/** 来源表名 */
-	String tableName() default "";
+    /** 来源表名 */
+    String tableName() default "";
 
-	/** 来源字段名 */
-	String field() default "";
+    /** 来源字段名 */
+    String field() default "";
 
 }

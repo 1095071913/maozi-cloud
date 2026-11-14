@@ -27,35 +27,35 @@ import java.io.Serial;
 @EqualsAndHashCode(callSuper = true)
 @TableName("system_config_region")
 public class RegionDO extends AbstractBaseNameDomain {
-	/** 序列化标识 */
-	@Serial
-	private static final long serialVersionUID = 1L;
+    /** 序列化标识 */
+    @Serial
+    private static final long serialVersionUID = 1L;
 
-	/** 父级ID */
-	private Long parentId;
+    /** 父级ID */
+    private Long parentId;
 
-	/** 简称 */
-	private String sname;
+    /** 简称 */
+    private String sname;
 
-	/** 级别 */
-	private Integer level;
+    /** 级别 */
+    private Integer level;
 
-	/** 城市编码 */
-	private String cityCode;
+    /** 城市编码 */
+    private String cityCode;
 
-	/** 邮政编码 */
-	private String mailCode;
+    /** 邮政编码 */
+    private String mailCode;
 
-	/** 组合名称 */
-	private String mername;
+    /** 组合名称 */
+    private String mername;
 
-	/** 经度 */
-	private Float Lng;
+    /** 经度 */
+    private Float lng;
 
-	/** 纬度 */
-	private Float Lat;
+    /** 纬度 */
+    private Float lat;
 
-	/** 拼音 */
-	private String pinyin;
+    /** 拼音 */
+    private String pinyin;
 
 }

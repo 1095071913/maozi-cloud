@@ -24,6 +24,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RedissonConfig {
 
+    /** Redis 逻辑库默认编号（配置缺失时的兜底值，与 Redisson 官方默认一致） */
+    private static final int DEFAULT_DATABASE = 0;
+
     /** 分布式锁配置属性 */
     @Resource
     private LockRedissonProperties lockRedissonProperties;
@@ -49,10 +52,10 @@ public class RedissonConfig {
                     .setPassword(lockRedissonProperties.getPassword())
                     .addNodeAddress(lockRedissonProperties.getNodeAddresses());
         }else {
-            // 单节点模式：配置单个 Redis 地址、数据库编号和密码
+            // 单节点模式：配置单个 Redis 地址、数据库编号和密码（逻辑库未配置时默认 0，避免自动拆箱 NPE）
             config.useSingleServer()
                     .setAddress(lockRedissonProperties.getAddress())
-                    .setDatabase(lockRedissonProperties.getDatabase())
+                    .setDatabase(lockRedissonProperties.getDatabase() == null ? DEFAULT_DATABASE : lockRedissonProperties.getDatabase())
                     .setPassword(lockRedissonProperties.getPassword());
         }
 

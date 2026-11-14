@@ -15,7 +15,7 @@ import lombok.Getter;
  * @since 2026/8/14 13:06
  */
 @Schema(description = "重定向类型",type = "integer")
-public enum RedirectType implements BaseEnum {
+public enum RedirectTypeEnum implements BaseEnum {
 
     /** 重定向到登陆页 */
     LOGIN(0,"登陆页"),
@@ -28,7 +28,7 @@ public enum RedirectType implements BaseEnum {
      * @param value 枚举的整型值，写入 X-Redirect 响应头的值
      * @param desc  枚举的中文描述，用于展示和日志输出
      */
-    RedirectType(Integer value,String desc) {
+    RedirectTypeEnum(Integer value,String desc) {
 
         this.value = value;
 

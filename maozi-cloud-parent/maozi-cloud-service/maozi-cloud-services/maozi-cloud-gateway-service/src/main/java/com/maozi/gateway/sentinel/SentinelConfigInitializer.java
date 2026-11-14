@@ -1,6 +1,7 @@
 package com.maozi.gateway.sentinel;
 
 import com.alibaba.cloud.sentinel.gateway.ConfigConstants;
+import com.alibaba.csp.sentinel.config.SentinelConfig;
 import com.maozi.BaseApplication;
 import com.maozi.common.spi.ConfigInitializer;
 
@@ -26,6 +27,12 @@ public class SentinelConfigInitializer implements ConfigInitializer {
     /** Sentinel 启动日志特征片段，用于识别并丢弃对应输出 */
     private static final String BANNER_FLAG = "INFO: Sentinel log";
 
+    /** Sentinel 心跳上报接口路径系统属性键 */
+    private static final String SENTINEL_HEARTBEAT_API_PATH_KEY = "csp.sentinel.heartbeat.api.path";
+
+    /** Sentinel 心跳上报接口路径 */
+    private static final String SENTINEL_HEARTBEAT_API_PATH = "/sentinel/registry/machine";
+
     /**
      * 设置 Sentinel 网关应用类型、心跳上报路径并过滤其启动日志输出。
      * <p>
@@ -40,9 +47,9 @@ public class SentinelConfigInitializer implements ConfigInitializer {
      */
     @Override
     public void initialize(Properties properties) {
-        properties.setProperty("csp.sentinel.app.type", ConfigConstants.APP_TYPE_SCG_GATEWAY);
+        properties.setProperty(SentinelConfig.APP_TYPE_PROP_KEY, ConfigConstants.APP_TYPE_SCG_GATEWAY);
         // 心跳上报接口路径
-        properties.put("csp.sentinel.heartbeat.api.path","/sentinel/registry/machine");
+        properties.setProperty(SENTINEL_HEARTBEAT_API_PATH_KEY, SENTINEL_HEARTBEAT_API_PATH);
         BaseApplication.addBannerFilter(BANNER_FLAG);
     }
 

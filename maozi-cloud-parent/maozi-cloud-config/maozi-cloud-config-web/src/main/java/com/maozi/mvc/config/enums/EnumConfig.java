@@ -41,7 +41,7 @@ public class EnumConfig {
         initEnum(ApplicationEnvironmentContext.PACKAGE_PREFIX + ".base.enums");
 
         // 再加载业务枚举：聚合服务（maozi-cloud-all-service）时扫描整个基础包，普通服务仅扫描当前项目缩写对应的子包
-        String subPath = ApplicationNameConstant.MAOZI_CLOUD_ALL_SERVICE.equals(ApplicationEnvironmentContext.SERVICE_NAME) ? "" : "." + ApplicationEnvironmentContext.APPLICATION_PROJECT_ABBREVIATION;
+        String subPath = ApplicationNameConstant.MAOZI_CLOUD_ALL_SERVICE.equals(ApplicationEnvironmentContext.serviceName) ? "" : "." + ApplicationEnvironmentContext.applicationProjectAbbreviation;
         initEnum(ApplicationEnvironmentContext.PACKAGE_PREFIX + subPath);
 
     }

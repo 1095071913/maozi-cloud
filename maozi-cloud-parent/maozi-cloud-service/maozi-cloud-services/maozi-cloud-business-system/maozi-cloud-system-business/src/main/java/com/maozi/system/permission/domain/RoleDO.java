@@ -37,11 +37,11 @@ import java.io.Serial;
 @SuperBuilder(toBuilder = true)
 @TableName(value = "system_role",autoResultMap = true)
 public class RoleDO extends AbstractBaseNameDomain {
-	/** 序列化标识 */
-	@Serial
-	private static final long serialVersionUID = 1L;
+    /** 序列化标识 */
+    @Serial
+    private static final long serialVersionUID = 1L;
 
-	/** 角色描述信息 */
-	private String description;
+    /** 角色描述信息 */
+    private String description;
 
 }

@@ -32,27 +32,27 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 public class RestTemplateConfig {
 
-	/** 构建接入 Sentinel 流量防护的全局 RestTemplate */
-	@Bean
-	@SentinelRestTemplate(blockHandler = "handleException", blockHandlerClass = RestTemplateConfig.class)
-	public RestTemplate restTemplate(org.springframework.boot.web.client.RestTemplateBuilder restTemplateBuilder) {
-		return RestTemplateBuilder.buildRestTemplate(restTemplateBuilder);
-	}
+    /** 构建接入 Sentinel 流量防护的全局 RestTemplate */
+    @Bean
+    @SentinelRestTemplate(blockHandler = "handleException", blockHandlerClass = RestTemplateConfig.class)
+    public RestTemplate restTemplate(org.springframework.boot.web.client.RestTemplateBuilder restTemplateBuilder) {
+        return RestTemplateBuilder.buildRestTemplate(restTemplateBuilder);
+    }
 
-	/**
-	 * Sentinel 阻断（限流/黑名单）时的统一兜底响应
-	 * <p>
-	 * 授权规则拦截（黑名单）返回 {@link SystemErrorCode#BLACKLIST_ERROR}，
-	 * 其余阻断（如限流）返回 {@link SystemErrorCode#CURRENT_LIMITING_ERROR}，
-	 * 响应体为 JSON 序列化的统一错误结果。
-	 * </p>
-	 */
-	public static ClientHttpResponse handleException(HttpRequest request, byte[] body, ClientHttpRequestExecution execution, BlockException exception) {
-		ErrorCode errorCode = exception instanceof AuthorityException ?
-				SystemErrorCode.BLACKLIST_ERROR
-				:
-				SystemErrorCode.CURRENT_LIMITING_ERROR;
-		return new SentinelClientHttpResponse(JacksonUtil.objectToJson(ResultUtil.error(errorCode)));
-	}
+    /**
+     * Sentinel 阻断（限流/黑名单）时的统一兜底响应
+     * <p>
+     * 授权规则拦截（黑名单）返回 {@link SystemErrorCode#BLACKLIST_ERROR}，
+     * 其余阻断（如限流）返回 {@link SystemErrorCode#CURRENT_LIMITING_ERROR}，
+     * 响应体为 JSON 序列化的统一错误结果。
+     * </p>
+     */
+    public static ClientHttpResponse handleException(HttpRequest request, byte[] body, ClientHttpRequestExecution execution, BlockException exception) {
+        ErrorCode errorCode = exception instanceof AuthorityException ?
+                SystemErrorCode.BLACKLIST_ERROR
+                :
+                SystemErrorCode.CURRENT_LIMITING_ERROR;
+        return new SentinelClientHttpResponse(JacksonUtil.objectToJson(ResultUtil.error(errorCode)));
+    }
 
 }

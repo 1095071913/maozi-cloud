@@ -8,8 +8,8 @@ import com.maozi.common.context.AbstractRequestContextHolder;
 import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.common.context.SqlLogContext;
 import com.maozi.common.context.VersionContext;
-import com.maozi.common.enums.EnvironmentType;
-import com.maozi.common.enums.LogCommonType;
+import com.maozi.common.enums.EnvironmentTypeEnum;
+import com.maozi.common.enums.LogCommonTypeEnum;
 import com.xxl.job.core.context.XxlJobHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -40,7 +40,7 @@ import java.util.Map;
 public class JobEntranceLogAop {
 
     /** XxlJob 注解切点表达式 */
-    private final String POINT = "@annotation(com.xxl.job.core.handler.annotation.XxlJob)";
+    private static final String POINT = "@annotation(com.xxl.job.core.handler.annotation.XxlJob)";
 
     /**
      * 环绕通知，记录定时任务执行日志
@@ -55,9 +55,6 @@ public class JobEntranceLogAop {
     @Around(POINT)
     public void around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 
-        // 标记任务执行是否发生异常，用于最终日志级别判断
-        boolean error = false;
-
         // 任务开始执行时间戳
         long startTime = System.currentTimeMillis();
 
@@ -65,32 +62,29 @@ public class JobEntranceLogAop {
         String arg = XxlJobHelper.getJobParam();
 
         // 将当前应用版本写入版本上下文，保证任务内发起的远程调用按版本灰度路由
-        VersionContext.CONTEXT.set(ApplicationEnvironmentContext.VERSION);
+        VersionContext.CONTEXT.set(ApplicationEnvironmentContext.version);
 
         // 日志信息集合
         Map<String, String> logs = new LinkedHashMap<>(16);
 
         // 记录日志类型与任务方法
-        logs.put(LogTag.TYPE, LogCommonType.JOB.getDesc());
+        logs.put(LogTag.TYPE, LogCommonTypeEnum.JOB.getDesc());
         logs.put(LogTag.FUNCTION, proceedingJoinPoint.getSignature().getDeclaringTypeName()
             + ":" + proceedingJoinPoint.getSignature().getName());
 
         // 非生产环境直接记录任务参数；生产环境为避免参数外泄，仅在异常时补充记录
-        boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentType.PROD);
+        boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD);
         if (isNotProd) {
             logs.put(LogTag.PARAM, arg);
         }
 
+        Exception ex = null;
         try {
             // 执行任务方法
             proceedingJoinPoint.proceed();
         } catch (Exception e) {
-
-            // 标记任务执行发生异常
-            error = true;
-
-            // 记录异常堆栈日志，便于排查问题
-            LogUtil.error(log, e);
+            
+            ex = e;
 
             // 生产环境异常时补充记录任务参数
             if (!isNotProd) {
@@ -121,7 +115,7 @@ public class JobEntranceLogAop {
             logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + " ms");
 
             // 按执行结果以 info/error 级别输出日志
-            LogUtil.log(log, error, logs);
+            LogUtil.log(log, ObjectUtil.isNotNullEmpty(ex), logs, ex);
 
             // 清理线程上下文，防止线程池复用导致数据泄漏
             AbstractRequestContextHolder.clearContext();

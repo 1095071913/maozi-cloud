@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Swagger/OpenAPI 文档聚合全局过滤器。
@@ -43,6 +44,21 @@ public class SwaggerGlobalFilter implements GlobalFilter, Ordered {
 
     /** Swagger/OpenAPI 文档请求的路径后缀 */
     private static final String API_DOC_PATH = "/v3/api-docs";
+
+    /** OpenAPI 文档 host 字段名 */
+    private static final String HOST_KEY = "host";
+
+    /** OpenAPI 文档 basePath 字段名 */
+    private static final String BASE_PATH_KEY = "basePath";
+
+    /** OpenAPI 文档 paths 字段名 */
+    private static final String PATHS_KEY = "paths";
+
+    /** 过滤器顺序：置于大多数默认过滤器之前 */
+    private static final int FILTER_ORDER = -2;
+
+    /** URL 路径分隔符切分模式（预编译） */
+    private static final Pattern PATH_SPLIT_PATTERN = Pattern.compile("/");
 
     /**
      * 过滤器核心逻辑。
@@ -75,7 +91,7 @@ public class SwaggerGlobalFilter implements GlobalFilter, Ordered {
         }
 
         // 从路径中提取微服务标识，如 /user-service/v3/api-docs -> user-service
-        String basePath = path.split("/")[1];
+        String basePath = PATH_SPLIT_PATTERN.split(path)[1];
 
         ServerHttpResponse originalResponse = exchange.getResponse();
 
@@ -110,25 +126,24 @@ public class SwaggerGlobalFilter implements GlobalFilter, Ordered {
                         JSONObject jsonObject = JSON.parseObject(response, Feature.DisableSpecialKeyDetect);
 
                         // 设置网关的 host 地址
-                        jsonObject.put("host", host + ":" + port);
+                        jsonObject.put(HOST_KEY, host + ":" + port);
 
                         // 设置 basePath 为微服务路由前缀
-                        jsonObject.put("basePath", "/" + basePath);
+                        jsonObject.put(BASE_PATH_KEY, "/" + basePath);
 
                         // 获取原始 paths 对象
-                        JSONObject paths = (JSONObject)jsonObject.get("paths");
+                        JSONObject paths = (JSONObject)jsonObject.get(PATHS_KEY);
                         JSONObject pathJsonObject = new JSONObject();
                         Set<Entry<String, Object>> entries = paths.entrySet();
 
-                        // 为每个 API 路径添加微服务前缀
+                        // 为每个 API 路径添加微服务前缀（循环体内使用 StringBuilder 拼接）
                         for (Entry<String, Object> entry : entries) {
-                            String key = entry.getKey();
-                            key = "/" + basePath + key;
+                            String key = new StringBuilder("/").append(basePath).append(entry.getKey()).toString();
                             pathJsonObject.put(key, entry.getValue());
                         }
 
                         // 替换原始 paths 为改写后的 paths
-                        jsonObject.put("paths", pathJsonObject);
+                        jsonObject.put(PATHS_KEY, pathJsonObject);
 
                         response = JSON.toJSONString(jsonObject);
 
@@ -163,7 +178,7 @@ public class SwaggerGlobalFilter implements GlobalFilter, Ordered {
      */
     @Override
     public int getOrder() {
-        return -2;
+        return FILTER_ORDER;
     }
 
 }

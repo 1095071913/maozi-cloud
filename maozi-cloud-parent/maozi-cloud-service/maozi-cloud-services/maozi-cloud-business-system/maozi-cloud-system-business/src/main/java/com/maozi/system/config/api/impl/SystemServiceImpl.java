@@ -18,8 +18,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class SystemServiceImpl implements SystemService {
 
-	/** 系统配置属性，包含项目名称、公司名称、图标等系统级配置信息 */
-	@Resource
-	protected SystemProperties systemProperties;
+    /** 系统配置属性，包含项目名称、公司名称、图标等系统级配置信息 */
+    @Resource
+    protected SystemProperties systemProperties;
 
 }

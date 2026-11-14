@@ -2,8 +2,6 @@ package com.maozi.common;
 
 import org.slf4j.Logger;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Map;
 
 /**
@@ -18,6 +16,21 @@ import java.util.Map;
  */
 public final class LogUtil {
 
+    /** 日志条目前缀 */
+    private static final String ENTRY_PREFIX = "[ ";
+
+    /** 键值分隔符 */
+    private static final String KEY_VALUE_SEPARATOR = "：";
+
+    /** 日志条目后缀 */
+    private static final String ENTRY_SUFFIX = " ]  ";
+
+    /** 条目前缀长度，用于拼接后删除首个条目的前缀 */
+    private static final int ENTRY_PREFIX_LENGTH = ENTRY_PREFIX.length();
+
+    /** 条目后缀长度，用于拼接后删除末尾条目的后缀 */
+    private static final int ENTRY_SUFFIX_LENGTH = ENTRY_SUFFIX.length();
+
     /** 私有构造器，防止工具类被实例化 */
     private LogUtil() {}
 
@@ -28,7 +41,7 @@ public final class LogUtil {
      * @param message 日志内容
      */
     public static void info(Logger log, String message){
-        log(log,false,message);
+        log.info(message);
     }
 
     /**
@@ -38,7 +51,7 @@ public final class LogUtil {
      * @param content 日志内容键值对
      */
     public static void info(Logger log,Map<String, String> content){
-        log(log,false,content);
+        log(log, false, content, null);
     }
 
     /**
@@ -48,7 +61,15 @@ public final class LogUtil {
      * @param message 日志内容
      */
     public static void error(Logger log, String message){
-        log(log,true,message);
+        log.error(message);
+    }
+
+    public static void error(Logger log, String message, Throwable e){
+        log.error(message, e);
+    }
+
+    public static void error(Logger log, Map<String, String> content){
+        log.error(LogUtil.convertLog(content));
     }
 
     /**
@@ -57,45 +78,24 @@ public final class LogUtil {
      * @param log Logger 实例
      * @param content 日志内容键值对
      */
-    public static void error(Logger log, Map<String, String> content){
-        log(log,true,content);
-    }
-
-    /**
-     * 输出 error 级别异常堆栈日志
-     *
-     * @param log Logger 实例
-     * @param e 异常对象
-     */
-    public static void error(Logger log,Throwable e){
-        log.error("",e);
-    }
-
-    /**
-     * 根据 error 标志输出日志
-     *
-     * @param log Logger 实例
-     * @param error 是否为错误日志
-     * @param message 日志内容
-     */
-    public static void log(Logger log, boolean error, String message) {
-        if (error) {
-            log.error(message);
-        } else {
-            log.info(message);
-        }
+    public static void error(Logger log, Map<String, String> content, Throwable e){
+        log.error(LogUtil.convertLog(content), e);
     }
 
     /**
      * 根据 error 标志输出日志（Map 格式）
      *
      * @param log Logger 实例
-     * @param error 是否为错误日志
+     * @param isException 是否为错误日志
      * @param content 日志内容键值对
      */
-    public static void log(Logger log, boolean error, Map<String, String> content) {
+    public static void log(Logger log, boolean isException, Map<String, String> content, Throwable e) {
         String message = LogUtil.convertLog(content);
-        log(log, error, message);
+        if (isException) {
+            log.error(message, e);
+        } else {
+            log.info(message);
+        }
     }
 
     /**
@@ -117,26 +117,14 @@ public final class LogUtil {
         StringBuilder sb = new StringBuilder();
 
         for (Map.Entry<String, String> entry : content.entrySet()) {
-            sb.append("[ ").append(entry.getKey()).append("：").append(entry.getValue()).append(" ]  ");
+            sb.append(ENTRY_PREFIX).append(entry.getKey()).append(KEY_VALUE_SEPARATOR)
+              .append(entry.getValue()).append(ENTRY_SUFFIX);
         }
-        sb.delete(0, 2);
-        sb.delete(sb.length() - 4, sb.length());
+        sb.delete(0, ENTRY_PREFIX_LENGTH);
+        sb.delete(sb.length() - ENTRY_SUFFIX_LENGTH, sb.length());
 
         return sb.toString();
 
-    }
-
-    /**
-     * 获取异常的堆栈跟踪信息
-     *
-     * @param t 异常对象
-     * @return 堆栈跟踪字符串
-     */
-    public static String getStackTraceLog(Throwable t) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        t.printStackTrace(pw);
-        return sw.toString();
     }
 
 }

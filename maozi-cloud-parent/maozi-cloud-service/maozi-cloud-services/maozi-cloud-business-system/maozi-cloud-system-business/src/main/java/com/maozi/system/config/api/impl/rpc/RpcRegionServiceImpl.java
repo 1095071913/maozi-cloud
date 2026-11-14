@@ -20,18 +20,18 @@ import com.maozi.system.config.api.rpc.RpcRegionService;
 @RemoteService
 public class RpcRegionServiceImpl extends BaseServiceResultImpl<RegionServiceImpl, Void> implements RpcRegionService {
 
-	/**
-	 * 根据ID远程获取地区下拉信息
-	 * <p>
-	 * 地区ID为空或地区不存在时抛出业务异常。
-	 * </p>
-	 *
-	 * @param id 地区ID
-	 * @return 地区下拉信息，仅包含地区 ID 与名称
-	 */
-	@Override
-	public AbstractBaseResult<DropDownResult> getResult(Long id) {
-		return ResultUtil.success(service.dropDown(id));
-	}
+    /**
+     * 根据ID远程获取地区下拉信息
+     * <p>
+     * 地区ID为空或地区不存在时抛出业务异常。
+     * </p>
+     *
+     * @param id 地区ID
+     * @return 地区下拉信息，仅包含地区 ID 与名称
+     */
+    @Override
+    public AbstractBaseResult<DropDownResult> getResult(Long id) {
+        return ResultUtil.success(service.dropDown(id));
+    }
 
 }

@@ -5,7 +5,7 @@ import com.maozi.common.LogUtil;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.constant.LogTag;
 import com.maozi.common.context.ApplicationEnvironmentContext;
-import com.maozi.common.enums.LogCommonType;
+import com.maozi.common.enums.LogCommonTypeEnum;
 import com.maozi.common.result.error.code.ErrorCode;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * 远程调用异常处理切面
@@ -41,14 +42,17 @@ public class DubboInvokeErrorAop {
     /** impl 包名标识，用于区分接口调用和实现调用 */
     private static final String IMPL = "impl";
 
+    /** 包名分隔符切分模式（预编译） */
+    private static final Pattern DOT_SPLIT_PATTERN = Pattern.compile("\\.");
+
     /** RPC 接口切点表达式 */
-    private final String RPC_POINT = ApplicationEnvironmentContext.PACKAGE_PREFIX + ".common.result.AbstractBaseResult " + ApplicationEnvironmentContext.PACKAGE_PREFIX + ".*.*.api.rpc..*.*(..)";
+    private static final String RPC_POINT = ApplicationEnvironmentContext.PACKAGE_PREFIX + ".common.result.AbstractBaseResult " + ApplicationEnvironmentContext.PACKAGE_PREFIX + ".*.*.api.rpc..*.*(..)";
 
     /** REST 接口切点表达式 */
-    private final String REST_POINT = ApplicationEnvironmentContext.PACKAGE_PREFIX + ".common.result.AbstractBaseResult " + ApplicationEnvironmentContext.PACKAGE_PREFIX + ".*.*.api.rest..*.*(..)";
+    private static final String REST_POINT = ApplicationEnvironmentContext.PACKAGE_PREFIX + ".common.result.AbstractBaseResult " + ApplicationEnvironmentContext.PACKAGE_PREFIX + ".*.*.api.rest..*.*(..)";
 
     /** 组合切点表达式 */
-    private final String POINT = "execution(" + RPC_POINT + ") || execution(" + REST_POINT + ")";
+    private static final String POINT = "execution(" + RPC_POINT + ") || execution(" + REST_POINT + ")";
 
     /**
      * 环绕通知，捕获远程调用异常
@@ -65,43 +69,43 @@ public class DubboInvokeErrorAop {
 
             // 解析被调用类的全限定名，按 "." 分割以提取包路径中的各段信息
             // 包路径格式约定为：com.maozi.{服务名}.{模块名}.{层级}.rpc.{类名}
-            String [] remoteInvokeClassSplit = proceedingJoinPoint.getSignature().getDeclaringTypeName().split("\\.");
+            String[] remoteInvokeClassSplit = DOT_SPLIT_PATTERN.split(proceedingJoinPoint.getSignature().getDeclaringTypeName());
 
             // 判断是否为接口层调用：remoteInvokeClassSplit[5] 对应包路径中 api 下的子包名。
-            // 当前切点限定的子包名恒为 "rpc"/"rest"，条件恒成立；
+            // 当前切点限定的子包名恒为 "rpc"/"rest"，下方条件恒不成立；
             // 若未来切点扩展到 api.impl 包，此处可让实现层内部调用的异常继续向上抛出
-            if(!IMPL.equals(remoteInvokeClassSplit[5])){
-
-                // 从包路径第3段提取服务名称，例如 "com.maozi.user.xxx" 中的 "user"
-                String serviceName = remoteInvokeClassSplit[2];
-
-                // 构建结构化的错误日志信息
-                Map<String, String> logs = new LinkedHashMap<>();
-
-                logs.put(LogTag.TYPE, LogCommonType.RPC.getDesc());                     // 日志类型：RPC 远程调用
-                logs.put(LogTag.SERVICE_NAME, serviceName);                              // 被调用的服务名称
-                logs.put(LogTag.FUNCTION, proceedingJoinPoint.getSignature()             // 被调用的方法全路径
-                        .getDeclaringTypeName() + ":" + proceedingJoinPoint.getSignature().getName());
-                logs.put(LogTag.PARAM, Arrays.toString(proceedingJoinPoint.getArgs()));  // 方法入参
-                logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());                    // 异常描述信息
-                logs.put(LogTag.ERROR_LINE, e.getStackTrace()[0].toString());            // 异常发生的代码行
-
-                // 记录异常堆栈日志
-                LogUtil.error(log,e);
-
-                // 记录结构化的错误日志信息
-                LogUtil.error(log,logs);
-
-                // 构建统一的 RPC 调用错误响应，避免异常向上传播
-                ErrorCode errorCode = SystemErrorCode.SERVICE_RPC_ERROR;
-                return ResultUtil.error(errorCode)
-                        .setExceptionMessage(StrUtil.upperFirst(serviceName) + errorCode.getExceptionMessage())  // 错误消息前拼接服务名
-                        .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);                                  // 设置统一的系统错误 HTTP 状态码
-
+            if(IMPL.equals(remoteInvokeClassSplit[5])){
+                // impl 层的调用直接抛出原始异常（当前切点下不可达，见类注释说明）
+                throw e;
             }
 
-            // impl 层的调用直接抛出原始异常（当前切点下不可达，见类注释说明）
-            throw e;
+            // 从包路径第3段提取服务名称，例如 "com.maozi.user.xxx" 中的 "user"
+            String serviceName = remoteInvokeClassSplit[2];
+
+            // 构建结构化的错误日志信息
+            Map<String, String> logs = new LinkedHashMap<>(16);
+
+            logs.put(LogTag.TYPE, LogCommonTypeEnum.RPC.getDesc());                     // 日志类型：RPC 远程调用
+            logs.put(LogTag.SERVICE_NAME, serviceName);                              // 被调用的服务名称
+            logs.put(LogTag.FUNCTION, proceedingJoinPoint.getSignature()             // 被调用的方法全路径
+                    .getDeclaringTypeName() + ":" + proceedingJoinPoint.getSignature().getName());
+            logs.put(LogTag.PARAM, Arrays.toString(proceedingJoinPoint.getArgs()));  // 方法入参
+            logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());                    // 异常描述信息
+
+            // 记录异常发生的代码行（热点异常在 JVM fast-throw 优化下堆栈可能为空，需判长度）
+            StackTraceElement[] errorLines = e.getStackTrace();
+            if (errorLines.length > 0) {
+                logs.put(LogTag.ERROR_LINE, errorLines[0].toString());
+            }
+
+            // 记录结构化的错误日志信息
+            LogUtil.error(log, logs, e);
+
+            // 构建统一的 RPC 调用错误响应，避免异常向上传播
+            ErrorCode errorCode = SystemErrorCode.SERVICE_RPC_ERROR;
+            return ResultUtil.error(errorCode)
+                    .setExceptionMessage(StrUtil.upperFirst(serviceName) + errorCode.getExceptionMessage())  // 错误消息前拼接服务名
+                    .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);                                  // 设置统一的系统错误 HTTP 状态码
 
         }
 

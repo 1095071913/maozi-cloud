@@ -11,7 +11,7 @@ import lombok.Getter;
  * @author maozi
  * @date 2026/11/08
  */
-public enum LogCommonType implements BaseEnum {
+public enum LogCommonTypeEnum implements BaseEnum {
 
     /** 网关层日志 */
     GATEWAY(0,"Gateway"),
@@ -45,7 +45,7 @@ public enum LogCommonType implements BaseEnum {
      * @param value 枚举整型值
      * @param desc 日志类型英文描述
      */
-    LogCommonType(Integer value,String desc) {
+    LogCommonTypeEnum(Integer value,String desc) {
 
         this.value = value;
 

@@ -96,6 +96,9 @@ public class AdminClientConfig {
      * 端口解析（getLocalServerPort）依赖 WebServerInitializedEvent 事件写入，
      * 继承默认实现即可，兼容随机端口。
      * </p>
+     *
+     * @author maozi
+     * @date 2026/11/15
      */
     static class CloudIpApplicationFactory extends ServletApplicationFactory {
 

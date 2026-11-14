@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
  * @author maozi
  * @date 2026/11/08
  */
-public enum LockTimeoutStrategy implements LockTimeoutHandler {
+public enum LockTimeoutStrategyEnum implements LockTimeoutHandler {
 
     /** 快速失败策略 */
     FAIL_FAST() {

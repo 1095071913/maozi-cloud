@@ -19,7 +19,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface JoinPlugins {
 
-	/** JOIN 关联配置数组 */
-	JoinPlugin [] value();
+    /** JOIN 关联配置数组 */
+    JoinPlugin [] value();
 
 }

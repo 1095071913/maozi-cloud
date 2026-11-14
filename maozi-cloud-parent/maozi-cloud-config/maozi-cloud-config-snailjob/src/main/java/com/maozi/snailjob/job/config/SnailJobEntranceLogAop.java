@@ -10,8 +10,8 @@ import com.maozi.common.context.AbstractRequestContextHolder;
 import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.common.context.SqlLogContext;
 import com.maozi.common.context.VersionContext;
-import com.maozi.common.enums.EnvironmentType;
-import com.maozi.common.enums.LogCommonType;
+import com.maozi.common.enums.EnvironmentTypeEnum;
+import com.maozi.common.enums.LogCommonTypeEnum;
 import com.maozi.snailjob.job.config.context.SnailJobParamContext;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -54,7 +54,7 @@ public class SnailJobEntranceLogAop {
      * SnailJob 注解执行器任务入口切点表达式
      * （入口方法声明于父类 AbstractJobExecutor，拦截全部注解执行器子类）
      */
-    private final String POINT =
+    private static final String POINT =
         "execution(* com.aizuda.snailjob.client.job.core.executor.AbstractJobExecutor.jobExecute(..))";
 
     /**
@@ -70,9 +70,6 @@ public class SnailJobEntranceLogAop {
     @Around(POINT)
     public Object around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 
-        // 标记任务执行是否发生异常，用于最终日志级别判断
-        boolean error = false;
-
         // 任务开始执行时间戳
         long startTime = System.currentTimeMillis();
 
@@ -85,32 +82,25 @@ public class SnailJobEntranceLogAop {
         SnailJobParamContext.setJobParams(businessParam);
 
         // 将当前应用版本写入版本上下文，保证任务内发起的远程调用按版本灰度路由
-        VersionContext.CONTEXT.set(ApplicationEnvironmentContext.VERSION);
+        VersionContext.CONTEXT.set(ApplicationEnvironmentContext.version);
 
         // 日志信息集合
         Map<String, String> logs = new LinkedHashMap<>(16);
 
         // 记录日志类型与任务执行器信息
-        logs.put(LogTag.TYPE, LogCommonType.JOB.getDesc());
+        logs.put(LogTag.TYPE, LogCommonTypeEnum.JOB.getDesc());
         logs.put(LogTag.FUNCTION, getExecutorInfo(proceedingJoinPoint));
 
         // 非生产环境直接记录任务参数；生产环境为避免参数外泄，仅在异常时补充记录
-        boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentType.PROD);
+        boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD);
         if (isNotProd) {
             logs.put(LogTag.PARAM, businessParam);
         }
 
-        try {
+        Throwable ex = null;
+        try {return proceedingJoinPoint.proceed(args);} catch (Exception e) {
 
-            return proceedingJoinPoint.proceed(args);
-
-        } catch (Exception e) {
-
-            // 标记任务执行发生异常
-            error = true;
-
-            // 记录异常堆栈日志，便于排查问题
-            LogUtil.error(log, e);
+            ex = e;
 
             // 生产环境异常时补充记录任务参数
             if (!isNotProd) {
@@ -142,15 +132,15 @@ public class SnailJobEntranceLogAop {
 
             // 按执行结果输出远程日志（上报至 SnailJob 服务端）
             String log = LogUtil.convertLog(logs);
-            if (error) {
-                SnailJobLog.REMOTE.error(log);
+            if (ObjectUtil.isNotNullEmpty(ex)) {
+                SnailJobLog.REMOTE.error(log, ex);
             } else {
                 SnailJobLog.REMOTE.info(log);
             }
 
             // 清理线程上下文与任务参数，防止线程池复用导致数据泄漏
-            AbstractRequestContextHolder.clearContext();
             SnailJobParamContext.clearJobParams();
+            AbstractRequestContextHolder.clearContext();
 
         }
 

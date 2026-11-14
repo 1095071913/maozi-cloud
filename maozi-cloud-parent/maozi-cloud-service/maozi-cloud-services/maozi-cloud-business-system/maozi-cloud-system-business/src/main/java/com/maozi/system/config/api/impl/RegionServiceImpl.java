@@ -23,33 +23,33 @@ import java.util.List;
 @Service
 public class RegionServiceImpl extends BaseServiceImpl<RegionMapper, RegionDO> implements RegionService {
 
-	/** 资源名称，用于日志和异常信息中标识当前操作的资源类型 */
-	private static final String RESOURCE_NAME = "地区";
+    /** 资源名称，用于日志和异常信息中标识当前操作的资源类型 */
+    private static final String RESOURCE_NAME = "地区";
 
-	/**
-	 * 获取资源名称
-	 */
-	@Override
-	public String getResourceName() {
-		return RESOURCE_NAME;
-	}
+    /**
+     * 获取资源名称
+     */
+    @Override
+    public String getResourceName() {
+        return RESOURCE_NAME;
+    }
 
-	/**
-	 * 根据父级 ID 查询子地区下拉列表
-	 *
-	 * @param parentId 父级地区 ID
-	 * @return 子地区下拉列表，每项包含地区 ID 和名称
-	 */
-	public List<DropDownResult> commonList(Long parentId) {
+    /**
+     * 根据父级 ID 查询子地区下拉列表
+     *
+     * @param parentId 父级地区 ID
+     * @return 子地区下拉列表，每项包含地区 ID 和名称
+     */
+    public List<DropDownResult> commonList(Long parentId) {
 
-		LambdaQueryWrapper<RegionDO> wrapper = Wrappers.lambdaQuery();
+        LambdaQueryWrapper<RegionDO> wrapper = Wrappers.lambdaQuery();
 
-		// 只查询ID和名称字段
-		wrapper.select(RegionDO::getId,RegionDO::getName);
-		wrapper.eq(RegionDO::getParentId,parentId);
+        // 只查询ID和名称字段
+        wrapper.select(RegionDO::getId, RegionDO::getName);
+        wrapper.eq(RegionDO::getParentId, parentId);
 
-		return super.list(wrapper,DropDownResult::new);
+        return super.list(wrapper, DropDownResult::new);
 
-	}
+    }
 
 }

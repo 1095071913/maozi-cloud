@@ -23,7 +23,7 @@ import com.maozi.common.ObjectUtil;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.constant.LogTag;
 import com.maozi.common.context.TraceIdContext;
-import com.maozi.common.enums.LogCommonType;
+import com.maozi.common.enums.LogCommonTypeEnum;
 import com.maozi.common.result.error.ErrorResult;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.gateway.utils.WebUtil;
@@ -75,180 +75,177 @@ import java.util.UUID;
 @Component
 public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
 
-	/** HTTP 消息读取器列表，用于解析请求体 */
-	private List<HttpMessageReader<?>> messageReaders = Collections.emptyList();
+    /** HTTP 消息读取器列表，用于解析请求体 */
+    private List<HttpMessageReader<?>> messageReaders = Collections.emptyList();
 
-	/** HTTP 消息写入器列表，用于序列化响应体 */
-	private List<HttpMessageWriter<?>> messageWriters = Collections.emptyList();
+    /** HTTP 消息写入器列表，用于序列化响应体 */
+    private List<HttpMessageWriter<?>> messageWriters = Collections.emptyList();
 
-	/** 视图解析器列表，用于视图渲染（由 Lombok Setter 暴露设置方法） */
-	@Setter
+    /** 视图解析器列表，用于视图渲染（由 Lombok Setter 暴露设置方法） */
+    @Setter
     private List<ViewResolver> viewResolvers = Collections.emptyList();
 
-	/**
-	 * 设置 HTTP 消息读取器。
-	 *
-	 * @param messageReaders 消息读取器列表
-	 */
-	public void setMessageReaders(List<HttpMessageReader<?>> messageReaders) {
-		Assert.notNull(messageReaders, "'messageReaders' must not be null");
-		this.messageReaders = messageReaders;
-	}
+    /**
+     * 设置 HTTP 消息读取器。
+     *
+     * @param messageReaders 消息读取器列表
+     */
+    public void setMessageReaders(List<HttpMessageReader<?>> messageReaders) {
+        Assert.notNull(messageReaders, "'messageReaders' must not be null");
+        this.messageReaders = messageReaders;
+    }
 
-	/**
-	 * 设置 HTTP 消息写入器。
-	 *
-	 * @param messageWriters 消息写入器列表
-	 */
-	public void setMessageWriters(List<HttpMessageWriter<?>> messageWriters) {
-		Assert.notNull(messageWriters, "'messageWriters' must not be null");
-		this.messageWriters = messageWriters;
-	}
+    /**
+     * 设置 HTTP 消息写入器。
+     *
+     * @param messageWriters 消息写入器列表
+     */
+    public void setMessageWriters(List<HttpMessageWriter<?>> messageWriters) {
+        Assert.notNull(messageWriters, "'messageWriters' must not be null");
+        this.messageWriters = messageWriters;
+    }
 
-	/**
-	 * 渲染错误响应。
-	 * <p>
-	 * 以传入的异常处理结果构造 JSON 格式的错误响应返回给客户端。
-	 * </p>
-	 *
-	 * @param request 服务端请求对象
-	 * @param result 异常处理结果
-	 * @return 包含错误信息的 ServerResponse
-	 */
-	protected Mono<ServerResponse> renderErrorResponse(ServerRequest request, ErrorResult<?> result) {
-		return ServerResponse.status(result.getHttpCode()).contentType(MediaType.APPLICATION_JSON)
-				.body(BodyInserters.fromValue(result));
-	}
+    /**
+     * 渲染错误响应。
+     * <p>
+     * 以传入的异常处理结果构造 JSON 格式的错误响应返回给客户端。
+     * </p>
+     *
+     * @param request 服务端请求对象
+     * @param result 异常处理结果
+     * @return 包含错误信息的 ServerResponse
+     */
+    protected Mono<ServerResponse> renderErrorResponse(ServerRequest request, ErrorResult<?> result) {
+        return ServerResponse.status(result.getHttpCode()).contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(result));
+    }
 
-	/**
-	 * 将 ServerResponse 写入到 ServerWebExchange 中。
-	 *
-	 * @param exchange 服务端 Web 交换上下文
-	 * @param response 要写入的服务端响应
-	 * @return 写入完成的 Void Mono
-	 */
-	private Mono<? extends Void> write(ServerWebExchange exchange, ServerResponse response) {
-		exchange.getResponse().getHeaders().setContentType(response.headers().getContentType());
-		return response.writeTo(exchange, new ResponseContext());
-	}
+    /**
+     * 将 ServerResponse 写入到 ServerWebExchange 中。
+     *
+     * @param exchange 服务端 Web 交换上下文
+     * @param response 要写入的服务端响应
+     * @return 写入完成的 Void Mono
+     */
+    private Mono<? extends Void> write(ServerWebExchange exchange, ServerResponse response) {
+        exchange.getResponse().getHeaders().setContentType(response.headers().getContentType());
+        return response.writeTo(exchange, new ResponseContext());
+    }
 
-	/**
-	 * ServerResponse 上下文实现类。
-	 * <p>
-	 * 提供消息写入器和视图解析器给 ServerResponse 使用。
-	 * </p>
-	 *
-	 * @author maozi
-	 */
-	private class ResponseContext implements ServerResponse.Context {
+    /**
+     * ServerResponse 上下文实现类。
+     * <p>
+     * 提供消息写入器和视图解析器给 ServerResponse 使用。
+     * </p>
+     *
+     * @author maozi
+     */
+    private class ResponseContext implements ServerResponse.Context {
 
-		/**
-		 * 返回外部类的 HTTP 消息写入器列表
-		 *
-		 * @return HTTP 消息写入器列表
-		 */
-		@Override
-		public List<HttpMessageWriter<?>> messageWriters() {
-			return GatewayExceptionHandler.this.messageWriters;
-		}
+        /**
+         * 返回外部类的 HTTP 消息写入器列表
+         *
+         * @return HTTP 消息写入器列表
+         */
+        @Override
+        public List<HttpMessageWriter<?>> messageWriters() {
+            return GatewayExceptionHandler.this.messageWriters;
+        }
 
-		/**
-		 * 返回外部类的视图解析器列表
-		 *
-		 * @return 视图解析器列表
-		 */
-		@Override
-		public List<ViewResolver> viewResolvers() {
-			return GatewayExceptionHandler.this.viewResolvers;
-		}
-	}
+        /**
+         * 返回外部类的视图解析器列表
+         *
+         * @return 视图解析器列表
+         */
+        @Override
+        public List<ViewResolver> viewResolvers() {
+            return GatewayExceptionHandler.this.viewResolvers;
+        }
+    }
 
-	/**
-	 * 处理网关异常的核心方法。
-	 * <p>
-	 * 根据异常类型返回不同的错误响应：
-	 * - 客户端断连异常（AbortedException）：不记录错误日志，直接透传异常；
-	 * - NotFoundException：服务不存在，返回对应的错误码和 HTTP 状态码；
-	 * - BlockException（Sentinel 限流）：返回限流错误码和 HTTP 状态码；
-	 * - 其他异常：返回系统内部错误码和 HTTP 状态码。
-	 * 同时在 OpenTelemetry 未生成有效 traceId 时向 MDC 写入 traceId，
-	 * 并记录完整的请求信息和错误详情。
-	 * </p>
-	 *
-	 * @param exchange 服务端 Web 交换上下文
-	 * @param e        捕获到的异常
-	 * @return 写入错误响应后完成的空 Mono；客户端断连或响应已提交时返回包含原异常的 Mono.error
-	 */
-	@Override
-	public Mono<Void> handle(ServerWebExchange exchange, @Nonnull Throwable e) {
+    /**
+     * 处理网关异常的核心方法。
+     * <p>
+     * 根据异常类型返回不同的错误响应：
+     * - 客户端断连异常（AbortedException）：不记录错误日志，直接透传异常；
+     * - NotFoundException：服务不存在，返回对应的错误码和 HTTP 状态码；
+     * - BlockException（Sentinel 限流）：返回限流错误码和 HTTP 状态码；
+     * - 其他异常：返回系统内部错误码和 HTTP 状态码。
+     * 同时在 OpenTelemetry 未生成有效 traceId 时向 MDC 写入 traceId，
+     * 并记录完整的请求信息和错误详情。
+     * </p>
+     *
+     * @param exchange 服务端 Web 交换上下文
+     * @param e        捕获到的异常
+     * @return 写入错误响应后完成的空 Mono；客户端断连或响应已提交时返回包含原异常的 Mono.error
+     */
+    @Override
+    public Mono<Void> handle(ServerWebExchange exchange, @Nonnull Throwable e) {
 
-		ServerHttpRequest request = exchange.getRequest();
+        ServerHttpRequest request = exchange.getRequest();
 
-		// 客户端在响应发送过程中断开连接（AbortedException，含 Connection closed/reset、ClosedChannelException 包装）属于正常业务现象，
-		// 连接已关闭无法写回错误响应，不记录错误日志直接透传（透传后由 ReactorHooksConfiguration 的 onErrorDropped 钩子静默处理）
-		if (e instanceof AbortedException) {
-			return Mono.error(e);
-		}
+        // 客户端在响应发送过程中断开连接（AbortedException，含 Connection closed/reset、ClosedChannelException 包装）属于正常业务现象，
+        // 连接已关闭无法写回错误响应，不记录错误日志直接透传（透传后由 ReactorHooksConfiguration 的 onErrorDropped 钩子静默处理）
+        if (e instanceof AbortedException) {
+            return Mono.error(e);
+        }
 
-		// 当 OpenTelemetry 未生成有效 traceId 时，从请求头获取或生成 traceId 写入 MDC；OTel 已有则由其 MDC 集成接管，不覆盖
-		if (TraceIdContext.TRACE_ID_VALUE.equals(Span.current().getSpanContext().getTraceId())) {
-			String traceId = request.getHeaders().getFirst(TraceIdContext.KEY);
-			if (ObjectUtil.isNullEmpty(traceId)) {
-				traceId = UUID.randomUUID().toString();
-			}
-			MDC.put(TraceIdContext.MDC_TRACE_ID_KEY, traceId);
-		}
+        // 当 OpenTelemetry 未生成有效 traceId 时，从请求头获取或生成 traceId 写入 MDC；OTel 已有则由其 MDC 集成接管，不覆盖
+        if (TraceIdContext.TRACE_ID_VALUE.equals(Span.current().getSpanContext().getTraceId())) {
+            String traceId = request.getHeaders().getFirst(TraceIdContext.KEY);
+            if (ObjectUtil.isNullEmpty(traceId)) {
+                traceId = UUID.randomUUID().toString();
+            }
+            MDC.put(TraceIdContext.MDC_TRACE_ID_KEY, traceId);
+        }
 
-		// 构建错误日志信息
-		Map<String, String> logs = new LinkedHashMap<>(8);
+        // 构建错误日志信息
+        Map<String, String> logs = new LinkedHashMap<>(8);
 
-		// 记录请求基本信息（类型、IP、URL、方法）
-		logs.put(LogTag.TYPE, LogCommonType.GATEWAY.getDesc());
-		logs.put(LogTag.IP, WebUtil.getRequestHost(request));
-		logs.put(LogTag.URL, request.getURI().toString());
-		logs.put(LogTag.METHOD, Objects.requireNonNull(request.getMethod()).toString());
+        // 记录请求基本信息（类型、IP、URL、方法）
+        logs.put(LogTag.TYPE, LogCommonTypeEnum.GATEWAY.getDesc());
+        logs.put(LogTag.IP, WebUtil.getRequestHost(request));
+        logs.put(LogTag.URL, request.getURI().toString());
+        logs.put(LogTag.METHOD, Objects.requireNonNull(request.getMethod()).toString());
 
-		// 记录异常描述
-		logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
+        // 记录异常描述
+        logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
 
-		// 记录异常堆栈日志
-		LogUtil.error(log,e);
+        // 根据异常类型构建不同的错误响应
+        ErrorResult<?> result;
 
-		// 根据异常类型构建不同的错误响应
-		ErrorResult<?> result;
+        if (e instanceof NotFoundException) {
+            // 服务未找到异常
+            result = ResultUtil.error(SystemErrorCode.SERVICE_NOT_EXIST_ERROR)
+                               .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
 
-		if (e instanceof NotFoundException) {
-			// 服务未找到异常
-			result = ResultUtil.error(SystemErrorCode.SERVICE_NOT_EXIST_ERROR)
-							   .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
+        }else if(BlockException.isBlockException(e)){
+            // Sentinel 限流异常
+            result = ResultUtil.error(SystemErrorCode.CURRENT_LIMITING_ERROR).setHttpCode(SystemErrorCode.CURRENT_LIMITING_ERROR_DEFAULT_CODE);
+        }else {
+            // 其他未知系统异常
+            result = ResultUtil.error(SystemErrorCode.SYSTEM_ERROR).setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
+        }
 
-		}else if(BlockException.isBlockException(e)){
-			// Sentinel 限流异常
-			result = ResultUtil.error(SystemErrorCode.CURRENT_LIMITING_ERROR).setHttpCode(SystemErrorCode.CURRENT_LIMITING_ERROR_DEFAULT_CODE);
-		}else {
-			// 其他未知系统异常
-			result = ResultUtil.error(SystemErrorCode.SYSTEM_ERROR).setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
-		}
+        // 记录错误响应内容
+        logs.put(LogTag.DATA, result.toString());
 
-		// 记录错误响应内容
-		logs.put(LogTag.DATA, result.toString());
+        // 记录错误响应日志
+        LogUtil.error(log, logs, e);
 
-		// 记录错误响应日志
-		LogUtil.error(log,logs);
+        // 清理 MDC 上下文，防止线程复用导致数据泄漏
+        MDC.remove(TraceIdContext.MDC_TRACE_ID_KEY);
 
-		// 清理 MDC 上下文，防止线程复用导致数据泄漏
-		MDC.remove(TraceIdContext.MDC_TRACE_ID_KEY);
+        // 如果响应已提交（已发送给客户端），则无法修改，直接返回异常
+        if (exchange.getResponse().isCommitted()) {
+            return Mono.error(e);
+        }
 
-		// 如果响应已提交（已发送给客户端），则无法修改，直接返回异常
-		if (exchange.getResponse().isCommitted()) {
-			return Mono.error(e);
-		}
-
-		// 创建新的 ServerRequest 并路由到错误响应处理器
-		ServerRequest newRequest = ServerRequest.create(exchange, this.messageReaders);
-		return RouterFunctions.route(RequestPredicates.all(), (req) -> renderErrorResponse(req, result)).route(newRequest)
-				.switchIfEmpty(Mono.error(e)).flatMap((handler) -> handler.handle(newRequest))
-				.flatMap((response) -> write(exchange, response));
-	}
+        // 创建新的 ServerRequest 并路由到错误响应处理器
+        ServerRequest newRequest = ServerRequest.create(exchange, this.messageReaders);
+        return RouterFunctions.route(RequestPredicates.all(), (req) -> renderErrorResponse(req, result)).route(newRequest)
+                .switchIfEmpty(Mono.error(e)).flatMap((handler) -> handler.handle(newRequest))
+                .flatMap((response) -> write(exchange, response));
+    }
 
 }

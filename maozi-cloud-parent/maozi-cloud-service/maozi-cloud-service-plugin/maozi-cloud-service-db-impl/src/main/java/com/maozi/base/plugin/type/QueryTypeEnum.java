@@ -7,7 +7,7 @@ import com.maozi.base.plugin.impl.query.QueryInPlugin;
 import com.maozi.base.plugin.impl.query.QueryLePlugin;
 import com.maozi.base.plugin.impl.query.QueryLikePlugin;
 import com.maozi.base.plugin.impl.query.QueryNePlugin;
-import com.maozi.base.plugin.query.QueryBaseType;
+import com.maozi.base.plugin.query.QueryBaseTypeEnum;
 import lombok.Getter;
 
 /**
@@ -25,27 +25,27 @@ import lombok.Getter;
 public enum QueryTypeEnum {
 
     /** 等于 */
-    EQ(QueryBaseType.EQ, new QueryEqPlugin()),
+    EQ(QueryBaseTypeEnum.EQ, new QueryEqPlugin()),
 
     /** 全模糊匹配 */
-    LIKE(QueryBaseType.LIKE, new QueryLikePlugin()),
+    LIKE(QueryBaseTypeEnum.LIKE, new QueryLikePlugin()),
 
     /** IN 查询 */
-    IN(QueryBaseType.IN, new QueryInPlugin()),
+    IN(QueryBaseTypeEnum.IN, new QueryInPlugin()),
 
     /** 不等于 */
-    NE(QueryBaseType.NE, new QueryNePlugin()),
+    NE(QueryBaseTypeEnum.NE, new QueryNePlugin()),
 
     /** 大于等于 */
-    GE(QueryBaseType.GE, new QueryGePlugin()),
+    GE(QueryBaseTypeEnum.GE, new QueryGePlugin()),
 
     /** 小于等于 */
-    LE(QueryBaseType.LE, new QueryLePlugin()),
+    LE(QueryBaseTypeEnum.LE, new QueryLePlugin()),
 
     ;
 
     /** 查询基础类型 */
-    private final QueryBaseType type;
+    private final QueryBaseTypeEnum type;
 
     /** 查询插件实例 */
     private final BaseQueryPlugin queryPlugin;
@@ -56,7 +56,7 @@ public enum QueryTypeEnum {
      * @param type 查询基础类型
      * @param queryPlugin 查询插件实例
      */
-    QueryTypeEnum(QueryBaseType type,BaseQueryPlugin queryPlugin) {
+    QueryTypeEnum(QueryBaseTypeEnum type,BaseQueryPlugin queryPlugin) {
 
         this.type = type;
 

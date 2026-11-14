@@ -69,24 +69,69 @@ public class ChatMessage implements Serializable {
     private String messageType;
 
     /** 消息元数据（包含消息 ID、写入时间戳等，见 ChatMessageConstant） */
-    private Map<String,Object> metadata = Map.of();
+    private Map<String,Object> metadata;
 
     /** 消息携带的媒体列表（多模态图片等），使用自定义序列化器保证无损往返 */
     @JsonSerialize(contentUsing = MediaSerializer.class)
     @JsonDeserialize(contentUsing = MediaDeserializer.class)
-    private List<Media> media = List.of();
+    private List<Media> media;
 
     /** AI 消息发起的工具调用列表 */
-    private List<AssistantMessage.ToolCall> toolCalls = List.of();
+    private List<AssistantMessage.ToolCall> toolCalls;
 
     /** 消息文本内容 */
     private String textContent;
 
     /** 工具响应消息的工具响应列表 */
-    private List<ToolResponseMessage.ToolResponse> toolResponses = List.of();
+    private List<ToolResponseMessage.ToolResponse> toolResponses;
 
     /** 附加参数 */
-    private Map<String, Object> params = Map.of();
+    private Map<String, Object> params;
+
+    /**
+     * 获取消息元数据，未设置时返回空 Map（保持读取处空集合语义，避免 NPE）
+     *
+     * @return 消息元数据
+     */
+    public Map<String, Object> getMetadata() {
+        return metadata == null ? Map.of() : metadata;
+    }
+
+    /**
+     * 获取消息携带的媒体列表，未设置时返回空列表
+     *
+     * @return 媒体列表
+     */
+    public List<Media> getMedia() {
+        return media == null ? List.of() : media;
+    }
+
+    /**
+     * 获取 AI 消息发起的工具调用列表，未设置时返回空列表
+     *
+     * @return 工具调用列表
+     */
+    public List<AssistantMessage.ToolCall> getToolCalls() {
+        return toolCalls == null ? List.of() : toolCalls;
+    }
+
+    /**
+     * 获取工具响应消息的工具响应列表，未设置时返回空列表
+     *
+     * @return 工具响应列表
+     */
+    public List<ToolResponseMessage.ToolResponse> getToolResponses() {
+        return toolResponses == null ? List.of() : toolResponses;
+    }
+
+    /**
+     * 获取附加参数，未设置时返回空 Map
+     *
+     * @return 附加参数
+     */
+    public Map<String, Object> getParams() {
+        return params == null ? Map.of() : params;
+    }
 
     /**
      * Media 反序列化器

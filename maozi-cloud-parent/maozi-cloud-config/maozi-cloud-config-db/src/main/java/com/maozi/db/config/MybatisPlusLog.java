@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.logging.Log;
 
+import java.util.regex.Pattern;
+
 /**
  * MyBatis-Plus 自定义日志实现
  * <p>
@@ -25,6 +27,9 @@ public class MybatisPlusLog implements Log {
 
     /** MyBatis SQL 参数日志前缀 */
     private static final String PARAMETERS_PREFIX = "==> Parameters: ";
+
+    /** SQL 参数拆分正则（右括号 + 逗号），预编译避免重复编译开销 */
+    private static final Pattern PARAM_SPLIT_PATTERN = Pattern.compile("\\),");
 
     /**
      * 构造方法
@@ -104,7 +109,7 @@ public class MybatisPlusLog implements Log {
             if (StringUtils.isNotBlank(s)) {
 
                 // 参数格式为 "value(Type),value(Type),..." 按 "),"(右括号+逗号) 拆分
-                String[] params = s.split("\\),");
+                String[] params = PARAM_SPLIT_PATTERN.split(s);
 
                 for (String param : params) {
 

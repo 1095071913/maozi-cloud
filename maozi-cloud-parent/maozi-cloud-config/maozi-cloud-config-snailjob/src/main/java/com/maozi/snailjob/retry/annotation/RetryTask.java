@@ -38,7 +38,7 @@ public @interface RetryTask {
     /**
      * 场景（服务端重试任务分组标识，同组内唯一）
      * <p>
-     * 重试注册与上报时自动拼接版本号前缀（{@code ApplicationEnvironmentContext.VERSION + "_" + 场景值}），
+     * 重试注册与上报时自动拼接版本号前缀（{@code ApplicationEnvironmentContext.version + "_" + 场景值}），
      * 按应用版本隔离不同版本服务间的重试流量。
      * </p>
      *

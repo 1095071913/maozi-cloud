@@ -25,13 +25,13 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class RequestParam<D> implements Serializable {
 
-	/** 序列化标识 */
-	@Serial
+    /** 序列化标识 */
+    @Serial
     private static final long serialVersionUID = 1L;
 
-	/** 业务数据 */
-	@Valid
-	@Schema(description = "数据")
-	private D data;
+    /** 业务数据 */
+    @Valid
+    @Schema(description = "数据")
+    private D data;
 
 }

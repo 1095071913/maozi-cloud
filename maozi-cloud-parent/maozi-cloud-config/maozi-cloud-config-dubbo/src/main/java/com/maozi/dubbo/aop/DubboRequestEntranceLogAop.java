@@ -20,7 +20,7 @@ package com.maozi.dubbo.aop;
 
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.context.ApplicationEnvironmentContext;
-import com.maozi.common.enums.LogCommonType;
+import com.maozi.common.enums.LogCommonTypeEnum;
 import com.maozi.log.config.AbstractRequestEntranceLogAop;
 import org.apache.dubbo.rpc.RpcContext;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -43,56 +43,56 @@ import org.springframework.stereotype.Component;
 @Component
 public class DubboRequestEntranceLogAop extends AbstractRequestEntranceLogAop {
 
-	/** RPC 接口切点表达式：用 .. 替代 *.*，避免 AspectJ 解析歧义 */
-	private static final String RPC_POINT = "* " + ApplicationEnvironmentContext.PACKAGE_PREFIX + ".*.*.api.impl.rpc..*(..)";
+    /** RPC 接口切点表达式：用 .. 替代 *.*，避免 AspectJ 解析歧义 */
+    private static final String RPC_POINT = "* " + ApplicationEnvironmentContext.PACKAGE_PREFIX + ".*.*.api.impl.rpc..*(..)";
 
-	/** 基础服务实现类切点表达式 */
-	private static final String BASE_RPC_POINT = ApplicationEnvironmentContext.PACKAGE_PREFIX + ".common.result.AbstractBaseResult " + ApplicationEnvironmentContext.PACKAGE_PREFIX + ".service.api.impl.result.BaseServiceResultImpl.*(..)";
+    /** 基础服务实现类切点表达式 */
+    private static final String BASE_RPC_POINT = ApplicationEnvironmentContext.PACKAGE_PREFIX + ".common.result.AbstractBaseResult " + ApplicationEnvironmentContext.PACKAGE_PREFIX + ".service.api.impl.result.BaseServiceResultImpl.*(..)";
 
-	/** 组合切点表达式 */
-	private static final String POINT = "execution(" + RPC_POINT + ") || execution(" + BASE_RPC_POINT + ")";
+    /** 组合切点表达式 */
+    private static final String POINT = "execution(" + RPC_POINT + ") || execution(" + BASE_RPC_POINT + ")";
 
-	/**
-	 * 环绕通知，绑定 RPC 切点并委托给基类的统一日志逻辑。
-	 * <p>
-	 * 通过 {@link RpcContext} 服务上下文中的远端地址识别 Dubbo 流量，
-	 * 非 Dubbo 流量（如本地调用）不记录入口日志，直接放行。
-	 * </p>
-	 *
-	 * @param proceedingJoinPoint AOP 连接点
-	 * @return 业务方法执行结果
-	 * @throws AccessDeniedException 权限拒绝时经基类原样上抛，交由 Spring Security 处理
-	 */
-	@Around(POINT)
-	@Override
-	public Object doAround(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+    /**
+     * 环绕通知，绑定 RPC 切点并委托给基类的统一日志逻辑。
+     * <p>
+     * 通过 {@link RpcContext} 服务上下文中的远端地址识别 Dubbo 流量，
+     * 非 Dubbo 流量（如本地调用）不记录入口日志，直接放行。
+     * </p>
+     *
+     * @param proceedingJoinPoint AOP 连接点
+     * @return 业务方法执行结果
+     * @throws AccessDeniedException 权限拒绝时经基类原样上抛，交由 Spring Security 处理
+     */
+    @Around(POINT)
+    @Override
+    public Object doAround(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 
-		// 非 Dubbo 流量时直接放行，不记录 RPC 入口日志
-		if (ObjectUtil.isNullEmpty(RpcContext.getServiceContext().getRemoteAddress())) {
-			return proceedingJoinPoint.proceed();
-		}
+        // 非 Dubbo 流量时直接放行，不记录 RPC 入口日志
+        if (ObjectUtil.isNullEmpty(RpcContext.getServiceContext().getRemoteAddress())) {
+            return proceedingJoinPoint.proceed();
+        }
 
-		return super.doAround(proceedingJoinPoint);
-	}
+        return super.doAround(proceedingJoinPoint);
+    }
 
-	/**
-	 * 返回 RPC 类型的入口日志标识
-	 *
-	 * @return RPC 日志类型
-	 */
-	@Override
-	protected LogCommonType getType() {
-		return LogCommonType.RPC;
-	}
+    /**
+     * 返回 RPC 类型的入口日志标识
+     *
+     * @return RPC 日志类型
+     */
+    @Override
+    protected LogCommonTypeEnum getType() {
+        return LogCommonTypeEnum.RPC;
+    }
 
-	/**
-	 * 返回当前 Dubbo RPC 服务地址，作为非 HTTP 请求的来源记录。
-	 *
-	 * @return 当前 Dubbo 服务地址
-	 */
-	@Override
-	protected String getLocalHost() {
-		return RpcContext.getServiceContext().getLocalHost();
-	}
+    /**
+     * 返回当前 Dubbo RPC 服务地址，作为非 HTTP 请求的来源记录。
+     *
+     * @return 当前 Dubbo 服务地址
+     */
+    @Override
+    protected String getLocalHost() {
+        return RpcContext.getServiceContext().getLocalHost();
+    }
 
 }

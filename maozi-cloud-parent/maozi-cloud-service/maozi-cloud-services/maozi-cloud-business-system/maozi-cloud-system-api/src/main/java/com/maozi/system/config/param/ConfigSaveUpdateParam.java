@@ -23,32 +23,32 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ConfigSaveUpdateParam implements Serializable {
-	/** 序列化标识 */
-	@Serial
-	private static final long serialVersionUID = 1L;
+    /** 序列化标识 */
+    @Serial
+    private static final long serialVersionUID = 1L;
 
-	/** 配置名称（全局唯一键） */
-	@NotEmpty(message = "名称不能为空")
-	@Schema(description = "名称")
-	private String name;
+    /** 配置名称（全局唯一键） */
+    @NotEmpty(message = "名称不能为空")
+    @Schema(description = "名称")
+    private String name;
 
-	/** 配置别名 */
-	@Schema(description = "别名")
-	@NotEmpty(message = "别名不能为空")
-	private String alias;
+    /** 配置别名 */
+    @Schema(description = "别名")
+    @NotEmpty(message = "别名不能为空")
+    private String alias;
 
-	/** 配置类型 */
-	@NotEmpty(message = "类型不能为空")
-	@Schema(description = "类型")
-	private String type;
+    /** 配置类型 */
+    @NotEmpty(message = "类型不能为空")
+    @Schema(description = "类型")
+    private String type;
 
-	/** 配置值 */
-	@NotEmpty(message = "配置值不能为空")
-	@Schema(description = "配置值")
-	private String value;
+    /** 配置值 */
+    @NotEmpty(message = "配置值不能为空")
+    @Schema(description = "配置值")
+    private String value;
 
-	/** 排序序号，值越小越靠前 */
-	@Schema(description = "排序")
-	private Integer sort;
+    /** 排序序号，值越小越靠前 */
+    @Schema(description = "排序")
+    private Integer sort;
 
 }

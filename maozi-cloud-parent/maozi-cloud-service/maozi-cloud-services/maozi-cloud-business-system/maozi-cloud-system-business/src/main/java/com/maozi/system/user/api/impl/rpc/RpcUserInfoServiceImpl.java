@@ -20,18 +20,18 @@ import com.maozi.system.user.dto.SystemUser;
 @RemoteService
 public class RpcUserInfoServiceImpl extends BaseServiceResultImpl<UserServiceImpl, Void> implements RpcUserInfoService {
 
-	/**
-	 * 根据用户 ID 查询系统用户信息
-	 * <p>用户不存在时抛出业务异常。</p>
-	 *
-	 * @param id 用户 ID
-	 * @param columns 查询列（保留参数，当前未使用）
-	 * @return 系统用户信息封装的统一结果
-	 * @throws com.maozi.common.result.error.exception.BusinessResultException 用户不存在时抛出
-	 */
-	@Override
-	public AbstractBaseResult<SystemUser> getResult(Long id, String... columns) {
-		return ResultUtil.success(service.getByIdThrowErrorRelation(id, SystemUser.class));
-	}
+    /**
+     * 根据用户 ID 查询系统用户信息
+     * <p>用户不存在时抛出业务异常。</p>
+     *
+     * @param id 用户 ID
+     * @param columns 查询列（保留参数，当前未使用）
+     * @return 系统用户信息封装的统一结果
+     * @throws com.maozi.common.result.error.exception.BusinessResultException 用户不存在时抛出
+     */
+    @Override
+    public AbstractBaseResult<SystemUser> getResult(Long id, String... columns) {
+        return ResultUtil.success(service.getByIdThrowErrorRelation(id, SystemUser.class));
+    }
 
 }

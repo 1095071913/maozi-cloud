@@ -17,17 +17,17 @@ import com.github.yulichang.base.MPJBaseService;
 import com.github.yulichang.toolkit.MPJWrappers;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.maozi.base.constant.ResultFunName;
-import com.maozi.base.enums.Status;
-import com.maozi.base.enums.StoreClassType;
+import com.maozi.base.enums.StatusEnum;
+import com.maozi.base.enums.StoreClassTypeEnum;
 import com.maozi.base.param.PageParam;
 import com.maozi.base.param.plugin.OrderParam;
 import com.maozi.base.param.plugin.TimeParam;
 import com.maozi.base.plugin.StoreClass;
 import com.maozi.base.plugin.context.QueryEnvironmentContext;
-import com.maozi.base.plugin.join.JoinBaseType;
+import com.maozi.base.plugin.join.JoinBaseTypeEnum;
 import com.maozi.base.plugin.join.JoinPlugins;
 import com.maozi.base.plugin.mapping.QueryMapping;
-import com.maozi.base.plugin.query.QueryBaseType;
+import com.maozi.base.plugin.query.QueryBaseTypeEnum;
 import com.maozi.base.plugin.query.QueryPlugin;
 import com.maozi.base.plugin.type.JoinTypeEnum;
 import com.maozi.base.plugin.type.QueryTypeEnum;
@@ -311,7 +311,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
                     // 无注解：字段名转下划线，关联模式下追加默认表别名前缀
                     String fieldName = StrUtil.toUnderlineCase(field.getName());
-                    columns.add(isJoin ? String.join(".", QueryEnvironmentContext.DEFAULT_ORDER_KEY, fieldName) : fieldName);
+                    columns.add(isJoin ? String.join(".", QueryEnvironmentContext.defaultOrderKey, fieldName) : fieldName);
 
                 }else if(annotation.ignore() && (StringUtils.isNotBlank(annotation.field())
                         || StringUtils.isNotBlank(annotation.tableName()))){
@@ -321,7 +321,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
                 String tableName = StringUtils.isNotBlank(annotation.tableName()) ?
                             annotation.tableName()
                             :
-                            QueryEnvironmentContext.DEFAULT_ORDER_KEY;
+                            QueryEnvironmentContext.defaultOrderKey;
 
                     String fieldName = StringUtils.isNotBlank(annotation.field()) ?
                         annotation.field() : StrUtil.toUnderlineCase(field.getName());
@@ -406,7 +406,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
 
-        if(domain.getStatus() == Status.DISABLE) {
+        if(domain.getStatus() == StatusEnum.DISABLE) {
             throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
                     .setResource(getResourceName());
         }
@@ -437,7 +437,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         List<T> domains = super.list(wrapper);
         domains.forEach((domain)->{
 
-            if(domain.getStatus() == Status.DISABLE) {
+            if(domain.getStatus() == StatusEnum.DISABLE) {
                 throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
                         .setResource(getResourceName());
             }
@@ -486,7 +486,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
 
-        if(domain.getStatus() == Status.DISABLE) {
+        if(domain.getStatus() == StatusEnum.DISABLE) {
             throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
                         .setResource(getResourceName());
         }
@@ -514,7 +514,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
 
-        if(domain.getStatus() == Status.DISABLE) {
+        if(domain.getStatus() == StatusEnum.DISABLE) {
             throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
                     .setResource(getResourceName());
         }
@@ -581,7 +581,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         wrapper.select(getColumns(AbstractBaseNameDomain::getId,AbstractBaseNameDomain::getName));
 
-        wrapper.eq(getColumn(AbstractBaseDomain::getStatus), Status.ENABLE);
+        wrapper.eq(getColumn(AbstractBaseDomain::getStatus), StatusEnum.ENABLE);
 
         return CglibUtil.copyList(super.list(wrapper), DropDownResult::new);
 
@@ -1122,7 +1122,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
                 Arrays.stream(annotations.value()).forEach(annotation -> {
 
-                    JoinBaseType value = annotation.value();
+                    JoinBaseTypeEnum value = annotation.value();
 
                     ObjectUtil.isNullEmptyThrowError(value, getResourceName() + RESOURCE_SUFFIX_JOIN_TYPE);
 
@@ -1170,7 +1170,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
                 }
 
-                QueryBaseType value = annotation.value();
+                QueryBaseTypeEnum value = annotation.value();
 
                 ObjectUtil.isNullEmptyThrowError(value, getResourceName() + RESOURCE_SUFFIX_QUERY_TYPE);
 
@@ -1239,7 +1239,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
                     ObjectUtil.checkConditionThrowError(ObjectUtil.isNotNullEmpty(tableName),
                             getResourceName() + RESOURCE_SUFFIX_MAPPING_NAME);
 
-                    Map<String, Class<?>> dbClassMap = StoreClass.storeClassMap.get(StoreClassType.DB);
+                    Map<String, Class<?>> dbClassMap = StoreClass.STORE_CLASS_MAP.get(StoreClassTypeEnum.DB);
                     Class<?> relationClazz = dbClassMap == null ? null : dbClassMap.get(tableName);
                     ObjectUtil.checkConditionThrowError(ObjectUtil.isNotNullEmpty(relationClazz),
                             getResourceName() + RESOURCE_SUFFIX_MAPPING_NOT_EXIST);
@@ -1299,9 +1299,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
             orderParam.initOrderParam();
 
-            List<String> asc = orderParam.getOrderAscFieldsMap().get(QueryEnvironmentContext.DEFAULT_ORDER_KEY);
+            List<String> asc = orderParam.getOrderAscFieldsMap().get(QueryEnvironmentContext.defaultOrderKey);
 
-            List<String> desc = orderParam.getOrderDescFieldsMap().get(QueryEnvironmentContext.DEFAULT_ORDER_KEY);
+            List<String> desc = orderParam.getOrderDescFieldsMap().get(QueryEnvironmentContext.defaultOrderKey);
 
             wrapper.orderByAscStr(ObjectUtil.isNotNullEmpty(asc),asc);
 

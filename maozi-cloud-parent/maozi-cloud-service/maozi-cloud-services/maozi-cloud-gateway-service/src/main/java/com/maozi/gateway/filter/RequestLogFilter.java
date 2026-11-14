@@ -18,7 +18,7 @@
 package com.maozi.gateway.filter;
 
 import com.maozi.common.constant.LogTag;
-import com.maozi.common.enums.LogCommonType;
+import com.maozi.common.enums.LogCommonTypeEnum;
 import com.maozi.gateway.config.ServerHttpResponseAgent;
 import com.maozi.gateway.utils.WebUtil;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -46,52 +46,52 @@ import java.util.Objects;
 @Component
 public class RequestLogFilter implements GlobalFilter, Ordered {
 
-	/**
-	 * 过滤器核心逻辑。
-	 * <p>
-	 * 1. 记录请求开始时间戳；
-	 * 2. 收集请求 IP、日志类型、请求 URL、HTTP 方法等基本信息；
-	 * 3. 使用 {@link ServerHttpResponseAgent} 包装原始响应，
-	 *    使得响应写入时自动记录日志和注入链路追踪 ID。
-	 * </p>
-	 *
-	 * @param exchange 服务端 Web 交换上下文
-	 * @param chain    网关过滤器链
-	 * @return 过滤器链执行结果
-	 */
-	@Override
-	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+    /**
+     * 过滤器核心逻辑。
+     * <p>
+     * 1. 记录请求开始时间戳；
+     * 2. 收集请求 IP、日志类型、请求 URL、HTTP 方法等基本信息；
+     * 3. 使用 {@link ServerHttpResponseAgent} 包装原始响应，
+     *    使得响应写入时自动记录日志和注入链路追踪 ID。
+     * </p>
+     *
+     * @param exchange 服务端 Web 交换上下文
+     * @param chain    网关过滤器链
+     * @return 过滤器链执行结果
+     */
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
-		// 记录请求开始时间，用于计算响应耗时
-		Long requestTime = System.currentTimeMillis();
+        // 记录请求开始时间，用于计算响应耗时
+        Long requestTime = System.currentTimeMillis();
 
-		// 构建日志信息 Map
-		Map<String,String> logs = new LinkedHashMap<>();
+        // 构建日志信息 Map（后续固定写入 IP/TYPE/URL/METHOD 及 RT/DATA 标签，指定初始容量）
+        Map<String,String> logs = new LinkedHashMap<>(8);
 
-		// 记录客户端 IP 地址
-		logs.put(LogTag.IP, WebUtil.getRequestHost(exchange.getRequest()));
-		// 记录日志类型（网关）
-		logs.put(LogTag.TYPE, LogCommonType.GATEWAY.getDesc());
-		// 记录请求 URL
-		logs.put(LogTag.URL, exchange.getRequest().getURI().toString());
-		// 记录 HTTP 请求方法
-		logs.put(LogTag.METHOD, Objects.requireNonNull(exchange.getRequest().getMethod()).toString());
+        // 记录客户端 IP 地址
+        logs.put(LogTag.IP, WebUtil.getRequestHost(exchange.getRequest()));
+        // 记录日志类型（网关）
+        logs.put(LogTag.TYPE, LogCommonTypeEnum.GATEWAY.getDesc());
+        // 记录请求 URL
+        logs.put(LogTag.URL, exchange.getRequest().getURI().toString());
+        // 记录 HTTP 请求方法
+        logs.put(LogTag.METHOD, Objects.requireNonNull(exchange.getRequest().getMethod()).toString());
 
-		// 使用 ServerHttpResponseAgent 包装响应，在响应写入时自动记录日志
-		return chain.filter(exchange.mutate().response(new ServerHttpResponseAgent(requestTime, logs,exchange.getResponse(),exchange.getAttributes(),exchange.getRequest())).build());
+        // 使用 ServerHttpResponseAgent 包装响应，在响应写入时自动记录日志
+        return chain.filter(exchange.mutate().response(new ServerHttpResponseAgent(requestTime, logs,exchange.getResponse(),exchange.getAttributes(),exchange.getRequest())).build());
 
-	}
+    }
 
-	/**
-	 * 获取过滤器执行顺序。
-	 * <p>
-	 * 设置为 HIGHEST_PRECEDENCE + 1，确保在最高优先级过滤器之后执行，
-	 * 但在大多数其他过滤器之前执行，以保证日志记录的完整性。
-	 * </p>
-	 *
-	 * @return 过滤器顺序值
-	 */
-	@Override
-	public int getOrder() {return Ordered.HIGHEST_PRECEDENCE+1;}
+    /**
+     * 获取过滤器执行顺序。
+     * <p>
+     * 设置为 HIGHEST_PRECEDENCE + 1，确保在最高优先级过滤器之后执行，
+     * 但在大多数其他过滤器之前执行，以保证日志记录的完整性。
+     * </p>
+     *
+     * @return 过滤器顺序值
+     */
+    @Override
+    public int getOrder() {return Ordered.HIGHEST_PRECEDENCE+1;}
 
 }

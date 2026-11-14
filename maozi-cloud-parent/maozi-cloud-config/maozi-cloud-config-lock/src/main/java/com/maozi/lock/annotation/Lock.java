@@ -1,8 +1,8 @@
 package com.maozi.lock.annotation;
 
-import com.maozi.lock.error.strategy.impl.LockTimeoutStrategy;
-import com.maozi.lock.error.strategy.impl.UnLockTimeoutStrategy;
-import com.maozi.lock.lock.LockType;
+import com.maozi.lock.error.strategy.impl.LockTimeoutStrategyEnum;
+import com.maozi.lock.error.strategy.impl.UnLockTimeoutStrategyEnum;
+import com.maozi.lock.lock.LockTypeEnum;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -27,7 +27,7 @@ public @interface Lock {
     String name() default "";
 
     /** 锁类型，默认可重入锁 */
-    LockType type() default LockType.REENTRANT;
+    LockTypeEnum type() default LockTypeEnum.REENTRANT;
 
     /** 尝试加锁的最长等待时间（秒），默认 Long.MIN_VALUE 表示回退到全局配置 */
     long waitTime() default Long.MIN_VALUE;
@@ -39,9 +39,9 @@ public @interface Lock {
      String [] keys() default {};
 
      /** 加锁超时的处理策略，默认持续获取（指数退避重试） */
-     LockTimeoutStrategy lockTimeoutStrategy() default LockTimeoutStrategy.KEEP_ACQUIRE;
+     LockTimeoutStrategyEnum lockTimeoutStrategy() default LockTimeoutStrategyEnum.KEEP_ACQUIRE;
 
      /** 释放锁时已超时的处理策略，默认不做处理 */
-     UnLockTimeoutStrategy releaseTimeoutStrategy() default UnLockTimeoutStrategy.NO_OPERATION;
+     UnLockTimeoutStrategyEnum releaseTimeoutStrategy() default UnLockTimeoutStrategyEnum.NO_OPERATION;
 
 }

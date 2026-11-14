@@ -1,6 +1,6 @@
 package com.maozi.system.role.param;
 
-import com.maozi.base.enums.Status;
+import com.maozi.base.enums.StatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,24 +28,24 @@ public class RoleSaveUpdateParam implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-	/** 角色名称 */
-	@Schema(description = "名称")
-	private String name;
+    /** 角色名称 */
+    @Schema(description = "名称")
+    private String name;
 
-	/** 角色描述 */
-	@Schema(description = "描述")
-	private String description;
+    /** 角色描述 */
+    @Schema(description = "描述")
+    private String description;
 
-	/** 角色状态（启用/禁用） */
-	@Schema(description = "状态")
-	private Status status;
+    /** 角色状态（启用/禁用） */
+    @Schema(description = "状态")
+    private StatusEnum status;
 
-	/** 需要绑定的权限ID集合 */
-	@Schema(description = "绑定权限列表")
-	private Set<Long> bindPermissionIds;
+    /** 需要绑定的权限ID集合 */
+    @Schema(description = "绑定权限列表")
+    private Set<Long> bindPermissionIds;
 
-	/** 需要解绑的权限ID集合 */
-	@Schema(description = "解绑权限列表")
-	private Set<Long> unbindPermissionIds;
+    /** 需要解绑的权限ID集合 */
+    @Schema(description = "解绑权限列表")
+    private Set<Long> unbindPermissionIds;
 
 }

@@ -1,6 +1,6 @@
 package com.maozi.system.image.handler;
 
-import com.maozi.system.image.enums.ImageStorageType;
+import com.maozi.system.image.enums.ImageStorageTypeEnum;
 import com.maozi.system.image.result.ImageUploadResult;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,20 +17,20 @@ import org.springframework.web.multipart.MultipartFile;
  */
 public interface ImageStorageHandler {
 
-	/**
-	 * 获取处理器支持的存储类型
-	 *
-	 * @return 图片存储类型枚举
-	 */
-	ImageStorageType getType();
+    /**
+     * 获取处理器支持的存储类型
+     *
+     * @return 图片存储类型枚举
+     */
+    ImageStorageTypeEnum getType();
 
-	/**
-	 * 上传图片
-	 *
-	 * @param file 上传的图片文件
-	 * @param path 保存路径（对象存储目录前缀）
-	 * @return 上传结果，包含对象存储路径与访问地址等信息
-	 */
-	ImageUploadResult upload(MultipartFile file,String path);
+    /**
+     * 上传图片
+     *
+     * @param file 上传的图片文件
+     * @param path 保存路径（对象存储目录前缀）
+     * @return 上传结果，包含对象存储路径与访问地址等信息
+     */
+    ImageUploadResult upload(MultipartFile file,String path);
 
 }

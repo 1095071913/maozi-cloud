@@ -32,23 +32,23 @@ import com.maozi.system.user.result.OauthUserInfoResult;
  */
 public interface RpcUserService {
 
-	/**
-	 * 根据用户名获取 OAuth 认证所需的用户信息
-	 * <p>
-	 * 供授权服务器进行密码模式认证与权限填充。
-	 * </p>
-	 *
-	 * @param username 用户名
-	 * @return OAuth 认证用户信息（含用户ID、密码、权限标识列表）
-	 */
-	AbstractBaseResult<OauthUserInfoResult> getOauthUserInfoByUsernameResult(String username);
+    /**
+     * 根据用户名获取 OAuth 认证所需的用户信息
+     * <p>
+     * 供授权服务器进行密码模式认证与权限填充。
+     * </p>
+     *
+     * @param username 用户名
+     * @return OAuth 认证用户信息（含用户ID、密码、权限标识列表）
+     */
+    AbstractBaseResult<OauthUserInfoResult> getOauthUserInfoByUsernameResult(String username);
 
-	/**
-	 * 根据用户 ID 获取 AI 工具所需的用户信息
-	 *
-	 * @param userId 用户 ID，用于查询指定用户的信息
-	 * @return AI 查询用户信息结果（含用户ID、客户端、名称、权限列表等）
-	 */
-	AbstractBaseResult<AiGetUserInfoResult> aiGetUserInfoResult(Long userId);
+    /**
+     * 根据用户 ID 获取 AI 工具所需的用户信息
+     *
+     * @param userId 用户 ID，用于查询指定用户的信息
+     * @return AI 查询用户信息结果（含用户ID、客户端、名称、权限列表等）
+     */
+    AbstractBaseResult<AiGetUserInfoResult> aiGetUserInfoResult(Long userId);
 
 }

@@ -28,7 +28,10 @@ import java.util.Map;
 @Component
 public class EnumConfig {
 
-    /** 全局枚举映射表，键为枚举类名（首字母小写），值为枚举常量列表（仅类内部可写，外部通过 {@link #getEnums()} 只读视图访问） */
+    /**
+     * 全局枚举映射表，键为枚举类名（首字母小写），值为枚举常量列表
+     * （仅类内部可写，外部通过 {@link #getEnums()} 只读视图访问）
+     */
     private static final Map<String, List<BaseEnum>> ENUMS = CollectionUtil.newHashMap();
 
     /**
@@ -40,8 +43,12 @@ public class EnumConfig {
         // 先加载基础枚举包下的所有枚举类
         initEnum(ApplicationEnvironmentContext.PACKAGE_PREFIX + ".base.enums");
 
-        // 再加载业务枚举：聚合服务（maozi-cloud-all-service）时扫描整个基础包，普通服务仅扫描当前项目缩写对应的子包
-        String subPath = ApplicationNameConstant.MAOZI_CLOUD_ALL_SERVICE.equals(ApplicationEnvironmentContext.serviceName) ? "" : "." + ApplicationEnvironmentContext.applicationProjectAbbreviation;
+        // 再加载业务枚举：聚合服务（maozi-cloud-all-service）时扫描整个基础包，
+        // 普通服务仅扫描当前项目缩写对应的子包
+        String subPath = ApplicationNameConstant.MAOZI_CLOUD_ALL_SERVICE
+                .equals(ApplicationEnvironmentContext.serviceName)
+                ? ""
+                : "." + ApplicationEnvironmentContext.applicationProjectAbbreviation;
         initEnum(ApplicationEnvironmentContext.PACKAGE_PREFIX + subPath);
 
     }

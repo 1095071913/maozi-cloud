@@ -105,11 +105,12 @@ public enum LockTypeEnum implements BaseEnum {
 
         lock(key, DEFAULT_LOCK_TIME, DEFAULT_LOCK_TIME, LockTimeoutStrategyEnum.KEEP_ACQUIRE);
 
-        T t = supplier.get();
-
-        unlock(key);
-
-        return t;
+        // 执行业务回调，确保在 finally 块中释放锁
+        try {
+            return supplier.get();
+        } finally {
+            unlock(key);
+        }
 
     }
 
@@ -126,11 +127,12 @@ public enum LockTypeEnum implements BaseEnum {
 
         lock(key, DEFAULT_LOCK_TIME, DEFAULT_LOCK_TIME, strategy);
 
-        T t = supplier.get();
-
-        unlock(key);
-
-        return t;
+        // 执行业务回调，确保在 finally 块中释放锁
+        try {
+            return supplier.get();
+        } finally {
+            unlock(key);
+        }
 
     }
 
@@ -144,15 +146,17 @@ public enum LockTypeEnum implements BaseEnum {
      * @param <T> 返回值类型
      * @return 业务逻辑执行结果
      */
-    public <T> T lock(String key, LockTimeoutStrategyEnum lockTimeoutStrategy,UnLockTimeoutStrategyEnum unLockTimeoutStrategy, Supplier<T> supplier) {
+    public <T> T lock(String key, LockTimeoutStrategyEnum lockTimeoutStrategy,
+            UnLockTimeoutStrategyEnum unLockTimeoutStrategy, Supplier<T> supplier) {
 
         lock(key, DEFAULT_LOCK_TIME, DEFAULT_LOCK_TIME, lockTimeoutStrategy);
 
-        T t = supplier.get();
-
-        unlock(key,unLockTimeoutStrategy);
-
-        return t;
+        // 执行业务回调，确保在 finally 块中释放锁
+        try {
+            return supplier.get();
+        } finally {
+            unlock(key,unLockTimeoutStrategy);
+        }
 
     }
 
@@ -170,11 +174,12 @@ public enum LockTypeEnum implements BaseEnum {
 
         lock(key,waitTime,leaseTime,LockTimeoutStrategyEnum.KEEP_ACQUIRE);
 
-        T t = supplier.get();
-
-        unlock(key,UnLockTimeoutStrategyEnum.NO_OPERATION);
-
-        return t;
+        // 执行业务回调，确保在 finally 块中释放锁
+        try {
+            return supplier.get();
+        } finally {
+            unlock(key,UnLockTimeoutStrategyEnum.NO_OPERATION);
+        }
 
     }
 

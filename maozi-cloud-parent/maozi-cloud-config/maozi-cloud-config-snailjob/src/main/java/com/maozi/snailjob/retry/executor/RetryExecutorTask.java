@@ -37,7 +37,8 @@ import java.util.Map;
  * <p>
  * 回调前通过 {@code RetryContextHolder} 标记重试流量（目标方法上的
  * {@code RetryTaskReportAop} 据此放行执行结果，避免重复本地重试与上报），
- * 并恢复上报时保存的链路上下文（链路追踪 Id、版本号、测试流量标记）；回调结束后统一清理，
+ * 并恢复上报时保存的链路上下文（链路追踪 Id、版本号、测试流量标记）；
+ * 回调结束后统一清理，
  * 避免线程复用污染正常流量。
  * </p>
  *
@@ -88,7 +89,8 @@ public class RetryExecutorTask implements ExecutorMethod {
         Object[] args = (Object[]) params;
         RetryTaskParam retryParam = (RetryTaskParam) args[0];
 
-        // 标记当前为远程重试流量，并恢复上报时保存的链路上下文（链路追踪 ID、版本号、测试流量标记）
+        // 标记当前为远程重试流量，并恢复上报时保存的链路上下文
+        // （链路追踪 ID、版本号、测试流量标记）
         RetryContextHolder.setRetry(true);
         TraceIdContext.CONTEXT.set(retryParam.getTraceId());
         VersionContext.CONTEXT.set(retryParam.getVersion());

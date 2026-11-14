@@ -15,7 +15,8 @@ import java.util.Optional;
  * Micrometer 指标配置
  * <p>
  * 修复 Spring Cloud Gateway 的 URI 标签在 {@code /metrics} 端点中被错误标记为
- * <b>UNKNOWN</b> 的问题（见 <a href="https://github.com/spring-cloud/spring-cloud-gateway/issues/891">...</a>）。
+ * <b>UNKNOWN</b> 的问题（见
+ * <a href="https://github.com/spring-cloud/spring-cloud-gateway/issues/891">...</a>）。
  * 通过自定义 {@link ServerRequestObservationConvention}，在 URI 标签为空或 UNKNOWN 时，
  * 从请求路径前两段提取路径模板，提升指标标签的可读性。
  * </p>
@@ -50,7 +51,8 @@ public class MicrometerConfiguration {
         return new DefaultServerRequestObservationConvention() {
 
             /**
-             * 在 URI 标签为空或 UNKNOWN 时，从请求路径前两段提取路径模板（如 {@code /a/b/**}）作为标签值
+             * 在 URI 标签为空或 UNKNOWN 时，
+             * 从请求路径前两段提取路径模板（如 {@code /a/b/**}）作为标签值
              *
              * @param context 请求观测上下文
              * @return 低基数键值集合
@@ -83,9 +85,11 @@ public class MicrometerConfiguration {
              * @param lowCardinalityKeyValues 当前低基数键值集合
              * @return {@code true} 表示 URI 标签缺失或为 UNKNOWN
              */
-            private static boolean isUriTagNullOrUnknown(ServerRequestObservationContext context, KeyValues lowCardinalityKeyValues) {
+            private static boolean isUriTagNullOrUnknown(ServerRequestObservationContext context,
+                    KeyValues lowCardinalityKeyValues) {
 
-                Optional<KeyValue> uriKeyValue = lowCardinalityKeyValues.stream().filter(keyValue -> KEY_URI.equals(keyValue.getKey())).findFirst();
+                Optional<KeyValue> uriKeyValue = lowCardinalityKeyValues.stream()
+                        .filter(keyValue -> KEY_URI.equals(keyValue.getKey())).findFirst();
 
                 return (uriKeyValue.isEmpty() || UNKNOWN.equals(uriKeyValue.get().getValue()));
 

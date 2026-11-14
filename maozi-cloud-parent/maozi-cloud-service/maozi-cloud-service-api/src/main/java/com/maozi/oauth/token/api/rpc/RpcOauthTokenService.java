@@ -45,7 +45,8 @@ public interface RpcOauthTokenService {
     /**
      * RPC方式批量注销用户令牌
      * <p>
-     * 批量移除多个用户在其客户端下的所有 OAuth2 授权记录，适用于禁用角色等需统一注销多个用户令牌的场景。
+     * 批量移除多个用户在其客户端下的所有 OAuth2 授权记录，
+     * 适用于禁用角色等需统一注销多个用户令牌的场景。
      * </p>
      *
      * @param clientUsers 客户端用户参数列表，每项包含clientId和username

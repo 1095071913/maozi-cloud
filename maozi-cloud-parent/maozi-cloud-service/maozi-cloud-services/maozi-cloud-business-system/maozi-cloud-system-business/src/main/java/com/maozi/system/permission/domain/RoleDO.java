@@ -26,7 +26,8 @@ import java.io.Serial;
 
 /**
  * 角色实体类
- * <p>对应数据库表 system_role，存储角色的基本信息，用于实现基于角色的访问控制（RBAC）。</p>
+ * <p>对应数据库表 system_role，存储角色的基本信息，
+ * 用于实现基于角色的访问控制（RBAC）。</p>
  *
  * @author maozi
  * @date 2026/11/08

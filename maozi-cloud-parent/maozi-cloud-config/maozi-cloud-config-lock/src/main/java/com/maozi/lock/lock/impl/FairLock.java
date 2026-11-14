@@ -55,7 +55,8 @@ public class FairLock implements Lock {
 
         RLock lock = redissonClient.getFairLock(key);
 
-        // 判断公平锁是否由当前线程持有，如果是则异步强制释放锁并等待结果，否则返回 false
+        // 判断公平锁是否由当前线程持有，如果是则异步强制释放锁并等待结果，
+        // 否则返回 false
         return lock.isHeldByCurrentThread() && lock.forceUnlockAsync().get();
 
     }

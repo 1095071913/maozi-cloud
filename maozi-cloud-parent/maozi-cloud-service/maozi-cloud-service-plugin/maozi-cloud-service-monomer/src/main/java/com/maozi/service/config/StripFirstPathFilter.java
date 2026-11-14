@@ -35,8 +35,9 @@ import java.util.List;
  * <p><b>执行顺序：</b>过滤器 order 设为 {@code SecurityProperties.DEFAULT_FILTER_ORDER - 1}（-101），
  * 早于 Spring Security 过滤器链（{@code SecurityProperties.DEFAULT_FILTER_ORDER = -100}），确保：
  * <ul>
- *   <li>带模块前缀的请求（如 {@code /oauth/oauth2/token}、{@code /oauth/user/info}）在进入安全过滤器链之前
- *       被裁剪掉首段模块前缀，使 Spring Security 的授权服务器过滤器链能正确匹配 {@code /oauth2/token}
+ *   <li>带模块前缀的请求（如 {@code /oauth/oauth2/token}、{@code /oauth/user/info}）
+ *       在进入安全过滤器链之前被裁剪掉首段模块前缀，
+ *       使 Spring Security 的授权服务器过滤器链能正确匹配 {@code /oauth2/token}
  *       等框架端点，模块控制器的安全校验与 MVC 匹配也能使用裁剪后的路径；</li>
  *   <li>OAuth2/OIDC 框架端点（{@code /oauth2}、{@code /.well-known}）及
  *       Spring Boot 框架端点（{@code /actuator}、{@code /webjars} 等）通过排除列表保留原始路径，
@@ -48,11 +49,13 @@ import java.util.List;
  * Spring Boot 框架端点（{@code /actuator}、{@code /webjars}、{@code /v3}、{@code /application}、
  * {@code /error}、{@code /favicon.ico}），以及 OAuth2/OIDC 框架端点（{@code /oauth2}、
  * {@code /.well-known}），避免破坏 Actuator 监控、Swagger 静态资源、OpenAPI 文档、
- * OAuth2 授权服务器端点等。可通过配置 {@code application.path-strip.excluded-prefixes} 覆盖默认排除列表；
+ * OAuth2 授权服务器端点等。可通过配置
+ * {@code application.path-strip.excluded-prefixes} 覆盖默认排除列表；
  * 如需完全关闭裁剪，可设置 {@code application.path-strip.enabled=false}。</p>
  *
  * <p><b>注：</b>{@code /userinfo} 端点（OIDC UserInfo Endpoint）当前并未包含在
- * 默认排除列表中，若依赖该端点请通过 {@code application.path-strip.excluded-prefixes} 显式补充。</p>
+ * 默认排除列表中，若依赖该端点请通过
+ * {@code application.path-strip.excluded-prefixes} 显式补充。</p>
  *
  * @author maozi
  * @date 2026/11/08
@@ -62,7 +65,8 @@ import java.util.List;
 public class StripFirstPathFilter extends OncePerRequestFilter {
 
     /** 默认不裁剪的路径前缀（框架端点），可通过配置覆盖 */
-    private static final String DEFAULT_EXCLUDED_PREFIXES = "/actuator,/webjars,/v3,/application,/error,/favicon.ico,/oauth2,/.well-known";
+    private static final String DEFAULT_EXCLUDED_PREFIXES =
+            "/actuator,/webjars,/v3,/application,/error,/favicon.ico,/oauth2,/.well-known";
 
     /** 是否启用路径裁剪，默认开启 */
     @Value("${application.path-strip.enabled:true}")
@@ -86,7 +90,8 @@ public class StripFirstPathFilter extends OncePerRequestFilter {
      * @throws IOException      IO 异常
      */
     @Override
-    protected void doFilterInternal(@Nonnull HttpServletRequest request, @Nonnull HttpServletResponse response, @Nonnull FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@Nonnull HttpServletRequest request, @Nonnull HttpServletResponse response,
+            @Nonnull FilterChain filterChain) throws ServletException, IOException {
 
         // 未启用裁剪功能，直接放行
         if (!enabled) {
@@ -97,7 +102,9 @@ public class StripFirstPathFilter extends OncePerRequestFilter {
         // 计算 contextPath 之后的相对路径，作为裁剪判断与计算的基础
         String contextPath = request.getContextPath();
         String requestUri = request.getRequestURI();
-        String pathWithinApp = requestUri.startsWith(contextPath) ? requestUri.substring(contextPath.length()) : requestUri;
+        String pathWithinApp = requestUri.startsWith(contextPath)
+                ? requestUri.substring(contextPath.length())
+                : requestUri;
 
         // 命中排除列表（框架端点等）则保持原路径
         if (!shouldStrip(pathWithinApp)) {
@@ -113,7 +120,8 @@ public class StripFirstPathFilter extends OncePerRequestFilter {
     /**
      * 判断应用内相对路径是否需要裁剪第一段
      * <p>
-     * 路径为空或仅 {@code /} 时不裁剪；命中任一排除前缀（精确匹配或前缀 + "/"）也不裁剪。
+     * 路径为空或仅 {@code /} 时不裁剪；
+     * 命中任一排除前缀（精确匹配或前缀 + "/"）也不裁剪。
      * </p>
      *
      * @param pathWithinApp 应用内相对路径
@@ -218,7 +226,8 @@ public class StripFirstPathFilter extends OncePerRequestFilter {
         /**
          * 基于原始 URL 重建裁剪后的完整请求 URL
          *
-         * @return 裁剪后的完整请求 URL（scheme、host、port 保持不变；原始 URI 未命中时返回原始 URL）
+         * @return 裁剪后的完整请求 URL（scheme、host、port 保持不变；
+         * 原始 URI 未命中时返回原始 URL）
          */
         @Override
         public StringBuffer getRequestURL() {

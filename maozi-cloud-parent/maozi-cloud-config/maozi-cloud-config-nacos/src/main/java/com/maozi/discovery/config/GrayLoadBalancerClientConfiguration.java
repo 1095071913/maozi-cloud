@@ -32,12 +32,14 @@ public class GrayLoadBalancerClientConfiguration extends LoadBalancerClientConfi
     @Bean
     @Override
     @ConditionalOnMissingBean
-    public ReactorLoadBalancer<ServiceInstance> reactorServiceInstanceLoadBalancer(Environment environment,LoadBalancerClientFactory loadBalancerClientFactory) {
+    public ReactorLoadBalancer<ServiceInstance> reactorServiceInstanceLoadBalancer(Environment environment,
+            LoadBalancerClientFactory loadBalancerClientFactory) {
 
         // 从环境属性 loadbalancer.client.name 获取目标服务名
         String name = environment.getProperty(LoadBalancerClientFactory.PROPERTY_NAME);
 
-        return new GrayRoundRobinLoadBalancer(loadBalancerClientFactory.getLazyProvider(name, ServiceInstanceListSupplier.class));
+        return new GrayRoundRobinLoadBalancer(
+                loadBalancerClientFactory.getLazyProvider(name, ServiceInstanceListSupplier.class));
 
     }
 

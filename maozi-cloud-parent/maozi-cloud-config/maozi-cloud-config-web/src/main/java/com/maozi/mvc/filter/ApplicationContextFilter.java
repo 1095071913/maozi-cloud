@@ -42,7 +42,8 @@ import java.util.UUID;
 public class ApplicationContextFilter extends OncePerRequestFilter {
 
     /**
-     * 请求处理前初始化链路上下文（版本号、测试流量标记、当前用户信息、traceId），请求结束后清理上下文
+     * 请求处理前初始化链路上下文（版本号、测试流量标记、当前用户信息、traceId），
+     * 请求结束后清理上下文
      *
      * @param request HTTP 请求
      * @param response HTTP 响应
@@ -51,21 +52,25 @@ public class ApplicationContextFilter extends OncePerRequestFilter {
      * @throws IOException IO 异常
      */
     @Override
-    protected void doFilterInternal(HttpServletRequest request, @Nonnull HttpServletResponse response, @Nonnull FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, @Nonnull HttpServletResponse response,
+            @Nonnull FilterChain filterChain) throws ServletException, IOException {
 
-        // 从请求头提取版本号（为空时取默认版本），写入链路上下文，供灰度路由等场景使用
+        // 从请求头提取版本号（为空时取默认版本），写入链路上下文，
+        // 供灰度路由等场景使用
         VersionContext.CONTEXT.set(request.getHeader(VersionContext.KEY));
 
         // 从请求头提取测试流量标记（"true" 表示测试流量），写入链路上下文
         TestFlowContext.CONTEXT.set(request.getHeader(TestFlowContext.KEY));
 
-        // 上下文中尚无当前用户信息时，从请求头解析并补齐（供网关/上游透传用户信息的场景）
+        // 上下文中尚无当前用户信息时，从请求头解析并补齐
+        // （供网关/上游透传用户信息的场景）
         CurrentUserInfo currentUserInfo = CurrentUserInfoContext.CONTEXT.get();
         if(ObjectUtil.isNullEmpty(currentUserInfo)){
             CurrentUserInfoContext.CONTEXT.set(request.getHeader(CurrentUserInfoContext.KEY));
         }
 
-        // OTel 尚未产生有效 traceId（32 个 0 占位值）时，从请求头读取，为空则生成随机 UUID，写入上下文并回写响应头
+        // OTel 尚未产生有效 traceId（32 个 0 占位值）时，从请求头读取，
+        // 为空则生成随机 UUID，写入上下文并回写响应头
         String traceId = Span.current().getSpanContext().getTraceId();
         if(TraceIdContext.TRACE_ID_VALUE.equals(traceId)){
             traceId = request.getHeader(TraceIdContext.KEY);

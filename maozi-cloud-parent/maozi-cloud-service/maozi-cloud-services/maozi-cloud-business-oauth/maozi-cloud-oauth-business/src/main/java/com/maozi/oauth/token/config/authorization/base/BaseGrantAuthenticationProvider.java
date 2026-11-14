@@ -59,7 +59,8 @@ import java.util.stream.Collectors;
  * @date 2026/11/08
  */
 @Slf4j
-public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthenticationToken> implements AuthenticationProvider {
+public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthenticationToken>
+        implements AuthenticationProvider {
 
     /** OAuth2令牌生成器，用于生成各类令牌 */
     private OAuth2TokenGenerator<?> tokenGenerator;
@@ -87,7 +88,8 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
      * @return 泛型Token的Class对象
      */
     protected Class<T> currentTokenClass() {
-        return (Class<T>) ReflectionKit.getSuperClassGenericType(this.getClass(), BaseGrantAuthenticationProvider.class, 0);
+        return (Class<T>) ReflectionKit.getSuperClassGenericType(this.getClass(),
+                BaseGrantAuthenticationProvider.class, 0);
     }
 
     /**
@@ -111,7 +113,8 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
 
     /**
      * 执行认证流程：校验客户端、授权模式与scope后，委托子类完成用户认证，
-     * 再生成AccessToken（claims中写入用户权限与用户附加属性）、可选的RefreshToken与IDToken（scope含openid时），
+     * 再生成AccessToken（claims中写入用户权限与用户附加属性）、可选的RefreshToken与IDToken
+     * （scope含openid时），
      * 最后保存授权信息并返回
      *
      * @param authentication 认证请求对象
@@ -124,10 +127,13 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
         T authenticationToken = (T)authentication;
 
         // 确保客户端已通过认证
-        OAuth2ClientAuthenticationToken clientPrincipal = getAuthenticatedClientElseThrowInvalidClient(authenticationToken);
+        OAuth2ClientAuthenticationToken clientPrincipal =
+                getAuthenticatedClientElseThrowInvalidClient(authenticationToken);
         RegisteredClient registeredClient = clientPrincipal.getRegisteredClient();
         // 确保客户端已配置该授权模式
-        if (registeredClient == null || !registeredClient.getAuthorizationGrantTypes().contains(authenticationToken.getAuthorizationGrantType())) {
+        if (registeredClient == null
+                || !registeredClient.getAuthorizationGrantTypes()
+                        .contains(authenticationToken.getAuthorizationGrantType())) {
             throw new OAuth2AuthenticationException(OAuth2ErrorCodes.UNAUTHORIZED_CLIENT);
         }
 
@@ -137,12 +143,14 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
         // 调用子类认证逻辑构造用户名密码令牌，再由DAO认证提供者完成密码校验
         Authentication userAuthenticationToken = null;
         try {
-            UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = subAuthenticate(authenticationToken);
+            UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
+                    subAuthenticate(authenticationToken);
             userAuthenticationToken = daoAuthenticationProvider.authenticate(usernamePasswordAuthenticationToken);
         } catch (AuthenticationException e) {
             // 认证异常统一转为OAuth2认证异常返回，并保留原始异常链、记录日志
             log.warn("Custom grant sub authentication failed.", e);
-            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, e.getMessage(), ERROR_URI), e);
+            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST,
+                    e.getMessage(), ERROR_URI), e);
         }
 
         // 以下令牌生成流程参考OAuth2AuthorizationCodeAuthenticationProvider实现
@@ -156,7 +164,8 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
 
         // 初始化OAuth2Authorization构建器
         OAuth2Authorization.Builder authorizationBuilder = OAuth2Authorization.withRegisteredClient(registeredClient)
-                // 加入当前用户认证信息，防止刷新token时因获取不到认证信息而抛出空指针异常
+                // 加入当前用户认证信息，防止刷新token时
+                // 因获取不到认证信息而抛出空指针异常
                 // 存入授权scope
                 .authorizedScopes(authorizedScopes)
                 // 当前授权用户名称
@@ -267,7 +276,8 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
             additionalParameters.put(OidcParameterNames.ID_TOKEN, idToken.getTokenValue());
         }
 
-        return new OAuth2AccessTokenAuthenticationToken(registeredClient, clientPrincipal, accessToken, refreshToken, additionalParameters);
+        return new OAuth2AccessTokenAuthenticationToken(registeredClient, clientPrincipal,
+                accessToken, refreshToken, additionalParameters);
     }
 
     /**
@@ -289,7 +299,8 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
                     .filter(requestedScope -> !registeredClient.getScopes().contains(requestedScope))
                     .collect(Collectors.toSet());
             if (!ObjectUtils.isEmpty(unauthorizedScopes)) {
-                throw new OAuth2AuthenticationException(new OAuth2Error( OAuth2ErrorCodes.INVALID_REQUEST, "OAuth 2.0 Parameter: " + OAuth2ParameterNames.SCOPE, ERROR_URI));
+                throw new OAuth2AuthenticationException(new OAuth2Error( OAuth2ErrorCodes.INVALID_REQUEST,
+                        "OAuth 2.0 Parameter: " + OAuth2ParameterNames.SCOPE, ERROR_URI));
             }
 
             authorizedScopes = new LinkedHashSet<>(requestedScopes);
@@ -318,7 +329,8 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
      * @return 已认证的客户端认证令牌
      * @throws OAuth2AuthenticationException 当客户端未认证时抛出INVALID_CLIENT错误
      */
-    public static OAuth2ClientAuthenticationToken getAuthenticatedClientElseThrowInvalidClient(Authentication authentication) {
+    public static OAuth2ClientAuthenticationToken getAuthenticatedClientElseThrowInvalidClient(
+            Authentication authentication) {
         OAuth2ClientAuthenticationToken clientPrincipal = null;
         if (OAuth2ClientAuthenticationToken.class.isAssignableFrom(authentication.getPrincipal().getClass())) {
             clientPrincipal = (OAuth2ClientAuthenticationToken) authentication.getPrincipal();

@@ -57,12 +57,14 @@ public class PasswordAuthenticationConverter extends BaseGrantAuthenticationConv
 
         String username = parameters.getFirst(OAuth2ParameterNames.USERNAME);
         if (!StringUtils.hasText(username) || parameters.get(OAuth2ParameterNames.USERNAME).size() != 1) {
-            throw new OAuth2AuthenticationException(new OAuth2Error(ERROR_CODE_BAD_REQUEST,"账号不能为空",ACCESS_TOKEN_REQUEST_ERROR_URI));
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error(ERROR_CODE_BAD_REQUEST,"账号不能为空",ACCESS_TOKEN_REQUEST_ERROR_URI));
         }
 
         String password = parameters.getFirst(OAuth2ParameterNames.PASSWORD);
         if (!StringUtils.hasText(password) || parameters.get(OAuth2ParameterNames.PASSWORD).size() != 1) {
-            throw new OAuth2AuthenticationException(new OAuth2Error(ERROR_CODE_BAD_REQUEST, "密码不能为空", ACCESS_TOKEN_REQUEST_ERROR_URI));
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error(ERROR_CODE_BAD_REQUEST, "密码不能为空", ACCESS_TOKEN_REQUEST_ERROR_URI));
         }
 
     }

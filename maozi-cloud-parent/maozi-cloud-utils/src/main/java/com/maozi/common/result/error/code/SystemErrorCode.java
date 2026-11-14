@@ -34,7 +34,10 @@ public class SystemErrorCode extends AbstractBaseErrorCode{
     /** 默认系统异常（HTTP 500，对外提示「服务网络异常」） */
     public static final ErrorCode DEFAULT_ERROR = new ErrorCode(SYSTEM_ERROR_DEFAULT_CODE,"服务网络异常");
 
-    /** 无此错误编码（code=0，对外表现为「服务网络异常」，内部异常信息为「没有此编码」），用于错误码未定义的兜底 */
+    /**
+     * 无此错误编码（code=0，对外表现为「服务网络异常」，
+     * 内部异常信息为「没有此编码」），用于错误码未定义的兜底
+     */
     public static final ErrorCode NOT_EXIST_CODE_ERROR = new ErrorCode(0,"服务网络异常","没有此编码");
 
     /** 服务调用失败 */
@@ -44,13 +47,15 @@ public class SystemErrorCode extends AbstractBaseErrorCode{
     public static final ErrorCode SERVICE_NOT_EXIST_ERROR = new ErrorCode(2,"服务网络异常","服务不存在");
 
     /** 未设置资源返回类型 */
-    public static final ErrorCode NOT_SET_RESPONSE_ERROR = new ErrorCode(3,"服务网络异常","未设置资源返回类型");
+    public static final ErrorCode NOT_SET_RESPONSE_ERROR =
+            new ErrorCode(3,"服务网络异常","未设置资源返回类型");
 
     /** 参数错误 */
     public static final ErrorCode PARAM_ERROR = new ErrorCode(BUSINESS_ERROR_DEFAULT_CODE,"参数错误");
 
     /** 用户认证授权失败 */
-    public static final ErrorCode USER_AUTH_ERROR = new ErrorCode(USER_AUTH_ERROR_DEFAULT_CODE,"用户认证授权失败");
+    public static final ErrorCode USER_AUTH_ERROR =
+            new ErrorCode(USER_AUTH_ERROR_DEFAULT_CODE,"用户认证授权失败");
 
     /** 恶意请求 */
     public static final ErrorCode MALICE_REQUEST_ERROR = new ErrorCode(402,"恶意请求");
@@ -74,7 +79,8 @@ public class SystemErrorCode extends AbstractBaseErrorCode{
     public static final ErrorCode REQUEST_FORMAT_ERROR = new ErrorCode(415,"请求格式错误");
 
     /** 请求限流中 */
-    public static final ErrorCode CURRENT_LIMITING_ERROR = new ErrorCode(CURRENT_LIMITING_ERROR_DEFAULT_CODE,"请求限流中");
+    public static final ErrorCode CURRENT_LIMITING_ERROR =
+            new ErrorCode(CURRENT_LIMITING_ERROR_DEFAULT_CODE,"请求限流中");
 
     /** 系统异常（同 DEFAULT_ERROR） */
     public static final ErrorCode SYSTEM_ERROR = DEFAULT_ERROR;

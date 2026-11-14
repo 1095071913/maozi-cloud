@@ -25,7 +25,8 @@ import java.time.Duration;
  * @date 2026/11/08
  */
 @Slf4j
-public class UserAuthenticationSuccessHandler implements org.springframework.security.web.authentication.AuthenticationSuccessHandler {
+public class UserAuthenticationSuccessHandler
+        implements org.springframework.security.web.authentication.AuthenticationSuccessHandler {
 
     /**
      * 处理用户认证成功事件
@@ -39,9 +40,11 @@ public class UserAuthenticationSuccessHandler implements org.springframework.sec
      * @param authentication 认证结果（OAuth2AccessTokenAuthenticationToken）
      */
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,Authentication authentication) {
+    public void onAuthenticationSuccess(HttpServletRequest request,
+            HttpServletResponse response,Authentication authentication) {
 
-        OAuth2AccessTokenAuthenticationToken accessTokenAuthentication = (OAuth2AccessTokenAuthenticationToken) authentication;
+        OAuth2AccessTokenAuthenticationToken accessTokenAuthentication =
+                (OAuth2AccessTokenAuthenticationToken) authentication;
         OAuth2AccessToken accessToken = accessTokenAuthentication.getAccessToken();
 
         OauthTokenDTO oauthToken = new OauthTokenDTO();
@@ -60,7 +63,8 @@ public class UserAuthenticationSuccessHandler implements org.springframework.sec
             oauthToken.setRefreshToken(refreshToken.getTokenValue());
 
             if (refreshToken.getIssuedAt() != null && refreshToken.getExpiresAt() != null) {
-                oauthToken.setRefreshTokenExpiresIn(Duration.between(refreshToken.getIssuedAt(), refreshToken.getExpiresAt()).getSeconds());
+                oauthToken.setRefreshTokenExpiresIn(
+                        Duration.between(refreshToken.getIssuedAt(), refreshToken.getExpiresAt()).getSeconds());
             }
 
         }

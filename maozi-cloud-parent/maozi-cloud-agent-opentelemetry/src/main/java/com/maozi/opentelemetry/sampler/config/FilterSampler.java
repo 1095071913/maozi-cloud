@@ -20,9 +20,11 @@ import java.util.logging.Logger;
  * <ul>
  *   <li>启动阶段（main 线程）的 Span 丢弃，避免应用启动过程产生噪声</li>
  *   <li>Nacos 心跳等指定 Span 名称直接丢弃</li>
- *   <li>通过 {@link FilterTypeEnum} 按 Span 属性过滤 HTTP（actuator/api-docs）、Redis（PING/AUTH 等）、MySQL（连接探活 SQL）等噪声请求</li>
+ *   <li>通过 {@link FilterTypeEnum} 按 Span 属性过滤 HTTP（actuator/api-docs）、
+ *       Redis（PING/AUTH 等）、MySQL（连接探活 SQL）等噪声请求</li>
  * </ul>
- * 未命中过滤规则的 Span 正常采样上报；过滤过程发生异常时为保证不丢数据，默认放行采样。
+ * 未命中过滤规则的 Span 正常采样上报；
+ * 过滤过程发生异常时为保证不丢数据，默认放行采样。
  * </p>
  *
  * @author pengjinlong
@@ -61,7 +63,8 @@ public class FilterSampler implements Sampler {
      * @return 采样结果（DROP 或 RECORD_AND_SAMPLE）
      */
     @Override
-    public SamplingResult shouldSample(Context parentContext, String traceId, String name, SpanKind spanKind, Attributes attributes, List<LinkData> parentLinks) {
+    public SamplingResult shouldSample(Context parentContext, String traceId, String name, SpanKind spanKind,
+            Attributes attributes, List<LinkData> parentLinks) {
 
         try{
 
@@ -93,7 +96,8 @@ public class FilterSampler implements Sampler {
         // 若异常则不过滤（放行采样），兜底保证采样链路不中断
         }catch (RuntimeException e){
 
-            // 使用 Supplier 延迟构造日志消息，避免无谓的字符串拼接开销（JUL 惰性重载签名：Level, Throwable, Supplier）
+            // 使用 Supplier 延迟构造日志消息，避免无谓的字符串拼接开销
+            // （JUL 惰性重载签名：Level, Throwable, Supplier）
             LOGGER.log(Level.WARNING, e, () -> "Span filter error, fallback to sample. spanName=" + name);
 
             return SamplingResult.create(SamplingDecision.RECORD_AND_SAMPLE);

@@ -19,7 +19,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * 单体服务 {@code @RemoteResource} 字段本地注入处理器。
  * <p>
  * 单体服务（maozi-cloud-all-service）不引入 Dubbo 模块，注解上的 {@code @Resource} 元注解也不被
- * Spring 识别，故由本处理器在 Bean 属性填充阶段按字段声明的接口类型从本地容器获取 Bean 实例并反射写入，
+ * Spring 识别，故由本处理器在 Bean 属性填充阶段按字段声明的接口类型从本地容器获取
+ * Bean 实例并反射写入，
  * 同时按字段名注册为 Spring 单例，供 {@code SpringUtil.getBean(字段名)} 等按名查找使用
  * （{@code BaseServiceImpl} 的 {@code @QueryMapping(serviceName=...)} 关联数据解析依赖于此）。
  * {@code getBean(Class)} 在仅有一个候选时忽略 {@code autowireCandidate} 标志，
@@ -52,8 +53,10 @@ public class LocalRemoteResourceBeanPostProcessor implements InstantiationAwareB
     /**
      * 扫描 {@link RemoteResource} 字段并按接口类型从本地容器注入。
      * <p>
-     * 遍历目标 Bean 的所有字段（含父类继承的字段），找到 {@link RemoteResource} 标注的非静态字段，
-     * 通过 {@code beanFactory.getBean(字段类型)} 从本地容器获取实例，按字段名注册为单例后反射写入。
+     * 遍历目标 Bean 的所有字段（含父类继承的字段），
+     * 找到 {@link RemoteResource} 标注的非静态字段，
+     * 通过 {@code beanFactory.getBean(字段类型)} 从本地容器获取实例，
+     * 按字段名注册为单例后反射写入。
      * </p>
      *
      * @param pvs      属性值
@@ -63,7 +66,8 @@ public class LocalRemoteResourceBeanPostProcessor implements InstantiationAwareB
      * @throws BeansException 获取或注入 Bean 时发生异常
      */
     @Override
-    public PropertyValues postProcessProperties(@Nonnull PropertyValues pvs, @Nonnull Object bean, @Nonnull String beanName) throws BeansException {
+    public PropertyValues postProcessProperties(@Nonnull PropertyValues pvs, @Nonnull Object bean,
+            @Nonnull String beanName) throws BeansException {
 
         ReflectionUtils.doWithFields(bean.getClass(), field -> {
             if (field.isAnnotationPresent(RemoteResource.class) && !Modifier.isStatic(field.getModifiers())) {

@@ -74,7 +74,8 @@ public enum DelayMessageLevelEnum implements BaseEnum {
     /**
      * 构造方法
      *
-     * @param value 枚举值（延迟级别序号，从 0 开始计数，发送时需换算为 RocketMQ 从 1 计数的延迟级别）
+     * @param value 枚举值（延迟级别序号，从 0 开始计数，
+     * 发送时需换算为 RocketMQ 从 1 计数的延迟级别）
      * @param desc 延迟时间描述
      */
     DelayMessageLevelEnum(Integer value,String desc) {

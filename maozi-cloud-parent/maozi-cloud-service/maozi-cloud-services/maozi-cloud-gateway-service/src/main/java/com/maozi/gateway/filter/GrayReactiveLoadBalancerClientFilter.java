@@ -56,7 +56,8 @@ public class GrayReactiveLoadBalancerClientFilter extends ReactiveLoadBalancerCl
      * @param clientFactory 负载均衡客户端工厂
      * @param properties    网关负载均衡属性配置
      */
-    public GrayReactiveLoadBalancerClientFilter(LoadBalancerClientFactory clientFactory, GatewayLoadBalancerProperties properties) {
+    public GrayReactiveLoadBalancerClientFilter(LoadBalancerClientFactory clientFactory,
+        GatewayLoadBalancerProperties properties) {
         super(clientFactory, properties);
         this.grayClientFactory = clientFactory;
     }
@@ -116,7 +117,8 @@ public class GrayReactiveLoadBalancerClientFilter extends ReactiveLoadBalancerCl
             }
 
             // 创建委托服务实例
-            DelegatingServiceInstance serviceInstance = new DelegatingServiceInstance(response.getServer(), overrideScheme);
+            DelegatingServiceInstance serviceInstance =
+                new DelegatingServiceInstance(response.getServer(), overrideScheme);
 
             // 根据服务实例信息重构请求 URI
             URI requestUrl = this.reconstructURI(serviceInstance, uri);
@@ -142,7 +144,8 @@ public class GrayReactiveLoadBalancerClientFilter extends ReactiveLoadBalancerCl
         URI uri = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
         GrayRoundRobinLoadBalancer loadBalancer = null;
         if (uri != null) {
-            loadBalancer = new GrayRoundRobinLoadBalancer(grayClientFactory.getLazyProvider(uri.getHost(), ServiceInstanceListSupplier.class));
+            loadBalancer = new GrayRoundRobinLoadBalancer(
+                grayClientFactory.getLazyProvider(uri.getHost(), ServiceInstanceListSupplier.class));
         }
         if (loadBalancer != null) {
             return loadBalancer.choose(this.createRequest(exchange));

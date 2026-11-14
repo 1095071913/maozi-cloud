@@ -34,7 +34,8 @@ public class TokenRevocationSuccessHandler implements AuthenticationSuccessHandl
      * @throws ServletException Servlet异常
      */
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+    public void onAuthenticationSuccess(HttpServletRequest request,
+            HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         WebUtil.writeResponseBody(response,ResultUtil.success());
     }
 

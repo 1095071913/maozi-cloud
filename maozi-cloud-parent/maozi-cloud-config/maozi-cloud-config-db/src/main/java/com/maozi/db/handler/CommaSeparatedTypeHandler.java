@@ -18,8 +18,10 @@ import java.util.Set;
 /**
  * 逗号分隔字符串与集合的双向转换 TypeHandler
  * <p>
- * 将数据库中以逗号分隔的字符串（如 "a,b,c"）与 {@link Set}{@code <String>} 或 {@link List}{@code <String>} 互转，
- * 按字段声明类型返回对应集合实现：声明为 Set 返回 {@link LinkedHashSet}，声明为 List 返回 {@link ArrayList}。
+ * 将数据库中以逗号分隔的字符串（如 "a,b,c"）与 {@link Set}{@code <String>}
+ * 或 {@link List}{@code <String>} 互转，
+ * 按字段声明类型返回对应集合实现：声明为 Set 返回 {@link LinkedHashSet}，
+ * 声明为 List 返回 {@link ArrayList}。
  * 读取时去除元素首尾空格并过滤空元素。
  * </p>
  *
@@ -55,7 +57,8 @@ public class CommaSeparatedTypeHandler extends BaseTypeHandler<Collection<String
      * @throws SQLException SQL 异常
      */
     @Override
-    public void setNonNullParameter(PreparedStatement ps, int i, Collection<String> parameter, JdbcType jdbcType) throws SQLException {
+    public void setNonNullParameter(PreparedStatement ps, int i, Collection<String> parameter,
+            JdbcType jdbcType) throws SQLException {
         // 使用逗号将集合中的元素拼接成一个字符串
         ps.setString(i, String.join(DELIMITER, parameter));
     }

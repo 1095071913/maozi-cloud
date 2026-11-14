@@ -37,8 +37,10 @@ public class BaseDaoAuthenticationProvider extends DaoAuthenticationProvider {
     /**
      * 附加认证检查
      * <p>
-     * 对用户凭证进行额外校验。如果认证对象中没有凭证（如某些特殊认证方式），则直接跳过校验。
-     * 如果密码不匹配，则捕获BadCredentialsException并抛出自定义错误信息"用户认证授权失败"。
+     * 对用户凭证进行额外校验。
+     * 如果认证对象中没有凭证（如某些特殊认证方式），则直接跳过校验。
+     * 如果密码不匹配，则捕获BadCredentialsException
+     * 并抛出自定义错误信息"用户认证授权失败"。
      * </p>
      *
      * @param userDetails    加载的用户详情信息
@@ -46,7 +48,8 @@ public class BaseDaoAuthenticationProvider extends DaoAuthenticationProvider {
      * @throws AuthenticationException 认证失败时抛出的异常
      */
     @Override
-    protected void additionalAuthenticationChecks(UserDetails userDetails, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
+    protected void additionalAuthenticationChecks(UserDetails userDetails,
+            UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
 
         if (authentication.getCredentials() == null) {
             return;

@@ -79,7 +79,8 @@ public class ExecutorMethodScanner implements Scanner, ApplicationContextAware {
                             Object beanObj = applicationContext.getBean(retryBeanDefinitionName);
                             Class<?> clazz = beanObj.getClass();
 
-                            // 类名含 $$ 说明是 AOP 代理类，取目标原始类以确保能扫描到方法上的注解
+                            // 类名含 $$ 说明是 AOP 代理类，
+                            // 取目标原始类以确保能扫描到方法上的注解
                             if (clazz.getName().contains("$$")) {
                                 clazz = AopUtils.getTargetClass(beanObj);
                             }
@@ -108,12 +109,14 @@ public class ExecutorMethodScanner implements Scanner, ApplicationContextAware {
     }
 
     /**
-     * 以自定义统一重试处理器注册信息为模板，结合 RetryTask 注解属性构建业务场景注册信息
+     * 以自定义统一重试处理器注册信息为模板，
+     * 结合 RetryTask 注解属性构建业务场景注册信息
      * <p>
      * 执行器信息保持不变（重试流量统一回调 {@code RetryExecutorTask.doExecute}），
      * 场景值替换为带版本号前缀的注解业务场景值（{@code RetryExecutorTask.buildScene}，
      * 按应用版本隔离重试流量），上报与重试属性改用 {@code RetryTask} 注解配置，
-     * 使业务侧通过 {@code RetryTaskTemplateBuilder} 按业务场景值 + 统一处理器上报时可命中对应注册信息。
+     * 使业务侧通过 {@code RetryTaskTemplateBuilder}
+     * 按业务场景值 + 统一处理器上报时可命中对应注册信息。
      * </p>
      *
      * @param retryTask RetryTask 注解

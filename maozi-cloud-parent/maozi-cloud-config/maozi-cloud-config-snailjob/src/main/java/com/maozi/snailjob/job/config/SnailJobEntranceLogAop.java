@@ -121,7 +121,8 @@ public class SnailJobEntranceLogAop {
 
         } finally {
 
-            // 记录当前线程累积的 SQL 日志（任务体在独立线程池执行，其 SQL 日志不在本线程）
+            // 记录当前线程累积的 SQL 日志
+            // （任务体在独立线程池执行，其 SQL 日志不在本线程）
             StringBuilder sqlLog = SqlLogContext.CONTEXT.get();
             if (ObjectUtil.isNotNullEmpty(sqlLog)) {
                 logs.put(LogTag.SQL, sqlLog.toString());

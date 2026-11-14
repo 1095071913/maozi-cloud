@@ -38,7 +38,10 @@ public class ChatConversationRecordListParam implements OrderParam, Serializable
     /** 降序排序字段映射，key为表别名，value为该表下需降序排序的字段列表 */
     private Map<String, List<String>> orderDescFieldsMap;
 
-    /** 主排序字段映射，key为默认表别名，value为可排序字段及默认排序方向，未设置时按默认规则兜底 */
+    /**
+     * 主排序字段映射，key为默认表别名，value为可排序字段及默认排序方向，
+     * 未设置时按默认规则兜底
+     */
     private Map<String, Map<String, Boolean>> orderMainFieldsMap;
 
     /**

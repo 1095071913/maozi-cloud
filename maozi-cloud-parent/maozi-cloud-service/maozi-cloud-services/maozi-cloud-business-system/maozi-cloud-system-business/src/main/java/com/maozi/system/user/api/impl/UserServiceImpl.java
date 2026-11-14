@@ -77,7 +77,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
     public static final String RESOURCE_NAME = "用户";
 
     /** 密码编码器（DelegatingPasswordEncoder，默认 {bcrypt} 算法），用于密码加密与比对校验 */
-    protected final static PasswordEncoder PASSWORD_ENCODER = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    protected final static PasswordEncoder PASSWORD_ENCODER =
+            PasswordEncoderFactories.createDelegatingPasswordEncoder();
 
     /** 获取资源名称 */
     @Override
@@ -153,8 +154,10 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
     /**
      * 用户新增或更新的统一处理方法
      * <p>
-     * id 为空时新增（校验客户端可用性及用户名唯一性），否则更新（不允许修改用户名与客户端ID）；
-     * 密码非空时加密入库，并同步维护角色绑定关系，更新后状态为禁用时销毁该用户全部 OAuth2 令牌强制下线。
+     * id 为空时新增（校验客户端可用性及用户名唯一性），
+     * 否则更新（不允许修改用户名与客户端ID）；
+     * 密码非空时加密入库，并同步维护角色绑定关系，
+     * 更新后状态为禁用时销毁该用户全部 OAuth2 令牌强制下线。
      * </p>
      *
      * @param id    用户ID，新增时为空，更新时为已有用户ID
@@ -202,7 +205,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
         if(hasId && StatusEnum.DISABLE == param.getStatus()){
             // 更新后状态为禁用时，销毁该用户的全部OAuth2令牌，强制下线
             UserDO user = super.getByIdThrowError(id, UserDO::getUsername, UserDO::getClientId);
-            rpcOauthTokenService.destroyByPrincipalResult(user.getClientId(), user.getUsername()).getResultDataThrowError();
+            rpcOauthTokenService.destroyByPrincipalResult(user.getClientId(), user.getUsername())
+                    .getResultDataThrowError();
         }
 
         return id;
@@ -211,7 +215,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
 
     /**
      * 删除用户
-     * <p>用户不存在时静默返回；删除时解除用户与角色的绑定关系，删除成功后销毁该用户的全部OAuth2令牌，强制下线。</p>
+     * <p>用户不存在时静默返回；删除时解除用户与角色的绑定关系，
+     * 删除成功后销毁该用户的全部OAuth2令牌，强制下线。</p>
      *
      * @param id 需要删除的用户ID
      */
@@ -226,7 +231,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
 
         if(super.removeById(id)){
             // 删除成功后销毁该用户全部 OAuth2 令牌，强制下线
-            rpcOauthTokenService.destroyByPrincipalResult(user.getClientId(), user.getUsername()).getResultDataThrowError();
+            rpcOauthTokenService.destroyByPrincipalResult(user.getClientId(), user.getUsername())
+                    .getResultDataThrowError();
         }
 
     }
@@ -260,7 +266,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
 
         // 禁用用户后销毁其全部OAuth2令牌，强制下线
         if(StatusEnum.DISABLE == status){
-            rpcOauthTokenService.destroyByPrincipalResult(user.getClientId(), user.getUsername()).getResultDataThrowError();
+            rpcOauthTokenService.destroyByPrincipalResult(user.getClientId(), user.getUsername())
+                    .getResultDataThrowError();
         }
 
     }
@@ -268,8 +275,10 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
     /**
      * 更新当前登录用户的个人信息
      * <p>
-     * 旧密码与新密码需同时传入，校验旧密码通过后将新密码加密一并更新，两者均未传入时不修改密码；
-     * 更新成功后销毁当前用户的全部 OAuth2 令牌，并通过 {@code X-Redirect} 响应头指示前端跳转登录页，强制重新登录。
+     * 旧密码与新密码需同时传入，校验旧密码通过后将新密码加密一并更新，
+     * 两者均未传入时不修改密码；
+     * 更新成功后销毁当前用户的全部 OAuth2 令牌，
+     * 并通过 {@code X-Redirect} 响应头指示前端跳转登录页，强制重新登录。
      * </p>
      *
      * @param param 个人信息更新参数（姓名、头像、旧密码、新密码）
@@ -300,7 +309,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
         domain.setPassword(paramNewPassword);
         super.updateById(domain);
 
-        // 更新成功后销毁当前用户在该客户端下的全部OAuth2令牌，并指示前端跳转登录页，强制重新登录
+        // 更新成功后销毁当前用户在该客户端下的全部OAuth2令牌，
+        // 并指示前端跳转登录页，强制重新登录
         Long clientId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getClientId);
         String username = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUsername);
         rpcOauthTokenService.destroyByPrincipalResult(clientId, username).getResultDataThrowError();
@@ -310,7 +320,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
 
     /**
      * 根据用户名获取 OAuth 认证用户信息
-     * <p>返回用户ID、加密密码及该用户的全部权限标识；用户名为空或用户不存在时抛出业务异常。</p>
+     * <p>返回用户ID、加密密码及该用户的全部权限标识；
+     * 用户名为空或用户不存在时抛出业务异常。</p>
      *
      * @param username 用户名
      * @return OAuth 认证用户信息（含 ID、密码、权限标识列表）
@@ -356,7 +367,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
 
     /**
      * 根据用户ID获取该用户的权限标识列表
-     * <p>先查用户绑定的角色，再查角色关联的权限并转换为权限标识；未绑定角色时返回空列表。</p>
+     * <p>先查用户绑定的角色，再查角色关联的权限并转换为权限标识；
+     * 未绑定角色时返回空列表。</p>
      *
      * @param userId 用户ID
      * @return 该用户拥有的权限标识列表
@@ -371,7 +383,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
             return CollectionUtil.newArrayList();
         }
 
-        // 通过角色查询关联的权限 ID 集合并转换为权限标识列表，按已知结果规模构造返回集合
+        // 通过角色查询关联的权限 ID 集合并转换为权限标识列表，
+        // 按已知结果规模构造返回集合
         Collection<Long> permissionIds = rolePermissionService.getPermissionsByRoles(roleIds);
 
         return new ArrayList<>(permissionService.getMarks(permissionIds));

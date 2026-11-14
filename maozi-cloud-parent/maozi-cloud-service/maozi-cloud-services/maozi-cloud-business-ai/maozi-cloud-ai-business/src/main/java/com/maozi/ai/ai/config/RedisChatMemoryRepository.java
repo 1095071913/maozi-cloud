@@ -35,10 +35,13 @@ import java.util.Set;
  * 每个会话在 Redis 中使用三个 key 存储：
  * <ul>
  *   <li>{@code chat:memory:{conversationId}}：HASH，field = 消息雪花 ID，value = 消息 JSON</li>
- *   <li>{@code chat:memory:{conversationId}:order}：ZSET，全部消息的顺序索引，score = 写入时刻毫秒时间戳</li>
- *   <li>{@code chat:memory:{conversationId}:record}：ZSET，仅 USER / ASSISTANT 消息（用户对话记录）的顺序索引</li>
+	 *   <li>{@code chat:memory:{conversationId}:order}：ZSET，全部消息的顺序索引，
+	 *   score = 写入时刻毫秒时间戳</li>
+	 *   <li>{@code chat:memory:{conversationId}:record}：ZSET，仅 USER / ASSISTANT 消息
+	 *   （用户对话记录）的顺序索引</li>
  * </ul>
- * 消息以 {@link ChatMessage} 结构序列化为 JSON 存储，读取时按消息类型反序列化为对应的 Spring AI 消息对象。
+	 * 消息以 {@link ChatMessage} 结构序列化为 JSON 存储，
+	 * 读取时按消息类型反序列化为对应的 Spring AI 消息对象。
  * </p>
  *
  * @author pengjinlong
@@ -57,7 +60,8 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
     /** 消息顺序索引 key 后缀：ZSET，member = 消息雪花 ID，score = 写入时刻毫秒时间戳 */
     private static final String AI_CHAT_MEMORY_ORDER_KEY_SUFFIX = ":order";
 
-    /** 用户对话记录索引 key 后缀：ZSET，member = 消息雪花 ID，score = 写入时刻毫秒时间戳，仅记录 USER / ASSISTANT 消息 */
+    /** 用户对话记录索引 key 后缀：ZSET，member = 消息雪花 ID，
+     * score = 写入时刻毫秒时间戳，仅记录 USER / ASSISTANT 消息 */
     private static final String AI_CHAT_MEMORY_RECORD_KEY_SUFFIX = ":record";
 
     /**
@@ -75,7 +79,10 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
         String aiChatMemoryKey = AI_CHAT_MEMORY_KEY + "*";
 
         List<String> conversationIds = CollectionUtil.newArrayList();
-        try (Cursor<String> cursor = redisClient.scan(ScanOptions.scanOptions().match(aiChatMemoryKey).count(1000).build())) {
+        try (Cursor<String> cursor = redisClient.scan(ScanOptions.scanOptions()
+                .match(aiChatMemoryKey)
+                .count(1000)
+                .build())) {
             cursor.forEachRemaining(key -> {
                 // 跳过顺序索引与对话记录索引 key，仅保留消息主体 key
                 if (key.endsWith(AI_CHAT_MEMORY_ORDER_KEY_SUFFIX) || key.endsWith(AI_CHAT_MEMORY_RECORD_KEY_SUFFIX)) {
@@ -114,7 +121,8 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
     }
 
     /**
-     * 查询会话中写入时间晚于指定时间戳的用户对话消息（仅 USER / ASSISTANT 消息，按时间正序）
+     * 查询会话中写入时间晚于指定时间戳的用户对话消息
+     * （仅 USER / ASSISTANT 消息，按时间正序）
      *
      * @param conversationId 会话 ID
      * @param timestamp 写入时刻毫秒时间戳（不包含等于该时间戳的消息）
@@ -136,7 +144,8 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
      *
      * @param conversationId 会话 ID
      * @param indexKeySuffix 索引 key 后缀（:order 全部消息 / :record 用户对话记录）
-     * @param minScore 最小写入时刻毫秒时间戳（包含，查询 score 大于等于该值的消息，调用方通过传入 timestamp + 1 实现"晚于 timestamp"语义）
+     * @param minScore 最小写入时刻毫秒时间戳（包含，查询 score 大于等于该值的消息，
+     * 调用方通过传入 timestamp + 1 实现"晚于 timestamp"语义）
      * @return 消息列表
      */
     private List<Message> findMessageByIndexSuffix(String conversationId, String indexKeySuffix, double minScore) {
@@ -144,7 +153,8 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
         String aiChatMemoryKey = AI_CHAT_MEMORY_KEY + conversationId;
 
         // 从索引 ZSET 中按 score 范围取出消息 ID
-        Set<String> messageIds = redisClient.boundZSetOps(aiChatMemoryKey + indexKeySuffix).rangeByScore(minScore, Double.POSITIVE_INFINITY);
+        Set<String> messageIds = redisClient.boundZSetOps(aiChatMemoryKey + indexKeySuffix)
+                .rangeByScore(minScore, Double.POSITIVE_INFINITY);
         if(ObjectUtil.isNullEmpty(messageIds)){
             return CollectionUtil.newArrayList();
         }
@@ -165,7 +175,8 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
     /**
      * 全量保存会话消息
      * <p>
-     * 先清空该会话原有数据，再整体重写：为无 ID 的消息生成雪花 ID 与写入时间戳写入消息元数据，
+     * 先清空该会话原有数据，再整体重写：为无 ID 的消息生成雪花 ID 与写入时间戳
+     * 写入消息元数据，
      * 消息 JSON 写入主体 HASH，同时维护全部消息顺序索引与用户对话记录索引。
      * </p>
      *
@@ -229,7 +240,9 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
     @Override
     public void deleteByConversationId(@NotNull String conversationId) {
         String aiChatMemoryKey = AI_CHAT_MEMORY_KEY + conversationId;
-        redisClient.delete(List.of(aiChatMemoryKey, aiChatMemoryKey + AI_CHAT_MEMORY_ORDER_KEY_SUFFIX, aiChatMemoryKey + AI_CHAT_MEMORY_RECORD_KEY_SUFFIX));
+        redisClient.delete(List.of(aiChatMemoryKey,
+                aiChatMemoryKey + AI_CHAT_MEMORY_ORDER_KEY_SUFFIX,
+                aiChatMemoryKey + AI_CHAT_MEMORY_RECORD_KEY_SUFFIX));
     }
 
     /**
@@ -314,7 +327,8 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
                         .build();
             }
             case ASSISTANT -> {
-                return new AssistantMessage(chatMessage.getTextContent(), chatMessage.getMetadata(), chatMessage.getToolCalls(),chatMessage.getMedia());
+                return new AssistantMessage(chatMessage.getTextContent(),
+                        chatMessage.getMetadata(), chatMessage.getToolCalls(),chatMessage.getMedia());
             }
             case TOOL -> {
                 return new ToolResponseMessage(chatMessage.getToolResponses(), chatMessage.getMetadata());

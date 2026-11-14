@@ -59,7 +59,8 @@ public class RemoteOauthTokenServiceImpl implements OauthTokenService {
         if(ObjectUtil.isNotNullEmpty(mode) && !MODE_RPC.equalsIgnoreCase(mode)){
 
             // REST 返回的时间与用户 ID 为字符串，还原为内省器所需的 Instant/Long 类型
-            Map<String, Object> introspectResultData = restOauthTokenService.introspectResult(token).getResultDataThrowError();
+            Map<String, Object> introspectResultData = restOauthTokenService.introspectResult(token)
+                    .getResultDataThrowError();
 
             Object iatObj = introspectResultData.get(OAuth2TokenIntrospectionClaimNames.IAT);
             if(ObjectUtil.isNotNullEmpty(iatObj)){

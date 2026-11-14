@@ -13,7 +13,8 @@ import java.lang.annotation.Target;
  * 按部署模式由以下组件识别并注册：
  * <ul>
  *   <li>分布式部署：{@code RemoteServiceBeanPostProcessor}（注册到 Dubbo 注册中心对外暴露）</li>
- *   <li>单体部署：{@code LocalRemoteServiceRegistrar}（注册为本地 Spring Bean，供 {@link RemoteResource} 直接注入）</li>
+ *   <li>单体部署：{@code LocalRemoteServiceRegistrar}（注册为本地 Spring Bean，
+ *   供 {@link RemoteResource} 直接注入）</li>
  * </ul>
  * 与 {@link RemoteResource}（消费端注解）成对使用。
  * </p>

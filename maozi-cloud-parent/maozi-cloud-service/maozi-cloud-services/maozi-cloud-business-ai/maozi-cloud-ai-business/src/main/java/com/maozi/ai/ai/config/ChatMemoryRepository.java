@@ -33,7 +33,8 @@ public interface ChatMemoryRepository extends org.springframework.ai.chat.memory
     List<Message> findRecordByConversationId(String conversationId);
 
     /**
-     * 查询会话中写入时间晚于指定时间戳的用户对话消息（仅 USER / ASSISTANT 消息，按时间正序）
+     * 查询会话中写入时间晚于指定时间戳的用户对话消息
+     * （仅 USER / ASSISTANT 消息，按时间正序）
      *
      * @param conversationId 会话 ID
      * @param timestamp 写入时刻毫秒时间戳（不包含等于该时间戳的消息）

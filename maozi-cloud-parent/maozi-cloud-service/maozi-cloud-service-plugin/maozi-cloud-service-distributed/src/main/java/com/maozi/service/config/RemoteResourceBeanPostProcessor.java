@@ -22,8 +22,10 @@ import java.util.concurrent.ConcurrentMap;
  * {@link RemoteResource} 字段注入处理器（微服务模式）。
  * <p>
  * {@link RemoteResource} 未组合 {@code @DubboReference}，无法借助 Dubbo 元注解方式完成注入；
- * 本处理器扫描其标注的字段，通过 Dubbo 编程式 API（{@link ReferenceConfig} + {@link DubboBootstrap}）
- * 创建远程引用代理并反射写入（代理按接口类型缓存），同时按字段名将代理注册为 Spring 单例，
+ * 本处理器扫描其标注的字段，通过 Dubbo 编程式 API
+ * （{@link ReferenceConfig} + {@link DubboBootstrap}）
+ * 创建远程引用代理并反射写入（代理按接口类型缓存），
+ * 同时按字段名将代理注册为 Spring 单例，
  * 供 {@code SpringUtil.getBean(字段名)} 等按名查找使用（如 {@code BaseServiceImpl} 的
  * {@code @QueryMapping(serviceName=...)} 关联数据解析机制）。
  * </p>
@@ -56,7 +58,8 @@ public class RemoteResourceBeanPostProcessor implements InstantiationAwareBeanPo
     /**
      * 在属性注入阶段为 {@link RemoteResource} 标注的字段写入 Dubbo 引用代理
      * <p>
-     * 跳过静态字段；代理按接口类型缓存，并按字段名注册为 Spring 单例后反射写入目标字段。
+     * 跳过静态字段；代理按接口类型缓存，
+     * 并按字段名注册为 Spring 单例后反射写入目标字段。
      * </p>
      *
      * @param pvs 原始属性值
@@ -65,7 +68,8 @@ public class RemoteResourceBeanPostProcessor implements InstantiationAwareBeanPo
      * @return 原始属性值（不修改常规属性注入流程）
      */
     @Override
-    public PropertyValues postProcessProperties(@NotNull PropertyValues pvs, Object bean, @NotNull String beanName) throws BeansException {
+    public PropertyValues postProcessProperties(@NotNull PropertyValues pvs, Object bean,
+        @NotNull String beanName) throws BeansException {
         ReflectionUtils.doWithFields(bean.getClass(), field -> {
             if (field.isAnnotationPresent(RemoteResource.class) && !Modifier.isStatic(field.getModifiers())) {
                 Object reference = referenceCache.computeIfAbsent(field.getType(), this::createReference);

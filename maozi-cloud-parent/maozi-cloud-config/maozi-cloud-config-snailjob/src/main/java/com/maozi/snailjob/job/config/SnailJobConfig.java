@@ -41,16 +41,20 @@ public class SnailJobConfig {
     private static final String FORY_LOGGER_NAME = "org.apache.fory";
 
     /** SnailJob 客户端远程重试执行器（RemoteRetryExecutor）的日志命名空间 */
-    private static final String REMOTE_RETRY_EXECUTOR_LOGGER_NAME = "com.aizuda.snailjob.client.core.executor.RemoteRetryExecutor";
+    private static final String REMOTE_RETRY_EXECUTOR_LOGGER_NAME =
+            "com.aizuda.snailjob.client.core.executor.RemoteRetryExecutor";
 
     static {
         // Fory 默认使用自带的 ForyLogger 直接 System.out 打印日志（自带格式，绕过 SLF4J/Logback，
-        // 应用侧无论怎么调 Logback 级别都无法管控），必须在其首次创建内部 Logger 前切换为
+        // 应用侧无论怎么调 Logback 级别都无法管控），
+        // 必须在其首次创建内部 Logger 前切换为
         // SLF4J 实现，才能纳入应用统一日志体系；本静态块在配置类加载时执行，
         // 早于 SnailJob 客户端 Bean 初始化与 Fory 类加载，时序可靠。
         org.apache.fory.logging.LoggerFactory.useSlf4jLogging(true);
-        // Fory 的类注册告警、实例创建、序列化代码生成与白名单提示均为框架内部行为，与业务无关，
-        // 全局级别压至 ERROR 屏蔽；该级别在 Fory 每次打日志时动态校验，对已创建的 ForyLogger 同样生效
+        // Fory 的类注册告警、实例创建、序列化代码生成与白名单提示均为框架内部行为，
+        // 与业务无关，
+        // 全局级别压至 ERROR 屏蔽；该级别在 Fory 每次打日志时动态校验，
+        // 对已创建的 ForyLogger 同样生效
         org.apache.fory.logging.LoggerFactory.setLogLevel(org.apache.fory.logging.LogLevel.ERROR_LEVEL);
         // 双保险：SLF4J 通道下再由 Logback 级别兜底（当前日志实现非 Logback 时不做处理）
         if (LoggerFactory.getILoggerFactory() instanceof LoggerContext loggerContext) {
@@ -63,7 +67,8 @@ public class SnailJobConfig {
      * <p>
      * 此时 Spring Boot 已完成 logback-spring.xml 解析（发生在环境准备阶段，早于容器刷新），
      * 此后挂载的 appender 与调整的日志级别不会被日志系统重置清除。
-     * 该 appender 仅上报任务与重试执行上下文内的日志，容器初始化前的启动日志不受影响。
+     * 该 appender 仅上报任务与重试执行上下文内的日志，
+     * 容器初始化前的启动日志不受影响。
      * 当前日志实现非 Logback 时不做任何处理。
      * </p>
      * <p>
@@ -81,7 +86,8 @@ public class SnailJobConfig {
             return;
         }
 
-        // 屏蔽 SnailJob 客户端远程重试结果日志，须在 appender 判重返回前执行，保证始终生效
+        // 屏蔽 SnailJob 客户端远程重试结果日志，
+        // 须在 appender 判重返回前执行，保证始终生效
         loggerContext.getLogger(REMOTE_RETRY_EXECUTOR_LOGGER_NAME).setLevel(Level.OFF);
 
         Logger rootLogger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);

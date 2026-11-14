@@ -86,15 +86,19 @@ public class LockAop {
         // （REDIS_KEY_PREFIX 尾部自带冒号，业务键以 "_" 为前缀连接）
         lockName = RedisUtil.REDIS_KEY_PREFIX + LockTypeEnum.LOCK_PREFIX + lockName + businessKeyName;
 
-        // 获取等待时间：如果注解未指定（Long.MIN_VALUE），则使用全局配置的默认值（判空防止自动拆箱 NPE）
+        // 获取等待时间：如果注解未指定（Long.MIN_VALUE），则使用全局配置的默认值
+        // （判空防止自动拆箱 NPE）
         Long configuredWaitTime = lockRedissonProperties.getWaitTime();
         long waitTime = annotation.waitTime() == Long.MIN_VALUE
-                ? (configuredWaitTime == null ? LockTypeEnum.DEFAULT_LOCK_TIME : configuredWaitTime) : annotation.waitTime();
+                ? (configuredWaitTime == null ? LockTypeEnum.DEFAULT_LOCK_TIME : configuredWaitTime)
+                : annotation.waitTime();
 
-        // 获取持有时间：如果注解未指定（Long.MIN_VALUE），则使用全局配置的默认值（判空防止自动拆箱 NPE）
+        // 获取持有时间：如果注解未指定（Long.MIN_VALUE），则使用全局配置的默认值
+        // （判空防止自动拆箱 NPE）
         Long configuredLeaseTime = lockRedissonProperties.getLeaseTime();
         long leaseTime = annotation.leaseTime() == Long.MIN_VALUE
-                ? (configuredLeaseTime == null ? LockTypeEnum.DEFAULT_LOCK_TIME : configuredLeaseTime) : annotation.leaseTime();
+                ? (configuredLeaseTime == null ? LockTypeEnum.DEFAULT_LOCK_TIME : configuredLeaseTime)
+                : annotation.leaseTime();
 
         // 执行加锁操作，如果加锁失败则根据配置的策略进行处理
         type.lock(lockName, waitTime, leaseTime, annotation.lockTimeoutStrategy());

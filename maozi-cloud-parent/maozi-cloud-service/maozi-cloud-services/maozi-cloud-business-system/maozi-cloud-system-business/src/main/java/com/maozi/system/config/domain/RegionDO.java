@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serial;
+import java.math.BigDecimal;
 
 /**
  * 地区实体类
@@ -50,10 +51,10 @@ public class RegionDO extends AbstractBaseNameDomain {
     private String mername;
 
     /** 经度 */
-    private Float lng;
+    private BigDecimal lng;
 
     /** 纬度 */
-    private Float lat;
+    private BigDecimal lat;
 
     /** 拼音 */
     private String pinyin;

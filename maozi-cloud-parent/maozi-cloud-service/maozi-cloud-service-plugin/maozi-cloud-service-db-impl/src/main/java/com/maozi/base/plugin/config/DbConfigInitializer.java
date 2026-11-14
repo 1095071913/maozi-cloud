@@ -18,7 +18,9 @@ import java.util.Properties;
  */
 public class DbConfigInitializer implements ConfigInitializer {
 
-    /** 数据库相关 Nacos 共享配置文件导入清单（optional 前缀保证文件不存在时不阻断启动） */
+    /**
+     * 数据库相关 Nacos 共享配置文件导入清单（optional 前缀保证文件不存在时不阻断启动）
+     */
     private static final String NACOS_IMPORTS = "optional:nacos:boot-db.yml";
 
     /**

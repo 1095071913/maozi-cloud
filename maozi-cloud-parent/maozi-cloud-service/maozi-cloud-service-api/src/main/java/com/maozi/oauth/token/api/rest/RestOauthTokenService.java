@@ -23,7 +23,8 @@ import java.util.Map;
  * @date 2026/11/08
  */
 @Tag(name = "【三方】授权令牌")
-@FeignClient(value = ApplicationNameConstant.MAOZI_CLOUD_OAUTH_SERVICE, fallbackFactory = RestOauthTokenServiceFallBackFactory.class)
+@FeignClient(value = ApplicationNameConstant.MAOZI_CLOUD_OAUTH_SERVICE,
+        fallbackFactory = RestOauthTokenServiceFallBackFactory.class)
 public interface RestOauthTokenService {
 
     /** REST 接口基础路径 */

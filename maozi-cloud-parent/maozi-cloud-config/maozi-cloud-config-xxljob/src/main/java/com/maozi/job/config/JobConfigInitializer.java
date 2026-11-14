@@ -18,7 +18,8 @@ import java.util.Properties;
  */
 public class JobConfigInitializer implements ConfigInitializer {
 
-    /** 定时任务相关的 Nacos 共享配置文件导入（optional 前缀保证文件不存在时不阻断启动） */
+    /** 定时任务相关的 Nacos 共享配置文件导入
+     * （optional 前缀保证文件不存在时不阻断启动） */
     private static final String NACOS_IMPORTS = "optional:nacos:boot-xxljob.yml";
 
     /**

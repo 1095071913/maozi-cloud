@@ -36,7 +36,8 @@ public class ReactorHooksConfiguration {
 
         Hooks.onErrorDropped(e -> {
 
-            // 客户端主动断开连接导致的 AbortedException 属于正常业务现象，静默丢弃，不记录日志
+            // 客户端主动断开连接导致的 AbortedException 属于正常业务现象，
+            // 静默丢弃，不记录日志
             if (e instanceof AbortedException) {
                 return;
             }

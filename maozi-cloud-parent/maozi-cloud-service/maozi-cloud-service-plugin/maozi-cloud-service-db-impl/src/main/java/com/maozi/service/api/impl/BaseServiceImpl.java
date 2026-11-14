@@ -82,7 +82,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     /**
      * 领域模型（数据库实体）Class 对象
      * -- GETTER --
-     * 获取领域模型 Class 对象（懒加载缓存；CGLIB 代理下直接读字段得到 null，须经本方法获取）
+     * 获取领域模型 Class 对象（懒加载缓存；CGLIB 代理下直接读字段得到 null，
+     * 须经本方法获取）
      *
      * @return 领域模型 Class 对象
      */
@@ -204,7 +205,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     /**
      * 根据 Lambda 函数引用获取对应的数据库列名
      * <p>
-     * 将 Lambda 属性引用解析为下划线列名，优先取 TableInfo 中的主键/字段映射，未命中时回退属性名。
+     * 将 Lambda 属性引用解析为下划线列名，优先取 TableInfo 中的主键/字段映射，
+     * 未命中时回退属性名。
      * </p>
      *
      * @param <O> 实体类型
@@ -257,7 +259,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public <O> String[] getColumns(SFunction<O, ?>... functions) {
 
-        String [] columns = new String[functions.length];
+        String[] columns = new String[functions.length];
 
         int i = 0;
         for(SFunction<?, ?> sfunction : functions) {
@@ -299,7 +301,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         for( ; !Object.class.getName().equals(clazz.getName()); clazz = clazz.getSuperclass()){
 
-            Field [] fields = clazz.getDeclaredFields();
+            Field[] fields = clazz.getDeclaredFields();
             for(Field field : fields) {
 
                 if(SerializeUtil.SERIAL_VERSION_UID_FIELD_NAME.equals(field.getName())){
@@ -311,7 +313,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
                     // 无注解：字段名转下划线，关联模式下追加默认表别名前缀
                     String fieldName = StrUtil.toUnderlineCase(field.getName());
-                    columns.add(isJoin ? String.join(".", QueryEnvironmentContext.defaultOrderKey, fieldName) : fieldName);
+                    columns.add(isJoin
+                            ? String.join(".", QueryEnvironmentContext.defaultOrderKey, fieldName)
+                            : fieldName);
 
                 }else if(annotation.ignore() && (StringUtils.isNotBlank(annotation.field())
                         || StringUtils.isNotBlank(annotation.tableName()))){
@@ -531,7 +535,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public void checkHas(Wrapper<T> wrapper) {
         ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
-        ObjectUtil.checkConditionThrowError(super.count(wrapper) > 0, errorCode, getResourceName() + errorCode.getMessage());
+        ObjectUtil.checkConditionThrowError(super.count(wrapper) > 0, errorCode,
+                getResourceName() + errorCode.getMessage());
     }
 
     /**
@@ -542,7 +547,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public void checkNotHas(Wrapper<T> wrapper) {
         ErrorCode errorCode = SystemErrorCode.DATA_EXIST_ERROR;
-        ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1, errorCode, getResourceName() + errorCode.getMessage());
+        ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1, errorCode,
+                getResourceName() + errorCode.getMessage());
     }
 
     /**
@@ -1102,7 +1108,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * 根据参数对象的注解信息构建查询条件
      * <p>
      * 先应用类级 JoinPlugins 注解拼接关联查询，再遍历字段：值为空的跳过，
-     * QueryPlugin 注解按查询类型拼接（nest 嵌套参数递归解析），TimeParam 字段生成时间范围条件。
+     * QueryPlugin 注解按查询类型拼接（nest 嵌套参数递归解析），
+     * TimeParam 字段生成时间范围条件。
      * </p>
      *
      * @param tableName 表别名
@@ -1140,7 +1147,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         }
 
-        Field [] fields = ReflectUtil.getFields(param.getClass());
+        Field[] fields = ReflectUtil.getFields(param.getClass());
 
         for(Field field : fields) {
 
@@ -1226,7 +1233,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         for(;!Object.class.getName().equals(clazz.getName());clazz = clazz.getSuperclass()){
 
-            Field [] fields = clazz.getDeclaredFields();
+            Field[] fields = clazz.getDeclaredFields();
 
             for(Field field : fields) {
 
@@ -1438,7 +1445,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     /**
      * 批量模式：设置单个字段的关联数据
      * <p>
-     * 按字段类型分发：functionName 自定义方法、List 一对多、DropDownResult 下拉、其余一对一；
+     * 按字段类型分发：functionName 自定义方法、List 一对多、DropDownResult 下拉、
+     * 其余一对一；
      * 批量收集 ID 统一调用服务后分发回各响应对象（一对多以对象自身主键为关联值）。
      * </p>
      *
@@ -1544,7 +1552,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     /**
      * 单对象模式：设置单个字段的关联数据
      * <p>
-     * 按字段类型分发：functionName 自定义方法、List 一对多、DropDownResult 下拉、其余一对一。
+     * 按字段类型分发：functionName 自定义方法、List 一对多、DropDownResult 下拉、
+     * 其余一对一。
      * </p>
      *
      * @param data 响应数据对象

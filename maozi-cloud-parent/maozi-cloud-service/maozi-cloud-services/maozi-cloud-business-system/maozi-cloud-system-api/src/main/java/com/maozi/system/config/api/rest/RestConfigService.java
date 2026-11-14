@@ -38,12 +38,15 @@ public interface RestConfigService {
      * 默认按排序值升序、创建时间倒序排列。
      * </p>
      *
-     * @param pageParam 分页查询参数，包含页码、每页数量以及配置搜索条件（类型必填、名称与别名模糊查询）
-     * @return 返回配置分页列表数据，包含配置 ID、名称、别名、类型、配置值、排序值、状态、创建时间等信息
+     * @param pageParam 分页查询参数，包含页码、每页数量以及配置搜索条件
+     *                 （类型必填、名称与别名模糊查询）
+     * @return 返回配置分页列表数据，包含配置 ID、名称、别名、类型、
+     *         配置值、排序值、状态、创建时间等信息
      */
     @Post(value = PATH + "/list",description = "配置列表")
     @PreAuthorize("hasAuthority('system:config:list')")
-    AbstractBaseResult<PageResult<ConfigListResult>> listResult(@RequestBody @Valid PageParam<ConfigListParam> pageParam);
+    AbstractBaseResult<PageResult<ConfigListResult>> listResult(
+            @RequestBody @Valid PageParam<ConfigListParam> pageParam);
 
     /**
      * 保存新增全局配置
@@ -113,7 +116,8 @@ public interface RestConfigService {
     /**
      * 更新配置信息（动态更新）
      * <p>
-     * 仅更新传入的字段（名称、别名、类型、配置值、排序值），未传入的字段保持原值；
+     * 仅更新传入的字段（名称、别名、类型、配置值、排序值），
+     * 未传入的字段保持原值；
      * 配置不存在时抛出业务异常。
      * </p>
      *

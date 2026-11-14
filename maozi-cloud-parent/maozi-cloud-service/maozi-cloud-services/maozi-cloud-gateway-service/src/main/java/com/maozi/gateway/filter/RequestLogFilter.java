@@ -78,7 +78,8 @@ public class RequestLogFilter implements GlobalFilter, Ordered {
         logs.put(LogTag.METHOD, Objects.requireNonNull(exchange.getRequest().getMethod()).toString());
 
         // 使用 ServerHttpResponseAgent 包装响应，在响应写入时自动记录日志
-        return chain.filter(exchange.mutate().response(new ServerHttpResponseAgent(requestTime, logs,exchange.getResponse(),exchange.getAttributes(),exchange.getRequest())).build());
+        return chain.filter(exchange.mutate().response(new ServerHttpResponseAgent(requestTime, logs,
+                exchange.getResponse(),exchange.getAttributes(),exchange.getRequest())).build());
 
     }
 

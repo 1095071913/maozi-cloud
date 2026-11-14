@@ -64,9 +64,12 @@ public class MessageSendStream {
         // 获取当前服务在注册中心的全部存活实例
         List<ServiceInstance> instances = discoveryClient.getInstances(ApplicationEnvironmentContext.serviceName);
 
-        // 按实例元数据中的 version（灰度标识）对存活实例分组，用于判断当前版本是否仍有存活实例
-        // （元数据缺失 version 的实例归入默认版本分组，避免 groupingBy 分类函数返回 null 抛 NPE）
-        Map<String,List<ServiceInstance>> applicationClients = instances.stream().collect(Collectors.groupingBy((instance)-> {
+        // 按实例元数据中的 version（灰度标识）对存活实例分组，
+        // 用于判断当前版本是否仍有存活实例
+        // （元数据缺失 version 的实例归入默认版本分组，
+        // 避免 groupingBy 分类函数返回 null 抛 NPE）
+        Map<String,List<ServiceInstance>> applicationClients = instances.stream()
+                .collect(Collectors.groupingBy((instance)-> {
             String instanceVersion = instance.getMetadata().get(VersionContext.NACOS_VERSION_KEY);
             return instanceVersion != null ? instanceVersion : VersionContext.APPLICATION_DEFAULT_VERSION;
         }));
@@ -74,8 +77,10 @@ public class MessageSendStream {
         // 当前请求版本号，链路上下文未设置时取默认版本 main
         String version = VersionContext.CONTEXT.get();
 
-        // 当前为非默认版本且该版本已无存活实例时，灰度标识回退为默认版本，保证消息仍可被消费
-        if(!VersionContext.APPLICATION_DEFAULT_VERSION.equals(version) && ObjectUtil.isNullEmpty(applicationClients.get(version))){
+        // 当前为非默认版本且该版本已无存活实例时，灰度标识回退为默认版本，
+        // 保证消息仍可被消费
+        if(!VersionContext.APPLICATION_DEFAULT_VERSION.equals(version)
+                && ObjectUtil.isNullEmpty(applicationClients.get(version))){
             version = VersionContext.APPLICATION_DEFAULT_VERSION;
         }
 

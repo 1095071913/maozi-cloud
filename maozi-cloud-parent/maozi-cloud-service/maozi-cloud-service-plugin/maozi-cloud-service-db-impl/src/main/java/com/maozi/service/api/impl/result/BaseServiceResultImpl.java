@@ -215,7 +215,8 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
         }
         wrapper.eq(relationField,id);
 
-        return ResultUtil.success(CglibUtil.copyList(service.list(wrapper), () -> ReflectUtil.newInstance(getResultClass())));
+        return ResultUtil.success(CglibUtil.copyList(service.list(wrapper),
+                () -> ReflectUtil.newInstance(getResultClass())));
 
     }
 
@@ -326,7 +327,8 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
             service.checkBind(id);
         }
 
-        LambdaUpdateWrapper<? extends AbstractBaseDomain> updateWrapper = Wrappers.lambdaUpdate(service.getDomainClass());
+        LambdaUpdateWrapper<? extends AbstractBaseDomain> updateWrapper =
+                Wrappers.lambdaUpdate(service.getDomainClass());
         updateWrapper.set(AbstractBaseDomain::getStatus, status);
         updateWrapper.eq(AbstractBaseDomain::getId, id);
 

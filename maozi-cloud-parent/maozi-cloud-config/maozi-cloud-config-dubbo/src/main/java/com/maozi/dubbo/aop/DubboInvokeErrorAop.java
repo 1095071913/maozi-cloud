@@ -26,7 +26,8 @@ import java.util.regex.Pattern;
  * 当调用抛出异常时，记录错误日志并返回统一的错误结果，避免异常向上层传播。
  * </p>
  * <p>
- * <b>注：</b>代码中保留了按包路径第 6 段是否为 {@code impl} 判断是否重新抛出异常的防御逻辑，
+ * <b>注：</b>代码中保留了按包路径第 6 段是否为 {@code impl} 判断是否重新抛出异常的
+ * 防御逻辑，
  * 但当前切点限定的包路径第 6 段恒为 {@code rpc} 或 {@code rest}，该判断恒为真，
  * 因此实际所有被拦截的异常都会被捕获封装，重新抛出的分支当前不可达。
  * </p>
@@ -46,10 +47,16 @@ public class DubboInvokeErrorAop {
     private static final Pattern DOT_SPLIT_PATTERN = Pattern.compile("\\.");
 
     /** RPC 接口切点表达式 */
-    private static final String RPC_POINT = ApplicationEnvironmentContext.PACKAGE_PREFIX + ".common.result.AbstractBaseResult " + ApplicationEnvironmentContext.PACKAGE_PREFIX + ".*.*.api.rpc..*.*(..)";
+    private static final String RPC_POINT = ApplicationEnvironmentContext.PACKAGE_PREFIX
+            + ".common.result.AbstractBaseResult "
+            + ApplicationEnvironmentContext.PACKAGE_PREFIX
+            + ".*.*.api.rpc..*.*(..)";
 
     /** REST 接口切点表达式 */
-    private static final String REST_POINT = ApplicationEnvironmentContext.PACKAGE_PREFIX + ".common.result.AbstractBaseResult " + ApplicationEnvironmentContext.PACKAGE_PREFIX + ".*.*.api.rest..*.*(..)";
+    private static final String REST_POINT = ApplicationEnvironmentContext.PACKAGE_PREFIX
+            + ".common.result.AbstractBaseResult "
+            + ApplicationEnvironmentContext.PACKAGE_PREFIX
+            + ".*.*.api.rest..*.*(..)";
 
     /** 组合切点表达式 */
     private static final String POINT = "execution(" + RPC_POINT + ") || execution(" + REST_POINT + ")";
@@ -69,7 +76,8 @@ public class DubboInvokeErrorAop {
 
             // 解析被调用类的全限定名，按 "." 分割以提取包路径中的各段信息
             // 包路径格式约定为：com.maozi.{服务名}.{模块名}.{层级}.rpc.{类名}
-            String[] remoteInvokeClassSplit = DOT_SPLIT_PATTERN.split(proceedingJoinPoint.getSignature().getDeclaringTypeName());
+            String[] remoteInvokeClassSplit = DOT_SPLIT_PATTERN
+                    .split(proceedingJoinPoint.getSignature().getDeclaringTypeName());
 
             // 判断是否为接口层调用：remoteInvokeClassSplit[5] 对应包路径中 api 下的子包名。
             // 当前切点限定的子包名恒为 "rpc"/"rest"，下方条件恒不成立；
@@ -85,14 +93,16 @@ public class DubboInvokeErrorAop {
             // 构建结构化的错误日志信息
             Map<String, String> logs = new LinkedHashMap<>(16);
 
-            logs.put(LogTag.TYPE, LogCommonTypeEnum.RPC.getDesc());                     // 日志类型：RPC 远程调用
+            // 日志类型：RPC 远程调用
+            logs.put(LogTag.TYPE, LogCommonTypeEnum.RPC.getDesc());
             logs.put(LogTag.SERVICE_NAME, serviceName);                              // 被调用的服务名称
             logs.put(LogTag.FUNCTION, proceedingJoinPoint.getSignature()             // 被调用的方法全路径
                     .getDeclaringTypeName() + ":" + proceedingJoinPoint.getSignature().getName());
             logs.put(LogTag.PARAM, Arrays.toString(proceedingJoinPoint.getArgs()));  // 方法入参
             logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());                    // 异常描述信息
 
-            // 记录异常发生的代码行（热点异常在 JVM fast-throw 优化下堆栈可能为空，需判长度）
+            // 记录异常发生的代码行（热点异常在 JVM fast-throw 优化下堆栈可能为空，
+            // 需判长度）
             StackTraceElement[] errorLines = e.getStackTrace();
             if (errorLines.length > 0) {
                 logs.put(LogTag.ERROR_LINE, errorLines[0].toString());
@@ -104,8 +114,10 @@ public class DubboInvokeErrorAop {
             // 构建统一的 RPC 调用错误响应，避免异常向上传播
             ErrorCode errorCode = SystemErrorCode.SERVICE_RPC_ERROR;
             return ResultUtil.error(errorCode)
-                    .setExceptionMessage(StrUtil.upperFirst(serviceName) + errorCode.getExceptionMessage())  // 错误消息前拼接服务名
-                    .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);                                  // 设置统一的系统错误 HTTP 状态码
+                    // 错误消息前拼接服务名
+                    .setExceptionMessage(StrUtil.upperFirst(serviceName) + errorCode.getExceptionMessage())
+                    // 设置统一的系统错误 HTTP 状态码
+                    .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
 
         }
 

@@ -157,7 +157,8 @@ public class StreamEntranceLogAop {
                     logs.put(LogTag.PARAM, messageData.toString());
                 }
 
-                // 记录异常描述与发生的第一行代码位置（热点异常在 JVM fast-throw 优化下堆栈可能为空，需判长度）
+                // 记录异常描述与发生的第一行代码位置
+                // （热点异常在 JVM fast-throw 优化下堆栈可能为空，需判长度）
                 logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
                 StackTraceElement[] errorLines = e.getStackTrace();
                 if (errorLines.length > 0) {

@@ -36,7 +36,7 @@ public @interface Lock {
     long leaseTime() default Long.MIN_VALUE;
 
      /** 自定义业务键（支持 SpEL 表达式） */
-     String [] keys() default {};
+     String[] keys() default {};
 
      /** 加锁超时的处理策略，默认持续获取（指数退避重试） */
      LockTimeoutStrategyEnum lockTimeoutStrategy() default LockTimeoutStrategyEnum.KEEP_ACQUIRE;

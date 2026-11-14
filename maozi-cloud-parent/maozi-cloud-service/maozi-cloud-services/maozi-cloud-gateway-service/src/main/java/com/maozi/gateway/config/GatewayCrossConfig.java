@@ -38,7 +38,10 @@ public class GatewayCrossConfig {
     /** 允许所有响应头暴露给前端 */
     private static final String ALL = "*";
 
-    /** CORS 预检请求缓存时间（秒）；注意值带 long 后缀 L，浏览器会收到字面 "3600L"，如需修正请改为 "3600" */
+    /**
+     * CORS 预检请求缓存时间（秒）；注意值带 long 后缀 L，
+     * 浏览器会收到字面 "3600L"，如需修正请改为 "3600"
+     */
     private static final String MAX_AGE = "3600L";
 
     /** Access-Control-Allow-Credentials 响应头取值：允许携带凭证 */
@@ -56,7 +59,8 @@ public class GatewayCrossConfig {
      * @return 路由定义定位器
      */
     @Bean
-    public RouteDefinitionLocator discoveryClientRouteDefinitionLocator(ReactiveDiscoveryClient discoveryClient,DiscoveryLocatorProperties properties) {
+    public RouteDefinitionLocator discoveryClientRouteDefinitionLocator(ReactiveDiscoveryClient discoveryClient,
+        DiscoveryLocatorProperties properties) {
         return new DiscoveryClientRouteDefinitionLocator(discoveryClient, properties);
     }
 

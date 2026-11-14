@@ -11,13 +11,15 @@ import org.springframework.security.core.AuthenticationException;
 /**
  * 用户认证失败处理器
  * <p>
- * 当用户认证失败时（如用户名或密码错误），返回用户认证错误（USER_AUTH_ERROR）的统一错误响应。
+ * 当用户认证失败时（如用户名或密码错误），
+ * 返回用户认证错误（USER_AUTH_ERROR）的统一错误响应。
  * </p>
  *
  * @author maozi
  * @date 2026/11/08
  */
-public class UserAuthenticationFailureHandler implements org.springframework.security.web.authentication.AuthenticationFailureHandler {
+public class UserAuthenticationFailureHandler implements
+        org.springframework.security.web.authentication.AuthenticationFailureHandler {
 
     /**
      * 处理用户认证失败
@@ -30,7 +32,8 @@ public class UserAuthenticationFailureHandler implements org.springframework.sec
      * @param exception 认证异常信息
      */
     @Override
-    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) {
+    public void onAuthenticationFailure(HttpServletRequest request,
+            HttpServletResponse response, AuthenticationException exception) {
         ErrorCode errorCode = SystemErrorCode.USER_AUTH_ERROR;
         WebUtil.writeResponseBody(response, ResultUtil.error(errorCode).autoIdentifyHttpCode(errorCode.getCode()));
     }

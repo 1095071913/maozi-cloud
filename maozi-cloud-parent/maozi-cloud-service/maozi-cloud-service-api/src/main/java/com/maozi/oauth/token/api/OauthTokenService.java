@@ -7,7 +7,8 @@ import java.util.Map;
  * <p>
  * 定义访问令牌（Access Token）的内省能力，供 {@code OpaqueTokenIntrospector} 校验令牌有效性。
  * 授权服务器进程使用本地实现 {@code OauthTokenServiceImpl}；资源服务器进程使用
- * {@code RemoteOauthTokenServiceImpl}，按配置经 Dubbo RPC（默认）或 REST（Feign）远程调用授权服务器。
+ * {@code RemoteOauthTokenServiceImpl}，
+ * 按配置经 Dubbo RPC（默认）或 REST（Feign）远程调用授权服务器。
  * </p>
  *
  * @author pengjinlong

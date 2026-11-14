@@ -33,7 +33,8 @@ public class HttpFilterHandle extends BaseFilterHandle {
             "/v3/api-docs/**"
     );
 
-    /** 与 {@link #EXCLUDED_URL_PATHS} 对应的预编译正则列表（** 转为 .*），避免热路径上重复编译 */
+    /** 与 {@link #EXCLUDED_URL_PATHS} 对应的预编译正则列表（** 转为 .*），
+     * 避免热路径上重复编译 */
     private static final List<Pattern> EXCLUDED_PATH_PATTERNS = EXCLUDED_URL_PATHS.stream()
             .map(excludedPath -> Pattern.compile(excludedPath.replace("**", ".*")))
             .toList();
@@ -117,7 +118,8 @@ public class HttpFilterHandle extends BaseFilterHandle {
     /**
      * 检查请求路径是否匹配需要排除的路径模式。
      * <p>
-     * 使用预编译正则（排除规则中的 {@code **} 通配符已转为 {@code .*}）与请求路径整串匹配。
+     * 使用预编译正则（排除规则中的 {@code **} 通配符已转为 {@code .*}）
+     * 与请求路径整串匹配。
      * </p>
      *
      * @param path HTTP 请求路径

@@ -38,7 +38,10 @@ public class StoreClassDBScan implements ApplicationRunner {
         Map<String, Class<?>> storeClassDBMap = CollectionUtil.newHashMap();
 
         // 聚合服务（maozi-cloud-all-service）扫描全包，普通服务仅扫描自身项目子包
-        String subPath = ApplicationNameConstant.MAOZI_CLOUD_ALL_SERVICE.equals(ApplicationEnvironmentContext.serviceName) ? "" : "." + ApplicationEnvironmentContext.applicationProjectAbbreviation;
+        String subPath =
+                ApplicationNameConstant.MAOZI_CLOUD_ALL_SERVICE.equals(ApplicationEnvironmentContext.serviceName)
+                ? ""
+                : "." + ApplicationEnvironmentContext.applicationProjectAbbreviation;
         ClassUtil.scanPackage(ApplicationEnvironmentContext.PACKAGE_PREFIX + subPath).forEach(clazz ->{
 
             // 仅收集标注 @TableName 的实体类，建立表名到类类型的映射

@@ -26,7 +26,8 @@ public class ImageStorageProperties implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    /** 图片存储类型（对应 ImageStorageTypeEnum 的 code，如 aliyun），未配置时默认 aliyun（由使用处兜底） */
+    /** 图片存储类型（对应 ImageStorageTypeEnum 的 code，如 aliyun），
+     * 未配置时默认 aliyun（由使用处兜底） */
     private String storeType;
 
     /** 阿里云 OSS 配置 */
@@ -61,7 +62,8 @@ public class ImageStorageProperties implements Serializable {
         /** 存储空间（Bucket）名称 */
         private String bucket;
 
-        /** 自定义访问域名（可选），如 CDN 加速域名，配置后文件访问地址基于该域名生成 */
+        /** 自定义访问域名（可选），如 CDN 加速域名，
+         * 配置后文件访问地址基于该域名生成 */
         private String domain;
 
     }

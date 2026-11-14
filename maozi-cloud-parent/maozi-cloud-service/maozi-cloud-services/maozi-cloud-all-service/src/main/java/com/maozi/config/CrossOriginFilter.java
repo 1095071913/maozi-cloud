@@ -65,7 +65,8 @@ public class CrossOriginFilter extends OncePerRequestFilter {
      * @throws IOException      IO 异常
      */
     @Override
-    protected void doFilterInternal(@Nonnull HttpServletRequest request, @Nonnull HttpServletResponse response, @Nonnull FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@Nonnull HttpServletRequest request, @Nonnull HttpServletResponse response,
+            @Nonnull FilterChain filterChain) throws ServletException, IOException {
 
         // 非跨域请求直接放行
         if (!CorsUtils.isCorsRequest(request)) {

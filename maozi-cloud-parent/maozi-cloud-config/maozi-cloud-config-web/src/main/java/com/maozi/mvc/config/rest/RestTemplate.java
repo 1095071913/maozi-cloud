@@ -72,10 +72,14 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
         // 标记请求是否发生异常，用于最终日志级别判断
         boolean error = false;
 
+        // 捕获的异常引用，供 finally 中合并输出结构化日志与异常堆栈
+        Throwable ex = null;
+
         // 记录请求开始时间，用于计算响应耗时
         long startTime = System.currentTimeMillis();
 
-        // 使用有序 Map 收集请求全链路日志信息（后续固定写入 IP/TYPE/URL/METHOD 等标签，指定初始容量）
+        // 使用有序 Map 收集请求全链路日志信息
+        // （后续固定写入 IP/TYPE/URL/METHOD 等标签，指定初始容量）
         Map<String, String> logs = new LinkedHashMap<>(16);
 
         // HTTP 响应对象，用于 finally 中统一关闭
@@ -132,8 +136,8 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
             // 标记为异常状态
             error = true;
 
-            // 记录异常堆栈日志，便于排查问题
-            log.error("", e);
+            // 暂存异常引用，堆栈在 finally 中随结构化日志合并输出，避免同一异常重复打印
+            ex = e;
 
             // 记录异常相关的用户、描述和堆栈位置到日志
             Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
@@ -142,7 +146,8 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
             }
             logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
 
-            // 记录异常发生的第一行代码位置（热点异常在 JVM fast-throw 优化下堆栈可能为空，需判长度）
+            // 记录异常发生的第一行代码位置
+            // （热点异常在 JVM fast-throw 优化下堆栈可能为空，需判长度）
             StackTraceElement[] errorLines = e.getStackTrace();
             if (errorLines.length > 0) {
                 logs.put(LogTag.ERROR_LINE, errorLines[0].toString());
@@ -169,7 +174,8 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
             logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + " ms");
 
             // 根据是否有异常，以对应日志级别输出完整的请求日志
-            LogUtil.log(log, error, logs);
+            // （异常时结构化字段与异常堆栈合并为一条日志，避免重复打印）
+            LogUtil.log(log, error, logs, ex);
 
         }
 

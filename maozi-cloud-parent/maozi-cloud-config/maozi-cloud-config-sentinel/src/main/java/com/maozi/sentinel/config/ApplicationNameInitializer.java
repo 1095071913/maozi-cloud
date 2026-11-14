@@ -30,7 +30,8 @@ import org.springframework.core.env.ConfigurableEnvironment;
  * @author maozi
  * @date 2026/11/08
  */
-public class ApplicationNameInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext>, Ordered {
+public class ApplicationNameInitializer
+        implements ApplicationContextInitializer<ConfigurableApplicationContext>, Ordered {
 
     /** Sentinel 应用名称覆盖配置项，配置后 Sentinel 以该值注册，而非 spring.application.name */
     private static final String APPLICATION_NAME_KEY = "spring.cloud.sentinel.name";

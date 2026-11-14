@@ -47,7 +47,8 @@ public class JobConfig {
         xxlJobSpringExecutor.setPort(executor.getPort() == null ? 0 : executor.getPort());
         xxlJobSpringExecutor.setAccessToken(properties.getAccessToken());
         xxlJobSpringExecutor.setLogPath(executor.getLogPath());
-        xxlJobSpringExecutor.setLogRetentionDays(executor.getLogRetentionDays() == null ? 0 : executor.getLogRetentionDays());
+        xxlJobSpringExecutor.setLogRetentionDays(executor.getLogRetentionDays() == null
+                ? 0 : executor.getLogRetentionDays());
         return xxlJobSpringExecutor;
     }
 

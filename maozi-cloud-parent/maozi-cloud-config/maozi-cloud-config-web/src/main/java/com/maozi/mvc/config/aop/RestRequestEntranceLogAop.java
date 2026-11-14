@@ -49,10 +49,14 @@ import java.util.Objects;
 public class RestRequestEntranceLogAop extends AbstractRequestEntranceLogAop {
 
     /** REST 实现层切点表达式（匹配 api.impl.rest 包下的方法） */
-    private static final String REST_POINT = "* " + ApplicationEnvironmentContext.PACKAGE_PREFIX + ".*.*.api.impl.rest..*(..)";
+    private static final String REST_POINT = "* " + ApplicationEnvironmentContext.PACKAGE_PREFIX
+        + ".*.*.api.impl.rest..*(..)";
 
     /** 基础服务实现类切点表达式 */
-    private static final String BASE_RPC_POINT = ApplicationEnvironmentContext.PACKAGE_PREFIX + ".common.result.AbstractBaseResult " + ApplicationEnvironmentContext.PACKAGE_PREFIX + ".service.api.impl.result.BaseServiceResultImpl.*(..)";
+    private static final String BASE_RPC_POINT = ApplicationEnvironmentContext.PACKAGE_PREFIX
+        + ".common.result.AbstractBaseResult "
+        + ApplicationEnvironmentContext.PACKAGE_PREFIX
+        + ".service.api.impl.result.BaseServiceResultImpl.*(..)";
 
     /** 组合切点表达式 */
     private static final String POINT = "execution(" + REST_POINT + ") || execution(" + BASE_RPC_POINT + ")";
@@ -62,7 +66,8 @@ public class RestRequestEntranceLogAop extends AbstractRequestEntranceLogAop {
      *
      * @param proceedingJoinPoint AOP 连接点
      * @return 业务方法执行结果；业务异常或系统异常时为基类封装的统一错误结果
-     * @throws Throwable 仅权限拒绝异常（{@link AccessDeniedException}）经基类原样上抛，交由 Spring Security 处理
+     * @throws Throwable 仅权限拒绝异常（{@link AccessDeniedException}）经基类原样上抛，
+     * 交由 Spring Security 处理
      */
     @Around(POINT)
     public Object doAround(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {

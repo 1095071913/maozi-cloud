@@ -26,13 +26,16 @@ public class ErrorDecoder implements feign.codec.ErrorDecoder {
      *
      * @param methodKey Feign 方法键
      * @param response HTTP 响应对象
-     * @return 响应体解析成功时返回携带原始 HTTP 状态码和响应体内容的 {@link BusinessResultException}；
+     * @return 响应体解析成功时返回携带原始 HTTP 状态码和响应体内容的
+     *         {@link BusinessResultException}；
      *         读取响应体失败时返回原始 {@link IOException}
      */
     @Override
     public Exception decode(String methodKey, Response response) {
 
-        try {return new BusinessResultException(response.status(),Util.toString(response.body().asReader(Charset.defaultCharset()))).setHttpCode(response.status());} catch (IOException e) {
+        try {return new BusinessResultException(response.status(),
+                Util.toString(response.body().asReader(Charset.defaultCharset())))
+                .setHttpCode(response.status());} catch (IOException e) {
             return e;
         }
 

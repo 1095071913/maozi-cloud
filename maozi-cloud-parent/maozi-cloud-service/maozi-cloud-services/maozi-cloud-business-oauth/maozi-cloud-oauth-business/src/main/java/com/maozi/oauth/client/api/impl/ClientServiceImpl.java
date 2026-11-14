@@ -74,7 +74,8 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
 
         OAUTH_OBJECT_MAPPER = new ObjectMapper();
         OAUTH_OBJECT_MAPPER.registerModule(new OAuth2AuthorizationServerJackson2Module());
-        OAUTH_OBJECT_MAPPER.registerModules(SecurityJackson2Modules.getModules(RegisteredClientRepository.class.getClassLoader()));
+        OAUTH_OBJECT_MAPPER.registerModules(
+                SecurityJackson2Modules.getModules(RegisteredClientRepository.class.getClassLoader()));
 
         PASSWORD_ENCODER = PasswordEncoderFactories.createDelegatingPasswordEncoder();
 
@@ -92,7 +93,8 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
     /**
      * 客户端新增或更新的统一处理。
      * <p>
-     * 新增时自动生成clientId并填充默认令牌有效期与客户端设置，更新时清空clientId防止被修改；
+     * 新增时自动生成clientId并填充默认令牌有效期与客户端设置，
+     * 更新时清空clientId防止被修改；
      * 密钥非空时加密存储，两种令牌有效期均已提供时构建令牌设置，否则不重建。
      * </p>
      *
@@ -250,7 +252,8 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
         
         wrapper.in(ClientDO::getId, ids);
 
-        return super.list(wrapper).stream().collect(Collectors.toMap(ClientDO::getId, ClientDO::getClientId, (v1, v2) -> v1));
+        return super.list(wrapper).stream().collect(Collectors.toMap(ClientDO::getId, ClientDO::getClientId,
+                (v1, v2) -> v1));
         
     }
 

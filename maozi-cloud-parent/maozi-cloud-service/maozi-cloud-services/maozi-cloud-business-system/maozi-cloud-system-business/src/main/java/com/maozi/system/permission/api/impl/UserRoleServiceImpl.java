@@ -50,7 +50,8 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
     @Override
     public void checkUserBindRoleByRole(Long roleId) {
         LambdaQueryWrapper<UserRoleDO> wrapper = Wrappers.<UserRoleDO>lambdaQuery().eq(UserRoleDO::getRoleId,roleId);
-        ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1, SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE,"【角色】已被用户绑定");
+        ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1,
+                SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE,"【角色】已被用户绑定");
     }
 
     /**
@@ -125,7 +126,8 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
         wrapper.eq(UserRoleDO::getUserId,userId);
         wrapper.eq(UserRoleDO::getRoleId,roleId);
 
-        ObjectUtil.checkConditionThrowError(super.count(wrapper) > 0,SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE,"【用户】未绑定该角色");
+        ObjectUtil.checkConditionThrowError(super.count(wrapper) > 0,
+                SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE,"【用户】未绑定该角色");
     }
 
     /**

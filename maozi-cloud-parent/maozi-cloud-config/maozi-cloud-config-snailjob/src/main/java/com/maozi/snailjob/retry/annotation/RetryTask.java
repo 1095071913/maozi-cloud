@@ -17,8 +17,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * 自定义重试注解
  * <p>
- * 标注在需要自定义重试能力的方法上。方法首次执行失败（抛出异常或结果集判定需要重试）时，
- * 按上报策略先在本地按次数与间隔同步重试，仍失败则将方法信息封装上报 SnailJob 服务端，
+ * 标注在需要自定义重试能力的方法上。
+ * 方法首次执行失败（抛出异常或结果集判定需要重试）时，
+ * 按上报策略先在本地按次数与间隔同步重试，
+ * 仍失败则将方法信息封装上报 SnailJob 服务端，
  * 由统一重试处理器 {@code RetryExecutorTask} 在服务端调度时远程回调执行。
  * </p>
  * <p>
@@ -38,7 +40,8 @@ public @interface RetryTask {
     /**
      * 场景（服务端重试任务分组标识，同组内唯一）
      * <p>
-     * 重试注册与上报时自动拼接版本号前缀（{@code ApplicationEnvironmentContext.version + "_" + 场景值}），
+     * 重试注册与上报时自动拼接版本号前缀
+     * （{@code ApplicationEnvironmentContext.version + "_" + 场景值}），
      * 按应用版本隔离不同版本服务间的重试流量。
      * </p>
      *

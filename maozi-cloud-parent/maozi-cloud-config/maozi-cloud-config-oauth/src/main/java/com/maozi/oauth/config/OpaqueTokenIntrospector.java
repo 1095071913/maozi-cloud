@@ -25,16 +25,20 @@ import java.util.stream.Collectors;
 /**
  * 不透明令牌内省器
  * <p>
- * 内省逻辑委托给注入的 {@link OauthTokenService}：授权服务器进程为本地实现（进程内调用），
- * 资源服务器进程为 {@code RemoteOauthTokenServiceImpl}，按配置选择 Dubbo RPC（默认）或 HTTP 远程调用。
- * 内省完成后从返回的 claims 中提取 authorities 构建 {@link GrantedAuthority} 权限集合，用于访问控制决策。
+ * 内省逻辑委托给注入的 {@link OauthTokenService}：
+ * 授权服务器进程为本地实现（进程内调用），
+ * 资源服务器进程为 {@code RemoteOauthTokenServiceImpl}，
+ * 按配置选择 Dubbo RPC（默认）或 HTTP 远程调用。
+ * 内省完成后从返回的 claims 中提取 authorities 构建 {@link GrantedAuthority} 权限集合，
+ * 用于访问控制决策。
  * </p>
  *
  * @author maozi
  * @date 2026/11/08
  */
 @Component
-public class OpaqueTokenIntrospector implements org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector {
+public class OpaqueTokenIntrospector
+        implements org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector {
 
     /** 令牌内省服务（授权服务器进程为本地实现，资源服务器进程为远程实现） */
     @Resource(name = "oauthTokenService")
@@ -45,7 +49,8 @@ public class OpaqueTokenIntrospector implements org.springframework.security.oau
      *
      * @param token 待内省的令牌字符串
      * @return 包含权限信息的认证主体
-     * @throws BadOpaqueTokenException 令牌无效，或内省服务抛出 {@code OAuth2IntrospectionException}/{@code BusinessResultException} 时统一转换为本异常
+     * @throws BadOpaqueTokenException 令牌无效，或内省服务抛出
+     * {@code OAuth2IntrospectionException}/{@code BusinessResultException} 时统一转换为本异常
      */
     @Override
     public OAuth2AuthenticatedPrincipal introspect(String token) {
@@ -61,10 +66,14 @@ public class OpaqueTokenIntrospector implements org.springframework.security.oau
             // 令牌无效异常直接抛出，由上层框架处理（返回401）
             throw e;
         } catch (OAuth2IntrospectionException e) {
-            // OAuth2内省过程中的其他异常，转换为令牌无效异常并包装为系统错误（保留原始异常堆栈）
-            throw new BadOpaqueTokenException(e.getMessage(), new BusinessResultException(SystemErrorCode.SYSTEM_ERROR, e).setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE));
+            // OAuth2内省过程中的其他异常，转换为令牌无效异常并包装为系统错误
+            // （保留原始异常堆栈）
+            throw new BadOpaqueTokenException(e.getMessage(),
+                    new BusinessResultException(SystemErrorCode.SYSTEM_ERROR, e)
+                            .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE));
         }catch (BusinessResultException e){
-            // 业务异常（如RPC调用返回的业务错误），转换为令牌无效异常并保留原始业务错误信息与堆栈
+            // 业务异常（如RPC调用返回的业务错误），
+            // 转换为令牌无效异常并保留原始业务错误信息与堆栈
             BusinessResultException businessException = new BusinessResultException(e.getErrorResult());
             businessException.initCause(e);
             throw new BadOpaqueTokenException(e.getMessage(), businessException);
@@ -88,7 +97,8 @@ public class OpaqueTokenIntrospector implements org.springframework.security.oau
         Set<GrantedAuthority> authorities = extractAuthorities(claims);
         // 主体名称取 sub 声明，缺省为 unknown
         return new DefaultOAuth2AuthenticatedPrincipal(
-                (String) claims.getOrDefault(OAuth2TokenIntrospectionClaimNames.SUB, WebUtil.UNKNOWN), claims, authorities);
+                (String) claims.getOrDefault(OAuth2TokenIntrospectionClaimNames.SUB, WebUtil.UNKNOWN),
+                claims, authorities);
     }
 
     /**

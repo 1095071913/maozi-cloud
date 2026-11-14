@@ -8,7 +8,8 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * REST 接口映射注册配置
  * <p>
  * 项目中部分 REST 端点直接继承基类 {@code BaseServiceResultImpl} 的公共实现，
- * 默认映射解析无法关联接口上声明的路由注解（404）。通过 {@link WebMvcRegistrations} 将默认的
+ * 默认映射解析无法关联接口上声明的路由注解（404）。
+ * 通过 {@link WebMvcRegistrations} 将默认的
  * {@link RequestMappingHandlerMapping} 替换为 {@link InterfaceMethodRequestMappingHandlerMapping}，
  * 支持以接口声明路由、以父类继承实现提供处理器。
  * </p>

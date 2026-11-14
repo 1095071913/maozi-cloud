@@ -65,7 +65,8 @@ public class UserInfoResult implements Serializable {
 
     /** 用户关联的角色ID列表，通过用户角色服务查询自动填充 */
     @Schema(description = "角色列表",ref = "StringArrayList")
-    @QueryMapping(isService = true, serviceName = "userRoleServiceImpl", functionName = "getRolesByUser", relationField = "id")
+    @QueryMapping(isService = true, serviceName = "userRoleServiceImpl",
+            functionName = "getRolesByUser", relationField = "id")
     private List<Long> roleIds;
 
 }

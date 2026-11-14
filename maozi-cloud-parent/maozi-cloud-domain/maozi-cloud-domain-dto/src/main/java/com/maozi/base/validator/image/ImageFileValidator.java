@@ -49,7 +49,8 @@ public class ImageFileValidator implements ConstraintValidator<ImageFile, Multip
             return true;
         }
 
-        // getOriginalFilename 可能为 null（lowerCase 对 null 安全地返回 null），扩展名为空直接不通过
+        // getOriginalFilename 可能为 null（lowerCase 对 null 安全地返回 null），
+        // 扩展名为空直接不通过
         String contentType = file.getContentType();
         String extension = StringUtils.lowerCase(StringUtils.substringAfterLast(file.getOriginalFilename(), "."));
         if(ObjectUtil.isNullEmpty(extension)) {

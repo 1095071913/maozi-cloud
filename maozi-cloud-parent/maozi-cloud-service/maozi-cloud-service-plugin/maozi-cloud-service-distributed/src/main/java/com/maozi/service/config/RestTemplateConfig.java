@@ -47,7 +47,8 @@ public class RestTemplateConfig {
      * 响应体为 JSON 序列化的统一错误结果。
      * </p>
      */
-    public static ClientHttpResponse handleException(HttpRequest request, byte[] body, ClientHttpRequestExecution execution, BlockException exception) {
+    public static ClientHttpResponse handleException(HttpRequest request, byte[] body,
+            ClientHttpRequestExecution execution, BlockException exception) {
         ErrorCode errorCode = exception instanceof AuthorityException ?
                 SystemErrorCode.BLACKLIST_ERROR
                 :

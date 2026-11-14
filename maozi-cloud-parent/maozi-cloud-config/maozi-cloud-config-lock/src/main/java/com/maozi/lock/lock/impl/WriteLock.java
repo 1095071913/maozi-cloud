@@ -13,7 +13,8 @@ import java.util.concurrent.TimeUnit;
  * 写锁实现
  * <p>
  * 基于 Redisson 的读写锁中的写锁（Write Lock），同一时刻仅允许一个线程持有写锁，
- * 且在有写锁持有时，所有读锁和写锁请求都将被阻塞。适用于数据修改等需要独占访问的场景。
+ * 且在有写锁持有时，所有读锁和写锁请求都将被阻塞。
+ * 适用于数据修改等需要独占访问的场景。
  * </p>
  *
  * @author maozi
@@ -55,7 +56,8 @@ public class WriteLock implements Lock {
 
         RReadWriteLock lock = redissonClient.getReadWriteLock(key);
 
-        // 判断写锁是否由当前线程持有，如果是则异步强制释放写锁并等待结果，否则返回 false
+        // 判断写锁是否由当前线程持有，如果是则异步强制释放写锁并等待结果，
+        // 否则返回 false
         return lock.writeLock().isHeldByCurrentThread() && lock.writeLock().forceUnlockAsync().get();
 
     }

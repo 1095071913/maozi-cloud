@@ -55,7 +55,8 @@ public class ReadLock implements Lock {
 
         RReadWriteLock lock = redissonClient.getReadWriteLock(key);
 
-        // 判断读锁是否由当前线程持有，如果是则异步强制释放读锁并等待结果，否则返回 false
+        // 判断读锁是否由当前线程持有，如果是则异步强制释放读锁并等待结果，
+        // 否则返回 false
         return lock.readLock().isHeldByCurrentThread() && lock.readLock().forceUnlockAsync().get();
 
     }

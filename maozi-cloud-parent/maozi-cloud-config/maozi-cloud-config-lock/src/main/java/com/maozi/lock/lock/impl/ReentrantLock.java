@@ -13,7 +13,8 @@ import java.util.concurrent.TimeUnit;
  * 可重入锁实现
  * <p>
  * 基于 Redisson 的可重入锁（Reentrant Lock），支持同一线程多次获取同一把锁。
- * 加锁使用 {@code tryLock(waitTime, leaseTime, TimeUnit.SECONDS)}：在 {@code waitTime} 内阻塞等待获取锁，
+ * 加锁使用 {@code tryLock(waitTime, leaseTime, TimeUnit.SECONDS)}：
+ * 在 {@code waitTime} 内阻塞等待获取锁，
  * 超时则返回 false；获取成功后锁会在 {@code leaseTime} 到期自动释放。
  * 解锁使用 {@code forceUnlockAsync} 强制异步释放。
  * </p>

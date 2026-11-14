@@ -88,7 +88,8 @@ public class ChatServiceImpl implements ChatService {
     protected static final String AI_CHAT_STOP_KEY = RedisUtil.REDIS_KEY_PREFIX + "chat:status:";
 
     /** 文生图进行中标记 key 前缀：key 被删除表示文生图请求已被停止 */
-    protected static final String AI_CHAT_GENERATE_IMAGE_STOP_KEY = RedisUtil.REDIS_KEY_PREFIX + "chat:generate:image:status:";
+    protected static final String AI_CHAT_GENERATE_IMAGE_STOP_KEY = RedisUtil.REDIS_KEY_PREFIX
+            + "chat:generate:image:status:";
 
     /** 支持的图片后缀与 MIME 类型映射 */
     private static final Map<String, MimeType> IMAGE_MIME_TYPE_MAP = Map.of(
@@ -240,7 +241,8 @@ public class ChatServiceImpl implements ChatService {
 
                     aiChatOutputMessage.append(aiChat);
 
-                    return (AbstractBaseResult<ChatResult>) ResultUtil.success(new ChatResult(ChatTypeEnum.OUTPUT, aiChat));
+                    return (AbstractBaseResult<ChatResult>) ResultUtil.success(
+                            new ChatResult(ChatTypeEnum.OUTPUT, aiChat));
 
                 })
 
@@ -266,7 +268,8 @@ public class ChatServiceImpl implements ChatService {
 
                     Map<String, Object> metadata = message.getMetadata();
 
-                    // 元数据缺失 ID/写入时间的消息视为脏数据（历史/外部写入），跳过避免级联调用 NPE
+                    // 元数据缺失 ID/写入时间的消息视为脏数据（历史/外部写入），
+                    // 跳过避免级联调用 NPE
                     Object idValue = metadata.get(ChatMessageConstant.ID);
                     Object createTimeValue = metadata.get(ChatMessageConstant.CREATE_TIME);
                     if(idValue == null || createTimeValue == null){
@@ -287,7 +290,8 @@ public class ChatServiceImpl implements ChatService {
                         assistantMessage.getMedia().forEach(media -> images.add(media.getData().toString()));
                     }
 
-                    ChatMessageTypeEnum chatMessageType = message.getMessageType() == MessageType.ASSISTANT ? ChatMessageTypeEnum.AI : ChatMessageTypeEnum.USER;
+                    ChatMessageTypeEnum chatMessageType = message.getMessageType() == MessageType.ASSISTANT
+                            ? ChatMessageTypeEnum.AI : ChatMessageTypeEnum.USER;
                     return new ChatItemResult(id, chatMessageType, message.getText(), images, createTime);
 
                 })

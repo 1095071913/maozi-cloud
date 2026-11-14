@@ -13,8 +13,10 @@ import java.util.Map;
 /**
  * 基础服务结果接口
  * <p>
- * 定义通用的 CRUD 服务方法签名，由 {@code BaseServiceResultImpl} 基于 {@code BaseServiceImpl} 统一实现，
- * 业务服务继承后即具备这些能力，涵盖查询、计数、新增/修改、删除、可用性校验和下拉列表等标准操作。
+ * 定义通用的 CRUD 服务方法签名，由 {@code BaseServiceResultImpl}
+ * 基于 {@code BaseServiceImpl} 统一实现，
+ * 业务服务继承后即具备这些能力，
+ * 涵盖查询、计数、新增/修改、删除、可用性校验和下拉列表等标准操作。
  * </p>
  *
  * @param <D> 数据传输对象类型
@@ -59,7 +61,8 @@ public interface BaseServiceResult<D> {
      * @param columns 查询字段列表
      * @return 以关联 ID 为键、记录列表为值的映射
      */
-    AbstractBaseResult<Map<Long,List<D>>> listByRelationIdsResult(Collection<Long> ids,String relationField,String ... columns);
+    AbstractBaseResult<Map<Long,List<D>>> listByRelationIdsResult(Collection<Long> ids,
+            String relationField,String ... columns);
 
     /**
      * 根据条件统计记录数
@@ -129,7 +132,8 @@ public interface BaseServiceResult<D> {
      *
      * @param ids 主键 ID 集合
      * @return 校验通过的空结果
-     * @throws com.maozi.common.result.error.exception.BusinessResultException 集合为空或任一已存在记录已禁用时抛出
+     * @throws com.maozi.common.result.error.exception.BusinessResultException
+     *         集合为空或任一已存在记录已禁用时抛出
      */
     AbstractBaseResult<Void> checkAvailableResult(List<Long> ids);
 

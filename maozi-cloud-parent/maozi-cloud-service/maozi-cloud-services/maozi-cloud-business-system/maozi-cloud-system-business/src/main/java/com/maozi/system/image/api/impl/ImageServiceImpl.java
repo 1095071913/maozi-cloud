@@ -64,7 +64,8 @@ public class ImageServiceImpl implements ImageService {
      * </p>
      *
      * @param param 图片上传参数，包含上传的图片文件列表与保存路径
-     * @return 上传结果列表，每张图片对应一项，包含文件原始名称、对象存储路径、访问地址与文件大小
+     * @return 上传结果列表，每张图片对应一项，
+     * 包含文件原始名称、对象存储路径、访问地址与文件大小
      */
     @Override
     public List<ImageUploadResult> upload(ImageUploadParam param) {

@@ -26,7 +26,8 @@ import com.maozi.service.api.impl.result.BaseServiceResultImpl;
  * @date 2026/11/08
  */
 @RestService
-public class RestClientServiceImpl extends BaseServiceResultImpl<ClientServiceImpl, ClientDTO> implements RestClientService {
+public class RestClientServiceImpl extends BaseServiceResultImpl<ClientServiceImpl, ClientDTO>
+        implements RestClientService {
 
     /**
      * 分页查询客户端列表。

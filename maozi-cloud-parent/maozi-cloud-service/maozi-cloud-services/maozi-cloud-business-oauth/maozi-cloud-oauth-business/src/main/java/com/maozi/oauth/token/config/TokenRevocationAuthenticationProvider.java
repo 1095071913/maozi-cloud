@@ -59,7 +59,8 @@ public final class TokenRevocationAuthenticationProvider implements Authenticati
         Authentication result = this.delegate.authenticate(authentication);
         if (authentication instanceof OAuth2TokenRevocationAuthenticationToken tokenRequest) {
             OAuth2TokenType tokenType = resolveTokenType(tokenRequest.getTokenTypeHint());
-            OAuth2Authorization authorization = this.authorizationService.findByToken(tokenRequest.getToken(), tokenType);
+            OAuth2Authorization authorization =
+                this.authorizationService.findByToken(tokenRequest.getToken(), tokenType);
             if (authorization != null) {
                 this.authorizationService.remove(authorization);
             }
@@ -81,7 +82,8 @@ public final class TokenRevocationAuthenticationProvider implements Authenticati
     /**
      * 根据令牌类型提示解析为OAuth2TokenType对象
      * <p>
-     * 支持解析的令牌类型包括：access_token、refresh_token、code、state、user_code、device_code、id_token。
+     * 支持解析的令牌类型包括：access_token、refresh_token、code、state、
+     * user_code、device_code、id_token。
      * </p>
      *
      * @param tokenTypeHint 令牌类型提示字符串，可为null

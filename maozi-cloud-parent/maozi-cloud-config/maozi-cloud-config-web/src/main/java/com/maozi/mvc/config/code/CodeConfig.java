@@ -32,7 +32,9 @@ import java.util.Map;
 @Component
 public class CodeConfig {
 
-    /** 全局错误码映射表，键为错误码值，值为错误码对象（仅类内部可写，外部通过 {@link #getErrorCodes()} 只读视图或 {@link #getErrorCode(Integer)} 访问） */
+    /** 全局错误码映射表，键为错误码值，值为错误码对象
+     * （仅类内部可写，外部通过 {@link #getErrorCodes()} 只读视图
+     * 或 {@link #getErrorCode(Integer)} 访问） */
     private static final Map<Integer, ErrorCode> ERROR_CODES = new HashMap<>(256);
 
     /**
@@ -58,7 +60,8 @@ public class CodeConfig {
      * 注册单个错误码 Bean 中的 ErrorCode 字段
      * <p>
      * 通过反射遍历指定 Bean 的所有声明字段，提取 {@link ErrorCode} 类型的字段值，
-     * 以错误码值为键注册到全局映射表；单个 Bean 反射失败仅记录日志，不影响其余 Bean 注册。
+     * 以错误码值为键注册到全局映射表；单个 Bean 反射失败仅记录日志，
+     * 不影响其余 Bean 注册。
      * </p>
      *
      * @param errorCodeBean 错误码 Bean

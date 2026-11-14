@@ -28,17 +28,20 @@ import java.util.concurrent.ConcurrentHashMap;
  * {@link RemoteService} 服务暴露处理器（微服务模式），分两阶段工作：
  * <p>
  * 阶段一（{@link BeanDefinitionRegistryPostProcessor}）：扫描 {@link RemoteService} 标注的类并注册为
- * Spring Bean，标记 {@code autowireCandidate = false}——能被创建且依赖照常注入，但不参与按类型注入，
+ * Spring Bean，标记 {@code autowireCandidate = false}——能被创建且依赖照常注入，
+ * 但不参与按类型注入，
  * 避免与父类 {@code @Service} bean 在共同接口上产生自动装配歧义。
  * 阶段二（{@link SmartInitializingSingleton}）：在所有非懒加载单例（含 AOP 代理）创建完毕后，
- * 将标注 {@link RemoteService} 的 bean 统一暴露为 Dubbo 远程服务，保证暴露引用为代理对象、切面生效。
+ * 将标注 {@link RemoteService} 的 bean 统一暴露为 Dubbo 远程服务，
+ * 保证暴露引用为代理对象、切面生效。
  * </p>
  *
  * @author pengjinlong
  * @since 2026/6/25
  */
 @Component
-public class RemoteServiceBeanPostProcessor implements BeanDefinitionRegistryPostProcessor, SmartInitializingSingleton, ApplicationContextAware {
+public class RemoteServiceBeanPostProcessor
+        implements BeanDefinitionRegistryPostProcessor, SmartInitializingSingleton, ApplicationContextAware {
 
     /** 已暴露过的实现类型，避免重复导出 */
     private final Set<Class<?>> exportedClasses = ConcurrentHashMap.newKeySet();
@@ -61,7 +64,8 @@ public class RemoteServiceBeanPostProcessor implements BeanDefinitionRegistryPos
         ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
         scanner.addIncludeFilter(new AnnotationTypeFilter(RemoteService.class));
         for (BeanDefinition candidate : scanner.findCandidateComponents(ApplicationEnvironmentContext.PACKAGE_PREFIX)) {
-            // 不参与按类型自动装配，避免与父类 @Service（如 ClientServiceImpl）在共同接口上产生歧义
+            // 不参与按类型自动装配，
+            // 避免与父类 @Service（如 ClientServiceImpl）在共同接口上产生歧义
             candidate.setAutowireCandidate(false);
             BeanDefinitionReaderUtils.registerWithGeneratedName((AbstractBeanDefinition) candidate, registry);
         }

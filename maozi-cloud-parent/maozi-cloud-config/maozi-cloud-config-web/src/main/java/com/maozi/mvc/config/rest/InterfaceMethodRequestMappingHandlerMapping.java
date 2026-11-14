@@ -1,6 +1,7 @@
 package com.maozi.mvc.config.rest;
 
 import jakarta.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,9 +17,12 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 接口声明路由的请求映射处理器
  * <p>
- * Spring MVC 默认仅沿方法声明类的类型层级解析路由注解，实现类直接继承基类而未重写的公共方法
- * 无法关联 REST 接口上声明的路由，导致映射注册失败（404）。本处理器在常规解析未命中时，
- * 于处理器类实现的接口中查找同签名且声明了映射注解的方法完成路由注册，并换用该接口方法构建
+ * Spring MVC 默认仅沿方法声明类的类型层级解析路由注解，
+ * 实现类直接继承基类而未重写的公共方法
+ * 无法关联 REST 接口上声明的路由，导致映射注册失败（404）。
+ * 本处理器在常规解析未命中时，
+ * 于处理器类实现的接口中查找同签名且声明了映射注解的方法完成路由注册，
+ * 并换用该接口方法构建
  * {@link HandlerMethod}，使参数注解与方法级安全注解正常生效；反射调用接口方法仍虚分派到
  * 基类实现，业务逻辑不变。
  * </p>
@@ -26,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author maozi
  * @date 2026/11/13
  */
+@Slf4j
 public class InterfaceMethodRequestMappingHandlerMapping extends RequestMappingHandlerMapping {
 
     /** 继承自父类的方法到接口声明方法的映射缓存，供注册阶段构建 HandlerMethod 时换用 */
@@ -101,8 +106,10 @@ public class InterfaceMethodRequestMappingHandlerMapping extends RequestMappingH
                     return candidate;
                 }
 
-            } catch (NoSuchMethodException ignored) {
+            } catch (NoSuchMethodException e) {
                 // 当前接口未声明同签名方法，继续检查下一个接口
+                // （debug 级别留痕，避免异常被静默吞掉）
+                log.debug("Interface {} does not declare method {}", interfaceClass.getName(), method.getName(), e);
             }
 
         }

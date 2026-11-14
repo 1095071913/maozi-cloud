@@ -68,7 +68,10 @@ public class ClientDO extends AbstractBaseDomain {
     /** 备注信息，用于记录客户端的额外说明 */
     private String remark;
 
-    /** 授权方式集合，该客户端支持的OAuth2.0授权类型，通过自定义类型处理器与数据库逗号分隔字符串互转 */
+    /**
+     * 授权方式集合，该客户端支持的OAuth2.0授权类型，
+     * 通过自定义类型处理器与数据库逗号分隔字符串互转
+     */
     @TableField(typeHandler = Oauth2AuthTypeHandler.class)
     private Set<AuthTypeEnum> authorizationGrantTypes;
 

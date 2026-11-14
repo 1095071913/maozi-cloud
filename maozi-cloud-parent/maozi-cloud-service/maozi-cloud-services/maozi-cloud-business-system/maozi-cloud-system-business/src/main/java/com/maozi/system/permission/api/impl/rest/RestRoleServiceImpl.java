@@ -14,7 +14,8 @@ import java.util.List;
 
 /**
  * 角色REST服务实现类
- * <p>提供角色的列表、详情、新增、更新等RESTful接口，删除、状态更新及下拉列表等通用接口由基类默认实现。</p>
+ * <p>提供角色的列表、详情、新增、更新等RESTful接口，
+ * 删除、状态更新及下拉列表等通用接口由基类默认实现。</p>
  *
  * @author maozi
  * @date 2026/11/08
@@ -46,7 +47,8 @@ public class RestRoleServiceImpl extends BaseServiceResultImpl<RoleServiceImpl, 
 
     /**
      * 查询角色详情
-     * <p>按ID查询角色详情并填充关联映射数据（如角色绑定的权限ID列表），角色不存在时抛出业务异常。</p>
+     * <p>按ID查询角色详情并填充关联映射数据（如角色绑定的权限ID列表），
+     * 角色不存在时抛出业务异常。</p>
      *
      * @param id 角色ID
      * @return 角色详情视图数据

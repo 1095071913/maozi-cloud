@@ -34,7 +34,8 @@ public interface RestChatService {
     /**
      * AI流式对话
      *
-     * @param param 对话参数，包含会话 ID、消息内容、图片列表（多模态对话）以及提示词配置 key
+     * @param param 对话参数，包含会话 ID、消息内容、图片列表（多模态对话）
+     * 以及提示词配置 key
      * @return 返回 AI 回复的分片流（SSE），最后追加一条对话完成（FINISH）消息
      */
     @Post(value = PATH, produces = MediaType.TEXT_EVENT_STREAM_VALUE, description = "发起")
@@ -79,7 +80,8 @@ public interface RestChatService {
      * @return 返回该时间之后写入的增量消息列表
      */
     @Get(value = CURRENT_PATH + "/getAfterMessages", description = "获取后续消息列表")
-    AbstractBaseResult<List<ChatItemResult>> getAfterMessagesResult(@PathVariable String conversationId, @RequestParam Long createTime);
+    AbstractBaseResult<List<ChatItemResult>> getAfterMessagesResult(@PathVariable String conversationId,
+        @RequestParam Long createTime);
 
     /**
      * 删除会话中的指定消息

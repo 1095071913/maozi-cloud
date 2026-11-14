@@ -19,7 +19,8 @@ import com.maozi.service.api.impl.result.BaseServiceResultImpl;
  * @date 2026/11/08
  */
 @RemoteService
-public class RpcClientServiceImpl extends BaseServiceResultImpl<ClientServiceImpl, ClientDTO> implements RpcClientService {
+public class RpcClientServiceImpl extends BaseServiceResultImpl<ClientServiceImpl, ClientDTO>
+        implements RpcClientService {
 
     /**
      * 新增客户端并按保存后的主键ID查询返回客户端DTO

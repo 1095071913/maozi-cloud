@@ -28,7 +28,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * 实现 Spring Cloud 的 {@link ReactorServiceInstanceLoadBalancer} 接口，
  * 基于请求头中的版本号进行灰度流量路由。将服务实例分为灰度节点和主版本节点两组，
- * 优先路由到匹配版本的灰度节点，否则路由到主版本节点，在匹配的实例组内使用轮询策略。
+ * 优先路由到匹配版本的灰度节点，否则路由到主版本节点，
+ * 在匹配的实例组内使用轮询策略。
  * </p>
  *
  * @author maozi
@@ -42,8 +43,12 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
     /** 初始轮询位置随机上界 */
     private static final int INITIAL_POSITION_BOUND = 1000;
 
-    /** 轮询位置计数器（初始位置随机打散，多实例错峰；并发场景使用 ThreadLocalRandom 避免共享竞争） */
-    private final AtomicInteger position = new AtomicInteger(ThreadLocalRandom.current().nextInt(INITIAL_POSITION_BOUND));
+    /**
+     * 轮询位置计数器（初始位置随机打散，多实例错峰；
+     * 并发场景使用 ThreadLocalRandom 避免共享竞争）
+     */
+    private final AtomicInteger position =
+        new AtomicInteger(ThreadLocalRandom.current().nextInt(INITIAL_POSITION_BOUND));
 
     /**
      * 构造方法
@@ -85,7 +90,8 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
         }
 
         // 获取服务实例列表提供者，容器中不存在时退化为空实现
-        ServiceInstanceListSupplier supplier = serviceInstanceListSupplierProvider.getIfAvailable(NoopServiceInstanceListSupplier::new);
+        ServiceInstanceListSupplier supplier =
+            serviceInstanceListSupplierProvider.getIfAvailable(NoopServiceInstanceListSupplier::new);
 
         // 异步获取服务实例列表，并基于请求头进行灰度路由选择
         return supplier.get().next().map(list -> getInstanceResponse(list, headers));
@@ -108,7 +114,8 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
 
         // 无可用服务实例时直接抛出服务不存在异常
         if(ObjectUtil.isNullEmpty(instances)){
-            throw new BusinessResultException(SystemErrorCode.SERVICE_NOT_EXIST_ERROR).setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
+            throw new BusinessResultException(SystemErrorCode.SERVICE_NOT_EXIST_ERROR)
+                .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
         }
 
         // 从请求头获取调用方携带的版本号（可能为空，为空时不参与灰度匹配）
@@ -122,7 +129,8 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
 
         instances.forEach(instance -> {
 
-            // 实例元数据 version 的格式为 "{标识}-{版本}"，按 "-" 分割后取最后一段作为实际版本号参与灰度匹配
+            // 实例元数据 version 的格式为 "{标识}-{版本}"，
+            // 按 "-" 分割后取最后一段作为实际版本号参与灰度匹配
             String versionMetadata = instance.getMetadata().get(VersionContext.NACOS_VERSION_KEY);
 
             // 元数据缺失 version 时跳过该实例，避免级联调用 NPE
@@ -147,14 +155,19 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
         });
 
         // 优先使用灰度节点，若无匹配的灰度节点则回退到主版本节点
-        List<ServiceInstance> applicationClients = ObjectUtil.isNotNullEmpty(grayApplicationClients) ? grayApplicationClients : mainApplicationClients;
+        List<ServiceInstance> applicationClients =
+            ObjectUtil.isNotNullEmpty(grayApplicationClients)
+                ? grayApplicationClients
+                : mainApplicationClients;
 
         // 灰度分组与主版本分组均为空时，抛出服务不存在异常
         if(ObjectUtil.isNullEmpty(applicationClients)){
-            throw new BusinessResultException(SystemErrorCode.SERVICE_NOT_EXIST_ERROR).setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
+            throw new BusinessResultException(SystemErrorCode.SERVICE_NOT_EXIST_ERROR)
+                .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
         }
 
-        // 轮询计数器自增后按位与 Integer.MAX_VALUE 屏蔽符号位保证非负，再对实例数取模实现组内均匀轮询
+        // 轮询计数器自增后按位与 Integer.MAX_VALUE 屏蔽符号位保证非负，
+        // 再对实例数取模实现组内均匀轮询
         int pos = this.position.incrementAndGet() & Integer.MAX_VALUE;
 
         ServiceInstance instance = applicationClients.get(pos % applicationClients.size());

@@ -57,7 +57,8 @@ public class StripUserInfoHeaderFilter extends OncePerRequestFilter {
      * @throws IOException      IO 异常
      */
     @Override
-    protected void doFilterInternal(@Nonnull HttpServletRequest request, @Nonnull HttpServletResponse response, @Nonnull FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@Nonnull HttpServletRequest request, @Nonnull HttpServletResponse response,
+            @Nonnull FilterChain filterChain) throws ServletException, IOException {
         // 包装请求移除 X-CurrentUserInfo 头，使下游过滤器链与控制器无法读取
         filterChain.doFilter(new UserInfoHeaderStrippedRequestWrapper(request), response);
     }

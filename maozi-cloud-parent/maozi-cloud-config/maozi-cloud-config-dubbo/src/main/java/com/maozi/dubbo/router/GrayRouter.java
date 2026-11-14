@@ -19,13 +19,15 @@ import java.util.List;
  * <p>
  * 基于 Dubbo 的 {@link AbstractRouter} 实现灰度发布路由策略。
  * 根据当前请求携带的版本号（从 {@link VersionContext} 获取），
- * 将流量路由到匹配版本的服务实例（灰度节点），若无匹配的灰度节点则回退到主版本节点。
+ * 将流量路由到匹配版本的服务实例（灰度节点），
+ * 若无匹配的灰度节点则回退到主版本节点。
  * </p>
  * <p>
  * 路由逻辑说明：
  * <ul>
  *   <li>灰度节点：服务实例的 {@code application.version} 参数与当前请求版本号完全匹配</li>
- *   <li>主版本节点：服务实例的 {@code application.version} 参数等于默认版本（{@link VersionContext#APPLICATION_DEFAULT_VERSION}）</li>
+ *   <li>主版本节点：服务实例的 {@code application.version} 参数等于默认版本
+ *   （{@link VersionContext#APPLICATION_DEFAULT_VERSION}）</li>
  *   <li>优先路由到灰度节点，若不存在灰度节点则回退到主版本节点，保证服务可用性</li>
  * </ul>
  * </p>
@@ -55,7 +57,8 @@ public class GrayRouter extends AbstractRouter {
      * @throws RpcException RPC 调用异常
      */
     @Override
-    public <T> RouterResult<Invoker<T>> route(List<Invoker<T>> invokers, URL url, Invocation invocation, boolean needToPrintMessage) throws RpcException {
+    public <T> RouterResult<Invoker<T>> route(List<Invoker<T>> invokers, URL url, Invocation invocation,
+        boolean needToPrintMessage) throws RpcException {
 
         // 从线程上下文中获取当前请求的版本号，用于灰度匹配
         String version = VersionContext.CONTEXT.get();
@@ -70,7 +73,8 @@ public class GrayRouter extends AbstractRouter {
         invokers.forEach(invoker ->{
 
             // 获取服务实例的 application.version 参数，用于版本匹配
-            String clientApplicationVersion = invoker.getUrl().getParameter(ProviderFirstParams.APPLICATION_VERSION_KEY);
+            String clientApplicationVersion =
+                invoker.getUrl().getParameter(ProviderFirstParams.APPLICATION_VERSION_KEY);
 
             // 如果请求版本号非空且与服务实例版本完全匹配，则归为灰度节点
             if(StringUtils.isNotBlank(version) && version.equals(clientApplicationVersion)){
@@ -85,7 +89,8 @@ public class GrayRouter extends AbstractRouter {
         });
 
         // 优先返回灰度节点，若无灰度节点则回退到主版本节点，保证服务可用性
-        return new RouterResult<>(ObjectUtil.isNotNullEmpty(grayApplicationClients) ? grayApplicationClients : mainApplicationClients);
+        return new RouterResult<>(ObjectUtil.isNotNullEmpty(grayApplicationClients)
+            ? grayApplicationClients : mainApplicationClients);
 
     }
 

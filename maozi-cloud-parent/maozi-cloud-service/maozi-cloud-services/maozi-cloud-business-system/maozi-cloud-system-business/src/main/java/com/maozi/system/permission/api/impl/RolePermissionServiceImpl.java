@@ -45,7 +45,8 @@ import java.util.stream.Collectors;
  * @date 2026/11/08
  */
 @Service
-public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMapper,RolePermissionDO> implements RolePermissionService {
+public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMapper,RolePermissionDO>
+        implements RolePermissionService {
 
     /** 资源名称，用于异常提示信息 */
     public static final String RESOURCE_NAME = "角色权限关系";
@@ -68,8 +69,10 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
      */
     @Override
     public void checkRoleBindPermissionByPermission(Long permissionId) {
-        LambdaQueryWrapper<RolePermissionDO> wrapper = Wrappers.lambdaQuery(RolePermissionDO.builder().permissionId(permissionId).build());
-        ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1,SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE,"【权限】已被角色绑定");
+        LambdaQueryWrapper<RolePermissionDO> wrapper =
+                Wrappers.lambdaQuery(RolePermissionDO.builder().permissionId(permissionId).build());
+        ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1,
+                SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE,"【权限】已被角色绑定");
     }
 
     /**
@@ -89,7 +92,8 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
 
             Consumer<Long> consumer = (permissionId)->{
 
-                RolePermissionDO domainSave = RolePermissionDO.builder().roleId(roleId).permissionId(permissionId).build();
+                RolePermissionDO domainSave =
+                        RolePermissionDO.builder().roleId(roleId).permissionId(permissionId).build();
 
                 // 绑定关系不存在且权限存在时才保存，避免重复绑定
                 if(super.count(Wrappers.lambdaQuery(domainSave)) < 1 && permissionService.has(permissionId)) {
@@ -105,7 +109,8 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
         if(ObjectUtil.isNotNullEmpty(unbindPermissionIds)) {
 
             Consumer<Long> consumer = (permissionId)->{
-                super.remove(Wrappers.lambdaQuery(RolePermissionDO.builder().roleId(roleId).permissionId(permissionId).build()));
+                super.remove(Wrappers.lambdaQuery(
+                        RolePermissionDO.builder().roleId(roleId).permissionId(permissionId).build()));
             };
 
             unbindPermissionIds.forEach(consumer);

@@ -158,7 +158,8 @@ public class ChatMessage implements Serializable {
 
             JsonNode node = parser.getCodec().readTree(parser);
 
-            // 解析 MIME 类型节点及其携带的参数（字段缺失时视为脏数据快速失败，避免 NPE）
+            // 解析 MIME 类型节点及其携带的参数
+            // （字段缺失时视为脏数据快速失败，避免 NPE）
             JsonNode mimeTypeNode = node.get(FIELD_MIME_TYPE);
             if (mimeTypeNode == null || mimeTypeNode.isNull()) {
                 throw new IOException("Media JSON 缺少 mimeType 字段");
@@ -172,7 +173,8 @@ public class ChatMessage implements Serializable {
             Map<String, String> parameters = new LinkedHashMap<>(8);
             JsonNode parametersNode = mimeTypeNode.get(FIELD_PARAMETERS);
             if (parametersNode != null) {
-                parametersNode.fieldNames().forEachRemaining(name -> parameters.put(name, parametersNode.get(name).asText()));
+                parametersNode.fieldNames().forEachRemaining(
+                        name -> parameters.put(name, parametersNode.get(name).asText()));
             }
 
             Media.Builder builder = Media.builder()
@@ -212,7 +214,8 @@ public class ChatMessage implements Serializable {
      * Media 序列化器
      * <p>
      * 与 {@link MediaDeserializer} 对称，序列化为约定的 JSON 结构：
-     * data 为 byte[] 时输出整型数组（与 hutool 序列化格式一致，而非 Jackson 默认的 base64 字符串），
+     * data 为 byte[] 时输出整型数组
+     * （与 hutool 序列化格式一致，而非 Jackson 默认的 base64 字符串），
      * 为 URI 时输出字符串，保证序列化与反序列化可无损往返。
      * </p>
      *

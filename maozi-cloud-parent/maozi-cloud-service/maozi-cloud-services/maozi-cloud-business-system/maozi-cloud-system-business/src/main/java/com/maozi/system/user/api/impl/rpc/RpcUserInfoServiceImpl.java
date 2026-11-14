@@ -11,7 +11,8 @@ import com.maozi.system.user.dto.SystemUser;
 /**
  * 用户信息RPC服务实现类
  * <p>
- * 提供用户信息的 Dubbo RPC 远程调用接口实现，内部持有 UserServiceImpl 复用用户基础业务逻辑。
+ * 提供用户信息的 Dubbo RPC 远程调用接口实现，
+ * 内部持有 UserServiceImpl 复用用户基础业务逻辑。
  * </p>
  *
  * @author maozi

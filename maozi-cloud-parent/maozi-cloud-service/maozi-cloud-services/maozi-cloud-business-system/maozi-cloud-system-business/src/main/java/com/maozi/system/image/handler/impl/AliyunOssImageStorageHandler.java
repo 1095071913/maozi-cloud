@@ -31,7 +31,8 @@ import java.util.UUID;
  * <p>
  * 基于 OSS Java SDK V2 实现图片的简单上传（PutObject），
  * 客户端在应用启动时根据配置初始化，应用关闭时释放资源。
- * 上传的对象路径格式为 目录前缀/日期目录/UUID.扩展名（目录前缀取上传参数的保存路径，为空时默认 image），
+ * 上传的对象路径格式为 目录前缀/日期目录/UUID.扩展名
+ * （目录前缀取上传参数的保存路径，为空时默认 image），
  * 避免同名覆盖与顺序前缀。
  * </p>
  *
@@ -75,7 +76,8 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
 
         // 阿里云连接配置缺失时快速失败，给出明确的配置提示
         if(aliyun == null) {
-            throw new IllegalStateException("图片存储配置 oss.aliyun 未配置，无法初始化阿里云 OSS 客户端");
+            throw new IllegalStateException("图片存储配置 oss.aliyun 未配置，"
+                    + "无法初始化阿里云 OSS 客户端");
         }
 
         OSSClientBuilder builder = OSSClient.newBuilder()
@@ -152,12 +154,14 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
             ossClient.putObject(request);
 
             // 对象存储路径统一补上前导斜杠后返回
-            return new ImageUploadResult(file.getOriginalFilename(),"/" + fileKey,buildAccessUrl(fileKey), file.getSize());
+            return new ImageUploadResult(file.getOriginalFilename(),
+                    "/" + fileKey,buildAccessUrl(fileKey), file.getSize());
 
         } catch (Exception e) {
             // 上传过程中的任意异常统一转换为业务异常抛出，并保留原始异常堆栈便于排查
             log.error("Upload file to oss failed, file: {}", file.getOriginalFilename(), e);
-            throw new BusinessResultException(new ErrorCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE,"文件上传失败"), e);
+            throw new BusinessResultException(
+                    new ErrorCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE,"文件上传失败"), e);
         }
 
     }
@@ -166,7 +170,8 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
      * 构建对象存储路径
      * <p>
      * 格式为 目录前缀/yyyy/MM/dd/UUID.扩展名，
-     * 目录前缀取入参传递的保存路径（接口层已校验非空，首尾斜杠会被清除，清除后为空时默认 image），
+     * 目录前缀取入参传递的保存路径（接口层已校验非空，首尾斜杠会被清除，
+     * 清除后为空时默认 image），
      * 使用随机 UUID 避免同名文件覆盖（UUID 中的连字符会被去除），
      * 扩展名统一转为小写（文件无扩展名时省略），日期目录便于按时间归类管理。
      * </p>
@@ -185,7 +190,8 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
 
         String fileName = UUID.randomUUID().toString().replace("-","");
 
-        return directory + "/" + datePath + "/" + fileName + (StringUtils.isNotEmpty(extension) ? "." + extension.toLowerCase() : "");
+        return directory + "/" + datePath + "/" + fileName
+                + (StringUtils.isNotEmpty(extension) ? "." + extension.toLowerCase() : "");
 
     }
 
@@ -212,7 +218,8 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
 
             URI endpoint = URI.create(aliyun.getEndpoint());
 
-            return endpoint.getScheme() + PROTOCOL_SEPARATOR + aliyun.getBucket() + "." + endpoint.getHost() + "/" + fileKey;
+            return endpoint.getScheme() + PROTOCOL_SEPARATOR + aliyun.getBucket()
+                    + "." + endpoint.getHost() + "/" + fileKey;
 
         }
 

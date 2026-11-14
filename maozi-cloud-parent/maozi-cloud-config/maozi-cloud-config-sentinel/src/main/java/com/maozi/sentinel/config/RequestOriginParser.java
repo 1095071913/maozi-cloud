@@ -15,7 +15,8 @@ import org.springframework.stereotype.Component;
  * @date 2026/11/08
  */
 @Component
-public class RequestOriginParser implements com.alibaba.csp.sentinel.adapter.spring.webmvc_v6x.callback.RequestOriginParser {
+public class RequestOriginParser
+        implements com.alibaba.csp.sentinel.adapter.spring.webmvc_v6x.callback.RequestOriginParser {
 
     /**
      * 解析请求来源

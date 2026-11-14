@@ -117,7 +117,8 @@ public class RestErrorHandler {
     /**
      * 处理参数类型转换失败异常
      * <p>
-     * 当请求参数的类型与目标方法参数类型不匹配时触发（如将字符串传入 Integer 参数），
+     * 当请求参数的类型与目标方法参数类型不匹配时触发
+     * （如将字符串传入 Integer 参数），
      * 返回参数错误响应。
      * </p>
      *
@@ -158,14 +159,16 @@ public class RestErrorHandler {
      * @throws AsyncRequestNotUsableException 原样上抛，交由 Spring 底层异步机制处理
      */
     @ExceptionHandler(AsyncRequestNotUsableException.class)
-    public Object handleAsyncRequestNotUsableException(AsyncRequestNotUsableException e) throws AsyncRequestNotUsableException {
+    public Object handleAsyncRequestNotUsableException(AsyncRequestNotUsableException e)
+            throws AsyncRequestNotUsableException {
         throw e;
     }
 
     /**
      * 处理上传文件大小超限异常
      * <p>
-     * 当上传的文件或请求大小超过配置的最大限制（spring.servlet.multipart.max-file-size / max-request-size）时触发，
+     * 当上传的文件或请求大小超过配置的最大限制
+     * （spring.servlet.multipart.max-file-size / max-request-size）时触发，
      * 返回请求数据过大错误响应。
      * </p>
      *

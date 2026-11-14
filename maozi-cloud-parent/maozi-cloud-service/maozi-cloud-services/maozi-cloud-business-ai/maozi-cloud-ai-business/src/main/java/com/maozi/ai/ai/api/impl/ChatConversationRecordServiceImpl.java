@@ -31,7 +31,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class ChatConversationRecordServiceImpl extends BaseServiceImpl<ChatConversationRecordMapper, ChatConversationRecordDO>
+public class ChatConversationRecordServiceImpl extends BaseServiceImpl<ChatConversationRecordMapper,
+        ChatConversationRecordDO>
         implements ChatConversationRecordService {
 
     /** 资源名称，用于异常提示信息 */
@@ -68,11 +69,13 @@ public class ChatConversationRecordServiceImpl extends BaseServiceImpl<ChatConve
      * @param pageParam 分页查询参数
      * @return 会话分页列表
      */
-    public PageResult<ChatConversationRecordListResult> adminList(PageParam<ChatConversationRecordListParam> pageParam) {
+    public PageResult<ChatConversationRecordListResult> adminList(
+            PageParam<ChatConversationRecordListParam> pageParam) {
 
         Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
 
-        MPJLambdaWrapper<ChatConversationRecordDO> wrapper = super.buildQueryWrapper(pageParam, ChatConversationRecordListResult.class);
+        MPJLambdaWrapper<ChatConversationRecordDO> wrapper =
+                super.buildQueryWrapper(pageParam, ChatConversationRecordListResult.class);
         wrapper.eq(ChatConversationRecordDO::getUserId,userId);
 
         Page<ChatConversationRecordListResult> page = super.selectJoinListPage(

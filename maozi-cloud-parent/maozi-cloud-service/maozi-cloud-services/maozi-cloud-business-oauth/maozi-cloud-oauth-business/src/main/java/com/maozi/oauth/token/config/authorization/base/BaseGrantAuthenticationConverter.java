@@ -34,10 +34,12 @@ import java.util.Set;
  * @author vains
  * @date 2026/06/19
  */
-public abstract class BaseGrantAuthenticationConverter<T extends BaseGrantAuthenticationToken> implements AuthenticationConverter {
+public abstract class BaseGrantAuthenticationConverter<T extends BaseGrantAuthenticationToken>
+        implements AuthenticationConverter {
 
     /** 令牌请求错误的参考文档URI，用于OAuth2错误响应中 */
-    protected static final String ACCESS_TOKEN_REQUEST_ERROR_URI = "https://datatracker.ietf.org/doc/html/rfc6749#section-5.2";
+    protected static final String ACCESS_TOKEN_REQUEST_ERROR_URI =
+            "https://datatracker.ietf.org/doc/html/rfc6749#section-5.2";
 
     /** 当前泛型对应的Token令牌Class对象，用于反射创建Token实例 */
     protected Class<T> tokenClass = currentTokenClass();
@@ -48,7 +50,8 @@ public abstract class BaseGrantAuthenticationConverter<T extends BaseGrantAuthen
      * @return 泛型Token的Class对象
      */
     protected Class<T> currentTokenClass() {
-        return (Class<T>) ReflectionKit.getSuperClassGenericType(this.getClass(), BaseGrantAuthenticationConverter.class, 0);
+        return (Class<T>) ReflectionKit.getSuperClassGenericType(this.getClass(),
+                BaseGrantAuthenticationConverter.class, 0);
     }
 
     /**
@@ -110,7 +113,8 @@ public abstract class BaseGrantAuthenticationConverter<T extends BaseGrantAuthen
         String scope = parameters.getFirst(OAuth2ParameterNames.SCOPE);
         if (StringUtils.hasText(scope) &&
                 parameters.get(OAuth2ParameterNames.SCOPE).size() != 1) {
-            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, "OAuth 2.0 Parameter: " + OAuth2ParameterNames.SCOPE, ACCESS_TOKEN_REQUEST_ERROR_URI));
+            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST,
+                    "OAuth 2.0 Parameter: " + OAuth2ParameterNames.SCOPE, ACCESS_TOKEN_REQUEST_ERROR_URI));
         }
         Set<String> requestedScopes = null;
         if (StringUtils.hasText(scope)) {
@@ -130,7 +134,10 @@ public abstract class BaseGrantAuthenticationConverter<T extends BaseGrantAuthen
             }
         });
 
-        T token = tokenClass.getDeclaredConstructor(AuthorizationGrantType.class, Authentication.class,Set.class,Map.class).newInstance(new AuthorizationGrantType(getGrantType()), clientPrincipal, requestedScopes, additionalParameters);
+        T token = tokenClass.getDeclaredConstructor(AuthorizationGrantType.class,
+                Authentication.class,Set.class,Map.class)
+                .newInstance(new AuthorizationGrantType(getGrantType()), clientPrincipal,
+                requestedScopes, additionalParameters);
         setTokenResult(request,token);
 
         return token;

@@ -37,7 +37,8 @@ public class OauthTokenServiceImpl implements OauthTokenService {
     protected RegisteredClientRepository registeredClientRepository;
 
     /**
-     * 内省访问令牌，令牌无效（授权记录不存在、已失效或客户端未注册）时返回 active=false
+     * 内省访问令牌，令牌无效（授权记录不存在、已失效或客户端未注册）
+     * 时返回 active=false
      */
     @Override
     public Map<String, Object> introspect(String token) {

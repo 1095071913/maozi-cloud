@@ -55,7 +55,8 @@ public class ConfigListParam implements OrderParam, Serializable {
     /** 降序排序字段映射，key为表别名，value为该表下需要降序排序的字段列表 */
     private Map<String, List<String>> orderDescFieldsMap;
 
-    /** 主表可排序字段映射，key为表别名，value为该表下可排序字段及默认排序方向（true 降序、false 升序），未设置时按默认规则兜底 */
+    /** 主表可排序字段映射，key为表别名，value为该表下可排序字段及默认排序方向
+     * （true 降序、false 升序），未设置时按默认规则兜底 */
     private Map<String, Map<String, Boolean>> orderMainFieldsMap;
 
     /**

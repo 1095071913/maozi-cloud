@@ -177,20 +177,24 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
      *
      * @param exchange 服务端 Web 交换上下文
      * @param e        捕获到的异常
-     * @return 写入错误响应后完成的空 Mono；客户端断连或响应已提交时返回包含原异常的 Mono.error
+     * @return 写入错误响应后完成的空 Mono；
+     *         客户端断连或响应已提交时返回包含原异常的 Mono.error
      */
     @Override
     public Mono<Void> handle(ServerWebExchange exchange, @Nonnull Throwable e) {
 
         ServerHttpRequest request = exchange.getRequest();
 
-        // 客户端在响应发送过程中断开连接（AbortedException，含 Connection closed/reset、ClosedChannelException 包装）属于正常业务现象，
-        // 连接已关闭无法写回错误响应，不记录错误日志直接透传（透传后由 ReactorHooksConfiguration 的 onErrorDropped 钩子静默处理）
+        // 客户端在响应发送过程中断开连接（AbortedException，含 Connection closed/reset、
+        // ClosedChannelException 包装）属于正常业务现象，
+        // 连接已关闭无法写回错误响应，不记录错误日志直接透传
+        // （透传后由 ReactorHooksConfiguration 的 onErrorDropped 钩子静默处理）
         if (e instanceof AbortedException) {
             return Mono.error(e);
         }
 
-        // 当 OpenTelemetry 未生成有效 traceId 时，从请求头获取或生成 traceId 写入 MDC；OTel 已有则由其 MDC 集成接管，不覆盖
+        // 当 OpenTelemetry 未生成有效 traceId 时，从请求头获取或生成 traceId 写入 MDC；
+        // OTel 已有则由其 MDC 集成接管，不覆盖
         if (TraceIdContext.TRACE_ID_VALUE.equals(Span.current().getSpanContext().getTraceId())) {
             String traceId = request.getHeaders().getFirst(TraceIdContext.KEY);
             if (ObjectUtil.isNullEmpty(traceId)) {
@@ -221,10 +225,12 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
 
         }else if(BlockException.isBlockException(e)){
             // Sentinel 限流异常
-            result = ResultUtil.error(SystemErrorCode.CURRENT_LIMITING_ERROR).setHttpCode(SystemErrorCode.CURRENT_LIMITING_ERROR_DEFAULT_CODE);
+            result = ResultUtil.error(SystemErrorCode.CURRENT_LIMITING_ERROR)
+                               .setHttpCode(SystemErrorCode.CURRENT_LIMITING_ERROR_DEFAULT_CODE);
         }else {
             // 其他未知系统异常
-            result = ResultUtil.error(SystemErrorCode.SYSTEM_ERROR).setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
+            result = ResultUtil.error(SystemErrorCode.SYSTEM_ERROR)
+                               .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
         }
 
         // 记录错误响应内容
@@ -243,7 +249,8 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
 
         // 创建新的 ServerRequest 并路由到错误响应处理器
         ServerRequest newRequest = ServerRequest.create(exchange, this.messageReaders);
-        return RouterFunctions.route(RequestPredicates.all(), (req) -> renderErrorResponse(req, result)).route(newRequest)
+        return RouterFunctions.route(RequestPredicates.all(), (req) -> renderErrorResponse(req, result))
+                .route(newRequest)
                 .switchIfEmpty(Mono.error(e)).flatMap((handler) -> handler.handle(newRequest))
                 .flatMap((response) -> write(exchange, response));
     }

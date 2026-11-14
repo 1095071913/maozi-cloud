@@ -103,7 +103,8 @@ public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper, ConfigDO> i
     /**
      * 保存/更新配置
      * <p>
-     * 传入配置名称时校验其唯一性，更新时排除自身记录；新增或更新的校验由基类 saveUpdate 完成。
+     * 传入配置名称时校验其唯一性，更新时排除自身记录；
+     * 新增或更新的校验由基类 saveUpdate 完成。
      * </p>
      *
      * @param id    配置 ID，为空时执行新增

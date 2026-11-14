@@ -45,7 +45,8 @@ public class AccessDeniedHandler implements org.springframework.security.web.acc
      * @param accessDeniedException 访问拒绝异常
      */
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response,AccessDeniedException accessDeniedException){
+    public void handle(HttpServletRequest request, HttpServletResponse response,
+            AccessDeniedException accessDeniedException){
         // 获取权限不足的错误码
         ErrorCode errorCode = SystemErrorCode.PERMISSION_ERROR;
         // 构建错误响应并自动根据错误码设置HTTP状态码，写入响应体

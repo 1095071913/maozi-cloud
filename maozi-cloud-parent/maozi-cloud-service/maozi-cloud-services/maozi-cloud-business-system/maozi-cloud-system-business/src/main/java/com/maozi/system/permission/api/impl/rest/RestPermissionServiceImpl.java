@@ -16,13 +16,15 @@ import java.util.List;
 
 /**
  * 权限REST服务实现类
- * <p>提供权限的列表、详情、新增、更新及下拉列表等RESTful接口，删除等通用接口由基类默认实现。</p>
+ * <p>提供权限的列表、详情、新增、更新及下拉列表等RESTful接口，
+ * 删除等通用接口由基类默认实现。</p>
  *
  * @author maozi
  * @date 2026/11/08
  */
 @RestService
-public class RestPermissionServiceImpl extends BaseServiceResultImpl<PermissionServiceImpl, Void> implements RestPermissionService {
+public class RestPermissionServiceImpl extends BaseServiceResultImpl<PermissionServiceImpl, Void>
+        implements RestPermissionService {
 
     /**
      * 查询所有权限的列表数据
@@ -47,7 +49,8 @@ public class RestPermissionServiceImpl extends BaseServiceResultImpl<PermissionS
 
     /**
      * 查询权限下拉列表
-     * <p>区别于基类通用下拉仅返回ID和名称，此处额外返回父ID、深度、类型、排序字段，用于构建权限树。</p>
+     * <p>区别于基类通用下拉仅返回ID和名称，
+     * 此处额外返回父ID、深度、类型、排序字段，用于构建权限树。</p>
      *
      * @return 权限下拉选项列表
      */

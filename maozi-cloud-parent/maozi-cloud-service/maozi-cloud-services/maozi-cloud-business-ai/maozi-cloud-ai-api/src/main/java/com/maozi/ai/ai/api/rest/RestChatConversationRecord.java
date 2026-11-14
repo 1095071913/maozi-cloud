@@ -30,7 +30,8 @@ public interface RestChatConversationRecord {
      * @return 当前用户的会话分页列表，条目包含会话 ID 与标题
      */
     @Post(value = PATH + "/list", description = "列表")
-    AbstractBaseResult<PageResult<ChatConversationRecordListResult>> listResult(@RequestBody PageParam<ChatConversationRecordListParam> pageParam);
+    AbstractBaseResult<PageResult<ChatConversationRecordListResult>> listResult(
+            @RequestBody PageParam<ChatConversationRecordListParam> pageParam);
 
     /**
      * 创建会话
@@ -53,7 +54,8 @@ public interface RestChatConversationRecord {
      * @return 空结果
      */
     @Post(value = CURRENT_PATH + "/updateTitle", description = "更新标题")
-    AbstractBaseResult<Void> updateTitleResult(@PathVariable Long conversationId, @RequestBody RequestParam<String> param);
+    AbstractBaseResult<Void> updateTitleResult(@PathVariable Long conversationId,
+            @RequestBody RequestParam<String> param);
 
     /**
      * 删除会话

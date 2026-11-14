@@ -49,7 +49,10 @@ public class AsyncConfig {
     /** 缓冲队列容量 */
     private static final int QUEUE_CAPACITY = 1024;
 
-    /** 应用关闭时等待任务完成的最长时间（秒），超时后不再等待，仅记录警告并继续关闭流程 */
+    /**
+     * 应用关闭时等待任务完成的最长时间（秒），超时后不再等待，
+     * 仅记录警告并继续关闭流程
+     */
     private static final int AWAIT_TERMINATION = 60;
 
     /** 应用关闭时是否等待所有异步任务执行完成后再销毁线程池 */
@@ -92,7 +95,8 @@ public class AsyncConfig {
         // 等待任务完成的最长时间（秒），超时后仅记录警告，不强制中断任务
         taskExecutor.setAwaitTerminationSeconds(AWAIT_TERMINATION);
 
-        // 设置拒绝策略：队列和最大线程数都满后，由调用线程自己执行任务，避免任务丢失
+        // 设置拒绝策略：队列和最大线程数都满后，
+        // 由调用线程自己执行任务，避免任务丢失
         taskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
 
         // 初始化线程池

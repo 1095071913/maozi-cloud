@@ -54,7 +54,8 @@ public interface RestUserService {
      * 获取用户分页列表
      *
      * @param pageParam 分页查询参数，包含页码、每页数量以及用户搜索条件（如用户名称）
-     * @return 返回用户分页列表数据，包含用户 ID、姓名、所属客户端、状态、创建时间等信息
+     * @return 返回用户分页列表数据，包含用户 ID、姓名、所属客户端、状态、
+     *         创建时间等信息
      */
     @Post(value = PATH + "/list",description = "列表")
     @PreAuthorize("hasAuthority('system:user:list')")
@@ -144,7 +145,8 @@ public interface RestUserService {
     /**
      * 更新当前登录用户的个人信息
      * <p>
-     * 无需传入用户 ID，系统会根据当前登录的认证信息自动定位对应用户并更新其个人信息。
+     * 无需传入用户 ID，系统会根据当前登录的认证信息自动定位对应用户
+     * 并更新其个人信息。
      * </p>
      *
      * @param param 个人信息更新参数，包含需要修改的个人属性（如姓名、头像、密码等）

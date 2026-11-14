@@ -122,7 +122,8 @@ public class SwaggerGlobalFilter implements GlobalFilter, Ordered {
 
                         String response = new String(content, StandardCharsets.UTF_8);
 
-                        // 解析 JSON，禁用 fastjson 的特殊 key 检测（DisableSpecialKeyDetect），避免特殊 key 被特殊处理
+                        // 解析 JSON，禁用 fastjson 的特殊 key 检测（DisableSpecialKeyDetect），
+                        // 避免特殊 key 被特殊处理
                         JSONObject jsonObject = JSON.parseObject(response, Feature.DisableSpecialKeyDetect);
 
                         // 设置网关的 host 地址

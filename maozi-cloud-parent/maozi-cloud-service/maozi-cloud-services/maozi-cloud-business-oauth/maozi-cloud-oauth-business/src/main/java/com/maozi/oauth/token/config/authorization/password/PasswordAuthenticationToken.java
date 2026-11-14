@@ -27,7 +27,8 @@ public class PasswordAuthenticationToken extends BaseGrantAuthenticationToken {
      * @param scopes                 请求的授权范围
      * @param additionalParameters   附加参数（包含用户名和密码）
      */
-    public PasswordAuthenticationToken(AuthorizationGrantType authorizationGrantType, Authentication clientPrincipal, Set<String> scopes, Map<String, Object> additionalParameters) {
+    public PasswordAuthenticationToken(AuthorizationGrantType authorizationGrantType,
+            Authentication clientPrincipal, Set<String> scopes, Map<String, Object> additionalParameters) {
         super(authorizationGrantType, clientPrincipal, scopes, additionalParameters);
     }
 }

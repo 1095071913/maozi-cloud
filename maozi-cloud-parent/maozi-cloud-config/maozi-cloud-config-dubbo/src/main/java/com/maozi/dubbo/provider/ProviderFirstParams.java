@@ -75,7 +75,8 @@ public class ProviderFirstParams extends DefaultProviderFirstParams {
      * 获取需要以提供者端值为准的参数名称集合。
      * </p>
      *
-     * @return 不可变的参数名集合，集合中的参数在提供者端和消费者端冲突时优先使用提供者的值
+     * @return 不可变的参数名集合，
+     * 集合中的参数在提供者端和消费者端冲突时优先使用提供者的值
      */
     @Override
     public Set<String> params() {

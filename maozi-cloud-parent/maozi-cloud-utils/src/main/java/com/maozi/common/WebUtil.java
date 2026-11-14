@@ -62,7 +62,8 @@ public final class WebUtil {
      * @return 当前 HttpServletRequest，不在 Web 请求上下文中时返回 null
      */
     public static HttpServletRequest getRequest() {
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        ServletRequestAttributes servletRequestAttributes =
+                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (ObjectUtil.isNullEmpty(servletRequestAttributes)) {
             return null;
         }
@@ -75,7 +76,8 @@ public final class WebUtil {
      * @return 当前 HttpServletResponse，不在 Web 请求上下文中时返回 null
      */
     public static HttpServletResponse getResponse() {
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        ServletRequestAttributes servletRequestAttributes =
+                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (ObjectUtil.isNullEmpty(servletRequestAttributes)) {
             return null;
         }

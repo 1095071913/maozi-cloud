@@ -24,7 +24,8 @@ public class ClientAuthenticationFailureHandler implements AuthenticationFailure
     private static final int NO_AUTHENTICATION_CODE = 401;
 
     /** 客户端认证失败的错误码和错误信息 */
-    private static final ErrorCode NO_AUTHENTICATION_CODE_DATA = new ErrorCode(NO_AUTHENTICATION_CODE, "客户端认证授权失败");
+    private static final ErrorCode NO_AUTHENTICATION_CODE_DATA =
+            new ErrorCode(NO_AUTHENTICATION_CODE, "客户端认证授权失败");
 
     /**
      * 处理客户端认证失败
@@ -37,8 +38,10 @@ public class ClientAuthenticationFailureHandler implements AuthenticationFailure
      * @param exception 认证异常信息
      */
     @Override
-    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) {
-        WebUtil.writeResponseBody(response,ResultUtil.error(NO_AUTHENTICATION_CODE_DATA).autoIdentifyHttpCode(NO_AUTHENTICATION_CODE));
+    public void onAuthenticationFailure(HttpServletRequest request,
+            HttpServletResponse response, AuthenticationException exception) {
+        WebUtil.writeResponseBody(response,
+                ResultUtil.error(NO_AUTHENTICATION_CODE_DATA).autoIdentifyHttpCode(NO_AUTHENTICATION_CODE));
     }
 
 }

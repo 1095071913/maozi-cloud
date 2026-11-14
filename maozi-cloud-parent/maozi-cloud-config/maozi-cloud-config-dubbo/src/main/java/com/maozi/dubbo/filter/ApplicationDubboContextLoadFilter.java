@@ -57,13 +57,16 @@ public class ApplicationDubboContextLoadFilter implements Filter {
         // 从 RPC 附件中提取测试流量标记，设置到当前线程的测试流量上下文中
         TestFlowContext.CONTEXT.set(serverAttachment.getAttachment(TestFlowContext.KEY));
 
-        // 从 RPC 附件中提取当前登录用户信息 JSON，反序列化后设置到当前线程的用户上下文中
+        // 从 RPC 附件中提取当前登录用户信息 JSON，
+        // 反序列化后设置到当前线程的用户上下文中
         CurrentUserInfoContext.CONTEXT.set(serverAttachment.getAttachment(CurrentUserInfoContext.KEY));
 
-        // 从 RPC 附件中提取链路追踪 ID，设置到当前线程的链路追踪上下文中（非空时同步写入 MDC）
+        // 从 RPC 附件中提取链路追踪 ID，设置到当前线程的链路追踪上下文中
+        // （非空时同步写入 MDC）
         TraceIdContext.CONTEXT.set(serverAttachment.getAttachment(TraceIdContext.KEY));
 
-        // 执行实际调用，在 finally 中清理上下文，确保即使发生异常也不会造成线程数据泄漏
+        // 执行实际调用，在 finally 中清理上下文，
+        // 确保即使发生异常也不会造成线程数据泄漏
         try{return invoker.invoke(invocation);} finally{
             AbstractRequestContextHolder.clearContext();
         }

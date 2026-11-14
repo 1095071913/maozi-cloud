@@ -11,9 +11,11 @@ import org.springframework.stereotype.Component;
 /**
  * SnailJob 任务方法调用切面
  * <p>
- * 拦截标注了 {@code @JobExecutor} 注解的任务方法，按方法声明的返回类型统一包装执行结果：
+ * 拦截标注了 {@code @JobExecutor} 注解的任务方法，
+ * 按方法声明的返回类型统一包装执行结果：
  * 声明返回 {@code ExecuteResult} 或 {@code Object}（可承载 {@code ExecuteResult}）时
- * 原样返回方法结果，避免二次包装导致服务端状态判定错误；声明为其他返回类型（含 void）时
+ * 原样返回方法结果，避免二次包装导致服务端状态判定错误；
+ * 声明为其他返回类型（含 void）时
  * 包装为 {@code ExecuteResult.success} 返回，使任务结果符合 SnailJob 的返回值契约。
  * 方法抛出的异常不在此处理，原样上抛由 SnailJob 框架按任务失败处理。
  * </p>

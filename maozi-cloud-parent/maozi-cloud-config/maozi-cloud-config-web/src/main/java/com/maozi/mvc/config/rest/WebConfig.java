@@ -16,8 +16,10 @@ import java.util.List;
  * <p>
  * 注册自定义消息转换器：
  * 添加 {@link ReadOnlyMultipartFormDataEndpointConverter} 支持 multipart/form-data 请求体读取。
- * 当前用户信息拦截器不在此注册，由 {@code maozi-cloud-config-oauth} 模块的 {@code WebSecurityConfig} 负责
- * （版本号、traceId 等链路上下文由本模块的 {@code ApplicationContextFilter} 以 Servlet Filter 方式处理）。
+ * 当前用户信息拦截器不在此注册，由 {@code maozi-cloud-config-oauth} 模块的
+ * {@code WebSecurityConfig} 负责
+ * （版本号、traceId 等链路上下文由本模块的 {@code ApplicationContextFilter}
+ * 以 Servlet Filter 方式处理）。
  * </p>
  *
  * @author maozi
@@ -43,7 +45,8 @@ public class WebConfig implements WebMvcConfigurer {
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
 
         // 创建支持 multipart/form-data 的只读 Jackson 消息转换器
-        ReadOnlyMultipartFormDataEndpointConverter converter = new ReadOnlyMultipartFormDataEndpointConverter(objectMapper);
+        ReadOnlyMultipartFormDataEndpointConverter converter =
+                new ReadOnlyMultipartFormDataEndpointConverter(objectMapper);
 
         // 在默认支持的媒体类型基础上，额外添加 application/octet-stream 支持
         List<MediaType> supportedMediaTypes = new ArrayList<>(converter.getSupportedMediaTypes());

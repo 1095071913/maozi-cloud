@@ -52,10 +52,12 @@ public class RedissonConfig {
                     .setPassword(lockRedissonProperties.getPassword())
                     .addNodeAddress(lockRedissonProperties.getNodeAddresses());
         }else {
-            // 单节点模式：配置单个 Redis 地址、数据库编号和密码（逻辑库未配置时默认 0，避免自动拆箱 NPE）
+            // 单节点模式：配置单个 Redis 地址、数据库编号和密码
+            // （逻辑库未配置时默认 0，避免自动拆箱 NPE）
             config.useSingleServer()
                     .setAddress(lockRedissonProperties.getAddress())
-                    .setDatabase(lockRedissonProperties.getDatabase() == null ? DEFAULT_DATABASE : lockRedissonProperties.getDatabase())
+                    .setDatabase(lockRedissonProperties.getDatabase() == null
+                            ? DEFAULT_DATABASE : lockRedissonProperties.getDatabase())
                     .setPassword(lockRedissonProperties.getPassword());
         }
 

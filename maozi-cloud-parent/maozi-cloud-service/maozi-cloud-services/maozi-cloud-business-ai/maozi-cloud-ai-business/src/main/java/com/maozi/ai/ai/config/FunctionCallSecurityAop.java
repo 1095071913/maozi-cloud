@@ -52,17 +52,20 @@ import java.util.stream.Collectors;
 public class FunctionCallSecurityAop {
 
     /**
-     * 切面顺序：须先于原生 {@code @PreAuthorize} 方法拦截器（{@code AuthorizationInterceptorsOrder.PRE_AUTHORIZE}，顺序 200）执行
+     * 切面顺序：须先于原生 {@code @PreAuthorize} 方法拦截器
+     * （{@code AuthorizationInterceptorsOrder.PRE_AUTHORIZE}，顺序 200）执行
      */
     public static final int ORDER_BEFORE_PRE_AUTHORIZE = 199;
 
     /**
-     * 环绕通知：为标注 {@code @PreAuthorize} 的 AI 工具方法临时补齐当前用户认证信息后执行目标方法，
+     * 环绕通知：为标注 {@code @PreAuthorize} 的 AI 工具方法临时补齐当前用户认证信息
+     * 后执行目标方法，
      * 权限表达式校验由内层原生 {@code @PreAuthorize} 拦截器完成
      *
      * @param joinPoint AOP 连接点
      * @return 目标方法执行结果
-     * @throws Throwable 未登录抛出权限不足业务异常、权限校验不通过抛出权限不足异常，或目标方法抛出的异常
+     * @throws Throwable 未登录抛出权限不足业务异常、权限校验不通过抛出权限不足异常，
+     * 或目标方法抛出的异常
      */
     @Around("@annotation(org.springframework.ai.tool.annotation.Tool)")
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -70,14 +73,16 @@ public class FunctionCallSecurityAop {
         // 获取目标方法
         Method method = ((MethodSignature) joinPoint.getSignature()).getMethod();
 
-        // 获取方法上的 @PreAuthorize 注解（AnnotationUtils 会沿父类、接口方法及元注解查找），未标注则无需校验直接执行
+        // 获取方法上的 @PreAuthorize 注解（AnnotationUtils 会沿父类、
+        // 接口方法及元注解查找），未标注则无需校验直接执行
         PreAuthorize preAuthorize = AnnotationUtils.findAnnotation(method, PreAuthorize.class);
         if (preAuthorize == null) {
             return joinPoint.proceed();
         }
 
         try {
-            // 临时写入基于链路上下文当前用户构建的认证信息，供内层原生 @PreAuthorize 拦截器完成权限校验
+            // 临时写入基于链路上下文当前用户构建的认证信息，
+            // 供内层原生 @PreAuthorize 拦截器完成权限校验
             SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
             securityContext.setAuthentication(buildAuthentication());
             SecurityContextHolder.setContext(securityContext);
@@ -92,8 +97,10 @@ public class FunctionCallSecurityAop {
     /**
      * 基于链路上下文当前用户构建认证信息
      * <p>
-     * 从 {@link CurrentUserInfoContext}（TransmittableThreadLocal，可跨线程池传递）获取当前登录用户，
-     * 直接从用户信息中取其权限标识列表（不发起 RPC 查询），构建携带权限的已认证令牌。
+     * 从 {@link CurrentUserInfoContext}（TransmittableThreadLocal，可跨线程池传递）
+     * 获取当前登录用户，
+     * 直接从用户信息中取其权限标识列表（不发起 RPC 查询），
+     * 构建携带权限的已认证令牌。
      * </p>
      *
      * @return 携带当前用户权限标识的认证信息
@@ -101,7 +108,8 @@ public class FunctionCallSecurityAop {
      */
     private Authentication buildAuthentication() {
 
-        // 获取链路上下文中的当前登录用户，未登录时抛出权限不足异常（收紧校验，不默认放行）
+        // 获取链路上下文中的当前登录用户，未登录时抛出权限不足异常
+        // （收紧校验，不默认放行）
         CurrentUserInfo currentUserInfo = CurrentUserInfoContext.CONTEXT.get();
         if (ObjectUtil.isNullEmpty(currentUserInfo)) {
             throw new BusinessResultException(SystemErrorCode.PERMISSION_ERROR);

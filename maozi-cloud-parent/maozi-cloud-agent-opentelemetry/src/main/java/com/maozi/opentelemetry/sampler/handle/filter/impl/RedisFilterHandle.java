@@ -55,7 +55,8 @@ public class RedisFilterHandle extends BaseFilterHandle {
             return false;
         }
 
-        // 比对 db.statement 是否命中排除指令列表（属性缺失时不过滤，避免不可变集合 contains(null) 抛 NPE）
+        // 比对 db.statement 是否命中排除指令列表
+        // （属性缺失时不过滤，避免不可变集合 contains(null) 抛 NPE）
         String statement = attributes.get(InternalAttributeKeyImpl.create(ATTR_DB_STATEMENT, AttributeType.STRING));
         if(Objects.isNull(statement)){
             return false;

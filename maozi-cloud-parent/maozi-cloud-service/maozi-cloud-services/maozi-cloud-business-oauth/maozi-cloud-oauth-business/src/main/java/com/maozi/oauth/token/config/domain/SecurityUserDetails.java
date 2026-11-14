@@ -49,7 +49,8 @@ public class SecurityUserDetails extends User implements Serializable {
      * @param authorities 权限列表
      * @param attributes  用户附加属性（如用户ID）
      */
-    public SecurityUserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities, Map<String, Object> attributes) {
+    public SecurityUserDetails(String username, String password,
+            Collection<? extends GrantedAuthority> authorities, Map<String, Object> attributes) {
         super(username, password, authorities);
         this.attributes = attributes;
     }
@@ -57,7 +58,8 @@ public class SecurityUserDetails extends User implements Serializable {
     /**
      * Jackson 反序列化构造函数
      * <p>
-     * 按JSON属性逐一还原用户状态、权限列表及附加属性，用于从Redis中反序列化用户信息。
+     * 按JSON属性逐一还原用户状态、权限列表及附加属性，
+     * 用于从Redis中反序列化用户信息。
      * </p>
      *
      * @param username              用户名
@@ -71,7 +73,8 @@ public class SecurityUserDetails extends User implements Serializable {
      */
     @JsonCreator
     public SecurityUserDetails(@JsonProperty("username") String username, @JsonProperty("password") String password,
-                               @JsonProperty("enabled") boolean enabled, @JsonProperty("accountNonExpired") boolean accountNonExpired,
+                               @JsonProperty("enabled") boolean enabled,
+                               @JsonProperty("accountNonExpired") boolean accountNonExpired,
                                @JsonProperty("credentialsNonExpired") boolean credentialsNonExpired,
                                @JsonProperty("accountNonLocked") boolean accountNonLocked,
                                @JsonProperty("authorities") Collection<SimpleGrantedAuthority> authorities,

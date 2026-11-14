@@ -19,7 +19,8 @@ import java.util.List;
  * @date 2026/11/08
  */
 @Service
-public class JdbcRegisteredClientRepository extends org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository {
+public class JdbcRegisteredClientRepository
+        extends org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository {
 
     /** 数据库查询的列名列表 */
     private static final String COLUMN_NAMES = "id, "

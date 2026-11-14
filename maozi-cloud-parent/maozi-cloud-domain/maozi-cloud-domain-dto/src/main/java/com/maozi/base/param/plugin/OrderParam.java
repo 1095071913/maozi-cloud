@@ -35,7 +35,8 @@ public interface OrderParam {
      *
      * @return key 为排序字段，value 为排序方向（true 降序、false 升序、null 不排序）
      */
-    @Schema(description = "排序组件 key:排序字段 value: true降序、false升序、null不做排序、空字符串字段")
+    @Schema(description = "排序组件 key:排序字段"
+            + " value: true降序、false升序、null不做排序、空字符串字段")
     Map<String,Boolean> getOrderFieldMap();
 
     /**
@@ -115,14 +116,18 @@ public interface OrderParam {
                 }
 
                 // 优先使用前端传入的排序方向，未指定时使用字段默认排序方向
-                Boolean orderMainFieldValue = orderFieldMap.getOrDefault(orderMainField, orderMainFieldEntry.getValue());
+                Boolean orderMainFieldValue =
+                        orderFieldMap.getOrDefault(orderMainField, orderMainFieldEntry.getValue());
 
                 if (ObjectUtil.isNotNullEmpty(orderMainFieldValue)) {
 
                     String underlineCase = StrUtil.toUnderlineCase(key);
 
-                    // 表别名非空时拼接为 "表别名.下划线字段名"；为空时仅取表别名的下划线形式（结果不含字段名）
-                    String field = StringUtils.isEmpty(key) ? underlineCase : String.join(".", underlineCase, StrUtil.toUnderlineCase(orderMainField));
+                    // 表别名非空时拼接为 "表别名.下划线字段名"；
+                    // 为空时仅取表别名的下划线形式（结果不含字段名）
+                    String field = StringUtils.isEmpty(key)
+                            ? underlineCase
+                            : String.join(".", underlineCase, StrUtil.toUnderlineCase(orderMainField));
 
                     if (orderMainFieldValue) {
                         orderDescFields.add(field);

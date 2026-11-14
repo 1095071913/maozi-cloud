@@ -31,7 +31,8 @@ public class AgentHttpResponseCustomizer implements HttpServerResponseCustomizer
 
     /** 需要注入追踪 ID 的响应类型（网关转发的 Netty 响应） */
     private static final List<String> ADD_TRACEID_CLASS = Collections.unmodifiableList(
-        Arrays.asList("io.netty.handler.codec.http.DefaultHttpResponse","io.netty.handler.codec.http.DefaultFullHttpResponse")
+        Arrays.asList("io.netty.handler.codec.http.DefaultHttpResponse",
+                "io.netty.handler.codec.http.DefaultFullHttpResponse")
     );
 
     /**
@@ -46,7 +47,8 @@ public class AgentHttpResponseCustomizer implements HttpServerResponseCustomizer
      * @param <RESPONSE> 响应对象类型
      */
     @Override
-    public <RESPONSE> void customize(Context context, RESPONSE response, HttpServerResponseMutator<RESPONSE> responseMutator) {
+    public <RESPONSE> void customize(Context context, RESPONSE response,
+            HttpServerResponseMutator<RESPONSE> responseMutator) {
 
         // 从当前上下文提取 Span 上下文，用于获取追踪 ID
         SpanContext spanContext = Span.fromContext(context).getSpanContext();

@@ -13,7 +13,8 @@ import java.lang.reflect.Field;
 /**
  * 通用 JSON 字段处理器
  * <p>
- * 继承 MyBatis-Plus {@link com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler}，通过反射获取字段泛型类型，
+ * 继承 MyBatis-Plus {@link com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler}，
+ * 通过反射获取字段泛型类型，
  * 自动完成数据库 JSON 列与 Java 对象的双向转换。
  * 支持任意类型：普通对象、List、Map 等。
  * </p>
@@ -62,7 +63,8 @@ public class JacksonTypeHandler extends com.baomidou.mybatisplus.extension.handl
         // 获取全局共享的 ObjectMapper 实例，保证序列化配置一致性
         ObjectMapper objectMapper = JacksonUtil.getObjectMapper();
         TypeFactory typeFactory = objectMapper.getTypeFactory();
-        // 通过 getFieldType() 获取字段的完整泛型类型（如 List<Long>），确保反序列化后类型精确匹配
+        // 通过 getFieldType() 获取字段的完整泛型类型（如 List<Long>），
+        // 确保反序列化后类型精确匹配
         JavaType javaType = typeFactory.constructType(super.getFieldType());
 
         try {

@@ -24,7 +24,8 @@ import org.apache.dubbo.rpc.RpcException;
  * 与 {@link ApplicationDubboContextLoadFilter} 配合使用：
  * <ul>
  *   <li>本过滤器在消费者端负责"写"：将上下文信息写入 RPC 附件</li>
- *   <li>{@link ApplicationDubboContextLoadFilter} 在提供者端负责"读"：从 RPC 附件中提取上下文信息</li>
+ *   <li>{@link ApplicationDubboContextLoadFilter} 在提供者端负责"读"：
+ *   从 RPC 附件中提取上下文信息</li>
  * </ul>
  * </p>
  * <p>

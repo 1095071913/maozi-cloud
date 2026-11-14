@@ -73,7 +73,8 @@ public class RestUserServiceImpl extends BaseServiceResultImpl<UserServiceImpl, 
 
     /**
      * 删除用户
-     * <p>用户不存在时静默返回；删除时解除角色绑定，删除成功后销毁该用户全部 OAuth2 令牌，强制下线。</p>
+     * <p>用户不存在时静默返回；删除时解除角色绑定，
+     * 删除成功后销毁该用户全部 OAuth2 令牌，强制下线。</p>
      *
      * @param id 用户ID
      * @return 操作结果
@@ -86,7 +87,8 @@ public class RestUserServiceImpl extends BaseServiceResultImpl<UserServiceImpl, 
 
     /**
      * 更新用户状态（启用/禁用）
-     * <p>当前状态与目标状态一致时直接返回；状态变更为禁用后销毁该用户全部 OAuth2 令牌，强制下线。</p>
+     * <p>当前状态与目标状态一致时直接返回；
+     * 状态变更为禁用后销毁该用户全部 OAuth2 令牌，强制下线。</p>
      *
      * @param id 用户ID
      * @param param 状态参数
@@ -100,7 +102,8 @@ public class RestUserServiceImpl extends BaseServiceResultImpl<UserServiceImpl, 
 
     /**
      * 查询用户详情
-     * <p>按ID查询并填充关联映射数据（如所属客户端、关联角色ID列表），用户不存在时抛出业务异常。</p>
+     * <p>按ID查询并填充关联映射数据（如所属客户端、关联角色ID列表），
+     * 用户不存在时抛出业务异常。</p>
      *
      * @param id 用户ID
      * @return 用户详细信息
@@ -112,7 +115,8 @@ public class RestUserServiceImpl extends BaseServiceResultImpl<UserServiceImpl, 
 
     /**
      * 更新用户信息
-     * <p>更新时同步维护用户与角色的绑定关系；更新后状态为禁用时销毁该用户全部 OAuth2 令牌，强制下线。</p>
+     * <p>更新时同步维护用户与角色的绑定关系；
+     * 更新后状态为禁用时销毁该用户全部 OAuth2 令牌，强制下线。</p>
      *
      * @param id    用户ID
      * @param param 用户更新参数
@@ -138,7 +142,9 @@ public class RestUserServiceImpl extends BaseServiceResultImpl<UserServiceImpl, 
 
     /**
      * 更新当前登录用户的个人信息
-     * <p>修改密码时需同时传入旧密码与新密码；更新成功后销毁该用户在当前客户端下的全部 OAuth2 令牌并指示前端跳转登录页，强制重新登录。</p>
+     * <p>修改密码时需同时传入旧密码与新密码；
+     * 更新成功后销毁该用户在当前客户端下的全部 OAuth2 令牌
+     * 并指示前端跳转登录页，强制重新登录。</p>
      *
      * @param param 个人信息更新参数（姓名、头像、旧密码、新密码）
      * @return 操作结果

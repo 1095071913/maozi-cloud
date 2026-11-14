@@ -75,7 +75,8 @@ public class AuthorizationServerConfiguration {
      * 配置授权服务器的安全过滤器链
      * <p>
      * 设置OAuth2授权服务器的默认安全配置，包括OIDC端点、客户端认证失败处理、
-     * 令牌撤销端点、令牌端点（用户认证成功/失败处理、登录参数转换器、刷新Token处理器）等。
+     * 令牌撤销端点、令牌端点（用户认证成功/失败处理、登录参数转换器、
+     * 刷新Token处理器）等。
      * </p>
      *
      * @param http HttpSecurity对象，用于构建安全过滤器链
@@ -113,8 +114,10 @@ public class AuthorizationServerConfiguration {
                 .errorResponseHandler(new UserAuthenticationFailureHandler())
                 // 替换默认的刷新Token处理器，添加权限信息
                 .authenticationProviders(authenticationProviders -> {
-                    authenticationProviders.removeIf(provider -> provider instanceof OAuth2RefreshTokenAuthenticationProvider);
-                    RefreshTokenAuthenticationProvider refreshProvider = SpringUtil.getBean(RefreshTokenAuthenticationProvider.class);
+                    authenticationProviders.removeIf(
+                        provider -> provider instanceof OAuth2RefreshTokenAuthenticationProvider);
+                    RefreshTokenAuthenticationProvider refreshProvider =
+                            SpringUtil.getBean(RefreshTokenAuthenticationProvider.class);
                     refreshProvider.setTokenGenerator(http.getSharedObject(OAuth2TokenGenerator.class));
                     authenticationProviders.add(refreshProvider);
                 })
@@ -190,7 +193,8 @@ public class AuthorizationServerConfiguration {
      * @return JdbcOAuth2AuthorizationConsentService
      */
     @Bean
-    public OAuth2AuthorizationConsentService authorizationConsentService(JdbcTemplate jdbcTemplate, RegisteredClientRepository registeredClientRepository) {
+    public OAuth2AuthorizationConsentService authorizationConsentService(JdbcTemplate jdbcTemplate,
+            RegisteredClientRepository registeredClientRepository) {
         return new JdbcOAuth2AuthorizationConsentService(jdbcTemplate, registeredClientRepository);
     }
 
@@ -205,7 +209,8 @@ public class AuthorizationServerConfiguration {
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
-        DelegatingPasswordEncoder passwordEncoder = (DelegatingPasswordEncoder) PasswordEncoderFactories.createDelegatingPasswordEncoder();
+        DelegatingPasswordEncoder passwordEncoder =
+                (DelegatingPasswordEncoder) PasswordEncoderFactories.createDelegatingPasswordEncoder();
         passwordEncoder.setDefaultPasswordEncoderForMatches(new BCryptPasswordEncoder());
         return passwordEncoder;
     }

@@ -25,7 +25,8 @@ public abstract class BaseFilterHandle {
      /**
       * 返回该过滤器关注的匹配标识列表，语义因来源类型而异：
       * 来源型过滤器（如 Redis、MySQL）返回来源标识（如 "redis"、"mysql"），
-      * 用于匹配 Span 属性中的来源字段；HTTP 过滤器返回需排除的 URL 路径模式（如 "/actuator/**"）。
+      * 用于匹配 Span 属性中的来源字段；
+     * HTTP 过滤器返回需排除的 URL 路径模式（如 "/actuator/**"）。
       *
       * @return 匹配标识列表
       */

@@ -46,7 +46,8 @@ import java.util.stream.Collectors;
  * @date 2026/11/08
  */
 @Service
-public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, PermissionDO> implements PermissionService {
+public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, PermissionDO>
+        implements PermissionService {
 
     /** 资源名称，用于异常提示信息 */
     public static final String RESOURCE_NAME = "权限";
@@ -65,7 +66,8 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, Per
      * 删除权限前校验绑定关系与子权限
      *
      * @param id 权限ID
-     * @throws com.maozi.common.result.error.exception.BusinessResultException 权限已被角色绑定或存在子权限时抛出
+     * @throws com.maozi.common.result.error.exception.BusinessResultException
+     * 权限已被角色绑定或存在子权限时抛出
      */
     @Override
     public void checkBind(Long id) {
@@ -74,8 +76,11 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, Per
         rolePermissionService.checkRoleBindPermissionByPermission(id);
 
         // 2.存在子权限则禁止删除
-        LambdaQueryWrapper<PermissionDO> wrapper = Wrappers.<PermissionDO>lambdaQuery().eq(PermissionDO::getParentId, id);
-        ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1, SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE, getResourceName() + "存在子权限，不允许删除");
+        LambdaQueryWrapper<PermissionDO> wrapper = Wrappers.<PermissionDO>lambdaQuery()
+                .eq(PermissionDO::getParentId, id);
+        ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1,
+                SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE,
+                getResourceName() + "存在子权限，不允许删除");
 
     }
 
@@ -121,7 +126,8 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, Per
         // 仅查询列表视图对象所需的字段列
         wrapper.select(super.getColumns(PermissionListResult.class,false));
 
-        wrapper.orderByDesc(CollectionUtil.newArrayList(super.getColumns(PermissionDO::getLevel,PermissionDO::getSort)));
+        wrapper.orderByDesc(CollectionUtil.newArrayList(
+                super.getColumns(PermissionDO::getLevel,PermissionDO::getSort)));
 
         return super.list(wrapper, PermissionListResult::new);
 

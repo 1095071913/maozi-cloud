@@ -74,9 +74,11 @@ public class ResourceServerConfig {
                 .requestMatchers(requestMatchers).permitAll()
                 .anyRequest().authenticated());
 
-        // 添加BearerTokenAuthenticationFilter，将认证服务当做一个资源服务器，解析请求头中的token
+        // 添加BearerTokenAuthenticationFilter，将认证服务当做一个资源服务器，
+        // 解析请求头中的token
         http.oauth2ResourceServer((resourceServer) -> resourceServer
-                .opaqueToken(Customizer.withDefaults())  // 使用不透明令牌（Opaque Token）方式进行令牌校验
+                // 使用不透明令牌（Opaque Token）方式进行令牌校验
+                .opaqueToken(Customizer.withDefaults())
                 .accessDeniedHandler(new AccessDeniedHandler())  // 自定义权限不足时的响应处理
                 .authenticationEntryPoint(new AuthenticationEntryPoint())  // 自定义未认证时的响应处理
         );
@@ -95,9 +97,11 @@ public class ResourceServerConfig {
      * @return 认证管理器解析器
      */
     @Bean
-    public AuthenticationManagerResolver<HttpServletRequest> tokenAuthenticationManagerResolver(OpaqueTokenIntrospector opaqueTokenIntrospector) {
+    public AuthenticationManagerResolver<HttpServletRequest> tokenAuthenticationManagerResolver(
+            OpaqueTokenIntrospector opaqueTokenIntrospector) {
         // 使用自定义的不透明令牌内省器创建认证提供者，并封装为ProviderManager
-        AuthenticationManager opaqueToken = new ProviderManager(new OpaqueTokenAuthenticationProvider(opaqueTokenIntrospector));
+        AuthenticationManager opaqueToken =
+                new ProviderManager(new OpaqueTokenAuthenticationProvider(opaqueTokenIntrospector));
         // 所有请求统一返回同一个AuthenticationManager（不透明令牌认证管理器）
         return (request) -> opaqueToken;
     }

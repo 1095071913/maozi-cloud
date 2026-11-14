@@ -26,11 +26,13 @@ import java.util.Objects;
 /**
  * 自定义重试上报切面
  * <p>
- * 拦截标注了 {@code @RetryTask} 注解的方法，处理方法执行失败（抛出异常或结果集判定需要重试）后的重试逻辑。
+ * 拦截标注了 {@code @RetryTask} 注解的方法，处理方法执行失败
+ * （抛出异常或结果集判定需要重试）后的重试逻辑。
  * 非重试流量下按注解上报策略处理：{@link RetryType#ONLY_LOCAL} 与 {@link RetryType#LOCAL_REMOTE}
  * 策略先在本地按次数与间隔同步重试；{@link RetryType#ONLY_REMOTE} 策略（以及
  * {@link RetryType#LOCAL_REMOTE} 本地重试失败后）将方法信息封装为 {@link RetryTaskParam}
- * 上报 SnailJob 服务端，由统一重试处理器 {@link RetryExecutorTask} 在服务端调度时远程回调执行。
+ * 上报 SnailJob 服务端，由统一重试处理器 {@link RetryExecutorTask} 在服务端调度时远程回调
+ * 执行。
  * </p>
  * <p>
  * 重试流量（{@code RetryContextHolder} 已标记）下方法执行结果或异常直接放行，
@@ -55,7 +57,8 @@ public class RetryTaskReportAop {
      * 环绕通知，处理 {@code @RetryTask} 方法失败后的本地重试与远程上报
      *
      * @param proceedingJoinPoint AOP 连接点
-     * @return 正常执行无需重试或重试流量直接放行时返回方法原结果，本地重试成功时返回重试结果，其余情况返回 {@code null}
+     * @return 正常执行无需重试或重试流量直接放行时返回方法原结果，
+     * 本地重试成功时返回重试结果，其余情况返回 {@code null}
      * @throws Throwable 方法执行异常在本地重试与上报处理后原样上抛
      */
     @Around(POINT)
@@ -67,7 +70,8 @@ public class RetryTaskReportAop {
         Method method = signature.getMethod();
         RetryTask retryTask = method.getAnnotation(RetryTask.class);
 
-        // 方法执行异常（延迟到本地重试与上报处理后上抛）；是否为重试执行器发起的重试流量
+        // 方法执行异常（延迟到本地重试与上报处理后上抛）；
+        // 是否为重试执行器发起的重试流量
         Throwable ex = null;
         boolean retryTraffic = Boolean.TRUE.equals(RetryContextHolder.getRetry());
 
@@ -121,7 +125,8 @@ public class RetryTaskReportAop {
                 retryTaskParam.setTestFlow(TestFlowContext.CONTEXT.get());
                 retryTaskParam.setRetryIfResultClassName(retryTask.retryIfResult().getName());
 
-                // OpenTelemetry 无有效追踪上下文时 traceId 为全 0 占位值，此时回退链路上下文中的 traceId
+                // OpenTelemetry 无有效追踪上下文时 traceId 为全 0 占位值，
+                // 此时回退链路上下文中的 traceId
                 String traceId = Span.current().getSpanContext().getTraceId();
                 retryTaskParam.setTraceId(TraceIdContext.TRACE_ID_VALUE.equals(traceId) ?
                         TraceIdContext.CONTEXT.get()
@@ -177,8 +182,9 @@ public class RetryTaskReportAop {
     /**
      * 重试任务上报
      * <p>
-     * 以带版本号前缀的业务场景值（{@code RetryExecutorTask.buildScene}）与统一重试处理器构建上报模板，
-     * 将方法信息上报 SnailJob 服务端，由服务端按重试配置调度 {@code RetryExecutorTask} 远程回调执行。
+     * 以带版本号前缀的业务场景值（{@code RetryExecutorTask.buildScene}）
+     * 与统一重试处理器构建上报模板，将方法信息上报 SnailJob 服务端，
+     * 由服务端按重试配置调度 {@code RetryExecutorTask} 远程回调执行。
      * </p>
      *
      * @param scene 业务场景值
@@ -199,7 +205,8 @@ public class RetryTaskReportAop {
     /**
      * 本地重试
      * <p>
-     * 按重试次数与间隔时间（秒）循环重新执行目标方法：执行成功且结果集校验无需重试即视为重试成功结束；
+     * 按重试次数与间隔时间（秒）循环重新执行目标方法：
+     * 执行成功且结果集校验无需重试即视为重试成功结束；
      * 期间抛出的异常忽略后继续下一轮重试，直至次数耗尽返回失败结果。
      * </p>
      *
@@ -233,7 +240,8 @@ public class RetryTaskReportAop {
     /**
      * 执行单次本地重试
      * <p>
-     * 等待重试间隔后重新执行目标方法：执行成功且结果集校验无需重试即视为本次重试成功；
+     * 等待重试间隔后重新执行目标方法：
+     * 执行成功且结果集校验无需重试即视为本次重试成功；
      * 期间抛出的异常忽略并视为本次失败，交由调用方继续下一轮。
      * </p>
      *

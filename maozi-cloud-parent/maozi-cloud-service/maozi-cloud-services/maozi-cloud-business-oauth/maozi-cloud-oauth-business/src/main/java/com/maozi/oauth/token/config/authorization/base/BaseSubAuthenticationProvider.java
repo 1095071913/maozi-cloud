@@ -17,7 +17,8 @@ import org.springframework.security.core.AuthenticationException;
  * @author maozi
  * @date 2026/11/08
  */
-public abstract class BaseSubAuthenticationProvider<T extends AbstractAuthenticationToken> implements AuthenticationProvider {
+public abstract class BaseSubAuthenticationProvider<T extends AbstractAuthenticationToken>
+        implements AuthenticationProvider {
 
     /** 当前泛型对应的Token令牌Class对象，用于判断支持的认证类型 */
     protected Class<T> tokenClass = currentTokenClass();
@@ -28,7 +29,8 @@ public abstract class BaseSubAuthenticationProvider<T extends AbstractAuthentica
      * @return 泛型Token的Class对象
      */
     protected Class<T> currentTokenClass() {
-        return (Class<T>) ReflectionKit.getSuperClassGenericType(this.getClass(), BaseSubAuthenticationProvider.class, 0);
+        return (Class<T>) ReflectionKit.getSuperClassGenericType(this.getClass(),
+                BaseSubAuthenticationProvider.class, 0);
     }
 
     /**

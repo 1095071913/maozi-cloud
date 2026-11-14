@@ -18,6 +18,7 @@
 package com.maozi.oauth.token.config.service.impl;
 
 import com.maozi.common.CollectionUtil;
+import com.maozi.common.ObjectUtil;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.oauth.token.config.domain.SecurityUserDetails;
@@ -53,21 +54,29 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private RpcUserService rpcUserService;
 
     /**
-     * 根据用户名加载用户详情，通过RPC获取用户权限与加密密码，并将用户ID写入附加属性（随令牌claims一并颁发）
+     * 根据用户名加载用户详情，通过RPC获取用户权限与加密密码，
+     * 并将用户ID写入附加属性（随令牌claims一并颁发）
      *
      * @param username 用户名
      * @return 包含用户名、密码和权限的UserDetails对象
-     * @throws BusinessResultException 业务错误（如用户不存在）抛出USER_AUTH_ERROR，其余异常统一抛出SYSTEM_ERROR
+     * @throws BusinessResultException 业务错误（如用户不存在）抛出USER_AUTH_ERROR，
+     *         其余异常统一抛出SYSTEM_ERROR
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         
         try{
 
-            OauthUserInfoResult oauthUserInfo = rpcUserService.getOauthUserInfoByUsernameResult(username).getResultDataThrowError();
+            OauthUserInfoResult oauthUserInfo = rpcUserService.getOauthUserInfoByUsernameResult(username)
+                    .getResultDataThrowError();
 
             List<GrantedAuthority> grantedAuthorities = CollectionUtil.newArrayList();
-            oauthUserInfo.getAuthorities().forEach((permission)->{
+
+            // 远程返回对象的集合字段无契约上的非空保证，
+            // 判空防止 NPE（为空视为无权限）
+            List<String> authorities = ObjectUtil.isNullEmpty(oauthUserInfo.getAuthorities())
+                    ? List.of() : oauthUserInfo.getAuthorities();
+            authorities.forEach((permission)->{
                 grantedAuthorities.add(new SimpleGrantedAuthority(permission));
             });
 
@@ -79,7 +88,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         }catch (Exception e){
 
-            // 业务错误（如用户不存在）转为用户认证失败，其余统一转为系统错误（均保留原始异常链）
+            // 业务错误（如用户不存在）转为用户认证失败，
+            // 其余统一转为系统错误（均保留原始异常链）
             if(e instanceof BusinessResultException be && be.getErrorResult().isBusinessError()){
                 throw new BusinessResultException(SystemErrorCode.USER_AUTH_ERROR, e);
             }

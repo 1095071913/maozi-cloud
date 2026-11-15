@@ -189,7 +189,11 @@ public class ErrorResult<D> extends AbstractBaseResult<D> implements Serializabl
     public Boolean isBusinessError() {
         // 通过 null 安全的 getCode() 取值（未设置编码时兜底为业务默认错误码），
         // 避免自动拆箱 NPE
-        return SystemErrorCode.MAX_SYSTEM_ERROR_CODE < getCode();
+        return SystemErrorCode.MAX_SYSTEM_ERROR_CODE < getCode() 
+            || SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE.equals(getCode())
+            || SystemErrorCode.USER_AUTH_ERROR_DEFAULT_CODE.equals(getCode())
+            || SystemErrorCode.PERMISSION_ERROR_DEFAULT_CODE.equals(getCode())
+            || SystemErrorCode.CURRENT_LIMITING_ERROR_DEFAULT_CODE.equals(getCode());
     }
 
     /**
@@ -199,8 +203,8 @@ public class ErrorResult<D> extends AbstractBaseResult<D> implements Serializabl
      */
     @JsonIgnore
     public Boolean isPermissionsError() {
-        return Objects.equals(SystemErrorCode.PERMISSION_ERROR.getCode(),code)
-                || Objects.equals(SystemErrorCode.USER_AUTH_ERROR.getCode(),code);
+        return Objects.equals(SystemErrorCode.PERMISSION_ERROR.getCode(), code)
+                || Objects.equals(SystemErrorCode.USER_AUTH_ERROR.getCode(), code);
     }
 
     /**

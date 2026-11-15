@@ -1,6 +1,5 @@
 package com.maozi.dubbo.aop;
 
-import cn.hutool.core.util.StrUtil;
 import com.maozi.common.LogUtil;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.constant.LogTag;
@@ -52,14 +51,8 @@ public class DubboInvokeErrorAop {
             + ApplicationEnvironmentContext.PACKAGE_PREFIX
             + ".*.*.api.rpc..*.*(..)";
 
-    /** REST 接口切点表达式 */
-    private static final String REST_POINT = ApplicationEnvironmentContext.PACKAGE_PREFIX
-            + ".common.result.AbstractBaseResult "
-            + ApplicationEnvironmentContext.PACKAGE_PREFIX
-            + ".*.*.api.rest..*.*(..)";
-
     /** 组合切点表达式 */
-    private static final String POINT = "execution(" + RPC_POINT + ") || execution(" + REST_POINT + ")";
+    private static final String POINT = "execution(" + RPC_POINT + ")";
 
     /**
      * 环绕通知，捕获远程调用异常
@@ -114,8 +107,6 @@ public class DubboInvokeErrorAop {
             // 构建统一的 RPC 调用错误响应，避免异常向上传播
             ErrorCode errorCode = SystemErrorCode.SERVICE_RPC_ERROR;
             return ResultUtil.error(errorCode)
-                    // 错误消息前拼接服务名
-                    .setExceptionMessage(StrUtil.upperFirst(serviceName) + errorCode.getExceptionMessage())
                     // 设置统一的系统错误 HTTP 状态码
                     .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
 

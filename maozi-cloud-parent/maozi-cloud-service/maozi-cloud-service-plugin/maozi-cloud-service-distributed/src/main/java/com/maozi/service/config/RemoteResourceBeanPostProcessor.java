@@ -4,6 +4,7 @@ import com.maozi.service.api.annotation.RemoteResource;
 import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.bootstrap.DubboBootstrap;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.PropertyValues;
 import org.springframework.beans.factory.BeanFactory;
@@ -25,6 +26,8 @@ import java.util.concurrent.ConcurrentMap;
  * 本处理器扫描其标注的字段，通过 Dubbo 编程式 API
  * （{@link ReferenceConfig} + {@link DubboBootstrap}）
  * 创建远程引用代理并反射写入（代理按接口类型缓存），
+ * 代理写入前经 Spring 自动代理创建器包装，消费端调用可被
+ * {@code DubboInvokeErrorAop} 等切面拦截，
  * 同时按字段名将代理注册为 Spring 单例，
  * 供 {@code SpringUtil.getBean(字段名)} 等按名查找使用（如 {@code BaseServiceImpl} 的
  * {@code @QueryMapping(serviceName=...)} 关联数据解析机制）。
@@ -98,22 +101,46 @@ public class RemoteResourceBeanPostProcessor implements InstantiationAwareBeanPo
     }
 
     /**
-     * 为指定接口创建 Dubbo 远程引用代理。
+     * 为指定接口创建 Dubbo 远程引用代理，并补充 Spring AOP 包装。
      * <p>
      * 调用 {@link ReferenceConfig#get(boolean)} 会自动触发 Dubbo 模块的初始化与启动，
      * 无需关心启动时序；代理通过 {@link DubboBootstrap#reference(ReferenceConfig)} 注册，
      * 由 Dubbo 统一管理生命周期。
+     * Dubbo 生成的引用代理（类名形如 {@code xxx.api.rpc.XxxServiceDubboProxy0}，
+     * 位于接口同包下）不是容器创建的 Bean，不经过自动代理后处理器；
+     * 此处将其交给 {@link AbstractAutoProxyCreator} 补做一次标准的初始化后处理，
+     * 使 {@code DubboInvokeErrorAop} 等匹配 {@code api.rpc} 包的切面在消费端调用时生效。
      * </p>
      *
      * @param interfaceClass 远程服务接口类型
-     * @return Dubbo 引用代理
+     * @return 经 Spring AOP 包装后的 Dubbo 引用代理
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     private Object createReference(Class<?> interfaceClass) {
         ReferenceConfig reference = new ReferenceConfig();
         reference.setInterface(interfaceClass);
         DubboBootstrap.getInstance().reference(reference);
-        return reference.get(true);
+        return applySpringAop(interfaceClass, reference.get(true));
+    }
+
+    /**
+     * 将 Dubbo 引用代理交给 Spring 自动代理创建器补做初始化后处理。
+     * <p>
+     * {@code ReferenceConfig#get} 产生的代理绕过了容器生命周期，
+     * 直接调用 {@link AbstractAutoProxyCreator#postProcessAfterInitialization}
+     * 等价于让该代理走一遍容器标准后置处理：切点匹配（如
+     * {@code DubboInvokeErrorAop} 的 {@code api.rpc} 包表达式，Dubbo 代理类
+     * 恰好生成在接口同包下故可命中）的切面会被织入；
+     * 无任何切面匹配时原样返回代理，行为不变。
+     * </p>
+     *
+     * @param interfaceClass 远程服务接口类型，其全限定名用作代理缓存键（保证接口维度唯一）
+     * @param dubboReference Dubbo 原始引用代理
+     * @return Spring AOP 包装后的代理；无切面匹配时为原始代理
+     */
+    private Object applySpringAop(Class<?> interfaceClass, Object dubboReference) {
+        AbstractAutoProxyCreator autoProxyCreator = beanFactory.getBean(AbstractAutoProxyCreator.class);
+        return autoProxyCreator.postProcessAfterInitialization(dubboReference, interfaceClass.getName());
     }
 
 }

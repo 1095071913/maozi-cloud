@@ -50,7 +50,8 @@ public class AccessDeniedHandler implements org.springframework.security.web.acc
         // 获取权限不足的错误码
         ErrorCode errorCode = SystemErrorCode.PERMISSION_ERROR;
         // 构建错误响应并自动根据错误码设置HTTP状态码，写入响应体
-        WebUtil.writeResponseBody(response, ResultUtil.error(errorCode).autoIdentifyHttpCode(errorCode.getCode()));
+        WebUtil.writeResponseBody(response, ResultUtil.error(errorCode)
+            .autoIdentifyHttpCode(SystemErrorCode.PERMISSION_ERROR_DEFAULT_CODE));
     }
 
 }

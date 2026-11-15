@@ -19,6 +19,8 @@ package com.maozi.oauth.token.config.service.impl;
 
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.ObjectUtil;
+import com.maozi.common.ResultUtil;
+import com.maozi.common.result.error.ErrorResult;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.oauth.token.config.domain.SecurityUserDetails;
@@ -66,7 +68,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         
         try{
-
+            
             OauthUserInfoResult oauthUserInfo = rpcUserService.getOauthUserInfoByUsernameResult(username)
                     .getResultDataThrowError();
 
@@ -90,8 +92,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
             // 业务错误（如用户不存在）转为用户认证失败，
             // 其余统一转为系统错误（均保留原始异常链）
-            if(e instanceof BusinessResultException be && be.getErrorResult().isBusinessError()){
-                throw new BusinessResultException(SystemErrorCode.USER_AUTH_ERROR, e);
+            if(e instanceof BusinessResultException businessResultException){
+                ErrorResult<?> errorResult = businessResultException.getErrorResult();
+                if(errorResult.isBusinessError()){
+                    errorResult = ResultUtil.error(SystemErrorCode.USER_AUTH_ERROR)
+                        .setHttpCode(SystemErrorCode.USER_AUTH_ERROR_DEFAULT_CODE);
+                }
+                throw new BusinessResultException(errorResult, e);
             }
 
             throw new BusinessResultException(SystemErrorCode.SYSTEM_ERROR, e);

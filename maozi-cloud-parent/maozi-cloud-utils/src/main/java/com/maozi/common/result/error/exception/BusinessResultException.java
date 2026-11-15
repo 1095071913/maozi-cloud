@@ -81,8 +81,8 @@ public class BusinessResultException extends RuntimeException {
      * @param errorCode 错误码
      * @param cause 原始异常
      */
-    public BusinessResultException(ErrorCode errorCode,Throwable cause) {
-        super(errorCode.getExceptionMessage(),cause);
+    public BusinessResultException(ErrorCode errorCode, Throwable cause) {
+        super(errorCode.getExceptionMessage(), cause);
         this.errorResult = ResultUtil.error(errorCode);
     }
 
@@ -93,7 +93,7 @@ public class BusinessResultException extends RuntimeException {
      * @param errorData 错误附加数据
      * @param <D> 数据类型
      */
-    public <D> BusinessResultException(ErrorCode errorCode,D errorData) {
+    public <D> BusinessResultException(ErrorCode errorCode, D errorData) {
         super(errorCode.getExceptionMessage());
         this.errorResult = ResultUtil.error(errorCode,errorData);
     }
@@ -133,6 +133,11 @@ public class BusinessResultException extends RuntimeException {
         this.errorResult = errorResult;
     }
 
+    public <T> BusinessResultException(ErrorResult<T> errorResult, Throwable cause) {
+        super(errorResult.getExceptionMessage(), cause);
+        this.errorResult = errorResult;
+    }
+
     /**
      * 根据异常信息和错误结果对象构造
      *
@@ -140,7 +145,7 @@ public class BusinessResultException extends RuntimeException {
      * @param errorResult 错误结果
      * @param <T> 数据类型
      */
-    public <T> BusinessResultException(String exceptionMessage,ErrorResult<T> errorResult) {
+    public <T> BusinessResultException(String exceptionMessage, ErrorResult<T> errorResult) {
         super(exceptionMessage);
         this.errorResult = errorResult.setExceptionMessage(exceptionMessage);
     }

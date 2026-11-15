@@ -24,6 +24,8 @@ public class SystemErrorCode extends AbstractBaseErrorCode{
 
     /** 用户认证授权异常默认码 */
     public static final Integer USER_AUTH_ERROR_DEFAULT_CODE = 401;
+    
+    public static final Integer PERMISSION_ERROR_DEFAULT_CODE = 403;
 
     /** 限流异常默认码 */
     public static final Integer CURRENT_LIMITING_ERROR_DEFAULT_CODE = 429;
@@ -61,7 +63,7 @@ public class SystemErrorCode extends AbstractBaseErrorCode{
     public static final ErrorCode MALICE_REQUEST_ERROR = new ErrorCode(402,"恶意请求");
 
     /** 权限不足 */
-    public static final ErrorCode PERMISSION_ERROR = new ErrorCode(403,"权限不足");
+    public static final ErrorCode PERMISSION_ERROR = new ErrorCode(PERMISSION_ERROR_DEFAULT_CODE,"权限不足");
 
     /** 黑名单 */
     public static final ErrorCode BLACKLIST_ERROR = new ErrorCode(403,"黑名单无法访问");

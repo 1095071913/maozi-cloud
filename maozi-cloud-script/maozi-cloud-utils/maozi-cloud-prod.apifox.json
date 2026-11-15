@@ -18105,6 +18105,48 @@
           "description": "",
           "initialValue": "123456",
           "isSync": true
+        },
+        {
+          "name": "oauth_access_token",
+          "value": "",
+          "description": "",
+          "initialValue": "",
+          "isSync": true
+        },
+        {
+          "name": "oauth_refresh_token",
+          "value": "",
+          "description": "",
+          "initialValue": "",
+          "isSync": true
+        },
+        {
+          "name": "auto_role_id",
+          "value": "",
+          "description": "",
+          "initialValue": "",
+          "isSync": true
+        },
+        {
+          "name": "main_oauth_access_token",
+          "value": "",
+          "description": "",
+          "initialValue": "",
+          "isSync": true
+        },
+        {
+          "name": "main_oauth_refresh_token",
+          "value": "",
+          "description": "",
+          "initialValue": "",
+          "isSync": true
+        },
+        {
+          "name": "auto_permission_id",
+          "value": "",
+          "description": "",
+          "initialValue": "",
+          "isSync": true
         }
       ],
       "parameters": {

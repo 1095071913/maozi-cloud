@@ -20,11 +20,12 @@ package com.maozi.oauth.config;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.WebUtil;
-import com.maozi.common.result.AbstractBaseResult;
+import com.maozi.common.result.error.ErrorResult;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.AuthenticationException;
 
 /**
@@ -38,6 +39,7 @@ import org.springframework.security.core.AuthenticationException;
  * @author maozi
  * @date 2026/11/08
  */
+@Slf4j
 public class AuthenticationEntryPoint implements org.springframework.security.web.AuthenticationEntryPoint {
 
     /**
@@ -59,13 +61,21 @@ public class AuthenticationEntryPoint implements org.springframework.security.we
         // 如果异常链第二层（authException 的 cause 的 cause）是BusinessResultException，
         // 则使用其携带的错误信息（保留了原始的业务错误详情）；
         // 否则使用默认的用户认证错误码返回
-        AbstractBaseResult<?> errorResult = ObjectUtil.isNotNullEmpty(causeException)
-                && ObjectUtil.isNotNullEmpty(causeException.getCause())
-                && causeException.getCause() instanceof BusinessResultException businessResultException ?
-                businessResultException.getErrorResult()
-                :
-                ResultUtil.error(SystemErrorCode.USER_AUTH_ERROR)
-                        .autoIdentifyHttpCode(SystemErrorCode.USER_AUTH_ERROR_DEFAULT_CODE);
+
+        ErrorResult<?> errorResult = null;
+        if(ObjectUtil.isNotNullEmpty(causeException)
+            && ObjectUtil.isNotNullEmpty(causeException.getCause())
+            && causeException.getCause() instanceof BusinessResultException businessResultException){
+
+            errorResult = businessResultException.getErrorResult().autoIdentifyHttpCode();
+            if(errorResult.isSystemError()){
+                log.error("用户认证授权内部服务错误", businessResultException);
+            }
+
+        }else{
+            errorResult = ResultUtil.error(SystemErrorCode.USER_AUTH_ERROR)
+                .autoIdentifyHttpCode(SystemErrorCode.USER_AUTH_ERROR_DEFAULT_CODE);
+        }
 
         // 将错误结果写入HTTP响应体
         WebUtil.writeResponseBody(response,errorResult);

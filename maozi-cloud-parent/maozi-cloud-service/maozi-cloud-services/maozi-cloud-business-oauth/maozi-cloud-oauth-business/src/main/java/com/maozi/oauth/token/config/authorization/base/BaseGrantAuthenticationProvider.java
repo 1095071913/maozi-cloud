@@ -147,8 +147,6 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
                     subAuthenticate(authenticationToken);
             userAuthenticationToken = daoAuthenticationProvider.authenticate(usernamePasswordAuthenticationToken);
         } catch (AuthenticationException e) {
-            // 认证异常统一转为OAuth2认证异常返回，并保留原始异常链、记录日志
-            log.warn("Custom grant sub authentication failed.", e);
             throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST,
                     e.getMessage(), ERROR_URI), e);
         }

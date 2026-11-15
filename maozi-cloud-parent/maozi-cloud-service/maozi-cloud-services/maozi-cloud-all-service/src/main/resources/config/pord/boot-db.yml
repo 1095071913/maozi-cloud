@@ -17,6 +17,8 @@ spring:
     password: ${APPLICATION_MYSQL_SERVER_PASSWORD:password}
     # Hikari 连接池参数
     hikari:
+      # 事务隔离级别：2=READ_COMMITTED
+      transaction-isolation: 2
       # 连接池名称：日志/JMX/Micrometer 指标（hikaricp_*）均携带，多服务共用监控时区分应用
       pool-name: ${spring.application.name}-HikariPool
       # 最大连接数：2C4G 单 Pod 经验值 10~20（瓶颈在 DB 而非连接数），压测后精调

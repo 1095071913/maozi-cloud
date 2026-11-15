@@ -17,6 +17,8 @@ spring:
     password: ${APPLICATION_MYSQL_SERVER_PASSWORD:password}
     # Hikari 连接池参数
     hikari:
+      # 事务隔离级别：2=READ_COMMITTED
+      transaction-isolation: 2
       # 最大连接数（按压测调整，经验值 10~20）
       maximum-pool-size: 15
       # 获取连接超时（6s）：池耗尽时最多等待，超时快速失败

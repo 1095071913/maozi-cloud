@@ -91,6 +91,9 @@ public class ChatServiceImpl implements ChatService {
     protected static final String AI_CHAT_GENERATE_IMAGE_STOP_KEY = RedisUtil.REDIS_KEY_PREFIX
             + "chat:generate:image:status:";
 
+    /** 文生图完成后的默认回复文案，会写入会话记忆并返回给用户 */
+    protected static final String IMAGE_GENERATE_FINISH_MESSAGE = "图片生成完成 ...";
+
     /** 支持的图片后缀与 MIME 类型映射 */
     private static final Map<String, MimeType> IMAGE_MIME_TYPE_MAP = Map.of(
             ".png", MimeTypeUtils.IMAGE_PNG,
@@ -363,7 +366,7 @@ public class ChatServiceImpl implements ChatService {
             }
 
             // 生成结果（回复与图片）写入会话记忆
-            String responseMessage = "图片生成完成 ...";
+            String responseMessage = IMAGE_GENERATE_FINISH_MESSAGE;
             chatMemory.add(conversationId, new AssistantMessage(
                     responseMessage, CollectionUtil.newHashMap(), CollectionUtil.newArrayList(), medias));
 

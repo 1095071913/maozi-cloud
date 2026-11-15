@@ -65,33 +65,17 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
     /**
      * 构造方法
      * <p>
-     * 通过反射获取父类泛型参数的实际类型，初始化 resultClass。
+     * 构造方法内禁止加入业务逻辑，resultClass 改为在 {@link #getResultClass()} 中懒加载解析。
      * </p>
      */
     public BaseServiceResultImpl() {
-
-        // 沿继承链向上查找带泛型参数的父类，提取第二个泛型实参作为结果 DTO 类型
-        for (Class<?> superClass = this.getClass();
-             superClass != null && superClass != Object.class;
-             superClass = superClass.getSuperclass()) {
-
-            Type genericSuperclass = superClass.getGenericSuperclass();
-
-            if(genericSuperclass instanceof ParameterizedType type) {
-
-                resultClass = (Class<D>) type.getActualTypeArguments()[1];
-
-                break;
-
-            }
-
-        }
 
     }
 
     /**
      * 获取结果 DTO 的 Class 对象
      * <p>
+     * 首次调用时沿继承链向上查找带泛型参数的父类，反射解析第二个泛型实参作为结果 DTO 类型；
      * 如果 resultClass 为 Void 类型，说明未设置响应类型，抛出系统错误。
      * </p>
      *
@@ -99,6 +83,28 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
      * @throws BusinessResultException 当未设置响应类型时抛出异常
      */
     public Class<D> getResultClass(){
+
+        // 懒加载解析泛型实参，避免在构造方法中执行业务逻辑
+        if(ObjectUtil.isNullEmpty(resultClass)) {
+
+            // 沿继承链向上查找带泛型参数的父类，提取第二个泛型实参作为结果 DTO 类型
+            for (Class<?> superClass = this.getClass();
+                 superClass != null && superClass != Object.class;
+                 superClass = superClass.getSuperclass()) {
+
+                Type genericSuperclass = superClass.getGenericSuperclass();
+
+                if(genericSuperclass instanceof ParameterizedType type) {
+
+                    resultClass = (Class<D>) type.getActualTypeArguments()[1];
+
+                    break;
+
+                }
+
+            }
+
+        }
 
         if(Void.class.equals(resultClass)) {
             throw new BusinessResultException(SystemErrorCode.NOT_SET_RESPONSE_ERROR)

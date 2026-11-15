@@ -63,11 +63,11 @@ public class GrayRouter extends AbstractRouter {
         // 从线程上下文中获取当前请求的版本号，用于灰度匹配
         String version = VersionContext.CONTEXT.get();
 
-        // 主版本节点列表（默认版本的服务实例）
-        List<Invoker<T>> mainApplicationClients = CollectionUtil.newArrayList();
+        // 主版本节点列表（默认版本的服务实例），两列表元素总量不超过 invokers.size()，预分配容量避免扩容
+        List<Invoker<T>> mainApplicationClients = CollectionUtil.newArrayList(invokers.size());
 
         // 灰度节点列表（与请求版本匹配的服务实例）
-        List<Invoker<T>> grayApplicationClients = CollectionUtil.newArrayList();
+        List<Invoker<T>> grayApplicationClients = CollectionUtil.newArrayList(invokers.size());
 
         // 遍历所有可用的服务实例，按版本号分类
         invokers.forEach(invoker ->{

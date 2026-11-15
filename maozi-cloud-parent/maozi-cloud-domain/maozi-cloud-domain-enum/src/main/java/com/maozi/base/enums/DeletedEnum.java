@@ -7,7 +7,7 @@ import lombok.Getter;
  * 删除状态枚举
  * <p>
  * 标识数据记录的逻辑删除状态，配合 MyBatis-Plus 逻辑删除使用，
- * 查询时自动追加 {@code deleted = 0} 过滤条件。
+ * 查询时自动追加 {@code is_deleted = 0} 过滤条件。
  * </p>
  *
  * @author maozi

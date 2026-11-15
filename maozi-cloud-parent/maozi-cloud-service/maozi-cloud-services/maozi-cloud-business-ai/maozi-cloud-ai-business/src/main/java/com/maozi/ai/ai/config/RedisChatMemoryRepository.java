@@ -64,6 +64,9 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
      * score = 写入时刻毫秒时间戳，仅记录 USER / ASSISTANT 消息 */
     private static final String AI_CHAT_MEMORY_RECORD_KEY_SUFFIX = ":record";
 
+    /** SCAN 遍历的批量提示值：每次向 Redis 提示扫描的 key 数量 */
+    private static final long SCAN_BATCH_COUNT = 1000L;
+
     /**
      * 查询全部会话 ID
      * <p>
@@ -81,7 +84,7 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
         List<String> conversationIds = CollectionUtil.newArrayList();
         try (Cursor<String> cursor = redisClient.scan(ScanOptions.scanOptions()
                 .match(aiChatMemoryKey)
-                .count(1000)
+                .count(SCAN_BATCH_COUNT)
                 .build())) {
             cursor.forEachRemaining(key -> {
                 // 跳过顺序索引与对话记录索引 key，仅保留消息主体 key

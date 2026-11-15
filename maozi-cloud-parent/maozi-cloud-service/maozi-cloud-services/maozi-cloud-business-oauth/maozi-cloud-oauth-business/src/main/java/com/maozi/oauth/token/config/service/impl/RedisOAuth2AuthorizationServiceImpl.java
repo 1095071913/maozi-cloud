@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
+import com.maozi.oauth.client.enums.AuthTypeEnum;
 import com.maozi.oauth.token.config.service.OAuth2AuthorizationService;
 import com.maozi.oauth.token.param.ClientUserParam;
 import com.maozi.redis.utils.RedisUtil;
@@ -93,7 +94,8 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
     /** OIDC ID令牌类型的标识常量 */
     private static final String OIDC_ID_TOKEN_TYPE = "oidc_id_token";
 
-    /** 授权码类型的标识常量 */
+    /** 授权码类型的标识常量，值须与 {@link AuthTypeEnum#AUTHORIZATION_CODE} 的 auth 值保持一致
+     * （switch case 标签要求编译期常量，无法直接引用枚举的运行时取值） */
     private static final String AUTHORIZATION_CODE_TYPE = "authorization_code";
 
     /** JSON序列化/反序列化对象映射器 */
@@ -592,7 +594,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
 
         // 1. 根据每个用户的clientId和username计算主体索引键，
         // 通过SMEMBERS获取每个用户在该客户端下的所有授权ID
-        List<String> principalIndexKeys = new ArrayList<>();
+        List<String> principalIndexKeys = new ArrayList<>(clientUsers.size());
         // 预估容量：每个用户可能持有多个授权 ID，按用户数 8 倍预分配减少扩容 rehash
         Set<String> allAuthIds = new HashSet<>(Math.max(16, clientUsers.size() * 8));
         for (ClientUserParam clientUser : clientUsers) {

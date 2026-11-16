@@ -1,7 +1,7 @@
 package com.maozi.ai.ai.api.impl.rest;
 
 import com.maozi.ai.ai.api.impl.ChatConversationRecordServiceImpl;
-import com.maozi.ai.ai.api.rest.RestChatConversationRecord;
+import com.maozi.ai.ai.api.rest.RestChatConversationRecordService;
 import com.maozi.ai.ai.param.ChatConversationRecordListParam;
 import com.maozi.ai.ai.result.ChatConversationRecordListResult;
 import com.maozi.base.param.PageParam;
@@ -20,7 +20,7 @@ import com.maozi.service.api.impl.result.BaseServiceResultImpl;
  */
 @RestService
 public class RestChatConversationRecordImpl extends BaseServiceResultImpl<ChatConversationRecordServiceImpl, Void>
-        implements RestChatConversationRecord {
+        implements RestChatConversationRecordService {
 
     /** 查询当前用户的会话分页列表 */
     @Override

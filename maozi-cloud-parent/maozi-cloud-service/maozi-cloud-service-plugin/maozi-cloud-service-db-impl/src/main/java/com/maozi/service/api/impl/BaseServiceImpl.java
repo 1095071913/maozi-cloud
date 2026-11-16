@@ -199,7 +199,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 以 ID 为键、元素为值的 Map
      */
     public <R> Map<Long,R> toMapByIds(List<R> collection,Function<R, Long> function) {
-        return collection.stream().collect(Collectors.toMap(function, Function.identity()));
+        return collection.stream().collect(
+                Collectors.toMap(function, Function.identity(), (oldValue, newValue) -> oldValue));
     }
 
     /**
@@ -689,7 +690,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     /**
      * 根据 ID 查询实体（Lambda 列名方式），不存在则抛出异常
      *
-     * @param <R> 实体类型
+     * @param <R> Lambda 函数引用的实体类型
      * @param id 实体 ID
      * @param columns Lambda 函数引用指定的查询字段
      * @return 实体对象
@@ -716,7 +717,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * 根据 ID 查询实体并转换为指定类型，不存在则抛出异常
      *
      * @param <V> 目标类型
-     * @param <R> 实体类型
+     * @param <R> Lambda 函数引用的实体类型
      * @param id 实体 ID
      * @param clazz 目标类型 Class 对象
      * @param columns Lambda 函数引用指定的查询字段

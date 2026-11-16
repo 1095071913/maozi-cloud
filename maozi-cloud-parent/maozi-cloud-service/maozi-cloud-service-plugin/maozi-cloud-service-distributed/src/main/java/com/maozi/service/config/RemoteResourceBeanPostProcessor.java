@@ -134,7 +134,8 @@ public class RemoteResourceBeanPostProcessor implements InstantiationAwareBeanPo
      * 无任何切面匹配时原样返回代理，行为不变。
      * </p>
      *
-     * @param interfaceClass 远程服务接口类型，其全限定名用作代理缓存键（保证接口维度唯一）
+     * @param interfaceClass 远程服务接口类型，
+     *                       其全限定名用作代理缓存键（保证接口维度唯一）
      * @param dubboReference Dubbo 原始引用代理
      * @return Spring AOP 包装后的代理；无切面匹配时为原始代理
      */

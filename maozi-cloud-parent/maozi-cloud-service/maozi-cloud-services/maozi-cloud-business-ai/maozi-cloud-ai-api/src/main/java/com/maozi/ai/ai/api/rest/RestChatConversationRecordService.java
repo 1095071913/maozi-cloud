@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
  * @date 2026/11/14
  */
 @Tag(name = "AI会话模块")
-public interface RestChatConversationRecord {
+public interface RestChatConversationRecordService {
 
     /** 接口基础路径 */
     String PATH = "/chat/record";

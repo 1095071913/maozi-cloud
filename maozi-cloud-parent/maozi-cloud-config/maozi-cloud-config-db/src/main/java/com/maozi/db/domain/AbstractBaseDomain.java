@@ -57,7 +57,10 @@ public abstract class AbstractBaseDomain implements Serializable {
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    /** 逻辑删除标志（对应数据库列 is_deleted，1 是 0 否），删除操作转为更新此字段，插入时自动填充默认值 */
+    /**
+     * 逻辑删除标志（对应数据库列 is_deleted，1 是 0 否），
+     * 删除操作转为更新此字段，插入时自动填充默认值
+     */
     @TableLogic
     @TableField(value = "is_deleted", fill = FieldFill.INSERT)
     private DeletedEnum deleted;

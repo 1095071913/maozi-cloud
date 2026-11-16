@@ -75,7 +75,8 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
     /**
      * 获取结果 DTO 的 Class 对象
      * <p>
-     * 首次调用时沿继承链向上查找带泛型参数的父类，反射解析第二个泛型实参作为结果 DTO 类型；
+     * 首次调用时沿继承链向上查找带泛型参数的父类，
+     * 反射解析第二个泛型实参作为结果 DTO 类型；
      * 如果 resultClass 为 Void 类型，说明未设置响应类型，抛出系统错误。
      * </p>
      *
@@ -186,15 +187,12 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
         List<D> responseItems = CglibUtil.copyList(domains, () -> ReflectUtil.newInstance(getResultClass()));
 
         return ResultUtil.success(
-
                 responseItems.stream().collect(
-
                         Collectors.toMap(
-                                ReflectUtil::invokeFunGetId
-                                ,
-                                Function.identity()
+                                ReflectUtil::invokeFunGetId,
+                                Function.identity(),
+                                (oldValue, newValue) -> oldValue
                         )
-
                 )
         );
 
@@ -280,7 +278,6 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
     /**
      * 新增或更新实体并封装为结果
      *
-     * @param <P> 参数类型
      * @param id 实体 ID（为空时执行新增）
      * @param param 参数对象
      * @return 包含实体 ID 的统一响应结果

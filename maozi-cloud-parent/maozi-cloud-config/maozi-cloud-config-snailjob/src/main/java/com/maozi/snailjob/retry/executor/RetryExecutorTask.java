@@ -97,7 +97,8 @@ public class RetryExecutorTask implements ExecutorMethod {
 
             // 标记当前为远程重试流量，并恢复上报时保存的链路上下文
             // （链路追踪 ID、版本号、测试流量标记）；
-            // set 位于 try 内，保证 set 之后、业务执行之前抛出异常时 finally 仍能清理线程上下文
+            // set 位于 try 内，保证 set 之后、业务执行之前抛出异常时
+            // finally 仍能清理线程上下文
             RetryContextHolder.setRetry(true);
             TraceIdContext.CONTEXT.set(retryParam.getTraceId());
             VersionContext.CONTEXT.set(retryParam.getVersion());

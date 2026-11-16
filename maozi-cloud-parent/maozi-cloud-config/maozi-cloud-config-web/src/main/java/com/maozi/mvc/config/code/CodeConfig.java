@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 错误码配置
@@ -34,8 +34,9 @@ public class CodeConfig {
 
     /** 全局错误码映射表，键为错误码值，值为错误码对象
      * （仅类内部可写，外部通过 {@link #getErrorCodes()} 只读视图
-     * 或 {@link #getErrorCode(Integer)} 访问） */
-    private static final Map<Integer, ErrorCode> ERROR_CODES = new HashMap<>(256);
+     * 或 {@link #getErrorCode(Integer)} 访问；启动线程写入后供任意请求线程并发读，
+     * 使用 ConcurrentHashMap 保证跨线程安全发布） */
+    private static final Map<Integer, ErrorCode> ERROR_CODES = new ConcurrentHashMap<>(256);
 
     /**
      * 初始化错误码

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.maozi.base.enums.StatusEnum;
 import com.maozi.base.plugin.mapping.QueryMapping;
 import com.maozi.base.result.DropDownResult;
+import com.maozi.system.constant.SystemServiceConstant;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -65,7 +66,7 @@ public class UserInfoResult implements Serializable {
 
     /** 用户关联的角色ID列表，通过用户角色服务查询自动填充 */
     @Schema(description = "角色列表",ref = "StringArrayList")
-    @QueryMapping(isService = true, serviceName = "userRoleServiceImpl",
+    @QueryMapping(isService = true, serviceName = SystemServiceConstant.USER_ROLE_SERVICE,
             functionName = "listRoleByUserId", relationField = "id")
     private List<Long> roleIds;
 

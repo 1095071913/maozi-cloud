@@ -8,6 +8,7 @@ import com.maozi.system.image.handler.ImageStorageHandler;
 import com.maozi.system.image.param.ImageUploadParam;
 import com.maozi.system.image.properties.ImageStorageProperties;
 import com.maozi.system.image.result.ImageUploadResult;
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +20,7 @@ import java.util.Map;
 /**
  * 图片服务实现类
  * <p>
- * 实现图片上传的业务逻辑，构造时收集容器内全部
+ * 实现图片上传的业务逻辑，初始化时收集容器内全部
  * {@link ImageStorageHandler} 实现并按存储类型索引，
  * 上传时根据配置项 oss.store-type
  * 匹配存储类型并路由到对应的处理器处理，
@@ -42,16 +43,30 @@ public class ImageServiceImpl implements ImageService {
     /** 存储处理器索引，键为存储类型，值为对应处理器 */
     private final Map<ImageStorageTypeEnum,ImageStorageHandler> handlerMap = new EnumMap<>(ImageStorageTypeEnum.class);
 
+    /** 容器内的存储处理器列表，由构造器注入，初始化时建立索引后不再使用 */
+    private final List<ImageStorageHandler> handlers;
+
     /**
      * 构造方法
      * <p>
-     * 收集容器内全部存储处理器实现，按其支持的存储类型建立索引，
-     * 供上传时按配置路由。
+     * 仅注入容器内的存储处理器列表，不在构造方法内执行业务逻辑。
      * </p>
      *
      * @param handlers 容器内的存储处理器列表
      */
     public ImageServiceImpl(List<ImageStorageHandler> handlers) {
+        this.handlers = handlers;
+    }
+
+    /**
+     * 初始化存储处理器索引
+     * <p>
+     * 收集容器内全部存储处理器实现，按其支持的存储类型建立索引，
+     * 供上传时按配置路由。
+     * </p>
+     */
+    @PostConstruct
+    private void initHandlerMap() {
         handlers.forEach(handler -> handlerMap.put(handler.getType(),handler));
     }
 

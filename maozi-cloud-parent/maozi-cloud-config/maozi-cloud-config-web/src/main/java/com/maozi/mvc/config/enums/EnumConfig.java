@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 枚举配置
@@ -30,9 +31,10 @@ public class EnumConfig {
 
     /**
      * 全局枚举映射表，键为枚举类名（首字母小写），值为枚举常量列表
-     * （仅类内部可写，外部通过 {@link #getEnums()} 只读视图访问）
+     * （仅类内部可写，外部通过 {@link #getEnums()} 只读视图访问；
+     * 启动线程写入后供任意请求线程并发读，使用 ConcurrentHashMap 保证跨线程安全发布）
      */
-    private static final Map<String, List<BaseEnum>> ENUMS = CollectionUtil.newHashMap();
+    private static final Map<String, List<BaseEnum>> ENUMS = new ConcurrentHashMap<>();
 
     /**
      * 启动时初始化全局枚举映射表：先加载基础枚举包，再按当前服务加载业务枚举包

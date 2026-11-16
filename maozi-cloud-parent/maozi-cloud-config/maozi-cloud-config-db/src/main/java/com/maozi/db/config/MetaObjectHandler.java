@@ -41,7 +41,7 @@ public class MetaObjectHandler implements com.baomidou.mybatisplus.core.handlers
     private static final String STATUS = "status";
 
     /** 逻辑删除字段名 */
-    private static final String DELETED = "isDeleted";
+    private static final String DELETED = "deleted";
 
     /** 创建时间字段名 */
     private static final String CREATE_TIME = "createTime";

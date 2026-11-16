@@ -2,6 +2,7 @@ package com.maozi.system.permission.api.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maozi.service.api.impl.BaseServiceImpl;
+import com.maozi.system.constant.SystemServiceConstant;
 import com.maozi.system.permission.api.RolePermissionService;
 import com.maozi.system.permission.api.RoleService;
 import com.maozi.system.permission.api.UserRoleService;
@@ -27,11 +28,11 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleMapper, RoleDO> impleme
     public static final String RESOURCE_NAME = "角色";
 
     /** 用户角色关系服务，用于校验角色是否被用户绑定 */
-    @Resource(name = "userRoleServiceImpl")
+    @Resource(name = SystemServiceConstant.USER_ROLE_SERVICE)
     protected UserRoleService userRoleService;
 
     /** 角色权限关系服务，用于管理角色与权限的绑定关系 */
-    @Resource(name = "rolePermissionServiceImpl")
+    @Resource(name = SystemServiceConstant.ROLE_PERMISSION_SERVICE)
     protected RolePermissionService rolePermissionService;
 
     /** 获取资源名称 */

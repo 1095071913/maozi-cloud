@@ -34,6 +34,7 @@ import com.maozi.oauth.token.api.rpc.RpcOauthTokenService;
 import com.maozi.oauth.token.param.ClientUserParam;
 import com.maozi.service.api.annotation.RemoteResource;
 import com.maozi.service.api.impl.BaseServiceImpl;
+import com.maozi.system.constant.SystemServiceConstant;
 import com.maozi.system.permission.api.PermissionService;
 import com.maozi.system.permission.api.RolePermissionService;
 import com.maozi.system.permission.api.UserRoleService;
@@ -87,11 +88,11 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
     }
 
     /** 用户角色服务，用于管理用户与角色的关联关系 */
-    @Resource(name = "userRoleServiceImpl")
+    @Resource(name = SystemServiceConstant.USER_ROLE_SERVICE)
     protected UserRoleService userRoleService;
 
     /** 权限服务，用于查询权限标识信息 */
-    @Resource(name = "permissionServiceImpl")
+    @Resource(name = SystemServiceConstant.PERMISSION_SERVICE)
     protected PermissionService permissionService;
 
     /** 客户端RPC服务，用于远程调用客户端相关接口 */
@@ -103,7 +104,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
     protected RpcOauthTokenService rpcOauthTokenService;
 
     /** 角色权限服务，用于查询角色关联的权限信息 */
-    @Resource(name = "rolePermissionServiceImpl")
+    @Resource(name = SystemServiceConstant.ROLE_PERMISSION_SERVICE)
     protected RolePermissionService rolePermissionService;
 
     /**

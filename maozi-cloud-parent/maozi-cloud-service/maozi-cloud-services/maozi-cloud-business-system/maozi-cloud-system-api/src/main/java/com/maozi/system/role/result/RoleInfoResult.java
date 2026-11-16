@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.maozi.base.enums.StatusEnum;
 import com.maozi.base.plugin.mapping.QueryMapping;
+import com.maozi.system.constant.SystemServiceConstant;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -50,8 +51,8 @@ public class RoleInfoResult implements Serializable {
 
     /** 角色关联的权限ID列表，通过角色权限关系服务查询自动填充 */
     @Schema(description = "权限列表",ref = "StringArrayList")
-    @QueryMapping(isService = true, serviceName = "rolePermissionServiceImpl", functionName = "listPermissionByRoleId",
-        relationField = "id")
+    @QueryMapping(isService = true, serviceName = SystemServiceConstant.ROLE_PERMISSION_SERVICE,
+        functionName = "listPermissionByRoleId", relationField = "id")
     private List<Long> permissionIds;
 
 }

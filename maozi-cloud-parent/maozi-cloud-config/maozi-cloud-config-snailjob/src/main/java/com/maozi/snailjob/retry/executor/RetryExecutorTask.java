@@ -89,26 +89,27 @@ public class RetryExecutorTask implements ExecutorMethod {
         Object[] args = (Object[]) params;
         RetryTaskParam retryParam = (RetryTaskParam) args[0];
 
-        // 标记当前为远程重试流量，并恢复上报时保存的链路上下文
-        // （链路追踪 ID、版本号、测试流量标记）
-        RetryContextHolder.setRetry(true);
-        TraceIdContext.CONTEXT.set(retryParam.getTraceId());
-        VersionContext.CONTEXT.set(retryParam.getVersion());
-        TestFlowContext.CONTEXT.set(retryParam.getTestFlow());
-
-        // 日志信息集合
+        // 日志信息集合（在 try 外声明，供 finally 记录使用）
         Map<String, String> logs = CollectionUtil.newHashMap();
-
-        // 记录日志类型与重试目标方法
-        logs.put(LogTag.TYPE, LogCommonTypeEnum.RPC_RETRY.getDesc());
-        logs.put(LogTag.FUNCTION, retryParam.getBeanName() + ":" + retryParam.getMethodName());
-        // 非生产环境记录请求参数
-        if (EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD)) {
-            logs.put(LogTag.PARAM, Arrays.toString(retryParam.getData()));
-        }
         
         Throwable ex = null;
         try {
+
+            // 标记当前为远程重试流量，并恢复上报时保存的链路上下文
+            // （链路追踪 ID、版本号、测试流量标记）；
+            // set 位于 try 内，保证 set 之后、业务执行之前抛出异常时 finally 仍能清理线程上下文
+            RetryContextHolder.setRetry(true);
+            TraceIdContext.CONTEXT.set(retryParam.getTraceId());
+            VersionContext.CONTEXT.set(retryParam.getVersion());
+            TestFlowContext.CONTEXT.set(retryParam.getTestFlow());
+
+            // 记录日志类型与重试目标方法
+            logs.put(LogTag.TYPE, LogCommonTypeEnum.RPC_RETRY.getDesc());
+            logs.put(LogTag.FUNCTION, retryParam.getBeanName() + ":" + retryParam.getMethodName());
+            // 非生产环境记录请求参数
+            if (EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD)) {
+                logs.put(LogTag.PARAM, Arrays.toString(retryParam.getData()));
+            }
 
             boolean result = executeTask(retryParam);
             if (!result) {

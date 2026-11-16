@@ -37,7 +37,7 @@ import java.time.LocalDateTime;
  * 数据库实体公共基础字段抽象父类
  * <p>
  * 封装主键、逻辑删除标志、业务状态、创建时间等通用字段，子类继承即可复用；
- * isDeleted、status、createTime 在插入时由 MetaObjectHandler 自动填充默认值。
+ * deleted、status、createTime 在插入时由 MetaObjectHandler 自动填充默认值。
  * </p>
  *
  * @author maozi
@@ -59,8 +59,8 @@ public abstract class AbstractBaseDomain implements Serializable {
 
     /** 逻辑删除标志（对应数据库列 is_deleted，1 是 0 否），删除操作转为更新此字段，插入时自动填充默认值 */
     @TableLogic
-    @TableField(fill = FieldFill.INSERT)
-    private DeletedEnum isDeleted;
+    @TableField(value = "is_deleted", fill = FieldFill.INSERT)
+    private DeletedEnum deleted;
 
     /** 业务状态（启用/禁用），插入时自动填充默认值 */
     @TableField(fill = FieldFill.INSERT)

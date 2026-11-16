@@ -76,29 +76,37 @@ public class SnailJobEntranceLogAop {
         // 入口方法入参
         Object[] args = proceedingJoinPoint.getArgs();
 
-        // 提取任务业务参数并写入任务参数上下文，供任务执行过程读取
+        // 提取任务业务参数，供任务执行过程读取
         JobContext jobContext = (JobContext) args[0];
         String businessParam = (String) jobContext.getJobArgsHolder().getJobParams();
-        SnailJobParamContext.setJobParams(businessParam);
 
-        // 将当前应用版本写入版本上下文，保证任务内发起的远程调用按版本灰度路由
-        VersionContext.CONTEXT.set(ApplicationEnvironmentContext.version);
+        // 非生产环境直接记录任务参数；生产环境为避免参数外泄，仅在异常时补充记录
+        boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD);
 
         // 日志信息集合
         Map<String, String> logs = new LinkedHashMap<>(16);
 
-        // 记录日志类型与任务执行器信息
-        logs.put(LogTag.TYPE, LogCommonTypeEnum.JOB.getDesc());
-        logs.put(LogTag.FUNCTION, getExecutorInfo(proceedingJoinPoint));
-
-        // 非生产环境直接记录任务参数；生产环境为避免参数外泄，仅在异常时补充记录
-        boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD);
-        if (isNotProd) {
-            logs.put(LogTag.PARAM, businessParam);
-        }
-
         Throwable ex = null;
-        try {return proceedingJoinPoint.proceed(args);} catch (Exception e) {
+        try {
+
+            // 写入任务参数上下文，供任务执行过程读取；将当前应用版本写入版本上下文，
+            // 保证任务内发起的远程调用按版本灰度路由；set 位于 try 内，
+            // 保证 set 之后、任务执行之前抛出异常时 finally 仍能清理线程上下文
+            SnailJobParamContext.setJobParams(businessParam);
+            VersionContext.CONTEXT.set(ApplicationEnvironmentContext.version);
+
+            // 记录日志类型与任务执行器信息
+            logs.put(LogTag.TYPE, LogCommonTypeEnum.JOB.getDesc());
+            logs.put(LogTag.FUNCTION, getExecutorInfo(proceedingJoinPoint));
+
+            // 非生产环境记录任务参数
+            if (isNotProd) {
+                logs.put(LogTag.PARAM, businessParam);
+            }
+
+            return proceedingJoinPoint.proceed(args);
+
+        } catch (Exception e) {
 
             ex = e;
 

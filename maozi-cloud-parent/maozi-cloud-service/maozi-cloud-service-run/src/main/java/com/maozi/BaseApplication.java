@@ -266,11 +266,11 @@ public class BaseApplication {
      * 应用名称读取失败时抛出异常，终止启动。
      * </p>
      */
-    @SneakyThrows
     private static void initProperties() {
 
         Properties properties = System.getProperties();
 
+        // 解析运行环境：系统属性 > 环境变量 > 默认本地环境
         String environment = (String) properties.get(APPLICATION_ENVIRONMENT_KEY);
         if(ObjectUtil.isNullEmpty(environment)){
             environment = System.getenv(APPLICATION_ENVIRONMENT_ENV);
@@ -280,6 +280,7 @@ public class BaseApplication {
             properties.put(APPLICATION_ENVIRONMENT_KEY,environment);
         }
 
+        // 解析应用版本：系统属性 > 环境变量 > 默认版本号
         String version = (String) properties.get(APPLICATION_VERSION_KEY);
         if(ObjectUtil.isNullEmpty(version)){
             version = System.getenv(APPLICATION_VERSION_ENV);
@@ -289,22 +290,27 @@ public class BaseApplication {
             properties.put(APPLICATION_VERSION_KEY, version);
         }
 
+        // 推导应用名并截取项目简称，服务名读取失败时终止启动
         String applicationName = getApplicationName();
         if(ObjectUtil.isNullEmpty(applicationName)){
-            throw new Exception("服务名读取失败");
+            throw new RuntimeException("服务名读取失败");
         }
         String applicationProjectAbbreviation = applicationName.replace(PROJECT_PREFIX,"");
         applicationProjectAbbreviation = applicationProjectAbbreviation.substring(0,
             applicationProjectAbbreviation.length() - PROJECT_NAME_SUFFIX_LENGTH);
 
+        // 设置应用名、项目简称及基础启动参数（关闭启动信息日志、允许循环依赖）
         properties.put(SpringPropertyConstant.SPRING_APPLICATION_NAME,applicationName);
         properties.put(PROJECT_ABBREVIATION_KEY,applicationProjectAbbreviation);
 
         properties.put(LOG_STARTUP_INFO_KEY,false);
         properties.put(ALLOW_CIRCULAR_REFERENCES_KEY,true);
 
+        // 设置日志级别：根日志 ERROR，项目包 INFO
         properties.put(LOGGING_LEVEL_ROOT_KEY, LOG_LEVEL_ERROR);
         properties.put(LOGGING_LEVEL_PROJECT_KEY, LOG_LEVEL_INFO);
+
+        // 非本地环境输出异步文件日志，本地环境输出异步控制台日志
         if(!Objects.equals(environment, EnvironmentTypeEnum.LOCAL.getDesc())){
             properties.put(LOGGING_APPENDER_KEY,APPENDER_ASYNC_FILE);
             properties.put(LOGGING_FILE_NAME_KEY,"logs/${spring.application.name}.log");
@@ -332,6 +338,7 @@ public class BaseApplication {
 
         ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         try {
+            // 扫描配置登记文件，逐个实例化并执行登记的初始化器
             Resource[] resources = resolver.getResources(CONFIG_LOCATION_PATTERN);
             for (Resource resource : resources) {
                 Properties registrations = new Properties();

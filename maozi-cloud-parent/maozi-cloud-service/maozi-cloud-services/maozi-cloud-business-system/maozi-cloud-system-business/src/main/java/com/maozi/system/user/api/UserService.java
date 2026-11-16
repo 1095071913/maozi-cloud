@@ -25,9 +25,7 @@ import java.util.List;
 /**
  * 用户服务接口
  * <p>
- * 提供用户相关的公共服务方法定义，包括根据用户 ID 获取客户端用户信息、
- * 根据用户 ID 列表批量获取客户端用户信息等功能。该接口为用户模块的核心服务接口，
- * 由 UserServiceImpl 实现具体业务逻辑。
+ * 提供用户信息的公共查询服务，支持单个与批量获取客户端用户信息。
  * </p>
  *
  * @author maozi
@@ -49,6 +47,6 @@ public interface UserService {
      * @param ids 用户ID列表
      * @return 客户端用户信息参数对象列表
      */
-    List<ClientUserParam> getClientUsers(List<Long> ids);
+    List<ClientUserParam> listClientUser(List<Long> ids);
 
 }

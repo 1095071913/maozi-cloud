@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serial;
@@ -24,6 +25,7 @@ import java.io.Serial;
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @TableName("ai_chat_conversation_record")
 public class ChatConversationRecordDO extends AbstractBaseDomain {
     /** 序列化标识 */

@@ -136,7 +136,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
      * @return 客户端用户信息列表
      */
     @Override
-    public List<ClientUserParam> getClientUsers(List<Long> ids) {
+    public List<ClientUserParam> listClientUser(List<Long> ids) {
 
         CollectionUtil.collectionIsEmptyThrowError(ids, getResourceName() + "列表");
 
@@ -157,7 +157,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
      * id 为空时新增（校验客户端可用性及用户名唯一性），
      * 否则更新（不允许修改用户名与客户端ID）；
      * 密码非空时加密入库，并同步维护角色绑定关系，
-     * 更新后状态为禁用时销毁该用户全部 OAuth2 令牌强制下线。
+     * 更新时目标状态为禁用则销毁该用户全部 OAuth2 令牌，强制下线。
      * </p>
      *
      * @param id    用户ID，新增时为空，更新时为已有用户ID
@@ -203,7 +203,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
         userRoleService.updateBind(id, param.getBindRoleIds(), param.getUnbindRoleIds());
 
         if(hasId && StatusEnum.DISABLE == param.getStatus()){
-            // 更新后状态为禁用时，销毁该用户的全部OAuth2令牌，强制下线
+            // 更新时目标状态为禁用，销毁该用户的全部OAuth2令牌，强制下线
             UserDO user = super.getByIdThrowError(id, UserDO::getUsername, UserDO::getClientId);
             rpcOauthTokenService.destroyByPrincipalResult(user.getClientId(), user.getUsername())
                     .getResultDataThrowError();
@@ -344,7 +344,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
 
         // 查询权限标识并组装返回结果
         Long userId = domain.getId();
-        List<String> permissions = getPermissionsByUserId(userId);
+        List<String> permissions = listPermissionByUserId(userId);
 
         return new OauthUserInfoResult(userId, domain.getPassword(), permissions);
 
@@ -355,7 +355,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
      *
      * @return 当前用户拥有的权限标识列表，无认证信息时返回空列表
      */
-    protected List<String> getCurrentPermissions() {
+    protected List<String> listCurrentPermission() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
             return List.of();
@@ -373,21 +373,20 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
      * @param userId 用户ID
      * @return 该用户拥有的权限标识列表
      */
-    public List<String> getPermissionsByUserId(Long userId) {
+    public List<String> listPermissionByUserId(Long userId) {
 
         // 查询用户绑定的角色 ID 列表
-        List<Long> roleIds = userRoleService.getRolesByUser(userId);
+        List<Long> roleIds = userRoleService.listRoleByUserId(userId);
 
-        // 未绑定角色时卫语句直接返回，避免无效的空集合创建与整体拷贝
+        // 未绑定角色时直接返回空列表，避免无效的权限查询
         if(roleIds.isEmpty()) {
             return CollectionUtil.newArrayList();
         }
 
-        // 通过角色查询关联的权限 ID 集合并转换为权限标识列表，
-        // 按已知结果规模构造返回集合
-        Collection<Long> permissionIds = rolePermissionService.getPermissionsByRoles(roleIds);
+        // 查询角色关联的权限 ID 集合，转换为权限标识列表返回
+        Collection<Long> permissionIds = rolePermissionService.listPermissionByRoleIds(roleIds);
 
-        return new ArrayList<>(permissionService.getMarks(permissionIds));
+        return new ArrayList<>(permissionService.listMark(permissionIds));
 
     }
 

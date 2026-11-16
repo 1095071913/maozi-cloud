@@ -126,7 +126,7 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
      * @return 权限ID集合
      */
     @Override
-    public Collection<Long> getPermissionsByRoles(List<Long> roleIds) {
+    public Collection<Long> listPermissionByRoleIds(List<Long> roleIds) {
 
         LambdaQueryWrapper<RolePermissionDO> wrapper = Wrappers.lambdaQuery();
 
@@ -145,7 +145,7 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
      * @return 权限ID列表
      */
     @Override
-    public List<Long> getPermissionsByRole(Long roleId) {
+    public List<Long> listPermissionByRoleId(Long roleId) {
 
         LambdaQueryWrapper<RolePermissionDO> wrapper = Wrappers.lambdaQuery();
 

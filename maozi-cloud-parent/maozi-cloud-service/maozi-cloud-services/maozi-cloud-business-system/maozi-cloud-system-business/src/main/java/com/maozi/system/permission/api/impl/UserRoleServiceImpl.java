@@ -102,7 +102,7 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
      * @return 角色ID列表
      */
     @Override
-    public List<Long> getRolesByUser(Long userId) {
+    public List<Long> listRoleByUserId(Long userId) {
 
         LambdaQueryWrapper<UserRoleDO> wrapper = Wrappers.lambdaQuery();
         wrapper.select(UserRoleDO::getRoleId);
@@ -137,7 +137,7 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
      * @return 用户ID列表
      */
     @Override
-    public List<Long> getUsersByRole(Long roleId) {
+    public List<Long> listUserByRoleId(Long roleId) {
 
         LambdaQueryWrapper<UserRoleDO> wrapper = Wrappers.lambdaQuery(UserRoleDO.builder().roleId(roleId).build());
 

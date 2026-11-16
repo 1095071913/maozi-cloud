@@ -19,7 +19,9 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.maozi.db.domain.AbstractBaseNameDomain;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serial;
@@ -36,6 +38,8 @@ import java.io.Serial;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @TableName(value = "system_role",autoResultMap = true)
 public class RoleDO extends AbstractBaseNameDomain {
     /** 序列化标识 */

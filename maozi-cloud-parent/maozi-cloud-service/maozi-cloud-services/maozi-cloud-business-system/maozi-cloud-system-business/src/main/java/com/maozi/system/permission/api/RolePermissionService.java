@@ -56,7 +56,7 @@ public interface RolePermissionService {
      * @param roleIds 角色ID列表
      * @return 权限ID集合（去重）
      */
-    Collection<Long> getPermissionsByRoles(List<Long> roleIds);
+    Collection<Long> listPermissionByRoleIds(List<Long> roleIds);
 
     /**
      * 根据单个角色ID获取关联的权限ID列表
@@ -64,7 +64,7 @@ public interface RolePermissionService {
      * @param roleId 角色ID
      * @return 权限ID列表
      */
-    List<Long> getPermissionsByRole(Long roleId);
+    List<Long> listPermissionByRoleId(Long roleId);
 
     /**
      * 解除角色与所有权限的绑定关系

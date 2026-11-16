@@ -37,7 +37,7 @@ public class UserIndividualInfoResult implements Serializable {
 
     /** 当前登录用户拥有的权限标识列表，通过用户服务查询自动填充 */
     @Schema(description = "权限列表")
-    @QueryMapping(isService = true, serviceName = "userServiceImpl", functionName = "getCurrentPermissions")
+    @QueryMapping(isService = true, serviceName = "userServiceImpl", functionName = "listCurrentPermission")
     private List<String> permissions;
 
 }

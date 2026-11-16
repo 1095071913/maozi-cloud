@@ -36,7 +36,7 @@ public interface UserRoleService {
      * @param userId 用户ID
      * @return 角色ID列表
      */
-    List<Long> getRolesByUser(Long userId);
+    List<Long> listRoleByUserId(Long userId);
 
     /**
      * 根据角色ID获取关联的用户ID列表
@@ -44,7 +44,7 @@ public interface UserRoleService {
      * @param roleId 角色ID
      * @return 用户ID列表
      */
-    List<Long> getUsersByRole(Long roleId);
+    List<Long> listUserByRoleId(Long roleId);
 
     /**
      * 检查指定用户是否绑定了指定角色

@@ -102,7 +102,7 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, Per
      * @return 权限标识（mark）列表
      */
     @Override
-    public List<String> getMarks(Collection<Long> ids) {
+    public List<String> listMark(Collection<Long> ids) {
 
         LambdaQueryWrapper<PermissionDO> wrapper = Wrappers.lambdaQuery();
 

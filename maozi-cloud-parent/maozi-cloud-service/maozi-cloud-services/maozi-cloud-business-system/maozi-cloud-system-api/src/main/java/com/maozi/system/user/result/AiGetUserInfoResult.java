@@ -51,7 +51,7 @@ public class AiGetUserInfoResult implements Serializable {
     /** 用户拥有的权限列表，通过用户服务查询自动填充 */
     @Schema(description = "权限列表")
     @QueryMapping(isService = true, serviceName = "userServiceImpl",
-            functionName = "getPermissionsByUserId", relationField = "id")
+            functionName = "listPermissionByUserId", relationField = "id")
     private List<String> permissions;
 
 }

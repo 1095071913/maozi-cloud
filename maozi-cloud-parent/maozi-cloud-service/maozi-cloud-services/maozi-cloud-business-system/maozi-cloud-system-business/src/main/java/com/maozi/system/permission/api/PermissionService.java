@@ -43,6 +43,6 @@ public interface PermissionService {
      * @param ids 权限ID集合
      * @return 权限标识（mark）列表
      */
-    List<String> getMarks(Collection<Long> ids);
+    List<String> listMark(Collection<Long> ids);
 
 }

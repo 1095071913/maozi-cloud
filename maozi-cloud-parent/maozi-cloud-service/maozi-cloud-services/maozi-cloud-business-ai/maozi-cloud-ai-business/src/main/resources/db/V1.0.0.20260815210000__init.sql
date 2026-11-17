@@ -1,6 +1,6 @@
 -- AI 聊天对话记录表初始化脚本，由 Flyway 在应用启动时按版本号自动执行
-DROP TABLE IF EXISTS `ai_chat_conversation_record`;
-CREATE TABLE `ai_chat_conversation_record` (
+DROP TABLE IF EXISTS `ai_chat_conversation`;
+CREATE TABLE `ai_chat_conversation` (
                                    `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
                                    `user_id` int NOT NULL COMMENT '用户ID',
                                    `title` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '标题',

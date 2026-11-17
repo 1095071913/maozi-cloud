@@ -24,7 +24,7 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChatConversationRecordListParam implements OrderParam, Serializable {
+public class ChatConversationListParam implements OrderParam, Serializable {
     /** 序列化标识 */
     @Serial
     private static final long serialVersionUID = 1L;

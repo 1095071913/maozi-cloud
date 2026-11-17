@@ -52,7 +52,7 @@ public interface RestChatService {
 
 
     /** 当前会话基础路径，携带会话 ID 路径变量 */
-    String CURRENT_PATH = PATH + "/{conversationId}";
+    String CONVERSATION_PATH = PATH + "/{conversationId}";
 
     /**
      * 查询会话的对话消息列表
@@ -60,7 +60,7 @@ public interface RestChatService {
      * @param conversationId 会话 ID
      * @return 返回会话是否正在对话中以及该会话的对话消息列表
      */
-    @Get(value = CURRENT_PATH + "/list", description = "列表")
+    @Get(value = CONVERSATION_PATH + "/list", description = "列表")
     AbstractBaseResult<ChatListResult> listResult(@PathVariable String conversationId);
 
     /**
@@ -69,7 +69,7 @@ public interface RestChatService {
      * @param conversationId 会话 ID
      * @return 空结果
      */
-    @Post(value = CURRENT_PATH + "/stop", description = "停止")
+    @Post(value = CONVERSATION_PATH + "/stop", description = "停止")
     AbstractBaseResult<Void> stopResult(@PathVariable String conversationId);
 
     /**
@@ -79,9 +79,13 @@ public interface RestChatService {
      * @param createTime 时间毫秒值，查询写入时间晚于该值的消息（不含等于）
      * @return 返回该时间之后写入的增量消息列表
      */
-    @Get(value = CURRENT_PATH + "/getAfterMessages", description = "获取后续消息列表")
+    @Get(value = CONVERSATION_PATH + "/getAfterMessages", description = "获取后续消息列表")
     AbstractBaseResult<List<ChatItemResult>> getAfterMessagesResult(@PathVariable String conversationId,
         @RequestParam Long createTime);
+
+    
+    /** 接口基础路径 */
+    String CONVERSATION_MESSAGE_PATH = CONVERSATION_PATH + "/{messageId}";
 
     /**
      * 删除会话中的指定消息
@@ -90,7 +94,7 @@ public interface RestChatService {
      * @param messageId 消息 ID
      * @return 空结果
      */
-    @Post(value = CURRENT_PATH + "/{messageId}/remove", description = "删除消息")
+    @Post(value = CONVERSATION_MESSAGE_PATH + "/remove", description = "删除消息")
     AbstractBaseResult<Void> removeMessageResult(@PathVariable String conversationId, @PathVariable String messageId);
 
 }

@@ -12,7 +12,7 @@ import com.maozi.common.result.error.exception.BusinessResultException;
  * @author maozi
  * @date 2026/11/08
  */
-public interface ChatConversationRecordService {
+public interface ChatConversationService {
 
     /**
      * 校验会话是否存在

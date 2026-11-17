@@ -3,7 +3,7 @@ package com.maozi.ai.ai.api.impl;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatOptions;
 import com.alibaba.cloud.ai.dashscope.chat.MessageFormat;
 import com.alibaba.cloud.ai.dashscope.common.DashScopeApiConstants;
-import com.maozi.ai.ai.api.ChatConversationRecordService;
+import com.maozi.ai.ai.api.ChatConversationService;
 import com.maozi.ai.ai.api.ChatService;
 import com.maozi.ai.ai.config.ChatMemoryRepository;
 import com.maozi.ai.ai.constant.ChatMessageConstant;
@@ -123,8 +123,8 @@ public class ChatServiceImpl implements ChatService {
     protected ChatMemoryRepository chatMemoryRepository;
 
     /** 会话记录服务，用于校验会话是否存在 */
-    @Resource(name = "chatConversationRecordServiceImpl")
-    protected ChatConversationRecordService chatConversationRecordService;
+    @Resource(name = "chatConversationServiceImpl")
+    protected ChatConversationService chatConversationService;
 
     /** 图生文（视觉理解）模型名称 */
     @Value("${spring.ai.dashscope.chat.options.text_image_model:}")
@@ -148,7 +148,7 @@ public class ChatServiceImpl implements ChatService {
         Long conversationId = param.getConversationId();
 
         // 校验会话是否存在
-        chatConversationRecordService.has(conversationId);
+        chatConversationService.has(conversationId);
 
         UserMessage.Builder userMessageBuilder = UserMessage.builder().text(param.getMessage());
 

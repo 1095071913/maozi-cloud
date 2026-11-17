@@ -1,7 +1,7 @@
 package com.maozi.ai.ai.api.rest;
 
-import com.maozi.ai.ai.param.ChatConversationRecordListParam;
-import com.maozi.ai.ai.result.ChatConversationRecordListResult;
+import com.maozi.ai.ai.param.ChatConversationListParam;
+import com.maozi.ai.ai.result.ChatConversationListResult;
 import com.maozi.base.param.PageParam;
 import com.maozi.base.param.RequestParam;
 import com.maozi.base.result.PageResult;
@@ -18,10 +18,10 @@ import org.springframework.web.bind.annotation.RequestBody;
  * @date 2026/11/14
  */
 @Tag(name = "AI会话模块")
-public interface RestChatConversationRecordService {
+public interface RestChatConversationService {
 
     /** 接口基础路径 */
-    String PATH = "/chat/record";
+    String PATH = "/chat/conversation";
 
     /**
      * 查询当前用户的会话分页列表
@@ -30,8 +30,8 @@ public interface RestChatConversationRecordService {
      * @return 当前用户的会话分页列表，条目包含会话 ID 与标题
      */
     @Post(value = PATH + "/list", description = "列表")
-    AbstractBaseResult<PageResult<ChatConversationRecordListResult>> listResult(
-            @RequestBody PageParam<ChatConversationRecordListParam> pageParam);
+    AbstractBaseResult<PageResult<ChatConversationListResult>> listResult(
+            @RequestBody PageParam<ChatConversationListParam> pageParam);
 
     /**
      * 创建会话

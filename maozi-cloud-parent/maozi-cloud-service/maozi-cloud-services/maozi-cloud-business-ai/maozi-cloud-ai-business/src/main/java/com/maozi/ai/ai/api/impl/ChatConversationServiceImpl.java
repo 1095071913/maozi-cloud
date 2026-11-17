@@ -5,11 +5,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
-import com.maozi.ai.ai.api.ChatConversationRecordService;
-import com.maozi.ai.ai.domain.ChatConversationRecordDO;
-import com.maozi.ai.ai.mapper.ChatConversationRecordMapper;
-import com.maozi.ai.ai.param.ChatConversationRecordListParam;
-import com.maozi.ai.ai.result.ChatConversationRecordListResult;
+import com.maozi.ai.ai.api.ChatConversationService;
+import com.maozi.ai.ai.domain.ChatConversationDO;
+import com.maozi.ai.ai.mapper.ChatConversationMapper;
+import com.maozi.ai.ai.param.ChatConversationListParam;
+import com.maozi.ai.ai.result.ChatConversationListResult;
 import com.maozi.base.param.PageParam;
 import com.maozi.base.param.RequestParam;
 import com.maozi.base.result.PageResult;
@@ -31,9 +31,9 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class ChatConversationRecordServiceImpl extends BaseServiceImpl<ChatConversationRecordMapper,
-        ChatConversationRecordDO>
-        implements ChatConversationRecordService {
+public class ChatConversationServiceImpl extends BaseServiceImpl<ChatConversationMapper,
+        ChatConversationDO>
+        implements ChatConversationService {
 
     /** 资源名称，用于异常提示信息 */
     public static final String RESOURCE_NAME = "AI聊天会话记录";
@@ -58,8 +58,8 @@ public class ChatConversationRecordServiceImpl extends BaseServiceImpl<ChatConve
      */
     @Override
     public void has(Long conversationId) {
-        LambdaQueryWrapper<ChatConversationRecordDO> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(ChatConversationRecordDO::getId, conversationId);
+        LambdaQueryWrapper<ChatConversationDO> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(ChatConversationDO::getId, conversationId);
         super.checkHas(wrapper);
     }
 
@@ -69,24 +69,24 @@ public class ChatConversationRecordServiceImpl extends BaseServiceImpl<ChatConve
      * @param pageParam 分页查询参数
      * @return 会话分页列表
      */
-    public PageResult<ChatConversationRecordListResult> adminList(
-            PageParam<ChatConversationRecordListParam> pageParam) {
+    public PageResult<ChatConversationListResult> adminList(
+            PageParam<ChatConversationListParam> pageParam) {
 
         Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
 
-        MPJLambdaWrapper<ChatConversationRecordDO> wrapper =
-                super.buildQueryWrapper(pageParam, ChatConversationRecordListResult.class);
-        wrapper.eq(ChatConversationRecordDO::getUserId,userId);
+        MPJLambdaWrapper<ChatConversationDO> wrapper =
+                super.buildQueryWrapper(pageParam, ChatConversationListResult.class);
+        wrapper.eq(ChatConversationDO::getUserId,userId);
 
-        Page<ChatConversationRecordListResult> page = super.selectJoinListPage(
+        Page<ChatConversationListResult> page = super.selectJoinListPage(
                 super.convertPage(pageParam),
-                ChatConversationRecordListResult.class,
+                ChatConversationListResult.class,
                 wrapper
         );
 
         // 转换分页结果并填充关联数据
-        PageResult<ChatConversationRecordListResult> pageResult = super.convertPageResult(page);
-        super.setRelationData(pageResult, ChatConversationRecordListResult.class);
+        PageResult<ChatConversationListResult> pageResult = super.convertPageResult(page);
+        super.setRelationData(pageResult, ChatConversationListResult.class);
 
         return pageResult;
     }
@@ -109,7 +109,7 @@ public class ChatConversationRecordServiceImpl extends BaseServiceImpl<ChatConve
             throw new BusinessResultException("消息不能为空");
         }
 
-        ChatConversationRecordDO domain = new ChatConversationRecordDO();
+        ChatConversationDO domain = new ChatConversationDO();
         domain.setTitle(title.length() > TITLE_MAX_LENGTH ? StrUtil.subPre(title, TITLE_MAX_LENGTH) + "..." : title);
         domain.setUserId(CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId));
 
@@ -137,7 +137,7 @@ public class ChatConversationRecordServiceImpl extends BaseServiceImpl<ChatConve
             throw new BusinessResultException("标题不能大于" + TITLE_MAX_LENGTH + "字符");
         }
 
-        ChatConversationRecordDO domain = new ChatConversationRecordDO();
+        ChatConversationDO domain = new ChatConversationDO();
         domain.setId(conversationId);
         domain.setTitle(title);
 

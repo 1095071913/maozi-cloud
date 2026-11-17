@@ -1,6 +1,6 @@
 package com.maozi.ai.ai.mapper;
 
-import com.maozi.ai.ai.domain.ChatConversationRecordDO;
+import com.maozi.ai.ai.domain.ChatConversationDO;
 import com.maozi.service.api.IBaseMapper;
 
 /**
@@ -9,4 +9,4 @@ import com.maozi.service.api.IBaseMapper;
  * @author maozi
  * @date 2026/11/08
  */
-public interface ChatConversationRecordMapper extends IBaseMapper<ChatConversationRecordDO>{}
+public interface ChatConversationMapper extends IBaseMapper<ChatConversationDO>{}

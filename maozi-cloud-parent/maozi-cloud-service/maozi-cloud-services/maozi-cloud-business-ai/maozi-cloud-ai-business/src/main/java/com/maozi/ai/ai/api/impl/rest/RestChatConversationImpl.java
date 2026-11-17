@@ -1,9 +1,9 @@
 package com.maozi.ai.ai.api.impl.rest;
 
-import com.maozi.ai.ai.api.impl.ChatConversationRecordServiceImpl;
-import com.maozi.ai.ai.api.rest.RestChatConversationRecordService;
-import com.maozi.ai.ai.param.ChatConversationRecordListParam;
-import com.maozi.ai.ai.result.ChatConversationRecordListResult;
+import com.maozi.ai.ai.api.impl.ChatConversationServiceImpl;
+import com.maozi.ai.ai.api.rest.RestChatConversationService;
+import com.maozi.ai.ai.param.ChatConversationListParam;
+import com.maozi.ai.ai.result.ChatConversationListResult;
 import com.maozi.base.param.PageParam;
 import com.maozi.base.param.RequestParam;
 import com.maozi.base.result.PageResult;
@@ -19,13 +19,13 @@ import com.maozi.service.api.impl.result.BaseServiceResultImpl;
  * @date 2026/11/14
  */
 @RestService
-public class RestChatConversationRecordImpl extends BaseServiceResultImpl<ChatConversationRecordServiceImpl, Void>
-        implements RestChatConversationRecordService {
+public class RestChatConversationImpl extends BaseServiceResultImpl<ChatConversationServiceImpl, Void>
+        implements RestChatConversationService {
 
     /** 查询当前用户的会话分页列表 */
     @Override
-    public AbstractBaseResult<PageResult<ChatConversationRecordListResult>> listResult(
-            PageParam<ChatConversationRecordListParam> pageParam) {
+    public AbstractBaseResult<PageResult<ChatConversationListResult>> listResult(
+            PageParam<ChatConversationListParam> pageParam) {
         return ResultUtil.success(service.adminList(pageParam));
     }
 

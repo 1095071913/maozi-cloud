@@ -1,6 +1,7 @@
 package com.maozi.oauth.token.config.authorization.base;
 
 import com.baomidou.mybatisplus.core.toolkit.ReflectionKit;
+import com.maozi.common.CollectionUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
 import org.springframework.security.core.Authentication;
@@ -16,7 +17,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -126,7 +126,7 @@ public abstract class BaseGrantAuthenticationConverter<T extends BaseGrantAuthen
         checkParams(request);
 
         // 提取附加参数（排除grant_type与client_id）
-        Map<String, Object> additionalParameters = new HashMap<>((int) (parameters.size() / 0.75f) + 1);
+        Map<String, Object> additionalParameters = CollectionUtil.newHashMap(parameters.size());
         parameters.forEach((key, value) -> {
             if (!OAuth2ParameterNames.GRANT_TYPE.equals(key) &&
                     !OAuth2ParameterNames.CLIENT_ID.equals(key)) {

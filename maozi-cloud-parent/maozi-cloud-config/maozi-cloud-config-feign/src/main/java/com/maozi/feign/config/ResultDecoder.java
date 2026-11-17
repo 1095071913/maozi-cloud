@@ -1,5 +1,6 @@
 package com.maozi.feign.config;
 
+import com.maozi.common.CollectionUtil;
 import com.maozi.common.JacksonUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.common.result.success.SuccessResult;
@@ -21,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -175,7 +175,7 @@ public class ResultDecoder implements Decoder {
         HttpHeaders httpHeaders = new HttpHeaders();
         // 逐项复制 Feign 响应头到 Spring HttpHeaders
         for (Map.Entry<String, Collection<String>> entry : headers.entrySet()) {
-            httpHeaders.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+            httpHeaders.put(entry.getKey(), CollectionUtil.newArrayList(entry.getValue()));
         }
         return httpHeaders;
     }

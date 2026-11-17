@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
+import com.maozi.common.CollectionUtil;
 import com.maozi.oauth.client.enums.AuthTypeEnum;
 import com.maozi.oauth.token.config.service.OAuth2AuthorizationService;
 import com.maozi.oauth.token.param.ClientUserParam;
@@ -51,10 +52,8 @@ import org.springframework.util.StringUtils;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -216,7 +215,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
             return;
         }
         AuthorizationData data = AuthorizationData.from(current);
-        List<String> keys = new ArrayList<>();
+        List<String> keys = CollectionUtil.newArrayList();
         keys.add(authorizationKey(authorization.getId()));
         for (TokenIndex index : data.indexes()) {
             keys.add(indexKey(index.type(), index.value()));
@@ -303,7 +302,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
      */
     @Nullable
     private OAuth2Authorization findByTokenIndex(String type, String token, String... fallbackTypes) {
-        List<String> types = new ArrayList<>();
+        List<String> types = CollectionUtil.newArrayList();
         types.add(type);
         Collections.addAll(types, fallbackTypes);
         for (String candidateType : types) {
@@ -594,7 +593,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
 
         // 1. 根据每个用户的clientId和username计算主体索引键，
         // 通过SMEMBERS获取每个用户在该客户端下的所有授权ID
-        List<String> principalIndexKeys = new ArrayList<>(clientUsers.size());
+        List<String> principalIndexKeys = CollectionUtil.newArrayList(clientUsers.size());
         // 预估容量：每个用户可能持有多个授权 ID，按用户数 8 倍预分配减少扩容 rehash
         Set<String> allAuthIds = new HashSet<>(Math.max(16, clientUsers.size() * 8));
         for (ClientUserParam clientUser : clientUsers) {
@@ -618,7 +617,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
 
         // 3. 反序列化授权数据，提取令牌索引键（access_token、refresh_token等），
         // 与授权主键、主体索引键合并为待删除列表
-        List<String> keysToDelete = new ArrayList<>(principalIndexKeys);
+        List<String> keysToDelete = CollectionUtil.newArrayList(principalIndexKeys);
         keysToDelete.addAll(authKeys);
         if (payloads != null) {
             for (String payload : payloads) {
@@ -725,7 +724,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
          * @return 转换后的AuthorizationData记录
          */
         static AuthorizationData from(OAuth2Authorization authorization) {
-            Map<String, Object> attributes = new HashMap<>(authorization.getAttributes());
+            Map<String, Object> attributes = CollectionUtil.newHashMap(authorization.getAttributes());
             String state = authorization.getAttribute(OAuth2ParameterNames.STATE);
             return new AuthorizationData(
                     authorization.getId(),
@@ -755,7 +754,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
          * @return 令牌索引列表
          */
         List<TokenIndex> indexes() {
-            List<TokenIndex> indexes = new ArrayList<>();
+            List<TokenIndex> indexes = CollectionUtil.newArrayList();
             if (StringUtils.hasText(this.state)) {
                 indexes.add(new TokenIndex(STATE_TYPE, this.state));
             }
@@ -774,7 +773,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
          * @return 令牌数据列表
          */
         List<TokenData<?>> tokens() {
-            List<TokenData<?>> tokens = new ArrayList<>();
+            List<TokenData<?>> tokens = CollectionUtil.newArrayList();
             if (this.authorizationCode != null) {
                 tokens.add(this.authorizationCode);
             }
@@ -830,7 +829,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
                     token.getToken().getTokenValue(),
                     token.getToken().getIssuedAt(),
                     token.getToken().getExpiresAt(),
-                    new HashMap<>(token.getMetadata()),
+                    CollectionUtil.newHashMap(token.getMetadata()),
                     scopes != null ? new HashSet<>(scopes) : null);
         }
     }

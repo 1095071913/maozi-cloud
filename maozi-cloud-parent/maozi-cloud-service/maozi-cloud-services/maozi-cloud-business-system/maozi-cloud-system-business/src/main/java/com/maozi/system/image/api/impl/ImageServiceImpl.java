@@ -1,5 +1,6 @@
 package com.maozi.system.image.api.impl;
 
+import com.maozi.common.CollectionUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.system.image.api.ImageService;
@@ -12,7 +13,6 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -100,7 +100,7 @@ public class ImageServiceImpl implements ImageService {
             throw new BusinessResultException("未知的图片存储类型：" + storeTypeCode);
         }
 
-        List<ImageUploadResult> results = new ArrayList<>(param.getFiles().size());
+        List<ImageUploadResult> results = CollectionUtil.newArrayList(param.getFiles().size());
 
         param.getFiles().forEach(file -> results.add(handler.upload(file,param.getPath())));
 

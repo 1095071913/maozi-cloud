@@ -1,6 +1,7 @@
 package com.maozi.mvc.config.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.maozi.common.CollectionUtil;
 import com.maozi.mvc.config.json.ReadOnlyMultipartFormDataEndpointConverter;
 import jakarta.annotation.Resource;
 import org.springframework.context.annotation.Configuration;
@@ -8,7 +9,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -49,7 +49,7 @@ public class WebConfig implements WebMvcConfigurer {
                 new ReadOnlyMultipartFormDataEndpointConverter(objectMapper);
 
         // 在默认支持的媒体类型基础上，额外添加 application/octet-stream 支持
-        List<MediaType> supportedMediaTypes = new ArrayList<>(converter.getSupportedMediaTypes());
+        List<MediaType> supportedMediaTypes = CollectionUtil.newArrayList(converter.getSupportedMediaTypes());
         supportedMediaTypes.add(MediaType.APPLICATION_OCTET_STREAM);
         converter.setSupportedMediaTypes(supportedMediaTypes);
 

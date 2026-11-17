@@ -1,5 +1,6 @@
 package com.maozi.db.handler;
 
+import com.maozi.common.CollectionUtil;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
@@ -119,7 +120,7 @@ public class CommaSeparatedTypeHandler extends BaseTypeHandler<Collection<String
         }
         // 按逗号拆分字符串
         String[] parts = value.split(DELIMITER);
-        List<String> list = new ArrayList<>(parts.length);
+        List<String> list = CollectionUtil.newArrayList(parts.length);
         for (String part : parts) {
             // 去除每个元素的首尾空格
             String trimmed = part.trim();

@@ -9,6 +9,7 @@ import com.aizuda.snailjob.client.core.retryer.RetryType;
 import com.aizuda.snailjob.client.core.retryer.RetryerInfo;
 import com.aizuda.snailjob.client.core.strategy.ExecutorMethod;
 import com.aizuda.snailjob.common.log.SnailJobLog;
+import com.maozi.common.CollectionUtil;
 import com.maozi.snailjob.retry.annotation.RetryTask;
 import com.maozi.snailjob.retry.executor.RetryExecutorTask;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +21,6 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -62,7 +62,7 @@ public class ExecutorMethodScanner implements Scanner, ApplicationContextAware {
      */
     @Override
     public List<RetryerInfo> doScan() {
-        List<RetryerInfo> retryerInfoList = new ArrayList<>();
+        List<RetryerInfo> retryerInfoList = CollectionUtil.newArrayList();
         String[] beanDefinitionNames = applicationContext.getBeanNamesForType(Object.class, false, true);
 
         for (String beanDefinitionName : beanDefinitionNames) {

@@ -17810,6 +17810,50 @@
         {
           "steps": [
             {
+              "id": "a5695bf0-0c9e-4300-bdba-5c3509843d3c",
+              "type": "testCaseRef",
+              "disable": false,
+              "parameters": {},
+              "relatedId": 8404502,
+              "name": "全流程",
+              "number": 1
+            }
+          ],
+          "id": 8991837,
+          "name": "预热测试全流程",
+          "tags": [],
+          "options": {
+            "environmentId": 48825947,
+            "useDataSetId": -1,
+            "iterationCount": 10,
+            "threadCount": 10,
+            "runnerId": 0,
+            "onError": "ignore",
+            "delayItem": 0,
+            "saveReportDetail": "all",
+            "saveVariables": true,
+            "readGlobalCookie": false,
+            "saveGlobalCookie": false
+          },
+          "priority": 0,
+          "ordering": 96,
+          "description": "",
+          "preProcessors": [],
+          "postProcessors": [],
+          "children": [],
+          "performanceTestOptions": {
+            "environmentId": 48825947,
+            "dataDistributionProfile": "ordered",
+            "useDataSetId": -1,
+            "virtualUsers": 50,
+            "durationMins": 30,
+            "rampDurationMins": 0
+          },
+          "apiTestDataSets": []
+        },
+        {
+          "steps": [
+            {
               "name": "认证授权 (请求密码认证授权成功)",
               "number": 1,
               "type": "http",
@@ -17925,7 +17969,7 @@
             "saveGlobalCookie": false
           },
           "priority": 2,
-          "ordering": 98,
+          "ordering": 97,
           "description": "",
           "preProcessors": [],
           "postProcessors": [],
@@ -17978,7 +18022,7 @@
             "environmentId": 48825947,
             "dataDistributionProfile": "ordered",
             "useDataSetId": -1,
-            "virtualUsers": 100,
+            "virtualUsers": 50,
             "durationMins": 30,
             "rampDurationMins": 0
           },
@@ -18065,6 +18109,16 @@
       "deletedAt": null,
       "projectId": 7828608,
       "apiTestCaseId": 8957625,
+      "relatedId": 8404502,
+      "projectBranchId": 7576736
+    },
+    {
+      "id": 3793807,
+      "createdAt": "2026-11-15T13:08:38.000Z",
+      "updatedAt": "2026-11-15T13:08:38.000Z",
+      "deletedAt": null,
+      "projectId": 7828608,
+      "apiTestCaseId": 8991837,
       "relatedId": 8404502,
       "projectBranchId": 7576736
     }

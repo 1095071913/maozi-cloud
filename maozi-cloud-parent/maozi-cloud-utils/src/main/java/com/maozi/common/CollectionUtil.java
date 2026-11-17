@@ -44,9 +44,13 @@ public class CollectionUtil {
      * @return 包含指定元素的 ArrayList
      */
     public static <T> List<T> newArrayList(T ... array) {
-        ArrayList<T> list = new ArrayList<>(array.length);
+        List<T> list = CollectionUtil.newArrayList(array.length);
         Collections.addAll(list, array);
         return list;
+    }
+
+    public static <T> List<T> newArrayList(Collection<T> array) {
+        return new ArrayList<>(array);
     }
 
     /**
@@ -139,13 +143,13 @@ public class CollectionUtil {
     /**
      * 根据已有 Map 创建新的 HashMap
      *
-     * @param oldMap 原始 Map
+     * @param map 原始 Map
      * @param <K> 键类型
      * @param <V> 值类型
      * @return 包含原始数据的新 HashMap
      */
-    public static <K,V> Map<K,V> newHashMap(Map<K,V> oldMap) {
-        return new HashMap<>(oldMap);
+    public static <K,V> Map<K,V> newHashMap(Map<K,V> map) {
+        return new HashMap<>(map);
     }
 
     /**

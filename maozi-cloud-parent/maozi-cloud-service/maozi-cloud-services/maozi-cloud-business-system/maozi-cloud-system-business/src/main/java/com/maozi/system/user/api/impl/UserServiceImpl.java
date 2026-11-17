@@ -56,7 +56,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -387,7 +386,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
         // 查询角色关联的权限 ID 集合，转换为权限标识列表返回
         Collection<Long> permissionIds = rolePermissionService.listPermissionByRoleIds(roleIds);
 
-        return new ArrayList<>(permissionService.listMark(permissionIds));
+        return CollectionUtil.newArrayList(permissionService.listMarkByIds(permissionIds));
 
     }
 

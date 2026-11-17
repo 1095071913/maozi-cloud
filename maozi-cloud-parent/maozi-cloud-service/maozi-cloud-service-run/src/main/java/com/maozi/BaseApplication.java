@@ -17,6 +17,7 @@
 package com.maozi;
 
 import cn.hutool.extra.spring.SpringUtil;
+import com.maozi.common.CollectionUtil;
 import com.maozi.common.LogUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.constant.LogTag;
@@ -44,7 +45,6 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -334,7 +334,7 @@ public class BaseApplication {
 
         Properties properties = System.getProperties();
 
-        List<ConfigInitializer> initializers = new ArrayList<>();
+        List<ConfigInitializer> initializers = CollectionUtil.newArrayList();
 
         ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         try {

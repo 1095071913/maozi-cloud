@@ -1,6 +1,7 @@
 package com.maozi.oauth.token.config.authorization.base;
 
 import com.baomidou.mybatisplus.core.toolkit.ReflectionKit;
+import com.maozi.common.CollectionUtil;
 import com.maozi.oauth.token.config.domain.SecurityUserDetails;
 import com.maozi.oauth.token.constants.OAuth2TokenUserClaimConstants;
 import jakarta.annotation.Resource;
@@ -38,7 +39,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 import java.security.Principal;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -191,7 +191,7 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
         if (generatedAccessToken instanceof ClaimAccessor) {
             Authentication finalUserAuthenticationToken = userAuthenticationToken;
             authorizationBuilder.token(accessToken, (metadata) -> {
-                Map<String, Object> claims = new HashMap<>(((ClaimAccessor) generatedAccessToken).getClaims());
+                Map<String, Object> claims = CollectionUtil.newHashMap(((ClaimAccessor) generatedAccessToken).getClaims());
                 List<String> authorities = finalUserAuthenticationToken.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.toList());
@@ -203,7 +203,7 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
             });
         } else {
             // 不透明令牌：直接将用户权限与用户附加属性构建为claims metadata
-            Map<String, Object> claims = new HashMap<>(8);
+            Map<String, Object> claims = CollectionUtil.newHashMap(8);
             List<String> authorities = userAuthenticationToken.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toList());
@@ -268,7 +268,7 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
         // 保存授权信息
         this.authorizationService.save(authorization);
 
-        Map<String, Object> additionalParameters = new HashMap<>(1);
+        Map<String, Object> additionalParameters = CollectionUtil.newHashMap(1);
         if (idToken != null) {
             // 放入idToken
             additionalParameters.put(OidcParameterNames.ID_TOKEN, idToken.getTokenValue());

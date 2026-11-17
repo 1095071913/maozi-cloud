@@ -44,10 +44,6 @@ public class MicrometerConfiguration {
     @Bean
     public ServerRequestObservationConvention uriTagContributorForObservationApi() {
 
-        /*
-         * 修复 Spring 框架问题导致 /metrics 端点中 URI 标签值被置为 UNKNOWN 的问题，
-         * 参见 https://github.com/spring-cloud/spring-cloud-gateway/issues/891
-         */
         return new DefaultServerRequestObservationConvention() {
 
             /**

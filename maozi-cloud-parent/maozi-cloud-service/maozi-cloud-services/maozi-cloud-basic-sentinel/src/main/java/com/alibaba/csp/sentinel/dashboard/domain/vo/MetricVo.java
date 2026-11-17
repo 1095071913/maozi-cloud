@@ -53,7 +53,7 @@ public class MetricVo implements Comparable<MetricVo> {
 
     /** The QPS of exceptions. */
     private Long exceptionQps;
-    /** The average rt. */
+    /** The average response time. */
     private Double rt;
 
     /** The total number of aggregated entries in this record. */
@@ -233,12 +233,12 @@ public class MetricVo implements Comparable<MetricVo> {
         this.exceptionQps = exceptionQps;
     }
 
-    /** Get the average rt. */
+    /** Get the average response time. */
     public Double getRt() {
         return rt;
     }
 
-    /** Set the average rt. */
+    /** Set the average response time. */
     public void setRt(Double rt) {
         this.rt = rt;
     }

@@ -24,10 +24,10 @@ package com.alibaba.csp.sentinel.dashboard.auth;
 public interface AuthService<R> {
 
     /**
-     * Get the authentication user.
+     * Get the authenticated user of the given request.
      *
-     * @param request the request contains the user information
-     * @return the auth user represent the current user, when the user is illegal, a null value will return.
+     * @param request the request that carries the user information
+     * @return the auth user representing the current user, or null if the user is illegal
      */
     AuthUser getAuthUser(R request);
 
@@ -67,25 +67,19 @@ public interface AuthService<R> {
     interface AuthUser {
 
         /**
-         * Query whether current user has the specific privilege to the target, the target
-         * may be an app name or an ip address, or other destination.
-         * <p>
-         * This method will use return value to represent  whether user has the specific
-         * privileges to the target, but to throw a RuntimeException to represent no auth
-         * is also a good way.
-         * </p>
+         * Check whether the current user has the given privilege on the target, which may
+         * be an app name, an ip address or other destination.
          *
          * @param target        the target to check
          * @param privilegeType the privilege type to check
-         * @return if current user has the specific privileges to the target, return true,
-         * otherwise return false.
+         * @return true if the user has the privilege on the target, false otherwise
          */
         boolean authTarget(String target, PrivilegeType privilegeType);
 
         /**
          * Check whether current user is a super-user.
          *
-         * @return if current user is super user return true, else return false.
+         * @return true if the current user is a super user, false otherwise
          */
         boolean isSuperUser();
 

@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * OAuth2客户端实体类。
+ * OAuth2客户端实体类
  * <p>
  * 对应数据库表 oauth2_registered_client，存储OAuth2注册客户端的完整信息；
  * 继承 AbstractBaseDomain 获得id、状态等公共字段。

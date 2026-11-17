@@ -62,7 +62,7 @@ import static com.alibaba.csp.sentinel.slots.block.RuleConstant.FLOW_GRADE_QPS;
 import static com.alibaba.csp.sentinel.slots.block.RuleConstant.FLOW_GRADE_THREAD;
 
 /**
- * Gateway flow rule Controller for manage gateway flow rules.
+ * Controller for managing gateway flow rules.
  *
  * @author cdfive
  * @since 1.7.0

@@ -123,8 +123,8 @@ public class ResourceTreeNode {
     }
 
     /**
-     * This node is visible only when searchKey matches this.resource or at least
-     * one of this's children is visible
+     * Recursively compute visibility: the node is visible when the search key
+     * matches its resource or at least one child is visible.
      */
     private boolean search(ResourceTreeNode node, String searchKey) {
         // empty matches all

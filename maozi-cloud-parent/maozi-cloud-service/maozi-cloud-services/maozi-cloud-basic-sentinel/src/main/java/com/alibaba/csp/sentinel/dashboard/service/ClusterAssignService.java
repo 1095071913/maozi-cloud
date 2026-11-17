@@ -39,7 +39,7 @@ public interface ClusterAssignService {
     ClusterAppAssignResultVO unbindClusterServer(String app, String machineId);
 
     /**
-     * Unbind a set of cluster servers and its clients.
+     * Unbind a set of cluster servers and their clients.
      *
      * @param app app name
      * @param machineIdSet set of valid machine ID ({@code host@commandPort})

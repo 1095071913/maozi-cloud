@@ -138,6 +138,7 @@ public class ChatServiceImpl implements ChatService {
      * 通过 Redis 标记支持中途停止对话，客户端断开时已生成的部分回复仍写入会话记忆。
      * </p>
      *
+     * @param conversationId 会话 ID
      * @param param 对话参数（会话 ID、消息内容、图片列表、提示词配置 key）
      * @return AI 回复的分片流（SSE），最后追加一条对话完成（FINISH）消息
      * @throws BusinessResultException 会话不存在、图片类型不受支持或提示词配置获取失败时抛出

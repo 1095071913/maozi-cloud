@@ -50,19 +50,14 @@ public class MetricController {
     /** The logger of this controller. */
     private static Logger logger = LoggerFactory.getLogger(MetricController.class);
 
-    /**
-     * Default query window when the caller does not provide a start time: the last 5 minutes.
-     */
+    /** Default query window in ms when the caller provides no start time: the last 5 minutes. */
     private static final long DEFAULT_QUERY_INTERVAL_MS = 1000 * 60 * 5;
 
     /** The repository that stores and queries metric entities. */
     @Autowired
     private MetricsRepository<MetricEntity> metricStore;
 
-    /**
-     * Same configuration as {@code JdbcMetricsRepository}: the metric aggregation
-     * granularity N in seconds, used to align query time boundaries to the bucket grid.
-     */
+    /** Metric aggregation granularity N in seconds (same config as {@code JdbcMetricsRepository}), used to align query boundaries. */
     @Value("${sentinel.metric.aggregate-seconds:1}")
     private int aggregateSeconds;
 
@@ -178,12 +173,9 @@ public class MetricController {
     }
 
     /**
-     * Align the query start time down to the N-second bucket grid. With aggregation the
-     * persisted row of a bucket carries the bucket START timestamp, so the bucket that is
-     * currently collecting (whose start may be up to N-1 seconds before {@code startTime})
-     * would otherwise never match a short query window such as "the last 5 minutes" and the
-     * page would show nothing although the data is already in MySQL. Aligning down makes
-     * every bucket INTERSECTING the window visible, without pulling in older buckets.
+     * Aligns the query start time down to the N-second bucket grid: a persisted row carries
+     * its bucket START timestamp, so aligning down makes the bucket that is currently
+     * collecting visible without pulling in older buckets.
      */
     private long alignToBucket(long startTime) {
         long bucketMs = Math.max(1, aggregateSeconds) * 1000L;
@@ -191,10 +183,9 @@ public class MetricController {
     }
 
     /**
-     * Align the query end time UP to the N-second bucket grid, symmetric to
-     * {@link #alignToBucket(long)}: a window ending mid-bucket also makes the bucket
-     * starting right after {@code endTime} visible (e.g. 05:05:25 -> 05:05:30 with N=10),
-     * so both edges of the window resolve to complete buckets.
+     * Aligns the query end time up to the N-second bucket grid, symmetric to
+     * {@link #alignToBucket(long)}, so a window ending mid-bucket also sees the next
+     * bucket and both edges resolve to complete buckets.
      */
     private long alignToBucketEnd(long endTime) {
         long bucketMs = Math.max(1, aggregateSeconds) * 1000L;

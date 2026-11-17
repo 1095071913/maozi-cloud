@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.api;
 
 /**
- * Value Object for add or update gateway api.
+ * Predicate item (URL match condition) of a gateway API definition, used by add and update requests.
  *
  * @author cdfive
  * @since 1.7.0

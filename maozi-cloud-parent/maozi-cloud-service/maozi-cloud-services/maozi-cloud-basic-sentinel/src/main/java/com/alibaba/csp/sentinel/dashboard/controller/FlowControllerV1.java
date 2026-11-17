@@ -41,7 +41,8 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Flow rule controller.
+ * Controller for the v1 flow rule APIs, backed by the in-memory repository and the
+ * Nacos provider/publisher.
  *
  * @author leyou
  * @author Eric Zhao

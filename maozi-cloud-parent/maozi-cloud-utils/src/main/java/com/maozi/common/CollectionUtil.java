@@ -49,6 +49,13 @@ public class CollectionUtil {
         return list;
     }
 
+    /**
+     * 根据已有集合创建 ArrayList
+     *
+     * @param array 原始集合
+     * @param <T> 元素类型
+     * @return 包含原始数据的新 ArrayList
+     */
     public static <T> List<T> newArrayList(Collection<T> array) {
         return new ArrayList<>(array);
     }

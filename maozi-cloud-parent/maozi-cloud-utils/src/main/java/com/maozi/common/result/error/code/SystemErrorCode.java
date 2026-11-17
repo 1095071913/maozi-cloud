@@ -25,6 +25,7 @@ public class SystemErrorCode extends AbstractBaseErrorCode{
     /** 用户认证授权异常默认码 */
     public static final Integer USER_AUTH_ERROR_DEFAULT_CODE = 401;
     
+    /** 权限异常默认码 */
     public static final Integer PERMISSION_ERROR_DEFAULT_CODE = 403;
 
     /** 限流异常默认码 */

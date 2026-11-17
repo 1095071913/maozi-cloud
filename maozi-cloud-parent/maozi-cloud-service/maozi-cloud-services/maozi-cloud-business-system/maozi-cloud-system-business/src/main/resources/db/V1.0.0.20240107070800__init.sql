@@ -17,9 +17,12 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
+-- 系统服务数据库初始化脚本：包含配置、地区、权限、角色、用户及关联关系表的建表语句与初始数据
+
 -- ----------------------------
 -- Table structure for system_config
 -- ----------------------------
+-- 全局配置表：按类型存储配置项，包含配置类型定义、中间件访问信息、AI 系统提示词与 AI 对话示例
 DROP TABLE IF EXISTS `system_config`;
 CREATE TABLE `system_config` (
                                  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -59,6 +62,7 @@ COMMIT;
 -- ----------------------------
 -- Table structure for system_config_region
 -- ----------------------------
+-- 地区表：存储中国省市区三级行政区划数据，含经纬度、拼音、邮政编码等扩展信息
 DROP TABLE IF EXISTS `system_config_region`;
 CREATE TABLE `system_config_region` (
                                         `id` int NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -3839,6 +3843,7 @@ COMMIT;
 -- ----------------------------
 -- Table structure for system_permission
 -- ----------------------------
+-- 权限表：树形结构存储菜单与操作权限，level 为节点深度，type 区分权限类型
 DROP TABLE IF EXISTS `system_permission`;
 CREATE TABLE `system_permission` (
                                      `id` int NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -3895,6 +3900,7 @@ COMMIT;
 -- ----------------------------
 -- Table structure for system_role
 -- ----------------------------
+-- 角色表：存储系统角色，初始内置超级管理员角色
 DROP TABLE IF EXISTS `system_role`;
 CREATE TABLE `system_role` (
                                `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '描述',
@@ -3918,6 +3924,7 @@ COMMIT;
 -- ----------------------------
 -- Table structure for system_role_permission
 -- ----------------------------
+-- 角色权限关系表：记录角色与权限的多对多关联
 DROP TABLE IF EXISTS `system_role_permission`;
 CREATE TABLE `system_role_permission` (
                                           `role_id` int NOT NULL COMMENT '角色ID',
@@ -3966,6 +3973,7 @@ COMMIT;
 -- ----------------------------
 -- Table structure for system_user
 -- ----------------------------
+-- 用户表：存储账号、密码、所属客户端等信息，初始内置 admin 账号
 DROP TABLE IF EXISTS `system_user`;
 CREATE TABLE `system_user` (
                                `username` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '账号',
@@ -3993,6 +4001,7 @@ COMMIT;
 -- ----------------------------
 -- Table structure for system_user_role
 -- ----------------------------
+-- 用户角色关系表：记录用户与角色的多对多关联
 DROP TABLE IF EXISTS `system_user_role`;
 CREATE TABLE `system_user_role` (
                                     `role_id` int NOT NULL COMMENT '角色ID',

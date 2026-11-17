@@ -21,7 +21,7 @@ import com.alibaba.csp.sentinel.util.StringUtil;
 import java.util.Optional;
 
 /**
- * Util class for parsing version.
+ * Utility class for parsing Sentinel version strings.
  *
  * @author Eric Zhao
  * @since 0.2.1

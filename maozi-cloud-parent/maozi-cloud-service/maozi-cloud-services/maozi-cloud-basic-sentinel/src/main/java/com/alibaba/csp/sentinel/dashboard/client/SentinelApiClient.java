@@ -233,7 +233,7 @@ public class SentinelApiClient {
     }
     
     /**
-     * Build an `HttpUriRequest` in POST way.
+     * Builds a POST request carrying the params as a url-encoded form entity.
      *
      * @param url                        the request url
      * @param params                     the form parameters to send
@@ -280,7 +280,7 @@ public class SentinelApiClient {
     }
     
     /**
-     * With no param
+     * Executes the command without request parameters.
      *
      * @param ip   machine IP
      * @param port machine command port
@@ -292,7 +292,8 @@ public class SentinelApiClient {
     }
     
     /**
-     * No app specified, force to GET
+     * Executes the command without an app name; without an app the machine version is
+     * unknown, so the request always falls back to the GET form.
      *
      * @param ip     machine IP
      * @param port   machine command port
@@ -305,7 +306,8 @@ public class SentinelApiClient {
     }
 
     /**
-     * Prefer to execute request using POST
+     * Executes a command against the target machine, preferring the POST form when the
+     * machine's client version supports it and falling back to GET otherwise.
      *
      * @param app    application name the machine belongs to
      * @param ip     machine IP
@@ -503,7 +505,7 @@ public class SentinelApiClient {
     }
 
     /**
-     * Fetch cluster node.
+     * Fetches the cluster node list of the machine, optionally including nodes with zero values.
      *
      * @param ip          ip to fetch
      * @param port        port of the ip
@@ -599,8 +601,8 @@ public class SentinelApiClient {
     }
 
     /**
-     * set rules of the machine. rules == null will return immediately;
-     * rules.isEmpty() means setting the rules to empty.
+     * Sets flow rules of the machine; a null rules list returns immediately, and an
+     * empty list clears the rules.
      *
      * @param app   application name
      * @param ip    machine IP
@@ -618,8 +620,8 @@ public class SentinelApiClient {
     }
 
     /**
-     * set rules of the machine. rules == null will return immediately;
-     * rules.isEmpty() means setting the rules to empty.
+     * Sets degrade rules of the machine; a null rules list returns immediately, and an
+     * empty list clears the rules.
      *
      * @param app   application name
      * @param ip    machine IP
@@ -632,8 +634,8 @@ public class SentinelApiClient {
     }
 
     /**
-     * set rules of the machine. rules == null will return immediately;
-     * rules.isEmpty() means setting the rules to empty.
+     * Sets system rules of the machine; a null rules list returns immediately, and an
+     * empty list clears the rules.
      *
      * @param app   application name
      * @param ip    machine IP
@@ -646,8 +648,8 @@ public class SentinelApiClient {
     }
 
     /**
-     * set rules of the machine. rules == null will return immediately;
-     * rules.isEmpty() means setting the rules to empty.
+     * Sets authority rules of the machine; a null rules list returns immediately, and an
+     * empty list clears the rules.
      *
      * @param app   application name
      * @param ip    machine IP

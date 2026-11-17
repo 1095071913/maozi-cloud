@@ -18,7 +18,7 @@
 package com.maozi;
 
 /**
- * 网关服务启动类。
+ * 网关服务启动类
  * <p>
  * 继承 BaseApplication 以复用公共的应用启动逻辑（如 Nacos 配置加载、日志初始化等），
  * 作为 Spring Cloud Gateway 的入口点，负责请求路由、灰度发布、限流等网关核心功能。
@@ -30,7 +30,7 @@ package com.maozi;
 public class Application extends BaseApplication {
 
     /**
-     * 应用程序主入口方法。
+     * 应用程序主入口方法
      *
      * @param args 命令行启动参数
      */

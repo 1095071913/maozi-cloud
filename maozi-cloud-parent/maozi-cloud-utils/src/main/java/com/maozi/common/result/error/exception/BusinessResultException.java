@@ -133,6 +133,13 @@ public class BusinessResultException extends RuntimeException {
         this.errorResult = errorResult;
     }
 
+    /**
+     * 根据错误结果对象和原始异常构造
+     *
+     * @param errorResult 错误结果
+     * @param cause 原始异常
+     * @param <T> 数据类型
+     */
     public <T> BusinessResultException(ErrorResult<T> errorResult, Throwable cause) {
         super(errorResult.getExceptionMessage(), cause);
         this.errorResult = errorResult;

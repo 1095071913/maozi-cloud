@@ -83,8 +83,8 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     /**
-     * Add {@link CommonFilter} to the server, this is the simplest way to use Sentinel
-     * for Web application.
+     * Registers the Sentinel {@link CommonFilter} for all urls, the simplest way to
+     * apply Sentinel to a web application.
      */
     @Bean
     public FilterRegistrationBean sentinelFilterRegistration() {
@@ -107,7 +107,6 @@ public class WebConfig implements WebMvcConfigurer {
     public void doInit() {
         Set<String> suffixSet = new HashSet<>(Arrays.asList(".js", ".css", ".html", ".ico", ".txt",
             ".woff", ".woff2"));
-        // Example: register a UrlCleaner to exclude URLs of common static resources.
         WebCallbackManager.setUrlCleaner(url -> {
             if (StringUtil.isEmpty(url)) {
                 return url;

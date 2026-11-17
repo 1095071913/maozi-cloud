@@ -12,7 +12,7 @@ import java.util.Set;
  * 图片文件校验器
  * <p>
  * 实现 {@link ConstraintValidator} 接口，校验上传文件是否为图片格式。
- * 通过检查 Content-Type 是否以 "image" 开头来判断。
+ * 同时校验文件扩展名是否在白名单内以及 Content-Type 是否以 "image" 开头。
  * 文件为空时跳过校验。
  * </p>
  *
@@ -40,17 +40,17 @@ public class ImageFileValidator implements ConstraintValidator<ImageFile, Multip
      *
      * @param file 上传的文件
      * @param context 校验上下文
-     * @return 文件为空时返回 true（跳过校验），否则返回 Content-Type 是否以 "image" 开头
+     * @return 文件为空时返回 true（跳过校验），否则返回扩展名在白名单内且 Content-Type 以 "image" 开头
      */
     @Override
     public boolean isValid(MultipartFile file, ConstraintValidatorContext context) {
 
+        // 文件为空时跳过校验，交给 @NotNull 等注解处理非空逻辑
         if (ObjectUtil.isNullEmpty(file) || file.isEmpty()) {
             return true;
         }
 
-        // getOriginalFilename 可能为 null（lowerCase 对 null 安全地返回 null），
-        // 扩展名为空直接不通过
+        // getOriginalFilename 可能为 null，取出的小写扩展名可能为空，此时直接不通过
         String contentType = file.getContentType();
         String extension = StringUtils.lowerCase(StringUtils.substringAfterLast(file.getOriginalFilename(), "."));
         if(ObjectUtil.isNullEmpty(extension)) {

@@ -27,7 +27,7 @@ import java.util.List;
 public interface RuleRepository<T, ID> {
 
     /**
-     * Save one.
+     * Save the given rule entity.
      *
      * @param entity the entity to save
      * @return the saved entity
@@ -35,23 +35,23 @@ public interface RuleRepository<T, ID> {
     T save(T entity);
 
     /**
-     * Save all.
+     * Save all the given rules.
      *
      * @param rules the rules to save
-     * @return rules saved.
+     * @return the saved rules
      */
     List<T> saveAll(List<T> rules);
 
     /**
-     * Delete by id
+     * Delete the rule with the given id.
      *
      * @param id the id of the entity to delete
-     * @return entity deleted
+     * @return the deleted entity, or {@code null} if no rule with the id exists
      */
     T delete(ID id);
 
     /**
-     * Find by id.
+     * Find the rule with the given id.
      *
      * @param id the id of the entity
      * @return the entity with the given id, or {@code null} if it does not exist
@@ -59,7 +59,7 @@ public interface RuleRepository<T, ID> {
     T findById(ID id);
 
     /**
-     * Find all by machine.
+     * Find all rules bound to the given machine.
      *
      * @param machineInfo the machine to find rules for
      * @return rules bound to the given machine
@@ -67,9 +67,9 @@ public interface RuleRepository<T, ID> {
     List<T> findAllByMachine(MachineInfo machineInfo);
 
     /**
-     * Find all by application.
+     * Find all rules of the given application.
      *
-     * @param appName valid app name
+     * @param appName application name, must not be empty
      * @return all rules of the application
      * @since 1.4.0
      */

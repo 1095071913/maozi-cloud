@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * OAuth2客户端服务实现类。
+ * OAuth2客户端服务实现类
  * <p>
  * 提供客户端的增删改查及OAuth2客户端设置、令牌设置的构建，
  * 涵盖客户端密钥加密与令牌有效期配置等核心逻辑。
@@ -82,16 +82,14 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
     }
 
 
-    /**
-     * 获取资源名称。
-     */
+    /** 获取资源名称 */
     @Override
     public String getResourceName() {
         return RESOURCE_NAME;
     }
 
     /**
-     * 客户端新增或更新的统一处理。
+     * 客户端新增或更新的统一处理
      * <p>
      * 新增时自动生成clientId并填充默认令牌有效期与客户端设置，
      * 更新时清空clientId防止被修改；
@@ -164,7 +162,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
     }
 
     /**
-     * 根据主键ID获取客户端详细信息。
+     * 根据主键ID获取客户端详细信息
      * <p>
      * 查询客户端基础信息后，从TokenSettings中提取Access Token和Refresh Token的有效期（秒），
      * 封装到ClientInfoResult中返回。
@@ -198,7 +196,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
     }
 
     /**
-     * 分页查询客户端列表。
+     * 分页查询客户端列表
      * <p>
      * 根据查询参数构建查询条件，执行关联分页查询，
      * 并将每条记录的TokenSettings解析为Access Token和Refresh Token的有效期（秒）。
@@ -226,7 +224,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
     }
 
     /**
-     * 根据客户端主键ID获取客户端标识（clientId）。
+     * 根据客户端主键ID获取客户端标识（clientId）
      *
      * @param id 客户端主键ID
      * @return 客户端标识字符串
@@ -238,7 +236,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
     }
 
     /**
-     * 根据客户端主键ID集合批量获取客户端ID与clientId的映射关系。
+     * 根据客户端主键ID集合批量获取客户端ID与clientId的映射关系
      *
      * @param ids 客户端主键ID集合
      * @return 键为主键ID、值为clientId的映射Map

@@ -40,9 +40,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
     /** The version carried by the last heartbeat message. */
     private long heartbeatVersion;
 
-    /**
-     * Indicates the version of Sentinel client (since 0.2.0).
-     */
+    /** The version of the Sentinel client (since 0.2.0). */
     private String version;
 
     /** Create a machine info with the given app name, ip and port. */

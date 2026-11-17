@@ -68,7 +68,7 @@ public class FilterSampler implements Sampler {
 
         try{
 
-            // 启动时屏蔽上报Sample
+            // 启动阶段（main 线程）的 Span 直接丢弃，避免上报噪声
             if(MAIN_THREAD_NAME.equals(Thread.currentThread().getName())){
                 return SamplingResult.create(SamplingDecision.DROP);
             }

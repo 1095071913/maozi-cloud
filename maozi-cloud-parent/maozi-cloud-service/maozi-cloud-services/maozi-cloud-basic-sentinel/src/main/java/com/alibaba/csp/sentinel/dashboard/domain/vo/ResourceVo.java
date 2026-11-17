@@ -120,8 +120,8 @@ public class ResourceVo {
     }
 
     /**
-     * This node is visible when this.visible==true or one of this's parents is visible,
-     * root node is always invisible.
+     * Recursively collects VOs of the visible nodes into the list. A node is visible
+     * when itself or one of its parents is visible; the root node is never visible.
      */
     private static void visit(ResourceTreeNode node, List<ResourceVo> list, boolean parentVisible, boolean isRoot) {
         boolean visible = !isRoot && (node.isVisible() || parentVisible);

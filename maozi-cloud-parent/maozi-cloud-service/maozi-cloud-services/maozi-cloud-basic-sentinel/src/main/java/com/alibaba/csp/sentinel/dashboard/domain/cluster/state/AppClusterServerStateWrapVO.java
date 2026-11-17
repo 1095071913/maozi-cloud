@@ -23,9 +23,7 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.state;
  */
 public class AppClusterServerStateWrapVO {
 
-    /**
-     * {ip}@{transport_command_port}.
-     */
+    /** Machine ID in "{ip}@{transport_command_port}" form. */
     private String id;
 
     /** The IP address of the token server machine. */

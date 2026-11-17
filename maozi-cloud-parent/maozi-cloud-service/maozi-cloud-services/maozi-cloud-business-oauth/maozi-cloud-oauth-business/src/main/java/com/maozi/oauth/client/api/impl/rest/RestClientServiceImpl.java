@@ -16,7 +16,7 @@ import com.maozi.service.api.impl.result.BaseServiceResultImpl;
 
 
 /**
- * OAuth2客户端REST接口实现类。
+ * OAuth2客户端REST接口实现类
  * <p>
  * 委托注入的 ClientServiceImpl 完成业务处理，
  * 未覆写的方法沿用 BaseServiceResultImpl 的通用实现。
@@ -29,33 +29,25 @@ import com.maozi.service.api.impl.result.BaseServiceResultImpl;
 public class RestClientServiceImpl extends BaseServiceResultImpl<ClientServiceImpl, ClientDTO>
         implements RestClientService {
 
-    /**
-     * 分页查询客户端列表。
-     */
+    /** 分页查询客户端列表 */
     @Override
     public AbstractBaseResult<PageResult<ClientListResult>> listResult(PageParam<ClientListParam> pageParam) {
         return ResultUtil.success(service.adminList(pageParam));
     }
 
-    /**
-     * 新增客户端。
-     */
+    /** 新增客户端 */
     @Override
     public AbstractBaseResult<Long> saveResult(ClientSaveUpdateParam param) {
         return ResultUtil.success(service.adminSaveUpdate(null, param));
     }
 
-    /**
-     * 根据主键ID获取客户端详细信息。
-     */
+    /** 根据主键ID获取客户端详细信息 */
     @Override
     public AbstractBaseResult<ClientInfoResult> getResult(Long id) {
         return ResultUtil.success(service.adminGet(id));
     }
 
-    /**
-     * 更新客户端信息。
-     */
+    /** 更新客户端信息 */
     @Override
     public AbstractBaseResult<Void> updateResult(Long id, ClientSaveUpdateParam param) {
         service.adminSaveUpdate(id, param);

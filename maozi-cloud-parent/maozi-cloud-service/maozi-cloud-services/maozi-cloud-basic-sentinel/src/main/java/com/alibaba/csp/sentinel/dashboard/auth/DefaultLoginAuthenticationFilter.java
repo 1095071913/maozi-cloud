@@ -54,21 +54,15 @@ public class DefaultLoginAuthenticationFilter implements LoginAuthenticationFilt
     /** Dot prefix prepended to a configured url suffix so the property value needn't include it. */
     private static final String URL_SUFFIX_DOT = ".";
 
-    /**
-     * Some urls which needn't auth, such as /auth/login, /registry/machine and so on.
-     */
+    /** Url patterns that need no auth, such as /auth/login and /registry/machine. */
     @Value("#{'${auth.filter.exclude-urls}'.split(',')}")
     private List<String> authFilterExcludeUrls;
 
-    /**
-     * Some urls with suffixes which needn't auth, such as htm, html, js and so on.
-     */
+    /** Url suffixes that need no auth, such as htm, html and js. */
     @Value("#{'${auth.filter.exclude-url-suffixes}'.split(',')}")
     private List<String> authFilterExcludeUrlSuffixes;
 
-    /**
-     * Authentication using AuthService interface.
-     */
+    /** The authentication service used to check login requests. */
     private final AuthService<HttpServletRequest> authService;
 
     /** Creates the filter with the given authentication service. */

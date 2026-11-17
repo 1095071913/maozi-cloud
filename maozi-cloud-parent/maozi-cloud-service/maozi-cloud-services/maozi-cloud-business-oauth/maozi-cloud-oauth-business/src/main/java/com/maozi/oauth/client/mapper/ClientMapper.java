@@ -22,7 +22,7 @@ import com.maozi.service.api.IBaseMapper;
 
 
 /**
- * OAuth2客户端Mapper接口。
+ * OAuth2客户端Mapper接口
  * <p>
  * 提供客户端实体与数据库表 oauth2_registered_client 之间的ORM映射操作。
  * </p>

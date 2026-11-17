@@ -162,13 +162,11 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
 
         // 初始化OAuth2Authorization构建器
         OAuth2Authorization.Builder authorizationBuilder = OAuth2Authorization.withRegisteredClient(registeredClient)
-                // 加入当前用户认证信息，防止刷新token时
-                // 因获取不到认证信息而抛出空指针异常
                 // 存入授权scope
                 .authorizedScopes(authorizedScopes)
                 // 当前授权用户名称
                 .principalName(userAuthenticationToken.getName())
-                // 设置当前用户认证信息
+                // 设置当前用户认证信息，防止刷新token时因获取不到认证信息而抛出空指针异常
                 .attribute(Principal.class.getName(), userAuthenticationToken)
                 .authorizationGrantType(authenticationToken.getAuthorizationGrantType());
 
@@ -243,7 +241,6 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
                     // ID token定制器可能需要访问access token或refresh token
                     .authorization(authorizationBuilder.build())
                     .build();
-            // @formatter:on
             OAuth2Token generatedIdToken = this.tokenGenerator.generate(tokenContext);
             if (!(generatedIdToken instanceof Jwt)) {
                 OAuth2Error error = new OAuth2Error(OAuth2ErrorCodes.SERVER_ERROR,

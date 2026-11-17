@@ -18,7 +18,7 @@
 package com.maozi;
 
 /**
- * OAuth认证授权服务启动类。
+ * OAuth认证授权服务启动类
  * <p>
  * 继承 BaseApplicationDB，提供数据库相关的基础配置支持。
  * 作为OAuth2认证授权微服务的入口，负责启动Spring Boot应用。
@@ -30,7 +30,7 @@ package com.maozi;
 public class Application extends BaseApplicationDB {
 
     /**
-     * 应用程序主入口方法。
+     * 应用程序主入口方法
      *
      * @param args 启动参数
      */

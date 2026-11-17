@@ -23,14 +23,7 @@ import java.util.Set;
 @Getter
 public class BaseGrantAuthenticationToken extends AbstractAuthenticationToken {
 
-    /**
-     * 本次登录申请的scope（授权范围）
-     * -- GETTER --
-     *  返回请求的scope(s)
-     *
-     * @return 请求的scope(s)
-
-     */
+    /** 本次登录申请的scope（授权范围） */
     private final Set<String> scopes;
 
     /**

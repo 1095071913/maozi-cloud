@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Util class for Nacos rule persistence.
+ * Utility class for Nacos rule persistence.
  * <p>
  * DataId of each rule type is {@code appName + DATA_ID_POSTFIX} with a {@code .json}
  * suffix, e.g. {@code foo-app-flow-rules.json}. Config content is pretty-printed

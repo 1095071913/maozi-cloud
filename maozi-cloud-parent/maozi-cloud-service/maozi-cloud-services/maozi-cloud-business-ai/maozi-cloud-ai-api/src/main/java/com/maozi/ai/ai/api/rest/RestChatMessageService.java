@@ -53,6 +53,7 @@ public interface RestChatMessageService {
     /**
      * AI流式对话
      *
+     * @param conversationId 会话 ID
      * @param param 对话参数，包含会话 ID、消息内容、图片列表（多模态对话）
      * 以及提示词配置 key
      * @return 返回 AI 回复的分片流（SSE），最后追加一条对话完成（FINISH）消息
@@ -81,7 +82,7 @@ public interface RestChatMessageService {
         @RequestParam Long createTime);
 
     
-    /** 接口基础路径 */
+    /** 当前消息基础路径，携带消息 ID 路径变量 */
     String CURRENT_PATH = PATH + "/{messageId}";
 
     /**

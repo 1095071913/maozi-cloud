@@ -33,6 +33,7 @@ public class ValidatorUtil {
 
         VALIDATOR = factory.getValidator();
 
+        // 校验器已获取，关闭工厂释放资源，已创建的 Validator 不受影响
         factory.close();
     }
 

@@ -64,6 +64,7 @@ public class RestPermissionServiceImpl extends BaseServiceResultImpl<PermissionS
      *
      * @param id 权限ID
      * @return 权限详情视图数据
+     * @throws com.maozi.common.result.error.exception.BusinessResultException 权限不存在时抛出
      */
     @Override
     public AbstractBaseResult<PermissionInfoResult> getResult(Long id) {

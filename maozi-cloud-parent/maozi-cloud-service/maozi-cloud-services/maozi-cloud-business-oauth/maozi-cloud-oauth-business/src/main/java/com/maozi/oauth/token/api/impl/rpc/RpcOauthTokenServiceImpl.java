@@ -16,6 +16,7 @@ import java.util.Map;
  * 通过Dubbo RPC对外暴露令牌内省与授权注销能力，
  * 资源服务器可直接通过RPC调用完成令牌校验；
  * 支持按用户单个或批量注销授权记录，实现强制下线。
+ * </p>
  *
  * @author maozi
  * @date 2026/11/08

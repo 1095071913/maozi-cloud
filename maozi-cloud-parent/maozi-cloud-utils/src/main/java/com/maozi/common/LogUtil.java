@@ -64,10 +64,23 @@ public final class LogUtil {
         log.error(message);
     }
 
+    /**
+     * 输出 error 级别日志（含异常堆栈）
+     *
+     * @param log Logger 实例
+     * @param message 日志内容
+     * @param e 异常对象
+     */
     public static void error(Logger log, String message, Throwable e){
         log.error(message, e);
     }
 
+    /**
+     * 输出 error 级别日志（Map 格式）
+     *
+     * @param log Logger 实例
+     * @param content 日志内容键值对
+     */
     public static void error(Logger log, Map<String, String> content){
         log.error(LogUtil.convertLog(content));
     }
@@ -88,6 +101,7 @@ public final class LogUtil {
      * @param log Logger 实例
      * @param isException 是否为错误日志
      * @param content 日志内容键值对
+     * @param e 异常对象（isException 为 true 时随日志输出堆栈）
      */
     public static void log(Logger log, boolean isException, Map<String, String> content, Throwable e) {
         String message = LogUtil.convertLog(content);

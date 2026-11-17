@@ -23,12 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * <p>Dashboard local config support.</p>
- * <p>
- * Dashboard supports configuration loading by several ways by order:<br>
- * 1. Env<br>
- * 2. System properties
- * </p>
+ * Dashboard local config support: resolves config values from env first and then
+ * from system properties, caching the results.
  *
  * @author jason
  * @since 1.5.0
@@ -38,27 +34,17 @@ public class DashboardConfig {
     /** Default timeout in millisecond to regard a machine as unhealthy. */
     public static final int DEFAULT_MACHINE_HEALTHY_TIMEOUT_MS = 60_000;
 
-    /**
-     * Login username
-     */
+    /** Config key of the login username. */
     public static final String CONFIG_AUTH_USERNAME = "sentinel.dashboard.auth.username";
 
-    /**
-     * Login password
-     */
+    /** Config key of the login password. */
     public static final String CONFIG_AUTH_PASSWORD = "sentinel.dashboard.auth.password";
 
-    /**
-     * Hide application name in sidebar when it has no healthy machines after specific period in millisecond.
-     */
+    /** Config key of the period in millisecond after which an app with no healthy machines is hidden in the sidebar. */
     public static final String CONFIG_HIDE_APP_NO_MACHINE_MILLIS = "sentinel.dashboard.app.hideAppNoMachineMillis";
-    /**
-     * Remove application when it has no healthy machines after specific period in millisecond.
-     */
+    /** Config key of the period in millisecond after which an app with no healthy machines is removed. */
     public static final String CONFIG_REMOVE_APP_NO_MACHINE_MILLIS = "sentinel.dashboard.removeAppNoMachineMillis";
-    /**
-     * Timeout in millisecond to regard a machine as unhealthy.
-     */
+    /** Config key of the timeout in millisecond to regard a machine as unhealthy. */
     public static final String CONFIG_UNHEALTHY_MACHINE_MILLIS = "sentinel.dashboard.unhealthyMachineMillis";
 
     /** Cache of resolved config values, keyed by config name. */

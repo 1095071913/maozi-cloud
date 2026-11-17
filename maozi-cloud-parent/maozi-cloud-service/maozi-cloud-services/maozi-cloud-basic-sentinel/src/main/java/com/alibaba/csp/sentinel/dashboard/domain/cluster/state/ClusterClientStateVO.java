@@ -25,9 +25,7 @@ import com.alibaba.csp.sentinel.dashboard.domain.cluster.ClusterClientInfoVO;
  */
 public class ClusterClientStateVO {
 
-    /**
-     * Cluster token client config info (server address, client state and request timeout).
-     */
+    /** Cluster token client config info (server address, client state and request timeout). */
     private ClusterClientInfoVO clientConfig;
 
     /** Get the cluster client config info. */

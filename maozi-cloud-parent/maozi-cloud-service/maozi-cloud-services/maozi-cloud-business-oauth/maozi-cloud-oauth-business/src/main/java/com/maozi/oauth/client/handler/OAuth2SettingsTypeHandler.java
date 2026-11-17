@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.lang.reflect.Field;
 
 /**
- * 专用于 OAuth2 Settings 字段的 JSON 类型处理器。
+ * 专用于 OAuth2 Settings 字段的 JSON 类型处理器
  * <p>
  * 使用注册了 Spring Security OAuth2 Jackson 模块的 ObjectMapper，
  * 正确处理数据库中 token_settings / client_settings 的类型感知 JSON 格式
@@ -29,7 +29,7 @@ public class OAuth2SettingsTypeHandler extends JacksonTypeHandler {
     private static final ObjectMapper OAUTH2_OBJECT_MAPPER = ClientServiceImpl.OAUTH_OBJECT_MAPPER;
 
     /**
-     * 构造方法，仅指定类型。
+     * 构造方法，仅指定类型
      *
      * @param type 字段类型
      */
@@ -38,7 +38,7 @@ public class OAuth2SettingsTypeHandler extends JacksonTypeHandler {
     }
 
     /**
-     * 构造方法，指定类型和字段。
+     * 构造方法，指定类型和字段
      *
      * @param type  字段类型
      * @param field 字段反射对象
@@ -48,7 +48,7 @@ public class OAuth2SettingsTypeHandler extends JacksonTypeHandler {
     }
 
     /**
-     * 将JSON字符串反序列化为OAuth2设置对象。
+     * 将JSON字符串反序列化为OAuth2设置对象
      * <p>
      * 使用OAuth2专用的ObjectMapper，支持Spring Security OAuth2的类型感知JSON格式。
      * </p>
@@ -70,7 +70,7 @@ public class OAuth2SettingsTypeHandler extends JacksonTypeHandler {
     }
 
     /**
-     * 将OAuth2设置对象序列化为JSON字符串。
+     * 将OAuth2设置对象序列化为JSON字符串
      * <p>
      * 使用OAuth2专用的ObjectMapper，确保序列化结果包含类型信息。
      * </p>

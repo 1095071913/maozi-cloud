@@ -43,7 +43,8 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Controller regarding APIs of degrade rules. Refactored since 1.8.0.
+ * Controller for degrade rule management, fetching rules from and publishing rules
+ * to Nacos via the dynamic rule provider/publisher.
  *
  * @author Carpenter Lee
  * @author Eric Zhao

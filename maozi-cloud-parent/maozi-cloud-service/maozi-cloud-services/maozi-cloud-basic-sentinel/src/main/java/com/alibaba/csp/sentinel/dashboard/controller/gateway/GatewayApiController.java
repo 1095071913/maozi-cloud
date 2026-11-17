@@ -50,7 +50,7 @@ import static com.alibaba.csp.sentinel.adapter.gateway.common.SentinelGatewayCon
 import static com.alibaba.csp.sentinel.adapter.gateway.common.SentinelGatewayConstants.URL_MATCH_STRATEGY_REGEX;
 
 /**
- * Gateway api Controller for manage gateway api definitions.
+ * Controller for managing gateway API definitions.
  *
  * @author cdfive
  * @since 1.7.0

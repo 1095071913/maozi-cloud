@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule;
 
 /**
- * Value Object for add or update gateway flow rule.
+ * Hotspot parameter item of a gateway flow rule, used by add and update requests.
  *
  * @author cdfive
  * @since 1.7.0

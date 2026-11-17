@@ -3,12 +3,12 @@ import {getAccessToken} from '@/utils/auth'
 import {getGrayVersion} from '@/utils/gray'
 import {getTempRequestUrl} from '@/utils/tempRequest'
 import type {
-  ApiResponse,
-  ChatListResult,
-  ChatMessageItem,
-  ConversationItem,
-  GenerateImageResult,
-  PageResult
+    ApiResponse,
+    ChatListResult,
+    ChatMessageItem,
+    ConversationItem,
+    GenerateImageResult,
+    PageResult
 } from '@/types/api'
 
 /**
@@ -23,20 +23,20 @@ export interface ConversationListParams {
 
 /**
  * AI 会话创建（以首条消息作为标题种子）
- * POST /ai/chat/record/create
+ * POST /ai/chat/conversation/create
  */
 export function createConversation(message: string) {
-  return request.post('/ai/chat/record/create', {
+  return request.post('/ai/chat/conversation/create', {
     data: message
   }) as unknown as Promise<ApiResponse<string>>
 }
 
 /**
  * AI 会话列表
- * POST /ai/chat/record/list
+ * POST /ai/chat/conversation/list
  */
 export function getConversationList(params: ConversationListParams) {
-  return request.post('/ai/chat/record/list', {
+  return request.post('/ai/chat/conversation/list', {
     current: params.current ?? 1,
     size: params.size ?? 100,
     data: {}
@@ -85,25 +85,25 @@ export function generateImage(params: GenerateImageParams, signal?: AbortSignal)
 
 /**
  * AI 会话更新标题
- * POST /ai/chat/record/{conversationId}/updateTitle
+ * POST /ai/chat/conversation/{conversationId}/updateTitle
  */
 export function updateConversationTitle(
   conversationId: string | number,
   title: string
 ) {
   return request.post(
-    `/ai/chat/record/${conversationId}/updateTitle`,
+    `/ai/chat/conversation/${conversationId}/updateTitle`,
     { data: title }
   ) as unknown as Promise<ApiResponse<void>>
 }
 
 /**
  * AI 会话删除
- * POST /ai/chat/record/{conversationId}/remove
+ * POST /ai/chat/conversation/{conversationId}/remove
  */
 export function removeConversation(conversationId: string | number) {
   return request.post(
-    `/ai/chat/record/${conversationId}/remove`
+    `/ai/chat/conversation/${conversationId}/remove`
   ) as unknown as Promise<ApiResponse<void>>
 }
 

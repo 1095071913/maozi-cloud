@@ -338,7 +338,7 @@ export interface UserSaveParam {
   unbindRoleIds?: (string | number)[]
 }
 
-/** AI 会话列表行（/ai/chat/record/list 返回元素） */
+/** AI 会话列表行（/ai/chat/conversation/list 返回元素） */
 export interface ConversationItem {
   /** AI 聊天会话 ID */
   id: string | number

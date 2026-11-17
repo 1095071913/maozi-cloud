@@ -1,7 +1,7 @@
 package com.maozi.ai.ai.api.impl.rest;
 
 import com.maozi.ai.ai.api.impl.ChatServiceImpl;
-import com.maozi.ai.ai.api.rest.RestChatService;
+import com.maozi.ai.ai.api.rest.RestChatMessageService;
 import com.maozi.ai.ai.param.ChatGenerateImageParam;
 import com.maozi.ai.ai.result.ChatGenerateImageResult;
 import com.maozi.ai.ai.result.ChatItemResult;
@@ -26,7 +26,7 @@ import java.util.List;
  */
 @RestService
 @RequiredArgsConstructor
-public class RestChatServiceImpl extends ChatServiceImpl implements RestChatService {
+public class RestChatMessageServiceImpl extends ChatServiceImpl implements RestChatMessageService {
 
     /** AI文生图 */
     @Override
@@ -37,28 +37,28 @@ public class RestChatServiceImpl extends ChatServiceImpl implements RestChatServ
 
     /** 查询会话的对话消息列表 */
     @Override
-    public AbstractBaseResult<ChatListResult> listResult(String conversationId) {
+    public AbstractBaseResult<ChatListResult> listResult(Long conversationId) {
         return ResultUtil.success(super.adminList(conversationId));
     }
 
 
     /** 停止会话进行中的对话或文生图 */
     @Override
-    public AbstractBaseResult<Void> stopResult(String conversationId) {
+    public AbstractBaseResult<Void> stopResult(Long conversationId) {
         super.adminStop(conversationId);
         return ResultUtil.success();
     }
 
     /** 查询会话中指定时间之后的增量消息列表 */
     @Override
-    public AbstractBaseResult<List<ChatItemResult>> getAfterMessagesResult(String conversationId, Long createTime) {
+    public AbstractBaseResult<List<ChatItemResult>> getAfterMessagesResult(Long conversationId, Long createTime) {
         return ResultUtil.success(super.adminGetAfterMessages(conversationId, createTime));
     }
 
     /** 删除会话中的指定消息 */
     @Override
-    public AbstractBaseResult<Void> removeMessageResult(String conversationId, String messageId) {
-        chatMemoryRepository.deleteByMessageId(conversationId, messageId);
+    public AbstractBaseResult<Void> removeMessageResult(Long conversationId, Long messageId) {
+        chatMemoryRepository.deleteByMessageId(conversationId.toString(), messageId.toString());
         return ResultUtil.success();
     }
 

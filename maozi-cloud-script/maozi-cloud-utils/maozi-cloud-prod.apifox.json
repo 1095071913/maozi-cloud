@@ -99,7 +99,7 @@
       "items": [
         {
           "name": "Oauth认证授权服务",
-          "id": 99933963,
+          "id": 99938055,
           "auth": {},
           "securityScheme": {},
           "parentId": 0,
@@ -134,10 +134,10 @@
           "items": [
             {
               "name": "公用模块",
-              "id": 99933966,
+              "id": 99938058,
               "auth": {},
               "securityScheme": {},
-              "parentId": 99933963,
+              "parentId": 99938055,
               "serverId": "",
               "description": "",
               "identityPattern": {
@@ -169,10 +169,10 @@
               "items": [
                 {
                   "name": "无用忽略掉",
-                  "id": 99933969,
+                  "id": 99938061,
                   "auth": {},
                   "securityScheme": {},
-                  "parentId": 99933966,
+                  "parentId": 99938058,
                   "serverId": "",
                   "description": "",
                   "identityPattern": {
@@ -205,7 +205,7 @@
                     {
                       "name": "模版",
                       "api": {
-                        "id": "537907630",
+                        "id": "537926641",
                         "method": "get",
                         "path": "/oauth/application/template",
                         "parameters": {
@@ -233,7 +233,7 @@
                         "commonParameters": {},
                         "responses": [
                           {
-                            "id": "155073576",
+                            "id": "117711073",
                             "code": "200",
                             "headers": [],
                             "jsonSchema": {
@@ -246,7 +246,7 @@
                             "oasExtensions": ""
                           },
                           {
-                            "id": "165043236",
+                            "id": "120560022",
                             "code": "500",
                             "headers": [],
                             "jsonSchema": {
@@ -301,10 +301,10 @@
                 },
                 {
                   "name": "枚举常量",
-                  "id": 99933970,
+                  "id": 99938062,
                   "auth": {},
                   "securityScheme": {},
-                  "parentId": 99933966,
+                  "parentId": 99938058,
                   "serverId": "",
                   "description": "",
                   "identityPattern": {
@@ -337,7 +337,7 @@
                     {
                       "name": "列表",
                       "api": {
-                        "id": "537907631",
+                        "id": "537926642",
                         "method": "get",
                         "path": "/oauth/application/enum/list",
                         "parameters": {
@@ -365,7 +365,7 @@
                         "commonParameters": {},
                         "responses": [
                           {
-                            "id": "176079605",
+                            "id": "166221817",
                             "code": "200",
                             "headers": [],
                             "jsonSchema": {
@@ -378,7 +378,7 @@
                             "oasExtensions": ""
                           },
                           {
-                            "id": "140511882",
+                            "id": "127660034",
                             "code": "500",
                             "headers": [],
                             "jsonSchema": {
@@ -432,7 +432,7 @@
                     {
                       "name": "详情",
                       "api": {
-                        "id": "537907632",
+                        "id": "537926643",
                         "method": "get",
                         "path": "/oauth/application/enum/{name}/get",
                         "parameters": {
@@ -474,7 +474,7 @@
                         "commonParameters": {},
                         "responses": [
                           {
-                            "id": "153424169",
+                            "id": "195877863",
                             "code": "200",
                             "headers": [],
                             "jsonSchema": {
@@ -487,7 +487,7 @@
                             "oasExtensions": ""
                           },
                           {
-                            "id": "160693400",
+                            "id": "194032052",
                             "code": "500",
                             "headers": [],
                             "jsonSchema": {
@@ -544,10 +544,10 @@
             },
             {
               "name": "认证授权模块",
-              "id": 99933967,
+              "id": 99938059,
               "auth": {},
               "securityScheme": {},
-              "parentId": 99933963,
+              "parentId": 99938055,
               "serverId": "",
               "description": "",
               "identityPattern": {
@@ -580,7 +580,7 @@
                 {
                   "name": "认证授权",
                   "api": {
-                    "id": "537907633",
+                    "id": "537926644",
                     "method": "post",
                     "path": "/oauth/oauth2/token",
                     "parameters": {
@@ -609,7 +609,7 @@
                     },
                     "responses": [
                       {
-                        "id": "117328134",
+                        "id": "106106615",
                         "code": 200,
                         "name": "成功",
                         "headers": [],
@@ -678,7 +678,7 @@
                       {
                         "name": "成功示例",
                         "data": "{\"data\":{\"scope\":\"\",\"token_type\":\"Bearer\",\"access_token\":\"zEFtUURdnAGz9ZjwJwOO38lpZC-6rujRfZeCR6Qgq2CKINwnz5W8is66YIkJbEabhZ7g5Ewx9SDliFT0DEHtTb-TJvVM8AUU1AMABD-hde_C7CLuySMeWyuLpu2wlcWR\",\"refresh_token\":\"NE5NbJoY_s4iiqLvInoSHxRusS7QMw94cjK8YWZObCtPQJFjte3LUG75hSOsIGGII0RrHWbAHfLf2QLefe_K_5-PWE-yu6_EqGXGD_ihvx_VV4mmauZJIxYy7jS7m0as\",\"expires_in\":\"7200\",\"refresh_token_expires_in\":\"604800\"},\"code\":200}",
-                        "responseId": "117328134",
+                        "responseId": "106106615",
                         "description": "",
                         "oasKey": "",
                         "oasExtensions": ""
@@ -743,11 +743,11 @@
                     "ordering": 6,
                     "cases": [
                       {
-                        "id": 432501581,
+                        "id": 432521134,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求密码认证授权成功",
-                        "responseId": "117328134",
+                        "responseId": "106106615",
                         "parameters": {
                           "path": [],
                           "query": [],
@@ -845,11 +845,11 @@
                         "inheritPreProcessors": {}
                       },
                       {
-                        "id": 432501582,
+                        "id": 432521135,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求刷新认证授权成功",
-                        "responseId": "117328134",
+                        "responseId": "106106615",
                         "parameters": {
                           "path": [],
                           "query": [],
@@ -972,7 +972,7 @@
                 {
                   "name": "销毁认证授权",
                   "api": {
-                    "id": "537907634",
+                    "id": "537926645",
                     "method": "post",
                     "path": "/oauth/oauth2/revoke",
                     "parameters": {
@@ -1001,7 +1001,7 @@
                     },
                     "responses": [
                       {
-                        "id": "177097659",
+                        "id": "118767914",
                         "code": 200,
                         "name": "成功",
                         "headers": [],
@@ -1029,7 +1029,7 @@
                       {
                         "name": "成功示例",
                         "data": "{\"code\":200}",
-                        "responseId": "177097659",
+                        "responseId": "118767914",
                         "description": "",
                         "oasKey": "",
                         "oasExtensions": ""
@@ -1064,11 +1064,11 @@
                     "ordering": 12,
                     "cases": [
                       {
-                        "id": 432501583,
+                        "id": 432521136,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求销毁认证授权成功",
-                        "responseId": "177097659",
+                        "responseId": "118767914",
                         "parameters": {
                           "path": [],
                           "query": [],
@@ -1158,10 +1158,10 @@
             },
             {
               "name": "客户端模块",
-              "id": 99933968,
+              "id": 99938060,
               "auth": {},
               "securityScheme": {},
-              "parentId": 99933963,
+              "parentId": 99938055,
               "serverId": "",
               "description": "",
               "identityPattern": {
@@ -1194,7 +1194,7 @@
                 {
                   "name": "删除",
                   "api": {
-                    "id": "537907635",
+                    "id": "537926646",
                     "method": "post",
                     "path": "/oauth/client/{id}/delete",
                     "parameters": {
@@ -1237,7 +1237,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "149906165",
+                        "id": "195709690",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -1250,7 +1250,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "151815763",
+                        "id": "184390272",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -1283,11 +1283,11 @@
                     "ordering": 6,
                     "cases": [
                       {
-                        "id": 432501584,
+                        "id": 432521137,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求删除客户端成功",
-                        "responseId": "149906165",
+                        "responseId": "195709690",
                         "parameters": {
                           "path": [
                             {
@@ -1373,7 +1373,7 @@
                 {
                   "name": "更新",
                   "api": {
-                    "id": "537907636",
+                    "id": "537926647",
                     "method": "post",
                     "path": "/oauth/client/{id}/update",
                     "parameters": {
@@ -1416,7 +1416,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "165240387",
+                        "id": "190648898",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -1429,7 +1429,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "121223844",
+                        "id": "147391918",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -1466,11 +1466,11 @@
                     "ordering": 12,
                     "cases": [
                       {
-                        "id": 432501585,
+                        "id": 432521138,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求更新客户端成功",
-                        "responseId": "165240387",
+                        "responseId": "190648898",
                         "parameters": {
                           "path": [
                             {
@@ -1557,7 +1557,7 @@
                 {
                   "name": "详情",
                   "api": {
-                    "id": "537907637",
+                    "id": "537926648",
                     "method": "get",
                     "path": "/oauth/client/{id}/get",
                     "parameters": {
@@ -1600,7 +1600,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "165199568",
+                        "id": "177416328",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -1613,7 +1613,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "131076453",
+                        "id": "104296251",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -1646,11 +1646,11 @@
                     "ordering": 18,
                     "cases": [
                       {
-                        "id": 432501586,
+                        "id": 432521139,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求客户端详情成功",
-                        "responseId": "165199568",
+                        "responseId": "177416328",
                         "parameters": {
                           "path": [
                             {
@@ -1749,7 +1749,7 @@
                 {
                   "name": "下拉列表",
                   "api": {
-                    "id": "537907638",
+                    "id": "537926649",
                     "method": "get",
                     "path": "/oauth/client/dropDownList",
                     "parameters": {
@@ -1777,7 +1777,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "168219188",
+                        "id": "143501003",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -1790,7 +1790,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "199973930",
+                        "id": "183134432",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -1823,11 +1823,11 @@
                     "ordering": 24,
                     "cases": [
                       {
-                        "id": 432501587,
+                        "id": 432521140,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求客户端下拉列表成功",
-                        "responseId": "168219188",
+                        "responseId": "143501003",
                         "parameters": {
                           "path": [],
                           "query": [],
@@ -1897,7 +1897,7 @@
                 {
                   "name": "列表",
                   "api": {
-                    "id": "537907639",
+                    "id": "537926650",
                     "method": "post",
                     "path": "/oauth/client/list",
                     "parameters": {
@@ -1925,7 +1925,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "181411618",
+                        "id": "168184865",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -1938,7 +1938,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "173571259",
+                        "id": "186149366",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -1975,11 +1975,11 @@
                     "ordering": 30,
                     "cases": [
                       {
-                        "id": 432501588,
+                        "id": 432521141,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求客户端列表成功",
-                        "responseId": "181411618",
+                        "responseId": "168184865",
                         "parameters": {
                           "path": [],
                           "query": [],
@@ -2049,7 +2049,7 @@
                 {
                   "name": "更新状态",
                   "api": {
-                    "id": "537907640",
+                    "id": "537926651",
                     "method": "post",
                     "path": "/oauth/client/{id}/updateStatus",
                     "parameters": {
@@ -2092,7 +2092,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "118432536",
+                        "id": "183187325",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -2105,7 +2105,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "177393821",
+                        "id": "106237531",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -2142,11 +2142,11 @@
                     "ordering": 36,
                     "cases": [
                       {
-                        "id": 432501589,
+                        "id": 432521142,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求更新客户端状态成功",
-                        "responseId": "118432536",
+                        "responseId": "183187325",
                         "parameters": {
                           "path": [
                             {
@@ -2225,7 +2225,7 @@
                 {
                   "name": "保存",
                   "api": {
-                    "id": "537907641",
+                    "id": "537926652",
                     "method": "post",
                     "path": "/oauth/client/save",
                     "parameters": {
@@ -2253,7 +2253,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "193481338",
+                        "id": "146330054",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -2266,7 +2266,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "152831502",
+                        "id": "149887442",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -2303,11 +2303,11 @@
                     "ordering": 42,
                     "cases": [
                       {
-                        "id": 432501590,
+                        "id": 432521143,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求保存客户端成功",
-                        "responseId": "193481338",
+                        "responseId": "146330054",
                         "parameters": {
                           "path": [],
                           "query": [],
@@ -2408,7 +2408,7 @@
         },
         {
           "name": "System系统服务",
-          "id": 99933964,
+          "id": 99938056,
           "auth": {},
           "securityScheme": {},
           "parentId": 0,
@@ -2443,10 +2443,10 @@
           "items": [
             {
               "name": "公用模块",
-              "id": 99933971,
+              "id": 99938063,
               "auth": {},
               "securityScheme": {},
-              "parentId": 99933964,
+              "parentId": 99938056,
               "serverId": "",
               "description": "",
               "identityPattern": {
@@ -2478,10 +2478,10 @@
               "items": [
                 {
                   "name": "枚举常量",
-                  "id": 99933979,
+                  "id": 99938071,
                   "auth": {},
                   "securityScheme": {},
-                  "parentId": 99933971,
+                  "parentId": 99938063,
                   "serverId": "",
                   "description": "",
                   "identityPattern": {
@@ -2514,7 +2514,7 @@
                     {
                       "name": "列表",
                       "api": {
-                        "id": "537907642",
+                        "id": "537926653",
                         "method": "get",
                         "path": "/oauth/application/enum/list",
                         "parameters": {
@@ -2542,7 +2542,7 @@
                         "commonParameters": {},
                         "responses": [
                           {
-                            "id": "144930924",
+                            "id": "194402873",
                             "code": "200",
                             "headers": [],
                             "jsonSchema": {
@@ -2555,7 +2555,7 @@
                             "oasExtensions": ""
                           },
                           {
-                            "id": "182893432",
+                            "id": "109542651",
                             "code": "500",
                             "headers": [],
                             "jsonSchema": {
@@ -2609,7 +2609,7 @@
                     {
                       "name": "详情",
                       "api": {
-                        "id": "537907643",
+                        "id": "537926654",
                         "method": "get",
                         "path": "/system/application/enum/{name}/get",
                         "parameters": {
@@ -2651,7 +2651,7 @@
                         "commonParameters": {},
                         "responses": [
                           {
-                            "id": "169049895",
+                            "id": "197182858",
                             "code": "200",
                             "headers": [],
                             "jsonSchema": {
@@ -2664,7 +2664,7 @@
                             "oasExtensions": ""
                           },
                           {
-                            "id": "184236773",
+                            "id": "181462099",
                             "code": "500",
                             "headers": [],
                             "jsonSchema": {
@@ -2718,7 +2718,7 @@
                     {
                       "name": "详情",
                       "api": {
-                        "id": "537907644",
+                        "id": "537926655",
                         "method": "get",
                         "path": "/oauth/application/enum/{name}/get",
                         "parameters": {
@@ -2760,7 +2760,7 @@
                         "commonParameters": {},
                         "responses": [
                           {
-                            "id": "129606868",
+                            "id": "140994611",
                             "code": "200",
                             "headers": [],
                             "jsonSchema": {
@@ -2773,7 +2773,7 @@
                             "oasExtensions": ""
                           },
                           {
-                            "id": "119358154",
+                            "id": "143671904",
                             "code": "500",
                             "headers": [],
                             "jsonSchema": {
@@ -2827,7 +2827,7 @@
                     {
                       "name": "列表",
                       "api": {
-                        "id": "537907645",
+                        "id": "537926656",
                         "method": "get",
                         "path": "/system/application/enum/list",
                         "parameters": {
@@ -2855,7 +2855,7 @@
                         "commonParameters": {},
                         "responses": [
                           {
-                            "id": "145609617",
+                            "id": "177510473",
                             "code": "200",
                             "headers": [],
                             "jsonSchema": {
@@ -2868,7 +2868,7 @@
                             "oasExtensions": ""
                           },
                           {
-                            "id": "173722648",
+                            "id": "125452815",
                             "code": "500",
                             "headers": [],
                             "jsonSchema": {
@@ -2923,10 +2923,10 @@
                 },
                 {
                   "name": "无用忽略掉",
-                  "id": 99933980,
+                  "id": 99938072,
                   "auth": {},
                   "securityScheme": {},
-                  "parentId": 99933971,
+                  "parentId": 99938063,
                   "serverId": "",
                   "description": "",
                   "identityPattern": {
@@ -2959,7 +2959,7 @@
                     {
                       "name": "模版",
                       "api": {
-                        "id": "537907646",
+                        "id": "537926657",
                         "method": "get",
                         "path": "/oauth/application/template",
                         "parameters": {
@@ -2987,7 +2987,7 @@
                         "commonParameters": {},
                         "responses": [
                           {
-                            "id": "143612380",
+                            "id": "132785497",
                             "code": "200",
                             "headers": [],
                             "jsonSchema": {
@@ -3000,7 +3000,7 @@
                             "oasExtensions": ""
                           },
                           {
-                            "id": "192845991",
+                            "id": "110490060",
                             "code": "500",
                             "headers": [],
                             "jsonSchema": {
@@ -3054,7 +3054,7 @@
                     {
                       "name": "模版",
                       "api": {
-                        "id": "537907647",
+                        "id": "537926658",
                         "method": "get",
                         "path": "/system/application/template",
                         "parameters": {
@@ -3082,7 +3082,7 @@
                         "commonParameters": {},
                         "responses": [
                           {
-                            "id": "114886529",
+                            "id": "150295934",
                             "code": "200",
                             "headers": [],
                             "jsonSchema": {
@@ -3095,7 +3095,7 @@
                             "oasExtensions": ""
                           },
                           {
-                            "id": "150785294",
+                            "id": "179333785",
                             "code": "500",
                             "headers": [],
                             "jsonSchema": {
@@ -3152,10 +3152,10 @@
             },
             {
               "name": "系统模块",
-              "id": 99933972,
+              "id": 99938064,
               "auth": {},
               "securityScheme": {},
-              "parentId": 99933964,
+              "parentId": 99938056,
               "serverId": "",
               "description": "",
               "identityPattern": {
@@ -3188,7 +3188,7 @@
                 {
                   "name": "详情",
                   "api": {
-                    "id": "537907648",
+                    "id": "537926659",
                     "method": "get",
                     "path": "/system/config/system/get",
                     "parameters": {
@@ -3202,7 +3202,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "121893079",
+                        "id": "156251607",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -3215,7 +3215,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "112272759",
+                        "id": "182444757",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -3248,11 +3248,11 @@
                     "ordering": 6,
                     "cases": [
                       {
-                        "id": 432501591,
+                        "id": 432521144,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求系统详情成功",
-                        "responseId": "121893079",
+                        "responseId": "156251607",
                         "parameters": {
                           "path": [],
                           "query": [],
@@ -3311,10 +3311,10 @@
             },
             {
               "name": "地区模块",
-              "id": 99933973,
+              "id": 99938065,
               "auth": {},
               "securityScheme": {},
-              "parentId": 99933964,
+              "parentId": 99938056,
               "serverId": "",
               "description": "",
               "identityPattern": {
@@ -3347,7 +3347,7 @@
                 {
                   "name": "列表",
                   "api": {
-                    "id": "537907649",
+                    "id": "537926660",
                     "method": "get",
                     "path": "/system/config/region/{parentId}/list",
                     "parameters": {
@@ -3390,7 +3390,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "178765677",
+                        "id": "182978148",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -3403,7 +3403,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "111480495",
+                        "id": "172720333",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -3436,11 +3436,11 @@
                     "ordering": 6,
                     "cases": [
                       {
-                        "id": 432501592,
+                        "id": 432521145,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求地区列表成功",
-                        "responseId": "178765677",
+                        "responseId": "182978148",
                         "parameters": {
                           "path": [
                             {
@@ -3520,10 +3520,10 @@
             },
             {
               "name": "配置模块",
-              "id": 99933974,
+              "id": 99938066,
               "auth": {},
               "securityScheme": {},
-              "parentId": 99933964,
+              "parentId": 99938056,
               "serverId": "",
               "description": "",
               "identityPattern": {
@@ -3556,7 +3556,7 @@
                 {
                   "name": "配置保存",
                   "api": {
-                    "id": "537907650",
+                    "id": "537926661",
                     "method": "post",
                     "path": "/system/config/save",
                     "parameters": {
@@ -3584,7 +3584,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "192164447",
+                        "id": "128041829",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -3597,7 +3597,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "170132878",
+                        "id": "109796665",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -3634,11 +3634,11 @@
                     "ordering": 6,
                     "cases": [
                       {
-                        "id": 432501593,
+                        "id": 432521146,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求保存配置成功",
-                        "responseId": "192164447",
+                        "responseId": "128041829",
                         "parameters": {
                           "path": [],
                           "query": [],
@@ -3736,7 +3736,7 @@
                 {
                   "name": "配置列表",
                   "api": {
-                    "id": "537907651",
+                    "id": "537926662",
                     "method": "post",
                     "path": "/system/config/list",
                     "parameters": {
@@ -3764,7 +3764,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "124167196",
+                        "id": "159747514",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -3777,7 +3777,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "180298403",
+                        "id": "111143644",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -3814,11 +3814,11 @@
                     "ordering": 12,
                     "cases": [
                       {
-                        "id": 432501594,
+                        "id": 432521147,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求配置列表成功",
-                        "responseId": "124167196",
+                        "responseId": "159747514",
                         "parameters": {
                           "path": [],
                           "query": [],
@@ -3888,7 +3888,7 @@
                 {
                   "name": "配置详情",
                   "api": {
-                    "id": "537907652",
+                    "id": "537926663",
                     "method": "get",
                     "path": "/system/config/{id}/get",
                     "parameters": {
@@ -3931,7 +3931,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "190385986",
+                        "id": "122007295",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -3944,7 +3944,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "190013787",
+                        "id": "164235311",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -3977,11 +3977,11 @@
                     "ordering": 18,
                     "cases": [
                       {
-                        "id": 432501595,
+                        "id": 432521148,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求配置详情成功",
-                        "responseId": "190385986",
+                        "responseId": "122007295",
                         "parameters": {
                           "path": [
                             {
@@ -4060,7 +4060,7 @@
                 {
                   "name": "名称获取配置",
                   "api": {
-                    "id": "537907653",
+                    "id": "537926664",
                     "method": "get",
                     "path": "/system/config/{name}/dropDown",
                     "parameters": {
@@ -4102,7 +4102,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "138986449",
+                        "id": "174400259",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -4115,7 +4115,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "151857781",
+                        "id": "181228719",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -4148,11 +4148,11 @@
                     "ordering": 24,
                     "cases": [
                       {
-                        "id": 432501596,
+                        "id": 432521149,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求名称获取配置成功",
-                        "responseId": "138986449",
+                        "responseId": "174400259",
                         "parameters": {
                           "path": [
                             {
@@ -4231,7 +4231,7 @@
                 {
                   "name": "配置下拉列表",
                   "api": {
-                    "id": "537907654",
+                    "id": "537926665",
                     "method": "get",
                     "path": "/system/config/{type}/dropDownList",
                     "parameters": {
@@ -4273,7 +4273,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "103525435",
+                        "id": "111132781",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -4286,7 +4286,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "169888868",
+                        "id": "111264441",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -4319,11 +4319,11 @@
                     "ordering": 30,
                     "cases": [
                       {
-                        "id": 432501597,
+                        "id": 432521150,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求配置下拉列表成功",
-                        "responseId": "103525435",
+                        "responseId": "111132781",
                         "parameters": {
                           "path": [
                             {
@@ -4402,7 +4402,7 @@
                 {
                   "name": "配置更新",
                   "api": {
-                    "id": "537907655",
+                    "id": "537926666",
                     "method": "post",
                     "path": "/system/config/{id}/update",
                     "parameters": {
@@ -4445,7 +4445,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "152548172",
+                        "id": "107080949",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -4458,7 +4458,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "127262311",
+                        "id": "178200552",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -4495,11 +4495,11 @@
                     "ordering": 36,
                     "cases": [
                       {
-                        "id": 432501598,
+                        "id": 432521151,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求更新配置成功",
-                        "responseId": "152548172",
+                        "responseId": "107080949",
                         "parameters": {
                           "path": [
                             {
@@ -4586,7 +4586,7 @@
                 {
                   "name": "配置更新状态",
                   "api": {
-                    "id": "537907656",
+                    "id": "537926667",
                     "method": "post",
                     "path": "/system/config/{id}/updateStatus",
                     "parameters": {
@@ -4629,7 +4629,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "180445361",
+                        "id": "182515085",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -4642,7 +4642,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "180340388",
+                        "id": "113661279",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -4679,11 +4679,11 @@
                     "ordering": 42,
                     "cases": [
                       {
-                        "id": 432501599,
+                        "id": 432521152,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求更新配置状态成功",
-                        "responseId": "180445361",
+                        "responseId": "182515085",
                         "parameters": {
                           "path": [
                             {
@@ -4762,7 +4762,7 @@
                 {
                   "name": "配置删除",
                   "api": {
-                    "id": "537907657",
+                    "id": "537926668",
                     "method": "post",
                     "path": "/system/config/{id}/remove",
                     "parameters": {
@@ -4805,7 +4805,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "191447352",
+                        "id": "135839649",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -4818,7 +4818,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "169772178",
+                        "id": "183344813",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -4851,11 +4851,11 @@
                     "ordering": 48,
                     "cases": [
                       {
-                        "id": 432501600,
+                        "id": 432521153,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求删除配置成功",
-                        "responseId": "191447352",
+                        "responseId": "135839649",
                         "parameters": {
                           "path": [
                             {
@@ -4942,10 +4942,10 @@
             },
             {
               "name": "文件存储模块",
-              "id": 99933975,
+              "id": 99938067,
               "auth": {},
               "securityScheme": {},
-              "parentId": 99933964,
+              "parentId": 99938056,
               "serverId": "",
               "description": "",
               "identityPattern": {
@@ -4978,7 +4978,7 @@
                 {
                   "name": "图片上传",
                   "api": {
-                    "id": "537907658",
+                    "id": "537926669",
                     "method": "post",
                     "path": "/system/image/upload",
                     "parameters": {
@@ -5006,7 +5006,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "110528782",
+                        "id": "107603473",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -5019,7 +5019,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "146180806",
+                        "id": "132745272",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -5109,10 +5109,10 @@
             },
             {
               "name": "用户模块",
-              "id": 99933976,
+              "id": 99938068,
               "auth": {},
               "securityScheme": {},
-              "parentId": 99933964,
+              "parentId": 99938056,
               "serverId": "",
               "description": "",
               "identityPattern": {
@@ -5145,7 +5145,7 @@
                 {
                   "name": "列表",
                   "api": {
-                    "id": "537907659",
+                    "id": "537926670",
                     "method": "post",
                     "path": "/system/user/list",
                     "parameters": {
@@ -5173,7 +5173,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "139377522",
+                        "id": "164443896",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -5186,7 +5186,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "128500739",
+                        "id": "143183488",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -5223,11 +5223,11 @@
                     "ordering": 6,
                     "cases": [
                       {
-                        "id": 432501601,
+                        "id": 432521154,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求用户列表成功",
-                        "responseId": "139377522",
+                        "responseId": "164443896",
                         "parameters": {
                           "path": [],
                           "query": [],
@@ -5297,7 +5297,7 @@
                 {
                   "name": "更新",
                   "api": {
-                    "id": "537907660",
+                    "id": "537926671",
                     "method": "post",
                     "path": "/system/user/{id}/update",
                     "parameters": {
@@ -5340,7 +5340,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "126646165",
+                        "id": "120748043",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -5353,7 +5353,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "177283244",
+                        "id": "100292722",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -5390,11 +5390,11 @@
                     "ordering": 12,
                     "cases": [
                       {
-                        "id": 432501602,
+                        "id": 432521155,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求更新用户成功",
-                        "responseId": "126646165",
+                        "responseId": "120748043",
                         "parameters": {
                           "path": [
                             {
@@ -5473,7 +5473,7 @@
                 {
                   "name": "更新状态",
                   "api": {
-                    "id": "537907661",
+                    "id": "537926672",
                     "method": "post",
                     "path": "/system/user/{id}/updateStatus",
                     "parameters": {
@@ -5516,7 +5516,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "163620918",
+                        "id": "138022343",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -5529,7 +5529,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "182002910",
+                        "id": "107252293",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -5566,11 +5566,11 @@
                     "ordering": 18,
                     "cases": [
                       {
-                        "id": 432501603,
+                        "id": 432521156,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求更新用户状态成功",
-                        "responseId": "163620918",
+                        "responseId": "138022343",
                         "parameters": {
                           "path": [
                             {
@@ -5649,7 +5649,7 @@
                 {
                   "name": "保存",
                   "api": {
-                    "id": "537907662",
+                    "id": "537926673",
                     "method": "post",
                     "path": "/system/user/save",
                     "parameters": {
@@ -5677,7 +5677,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "151828646",
+                        "id": "190490908",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -5690,7 +5690,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "117575984",
+                        "id": "154551893",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -5727,11 +5727,11 @@
                     "ordering": 24,
                     "cases": [
                       {
-                        "id": 432501604,
+                        "id": 432521157,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求保存用户成功",
-                        "responseId": "151828646",
+                        "responseId": "190490908",
                         "parameters": {
                           "path": [],
                           "query": [],
@@ -5829,7 +5829,7 @@
                 {
                   "name": "详情",
                   "api": {
-                    "id": "537907663",
+                    "id": "537926674",
                     "method": "get",
                     "path": "/system/user/{id}/get",
                     "parameters": {
@@ -5881,7 +5881,7 @@
                     },
                     "responses": [
                       {
-                        "id": "180024974",
+                        "id": "176130811",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -5894,7 +5894,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "183448937",
+                        "id": "109355952",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -5929,11 +5929,11 @@
                     "ordering": 30,
                     "cases": [
                       {
-                        "id": 432501605,
+                        "id": 432521158,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求用户详情成功",
-                        "responseId": "180024974",
+                        "responseId": "176130811",
                         "parameters": {
                           "path": [
                             {
@@ -6012,7 +6012,7 @@
                 {
                   "name": "删除",
                   "api": {
-                    "id": "537907664",
+                    "id": "537926675",
                     "method": "post",
                     "path": "/system/user/{id}/remove",
                     "parameters": {
@@ -6064,7 +6064,7 @@
                     },
                     "responses": [
                       {
-                        "id": "139265829",
+                        "id": "118023752",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -6077,7 +6077,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "159824814",
+                        "id": "170231825",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -6112,11 +6112,11 @@
                     "ordering": 36,
                     "cases": [
                       {
-                        "id": 432501606,
+                        "id": 432521159,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求删除用户成功",
-                        "responseId": "139265829",
+                        "responseId": "118023752",
                         "parameters": {
                           "path": [
                             {
@@ -6202,7 +6202,7 @@
                 {
                   "name": "个人详情",
                   "api": {
-                    "id": "537907665",
+                    "id": "537926676",
                     "method": "get",
                     "path": "/system/user/individual/get",
                     "parameters": {
@@ -6230,7 +6230,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "169816676",
+                        "id": "133255097",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -6243,7 +6243,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "162039252",
+                        "id": "158897762",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -6276,11 +6276,11 @@
                     "ordering": 42,
                     "cases": [
                       {
-                        "id": 432501607,
+                        "id": 432521160,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求用户个人详情成功",
-                        "responseId": "169816676",
+                        "responseId": "133255097",
                         "parameters": {
                           "path": [],
                           "query": [],
@@ -6350,7 +6350,7 @@
                 {
                   "name": "更新个人信息",
                   "api": {
-                    "id": "537907666",
+                    "id": "537926677",
                     "method": "post",
                     "path": "/system/user/individual/update",
                     "parameters": {
@@ -6378,7 +6378,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "184819101",
+                        "id": "182447946",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -6391,7 +6391,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "163123058",
+                        "id": "115583853",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -6428,11 +6428,11 @@
                     "ordering": 48,
                     "cases": [
                       {
-                        "id": 432501608,
+                        "id": 432521161,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求更新用户个人信息成功",
-                        "responseId": "184819101",
+                        "responseId": "182447946",
                         "parameters": {
                           "path": [],
                           "query": [],
@@ -6518,10 +6518,10 @@
             },
             {
               "name": "角色模块",
-              "id": 99933977,
+              "id": 99938069,
               "auth": {},
               "securityScheme": {},
-              "parentId": 99933964,
+              "parentId": 99938056,
               "serverId": "",
               "description": "",
               "identityPattern": {
@@ -6554,7 +6554,7 @@
                 {
                   "name": "保存",
                   "api": {
-                    "id": "537907667",
+                    "id": "537926678",
                     "method": "post",
                     "path": "/system/role/save",
                     "parameters": {
@@ -6582,7 +6582,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "134523119",
+                        "id": "183476091",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -6595,7 +6595,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "185202409",
+                        "id": "145547765",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -6632,11 +6632,11 @@
                     "ordering": 6,
                     "cases": [
                       {
-                        "id": 432501609,
+                        "id": 432521162,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求保存角色成功",
-                        "responseId": "134523119",
+                        "responseId": "183476091",
                         "parameters": {
                           "path": [],
                           "query": [],
@@ -6726,7 +6726,7 @@
                 {
                   "name": "更新状态",
                   "api": {
-                    "id": "537907668",
+                    "id": "537926679",
                     "method": "post",
                     "path": "/system/role/{id}/updateStatus",
                     "parameters": {
@@ -6769,7 +6769,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "146188091",
+                        "id": "136675011",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -6782,7 +6782,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "176582210",
+                        "id": "195504234",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -6819,11 +6819,11 @@
                     "ordering": 12,
                     "cases": [
                       {
-                        "id": 432501610,
+                        "id": 432521163,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求更新角色状态成功",
-                        "responseId": "146188091",
+                        "responseId": "136675011",
                         "parameters": {
                           "path": [
                             {
@@ -6902,7 +6902,7 @@
                 {
                   "name": "详情",
                   "api": {
-                    "id": "537907669",
+                    "id": "537926680",
                     "method": "get",
                     "path": "/system/role/{id}/get",
                     "parameters": {
@@ -6945,7 +6945,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "194082394",
+                        "id": "136524927",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -6958,7 +6958,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "179573476",
+                        "id": "130684171",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -6991,11 +6991,11 @@
                     "ordering": 18,
                     "cases": [
                       {
-                        "id": 432501611,
+                        "id": 432521164,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求角色详情成功",
-                        "responseId": "194082394",
+                        "responseId": "136524927",
                         "parameters": {
                           "path": [
                             {
@@ -7074,7 +7074,7 @@
                 {
                   "name": "列表",
                   "api": {
-                    "id": "537907670",
+                    "id": "537926681",
                     "method": "get",
                     "path": "/system/role/list",
                     "parameters": {
@@ -7102,7 +7102,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "134576873",
+                        "id": "144690589",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -7115,7 +7115,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "107918197",
+                        "id": "100053956",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -7148,11 +7148,11 @@
                     "ordering": 24,
                     "cases": [
                       {
-                        "id": 432501612,
+                        "id": 432521165,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求角色列表成功",
-                        "responseId": "134576873",
+                        "responseId": "144690589",
                         "parameters": {
                           "path": [],
                           "query": [],
@@ -7222,7 +7222,7 @@
                 {
                   "name": "更新",
                   "api": {
-                    "id": "537907671",
+                    "id": "537926682",
                     "method": "post",
                     "path": "/system/role/{id}/update",
                     "parameters": {
@@ -7265,7 +7265,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "161365006",
+                        "id": "158883236",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -7278,7 +7278,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "141887520",
+                        "id": "144864450",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -7315,11 +7315,11 @@
                     "ordering": 30,
                     "cases": [
                       {
-                        "id": 432501613,
+                        "id": 432521166,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求更新角色成功",
-                        "responseId": "161365006",
+                        "responseId": "158883236",
                         "parameters": {
                           "path": [
                             {
@@ -7398,7 +7398,7 @@
                 {
                   "name": "删除",
                   "api": {
-                    "id": "537907672",
+                    "id": "537926683",
                     "method": "post",
                     "path": "/system/role/{id}/remove",
                     "parameters": {
@@ -7441,7 +7441,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "130715617",
+                        "id": "130749674",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -7454,7 +7454,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "111823537",
+                        "id": "108075012",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -7487,11 +7487,11 @@
                     "ordering": 36,
                     "cases": [
                       {
-                        "id": 432501614,
+                        "id": 432521167,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求删除角色成功",
-                        "responseId": "130715617",
+                        "responseId": "130749674",
                         "parameters": {
                           "path": [
                             {
@@ -7577,7 +7577,7 @@
                 {
                   "name": "下拉列表",
                   "api": {
-                    "id": "537907673",
+                    "id": "537926684",
                     "method": "get",
                     "path": "/system/role/dropDownList",
                     "parameters": {
@@ -7605,7 +7605,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "137217582",
+                        "id": "132261169",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -7618,7 +7618,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "189420624",
+                        "id": "133778382",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -7651,11 +7651,11 @@
                     "ordering": 42,
                     "cases": [
                       {
-                        "id": 432501615,
+                        "id": 432521168,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求角色下拉列表成功",
-                        "responseId": "137217582",
+                        "responseId": "132261169",
                         "parameters": {
                           "path": [],
                           "query": [],
@@ -7726,10 +7726,10 @@
             },
             {
               "name": "权限模块",
-              "id": 99933978,
+              "id": 99938070,
               "auth": {},
               "securityScheme": {},
-              "parentId": 99933964,
+              "parentId": 99938056,
               "serverId": "",
               "description": "",
               "identityPattern": {
@@ -7762,7 +7762,7 @@
                 {
                   "name": "下拉列表",
                   "api": {
-                    "id": "537907674",
+                    "id": "537926685",
                     "method": "get",
                     "path": "/system/permission/dropDownList",
                     "parameters": {
@@ -7790,7 +7790,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "179498379",
+                        "id": "193650900",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -7803,7 +7803,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "190575024",
+                        "id": "135043512",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -7836,11 +7836,11 @@
                     "ordering": 6,
                     "cases": [
                       {
-                        "id": 432501616,
+                        "id": 432521169,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求权限下拉列表成功",
-                        "responseId": "179498379",
+                        "responseId": "193650900",
                         "parameters": {
                           "path": [],
                           "query": [],
@@ -7910,7 +7910,7 @@
                 {
                   "name": "更新",
                   "api": {
-                    "id": "537907675",
+                    "id": "537926686",
                     "method": "post",
                     "path": "/system/permission/{id}/update",
                     "parameters": {
@@ -7953,7 +7953,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "124747503",
+                        "id": "180000525",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -7966,7 +7966,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "144647308",
+                        "id": "195325629",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -8003,11 +8003,11 @@
                     "ordering": 12,
                     "cases": [
                       {
-                        "id": 432501617,
+                        "id": 432521170,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求更新权限成功",
-                        "responseId": "124747503",
+                        "responseId": "180000525",
                         "parameters": {
                           "path": [
                             {
@@ -8086,7 +8086,7 @@
                 {
                   "name": "列表",
                   "api": {
-                    "id": "537907676",
+                    "id": "537926687",
                     "method": "get",
                     "path": "/system/permission/list",
                     "parameters": {
@@ -8114,7 +8114,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "121351128",
+                        "id": "195001492",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -8127,7 +8127,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "110859648",
+                        "id": "108132804",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -8160,11 +8160,11 @@
                     "ordering": 18,
                     "cases": [
                       {
-                        "id": 432501618,
+                        "id": 432521171,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求权限列表成功",
-                        "responseId": "121351128",
+                        "responseId": "195001492",
                         "parameters": {
                           "path": [],
                           "query": [],
@@ -8234,7 +8234,7 @@
                 {
                   "name": "删除",
                   "api": {
-                    "id": "537907677",
+                    "id": "537926688",
                     "method": "post",
                     "path": "/system/permission/{id}/remove",
                     "parameters": {
@@ -8277,7 +8277,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "149887613",
+                        "id": "104308377",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -8290,7 +8290,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "127012576",
+                        "id": "182699940",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -8323,11 +8323,11 @@
                     "ordering": 24,
                     "cases": [
                       {
-                        "id": 432501619,
+                        "id": 432521172,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求删除权限成功",
-                        "responseId": "149887613",
+                        "responseId": "104308377",
                         "parameters": {
                           "path": [
                             {
@@ -8413,7 +8413,7 @@
                 {
                   "name": "详情",
                   "api": {
-                    "id": "537907678",
+                    "id": "537926689",
                     "method": "get",
                     "path": "/system/permission/{id}/get",
                     "parameters": {
@@ -8456,7 +8456,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "132018642",
+                        "id": "187467146",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -8469,7 +8469,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "119172121",
+                        "id": "140960459",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -8502,11 +8502,11 @@
                     "ordering": 30,
                     "cases": [
                       {
-                        "id": 432501620,
+                        "id": 432521173,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求权限详情成功",
-                        "responseId": "132018642",
+                        "responseId": "187467146",
                         "parameters": {
                           "path": [
                             {
@@ -8585,7 +8585,7 @@
                 {
                   "name": "保存",
                   "api": {
-                    "id": "537907679",
+                    "id": "537926690",
                     "method": "post",
                     "path": "/system/permission/save",
                     "parameters": {
@@ -8613,7 +8613,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "163844582",
+                        "id": "152325692",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -8626,7 +8626,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "119253833",
+                        "id": "119612191",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -8663,11 +8663,11 @@
                     "ordering": 36,
                     "cases": [
                       {
-                        "id": 432501621,
+                        "id": 432521174,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求保存权限成功",
-                        "responseId": "163844582",
+                        "responseId": "152325692",
                         "parameters": {
                           "path": [],
                           "query": [],
@@ -8760,7 +8760,7 @@
         },
         {
           "name": "AI智能体服务",
-          "id": 99933965,
+          "id": 99938057,
           "auth": {},
           "securityScheme": {},
           "parentId": 0,
@@ -8795,10 +8795,10 @@
           "items": [
             {
               "name": "公用模块",
-              "id": 99933981,
+              "id": 99938073,
               "auth": {},
               "securityScheme": {},
-              "parentId": 99933965,
+              "parentId": 99938057,
               "serverId": "",
               "description": "",
               "identityPattern": {
@@ -8830,10 +8830,10 @@
               "items": [
                 {
                   "name": "无用忽略掉",
-                  "id": 99933984,
+                  "id": 99938076,
                   "auth": {},
                   "securityScheme": {},
-                  "parentId": 99933981,
+                  "parentId": 99938073,
                   "serverId": "",
                   "description": "",
                   "identityPattern": {
@@ -8866,7 +8866,7 @@
                     {
                       "name": "模版",
                       "api": {
-                        "id": "537907680",
+                        "id": "537926691",
                         "method": "get",
                         "path": "/ai/application/template",
                         "parameters": {
@@ -8894,7 +8894,7 @@
                         "commonParameters": {},
                         "responses": [
                           {
-                            "id": "102320201",
+                            "id": "164164401",
                             "code": "200",
                             "headers": [],
                             "jsonSchema": {
@@ -8907,7 +8907,7 @@
                             "oasExtensions": ""
                           },
                           {
-                            "id": "121267414",
+                            "id": "196640865",
                             "code": "500",
                             "headers": [],
                             "jsonSchema": {
@@ -8962,10 +8962,10 @@
                 },
                 {
                   "name": "枚举常量",
-                  "id": 99933985,
+                  "id": 99938077,
                   "auth": {},
                   "securityScheme": {},
-                  "parentId": 99933981,
+                  "parentId": 99938073,
                   "serverId": "",
                   "description": "",
                   "identityPattern": {
@@ -8998,7 +8998,7 @@
                     {
                       "name": "列表",
                       "api": {
-                        "id": "537907681",
+                        "id": "537926692",
                         "method": "get",
                         "path": "/ai/application/enum/list",
                         "parameters": {
@@ -9026,7 +9026,7 @@
                         "commonParameters": {},
                         "responses": [
                           {
-                            "id": "175729703",
+                            "id": "143616631",
                             "code": "200",
                             "headers": [],
                             "jsonSchema": {
@@ -9039,7 +9039,7 @@
                             "oasExtensions": ""
                           },
                           {
-                            "id": "175543394",
+                            "id": "124313791",
                             "code": "500",
                             "headers": [],
                             "jsonSchema": {
@@ -9093,7 +9093,7 @@
                     {
                       "name": "详情",
                       "api": {
-                        "id": "537907682",
+                        "id": "537926693",
                         "method": "get",
                         "path": "/ai/application/enum/{name}/get",
                         "parameters": {
@@ -9135,7 +9135,7 @@
                         "commonParameters": {},
                         "responses": [
                           {
-                            "id": "117407598",
+                            "id": "137888958",
                             "code": "200",
                             "headers": [],
                             "jsonSchema": {
@@ -9148,7 +9148,7 @@
                             "oasExtensions": ""
                           },
                           {
-                            "id": "109382187",
+                            "id": "108679607",
                             "code": "500",
                             "headers": [],
                             "jsonSchema": {
@@ -9205,10 +9205,10 @@
             },
             {
               "name": "AI会话模块",
-              "id": 99933982,
+              "id": 99938074,
               "auth": {},
               "securityScheme": {},
-              "parentId": 99933965,
+              "parentId": 99938057,
               "serverId": "",
               "description": "",
               "identityPattern": {
@@ -9241,7 +9241,7 @@
                 {
                   "name": "保存",
                   "api": {
-                    "id": "537907683",
+                    "id": "537926694",
                     "method": "post",
                     "path": "/ai/chat/conversation/create",
                     "parameters": {
@@ -9269,7 +9269,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "114009166",
+                        "id": "188903624",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -9282,7 +9282,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "173559493",
+                        "id": "198028243",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -9319,11 +9319,11 @@
                     "ordering": 6,
                     "cases": [
                       {
-                        "id": 432501622,
+                        "id": 432521175,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求保存AI会话成功",
-                        "responseId": "114009166",
+                        "responseId": "188903624",
                         "parameters": {
                           "path": [],
                           "query": [],
@@ -9413,7 +9413,7 @@
                 {
                   "name": "列表",
                   "api": {
-                    "id": "537907684",
+                    "id": "537926695",
                     "method": "post",
                     "path": "/ai/chat/conversation/list",
                     "parameters": {
@@ -9441,7 +9441,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "130299697",
+                        "id": "153411216",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -9454,7 +9454,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "126872059",
+                        "id": "183688338",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -9491,11 +9491,11 @@
                     "ordering": 12,
                     "cases": [
                       {
-                        "id": 432501623,
+                        "id": 432521176,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求AI会话列表成功",
-                        "responseId": "130299697",
+                        "responseId": "153411216",
                         "parameters": {
                           "path": [],
                           "query": [],
@@ -9565,7 +9565,7 @@
                 {
                   "name": "更新标题",
                   "api": {
-                    "id": "537907685",
+                    "id": "537926696",
                     "method": "post",
                     "path": "/ai/chat/conversation/{conversationId}/updateTitle",
                     "parameters": {
@@ -9608,7 +9608,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "170558246",
+                        "id": "131245900",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -9621,7 +9621,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "111473535",
+                        "id": "126186190",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -9658,11 +9658,11 @@
                     "ordering": 18,
                     "cases": [
                       {
-                        "id": 432501624,
+                        "id": 432521177,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求更新AI会话标题成功",
-                        "responseId": "170558246",
+                        "responseId": "131245900",
                         "parameters": {
                           "path": [
                             {
@@ -9741,7 +9741,7 @@
                 {
                   "name": "删除",
                   "api": {
-                    "id": "537907686",
+                    "id": "537926697",
                     "method": "post",
                     "path": "/ai/chat/conversation/{conversationId}/remove",
                     "parameters": {
@@ -9783,7 +9783,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "142891976",
+                        "id": "184139953",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -9796,7 +9796,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "154323136",
+                        "id": "185958686",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -9829,11 +9829,11 @@
                     "ordering": 24,
                     "cases": [
                       {
-                        "id": 432501625,
+                        "id": 432521178,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求删除AI会话成功",
-                        "responseId": "142891976",
+                        "responseId": "184139953",
                         "parameters": {
                           "path": [
                             {
@@ -9919,11 +9919,11 @@
               ]
             },
             {
-              "name": "AI对话模块",
-              "id": 99933983,
+              "name": "AI会话消息模块",
+              "id": 99938075,
               "auth": {},
               "securityScheme": {},
-              "parentId": 99933965,
+              "parentId": 99938057,
               "serverId": "",
               "description": "",
               "identityPattern": {
@@ -9956,11 +9956,25 @@
                 {
                   "name": "发起图片生成",
                   "api": {
-                    "id": "537907687",
+                    "id": "537926698",
                     "method": "post",
-                    "path": "/ai/chat/generate/image",
+                    "path": "/ai/chat/conversation/{conversationId}/message/generate/image",
                     "parameters": {
-                      "path": [],
+                      "path": [
+                        {
+                          "id": "conversationId#0",
+                          "name": "conversationId",
+                          "required": true,
+                          "enable": true,
+                          "description": "会话 ID",
+                          "example": "",
+                          "type": "integer",
+                          "schema": {
+                            "type": "integer"
+                          },
+                          "omitGeneratedExample": false
+                        }
+                      ],
                       "query": [],
                       "cookie": [],
                       "header": [
@@ -9984,7 +9998,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "128545900",
+                        "id": "150303608",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -9997,7 +10011,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "182825852",
+                        "id": "198052676",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -10034,13 +10048,22 @@
                     "ordering": 6,
                     "cases": [
                       {
-                        "id": 432501626,
+                        "id": 432521179,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求发起AI对话图片生成成功",
-                        "responseId": "128545900",
+                        "responseId": "150303608",
                         "parameters": {
-                          "path": [],
+                          "path": [
+                            {
+                              "id": "conversationId#0",
+                              "relatedId": "conversationId#0",
+                              "relatedName": "conversationId",
+                              "name": "conversationId",
+                              "value": "{{ai_conversation_id}}",
+                              "enable": true
+                            }
+                          ],
                           "query": [],
                           "cookie": [],
                           "header": [
@@ -10108,9 +10131,9 @@
                 {
                   "name": "停止",
                   "api": {
-                    "id": "537907688",
+                    "id": "537926699",
                     "method": "post",
-                    "path": "/ai/chat/{conversationId}/stop",
+                    "path": "/ai/chat/conversation/{conversationId}/message/stop",
                     "parameters": {
                       "path": [
                         {
@@ -10120,9 +10143,9 @@
                           "enable": true,
                           "description": "",
                           "example": "",
-                          "type": "string",
+                          "type": "integer",
                           "schema": {
-                            "type": "string"
+                            "type": "integer"
                           },
                           "omitGeneratedExample": false
                         }
@@ -10150,7 +10173,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "188743299",
+                        "id": "138847745",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -10163,7 +10186,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "125989573",
+                        "id": "125155351",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -10196,11 +10219,11 @@
                     "ordering": 12,
                     "cases": [
                       {
-                        "id": 432501627,
+                        "id": 432521180,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求停止AI对话成功",
-                        "responseId": "188743299",
+                        "responseId": "138847745",
                         "parameters": {
                           "path": [
                             {
@@ -10279,11 +10302,25 @@
                 {
                   "name": "发起",
                   "api": {
-                    "id": "537907689",
+                    "id": "537926700",
                     "method": "post",
-                    "path": "/ai/chat",
+                    "path": "/ai/chat/conversation/{conversationId}/message/send",
                     "parameters": {
-                      "path": [],
+                      "path": [
+                        {
+                          "id": "conversationId#0",
+                          "name": "conversationId",
+                          "required": true,
+                          "enable": true,
+                          "description": "会话 ID",
+                          "example": "",
+                          "type": "integer",
+                          "schema": {
+                            "type": "integer"
+                          },
+                          "omitGeneratedExample": false
+                        }
+                      ],
                       "query": [],
                       "cookie": [],
                       "header": [
@@ -10307,7 +10344,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "139651450",
+                        "id": "123006654",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -10323,7 +10360,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "149379531",
+                        "id": "159013592",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -10360,13 +10397,22 @@
                     "ordering": 18,
                     "cases": [
                       {
-                        "id": 432501628,
+                        "id": 432521181,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求发起AI对话成功",
-                        "responseId": "139651450",
+                        "responseId": "123006654",
                         "parameters": {
-                          "path": [],
+                          "path": [
+                            {
+                              "id": "conversationId#0",
+                              "relatedId": "conversationId#0",
+                              "relatedName": "conversationId",
+                              "name": "conversationId",
+                              "value": "{{ai_conversation_id}}",
+                              "enable": true
+                            }
+                          ],
                           "query": [],
                           "cookie": [],
                           "header": [
@@ -10434,9 +10480,9 @@
                 {
                   "name": "列表",
                   "api": {
-                    "id": "537907690",
+                    "id": "537926701",
                     "method": "get",
-                    "path": "/ai/chat/{conversationId}/list",
+                    "path": "/ai/chat/conversation/{conversationId}/message/list",
                     "parameters": {
                       "path": [
                         {
@@ -10446,9 +10492,9 @@
                           "enable": true,
                           "description": "",
                           "example": "",
-                          "type": "string",
+                          "type": "integer",
                           "schema": {
-                            "type": "string"
+                            "type": "integer"
                           },
                           "omitGeneratedExample": false
                         }
@@ -10476,7 +10522,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "121921386",
+                        "id": "122382290",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -10489,7 +10535,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "173434984",
+                        "id": "188211325",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -10522,11 +10568,11 @@
                     "ordering": 24,
                     "cases": [
                       {
-                        "id": 432501629,
+                        "id": 432521182,
                         "type": "DEBUG_CASE",
                         "path": null,
                         "name": "请求AI对话列表成功",
-                        "responseId": "121921386",
+                        "responseId": "122382290",
                         "parameters": {
                           "path": [
                             {
@@ -10605,9 +10651,9 @@
                 {
                   "name": "获取后续消息列表",
                   "api": {
-                    "id": "537907691",
+                    "id": "537926702",
                     "method": "get",
-                    "path": "/ai/chat/{conversationId}/getAfterMessages",
+                    "path": "/ai/chat/conversation/{conversationId}/message/getAfterMessages",
                     "parameters": {
                       "path": [
                         {
@@ -10617,9 +10663,9 @@
                           "enable": true,
                           "description": "",
                           "example": "",
-                          "type": "string",
+                          "type": "integer",
                           "schema": {
-                            "type": "string"
+                            "type": "integer"
                           },
                           "omitGeneratedExample": false
                         }
@@ -10661,7 +10707,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "123519727",
+                        "id": "146877725",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -10674,7 +10720,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "136345682",
+                        "id": "125491414",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -10728,9 +10774,9 @@
                 {
                   "name": "删除消息",
                   "api": {
-                    "id": "537907692",
+                    "id": "537926703",
                     "method": "post",
-                    "path": "/ai/chat/{conversationId}/{messageId}/remove",
+                    "path": "/ai/chat/conversation/{conversationId}/message/{messageId}/remove",
                     "parameters": {
                       "path": [
                         {
@@ -10740,9 +10786,9 @@
                           "enable": true,
                           "description": "",
                           "example": "",
-                          "type": "string",
+                          "type": "integer",
                           "schema": {
-                            "type": "string"
+                            "type": "integer"
                           },
                           "omitGeneratedExample": false
                         },
@@ -10753,9 +10799,9 @@
                           "enable": true,
                           "description": "",
                           "example": "",
-                          "type": "string",
+                          "type": "integer",
                           "schema": {
-                            "type": "string"
+                            "type": "integer"
                           },
                           "omitGeneratedExample": false
                         }
@@ -10783,7 +10829,7 @@
                     "commonParameters": {},
                     "responses": [
                       {
-                        "id": "193910355",
+                        "id": "198031339",
                         "code": "200",
                         "headers": [],
                         "jsonSchema": {
@@ -10796,7 +10842,7 @@
                         "oasExtensions": ""
                       },
                       {
-                        "id": "176319082",
+                        "id": "151196112",
                         "code": "500",
                         "headers": [],
                         "jsonSchema": {
@@ -14048,7 +14094,7 @@
       "name": "Root",
       "children": [
         {
-          "id": 8051525,
+          "id": 8051531,
           "name": "业务全流程",
           "description": "",
           "children": [],
@@ -14068,7 +14114,7 @@
                       "type": "testCaseRef",
                       "disable": false,
                       "parameters": {},
-                      "relatedId": 9003242,
+                      "relatedId": 9003476,
                       "name": "客户端全流程",
                       "number": 59
                     },
@@ -14077,7 +14123,7 @@
                       "type": "testCaseRef",
                       "disable": false,
                       "parameters": {},
-                      "relatedId": 9003245,
+                      "relatedId": 9003479,
                       "name": "权限全流程",
                       "number": 62
                     },
@@ -14086,7 +14132,7 @@
                       "type": "testCaseRef",
                       "disable": false,
                       "parameters": {},
-                      "relatedId": 9003244,
+                      "relatedId": 9003478,
                       "name": "角色全流程",
                       "number": 61
                     },
@@ -14095,7 +14141,7 @@
                       "type": "testCaseRef",
                       "disable": false,
                       "parameters": {},
-                      "relatedId": 9003243,
+                      "relatedId": 9003477,
                       "name": "用户全流程",
                       "number": 60
                     },
@@ -14106,10 +14152,10 @@
                       "bind": true,
                       "disable": false,
                       "bindType": "API_CASE",
-                      "bindId": 432501581,
+                      "bindId": 432521134,
                       "syncMode": "SYNC_WITH_API_CASE",
                       "httpApiCase": {
-                        "id": 432501581,
+                        "id": 432521134,
                         "name": "请求密码认证授权成功",
                         "method": "",
                         "path": null,
@@ -14122,7 +14168,7 @@
                           "cookie": [],
                           "header": []
                         },
-                        "responseId": "117328134",
+                        "responseId": "106106615",
                         "requestBody": {
                           "parameters": [
                             {
@@ -14207,7 +14253,7 @@
                         "inheritPreProcessorsSnapshot": null,
                         "inheritPostProcessorsSnapshot": null,
                         "moduleId": 7130572,
-                        "apiId": 537907633
+                        "apiId": 537926644
                       }
                     },
                     {
@@ -14217,10 +14263,10 @@
                       "bind": true,
                       "disable": false,
                       "bindType": "API_CASE",
-                      "bindId": 432501582,
+                      "bindId": 432521135,
                       "syncMode": "SYNC_WITH_API_CASE",
                       "httpApiCase": {
-                        "id": 432501582,
+                        "id": 432521135,
                         "name": "请求刷新认证授权成功",
                         "method": "",
                         "path": null,
@@ -14233,7 +14279,7 @@
                           "cookie": [],
                           "header": []
                         },
-                        "responseId": "117328134",
+                        "responseId": "106106615",
                         "requestBody": {
                           "parameters": [
                             {
@@ -14318,7 +14364,7 @@
                         "inheritPreProcessorsSnapshot": null,
                         "inheritPostProcessorsSnapshot": null,
                         "moduleId": 7130572,
-                        "apiId": 537907633
+                        "apiId": 537926644
                       }
                     }
                   ],
@@ -14332,10 +14378,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501591,
+                  "bindId": 432521144,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501591,
+                    "id": 432521144,
                     "name": "请求系统详情成功",
                     "method": "",
                     "path": null,
@@ -14348,7 +14394,7 @@
                       "cookie": [],
                       "header": []
                     },
-                    "responseId": "121893079",
+                    "responseId": "156251607",
                     "requestBody": {
                       "parameters": [],
                       "data": "",
@@ -14371,7 +14417,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907648
+                    "apiId": 537926659
                   }
                 },
                 {
@@ -14381,10 +14427,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501592,
+                  "bindId": 432521145,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501592,
+                    "id": 432521145,
                     "name": "请求地区列表成功",
                     "method": "",
                     "path": null,
@@ -14418,7 +14464,7 @@
                         }
                       ]
                     },
-                    "responseId": "178765677",
+                    "responseId": "182978148",
                     "requestBody": {
                       "parameters": [],
                       "data": "",
@@ -14441,7 +14487,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907649
+                    "apiId": 537926660
                   }
                 },
                 {
@@ -14451,10 +14497,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501608,
+                  "bindId": 432521161,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501608,
+                    "id": 432521161,
                     "name": "请求更新用户个人信息成功",
                     "method": "",
                     "path": null,
@@ -14479,7 +14525,7 @@
                         }
                       ]
                     },
-                    "responseId": "184819101",
+                    "responseId": "182447946",
                     "requestBody": {
                       "parameters": [],
                       "data": "{\n    \"name\": \"test-{{$string.nanoid(min=8,max=8)}}\",\n    \"icon\": \"http://dummyimage.com/100x100\",\n    \"password\": \"{{password}}\",\n    \"newPassword\": \"{{new_password}}\"\n}",
@@ -14517,7 +14563,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907666
+                    "apiId": 537926677
                   }
                 },
                 {
@@ -14527,10 +14573,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501581,
+                  "bindId": 432521134,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501581,
+                    "id": 432521134,
                     "name": "请求密码认证授权成功",
                     "method": "",
                     "path": null,
@@ -14543,7 +14589,7 @@
                       "cookie": [],
                       "header": []
                     },
-                    "responseId": "117328134",
+                    "responseId": "106106615",
                     "requestBody": {
                       "parameters": [
                         {
@@ -14628,7 +14674,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907633
+                    "apiId": 537926644
                   }
                 },
                 {
@@ -14636,7 +14682,7 @@
                   "type": "testCaseRef",
                   "disable": false,
                   "parameters": {},
-                  "relatedId": 9003240,
+                  "relatedId": 9003474,
                   "name": "配置全流程",
                   "number": 48
                 },
@@ -14645,7 +14691,7 @@
                   "type": "testCaseRef",
                   "disable": false,
                   "parameters": {},
-                  "relatedId": 9003241,
+                  "relatedId": 9003475,
                   "name": "AI会话全流程",
                   "number": 49
                 },
@@ -14664,10 +14710,10 @@
                       "bind": true,
                       "disable": false,
                       "bindType": "API_CASE",
-                      "bindId": 432501583,
+                      "bindId": 432521136,
                       "syncMode": "SYNC_WITH_API_CASE",
                       "httpApiCase": {
-                        "id": 432501583,
+                        "id": 432521136,
                         "name": "请求销毁认证授权成功",
                         "method": "",
                         "path": null,
@@ -14680,7 +14726,7 @@
                           "cookie": [],
                           "header": []
                         },
-                        "responseId": "177097659",
+                        "responseId": "118767914",
                         "requestBody": {
                           "parameters": [
                             {
@@ -14732,7 +14778,7 @@
                         "inheritPreProcessorsSnapshot": null,
                         "inheritPostProcessorsSnapshot": null,
                         "moduleId": 7130572,
-                        "apiId": 537907634
+                        "apiId": 537926645
                       }
                     },
                     {
@@ -14742,10 +14788,10 @@
                       "bind": true,
                       "disable": false,
                       "bindType": "API_CASE",
-                      "bindId": 432501606,
+                      "bindId": 432521159,
                       "syncMode": "SYNC_WITH_API_CASE",
                       "httpApiCase": {
-                        "id": 432501606,
+                        "id": 432521159,
                         "name": "请求删除用户成功",
                         "method": "",
                         "path": null,
@@ -14779,7 +14825,7 @@
                             }
                           ]
                         },
-                        "responseId": "139265829",
+                        "responseId": "118023752",
                         "requestBody": {
                           "parameters": [],
                           "data": "",
@@ -14809,7 +14855,7 @@
                         "inheritPreProcessorsSnapshot": null,
                         "inheritPostProcessorsSnapshot": null,
                         "moduleId": 7130572,
-                        "apiId": 537907664
+                        "apiId": 537926675
                       }
                     },
                     {
@@ -14819,10 +14865,10 @@
                       "bind": true,
                       "disable": false,
                       "bindType": "API_CASE",
-                      "bindId": 432501584,
+                      "bindId": 432521137,
                       "syncMode": "SYNC_WITH_API_CASE",
                       "httpApiCase": {
-                        "id": 432501584,
+                        "id": 432521137,
                         "name": "请求删除客户端成功",
                         "method": "",
                         "path": null,
@@ -14856,7 +14902,7 @@
                             }
                           ]
                         },
-                        "responseId": "149906165",
+                        "responseId": "195709690",
                         "requestBody": {
                           "parameters": [],
                           "data": "",
@@ -14886,7 +14932,7 @@
                         "inheritPreProcessorsSnapshot": null,
                         "inheritPostProcessorsSnapshot": null,
                         "moduleId": 7130572,
-                        "apiId": 537907635
+                        "apiId": 537926646
                       }
                     },
                     {
@@ -14896,10 +14942,10 @@
                       "bind": true,
                       "disable": false,
                       "bindType": "API_CASE",
-                      "bindId": 432501614,
+                      "bindId": 432521167,
                       "syncMode": "SYNC_WITH_API_CASE",
                       "httpApiCase": {
-                        "id": 432501614,
+                        "id": 432521167,
                         "name": "请求删除角色成功",
                         "method": "",
                         "path": null,
@@ -14933,7 +14979,7 @@
                             }
                           ]
                         },
-                        "responseId": "130715617",
+                        "responseId": "130749674",
                         "requestBody": {
                           "parameters": [],
                           "data": "",
@@ -14963,7 +15009,7 @@
                         "inheritPreProcessorsSnapshot": null,
                         "inheritPostProcessorsSnapshot": null,
                         "moduleId": 7130572,
-                        "apiId": 537907672
+                        "apiId": 537926683
                       }
                     },
                     {
@@ -14973,10 +15019,10 @@
                       "bind": true,
                       "disable": false,
                       "bindType": "API_CASE",
-                      "bindId": 432501619,
+                      "bindId": 432521172,
                       "syncMode": "SYNC_WITH_API_CASE",
                       "httpApiCase": {
-                        "id": 432501619,
+                        "id": 432521172,
                         "name": "请求删除权限成功",
                         "method": "",
                         "path": null,
@@ -15010,7 +15056,7 @@
                             }
                           ]
                         },
-                        "responseId": "149887613",
+                        "responseId": "104308377",
                         "requestBody": {
                           "parameters": [],
                           "data": "",
@@ -15040,7 +15086,7 @@
                         "inheritPreProcessorsSnapshot": null,
                         "inheritPostProcessorsSnapshot": null,
                         "moduleId": 7130572,
-                        "apiId": 537907677
+                        "apiId": 537926688
                       }
                     }
                   ],
@@ -15048,7 +15094,7 @@
                   "number": 68
                 }
               ],
-              "id": 9003239,
+              "id": 9003473,
               "name": "业务全流程",
               "tags": [],
               "options": {
@@ -15089,10 +15135,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501593,
+                  "bindId": 432521146,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501593,
+                    "id": 432521146,
                     "name": "请求保存配置成功",
                     "method": "",
                     "path": null,
@@ -15117,7 +15163,7 @@
                         }
                       ]
                     },
-                    "responseId": "192164447",
+                    "responseId": "128041829",
                     "requestBody": {
                       "parameters": [],
                       "data": "{\n    \"name\": \"{{system_config_name}}\",\n    \"alias\": \"测试配置_{{$string.nanoid(min=6,max=6)}}\",\n    \"type\": \"system_config_type_test\",\n    \"value\": \"true\"\n}",
@@ -15168,7 +15214,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907650
+                    "apiId": 537926661
                   }
                 },
                 {
@@ -15178,10 +15224,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501598,
+                  "bindId": 432521151,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501598,
+                    "id": 432521151,
                     "name": "请求更新配置成功",
                     "method": "",
                     "path": null,
@@ -15215,7 +15261,7 @@
                         }
                       ]
                     },
-                    "responseId": "152548172",
+                    "responseId": "107080949",
                     "requestBody": {
                       "parameters": [],
                       "data": "{\n    \"name\": \"{{system_config_name}}\",\n    \"alias\": \"测试配置_{{$string.nanoid(min=6,max=6)}}\",\n    \"type\": \"system_config_type_test\",\n    \"value\": \"true\"\n}",
@@ -15246,7 +15292,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907655
+                    "apiId": 537926666
                   }
                 },
                 {
@@ -15256,10 +15302,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501595,
+                  "bindId": 432521148,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501595,
+                    "id": 432521148,
                     "name": "请求配置详情成功",
                     "method": "",
                     "path": null,
@@ -15293,7 +15339,7 @@
                         }
                       ]
                     },
-                    "responseId": "190385986",
+                    "responseId": "122007295",
                     "requestBody": {
                       "parameters": [],
                       "data": "",
@@ -15316,7 +15362,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907652
+                    "apiId": 537926663
                   }
                 },
                 {
@@ -15326,10 +15372,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501596,
+                  "bindId": 432521149,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501596,
+                    "id": 432521149,
                     "name": "请求名称获取配置成功",
                     "method": "",
                     "path": null,
@@ -15363,7 +15409,7 @@
                         }
                       ]
                     },
-                    "responseId": "138986449",
+                    "responseId": "174400259",
                     "requestBody": {
                       "parameters": [],
                       "data": "",
@@ -15386,7 +15432,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907653
+                    "apiId": 537926664
                   }
                 },
                 {
@@ -15396,10 +15442,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501597,
+                  "bindId": 432521150,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501597,
+                    "id": 432521150,
                     "name": "请求配置下拉列表成功",
                     "method": "",
                     "path": null,
@@ -15433,7 +15479,7 @@
                         }
                       ]
                     },
-                    "responseId": "103525435",
+                    "responseId": "111132781",
                     "requestBody": {
                       "parameters": [],
                       "data": "",
@@ -15456,7 +15502,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907654
+                    "apiId": 537926665
                   }
                 },
                 {
@@ -15466,10 +15512,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501594,
+                  "bindId": 432521147,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501594,
+                    "id": 432521147,
                     "name": "请求配置列表成功",
                     "method": "",
                     "path": null,
@@ -15494,7 +15540,7 @@
                         }
                       ]
                     },
-                    "responseId": "124167196",
+                    "responseId": "159747514",
                     "requestBody": {
                       "parameters": [],
                       "data": "{\n    \"data\": {\n        \"name\": \"system_config_type\",\n        \"type\": \"system_config_type_test\",\n        \"alias\": \"测试配置\"\n    }\n}",
@@ -15517,7 +15563,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907651
+                    "apiId": 537926662
                   }
                 },
                 {
@@ -15527,10 +15573,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501599,
+                  "bindId": 432521152,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501599,
+                    "id": 432521152,
                     "name": "请求更新配置状态成功",
                     "method": "",
                     "path": null,
@@ -15564,7 +15610,7 @@
                         }
                       ]
                     },
-                    "responseId": "180445361",
+                    "responseId": "182515085",
                     "requestBody": {
                       "parameters": [],
                       "data": "{\n    \"data\": 1\n}",
@@ -15587,7 +15633,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907656
+                    "apiId": 537926667
                   }
                 },
                 {
@@ -15597,10 +15643,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501600,
+                  "bindId": 432521153,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501600,
+                    "id": 432521153,
                     "name": "请求删除配置成功",
                     "method": "",
                     "path": null,
@@ -15634,7 +15680,7 @@
                         }
                       ]
                     },
-                    "responseId": "191447352",
+                    "responseId": "135839649",
                     "requestBody": {
                       "parameters": [],
                       "data": "",
@@ -15664,11 +15710,11 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907657
+                    "apiId": 537926668
                   }
                 }
               ],
-              "id": 9003240,
+              "id": 9003474,
               "name": "配置全流程",
               "tags": [],
               "options": {
@@ -15702,10 +15748,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501622,
+                  "bindId": 432521175,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501622,
+                    "id": 432521175,
                     "name": "请求保存AI会话成功",
                     "method": "",
                     "path": null,
@@ -15730,7 +15776,7 @@
                         }
                       ]
                     },
-                    "responseId": "114009166",
+                    "responseId": "188903624",
                     "requestBody": {
                       "parameters": [],
                       "data": "{\n    \"data\": \"你好,你是谁?\"\n}",
@@ -15773,7 +15819,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907683
+                    "apiId": 537926694
                   }
                 },
                 {
@@ -15783,10 +15829,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501624,
+                  "bindId": 432521177,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501624,
+                    "id": 432521177,
                     "name": "请求更新AI会话标题成功",
                     "method": "",
                     "path": null,
@@ -15820,7 +15866,7 @@
                         }
                       ]
                     },
-                    "responseId": "170558246",
+                    "responseId": "131245900",
                     "requestBody": {
                       "parameters": [],
                       "data": "{\n    \"data\": \"test-{{$string.nanoid(min=6,max=6)}}\"\n}",
@@ -15843,7 +15889,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907685
+                    "apiId": 537926696
                   }
                 },
                 {
@@ -15853,10 +15899,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501623,
+                  "bindId": 432521176,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501623,
+                    "id": 432521176,
                     "name": "请求AI会话列表成功",
                     "method": "",
                     "path": null,
@@ -15881,7 +15927,7 @@
                         }
                       ]
                     },
-                    "responseId": "130299697",
+                    "responseId": "153411216",
                     "requestBody": {
                       "parameters": [],
                       "data": "{\n    \"current\": \"1\",\n    \"size\": \"10\",\n    \"data\": {}\n}",
@@ -15904,7 +15950,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907684
+                    "apiId": 537926695
                   }
                 },
                 {
@@ -15914,10 +15960,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501625,
+                  "bindId": 432521178,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501625,
+                    "id": 432521178,
                     "name": "请求删除AI会话成功",
                     "method": "",
                     "path": null,
@@ -15951,7 +15997,7 @@
                         }
                       ]
                     },
-                    "responseId": "142891976",
+                    "responseId": "184139953",
                     "requestBody": {
                       "parameters": [],
                       "data": "",
@@ -15981,11 +16027,11 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907686
+                    "apiId": 537926697
                   }
                 }
               ],
-              "id": 9003241,
+              "id": 9003475,
               "name": "AI会话全流程",
               "tags": [],
               "options": {
@@ -16019,10 +16065,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501590,
+                  "bindId": 432521143,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501590,
+                    "id": 432521143,
                     "name": "请求保存客户端成功",
                     "method": "",
                     "path": null,
@@ -16047,7 +16093,7 @@
                         }
                       ]
                     },
-                    "responseId": "193481338",
+                    "responseId": "146330054",
                     "requestBody": {
                       "parameters": [],
                       "data": "{\n    \"name\": \"test-{{$string.nanoid(min=8,max=8)}}\",\n    \"clientSecret\": \"{{auto_client_secret}}\",\n    \"authorizationGrantTypes\": [\n        1,\n        2,\n        3\n    ],\n    \"remark\": \"测试客户端\",\n    \"status\": 1\n}",
@@ -16098,7 +16144,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907641
+                    "apiId": 537926652
                   }
                 },
                 {
@@ -16108,10 +16154,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501585,
+                  "bindId": 432521138,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501585,
+                    "id": 432521138,
                     "name": "请求更新客户端成功",
                     "method": "",
                     "path": null,
@@ -16145,7 +16191,7 @@
                         }
                       ]
                     },
-                    "responseId": "165240387",
+                    "responseId": "190648898",
                     "requestBody": {
                       "parameters": [],
                       "data": "{\n    \"name\": \"test-{{$string.nanoid(min=8,max=8)}}\",\n    \"clientSecret\": \"{{auto_client_secret}}\",\n    \"authorizationGrantTypes\": [\n        1,\n        2,\n        3\n    ],\n    \"remark\": \"测试客户端\",\n    \"status\": 1\n}",
@@ -16176,7 +16222,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907636
+                    "apiId": 537926647
                   }
                 },
                 {
@@ -16186,10 +16232,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501589,
+                  "bindId": 432521142,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501589,
+                    "id": 432521142,
                     "name": "请求更新客户端状态成功",
                     "method": "",
                     "path": null,
@@ -16223,7 +16269,7 @@
                         }
                       ]
                     },
-                    "responseId": "118432536",
+                    "responseId": "183187325",
                     "requestBody": {
                       "parameters": [],
                       "data": "{\n    \"data\": 1\n}",
@@ -16246,7 +16292,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907640
+                    "apiId": 537926651
                   }
                 },
                 {
@@ -16256,10 +16302,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501586,
+                  "bindId": 432521139,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501586,
+                    "id": 432521139,
                     "name": "请求客户端详情成功",
                     "method": "",
                     "path": null,
@@ -16293,7 +16339,7 @@
                         }
                       ]
                     },
-                    "responseId": "165199568",
+                    "responseId": "177416328",
                     "requestBody": {
                       "parameters": [],
                       "data": "",
@@ -16336,7 +16382,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907637
+                    "apiId": 537926648
                   }
                 },
                 {
@@ -16346,10 +16392,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501587,
+                  "bindId": 432521140,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501587,
+                    "id": 432521140,
                     "name": "请求客户端下拉列表成功",
                     "method": "",
                     "path": null,
@@ -16374,7 +16420,7 @@
                         }
                       ]
                     },
-                    "responseId": "168219188",
+                    "responseId": "143501003",
                     "requestBody": {
                       "parameters": [],
                       "data": "",
@@ -16397,7 +16443,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907638
+                    "apiId": 537926649
                   }
                 },
                 {
@@ -16407,10 +16453,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501588,
+                  "bindId": 432521141,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501588,
+                    "id": 432521141,
                     "name": "请求客户端列表成功",
                     "method": "",
                     "path": null,
@@ -16435,7 +16481,7 @@
                         }
                       ]
                     },
-                    "responseId": "181411618",
+                    "responseId": "168184865",
                     "requestBody": {
                       "parameters": [],
                       "data": "{\n    \"current\": 0,\n    \"size\": 10,\n    \"data\": {\n        \"name\": \"测试\",\n        \"orderFieldMap\": {\n            \"createTime\": true\n        }\n    }\n}",
@@ -16458,11 +16504,11 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907639
+                    "apiId": 537926650
                   }
                 }
               ],
-              "id": 9003242,
+              "id": 9003476,
               "name": "客户端全流程",
               "tags": [],
               "options": {
@@ -16496,10 +16542,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501604,
+                  "bindId": 432521157,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501604,
+                    "id": 432521157,
                     "name": "请求保存用户成功",
                     "method": "",
                     "path": null,
@@ -16524,7 +16570,7 @@
                         }
                       ]
                     },
-                    "responseId": "151828646",
+                    "responseId": "190490908",
                     "requestBody": {
                       "parameters": [],
                       "data": "{\n    \"password\": \"{{auto_user_password}}\",\n    \"clientId\": {{auto_client_id}},\n    \"bindRoleIds\": [\n        {{auto_role_id}}\n    ],\n    \"name\": \"test-{{$string.nanoid(min=8,max=8)}}\",\n    \"icon\": \"http://dummyimage.com/100x100\",\n    \"username\": \"{{auto_user_username}}\",\n    \"status\": 1\n}",
@@ -16575,7 +16621,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907662
+                    "apiId": 537926673
                   }
                 },
                 {
@@ -16585,10 +16631,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501602,
+                  "bindId": 432521155,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501602,
+                    "id": 432521155,
                     "name": "请求更新用户成功",
                     "method": "",
                     "path": null,
@@ -16622,7 +16668,7 @@
                         }
                       ]
                     },
-                    "responseId": "126646165",
+                    "responseId": "120748043",
                     "requestBody": {
                       "parameters": [],
                       "data": "{\n    \"clientId\": {{auto_client_id}},\n    \"bindRoleIds\": [\n        1\n    ],\n    \"name\": \"test-{{$string.nanoid(min=8,max=8)}}\",\n    \"icon\": \"http://dummyimage.com/100x100\",\n    \"username\": \"{{auto_user_username}}\",\n    \"status\": 1\n}",
@@ -16645,7 +16691,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907660
+                    "apiId": 537926671
                   }
                 },
                 {
@@ -16655,10 +16701,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501603,
+                  "bindId": 432521156,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501603,
+                    "id": 432521156,
                     "name": "请求更新用户状态成功",
                     "method": "",
                     "path": null,
@@ -16692,7 +16738,7 @@
                         }
                       ]
                     },
-                    "responseId": "163620918",
+                    "responseId": "138022343",
                     "requestBody": {
                       "parameters": [],
                       "data": "{\n    \"data\": 1\n}",
@@ -16715,7 +16761,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907661
+                    "apiId": 537926672
                   }
                 },
                 {
@@ -16725,10 +16771,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501605,
+                  "bindId": 432521158,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501605,
+                    "id": 432521158,
                     "name": "请求用户详情成功",
                     "method": "",
                     "path": null,
@@ -16762,7 +16808,7 @@
                         }
                       ]
                     },
-                    "responseId": "180024974",
+                    "responseId": "176130811",
                     "requestBody": {
                       "parameters": [],
                       "data": "",
@@ -16785,7 +16831,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907663
+                    "apiId": 537926674
                   }
                 },
                 {
@@ -16795,10 +16841,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501607,
+                  "bindId": 432521160,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501607,
+                    "id": 432521160,
                     "name": "请求用户个人详情成功",
                     "method": "",
                     "path": null,
@@ -16823,7 +16869,7 @@
                         }
                       ]
                     },
-                    "responseId": "169816676",
+                    "responseId": "133255097",
                     "requestBody": {
                       "parameters": [],
                       "data": "",
@@ -16846,7 +16892,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907665
+                    "apiId": 537926676
                   }
                 },
                 {
@@ -16856,10 +16902,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501601,
+                  "bindId": 432521154,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501601,
+                    "id": 432521154,
                     "name": "请求用户列表成功",
                     "method": "",
                     "path": null,
@@ -16884,7 +16930,7 @@
                         }
                       ]
                     },
-                    "responseId": "139377522",
+                    "responseId": "164443896",
                     "requestBody": {
                       "parameters": [],
                       "data": "{\n    \"current\": 1,\n    \"size\": 10,\n    \"data\": {\n        \"name\": \"测试\",\n        \"orderFieldMap\": {\n            \"createTime\": true\n        }\n    }\n}",
@@ -16907,11 +16953,11 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907659
+                    "apiId": 537926670
                   }
                 }
               ],
-              "id": 9003243,
+              "id": 9003477,
               "name": "用户全流程",
               "tags": [],
               "options": {
@@ -16945,10 +16991,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501609,
+                  "bindId": 432521162,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501609,
+                    "id": 432521162,
                     "name": "请求保存角色成功",
                     "method": "",
                     "path": null,
@@ -16973,7 +17019,7 @@
                         }
                       ]
                     },
-                    "responseId": "134523119",
+                    "responseId": "183476091",
                     "requestBody": {
                       "parameters": [],
                       "data": "{\n    \"bindPermissionIds\": [\n        1,\n        2,\n        3,\n        4,\n        5,\n        6,\n        7,\n        8,\n        9,\n        10,\n        11,\n        12,\n        13,\n        14,\n        15,\n        16,\n        17,\n        18,\n        19,\n        20,\n        21,\n        {{auto_permission_id}}\n    ],\n    \"name\": \"test-{{$string.nanoid(min=8,max=8)}}\",\n    \"description\": \"测试角色\",\n    \"status\": 1\n}",
@@ -17016,7 +17062,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907667
+                    "apiId": 537926678
                   }
                 },
                 {
@@ -17026,10 +17072,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501613,
+                  "bindId": 432521166,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501613,
+                    "id": 432521166,
                     "name": "请求更新角色成功",
                     "method": "",
                     "path": null,
@@ -17063,7 +17109,7 @@
                         }
                       ]
                     },
-                    "responseId": "161365006",
+                    "responseId": "158883236",
                     "requestBody": {
                       "parameters": [],
                       "data": "{\n    \"bindPermissionIds\": [\n        1,\n        2,\n        3,\n        4,\n        5,\n        6,\n        7,\n        8,\n        9,\n        10,\n        11,\n        12,\n        13,\n        14,\n        15,\n        16,\n        17,\n        18,\n        19,\n        20,\n        21,\n        {{auto_permission_id}}\n    ],\n    \"name\": \"test-{{$string.nanoid(min=8,max=8)}}\",\n    \"description\": \"测试角色\",\n    \"status\": 1\n}",
@@ -17086,7 +17132,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907671
+                    "apiId": 537926682
                   }
                 },
                 {
@@ -17096,10 +17142,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501610,
+                  "bindId": 432521163,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501610,
+                    "id": 432521163,
                     "name": "请求更新角色状态成功",
                     "method": "",
                     "path": null,
@@ -17133,7 +17179,7 @@
                         }
                       ]
                     },
-                    "responseId": "146188091",
+                    "responseId": "136675011",
                     "requestBody": {
                       "parameters": [],
                       "data": "{\n    \"data\": 1\n}",
@@ -17156,7 +17202,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907668
+                    "apiId": 537926679
                   }
                 },
                 {
@@ -17166,10 +17212,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501611,
+                  "bindId": 432521164,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501611,
+                    "id": 432521164,
                     "name": "请求角色详情成功",
                     "method": "",
                     "path": null,
@@ -17203,7 +17249,7 @@
                         }
                       ]
                     },
-                    "responseId": "194082394",
+                    "responseId": "136524927",
                     "requestBody": {
                       "parameters": [],
                       "data": "",
@@ -17226,7 +17272,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907669
+                    "apiId": 537926680
                   }
                 },
                 {
@@ -17236,10 +17282,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501615,
+                  "bindId": 432521168,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501615,
+                    "id": 432521168,
                     "name": "请求角色下拉列表成功",
                     "method": "",
                     "path": null,
@@ -17264,7 +17310,7 @@
                         }
                       ]
                     },
-                    "responseId": "137217582",
+                    "responseId": "132261169",
                     "requestBody": {
                       "parameters": [],
                       "data": "",
@@ -17287,7 +17333,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907673
+                    "apiId": 537926684
                   }
                 },
                 {
@@ -17297,10 +17343,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501612,
+                  "bindId": 432521165,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501612,
+                    "id": 432521165,
                     "name": "请求角色列表成功",
                     "method": "",
                     "path": null,
@@ -17325,7 +17371,7 @@
                         }
                       ]
                     },
-                    "responseId": "134576873",
+                    "responseId": "144690589",
                     "requestBody": {
                       "parameters": [],
                       "data": "",
@@ -17348,11 +17394,11 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907670
+                    "apiId": 537926681
                   }
                 }
               ],
-              "id": 9003244,
+              "id": 9003478,
               "name": "角色全流程",
               "tags": [],
               "options": {
@@ -17386,10 +17432,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501621,
+                  "bindId": 432521174,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501621,
+                    "id": 432521174,
                     "name": "请求保存权限成功",
                     "method": "",
                     "path": null,
@@ -17414,7 +17460,7 @@
                         }
                       ]
                     },
-                    "responseId": "163844582",
+                    "responseId": "152325692",
                     "requestBody": {
                       "parameters": [],
                       "data": "{\n    \"route\": \"/test\",\n    \"level\": 1,\n    \"serviceUri\": \"/test\",\n    \"name\": \"test-{{$string.nanoid(min=8,max=8)}}\",\n    \"icon\": \"http://dummyimage.com/100x100\",\n    \"sort\": 99,\n    \"type\": 1,\n    \"parentId\": 1,\n    \"mark\": \"测试权限\"\n}",
@@ -17457,7 +17503,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907679
+                    "apiId": 537926690
                   }
                 },
                 {
@@ -17467,10 +17513,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501617,
+                  "bindId": 432521170,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501617,
+                    "id": 432521170,
                     "name": "请求更新权限成功",
                     "method": "",
                     "path": null,
@@ -17504,7 +17550,7 @@
                         }
                       ]
                     },
-                    "responseId": "124747503",
+                    "responseId": "180000525",
                     "requestBody": {
                       "parameters": [],
                       "data": "{\n    \"route\": \"/test\",\n    \"level\": 1,\n    \"serviceUri\": \"/test\",\n    \"name\": \"test-{{$string.nanoid(min=8,max=8)}}\",\n    \"icon\": \"http://dummyimage.com/100x100\",\n    \"sort\": 99,\n    \"type\": 1,\n    \"parentId\": 1,\n    \"mark\": \"测试权限\"\n}",
@@ -17527,7 +17573,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907675
+                    "apiId": 537926686
                   }
                 },
                 {
@@ -17537,10 +17583,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501620,
+                  "bindId": 432521173,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501620,
+                    "id": 432521173,
                     "name": "请求权限详情成功",
                     "method": "",
                     "path": null,
@@ -17574,7 +17620,7 @@
                         }
                       ]
                     },
-                    "responseId": "132018642",
+                    "responseId": "187467146",
                     "requestBody": {
                       "parameters": [],
                       "data": "",
@@ -17597,7 +17643,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907678
+                    "apiId": 537926689
                   }
                 },
                 {
@@ -17607,10 +17653,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501616,
+                  "bindId": 432521169,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501616,
+                    "id": 432521169,
                     "name": "请求权限下拉列表成功",
                     "method": "",
                     "path": null,
@@ -17635,7 +17681,7 @@
                         }
                       ]
                     },
-                    "responseId": "179498379",
+                    "responseId": "193650900",
                     "requestBody": {
                       "parameters": [],
                       "data": "",
@@ -17658,7 +17704,7 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907674
+                    "apiId": 537926685
                   }
                 },
                 {
@@ -17668,10 +17714,10 @@
                   "bind": true,
                   "disable": false,
                   "bindType": "API_CASE",
-                  "bindId": 432501618,
+                  "bindId": 432521171,
                   "syncMode": "SYNC_WITH_API_CASE",
                   "httpApiCase": {
-                    "id": 432501618,
+                    "id": 432521171,
                     "name": "请求权限列表成功",
                     "method": "",
                     "path": null,
@@ -17696,7 +17742,7 @@
                         }
                       ]
                     },
-                    "responseId": "121351128",
+                    "responseId": "195001492",
                     "requestBody": {
                       "parameters": [],
                       "data": "",
@@ -17719,11 +17765,11 @@
                     "inheritPreProcessorsSnapshot": null,
                     "inheritPostProcessorsSnapshot": null,
                     "moduleId": 7130572,
-                    "apiId": 537907676
+                    "apiId": 537926687
                   }
                 }
               ],
-              "id": 9003245,
+              "id": 9003479,
               "name": "权限全流程",
               "tags": [],
               "options": {
@@ -17761,10 +17807,10 @@
               "bind": true,
               "disable": false,
               "bindType": "API_CASE",
-              "bindId": 432501581,
+              "bindId": 432521134,
               "syncMode": "SYNC_WITH_API_CASE",
               "httpApiCase": {
-                "id": 432501581,
+                "id": 432521134,
                 "name": "请求密码认证授权成功",
                 "method": "",
                 "path": null,
@@ -17777,7 +17823,7 @@
                   "cookie": [],
                   "header": []
                 },
-                "responseId": "117328134",
+                "responseId": "106106615",
                 "requestBody": {
                   "parameters": [
                     {
@@ -17862,7 +17908,7 @@
                 "inheritPreProcessorsSnapshot": null,
                 "inheritPostProcessorsSnapshot": null,
                 "moduleId": 7130572,
-                "apiId": 537907633
+                "apiId": 537926644
               }
             },
             {
@@ -17872,10 +17918,10 @@
               "bind": true,
               "disable": false,
               "bindType": "API_CASE",
-              "bindId": 432501582,
+              "bindId": 432521135,
               "syncMode": "SYNC_WITH_API_CASE",
               "httpApiCase": {
-                "id": 432501582,
+                "id": 432521135,
                 "name": "请求刷新认证授权成功",
                 "method": "",
                 "path": null,
@@ -17888,7 +17934,7 @@
                   "cookie": [],
                   "header": []
                 },
-                "responseId": "117328134",
+                "responseId": "106106615",
                 "requestBody": {
                   "parameters": [
                     {
@@ -17973,7 +18019,7 @@
                 "inheritPreProcessorsSnapshot": null,
                 "inheritPostProcessorsSnapshot": null,
                 "moduleId": 7130572,
-                "apiId": 537907633
+                "apiId": 537926644
               }
             },
             {
@@ -17981,7 +18027,7 @@
               "type": "testCaseRef",
               "disable": false,
               "parameters": {},
-              "relatedId": 9003239,
+              "relatedId": 9003473,
               "name": "全流程",
               "number": 4
             },
@@ -17992,10 +18038,10 @@
               "bind": true,
               "disable": false,
               "bindType": "API_CASE",
-              "bindId": 432501583,
+              "bindId": 432521136,
               "syncMode": "SYNC_WITH_API_CASE",
               "httpApiCase": {
-                "id": 432501583,
+                "id": 432521136,
                 "name": "请求销毁认证授权成功",
                 "method": "",
                 "path": null,
@@ -18008,7 +18054,7 @@
                   "cookie": [],
                   "header": []
                 },
-                "responseId": "177097659",
+                "responseId": "118767914",
                 "requestBody": {
                   "parameters": [
                     {
@@ -18060,11 +18106,11 @@
                 "inheritPreProcessorsSnapshot": null,
                 "inheritPostProcessorsSnapshot": null,
                 "moduleId": 7130572,
-                "apiId": 537907634
+                "apiId": 537926645
               }
             }
           ],
-          "id": 9003235,
+          "id": 9003469,
           "name": "回归测试全流程",
           "tags": [],
           "options": {
@@ -18096,12 +18142,12 @@
               "type": "testCaseRef",
               "disable": false,
               "parameters": {},
-              "relatedId": 9003239,
+              "relatedId": 9003473,
               "name": "全流程",
               "number": 1
             }
           ],
-          "id": 9003236,
+          "id": 9003470,
           "name": "预热测试全流程",
           "tags": [],
           "options": {
@@ -18142,10 +18188,10 @@
               "bind": true,
               "disable": false,
               "bindType": "API_CASE",
-              "bindId": 432501581,
+              "bindId": 432521134,
               "syncMode": "SYNC_WITH_API_CASE",
               "httpApiCase": {
-                "id": 432501581,
+                "id": 432521134,
                 "name": "请求密码认证授权成功",
                 "method": "",
                 "path": null,
@@ -18158,7 +18204,7 @@
                   "cookie": [],
                   "header": []
                 },
-                "responseId": "117328134",
+                "responseId": "106106615",
                 "requestBody": {
                   "parameters": [
                     {
@@ -18243,11 +18289,11 @@
                 "inheritPreProcessorsSnapshot": null,
                 "inheritPostProcessorsSnapshot": null,
                 "moduleId": 7130572,
-                "apiId": 537907633
+                "apiId": 537926644
               }
             }
           ],
-          "id": 9003237,
+          "id": 9003471,
           "name": "预生成压力测试数据",
           "tags": [],
           "options": {
@@ -18286,12 +18332,12 @@
               "type": "testCaseRef",
               "disable": false,
               "parameters": {},
-              "relatedId": 9003239,
+              "relatedId": 9003473,
               "name": "全流程",
               "number": 1
             }
           ],
-          "id": 9003238,
+          "id": 9003472,
           "name": "压力测试全流程",
           "tags": [],
           "options": {
@@ -18388,93 +18434,93 @@
       "projectBranchId": 7576736
     },
     {
-      "id": 3798931,
-      "createdAt": "2026-11-17T12:58:42.000Z",
-      "updatedAt": "2026-11-17T12:58:42.000Z",
+      "id": 3799910,
+      "createdAt": "2026-11-17T17:14:51.000Z",
+      "updatedAt": "2026-11-17T17:14:51.000Z",
       "deletedAt": null,
       "projectId": 7828608,
-      "apiTestCaseId": 9003239,
-      "relatedId": 9003240,
+      "apiTestCaseId": 9003473,
+      "relatedId": 9003474,
       "projectBranchId": 7576736
     },
     {
-      "id": 3798932,
-      "createdAt": "2026-11-17T12:58:42.000Z",
-      "updatedAt": "2026-11-17T12:58:42.000Z",
+      "id": 3799911,
+      "createdAt": "2026-11-17T17:14:51.000Z",
+      "updatedAt": "2026-11-17T17:14:51.000Z",
       "deletedAt": null,
       "projectId": 7828608,
-      "apiTestCaseId": 9003239,
-      "relatedId": 9003241,
+      "apiTestCaseId": 9003473,
+      "relatedId": 9003475,
       "projectBranchId": 7576736
     },
     {
-      "id": 3798933,
-      "createdAt": "2026-11-17T12:58:42.000Z",
-      "updatedAt": "2026-11-17T12:58:42.000Z",
+      "id": 3799912,
+      "createdAt": "2026-11-17T17:14:51.000Z",
+      "updatedAt": "2026-11-17T17:14:51.000Z",
       "deletedAt": null,
       "projectId": 7828608,
-      "apiTestCaseId": 9003239,
-      "relatedId": 9003245,
+      "apiTestCaseId": 9003473,
+      "relatedId": 9003479,
       "projectBranchId": 7576736
     },
     {
-      "id": 3798934,
-      "createdAt": "2026-11-17T12:58:42.000Z",
-      "updatedAt": "2026-11-17T12:58:42.000Z",
+      "id": 3799913,
+      "createdAt": "2026-11-17T17:14:51.000Z",
+      "updatedAt": "2026-11-17T17:14:51.000Z",
       "deletedAt": null,
       "projectId": 7828608,
-      "apiTestCaseId": 9003239,
-      "relatedId": 9003244,
+      "apiTestCaseId": 9003473,
+      "relatedId": 9003478,
       "projectBranchId": 7576736
     },
     {
-      "id": 3798935,
-      "createdAt": "2026-11-17T12:58:42.000Z",
-      "updatedAt": "2026-11-17T12:58:42.000Z",
+      "id": 3799914,
+      "createdAt": "2026-11-17T17:14:51.000Z",
+      "updatedAt": "2026-11-17T17:14:51.000Z",
       "deletedAt": null,
       "projectId": 7828608,
-      "apiTestCaseId": 9003239,
-      "relatedId": 9003243,
+      "apiTestCaseId": 9003473,
+      "relatedId": 9003477,
       "projectBranchId": 7576736
     },
     {
-      "id": 3798936,
-      "createdAt": "2026-11-17T12:58:42.000Z",
-      "updatedAt": "2026-11-17T12:58:42.000Z",
+      "id": 3799915,
+      "createdAt": "2026-11-17T17:14:51.000Z",
+      "updatedAt": "2026-11-17T17:14:51.000Z",
       "deletedAt": null,
       "projectId": 7828608,
-      "apiTestCaseId": 9003239,
-      "relatedId": 9003242,
+      "apiTestCaseId": 9003473,
+      "relatedId": 9003476,
       "projectBranchId": 7576736
     },
     {
-      "id": 3798937,
-      "createdAt": "2026-11-17T12:58:42.000Z",
-      "updatedAt": "2026-11-17T12:58:42.000Z",
+      "id": 3799916,
+      "createdAt": "2026-11-17T17:14:51.000Z",
+      "updatedAt": "2026-11-17T17:14:51.000Z",
       "deletedAt": null,
       "projectId": 7828608,
-      "apiTestCaseId": 9003238,
-      "relatedId": 9003239,
+      "apiTestCaseId": 9003472,
+      "relatedId": 9003473,
       "projectBranchId": 7576736
     },
     {
-      "id": 3798938,
-      "createdAt": "2026-11-17T12:58:42.000Z",
-      "updatedAt": "2026-11-17T12:58:42.000Z",
+      "id": 3799917,
+      "createdAt": "2026-11-17T17:14:51.000Z",
+      "updatedAt": "2026-11-17T17:14:51.000Z",
       "deletedAt": null,
       "projectId": 7828608,
-      "apiTestCaseId": 9003235,
-      "relatedId": 9003239,
+      "apiTestCaseId": 9003469,
+      "relatedId": 9003473,
       "projectBranchId": 7576736
     },
     {
-      "id": 3798939,
-      "createdAt": "2026-11-17T12:58:42.000Z",
-      "updatedAt": "2026-11-17T12:58:42.000Z",
+      "id": 3799918,
+      "createdAt": "2026-11-17T17:14:51.000Z",
+      "updatedAt": "2026-11-17T17:14:51.000Z",
       "deletedAt": null,
       "projectId": 7828608,
-      "apiTestCaseId": 9003236,
-      "relatedId": 9003239,
+      "apiTestCaseId": 9003470,
+      "relatedId": 9003473,
       "projectBranchId": 7576736
     }
   ],

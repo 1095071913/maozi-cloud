@@ -143,9 +143,7 @@ public class ChatServiceImpl implements ChatService {
      * @throws BusinessResultException 会话不存在、图片类型不受支持或提示词配置获取失败时抛出
      */
     @SneakyThrows
-    public Flux<AbstractBaseResult<ChatResult>> chatResult(ChatParam param) {
-
-        Long conversationId = param.getConversationId();
+    public Flux<AbstractBaseResult<ChatResult>> chatResult(Long conversationId, ChatParam param) {
 
         // 校验会话是否存在
         chatConversationService.has(conversationId);
@@ -391,12 +389,12 @@ public class ChatServiceImpl implements ChatService {
      * @param conversationId 会话 ID
      * @return 会话是否正在对话中以及该会话的对话消息列表
      */
-    public ChatListResult adminList(String conversationId) {
+    public ChatListResult adminList(Long conversationId) {
 
         // 是否对话中：对话进行中标记存在即正在对话
         Boolean isLocked = RedisUtil.getRedisClient().hasKey(AI_CHAT_STOP_KEY + conversationId);
 
-        List<Message> messages = chatMemoryRepository.findRecordByConversationId(conversationId);
+        List<Message> messages = chatMemoryRepository.findRecordByConversationId(conversationId.toString());
         if(CollectionUtil.isEmpty(messages)){
             return new ChatListResult(
                     isLocked,
@@ -416,7 +414,7 @@ public class ChatServiceImpl implements ChatService {
      *
      * @param conversationId 会话 ID
      */
-    public void adminStop(String conversationId) {
+    public void adminStop(Long conversationId) {
         RedisUtil.getRedisClient().delete(
                 CollectionUtil.newArrayList(
                         AI_CHAT_STOP_KEY + conversationId,
@@ -432,9 +430,9 @@ public class ChatServiceImpl implements ChatService {
      * @param createTime 时间毫秒值，查询写入时间晚于该值的消息
      * @return 该时间之后写入的增量消息列表
      */
-    public List<ChatItemResult> adminGetAfterMessages(String conversationId, Long createTime) {
+    public List<ChatItemResult> adminGetAfterMessages(Long conversationId, Long createTime) {
 
-        List<Message> messages = chatMemoryRepository.findRecordAfterTimestamp(conversationId, createTime);
+        List<Message> messages = chatMemoryRepository.findRecordAfterTimestamp(conversationId.toString(), createTime);
         if(ObjectUtil.isNullEmpty(messages)){
             return CollectionUtil.newArrayList();
         }

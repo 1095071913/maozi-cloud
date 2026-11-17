@@ -240,7 +240,7 @@ async function handleRemoveMessage(item: ChatBubble) {
   ElMessage.success('已删除')
 }
 
-/** 当前会话是否对话中（/ai/chat/{id}/list 的 isLocked），本地发送时也会置真（仅控制停止按钮） */
+/** 当前会话是否对话中（/ai/chat/conversation/{id}/message/list 的 isLocked），本地发送时也会置真（仅控制停止按钮） */
 const chatLocked = ref(false)
 /**
  * 是否需要轮询增量消息：仅在进入会话（loadMessages）发现服务端 isLocked 时置真，
@@ -1472,7 +1472,7 @@ $text-secondary: #606266;
   color: #909399;
   font-size: 12px;
 
-  // 对话中（/ai/chat/{id}/list 的 isLocked）：圆点切主题色快闪
+  // 对话中（/ai/chat/conversation/{id}/message/list 的 isLocked）：圆点切主题色快闪
   &.locked {
     color: var(--el-color-primary);
 

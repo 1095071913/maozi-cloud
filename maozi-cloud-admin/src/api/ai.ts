@@ -63,14 +63,14 @@ export interface GenerateImageParams {
 
 /**
  * AI 图片生成（同步返回生成图片的 URL 列表）
- * POST /ai/chat/generate/image
+ * POST /ai/chat/conversation/{conversationId}/message/generate/image
  *
  * - 生成耗时较长，超时单独放宽至 2 分钟（axios 实例默认 15 秒）
  * - signal 用于用户点"停止"时中止前端等待
  */
 export function generateImage(params: GenerateImageParams, signal?: AbortSignal) {
   return request.post(
-    '/ai/chat/generate/image',
+    `/ai/chat/conversation/${params.conversationId}/message/generate/image`,
     {
       message: params.message,
       conversationId: params.conversationId,
@@ -109,41 +109,41 @@ export function removeConversation(conversationId: string | number) {
 
 /**
  * AI 对话列表（当前会话的全部消息与对话中状态）
- * GET /ai/chat/{conversationId}/list
+ * GET /ai/chat/conversation/{conversationId}/message/list
  */
 export function getChatList(conversationId: string | number) {
   return request.get(
-    `/ai/chat/${conversationId}/list`
+    `/ai/chat/conversation/${conversationId}/message/list`
   ) as unknown as Promise<ApiResponse<ChatListResult>>
 }
 
 /**
  * AI 对话停止
- * POST /ai/chat/{conversationId}/stop
+ * POST /ai/chat/conversation/{conversationId}/message/stop
  */
 export function stopChat(conversationId: string | number) {
   return request.post(
-    `/ai/chat/${conversationId}/stop`
+    `/ai/chat/conversation/${conversationId}/message/stop`
   ) as unknown as Promise<ApiResponse<void>>
 }
 
 /**
  * AI 对话消息删除
- * POST /ai/chat/{conversationId}/{messageId}/remove
+ * POST /ai/chat/conversation/{conversationId}/message/{messageId}/remove
  */
 export function removeChatMessage(conversationId: string | number, messageId: string) {
   return request.post(
-    `/ai/chat/${conversationId}/${messageId}/remove`
+    `/ai/chat/conversation/${conversationId}/message/${messageId}/remove`
   ) as unknown as Promise<ApiResponse<void>>
 }
 
 /**
  * AI 对话获取之后消息列表（createTime 之后新增的完整消息：id/type/message/images/createTime，
  * 升序、最新在最后）：增量渲染与完成判定（AI 消息落库即本轮生成结束）
- * GET /ai/chat/{conversationId}/getAfterMessages
+ * GET /ai/chat/conversation/{conversationId}/message/getAfterMessages
  */
 export function getAfterMessages(conversationId: string | number, createTime: number) {
-  return request.get(`/ai/chat/${conversationId}/getAfterMessages`, {
+  return request.get(`/ai/chat/conversation/${conversationId}/message/getAfterMessages`, {
     params: { createTime }
   }) as unknown as Promise<ApiResponse<ChatMessageItem[]>>
 }
@@ -192,7 +192,7 @@ function buildStreamHeaders(): Record<string, string> {
 
 /**
  * AI 对话（SSE 流式，application/json）
- * POST /ai/chat
+ * POST /ai/chat/conversation/{conversationId}/message/send
  *
  * - body：ChatParam 的 JSON（message / conversationId / promptConfig / images）
  * - images：可选图片 URL 地址列表（先经 /system/image/upload 上传获得），携带时后端走视觉模型
@@ -213,7 +213,7 @@ export async function chatStream(
   const abort = () => controller.abort()
 
   const consume = async () => {
-    const response = await fetch(`${base}/ai/chat`, {
+    const response = await fetch(`${base}/ai/chat/conversation/${conversationId}/message/send`, {
       method: 'POST',
       headers: buildStreamHeaders(),
       body: JSON.stringify({

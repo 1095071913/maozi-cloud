@@ -346,7 +346,7 @@ export interface ConversationItem {
   title: string
 }
 
-/** AI 对话消息类型（/ai/chat/{id}/list 返回）：0=用户消息 1=AI 消息 */
+/** AI 对话消息类型（/ai/chat/conversation/{id}/message/list 返回）：0=用户消息 1=AI 消息 */
 export enum ChatMessageType {
   /** 用户消息 */
   USER = 0,
@@ -354,7 +354,7 @@ export enum ChatMessageType {
   AI = 1
 }
 
-/** AI 对话流类型（/ai/chat SSE 事件）：0=完成对话 1=持续对话中 */
+/** AI 对话流类型（/ai/chat/conversation/{id}/message/send SSE 事件）：0=完成对话 1=持续对话中 */
 export enum ChatStreamType {
   /** 完成对话（流结束标记） */
   FINISH = 0,
@@ -362,7 +362,7 @@ export enum ChatStreamType {
   OUTPUT = 1
 }
 
-/** AI 对话消息（/ai/chat/{id}/list 返回 items 元素） */
+/** AI 对话消息（/ai/chat/conversation/{id}/message/list 返回 items 元素） */
 export interface ChatMessageItem {
   /** 消息 ID（删除消息接口使用；本地新增消息在操作完成后由 getAfterMessageIds 回填） */
   id?: string
@@ -376,7 +376,7 @@ export interface ChatMessageItem {
   createTime?: string
 }
 
-/** AI 对话列表结果（/ai/chat/{id}/list） */
+/** AI 对话列表结果（/ai/chat/conversation/{id}/message/list） */
 export interface ChatListResult {
   /** 是否对话中（生成进行中） */
   isLocked?: boolean
@@ -384,7 +384,7 @@ export interface ChatListResult {
   items?: ChatMessageItem[]
 }
 
-/** AI 图片生成结果（/ai/chat/generate/image） */
+/** AI 图片生成结果（/ai/chat/conversation/{id}/message/generate/image） */
 export interface GenerateImageResult {
   /** 消息（生成结果描述） */
   message?: string

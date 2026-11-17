@@ -25,21 +25,20 @@ import java.util.List;
  * @author maozi
  * @date 2026/11/08
  */
-@Tag(name = "AI对话模块")
-public interface RestChatService {
+@Tag(name = "AI会话消息模块")
+public interface RestChatMessageService {
 
     /** 接口基础路径 */
-    String PATH = "/chat";
+    String PATH = "/chat/conversation/{conversationId}/message";
 
     /**
-     * AI流式对话
+     * 查询会话的对话消息列表
      *
-     * @param param 对话参数，包含会话 ID、消息内容、图片列表（多模态对话）
-     * 以及提示词配置 key
-     * @return 返回 AI 回复的分片流（SSE），最后追加一条对话完成（FINISH）消息
+     * @param conversationId 会话 ID
+     * @return 返回会话是否正在对话中以及该会话的对话消息列表
      */
-    @Post(value = PATH, produces = MediaType.TEXT_EVENT_STREAM_VALUE, description = "发起")
-    Flux<AbstractBaseResult<ChatResult>> chatResult(@RequestBody @Valid ChatParam param);
+    @Get(value = PATH + "/list", description = "列表")
+    AbstractBaseResult<ChatListResult> listResult(@PathVariable Long conversationId);
 
     /**
      * AI文生图
@@ -49,19 +48,17 @@ public interface RestChatService {
      */
     @Post(value = PATH + "/generate/image", description = "发起图片生成")
     AbstractBaseResult<ChatGenerateImageResult> generateImageResult(@RequestBody @Valid ChatGenerateImageParam param);
-
-
-    /** 当前会话基础路径，携带会话 ID 路径变量 */
-    String CONVERSATION_PATH = PATH + "/{conversationId}";
+    
 
     /**
-     * 查询会话的对话消息列表
+     * AI流式对话
      *
-     * @param conversationId 会话 ID
-     * @return 返回会话是否正在对话中以及该会话的对话消息列表
+     * @param param 对话参数，包含会话 ID、消息内容、图片列表（多模态对话）
+     * 以及提示词配置 key
+     * @return 返回 AI 回复的分片流（SSE），最后追加一条对话完成（FINISH）消息
      */
-    @Get(value = CONVERSATION_PATH + "/list", description = "列表")
-    AbstractBaseResult<ChatListResult> listResult(@PathVariable String conversationId);
+    @Post(value = PATH + "/send", produces = MediaType.TEXT_EVENT_STREAM_VALUE, description = "发起")
+    Flux<AbstractBaseResult<ChatResult>> chatResult(@PathVariable Long conversationId, @RequestBody @Valid ChatParam param);
 
     /**
      * 停止会话进行中的对话或文生图
@@ -69,8 +66,8 @@ public interface RestChatService {
      * @param conversationId 会话 ID
      * @return 空结果
      */
-    @Post(value = CONVERSATION_PATH + "/stop", description = "停止")
-    AbstractBaseResult<Void> stopResult(@PathVariable String conversationId);
+    @Post(value = PATH + "/stop", description = "停止")
+    AbstractBaseResult<Void> stopResult(@PathVariable Long conversationId);
 
     /**
      * 查询会话中指定时间之后的消息列表
@@ -79,13 +76,13 @@ public interface RestChatService {
      * @param createTime 时间毫秒值，查询写入时间晚于该值的消息（不含等于）
      * @return 返回该时间之后写入的增量消息列表
      */
-    @Get(value = CONVERSATION_PATH + "/getAfterMessages", description = "获取后续消息列表")
-    AbstractBaseResult<List<ChatItemResult>> getAfterMessagesResult(@PathVariable String conversationId,
+    @Get(value = PATH + "/getAfterMessages", description = "获取后续消息列表")
+    AbstractBaseResult<List<ChatItemResult>> getAfterMessagesResult(@PathVariable Long conversationId,
         @RequestParam Long createTime);
 
     
     /** 接口基础路径 */
-    String CONVERSATION_MESSAGE_PATH = CONVERSATION_PATH + "/{messageId}";
+    String CURRENT_PATH = PATH + "/{messageId}";
 
     /**
      * 删除会话中的指定消息
@@ -94,7 +91,7 @@ public interface RestChatService {
      * @param messageId 消息 ID
      * @return 空结果
      */
-    @Post(value = CONVERSATION_MESSAGE_PATH + "/remove", description = "删除消息")
-    AbstractBaseResult<Void> removeMessageResult(@PathVariable String conversationId, @PathVariable String messageId);
+    @Post(value = CURRENT_PATH + "/remove", description = "删除消息")
+    AbstractBaseResult<Void> removeMessageResult(@PathVariable Long conversationId, @PathVariable Long messageId);
 
 }

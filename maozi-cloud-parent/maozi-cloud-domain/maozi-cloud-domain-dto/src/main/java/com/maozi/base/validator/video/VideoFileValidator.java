@@ -1,10 +1,11 @@
 package com.maozi.base.validator.video;
 
-import com.maozi.common.ObjectUtil;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Objects;
 
 /**
  * 视频文件校验器
@@ -41,7 +42,7 @@ public class VideoFileValidator implements ConstraintValidator<VideoFile, Multip
     public boolean isValid(MultipartFile file, ConstraintValidatorContext context) {
 
         // 文件为空时跳过校验，交给 @NotNull 等注解处理非空逻辑
-        if(ObjectUtil.isNullEmpty(file) || file.isEmpty()) {
+        if(Objects.isNull(file) || file.isEmpty()) {
             return true;
         }
 

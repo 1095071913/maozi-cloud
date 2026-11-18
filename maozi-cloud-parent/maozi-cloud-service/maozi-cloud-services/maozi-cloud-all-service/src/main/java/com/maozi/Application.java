@@ -20,7 +20,7 @@ package com.maozi;
 /**
  * 单体全量服务启动入口
  * <p>
- * 继承 {@link BaseApplicationDB}，将 OAuth 认证、系统管理等业务模块聚合为
+ * 继承 {@link BaseApplication}，将 OAuth 认证、系统管理等业务模块聚合为
  * 单一可执行 JAR，通过单体部署插件（maozi-cloud-service-monomer）在单进程内
  * 完成本地 Bean 装配，默认以端口 1100 对外提供服务（可经环境变量 APPLICATION_PORT
  * 或 application.port 配置覆盖）。
@@ -29,7 +29,7 @@ package com.maozi;
  * @author maozi
  * @date 2026/11/08
  */
-public class Application extends BaseApplicationDB {
+public class Application extends BaseApplication {
 
     /**
      * 应用程序主入口方法

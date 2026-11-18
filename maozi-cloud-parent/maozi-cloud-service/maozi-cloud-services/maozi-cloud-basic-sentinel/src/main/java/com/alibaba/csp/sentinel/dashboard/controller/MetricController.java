@@ -100,7 +100,7 @@ public class MetricController {
         List<String> resources = metricStore.listResourcesOfApp(app, startTime, endTime);
         logger.debug("queryTopResourceMetric(), resources.size()={}", resources.size());
 
-        if (resources == null || resources.isEmpty()) {
+        if (resources.isEmpty()) {
             return Result.ofSuccess(null);
         }
         if (!desc) {

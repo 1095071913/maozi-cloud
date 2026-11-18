@@ -128,19 +128,19 @@ public class StreamEntranceLogAop {
 
             // 从消息头中提取版本号设置到链路上下文
             Object versionObj = headers.get(VersionContext.KEY);
-            if(ObjectUtil.isNotNullEmpty(versionObj)){
+            if(ObjectUtil.isNotNull(versionObj)){
                 VersionContext.CONTEXT.set(versionObj.toString());
             }
 
             // 从消息头中提取测试流量标记设置到链路上下文
             Object testFlowObj = headers.get(TestFlowContext.KEY);
-            if(ObjectUtil.isNotNullEmpty(testFlowObj)){
+            if(ObjectUtil.isNotNull(testFlowObj)){
                 TestFlowContext.CONTEXT.set(testFlowObj.toString());
             }
 
             // 从消息头中提取当前登录用户信息设置到链路上下文
             Object currentUserInfoObj = headers.get(CurrentUserInfoContext.KEY);
-            if(ObjectUtil.isNotNullEmpty(currentUserInfoObj)){
+            if(ObjectUtil.isNotNull(currentUserInfoObj)){
                 CurrentUserInfoContext.CONTEXT.set(currentUserInfoObj.toString());
             }
 
@@ -172,7 +172,7 @@ public class StreamEntranceLogAop {
 
                 // 记录消息处理过程中的 SQL 日志
                 StringBuilder sqlLog = SqlLogContext.CONTEXT.get();
-                if (ObjectUtil.isNotNullEmpty(sqlLog)) {
+                if (ObjectUtil.isNotNull(sqlLog)) {
                     logs.put(LogTag.SQL, sqlLog.toString());
                 }
 
@@ -180,7 +180,7 @@ public class StreamEntranceLogAop {
                 logs.put(LogTag.RT, String.valueOf(System.currentTimeMillis() - beginTime));
 
                 // 按处理结果以 info/error 级别输出日志
-                LogUtil.log(log, ObjectUtil.isNotNullEmpty(ex), logs, ex);
+                LogUtil.log(log, ObjectUtil.isNotNull(ex), logs, ex);
 
                 // 清理线程上下文，防止线程池复用导致数据泄漏
                 AbstractRequestContextHolder.clearContext();

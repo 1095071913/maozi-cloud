@@ -19,6 +19,7 @@ package com.maozi.system.permission.api.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.maozi.common.CollectionUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.service.api.impl.BaseServiceImpl;
@@ -88,7 +89,7 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
     @Transactional(rollbackFor = Exception.class)
     public void updateBind(Long roleId, Set<Long> bindPermissionIds, Set<Long> unbindPermissionIds) {
 
-        if(ObjectUtil.isNotNullEmpty(bindPermissionIds)) {
+        if(CollectionUtil.isNotEmpty(bindPermissionIds)) {
 
             Consumer<Long> consumer = (permissionId)->{
 
@@ -106,7 +107,7 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
 
         }
 
-        if(ObjectUtil.isNotNullEmpty(unbindPermissionIds)) {
+        if(CollectionUtil.isNotEmpty(unbindPermissionIds)) {
 
             Consumer<Long> consumer = (permissionId)->{
                 super.remove(Wrappers.lambdaQuery(

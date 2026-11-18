@@ -40,7 +40,7 @@ public class TestFlowContext extends AbstractRequestContextHolder<Boolean> {
     @Override
     public Boolean get() {
         Boolean data = super.get();
-        return ObjectUtil.isNotNullEmpty(data) && data;
+        return ObjectUtil.isNotNull(data) && data;
     }
 
 }

@@ -19,7 +19,6 @@ package com.maozi.gateway.config;
 
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.maozi.common.LogUtil;
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.constant.LogTag;
 import com.maozi.common.context.TraceIdContext;
@@ -31,6 +30,7 @@ import io.opentelemetry.api.trace.Span;
 import jakarta.annotation.Nonnull;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.logging.MDC;
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
 import org.springframework.cloud.gateway.support.NotFoundException;
@@ -197,7 +197,7 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
         // OTel 已有则由其 MDC 集成接管，不覆盖
         if (TraceIdContext.TRACE_ID_VALUE.equals(Span.current().getSpanContext().getTraceId())) {
             String traceId = request.getHeaders().getFirst(TraceIdContext.KEY);
-            if (ObjectUtil.isNullEmpty(traceId)) {
+            if (StringUtils.isEmpty(traceId)) {
                 traceId = UUID.randomUUID().toString();
             }
             MDC.put(TraceIdContext.MDC_TRACE_ID_KEY, traceId);

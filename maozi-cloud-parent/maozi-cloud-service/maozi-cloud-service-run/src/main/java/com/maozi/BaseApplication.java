@@ -19,7 +19,6 @@ package com.maozi;
 import cn.hutool.extra.spring.SpringUtil;
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.LogUtil;
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.constant.LogTag;
 import com.maozi.common.constant.SpringPropertyConstant;
 import com.maozi.common.context.ApplicationEnvironmentContext;
@@ -28,6 +27,7 @@ import com.maozi.common.enums.EnvironmentTypeEnum;
 import com.maozi.common.spi.ConfigInitializer;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.Banner.Mode;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -246,7 +246,7 @@ public class BaseApplication {
      */
     public static void addBannerFilter(String flag) {
 
-        if (ObjectUtil.isNullEmpty(flag) || BANNER_FILTERS.contains(flag)) {
+        if (StringUtils.isEmpty(flag) || BANNER_FILTERS.contains(flag)) {
             return;
         }
 
@@ -272,9 +272,9 @@ public class BaseApplication {
 
         // 解析运行环境：系统属性 > 环境变量 > 默认本地环境
         String environment = (String) properties.get(APPLICATION_ENVIRONMENT_KEY);
-        if(ObjectUtil.isNullEmpty(environment)){
+        if(StringUtils.isEmpty(environment)){
             environment = System.getenv(APPLICATION_ENVIRONMENT_ENV);
-            if(ObjectUtil.isNullEmpty(environment)){
+            if(StringUtils.isEmpty(environment)){
                 environment = EnvironmentTypeEnum.LOCAL.getDesc();
             }
             properties.put(APPLICATION_ENVIRONMENT_KEY,environment);
@@ -282,9 +282,9 @@ public class BaseApplication {
 
         // 解析应用版本：系统属性 > 环境变量 > 默认版本号
         String version = (String) properties.get(APPLICATION_VERSION_KEY);
-        if(ObjectUtil.isNullEmpty(version)){
+        if(StringUtils.isEmpty(version)){
             version = System.getenv(APPLICATION_VERSION_ENV);
-            if(ObjectUtil.isNullEmpty(version)){
+            if(StringUtils.isEmpty(version)){
                 version = VersionContext.APPLICATION_DEFAULT_VERSION;
             }
             properties.put(APPLICATION_VERSION_KEY, version);
@@ -292,7 +292,7 @@ public class BaseApplication {
 
         // 推导应用名并截取项目简称，服务名读取失败时终止启动
         String applicationName = getApplicationName();
-        if(ObjectUtil.isNullEmpty(applicationName)){
+        if(StringUtils.isEmpty(applicationName)){
             throw new RuntimeException("服务名读取失败");
         }
         String applicationProjectAbbreviation = applicationName.replace(PROJECT_PREFIX,"");

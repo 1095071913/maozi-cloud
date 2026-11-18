@@ -1,10 +1,10 @@
 package com.maozi.dubbo.filter;
 
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.context.TestFlowContext;
 import com.maozi.common.context.TraceIdContext;
 import com.maozi.common.context.VersionContext;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.rpc.Filter;
 import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
@@ -62,7 +62,7 @@ public class ApplicationDubboContextTransmitFilter implements Filter {
 
         // 将当前线程的用户信息写入 RPC 附件，供服务提供者读取
         String currentUserInfoJson = CurrentUserInfoContext.CONTEXT.getJson();
-        if(ObjectUtil.isNotNullEmpty(currentUserInfoJson)){
+        if(StringUtils.isNotEmpty(currentUserInfoJson)){
             clientAttachment.setAttachment(CurrentUserInfoContext.KEY, currentUserInfoJson);
         }
 

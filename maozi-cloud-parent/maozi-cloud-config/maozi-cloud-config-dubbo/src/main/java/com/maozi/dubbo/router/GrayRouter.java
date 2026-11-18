@@ -1,7 +1,6 @@
 package com.maozi.dubbo.router;
 
 import com.maozi.common.CollectionUtil;
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.context.VersionContext;
 import com.maozi.dubbo.provider.ProviderFirstParams;
 import org.apache.commons.lang3.StringUtils;
@@ -89,7 +88,7 @@ public class GrayRouter extends AbstractRouter {
         });
 
         // 优先返回灰度节点，若无灰度节点则回退到主版本节点，保证服务可用性
-        return new RouterResult<>(ObjectUtil.isNotNullEmpty(grayApplicationClients)
+        return new RouterResult<>(CollectionUtil.isNotEmpty(grayApplicationClients)
             ? grayApplicationClients : mainApplicationClients);
 
     }

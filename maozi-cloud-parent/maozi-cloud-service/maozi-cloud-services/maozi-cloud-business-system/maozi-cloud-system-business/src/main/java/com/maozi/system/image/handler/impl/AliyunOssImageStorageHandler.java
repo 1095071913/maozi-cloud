@@ -5,7 +5,6 @@ import com.aliyun.sdk.service.oss2.OSSClientBuilder;
 import com.aliyun.sdk.service.oss2.credentials.StaticCredentialsProvider;
 import com.aliyun.sdk.service.oss2.models.PutObjectRequest;
 import com.aliyun.sdk.service.oss2.transport.BinaryData;
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.result.error.code.ErrorCode;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
@@ -24,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -134,7 +134,7 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
     public ImageUploadResult upload(MultipartFile file,String path) {
 
         // 上传文件为空时抛出业务异常
-        if(ObjectUtil.isNullEmpty(file) || file.isEmpty()) {
+        if(Objects.isNull(file) || file.isEmpty()) {
             throw new BusinessResultException(new ErrorCode("上传文件不能为空"));
         }
 

@@ -1,7 +1,6 @@
 package com.maozi.ai.ai.config;
 
 import com.maozi.common.CollectionUtil;
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.dto.CurrentUserInfo;
 import com.maozi.common.result.error.code.SystemErrorCode;
@@ -25,6 +24,7 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -111,7 +111,7 @@ public class FunctionCallSecurityAop {
         // 获取链路上下文中的当前登录用户，未登录时抛出权限不足异常
         // （收紧校验，不默认放行）
         CurrentUserInfo currentUserInfo = CurrentUserInfoContext.CONTEXT.get();
-        if (ObjectUtil.isNullEmpty(currentUserInfo)) {
+        if (Objects.isNull(currentUserInfo)) {
             throw new BusinessResultException(SystemErrorCode.PERMISSION_ERROR);
         }
 

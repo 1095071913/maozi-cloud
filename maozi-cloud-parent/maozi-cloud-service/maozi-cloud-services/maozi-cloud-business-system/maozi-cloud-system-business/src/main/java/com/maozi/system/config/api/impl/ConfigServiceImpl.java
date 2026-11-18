@@ -11,10 +11,12 @@ import com.maozi.system.config.domain.ConfigDO;
 import com.maozi.system.config.mapper.ConfigMapper;
 import com.maozi.system.config.param.ConfigSaveUpdateParam;
 import com.maozi.system.config.result.ConfigDropDownResult;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 全局配置服务实现类
@@ -61,8 +63,7 @@ public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper, ConfigDO> i
         wrapper.eq(ConfigDO::getName, name);
 
         ConfigDO domain = super.getOne(wrapper);
-
-        if(ObjectUtil.isNullEmpty(domain)){
+        if(Objects.isNull(domain)){
             return null;
         }
 
@@ -115,12 +116,13 @@ public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper, ConfigDO> i
     public Long commonSaveUpdate(Long id, ConfigSaveUpdateParam param) {
 
         // 传入配置名称时校验唯一性，更新时排除自身记录
-        if(ObjectUtil.isNotNullEmpty(param.getName())) {
+        String name = param.getName();
+        if(StringUtils.isNotBlank(name)) {
 
             LambdaQueryWrapper<ConfigDO> wrapper = Wrappers.lambdaQuery();
-            wrapper.eq(ConfigDO::getName, param.getName());
+            wrapper.eq(ConfigDO::getName, name);
 
-            if(ObjectUtil.isNotNullEmpty(id)) {
+            if(ObjectUtil.isNotNull(id)) {
                 wrapper.ne(ConfigDO::getId, id);
             }
 

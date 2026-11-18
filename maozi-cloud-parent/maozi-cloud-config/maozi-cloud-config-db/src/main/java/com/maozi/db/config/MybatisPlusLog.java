@@ -1,11 +1,11 @@
 package com.maozi.db.config;
 
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.context.SqlLogContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.logging.Log;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -90,7 +90,7 @@ public class MybatisPlusLog implements Log {
         StringBuilder sqlLog = SqlLogContext.CONTEXT.get();
 
         // 如果当前线程还没有初始化 SQL 日志构建器，则创建并设置到线程变量中
-        if (ObjectUtil.isNullEmpty(sqlLog)) {
+        if (Objects.isNull(sqlLog)) {
             sqlLog = new StringBuilder();
             SqlLogContext.CONTEXT.set(sqlLog);
         }
@@ -106,11 +106,11 @@ public class MybatisPlusLog implements Log {
 
             s = s.replace(PARAMETERS_PREFIX, "");
 
-            if (StringUtils.isNotBlank(s)) {
-
+            if (StringUtils.isNotEmpty(s)) {
+                
                 // 参数格式为 "value(Type),value(Type),..." 按 "),"(右括号+逗号) 拆分
                 String[] params = PARAM_SPLIT_PATTERN.split(s);
-
+                
                 for (String param : params) {
 
                     // 提取参数值部分（"(" 之前的字符串），并加上单引号包裹
@@ -118,7 +118,6 @@ public class MybatisPlusLog implements Log {
 
                     // 在 SQL 模板中找到第一个 "?" 占位符，用参数值替换
                     int index = sqlLog.indexOf("?");
-
                     if (index != -1) {
                         sqlLog.replace(index, index + 1, param);
 

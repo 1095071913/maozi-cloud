@@ -1,5 +1,6 @@
 package com.maozi.lock.config;
 
+import cn.hutool.core.collection.CollUtil;
 import com.maozi.common.CollectionUtil;
 import com.maozi.lock.annotation.Lock;
 import com.maozi.lock.annotation.LockKey;
@@ -7,6 +8,7 @@ import com.maozi.lock.lock.LockTypeEnum;
 import com.maozi.lock.properties.LockRedissonProperties;
 import com.maozi.redis.utils.RedisUtil;
 import jakarta.annotation.Resource;
+import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -23,7 +25,6 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -77,7 +78,7 @@ public class LockAop {
 
         // 确定锁名称：如果注解指定了名称则使用指定名称，
         // 否则使用 "类名.方法名" 作为默认锁名称
-        String lockName = org.apache.commons.lang3.StringUtils.isNotBlank(annotation.name()) ?
+        String lockName = StringUtils.isNotEmpty(annotation.name()) ?
                 annotation.name()
                 :
                 signature.getDeclaringTypeName() + "." + signature.getMethod().getName();
@@ -144,7 +145,7 @@ public class LockAop {
 
         // 每个业务键前后各拼接 "_"，键之间不加分隔符，形如 "_key1__key2_"
         // （分隔符为空、前缀 "_"、后缀 "_"）
-        return StringUtils.collectionToDelimitedString(keyList, "", "_", "_");
+        return CollUtil.join(keyList, "", "_", "_");
 
     }
 
@@ -164,7 +165,7 @@ public class LockAop {
 
         for (String definitionKey : definitionKeys) {
 
-            if (!ObjectUtils.isEmpty(definitionKey)) {
+            if (StringUtils.isNotEmpty(definitionKey)) {
 
                 // 创建基于方法的 SpEL 求值上下文，
                 // 将方法参数绑定到上下文中以便 SpEL 表达式引用
@@ -172,9 +173,8 @@ public class LockAop {
                         parameterValues, nameDiscoverer);
 
                 // 解析 SpEL 表达式并获取实际值，例如 "#orderId" 会被解析为实际的订单 ID
-                Object objKey = parser.parseExpression(definitionKey).getValue(context);
-
-                definitionKeyList.add(ObjectUtils.nullSafeToString(objKey));
+                Object keyObj = parser.parseExpression(definitionKey).getValue(context);
+                definitionKeyList.add(ObjectUtils.nullSafeToString(keyObj));
 
             }
 
@@ -193,31 +193,28 @@ public class LockAop {
      */
     private List<String> getParameterKey(Parameter[] parameters, Object[] parameterValues) {
 
-        List<String> parameterKey = CollectionUtil.newArrayList();
-
+        List<String> parameterKeys = CollectionUtil.newArrayList();
         for (int i = 0; i < parameters.length; i++) {
 
+            Parameter parameter = parameters[i];
+
             // 检查参数上是否有 @LockKey 注解
-            if (parameters[i].getAnnotation(LockKey.class) != null) {
+            if (parameter.getAnnotation(LockKey.class) != null) {
 
-                LockKey keyAnnotation = parameters[i].getAnnotation(LockKey.class);
+                Object parameterValue = parameterValues[i];
 
+                LockKey keyAnnotation = parameter.getAnnotation(LockKey.class);
                 if (keyAnnotation.value().isEmpty()) {
-
                     // 如果 @LockKey 未指定 SpEL 表达式，直接使用参数的 toString 值作为锁键
-                    Object parameterValue = parameterValues[i];
-
-                    parameterKey.add(ObjectUtils.nullSafeToString(parameterValue));
+                    parameterKeys.add(ObjectUtils.nullSafeToString(parameterValue));
 
                 } else {
 
                     // 如果 @LockKey 指定了 SpEL 表达式，则以参数对象为根对象解析表达式
                     // 例如参数为 User 对象，表达式为 "id"，则提取 user.getId() 的值
-                    StandardEvaluationContext context = new StandardEvaluationContext(parameterValues[i]);
-
+                    StandardEvaluationContext context = new StandardEvaluationContext(parameterValue);
                     Object key = parser.parseExpression(keyAnnotation.value()).getValue(context);
-
-                    parameterKey.add(ObjectUtils.nullSafeToString(key));
+                    parameterKeys.add(ObjectUtils.nullSafeToString(key));
 
                 }
 
@@ -225,7 +222,7 @@ public class LockAop {
 
         }
 
-        return parameterKey;
+        return parameterKeys;
 
     }
 

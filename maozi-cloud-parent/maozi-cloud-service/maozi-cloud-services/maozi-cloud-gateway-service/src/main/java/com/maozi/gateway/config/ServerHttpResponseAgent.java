@@ -1,14 +1,15 @@
 package com.maozi.gateway.config;
 
+import com.maozi.common.CollectionUtil;
 import com.maozi.common.JacksonUtil;
 import com.maozi.common.LogUtil;
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.constant.LogTag;
 import com.maozi.common.context.TraceIdContext;
 import com.maozi.common.result.success.SuccessResult;
 import io.opentelemetry.api.trace.Span;
 import jakarta.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.logging.MDC;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -130,7 +131,7 @@ public class ServerHttpResponseAgent extends ServerHttpResponseDecorator {
                 // OTel 已有则由其 MDC 集成接管，不覆盖
                 if (TraceIdContext.TRACE_ID_VALUE.equals(Span.current().getSpanContext().getTraceId())) {
                     String traceId = request.getHeaders().getFirst(TraceIdContext.KEY);
-                    if (ObjectUtil.isNullEmpty(traceId)) {
+                    if (StringUtils.isEmpty(traceId)) {
                         traceId = UUID.randomUUID().toString();
                     }
                     MDC.put(TraceIdContext.MDC_TRACE_ID_KEY, traceId);
@@ -145,7 +146,7 @@ public class ServerHttpResponseAgent extends ServerHttpResponseDecorator {
                 if (Objects.requireNonNull(super.getDelegate().getStatusCode()).value() != HttpStatus.OK.value()) {
                     // HTTP 状态码非 200，记录错误日志
                     LogUtil.error(log, logs);
-                } else if (ObjectUtil.isNotNullEmpty(result) && result.containsKey(RESULT_CODE_KEY)
+                } else if (CollectionUtil.isNotEmpty(result) && result.containsKey(RESULT_CODE_KEY)
                         && !String.valueOf(SuccessResult.RESULT_SUCCESS_DEFAULT_CODE)
                             .equals(result.get(RESULT_CODE_KEY).toString())) {
                     // 业务码非 200，记录错误日志

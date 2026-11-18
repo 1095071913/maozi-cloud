@@ -1,6 +1,5 @@
 package com.maozi.gateway.filter;
 
-import com.maozi.common.ObjectUtil;
 import com.maozi.discovery.config.GrayRoundRobinLoadBalancer;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.DefaultRequest;
@@ -21,6 +20,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.util.Objects;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR;
 
@@ -82,15 +82,14 @@ public class GrayReactiveLoadBalancerClientFilter extends ReactiveLoadBalancerCl
 
         // 获取当前请求的 URL
         URI url = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
-
-        // 获取路由方案前缀
-        String schemePrefix = exchange.getAttribute(GATEWAY_SCHEME_PREFIX_ATTR);
-
         // 无请求 URL 时直接放行
-        if (ObjectUtil.isNullEmpty(url)) {
+        if (Objects.isNull(url)) {
             return chain.filter(exchange);
         }
 
+
+        // 获取路由方案前缀
+        String schemePrefix = exchange.getAttribute(GATEWAY_SCHEME_PREFIX_ATTR);
         // 非 lb（负载均衡）协议的请求直接放行
         boolean isLoadBalancerRoute = SCHEME_LB.equals(url.getScheme()) || SCHEME_LB.equals(schemePrefix);
         if (!isLoadBalancerRoute) {

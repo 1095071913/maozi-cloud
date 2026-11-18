@@ -1,7 +1,7 @@
 package com.maozi.oauth.client.enums;
 
-import cn.hutool.core.util.ObjectUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.maozi.common.ObjectUtil;
 import com.maozi.common.enums.BaseEnum;
 import lombok.Getter;
 

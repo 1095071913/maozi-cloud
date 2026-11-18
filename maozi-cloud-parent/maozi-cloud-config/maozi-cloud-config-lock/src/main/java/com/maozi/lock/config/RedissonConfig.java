@@ -38,15 +38,14 @@ public class RedissonConfig {
      * </p>
      *
      * @return RedissonClient 实例
-     * @throws Exception 配置异常
      */
     @Bean(destroyMethod = "shutdown")
     @ConditionalOnMissingBean
-    public RedissonClient redisson() throws Exception {
+    public RedissonClient redisson() {
 
         Config config = new Config();
 
-        if(ObjectUtil.isNotNullEmpty(lockRedissonProperties.getNodeAddresses())){
+        if(ObjectUtil.isNotNull(lockRedissonProperties.getNodeAddresses())){
             // 集群模式：配置多个 Redis 节点地址和密码
             config.useClusterServers()
                     .setPassword(lockRedissonProperties.getPassword())

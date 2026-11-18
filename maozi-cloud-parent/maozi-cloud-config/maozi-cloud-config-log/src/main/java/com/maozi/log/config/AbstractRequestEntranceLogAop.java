@@ -130,7 +130,7 @@ public abstract class AbstractRequestEntranceLogAop {
 
             // 获取当前登录用户 ID
             Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
-            if (ObjectUtil.isNotNullEmpty(userId)) {
+            if (ObjectUtil.isNotNull(userId)) {
                 // 记录当前操作用户
                 logs.put(LogTag.ERROR_USER, userId.toString());
             }
@@ -150,7 +150,7 @@ public abstract class AbstractRequestEntranceLogAop {
 
             // 记录本次请求过程中执行的 SQL 日志（从 ThreadLocal 中获取）
             StringBuilder sqlLog = SqlLogContext.CONTEXT.get();
-            if (ObjectUtil.isNotNullEmpty(sqlLog)) {
+            if (ObjectUtil.isNotNull(sqlLog)) {
                 logs.put(LogTag.SQL, sqlLog.toString());
             }
 
@@ -158,7 +158,7 @@ public abstract class AbstractRequestEntranceLogAop {
             logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + " ms");
 
             // 判断结果是否为框架统一响应类型且请求失败（业务或系统错误）
-            if (ObjectUtil.isNotNullEmpty(resultData) 
+            if (ObjectUtil.isNotNull(resultData) 
                 && resultData instanceof AbstractBaseResult<?> result
                 && !result.isSuccess()
             ) {

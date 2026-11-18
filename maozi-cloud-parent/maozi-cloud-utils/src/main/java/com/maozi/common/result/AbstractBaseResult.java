@@ -20,7 +20,6 @@ package com.maozi.common.result;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.result.error.ErrorResult;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
@@ -142,7 +141,7 @@ public abstract class AbstractBaseResult<D> implements Serializable {
             throwError();
         }
 
-        if(ObjectUtil.isNullEmpty(getData())) {
+        if(Objects.isNull(getData())) {
             throw new BusinessResultException(SystemErrorCode.DATA_NOT_EXIST_ERROR).setResource(resourceName);
         }
 

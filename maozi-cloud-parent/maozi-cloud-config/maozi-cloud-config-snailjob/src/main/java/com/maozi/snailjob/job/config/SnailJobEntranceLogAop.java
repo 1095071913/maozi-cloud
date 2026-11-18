@@ -14,6 +14,7 @@ import com.maozi.common.enums.EnvironmentTypeEnum;
 import com.maozi.common.enums.LogCommonTypeEnum;
 import com.maozi.snailjob.job.config.context.SnailJobParamContext;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -132,7 +133,7 @@ public class SnailJobEntranceLogAop {
             // 记录当前线程累积的 SQL 日志
             // （任务体在独立线程池执行，其 SQL 日志不在本线程）
             StringBuilder sqlLog = SqlLogContext.CONTEXT.get();
-            if (ObjectUtil.isNotNullEmpty(sqlLog)) {
+            if (ObjectUtil.isNotNull(sqlLog)) {
                 logs.put(LogTag.SQL, sqlLog.toString());
             }
 
@@ -141,7 +142,7 @@ public class SnailJobEntranceLogAop {
 
             // 按执行结果输出远程日志（上报至 SnailJob 服务端）
             String log = LogUtil.convertLog(logs);
-            if (ObjectUtil.isNotNullEmpty(ex)) {
+            if (ObjectUtil.isNotNull(ex)) {
                 SnailJobLog.REMOTE.error(log, ex);
             } else {
                 SnailJobLog.REMOTE.info(log);
@@ -169,7 +170,7 @@ public class SnailJobEntranceLogAop {
     private String getExecutorInfo(ProceedingJoinPoint proceedingJoinPoint) {
 
         for (Object param : proceedingJoinPoint.getArgs()) {
-            if (param instanceof JobContext jobContext && ObjectUtil.isNotNullEmpty(jobContext.getExecutorInfo())) {
+            if (param instanceof JobContext jobContext && StringUtils.isNotEmpty(jobContext.getExecutorInfo())) {
                 return jobContext.getExecutorInfo();
             }
         }

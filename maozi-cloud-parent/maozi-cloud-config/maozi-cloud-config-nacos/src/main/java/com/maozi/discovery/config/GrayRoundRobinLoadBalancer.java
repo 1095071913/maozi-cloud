@@ -1,7 +1,6 @@
 package com.maozi.discovery.config;
 
 import com.maozi.common.CollectionUtil;
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.context.VersionContext;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
@@ -113,7 +112,7 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
     private Response<ServiceInstance> getInstanceResponse(List<ServiceInstance> instances, HttpHeaders headers) {
 
         // 无可用服务实例时直接抛出服务不存在异常
-        if(ObjectUtil.isNullEmpty(instances)){
+        if(CollectionUtil.isEmpty(instances)){
             throw new BusinessResultException(SystemErrorCode.SERVICE_NOT_EXIST_ERROR)
                 .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
         }
@@ -156,12 +155,12 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
 
         // 优先使用灰度节点，若无匹配的灰度节点则回退到主版本节点
         List<ServiceInstance> applicationClients =
-            ObjectUtil.isNotNullEmpty(grayApplicationClients)
+            CollectionUtil.isNotEmpty(grayApplicationClients)
                 ? grayApplicationClients
                 : mainApplicationClients;
 
         // 灰度分组与主版本分组均为空时，抛出服务不存在异常
-        if(ObjectUtil.isNullEmpty(applicationClients)){
+        if(CollectionUtil.isEmpty(applicationClients)){
             throw new BusinessResultException(SystemErrorCode.SERVICE_NOT_EXIST_ERROR)
                 .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
         }

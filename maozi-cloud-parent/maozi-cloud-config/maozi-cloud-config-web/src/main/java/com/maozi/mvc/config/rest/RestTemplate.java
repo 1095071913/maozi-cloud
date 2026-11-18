@@ -125,7 +125,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
 
             // 记录响应状态码和响应数据到日志
             logs.put(LogTag.CODE, Integer.toString(response.getStatusCode().value()));
-            if (ObjectUtil.isNotNullEmpty(data)) {
+            if (ObjectUtil.isNotNull(data)) {
                 logs.put(LogTag.DATA, data.toString());
             }
 
@@ -141,7 +141,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
 
             // 记录异常相关的用户、描述和堆栈位置到日志
             Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
-            if (ObjectUtil.isNotNullEmpty(userId)) {
+            if (ObjectUtil.isNotNull(userId)) {
                 logs.put(LogTag.ERROR_USER, userId.toString());
             }
             logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
@@ -166,7 +166,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
 
             // 收集本次请求链路中累积的 SQL 日志
             StringBuilder sqlLog = SqlLogContext.CONTEXT.get();
-            if (ObjectUtil.isNotNullEmpty(sqlLog)) {
+            if (ObjectUtil.isNotNull(sqlLog)) {
                 logs.put(LogTag.SQL, sqlLog.toString());
             }
 

@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 自定义统一重试处理器
@@ -121,7 +122,7 @@ public class RetryExecutorTask implements ExecutorMethod {
 
             // 提取反射调用的根因异常，无根因时取当前异常
             ex = e.getCause();
-            if (ObjectUtil.isNullEmpty(ex)) {
+            if (Objects.isNull(ex)) {
                 ex = e;
             }
 
@@ -143,7 +144,7 @@ public class RetryExecutorTask implements ExecutorMethod {
 
             // 记录本次请求过程中执行的 SQL 日志（从 ThreadLocal 中获取）
             StringBuilder sqlLog = SqlLogContext.CONTEXT.get();
-            if (ObjectUtil.isNotNullEmpty(sqlLog)) {
+            if (ObjectUtil.isNotNull(sqlLog)) {
                 logs.put(LogTag.SQL, sqlLog.toString());
             }
 
@@ -151,7 +152,7 @@ public class RetryExecutorTask implements ExecutorMethod {
             logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + " ms");
 
             // 存在异常描述时以 error 级别输出日志，否则以 info 级别输出
-            LogUtil.log(log, ObjectUtil.isNotNullEmpty(ex), logs, ex);
+            LogUtil.log(log, ObjectUtil.isNotNull(ex), logs, ex);
 
             // 清理重试流量标记与链路上下文
             RetryContextHolder.clear();

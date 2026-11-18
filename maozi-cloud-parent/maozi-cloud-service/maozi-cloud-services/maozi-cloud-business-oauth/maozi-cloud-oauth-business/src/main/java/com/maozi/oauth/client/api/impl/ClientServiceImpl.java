@@ -19,6 +19,7 @@ import com.maozi.oauth.client.param.ClientSaveUpdateParam;
 import com.maozi.oauth.client.result.ClientInfoResult;
 import com.maozi.oauth.client.result.ClientListResult;
 import com.maozi.service.api.impl.BaseServiceImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
@@ -33,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -103,16 +105,16 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
     @Transactional(rollbackFor = Exception.class)
     public Long adminSaveUpdate(Long id, ClientSaveUpdateParam param) {
 
-        if(ObjectUtil.isNullEmpty(id)) {
+        if(Objects.isNull(id)) {
 
             // 新增：自动生成客户端标识（clientId）
             param.setClientId(String.valueOf(IdWorker.getId()));
 
-            if(ObjectUtil.isNullEmpty(param.getAccessTokenValiditySeconds())){
+            if(Objects.isNull(param.getAccessTokenValiditySeconds())){
                 param.setAccessTokenValiditySeconds(DEFAULT_ACCESS_TOKEN_VALIDITY_SECONDS);
             }
 
-            if(ObjectUtil.isNullEmpty(param.getRefreshTokenValiditySeconds())){
+            if(Objects.isNull(param.getRefreshTokenValiditySeconds())){
                 param.setRefreshTokenValiditySeconds(DEFAULT_REFRESH_TOKEN_VALIDITY_SECONDS);
             }
 
@@ -126,14 +128,14 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
         }
         
         // 客户端密钥非空时加密存储（更新未传密钥则保持原值）
-        if(ObjectUtil.isNotNullEmpty(param.getClientSecret())) {
+        if(StringUtils.isNotBlank(param.getClientSecret())) {
             param.setClientSecret(PASSWORD_ENCODER.encode(param.getClientSecret()));
         }
 
         Long accessTokenValiditySeconds = param.getAccessTokenValiditySeconds();
         Long refreshTokenValiditySeconds = param.getRefreshTokenValiditySeconds();
-        if(ObjectUtil.isNotNullEmpty(accessTokenValiditySeconds)
-                && ObjectUtil.isNotNullEmpty(refreshTokenValiditySeconds)) {
+        if(ObjectUtil.isNotNull(accessTokenValiditySeconds)
+                && ObjectUtil.isNotNull(refreshTokenValiditySeconds)) {
 
             TokenSettings.Builder builder = TokenSettings.builder();
 
@@ -143,15 +145,9 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
             builder.deviceCodeTimeToLive(Duration.ofSeconds(DEVICE_CODE_TTL_SECONDS));
             // 不重用 Refresh Token（每次刷新时签发新的 Refresh Token）
             builder.reuseRefreshTokens(Boolean.FALSE);
-
-
-            if(ObjectUtil.isNotNullEmpty(accessTokenValiditySeconds)){
-                builder.accessTokenTimeToLive(Duration.ofSeconds(accessTokenValiditySeconds));
-            }
-
-            if(ObjectUtil.isNotNullEmpty(refreshTokenValiditySeconds)) {
-                builder.refreshTokenTimeToLive(Duration.ofSeconds(refreshTokenValiditySeconds));
-            }
+            
+            builder.accessTokenTimeToLive(Duration.ofSeconds(accessTokenValiditySeconds));
+            builder.refreshTokenTimeToLive(Duration.ofSeconds(refreshTokenValiditySeconds));
 
             param.setTokenSettings(builder.build().getSettings());
 
@@ -180,7 +176,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
                 ClientDO::getTokenSettings, ClientDO::getRemark, ClientDO::getStatus);
 
         // 防御性判空（getAvailableById在数据不存在时已抛出异常，正常不会进入该分支）
-        if(ObjectUtil.isNullEmpty(domain)){
+        if(Objects.isNull(domain)){
             return null;
         }
 

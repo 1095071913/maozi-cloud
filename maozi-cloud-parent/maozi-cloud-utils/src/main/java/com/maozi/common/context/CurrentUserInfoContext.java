@@ -1,9 +1,10 @@
 package com.maozi.common.context;
 
 import com.maozi.common.JacksonUtil;
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.dto.CurrentUserInfo;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -33,7 +34,7 @@ public class CurrentUserInfoContext extends AbstractRequestContextHolder<Current
      * @param currentUserInfoJson 用户信息的 JSON 字符串，为空时不做任何处理
      */
     public void set(String currentUserInfoJson) {
-        if (ObjectUtil.isNotNullEmpty(currentUserInfoJson)) {
+        if (StringUtils.isNotEmpty(currentUserInfoJson)) {
             super.set(JacksonUtil.jsonToObject(currentUserInfoJson, CurrentUserInfo.class));
         }
     }
@@ -47,7 +48,7 @@ public class CurrentUserInfoContext extends AbstractRequestContextHolder<Current
      */
     public <R> R get(Function<CurrentUserInfo, R> function) {
         CurrentUserInfo currentUserInfo = super.get();
-        if (ObjectUtil.isNullEmpty(currentUserInfo)) {
+        if (Objects.isNull(currentUserInfo)) {
             return null;
         }
         return function.apply(currentUserInfo);
@@ -59,7 +60,11 @@ public class CurrentUserInfoContext extends AbstractRequestContextHolder<Current
      * @return 用户信息 JSON 字符串，未登录时返回字面量 "null"，序列化失败时返回 null
      */
     public String getJson() {
-        return JacksonUtil.objectToJson(super.get());
+        CurrentUserInfo currentUserInfo = super.get();
+        if (Objects.isNull(currentUserInfo)) {
+            return null;
+        }
+        return JacksonUtil.objectToJson(currentUserInfo);
     }
 
 }

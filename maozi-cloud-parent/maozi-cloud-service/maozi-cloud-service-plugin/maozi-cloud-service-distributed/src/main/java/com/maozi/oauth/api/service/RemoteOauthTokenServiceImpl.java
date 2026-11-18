@@ -8,6 +8,7 @@ import com.maozi.oauth.token.constants.OAuth2TokenUserClaimConstants;
 import com.maozi.service.api.annotation.RemoteResource;
 import com.maozi.service.config.RemoteOauthTokenServiceConfiguration;
 import jakarta.annotation.Resource;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.core.OAuth2TokenIntrospectionClaimNames;
 
@@ -56,29 +57,29 @@ public class RemoteOauthTokenServiceImpl implements OauthTokenService {
     @Override
     public Map<String, Object> introspect(String token) {
 
-        if(ObjectUtil.isNotNullEmpty(mode) && !MODE_RPC.equalsIgnoreCase(mode)){
+        if(StringUtils.isNotEmpty(mode) && !MODE_RPC.equalsIgnoreCase(mode)){
 
             // REST 返回的时间与用户 ID 为字符串，还原为内省器所需的 Instant/Long 类型
             Map<String, Object> introspectResultData = restOauthTokenService.introspectResult(token)
                     .getResultDataThrowError();
 
             Object iatObj = introspectResultData.get(OAuth2TokenIntrospectionClaimNames.IAT);
-            if(ObjectUtil.isNotNullEmpty(iatObj)){
+            if(ObjectUtil.isNotNull(iatObj)){
                 introspectResultData.put(OAuth2TokenIntrospectionClaimNames.IAT, Instant.parse(iatObj.toString()));
             }
 
             Object expObj = introspectResultData.get(OAuth2TokenIntrospectionClaimNames.EXP);
-            if(ObjectUtil.isNotNullEmpty(expObj)){
+            if(ObjectUtil.isNotNull(expObj)){
                 introspectResultData.put(OAuth2TokenIntrospectionClaimNames.EXP, Instant.parse(expObj.toString()));
             }
 
             Object nbfObj = introspectResultData.get(OAuth2TokenIntrospectionClaimNames.NBF);
-            if(ObjectUtil.isNotNullEmpty(nbfObj)){
+            if(ObjectUtil.isNotNull(nbfObj)){
                 introspectResultData.put(OAuth2TokenIntrospectionClaimNames.NBF, Instant.parse(nbfObj.toString()));
             }
 
             Object userIdObj = introspectResultData.get(OAuth2TokenUserClaimConstants.USER_ID);
-            if(ObjectUtil.isNotNullEmpty(userIdObj)){
+            if(ObjectUtil.isNotNull(userIdObj)){
                 introspectResultData.put(OAuth2TokenUserClaimConstants.USER_ID, Long.parseLong(userIdObj.toString()));
             }
 

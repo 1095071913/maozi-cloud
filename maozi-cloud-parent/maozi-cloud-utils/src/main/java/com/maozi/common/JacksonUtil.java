@@ -19,6 +19,7 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -27,6 +28,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TimeZone;
 
 /**
@@ -81,7 +83,7 @@ public class JacksonUtil {
      */
     public static ObjectMapper initObjectMapperConfig(ObjectMapper objectMapper){
 
-        if(ObjectUtil.isNullEmpty(objectMapper)){
+        if(Objects.isNull(objectMapper)){
             return null;
         }
 
@@ -110,7 +112,7 @@ public class JacksonUtil {
             public String deserialize(JsonParser jsonParser,
                     DeserializationContext deserializationContext) throws IOException {
                 String result = StringDeserializer.instance.deserialize(jsonParser, deserializationContext);
-                if (ObjectUtil.isNullEmpty(result)) {
+                if (StringUtils.isEmpty(result)) {
                     return null;
                 }
                 return result;

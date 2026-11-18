@@ -242,7 +242,7 @@ public class SentinelApiClient {
      */
     protected static HttpUriRequest postRequest(String url, Map<String, String> params, boolean supportEnhancedContentType) {
         HttpPost httpPost = new HttpPost(url);
-        if (params != null && params.size() > 0) {
+        if (params != null && !params.isEmpty()) {
             List<NameValuePair> list = new ArrayList<>(params.size());
             for (Entry<String, String> entry : params.entrySet()) {
                 list.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));

@@ -10,6 +10,7 @@ import jakarta.validation.ValidatorFactory;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -50,7 +51,7 @@ public class ValidatorUtil {
      */
     public static void validate(Object data) {
 
-        if (ObjectUtil.isNullEmpty(data)) {
+        if (Objects.isNull(data)) {
             throw new BusinessResultException(SystemErrorCode.PARAM_ERROR, "参数不能为空");
         }
 
@@ -60,7 +61,7 @@ public class ValidatorUtil {
         }
 
         Set<ConstraintViolation<Object>> violations = VALIDATOR.validate(target);
-        if (ObjectUtil.isNullEmpty(violations)) {
+        if (CollectionUtil.isEmpty(violations)) {
             return;
         }
 

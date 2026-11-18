@@ -1,7 +1,7 @@
 package com.maozi.gateway.sentinel;
 
 import com.alibaba.csp.sentinel.config.SentinelConfig;
-import com.maozi.common.ObjectUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.Ordered;
@@ -65,8 +65,7 @@ public class ApplicationNameInitializer implements ApplicationContextInitializer
 
         ConfigurableEnvironment environment = applicationContext.getEnvironment();
         String applicationName = environment.getProperty(APPLICATION_NAME_KEY);
-
-        if (ObjectUtil.isNotNullEmpty(applicationName)) {
+        if (StringUtils.isNotEmpty(applicationName)) {
             System.setProperty(SentinelConfig.APP_NAME_PROP_KEY, applicationName);
         }
 

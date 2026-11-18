@@ -2,7 +2,6 @@ package com.maozi.mvc.config.code;
 
 import cn.hutool.extra.spring.SpringUtil;
 import com.maozi.common.LogUtil;
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.result.error.code.AbstractBaseErrorCode;
 import com.maozi.common.result.error.code.ErrorCode;
 import com.maozi.common.result.error.code.SystemErrorCode;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -102,7 +102,7 @@ public class CodeConfig {
 
         ErrorCode errorCode = ERROR_CODES.get(code);
 
-        return ObjectUtil.isNullEmpty(errorCode) ? SystemErrorCode.NOT_EXIST_CODE_ERROR : errorCode;
+        return Objects.isNull(errorCode) ? SystemErrorCode.NOT_EXIST_CODE_ERROR : errorCode;
 
     }
 

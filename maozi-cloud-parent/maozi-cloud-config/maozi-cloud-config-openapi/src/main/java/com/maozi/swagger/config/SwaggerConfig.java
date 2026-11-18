@@ -7,9 +7,7 @@
 
 package com.maozi.swagger.config;
 
-import cn.hutool.core.collection.CollUtil;
 import com.maozi.common.CollectionUtil;
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.constant.AuthorizationConstant;
 import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.common.properties.ApiWhitelistProperties;
@@ -45,6 +43,7 @@ import java.util.Set;
  * @author maozi
  * @date 2026/11/08
  */
+@SuppressWarnings("all")
 @Configuration
 @ConditionalOnProperty(
         name = "springdoc.api-docs.enabled",                 // 配置项名
@@ -107,7 +106,7 @@ public class SwaggerConfig {
 
         // 合并项目自定义白名单（可能未配置）
         List<String> apiWhitelist = apiWhitelistProperties.getConfigWhitelist();
-        if(ObjectUtil.isNotNullEmpty(apiWhitelist)){
+        if(CollectionUtil.isNotEmpty(apiWhitelist)){
             whitelist.addAll(apiWhitelist);
         }
 
@@ -153,7 +152,7 @@ public class SwaggerConfig {
             }
 
             Map<String, Schema> schemas = openApi.getComponents().getSchemas();
-            if (CollUtil.isEmpty(schemas)) {
+            if (CollectionUtil.isEmpty(schemas)) {
                 return;
             }
 

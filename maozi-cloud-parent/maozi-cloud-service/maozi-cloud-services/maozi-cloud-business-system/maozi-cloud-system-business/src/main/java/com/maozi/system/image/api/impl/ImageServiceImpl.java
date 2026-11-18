@@ -1,7 +1,6 @@
 package com.maozi.system.image.api.impl;
 
 import com.maozi.common.CollectionUtil;
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.system.image.api.ImageService;
 import com.maozi.system.image.enums.ImageStorageTypeEnum;
@@ -11,11 +10,13 @@ import com.maozi.system.image.properties.ImageStorageProperties;
 import com.maozi.system.image.result.ImageUploadResult;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 图片服务实现类
@@ -87,7 +88,7 @@ public class ImageServiceImpl implements ImageService {
 
         // 存储类型未配置时默认使用阿里云 OSS
         String storeTypeCode = imageStorageProperties.getStoreType();
-        storeTypeCode = ObjectUtil.isNullEmpty(storeTypeCode) ?
+        storeTypeCode = StringUtils.isEmpty(storeTypeCode) ?
                 DEFAULT_IMAGE_STORAGE_TYPE_CODE
                 :
                 storeTypeCode;
@@ -95,8 +96,7 @@ public class ImageServiceImpl implements ImageService {
         ImageStorageTypeEnum storeType = ImageStorageTypeEnum.get(storeTypeCode);
 
         ImageStorageHandler handler = handlerMap.get(storeType);
-
-        if(ObjectUtil.isNullEmpty(handler)) {
+        if(Objects.isNull(handler)) {
             throw new BusinessResultException("未知的图片存储类型：" + storeTypeCode);
         }
 

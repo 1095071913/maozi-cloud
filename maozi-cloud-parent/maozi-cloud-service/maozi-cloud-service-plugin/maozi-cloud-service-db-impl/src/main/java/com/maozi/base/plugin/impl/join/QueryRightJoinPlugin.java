@@ -35,7 +35,7 @@ public class QueryRightJoinPlugin extends BaseJoinPlugin {
         String tableName = joinPlugin.tableName();
 
         // 配置了表别名时拼接为 "表名 as 别名"
-        if(StringUtils.isNotBlank(joinPlugin.tableAlias())){
+        if(StringUtils.isNotEmpty(joinPlugin.tableAlias())){
             tableName += " as " + joinPlugin.tableAlias();
         }
 

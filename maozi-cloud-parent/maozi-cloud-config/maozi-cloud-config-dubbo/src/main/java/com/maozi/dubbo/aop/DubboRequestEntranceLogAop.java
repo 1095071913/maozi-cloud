@@ -18,7 +18,6 @@
 
 package com.maozi.dubbo.aop;
 
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.common.enums.LogCommonTypeEnum;
 import com.maozi.log.config.AbstractRequestEntranceLogAop;
@@ -27,6 +26,8 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
+
+import java.util.Objects;
 
 /**
  * RPC 接口请求入口日志切面
@@ -65,14 +66,13 @@ public class DubboRequestEntranceLogAop extends AbstractRequestEntranceLogAop {
      *
      * @param proceedingJoinPoint AOP 连接点
      * @return 业务方法执行结果
-     * @throws AccessDeniedException 权限拒绝时经基类原样上抛，交由 Spring Security 处理
      */
     @Around(POINT)
     @Override
     public Object doAround(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 
         // 非 Dubbo 流量时直接放行，不记录 RPC 入口日志
-        if (ObjectUtil.isNullEmpty(RpcContext.getServiceContext().getRemoteAddress())) {
+        if (Objects.isNull(RpcContext.getServiceContext().getRemoteAddress())) {
             return proceedingJoinPoint.proceed();
         }
 

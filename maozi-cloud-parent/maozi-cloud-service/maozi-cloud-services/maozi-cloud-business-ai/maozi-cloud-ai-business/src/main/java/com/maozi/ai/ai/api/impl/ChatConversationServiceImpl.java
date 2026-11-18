@@ -13,12 +13,12 @@ import com.maozi.ai.ai.result.ChatConversationListResult;
 import com.maozi.base.param.PageParam;
 import com.maozi.base.param.RequestParam;
 import com.maozi.base.result.PageResult;
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.dto.CurrentUserInfo;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.service.api.impl.BaseServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -105,7 +105,7 @@ public class ChatConversationServiceImpl extends BaseServiceImpl<ChatConversatio
     public Long adminSave(RequestParam<String> param) {
 
         String title = param.getData();
-        if(ObjectUtil.isNullEmpty(title)){
+        if(StringUtils.isBlank(title)){
             throw new BusinessResultException("消息不能为空");
         }
 
@@ -129,7 +129,7 @@ public class ChatConversationServiceImpl extends BaseServiceImpl<ChatConversatio
     public void adminUpdateTitle(Long conversationId, RequestParam<String> param) {
 
         String title = param.getData();
-        if(ObjectUtil.isNullEmpty(title)){
+        if(StringUtils.isBlank(title)){
             throw new BusinessResultException("标题不能为空");
         }
 

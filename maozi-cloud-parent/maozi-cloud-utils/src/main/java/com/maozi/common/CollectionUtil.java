@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -166,7 +165,7 @@ public class CollectionUtil {
      * @return 为 null 或空时返回 true
      */
     public static boolean isEmpty(Collection<?> collection) {
-        return Objects.isNull(collection) || collection.isEmpty();
+        return collection == null || collection.isEmpty();
     }
 
     /**
@@ -186,7 +185,7 @@ public class CollectionUtil {
      * @return 为 null 或空时返回 true
      */
     public static boolean isEmpty(Map<?,?> map) {
-        return Objects.isNull(map) || map.isEmpty();
+        return map == null || map.isEmpty();
     }
 
     /**
@@ -210,7 +209,7 @@ public class CollectionUtil {
      */
     public static <T> Collection<T> collectionIsEmptyThrowError(Collection<T> collection,String resourceName) {
 
-        if(ObjectUtil.isNullEmpty(collection)) {
+        if(CollectionUtil.isEmpty(collection)) {
             throw new BusinessResultException(SystemErrorCode.DATA_NOT_EXIST_ERROR)
                     .setResource(resourceName);
         }
@@ -229,9 +228,9 @@ public class CollectionUtil {
      * @return 原 Map
      * @throws BusinessResultException Map 为 null 或空时抛出
      */
-    public static <K,V> Map<K,V> collectionIsEmptyThrowError(Map<K,V> map,String resourceName) {
+    public static <K,V> Map<K,V> collectionIsEmptyThrowError(Map<K,V> map, String resourceName) {
 
-        if(ObjectUtil.isNullEmpty(map)) {
+        if(CollectionUtil.isEmpty(map)) {
             throw new BusinessResultException(SystemErrorCode.DATA_NOT_EXIST_ERROR)
                     .setResource(resourceName);
         }

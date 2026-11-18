@@ -1,7 +1,6 @@
 package com.maozi.oauth.config;
 
 import com.maozi.common.CollectionUtil;
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.properties.ApiWhitelistProperties;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -62,7 +61,7 @@ public class ResourceServerConfig {
         whitelist.addAll(ApiWhitelistProperties.DEFAULT_WHITE_LIST);
 
         List<String> configWhitelist = apiWhitelistProperties.getConfigWhitelist();
-        if(ObjectUtil.isNotNullEmpty(configWhitelist)){
+        if(CollectionUtil.isNotEmpty(configWhitelist)){
             whitelist.addAll(configWhitelist);
         }
 

@@ -1,6 +1,6 @@
 package com.maozi.stream.config;
 
-import com.maozi.common.ObjectUtil;
+import com.maozi.common.CollectionUtil;
 import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.context.TestFlowContext;
@@ -80,7 +80,7 @@ public class MessageSendStream {
         // 当前为非默认版本且该版本已无存活实例时，灰度标识回退为默认版本，
         // 保证消息仍可被消费
         if(!VersionContext.APPLICATION_DEFAULT_VERSION.equals(version)
-                && ObjectUtil.isNullEmpty(applicationClients.get(version))){
+                && CollectionUtil.isEmpty(applicationClients.get(version))){
             version = VersionContext.APPLICATION_DEFAULT_VERSION;
         }
 

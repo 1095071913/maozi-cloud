@@ -18,7 +18,6 @@
 package com.maozi.oauth.token.config.service.impl;
 
 import com.maozi.common.CollectionUtil;
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.result.error.ErrorResult;
 import com.maozi.common.result.error.code.SystemErrorCode;
@@ -76,7 +75,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
             // 远程返回对象的集合字段无契约上的非空保证，
             // 判空防止 NPE（为空视为无权限）
-            List<String> authorities = ObjectUtil.isNullEmpty(oauthUserInfo.getAuthorities())
+            List<String> authorities = CollectionUtil.isEmpty(oauthUserInfo.getAuthorities())
                     ? List.of() : oauthUserInfo.getAuthorities();
             authorities.forEach((permission)->{
                 grantedAuthorities.add(new SimpleGrantedAuthority(permission));

@@ -17,10 +17,10 @@
 
 package com.maozi.common.result.error.code;
 
-import com.maozi.common.ObjectUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -81,7 +81,7 @@ public class ErrorCode implements Serializable {
      * @return 异常信息
      */
     public String getExceptionMessage() {
-        return ObjectUtil.isNotNullEmpty(this.exceptionMessage) ? this.exceptionMessage : this.message;
+        return StringUtils.isNotEmpty(this.exceptionMessage) ? this.exceptionMessage : this.message;
     }
 
 }

@@ -57,7 +57,7 @@ public class Oauth2AuthTypeHandler extends JacksonTypeHandler {
         return Arrays.stream(json.split(","))
                 .map(String::trim) // 去除空格（容错）
                 .map(AuthTypeEnum::getByAuth)
-                .filter(ObjectUtil::isNotNullEmpty)
+                .filter(ObjectUtil::isNotNull)
                 .collect(Collectors.toSet());
     }
 

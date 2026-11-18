@@ -1,6 +1,6 @@
 package com.maozi.common.context;
 
-import com.maozi.common.ObjectUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
 
 /**
@@ -37,7 +37,7 @@ public class TraceIdContext extends AbstractRequestContextHolder<String> {
      */
     @Override
     public void set(String traceId) {
-        if (ObjectUtil.isNotNullEmpty(traceId)) {
+        if (StringUtils.isNotEmpty(traceId)) {
             super.set(traceId);
             MDC.put(MDC_TRACE_ID_KEY, traceId);
         }

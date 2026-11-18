@@ -107,7 +107,7 @@ public class JobEntranceLogAop {
 
             // 记录任务执行过程中的 SQL 日志
             StringBuilder sqlLog = SqlLogContext.CONTEXT.get();
-            if (ObjectUtil.isNotNullEmpty(sqlLog)) {
+            if (ObjectUtil.isNotNull(sqlLog)) {
                 logs.put(LogTag.SQL, sqlLog.toString());
             }
 
@@ -115,7 +115,7 @@ public class JobEntranceLogAop {
             logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + " ms");
 
             // 按执行结果以 info/error 级别输出日志
-            LogUtil.log(log, ObjectUtil.isNotNullEmpty(ex), logs, ex);
+            LogUtil.log(log, ObjectUtil.isNotNull(ex), logs, ex);
 
             // 清理线程上下文，防止线程池复用导致数据泄漏
             AbstractRequestContextHolder.clearContext();

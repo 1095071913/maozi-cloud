@@ -124,7 +124,7 @@ public final class LogUtil {
      */
     public static String convertLog(Map<String, String> content) {
 
-        if(ObjectUtil.isNullEmpty(content)){
+        if(CollectionUtil.isEmpty(content)){
             return null;
         }
 

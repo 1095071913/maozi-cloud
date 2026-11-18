@@ -30,6 +30,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -138,7 +139,7 @@ public class ErrorResult<D> extends AbstractBaseResult<D> implements Serializabl
      */
     @Override
     public Integer getCode() {
-        return ObjectUtil.isNotNullEmpty(code) ? code : SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE;
+        return ObjectUtil.isNotNull(code) ? code : SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE;
     }
 
     /**
@@ -147,7 +148,7 @@ public class ErrorResult<D> extends AbstractBaseResult<D> implements Serializabl
      * @return HTTP 状态码
      */
     public Integer getHttpCode() {
-        return ObjectUtil.isNotNullEmpty(httpCode) ? httpCode : SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE;
+        return ObjectUtil.isNotNull(httpCode) ? httpCode : SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE;
     }
 
     /**
@@ -156,7 +157,7 @@ public class ErrorResult<D> extends AbstractBaseResult<D> implements Serializabl
      * @return 异常信息
      */
     public String getExceptionMessage() {
-        return ObjectUtil.isNotNullEmpty(exceptionMessage) ? exceptionMessage : message;
+        return StringUtils.isNotEmpty(exceptionMessage) ? exceptionMessage : message;
     }
 
     /**
@@ -261,7 +262,7 @@ public class ErrorResult<D> extends AbstractBaseResult<D> implements Serializabl
     public ErrorResult<D> autoIdentifyHttpCode() {
 
         HttpServletResponse response = WebUtil.getResponse();
-        if(ObjectUtil.isNotNullEmpty(response)) {
+        if(ObjectUtil.isNotNull(response)) {
             response.setStatus(getHttpCode());
         }
 

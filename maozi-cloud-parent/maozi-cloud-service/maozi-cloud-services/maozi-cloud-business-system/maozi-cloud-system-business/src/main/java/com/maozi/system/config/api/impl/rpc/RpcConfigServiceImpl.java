@@ -33,7 +33,7 @@ public class RpcConfigServiceImpl extends BaseServiceResultImpl<ConfigServiceImp
     @Override
     public AbstractBaseResult<String> getResult(String key) {
         ConfigDropDownResult configResult = service.commonGetConfigByName(key);
-        return ResultUtil.success(ObjectUtil.isNotNullEmpty(configResult) ? configResult.getValue() : null);
+        return ResultUtil.success(ObjectUtil.isNotNull(configResult) ? configResult.getValue() : null);
     }
 
 }

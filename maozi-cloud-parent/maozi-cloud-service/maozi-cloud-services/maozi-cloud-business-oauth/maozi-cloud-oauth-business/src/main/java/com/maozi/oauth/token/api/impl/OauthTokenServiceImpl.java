@@ -1,7 +1,6 @@
 package com.maozi.oauth.token.api.impl;
 
 import com.maozi.common.CollectionUtil;
-import com.maozi.common.ObjectUtil;
 import com.maozi.oauth.token.api.OauthTokenService;
 import com.maozi.oauth.token.config.service.OAuth2AuthorizationService;
 import jakarta.annotation.Nonnull;
@@ -15,6 +14,7 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * OAuth 令牌服务本地实现
@@ -59,7 +59,7 @@ public class OauthTokenServiceImpl implements OauthTokenService {
         // 校验授权记录对应的客户端是否仍已注册
         RegisteredClient authorizedClient = this.registeredClientRepository.findById(
                 authorization.getRegisteredClientId());
-        if(ObjectUtil.isNullEmpty(authorizedClient)){
+        if(Objects.isNull(authorizedClient)){
             return CollectionUtil.newHashMap(OAuth2TokenIntrospectionClaimNames.ACTIVE, false);
         }
 

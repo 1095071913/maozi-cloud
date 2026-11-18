@@ -28,6 +28,7 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -86,7 +87,7 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
     public Class<D> getResultClass(){
 
         // 懒加载解析泛型实参，避免在构造方法中执行业务逻辑
-        if(ObjectUtil.isNullEmpty(resultClass)) {
+        if(Objects.isNull(resultClass)) {
 
             // 沿继承链向上查找带泛型参数的父类，提取第二个泛型实参作为结果 DTO 类型
             for (Class<?> superClass = this.getClass();
@@ -247,7 +248,7 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
         wrapper.in(relationField,ids);
 
         List<AbstractBaseDomain> domains = service.list(wrapper);
-        if(ObjectUtil.isNullEmpty(domains)) {
+        if(CollectionUtil.isEmpty(domains)) {
             return ResultUtil.success(CollectionUtil.newHashMap());
         }
 

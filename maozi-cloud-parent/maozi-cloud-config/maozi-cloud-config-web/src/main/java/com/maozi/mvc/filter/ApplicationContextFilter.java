@@ -1,6 +1,5 @@
 package com.maozi.mvc.filter;
 
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.context.AbstractRequestContextHolder;
 import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.context.TestFlowContext;
@@ -13,12 +12,14 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -65,7 +66,7 @@ public class ApplicationContextFilter extends OncePerRequestFilter {
         // 上下文中尚无当前用户信息时，从请求头解析并补齐
         // （供网关/上游透传用户信息的场景）
         CurrentUserInfo currentUserInfo = CurrentUserInfoContext.CONTEXT.get();
-        if(ObjectUtil.isNullEmpty(currentUserInfo)){
+        if(Objects.isNull(currentUserInfo)){
             CurrentUserInfoContext.CONTEXT.set(request.getHeader(CurrentUserInfoContext.KEY));
         }
 
@@ -74,7 +75,7 @@ public class ApplicationContextFilter extends OncePerRequestFilter {
         String traceId = Span.current().getSpanContext().getTraceId();
         if(TraceIdContext.TRACE_ID_VALUE.equals(traceId)){
             traceId = request.getHeader(TraceIdContext.KEY);
-            if(ObjectUtil.isNullEmpty(traceId)){
+            if(StringUtils.isEmpty(traceId)){
                 traceId = UUID.randomUUID().toString();
             }
             TraceIdContext.CONTEXT.set(traceId);

@@ -1,6 +1,5 @@
 package com.maozi.gateway.utils;
 
-import com.maozi.common.ObjectUtil;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
@@ -80,7 +79,7 @@ public class WebUtil {
      * @return 如果 IP 为空、空白或 "unknown" 则返回 true
      */
     private static boolean isBlankOrUnknown(String ip) {
-        return ObjectUtil.isNullEmpty(ip) || ip.isBlank() || com.maozi.common.WebUtil.UNKNOWN.equalsIgnoreCase(ip);
+        return Objects.isNull(ip) || ip.isBlank() || com.maozi.common.WebUtil.UNKNOWN.equalsIgnoreCase(ip);
     }
 
 }

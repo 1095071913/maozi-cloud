@@ -1,9 +1,9 @@
 package com.maozi.gateway.filter;
 
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.context.AbstractRequestContextHolder;
 import com.maozi.common.context.TraceIdContext;
 import io.opentelemetry.api.trace.Span;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -53,7 +53,7 @@ public class TraceIdFilter implements GlobalFilter, Ordered {
 
             // 优先复用请求头中携带的 traceId，缺失时生成 UUID
             String traceId = exchange.getRequest().getHeaders().getFirst(TraceIdContext.KEY);
-            if (ObjectUtil.isNullEmpty(traceId)) {
+            if (StringUtils.isEmpty(traceId)) {
                 traceId = UUID.randomUUID().toString();
             }
 

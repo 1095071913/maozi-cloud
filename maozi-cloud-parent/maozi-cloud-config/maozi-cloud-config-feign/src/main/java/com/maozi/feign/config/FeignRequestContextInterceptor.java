@@ -1,12 +1,12 @@
 package com.maozi.feign.config;
 
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.context.TestFlowContext;
 import com.maozi.common.context.TraceIdContext;
 import com.maozi.common.context.VersionContext;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -37,7 +37,7 @@ public class FeignRequestContextInterceptor implements RequestInterceptor {
     public void apply(RequestTemplate requestTemplate) {
 
         String currentUserInfoJson = CurrentUserInfoContext.CONTEXT.getJson();
-        if(ObjectUtil.isNotNullEmpty(currentUserInfoJson)){
+        if(StringUtils.isNotEmpty(currentUserInfoJson)){
             requestTemplate.header(CurrentUserInfoContext.KEY, currentUserInfoJson);
         }
 

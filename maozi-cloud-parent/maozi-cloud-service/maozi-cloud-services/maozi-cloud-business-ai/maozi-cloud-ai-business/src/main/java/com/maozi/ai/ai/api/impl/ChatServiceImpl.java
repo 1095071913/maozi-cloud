@@ -26,6 +26,7 @@ import com.maozi.system.config.api.rpc.RpcConfigService;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
@@ -153,7 +154,7 @@ public class ChatServiceImpl implements ChatService {
 
         // 携带图片时构建多模态消息
         List<String> images = param.getImages();
-        boolean hasImage = ObjectUtil.isNotNullEmpty(images);
+        boolean hasImage = CollectionUtil.isNotEmpty(images);
         if(hasImage){
             List<Media> medias = CollectionUtil.newArrayList();
             for(String image : images){
@@ -192,9 +193,9 @@ public class ChatServiceImpl implements ChatService {
 
         // 配置了提示词 key 时，从系统配置服务获取提示词内容作为系统消息
         String promptConfig = param.getPromptConfig();
-        if(ObjectUtil.isNotNullEmpty(promptConfig)){
+        if(StringUtils.isNotBlank(promptConfig)){
             promptConfig = rpcConfigService.getResult(promptConfig).getResultDataThrowError();
-            if(ObjectUtil.isNotNullEmpty(promptConfig)){
+            if(StringUtils.isNotBlank(promptConfig)){
                 chatClientRequest.system(promptConfig);
             }
         }
@@ -326,7 +327,7 @@ public class ChatServiceImpl implements ChatService {
         String chatStopLockKey = AI_CHAT_STOP_KEY + conversationId;
         String chatGenerateImageStopLockKey = AI_CHAT_GENERATE_IMAGE_STOP_KEY + conversationId;
 
-        int count = ObjectUtil.isNotNullEmpty(param.getCount()) ? param.getCount() : DEFAULT_IMAGE_COUNT;
+        int count = ObjectUtil.isNotNull(param.getCount()) ? param.getCount() : DEFAULT_IMAGE_COUNT;
 
         // 写入对话与文生图进行中标记，过期时间按生成数量放大，防止异常导致标记残留
         stringValueOperations.setIfAbsent(chatStopLockKey, Boolean.TRUE.toString(),
@@ -344,8 +345,8 @@ public class ChatServiceImpl implements ChatService {
             Integer height = param.getHeight();
             Integer width = param.getWidth();
             ImageOptions options = ImageOptionsBuilder.builder()
-                    .height(ObjectUtil.isNotNullEmpty(height) ? height : DEFAULT_IMAGE_SIZE)
-                    .width(ObjectUtil.isNotNullEmpty(width) ? width : DEFAULT_IMAGE_SIZE)
+                    .height(ObjectUtil.isNotNull(height) ? height : DEFAULT_IMAGE_SIZE)
+                    .width(ObjectUtil.isNotNull(width) ? width : DEFAULT_IMAGE_SIZE)
                     .N(count)
                     .build();
 
@@ -434,7 +435,7 @@ public class ChatServiceImpl implements ChatService {
     public List<ChatItemResult> adminGetAfterMessages(Long conversationId, Long createTime) {
 
         List<Message> messages = chatMemoryRepository.findRecordAfterTimestamp(conversationId.toString(), createTime);
-        if(ObjectUtil.isNullEmpty(messages)){
+        if(CollectionUtil.isEmpty(messages)){
             return CollectionUtil.newArrayList();
         }
 

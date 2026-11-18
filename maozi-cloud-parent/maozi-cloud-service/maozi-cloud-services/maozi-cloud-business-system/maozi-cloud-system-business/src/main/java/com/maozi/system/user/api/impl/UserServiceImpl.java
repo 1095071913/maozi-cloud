@@ -48,6 +48,7 @@ import com.maozi.system.user.param.UserSaveUpdateParam;
 import com.maozi.system.user.result.OauthUserInfoResult;
 import jakarta.annotation.Resource;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -58,6 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 用户服务实现类
@@ -167,7 +169,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
     @Transactional(rollbackFor = Exception.class)
     public Long adminSaveUpdate(Long id, UserSaveUpdateParam param) {
 
-        boolean hasId = ObjectUtil.isNotNullEmpty(id);
+        boolean hasId = ObjectUtil.isNotNull(id);
         if(hasId) {
 
             // 更新时不允许修改用户名和客户端ID，置空以忽略这两个字段
@@ -177,7 +179,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
 
         }else {
 
-            if(ObjectUtil.isNotNullEmpty(param.getClientId()) && ObjectUtil.isNotNullEmpty(param.getUsername())) {
+            if(ObjectUtil.isNotNull(param.getClientId()) && StringUtils.isNotBlank(param.getUsername())) {
 
                 // 校验客户端存在且可用，不可用则抛出异常
                 rpcClientService.checkAvailableResult(param.getClientId()).getResultDataThrowError();
@@ -192,7 +194,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
 
         }
 
-        if(ObjectUtil.isNotNullEmpty(param.getPassword())) {
+        if(StringUtils.isNotBlank(param.getPassword())) {
             // 密码非空时先加密再入库
             param.setPassword(PASSWORD_ENCODER.encode(param.getPassword()));
         }
@@ -225,7 +227,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
 
         // 先获取用户的用户名和客户端ID，删除后需用于注销认证令牌
         UserDO user = super.getById(id, UserDO::getUsername,UserDO::getClientId);
-        if(ObjectUtil.isNullEmpty(user)){
+        if(Objects.isNull(user)){
             return;
         }
 
@@ -292,11 +294,11 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
         String paramNewPassword = param.getNewPassword();
 
         // 旧密码与新密码同时传入时，先校验旧密码，再将新密码加密
-        if(ObjectUtil.isNotNullEmpty(paramPassword) && ObjectUtil.isNotNullEmpty(paramNewPassword)){
+        if(StringUtils.isNotBlank(paramPassword) && StringUtils.isNotBlank(paramNewPassword)){
             UserDO domain = super.getByIdThrowError(userId, UserDO::getPassword);
 
             // 旧密码与库中密文不匹配时抛出业务异常
-            if(!UserServiceImpl.PASSWORD_ENCODER.matches(paramPassword,domain.getPassword())){
+            if(!UserServiceImpl.PASSWORD_ENCODER.matches(paramPassword, domain.getPassword())){
                 throw new BusinessResultException("旧密码不正确");
             }
 

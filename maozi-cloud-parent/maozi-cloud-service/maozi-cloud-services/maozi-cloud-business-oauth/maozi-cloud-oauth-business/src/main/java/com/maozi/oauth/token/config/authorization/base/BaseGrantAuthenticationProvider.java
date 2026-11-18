@@ -36,7 +36,6 @@ import org.springframework.security.oauth2.server.authorization.token.DefaultOAu
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 import java.security.Principal;
 import java.util.LinkedHashSet;
@@ -289,11 +288,11 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
     private Set<String> getAuthorizedScopes(RegisteredClient registeredClient, Set<String> requestedScopes) {
         // 默认使用客户端配置的scope
         Set<String> authorizedScopes = registeredClient.getScopes();
-        if (!ObjectUtils.isEmpty(requestedScopes)) {
+        if (!CollectionUtil.isEmpty(requestedScopes)) {
             Set<String> unauthorizedScopes = requestedScopes.stream()
                     .filter(requestedScope -> !registeredClient.getScopes().contains(requestedScope))
                     .collect(Collectors.toSet());
-            if (!ObjectUtils.isEmpty(unauthorizedScopes)) {
+            if (!CollectionUtil.isEmpty(unauthorizedScopes)) {
                 throw new OAuth2AuthenticationException(new OAuth2Error( OAuth2ErrorCodes.INVALID_REQUEST,
                         "OAuth 2.0 Parameter: " + OAuth2ParameterNames.SCOPE, ERROR_URI));
             }

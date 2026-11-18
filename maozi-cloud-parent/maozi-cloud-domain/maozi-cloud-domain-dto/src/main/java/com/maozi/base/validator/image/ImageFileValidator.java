@@ -1,11 +1,11 @@
 package com.maozi.base.validator.image;
 
-import com.maozi.common.ObjectUtil;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -46,14 +46,14 @@ public class ImageFileValidator implements ConstraintValidator<ImageFile, Multip
     public boolean isValid(MultipartFile file, ConstraintValidatorContext context) {
 
         // 文件为空时跳过校验，交给 @NotNull 等注解处理非空逻辑
-        if (ObjectUtil.isNullEmpty(file) || file.isEmpty()) {
+        if (Objects.isNull(file) || file.isEmpty()) {
             return true;
         }
 
         // getOriginalFilename 可能为 null，取出的小写扩展名可能为空，此时直接不通过
         String contentType = file.getContentType();
         String extension = StringUtils.lowerCase(StringUtils.substringAfterLast(file.getOriginalFilename(), "."));
-        if(ObjectUtil.isNullEmpty(extension)) {
+        if(StringUtils.isEmpty(extension)) {
             return false;
         }
         return ALLOWED_IMAGE_EXTENSIONS.contains(extension)

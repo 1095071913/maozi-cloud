@@ -20,14 +20,14 @@ package com.maozi;
 /**
  * 系统模块启动类
  * <p>
- * 继承自 BaseApplicationDB，作为系统服务模块的入口类，
+ * 继承自 BaseApplication，作为系统服务模块的入口类，
  * 负责初始化并启动 Spring Boot 应用程序。
  * </p>
  *
  * @author maozi
  * @date 2026/11/08
  */
-public class Application extends BaseApplicationDB {
+public class Application extends BaseApplication {
 
     /**
      * 应用程序主入口方法

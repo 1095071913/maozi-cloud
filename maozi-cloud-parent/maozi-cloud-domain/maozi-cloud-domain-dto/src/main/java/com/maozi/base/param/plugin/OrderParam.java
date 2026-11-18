@@ -111,7 +111,7 @@ public interface OrderParam {
                 Map<String, Boolean> orderFieldMap = getOrderFieldMap();
 
                 // 前端未传入排序规则时使用空 Map，避免空指针
-                if (ObjectUtil.isNullEmpty(orderFieldMap)) {
+                if (CollectionUtil.isEmpty(orderFieldMap)) {
                     orderFieldMap = CollectionUtil.newHashMap();
                 }
 
@@ -119,7 +119,7 @@ public interface OrderParam {
                 Boolean orderMainFieldValue =
                         orderFieldMap.getOrDefault(orderMainField, orderMainFieldEntry.getValue());
 
-                if (ObjectUtil.isNotNullEmpty(orderMainFieldValue)) {
+                if (ObjectUtil.isNotNull(orderMainFieldValue)) {
 
                     String underlineCase = StrUtil.toUnderlineCase(key);
 

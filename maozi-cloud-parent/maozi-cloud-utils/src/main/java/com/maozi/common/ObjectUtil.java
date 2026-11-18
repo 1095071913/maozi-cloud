@@ -4,11 +4,7 @@ import com.maozi.common.result.error.code.ErrorCode;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
 
-import java.lang.reflect.Array;
-import java.util.Collection;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * 对象工具类
@@ -25,12 +21,12 @@ public class ObjectUtil {
     /**
      * 判断两个对象是否相等
      *
-     * @param a 对象 a
-     * @param b 对象 b
+     * @param aParam 对象 aParam
+     * @param bParam 对象 bParam
      * @return 相等返回 true
      */
-    public static Boolean equals(Object a, Object b) {
-        return Objects.equals(a,b);
+    public static Boolean equals(Object aParam, Object bParam) {
+        return Objects.equals(aParam, bParam);
     }
 
     /**
@@ -39,8 +35,8 @@ public class ObjectUtil {
      * @param data 待检查对象
      * @return 不为空返回 true
      */
-    public static boolean isNotNullEmpty(Object data){
-        return !isNullEmpty(data);
+    public static boolean isNotNull(Object data){
+        return !isNull(data);
     }
 
     /**
@@ -53,30 +49,8 @@ public class ObjectUtil {
      * @param data 待检查对象
      * @return 为空返回 true
      */
-    public static boolean isNullEmpty(Object data){
-
-        if(data == null){
-            return true;
-        }
-
-        if (data instanceof CharSequence charSequence) {
-            return charSequence.isEmpty();
-        }
-
-        if(data.getClass().isArray()){
-            return Array.getLength(data) == 0;
-        }
-
-        if(data instanceof Collection<?> collection){
-            return collection.isEmpty();
-        }
-
-        if(data instanceof Optional<?> optional){
-            return optional.isEmpty();
-        }
-
-        return data instanceof Map<?, ?> map && map.isEmpty();
-
+    public static boolean isNull(Object data){
+        return data == null;
     }
 
     /**
@@ -87,7 +61,7 @@ public class ObjectUtil {
      * @throws BusinessResultException 对象为 null 或空时抛出
      */
     public static void isNullEmptyThrowError(Object data, String sourceName) {
-        isNullEmptyThrowError(data,SystemErrorCode.DATA_NOT_EXIST_ERROR,sourceName);
+        isNullEmptyThrowError(data,SystemErrorCode.DATA_NOT_EXIST_ERROR, sourceName);
     }
 
     /**
@@ -110,7 +84,7 @@ public class ObjectUtil {
      * @throws BusinessResultException 对象为 null 或空时抛出
      */
     public static void isNullEmptyThrowError(Object data, ErrorCode errorCode, String resourceName) {
-        if(isNullEmpty(data)) {
+        if(isNull(data)) {
             throw new BusinessResultException(errorCode)
                     .setResource(resourceName);
         }
@@ -125,7 +99,7 @@ public class ObjectUtil {
      * @throws BusinessResultException 对象不为空时抛出
      */
     public static void isNotNullEmptyThrowError(Object data, ErrorCode errorCode, String resourceName) {
-        if(isNotNullEmpty(data)) {
+        if(isNotNull(data)) {
             throw new BusinessResultException(errorCode)
                     .setResource(resourceName);
         }
@@ -139,7 +113,7 @@ public class ObjectUtil {
      * @throws BusinessResultException 对象为 null 或空时抛出
      */
     public static void isNullEmptyThrowError(Object data, ErrorCode errorCode) {
-        if(isNullEmpty(data)) {
+        if(isNull(data)) {
             throw new BusinessResultException(errorCode);
         }
     }
@@ -152,7 +126,7 @@ public class ObjectUtil {
      * @throws BusinessResultException 对象不为空时抛出
      */
     public static void isNotNullEmptyThrowError(Object data, ErrorCode errorCode) {
-        if(isNotNullEmpty(data)) {
+        if(isNotNull(data)) {
             throw new BusinessResultException(errorCode);
         }
     }
@@ -168,7 +142,7 @@ public class ObjectUtil {
         if(condition) {
             return;
         }
-        throw new BusinessResultException(message,SystemErrorCode.SYSTEM_ERROR)
+        throw new BusinessResultException(message, SystemErrorCode.SYSTEM_ERROR)
                 .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
     }
 
@@ -184,7 +158,7 @@ public class ObjectUtil {
         if(condition) {
             return;
         }
-        throw new BusinessResultException(code,message);
+        throw new BusinessResultException(code, message);
     }
 
     /**

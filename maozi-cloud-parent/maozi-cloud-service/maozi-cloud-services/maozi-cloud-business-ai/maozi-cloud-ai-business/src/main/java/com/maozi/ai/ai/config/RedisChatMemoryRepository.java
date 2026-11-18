@@ -6,10 +6,10 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.maozi.ai.ai.constant.ChatMessageConstant;
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.JacksonUtil;
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.redis.utils.RedisUtil;
 import jakarta.annotation.Resource;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
@@ -158,13 +158,13 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
         // 从索引 ZSET 中按 score 范围取出消息 ID
         Set<String> messageIds = redisClient.boundZSetOps(aiChatMemoryKey + indexKeySuffix)
                 .rangeByScore(minScore, Double.POSITIVE_INFINITY);
-        if(ObjectUtil.isNullEmpty(messageIds)){
+        if(CollectionUtil.isEmpty(messageIds)){
             return CollectionUtil.newArrayList();
         }
 
         // 从消息主体 HASH 中批量取出消息 JSON
         List<String> messages = redisClient.<String, String>boundHashOps(aiChatMemoryKey).multiGet(messageIds);
-        if(ObjectUtil.isNullEmpty(messages)){
+        if(CollectionUtil.isEmpty(messages)){
             return CollectionUtil.newArrayList();
         }
 
@@ -204,7 +204,7 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
             String createTime = (String) metadata.get(ChatMessageConstant.CREATE_TIME);
 
             // 首次写入的消息：生成雪花 ID 并记录写入时间戳到消息元数据
-            if(ObjectUtil.isNullEmpty(messageId)){
+            if(StringUtils.isEmpty(messageId)){
                 createTime = String.valueOf(System.currentTimeMillis());
                 messageId = String.valueOf(IdWorker.getId());
                 metadata.put(ChatMessageConstant.ID, messageId);
@@ -307,12 +307,12 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
     public Message jsonToMessage(String json){
 
         ChatMessage chatMessage = JacksonUtil.jsonToObject(json, ChatMessage.class);
-        if(ObjectUtil.isNullEmpty(chatMessage)){
+        if(Objects.isNull(chatMessage)){
             throw new RuntimeException("message data conversion error");
         }
 
         String messageTypeString = chatMessage.getMessageType();
-        if(ObjectUtil.isNullEmpty(messageTypeString)){
+        if(StringUtils.isEmpty(messageTypeString)){
             throw new RuntimeException("messageType is null");
         }
 

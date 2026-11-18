@@ -4,6 +4,7 @@ import cn.hutool.extra.servlet.JakartaServletUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -44,7 +45,7 @@ public final class WebUtil {
      * @return 在 Web 请求线程中返回 true，否则返回 false
      */
     public static Boolean isHttpRequest() {
-        return ObjectUtil.isNotNullEmpty(getRequest());
+        return ObjectUtil.isNotNull(getRequest());
     }
 
     /**
@@ -64,7 +65,7 @@ public final class WebUtil {
     public static HttpServletRequest getRequest() {
         ServletRequestAttributes servletRequestAttributes =
                 (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (ObjectUtil.isNullEmpty(servletRequestAttributes)) {
+        if (Objects.isNull(servletRequestAttributes)) {
             return null;
         }
         return servletRequestAttributes.getRequest();
@@ -78,7 +79,7 @@ public final class WebUtil {
     public static HttpServletResponse getResponse() {
         ServletRequestAttributes servletRequestAttributes =
                 (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (ObjectUtil.isNullEmpty(servletRequestAttributes)) {
+        if (Objects.isNull(servletRequestAttributes)) {
             return null;
         }
         return servletRequestAttributes.getResponse();
@@ -96,7 +97,7 @@ public final class WebUtil {
      */
     public static void writeResponseBody(HttpServletResponse response, Object data) {
 
-        if (ObjectUtil.isNullEmpty(response) || ObjectUtil.isNullEmpty(data)) {
+        if (Objects.isNull(response) || Objects.isNull(data)) {
             return;
         }
 
@@ -127,7 +128,7 @@ public final class WebUtil {
      * @return 为 null、空白或 "unknown"（不区分大小写）时返回 true
      */
     private static boolean isBlankOrUnknown(String ip) {
-        return ObjectUtil.isNullEmpty(ip) || ip.isBlank() || UNKNOWN.equalsIgnoreCase(ip);
+        return StringUtils.isBlank(ip) || UNKNOWN.equalsIgnoreCase(ip);
     }
 
 }

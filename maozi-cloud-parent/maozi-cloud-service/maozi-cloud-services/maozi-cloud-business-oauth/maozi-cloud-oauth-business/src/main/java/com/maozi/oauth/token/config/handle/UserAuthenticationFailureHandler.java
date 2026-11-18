@@ -49,8 +49,8 @@ public class UserAuthenticationFailureHandler implements
         // 否则使用默认的用户认证错误码返回
 
         ErrorResult<?> errorResult = null;
-        if(ObjectUtil.isNotNullEmpty(causeException)
-            && ObjectUtil.isNotNullEmpty(causeException.getCause())
+        if(ObjectUtil.isNotNull(causeException)
+            && ObjectUtil.isNotNull(causeException.getCause())
             && causeException.getCause() instanceof BusinessResultException businessResultException){
             
             errorResult = businessResultException.getErrorResult().autoIdentifyHttpCode();

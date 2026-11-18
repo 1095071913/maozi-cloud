@@ -1,7 +1,6 @@
 package com.maozi.oauth.token.api.rest.fallback;
 
 import com.maozi.common.JacksonUtil;
-import com.maozi.common.ObjectUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.common.result.error.ErrorResult;
 import com.maozi.common.result.error.exception.BusinessResultException;
@@ -10,6 +9,7 @@ import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * OAuth 令牌服务降级工厂
@@ -38,7 +38,7 @@ public class RestOauthTokenServiceFallBackFactory implements FallbackFactory<Res
         ErrorResult<?> errorResult = JacksonUtil.jsonToObject(e.getLocalizedMessage(), ErrorResult.class);
 
         // 解析结果为空时，回退使用业务异常（BusinessResultException）携带的结果
-        ErrorResult result = ObjectUtil.isNullEmpty(errorResult)
+        ErrorResult result = Objects.isNull(errorResult)
                 ? ((BusinessResultException)e).getErrorResult() : errorResult;
 
         return new RestOauthTokenService() {

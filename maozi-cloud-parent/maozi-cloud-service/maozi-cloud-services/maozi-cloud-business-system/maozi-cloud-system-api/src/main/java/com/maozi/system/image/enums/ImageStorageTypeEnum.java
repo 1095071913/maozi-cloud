@@ -1,5 +1,6 @@
 package com.maozi.system.image.enums;
 
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.enums.BaseEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
@@ -61,7 +62,7 @@ public enum ImageStorageTypeEnum implements BaseEnum {
     public static ImageStorageTypeEnum get(String code) {
 
         for(ImageStorageTypeEnum type : values()) {
-            if(code != null && type.code.equalsIgnoreCase(code)) {
+            if(type.code.equalsIgnoreCase(code)) {
                 return type;
             }
         }
@@ -77,7 +78,7 @@ public enum ImageStorageTypeEnum implements BaseEnum {
      */
     @Override
     public String toString() {
-        return value + "." + desc;
+        return value + SymbolConstant.DOT + desc;
     }
 
 }

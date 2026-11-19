@@ -1,5 +1,6 @@
 package com.maozi.ai.ai.enums;
 
+import com.maozi.common.constant.SymbolConstant;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 
@@ -53,7 +54,7 @@ public enum ChatTypeEnum {
      */
     @Override
     public String toString() {
-        return value + "." + desc;
+        return value + SymbolConstant.DOT + desc;
     }
 
 }

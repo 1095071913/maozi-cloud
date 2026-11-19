@@ -1,5 +1,6 @@
 package com.maozi.gateway.utils;
 
+import com.maozi.common.constant.SymbolConstant;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
@@ -24,7 +25,7 @@ public class WebUtil {
             "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR", "X-Real-IP");
 
     /** 逗号分隔切分模式（多 IP 场景取首段，预编译） */
-    private static final java.util.regex.Pattern COMMA_SPLIT_PATTERN = java.util.regex.Pattern.compile(",");
+    private static final java.util.regex.Pattern COMMA_SPLIT_PATTERN = java.util.regex.Pattern.compile(SymbolConstant.COMMA);
 
     /**
      * 获取客户端真实 IP 地址
@@ -58,7 +59,7 @@ public class WebUtil {
         }
 
         // 处理多 IP 情况（x-forwarded-for 会返回 客户端IP,代理1,代理2...）
-        if (requestHost != null && requestHost.contains(",")) {
+        if (requestHost != null && requestHost.contains(SymbolConstant.COMMA)) {
             // 固定取第一段并去除首尾空白（x-forwarded-for 首位即客户端真实 IP）
             requestHost = COMMA_SPLIT_PATTERN.split(requestHost)[0].trim();
         }

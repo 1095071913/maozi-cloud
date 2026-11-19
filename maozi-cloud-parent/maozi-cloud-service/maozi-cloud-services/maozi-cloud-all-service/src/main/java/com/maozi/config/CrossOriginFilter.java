@@ -1,14 +1,16 @@
 package com.maozi.config;
 
+import com.maozi.common.ObjectUtil;
+import com.maozi.common.constant.SymbolConstant;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
-import org.springframework.stereotype.Component;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -37,12 +39,9 @@ import java.io.IOException;
  * @author maozi
  * @date 2026/11/08
  */
-@Component
+@Configuration
 @Order(SecurityProperties.DEFAULT_FILTER_ORDER - 2)
 public class CrossOriginFilter extends OncePerRequestFilter {
-
-    /** 暴露给前端的响应头取值：所有响应头 */
-    private static final String ALL = "*";
 
     /** CORS 预检请求缓存时间（秒） */
     private static final String MAX_AGE = "3600";
@@ -79,18 +78,18 @@ public class CrossOriginFilter extends OncePerRequestFilter {
         // 允许携带凭证（Cookies）
         response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, ALLOW_CREDENTIALS_VALUE);
         // 暴露给前端的响应头
-        response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, ALL);
+        response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, SymbolConstant.ASTERISK);
 
         // 预检请求：补充预检专用响应头后直接返回 200，避免被认证过滤器链拒绝
         if (CorsUtils.isPreFlightRequest(request)) {
             // 允许的请求头：回显预检请求声明的头
             String allowHeaders = request.getHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS);
-            if (allowHeaders != null) {
+            if (ObjectUtil.isNotNull(allowHeaders)) {
                 response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, allowHeaders);
             }
             // 允许的 HTTP 方法：回显预检请求声明的方法
             String allowMethods = request.getHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD);
-            if (allowMethods != null) {
+            if (ObjectUtil.isNotNull(allowMethods)) {
                 response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, allowMethods);
             }
             // 预检请求缓存时间

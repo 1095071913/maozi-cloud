@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.maozi.ai.ai.constant.ChatMessageConstant;
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.JacksonUtil;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.redis.utils.RedisUtil;
 import jakarta.annotation.Resource;
@@ -79,7 +80,7 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
     @Override
     public List<String> findConversationIds() {
 
-        String aiChatMemoryKey = AI_CHAT_MEMORY_KEY + "*";
+        String aiChatMemoryKey = AI_CHAT_MEMORY_KEY + SymbolConstant.ASTERISK;
 
         List<String> conversationIds = CollectionUtil.newArrayList();
         try (Cursor<String> cursor = redisClient.scan(ScanOptions.scanOptions()
@@ -91,7 +92,7 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
                 if (key.endsWith(AI_CHAT_MEMORY_ORDER_KEY_SUFFIX) || key.endsWith(AI_CHAT_MEMORY_RECORD_KEY_SUFFIX)) {
                     return;
                 }
-                conversationIds.add(StrUtil.replace(key, AI_CHAT_MEMORY_KEY, ""));
+                conversationIds.add(StrUtil.replace(key, AI_CHAT_MEMORY_KEY, SymbolConstant.EMPTY));
             });
         }
 

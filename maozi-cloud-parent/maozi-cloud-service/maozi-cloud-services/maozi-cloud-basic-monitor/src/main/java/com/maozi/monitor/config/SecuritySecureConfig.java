@@ -1,5 +1,6 @@
 package com.maozi.monitor.config;
 
+import com.maozi.common.constant.SymbolConstant;
 import de.codecentric.boot.admin.server.config.AdminServerProperties;
 import jakarta.servlet.DispatcherType;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
@@ -75,8 +76,8 @@ public class SecuritySecureConfig {
         // 首页 UiController 的映射经前缀化后是去尾斜杠的 "/monitor" (Spring 6
         // PathPattern 不再将 "/monitor/" 归一到 "/monitor"), 而 adminServer.path("/")
         // 在配置了 context-path 时返回 "/monitor/" —— 直接作默认落点会 404, 需去掉尾斜杠
-        String defaultTargetUrl = this.adminServer.path("/");
-        if (!"/".equals(defaultTargetUrl)) {
+        String defaultTargetUrl = this.adminServer.path(SymbolConstant.SLASH);
+        if (!SymbolConstant.SLASH.equals(defaultTargetUrl)) {
             defaultTargetUrl = StringUtils.trimTrailingCharacter(defaultTargetUrl, '/');
         }
         successHandler.setDefaultTargetUrl(defaultTargetUrl);

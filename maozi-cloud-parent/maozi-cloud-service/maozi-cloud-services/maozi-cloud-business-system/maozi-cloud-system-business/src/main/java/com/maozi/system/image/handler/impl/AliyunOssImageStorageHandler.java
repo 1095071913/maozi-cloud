@@ -5,6 +5,7 @@ import com.aliyun.sdk.service.oss2.OSSClientBuilder;
 import com.aliyun.sdk.service.oss2.credentials.StaticCredentialsProvider;
 import com.aliyun.sdk.service.oss2.models.PutObjectRequest;
 import com.aliyun.sdk.service.oss2.transport.BinaryData;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.result.error.code.ErrorCode;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
@@ -155,7 +156,7 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
 
             // 对象存储路径统一补上前导斜杠后返回
             return new ImageUploadResult(file.getOriginalFilename(),
-                    "/" + fileKey,buildAccessUrl(fileKey), file.getSize());
+                    SymbolConstant.SLASH + fileKey,buildAccessUrl(fileKey), file.getSize());
 
         } catch (Exception e) {
             // 上传过程中的任意异常统一转换为业务异常抛出，并保留原始异常堆栈便于排查
@@ -182,16 +183,16 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
      */
     private String buildObjectKey(String path,String originalFilename) {
 
-        String directory = StringUtils.defaultIfEmpty(StringUtils.strip(path,"/"),DEFAULT_DIRECTORY);
+        String directory = StringUtils.defaultIfEmpty(StringUtils.strip(path,SymbolConstant.SLASH),DEFAULT_DIRECTORY);
 
-        String extension = StringUtils.substringAfterLast(originalFilename,".");
+        String extension = StringUtils.substringAfterLast(originalFilename,SymbolConstant.DOT);
 
         String datePath = LocalDate.now().format(DATE_PATH_FORMATTER);
 
-        String fileName = UUID.randomUUID().toString().replace("-","");
+        String fileName = UUID.randomUUID().toString().replace(SymbolConstant.HYPHEN,SymbolConstant.EMPTY);
 
-        return directory + "/" + datePath + "/" + fileName
-                + (StringUtils.isNotEmpty(extension) ? "." + extension.toLowerCase() : "");
+        return directory + SymbolConstant.SLASH + datePath + SymbolConstant.SLASH + fileName
+                + (StringUtils.isNotEmpty(extension) ? SymbolConstant.DOT + extension.toLowerCase() : SymbolConstant.EMPTY);
 
     }
 
@@ -211,7 +212,7 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
         ImageStorageProperties.Aliyun aliyun = imageStorageProperties.getAliyun();
 
         if(StringUtils.isNotEmpty(aliyun.getDomain())) {
-            return StringUtils.removeEnd(aliyun.getDomain(),"/") + "/" + fileKey;
+            return StringUtils.removeEnd(aliyun.getDomain(),SymbolConstant.SLASH) + SymbolConstant.SLASH + fileKey;
         }
 
         if(StringUtils.isNotEmpty(aliyun.getEndpoint())) {
@@ -219,11 +220,11 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
             URI endpoint = URI.create(aliyun.getEndpoint());
 
             return endpoint.getScheme() + PROTOCOL_SEPARATOR + aliyun.getBucket()
-                    + "." + endpoint.getHost() + "/" + fileKey;
+                    + SymbolConstant.DOT + endpoint.getHost() + SymbolConstant.SLASH + fileKey;
 
         }
 
-        return HTTPS_SCHEME_PREFIX + aliyun.getBucket() + ".oss-" + aliyun.getRegion() + ".aliyuncs.com/" + fileKey;
+        return HTTPS_SCHEME_PREFIX + aliyun.getBucket() + ".oss-" + aliyun.getRegion() + SymbolConstant.DOT + "aliyuncs.com" + SymbolConstant.SLASH + fileKey;
 
     }
 

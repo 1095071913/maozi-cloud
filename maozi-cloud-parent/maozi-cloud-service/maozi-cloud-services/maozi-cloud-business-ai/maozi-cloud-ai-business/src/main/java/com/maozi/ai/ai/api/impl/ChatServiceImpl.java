@@ -18,6 +18,7 @@ import com.maozi.ai.ai.result.ChatResult;
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.ResultUtil;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.redis.utils.RedisUtil;
@@ -240,7 +241,7 @@ public class ChatServiceImpl implements ChatService {
                 .map(chatResponse -> {
 
                     Generation result = chatResponse.getResult();
-                    String aiChat = result == null ? "" : result.getOutput().getText();
+                    String aiChat = ObjectUtil.isNull(result) ? SymbolConstant.EMPTY : result.getOutput().getText();
 
                     aiChatOutputMessage.append(aiChat);
 

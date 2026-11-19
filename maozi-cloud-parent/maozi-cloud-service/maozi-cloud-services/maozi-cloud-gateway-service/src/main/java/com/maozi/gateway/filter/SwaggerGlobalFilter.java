@@ -3,6 +3,7 @@ package com.maozi.gateway.filter;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.parser.Feature;
+import com.maozi.common.constant.SymbolConstant;
 import jakarta.annotation.Nonnull;
 import org.reactivestreams.Publisher;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -58,7 +59,7 @@ public class SwaggerGlobalFilter implements GlobalFilter, Ordered {
     private static final int FILTER_ORDER = -2;
 
     /** URL 路径分隔符切分模式（预编译） */
-    private static final Pattern PATH_SPLIT_PATTERN = Pattern.compile("/");
+    private static final Pattern PATH_SPLIT_PATTERN = Pattern.compile(SymbolConstant.SLASH);
 
     /**
      * 过滤器核心逻辑。
@@ -127,10 +128,10 @@ public class SwaggerGlobalFilter implements GlobalFilter, Ordered {
                         JSONObject jsonObject = JSON.parseObject(response, Feature.DisableSpecialKeyDetect);
 
                         // 设置网关的 host 地址
-                        jsonObject.put(HOST_KEY, host + ":" + port);
+                        jsonObject.put(HOST_KEY, host + SymbolConstant.COLON + port);
 
                         // 设置 basePath 为微服务路由前缀
-                        jsonObject.put(BASE_PATH_KEY, "/" + basePath);
+                        jsonObject.put(BASE_PATH_KEY, SymbolConstant.SLASH + basePath);
 
                         // 获取原始 paths 对象
                         JSONObject paths = (JSONObject)jsonObject.get(PATHS_KEY);
@@ -139,7 +140,7 @@ public class SwaggerGlobalFilter implements GlobalFilter, Ordered {
 
                         // 为每个 API 路径添加微服务前缀（循环体内使用 StringBuilder 拼接）
                         for (Entry<String, Object> entry : entries) {
-                            String key = new StringBuilder("/").append(basePath).append(entry.getKey()).toString();
+                            String key = SymbolConstant.SLASH + basePath + entry.getKey();
                             pathJsonObject.put(key, entry.getValue());
                         }
 

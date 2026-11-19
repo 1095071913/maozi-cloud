@@ -1,5 +1,6 @@
 package com.maozi.system.redirect.enums;
 
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.enums.BaseEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
@@ -51,7 +52,7 @@ public enum RedirectTypeEnum implements BaseEnum {
      */
     @Override
     public String toString() {
-        return value + "." + desc;
+        return value + SymbolConstant.DOT + desc;
     }
 
 }

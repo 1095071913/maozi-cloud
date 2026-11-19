@@ -3,6 +3,7 @@ package com.maozi.dubbo.aop;
 import com.maozi.common.LogUtil;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.constant.LogTag;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.common.enums.LogCommonTypeEnum;
 import com.maozi.common.result.error.code.ErrorCode;
@@ -90,7 +91,7 @@ public class DubboInvokeErrorAop {
             logs.put(LogTag.TYPE, LogCommonTypeEnum.RPC.getDesc());
             logs.put(LogTag.SERVICE_NAME, serviceName);                              // 被调用的服务名称
             logs.put(LogTag.FUNCTION, proceedingJoinPoint.getSignature()             // 被调用的方法全路径
-                    .getDeclaringTypeName() + ":" + proceedingJoinPoint.getSignature().getName());
+                    .getDeclaringTypeName() + SymbolConstant.COLON + proceedingJoinPoint.getSignature().getName());
             logs.put(LogTag.PARAM, Arrays.toString(proceedingJoinPoint.getArgs()));  // 方法入参
             logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());                    // 异常描述信息
 

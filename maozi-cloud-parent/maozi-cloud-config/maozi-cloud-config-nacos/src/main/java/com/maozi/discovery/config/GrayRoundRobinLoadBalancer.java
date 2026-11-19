@@ -1,6 +1,7 @@
 package com.maozi.discovery.config;
 
 import com.maozi.common.CollectionUtil;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.context.VersionContext;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
@@ -137,7 +138,7 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
                 return;
             }
 
-            String[] clientApplicationVersionSplit = versionMetadata.split("-");
+            String[] clientApplicationVersionSplit = versionMetadata.split(SymbolConstant.HYPHEN);
 
             String clientApplicationVersion = clientApplicationVersionSplit[clientApplicationVersionSplit.length - 1];
 

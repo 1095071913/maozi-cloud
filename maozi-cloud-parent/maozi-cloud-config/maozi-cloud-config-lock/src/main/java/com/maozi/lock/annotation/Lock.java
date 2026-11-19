@@ -1,5 +1,6 @@
 package com.maozi.lock.annotation;
 
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.lock.error.strategy.impl.LockTimeoutStrategyEnum;
 import com.maozi.lock.error.strategy.impl.UnLockTimeoutStrategyEnum;
 import com.maozi.lock.lock.LockTypeEnum;
@@ -24,7 +25,7 @@ import java.lang.annotation.Target;
 public @interface Lock {
 
     /** 锁名称 */
-    String name() default "";
+    String name() default SymbolConstant.EMPTY;
 
     /** 锁类型，默认可重入锁 */
     LockTypeEnum type() default LockTypeEnum.REENTRANT;

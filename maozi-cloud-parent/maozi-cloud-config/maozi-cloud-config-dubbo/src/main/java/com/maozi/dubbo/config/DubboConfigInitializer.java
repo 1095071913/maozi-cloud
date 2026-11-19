@@ -2,6 +2,7 @@ package com.maozi.dubbo.config;
 
 import com.maozi.BaseApplication;
 import com.maozi.common.constant.SpringPropertyConstant;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.spi.ConfigInitializer;
 
 import java.util.Map;
@@ -61,7 +62,7 @@ public class DubboConfigInitializer implements ConfigInitializer {
         properties.merge(
                 SpringPropertyConstant.SPRING_CONFIG_IMPORT,
                 IMPORTS,
-                (existing, incoming) -> incoming + "," + existing
+                (existing, incoming) -> incoming + SymbolConstant.COMMA + existing
         );
 
         properties.put(LOGGING_LEVEL_PREFIX + WELCOME_LOGO_LOGGER, LOG_LEVEL_OFF);

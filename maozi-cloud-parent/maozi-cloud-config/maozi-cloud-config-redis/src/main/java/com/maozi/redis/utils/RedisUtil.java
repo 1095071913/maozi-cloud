@@ -1,6 +1,7 @@
 package com.maozi.redis.utils;
 
 import cn.hutool.extra.spring.SpringUtil;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.context.ApplicationEnvironmentContext;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
@@ -32,7 +33,7 @@ public class RedisUtil {
 
         REDIS_CLIENT = SpringUtil.getBean(StringRedisTemplate.class);
 
-        REDIS_KEY_PREFIX = REDIS_KEY_PROJECT_PREFIX + ":" + ApplicationEnvironmentContext.serviceName + ":";
+        REDIS_KEY_PREFIX = REDIS_KEY_PROJECT_PREFIX + SymbolConstant.COLON + ApplicationEnvironmentContext.serviceName + SymbolConstant.COLON;
 
     }
 

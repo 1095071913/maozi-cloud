@@ -2,6 +2,7 @@ package com.maozi.lock.config;
 
 import cn.hutool.core.collection.CollUtil;
 import com.maozi.common.CollectionUtil;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.lock.annotation.Lock;
 import com.maozi.lock.annotation.LockKey;
 import com.maozi.lock.lock.LockTypeEnum;
@@ -81,7 +82,7 @@ public class LockAop {
         String lockName = StringUtils.isNotEmpty(annotation.name()) ?
                 annotation.name()
                 :
-                signature.getDeclaringTypeName() + "." + signature.getMethod().getName();
+                signature.getDeclaringTypeName() + SymbolConstant.DOT + signature.getMethod().getName();
 
         // 拼接锁键名：maozi-cloud:服务名:lock:锁名称_业务键名
         // （REDIS_KEY_PREFIX 尾部自带冒号，业务键以 "_" 为前缀连接）
@@ -145,7 +146,7 @@ public class LockAop {
 
         // 每个业务键前后各拼接 "_"，键之间不加分隔符，形如 "_key1__key2_"
         // （分隔符为空、前缀 "_"、后缀 "_"）
-        return CollUtil.join(keyList, "", "_", "_");
+        return CollUtil.join(keyList, SymbolConstant.EMPTY, SymbolConstant.UNDERLINE, SymbolConstant.UNDERLINE);
 
     }
 

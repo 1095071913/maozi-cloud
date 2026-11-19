@@ -23,6 +23,7 @@ import com.maozi.common.LogUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.constant.LogTag;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.context.SqlLogContext;
 import com.maozi.common.dto.CurrentUserInfo;
@@ -155,7 +156,7 @@ public abstract class AbstractRequestEntranceLogAop {
             }
 
             // 记录响应时间
-            logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + " ms");
+            logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + LogTag.RT_UNIT);
 
             // 判断结果是否为框架统一响应类型且请求失败（业务或系统错误）
             if (ObjectUtil.isNotNull(resultData) 
@@ -204,7 +205,7 @@ public abstract class AbstractRequestEntranceLogAop {
 
         // 记录被调用的方法全路径，格式为 "类全限定名:方法名"
         logs.put(LogTag.FUNCTION, proceedingJoinPoint.getSignature().getDeclaringTypeName()
-                + ":" + proceedingJoinPoint.getSignature().getName());
+                + SymbolConstant.COLON + proceedingJoinPoint.getSignature().getName());
 
         return logs;
 

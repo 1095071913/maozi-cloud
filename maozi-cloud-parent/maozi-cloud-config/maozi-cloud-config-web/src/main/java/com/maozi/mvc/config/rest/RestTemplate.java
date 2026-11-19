@@ -171,7 +171,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
             }
 
             // 最终记录响应耗时（包含异常情况下的耗时）
-            logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + " ms");
+            logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + LogTag.RT_UNIT);
 
             // 根据是否有异常，以对应日志级别输出完整的请求日志
             // （异常时结构化字段与异常堆栈合并为一条日志，避免重复打印）

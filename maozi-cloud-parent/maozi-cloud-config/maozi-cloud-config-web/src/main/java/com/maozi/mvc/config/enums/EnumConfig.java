@@ -3,6 +3,7 @@ package com.maozi.mvc.config.enums;
 import cn.hutool.core.util.ClassUtil;
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.constant.ApplicationNameConstant;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.common.enums.BaseEnum;
 import jakarta.annotation.PostConstruct;
@@ -49,8 +50,8 @@ public class EnumConfig {
         // 普通服务仅扫描当前项目缩写对应的子包
         String subPath = ApplicationNameConstant.MAOZI_CLOUD_ALL_SERVICE
                 .equals(ApplicationEnvironmentContext.serviceName)
-                ? ""
-                : "." + ApplicationEnvironmentContext.applicationProjectAbbreviation;
+                ? SymbolConstant.EMPTY
+                : SymbolConstant.DOT + ApplicationEnvironmentContext.applicationProjectAbbreviation;
         initEnum(ApplicationEnvironmentContext.PACKAGE_PREFIX + subPath);
 
     }

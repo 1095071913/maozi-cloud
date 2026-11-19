@@ -1,6 +1,7 @@
 package com.maozi.lock.lock;
 
 import cn.hutool.extra.spring.SpringUtil;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.enums.BaseEnum;
 import com.maozi.lock.error.strategy.impl.LockTimeoutStrategyEnum;
 import com.maozi.lock.error.strategy.impl.UnLockTimeoutStrategyEnum;
@@ -78,7 +79,7 @@ public enum LockTypeEnum implements BaseEnum {
      */
     @Override
     public String toString() {
-        return value + "." + desc;
+        return value + SymbolConstant.DOT + desc;
     }
 
     /** 锁实现类 */

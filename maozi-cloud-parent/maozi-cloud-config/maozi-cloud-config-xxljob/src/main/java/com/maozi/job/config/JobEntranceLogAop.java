@@ -4,6 +4,7 @@ import com.maozi.common.EnvironmentUtil;
 import com.maozi.common.LogUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.constant.LogTag;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.context.AbstractRequestContextHolder;
 import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.common.context.SqlLogContext;
@@ -70,7 +71,7 @@ public class JobEntranceLogAop {
         // 记录日志类型与任务方法
         logs.put(LogTag.TYPE, LogCommonTypeEnum.JOB.getDesc());
         logs.put(LogTag.FUNCTION, proceedingJoinPoint.getSignature().getDeclaringTypeName()
-            + ":" + proceedingJoinPoint.getSignature().getName());
+            + SymbolConstant.COLON + proceedingJoinPoint.getSignature().getName());
 
         // 非生产环境直接记录任务参数；生产环境为避免参数外泄，仅在异常时补充记录
         boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD);
@@ -112,7 +113,7 @@ public class JobEntranceLogAop {
             }
 
             // 记录任务执行耗时
-            logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + " ms");
+            logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + LogTag.RT_UNIT);
 
             // 按执行结果以 info/error 级别输出日志
             LogUtil.log(log, ObjectUtil.isNotNull(ex), logs, ex);

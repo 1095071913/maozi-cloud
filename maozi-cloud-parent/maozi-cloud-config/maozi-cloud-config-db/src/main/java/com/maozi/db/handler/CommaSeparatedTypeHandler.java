@@ -1,6 +1,7 @@
 package com.maozi.db.handler;
 
 import com.maozi.common.CollectionUtil;
+import com.maozi.common.constant.SymbolConstant;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
@@ -33,9 +34,6 @@ import java.util.Set;
 @MappedJdbcTypes(JdbcType.VARCHAR)
 public class CommaSeparatedTypeHandler extends BaseTypeHandler<Collection<String>> {
 
-    /** 逗号分隔符常量 */
-    private static final String DELIMITER = ",";
-
     /** 字段声明的集合类型，用于决定返回 Set 还是 List */
     private final Class<?> declaredType;
 
@@ -61,7 +59,7 @@ public class CommaSeparatedTypeHandler extends BaseTypeHandler<Collection<String
     public void setNonNullParameter(PreparedStatement ps, int i, Collection<String> parameter,
             JdbcType jdbcType) throws SQLException {
         // 使用逗号将集合中的元素拼接成一个字符串
-        ps.setString(i, String.join(DELIMITER, parameter));
+        ps.setString(i, String.join(SymbolConstant.COMMA, parameter));
     }
 
     /**
@@ -119,7 +117,7 @@ public class CommaSeparatedTypeHandler extends BaseTypeHandler<Collection<String
             return isSetType() ? Set.of() : List.of();
         }
         // 按逗号拆分字符串
-        String[] parts = value.split(DELIMITER);
+        String[] parts = value.split(SymbolConstant.COMMA);
         List<String> list = CollectionUtil.newArrayList(parts.length);
         for (String part : parts) {
             // 去除每个元素的首尾空格

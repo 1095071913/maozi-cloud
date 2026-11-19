@@ -6,6 +6,7 @@ import com.aizuda.snailjob.client.core.callback.complete.RetryCompleteCallback;
 import com.aizuda.snailjob.client.core.callback.complete.SimpleRetryCompleteCallback;
 import com.aizuda.snailjob.client.core.generator.SimpleIdempotentIdGenerate;
 import com.aizuda.snailjob.client.core.retryer.RetryType;
+import com.maozi.common.constant.SymbolConstant;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -68,7 +69,7 @@ public @interface RetryTask {
      *
      * @return 业务标识值
      */
-    String bizNo() default "";
+    String bizNo() default SymbolConstant.EMPTY;
 
     /**
      * 同步（async 为 false）上报数据需要配置超时时间

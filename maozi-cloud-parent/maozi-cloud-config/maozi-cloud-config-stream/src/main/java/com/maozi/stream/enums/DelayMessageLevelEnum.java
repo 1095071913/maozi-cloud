@@ -1,5 +1,6 @@
 package com.maozi.stream.enums;
 
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.enums.BaseEnum;
 import lombok.Getter;
 
@@ -101,7 +102,7 @@ public enum DelayMessageLevelEnum implements BaseEnum {
      */
     @Override
     public String toString() {
-        return value + "." + desc;
+        return value + SymbolConstant.DOT + desc;
     }
 
 }

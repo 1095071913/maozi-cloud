@@ -39,6 +39,7 @@ import com.maozi.common.ObjectUtil;
 import com.maozi.common.ReflectUtil;
 import com.maozi.common.SerializeUtil;
 import com.maozi.common.ValidatorUtil;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.common.result.error.code.ErrorCode;
 import com.maozi.common.result.error.code.SystemErrorCode;
@@ -316,7 +317,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
                     // 无注解：字段名转下划线，关联模式下追加默认表别名前缀
                     String fieldName = StrUtil.toUnderlineCase(field.getName());
                     columns.add(isJoin
-                            ? String.join(".", QueryEnvironmentContext.defaultOrderKey, fieldName)
+                            ? String.join(SymbolConstant.DOT, QueryEnvironmentContext.defaultOrderKey, fieldName)
                             : fieldName);
 
                 }else if(annotation.ignore() && (StringUtils.isNotEmpty(annotation.field())
@@ -333,7 +334,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
                         annotation.field() : StrUtil.toUnderlineCase(field.getName());
 
                     if (Boolean.TRUE.equals(isJoin)) {
-                        fieldName = String.join(".", tableName, fieldName);
+                        fieldName = String.join(SymbolConstant.DOT, tableName, fieldName);
                     }
 
                     columns.add(fieldName);
@@ -1194,7 +1195,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
                 }
 
                 if (StringUtils.isNotEmpty(tableName)) {
-                    fieldName = String.join(".", tableName, fieldName);
+                    fieldName = String.join(SymbolConstant.DOT, tableName, fieldName);
                 }
 
                 Objects.requireNonNull(queryType).getQueryPlugin().apply(wrapper, fieldName, data);

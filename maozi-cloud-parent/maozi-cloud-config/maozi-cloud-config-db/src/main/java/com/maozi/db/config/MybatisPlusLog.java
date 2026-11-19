@@ -1,5 +1,6 @@
 package com.maozi.db.config;
 
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.context.SqlLogContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -97,14 +98,14 @@ public class MybatisPlusLog implements Log {
 
         // 处理 SQL 准备语句：提取 SQL 模板（包含 ? 占位符）
         if (s.contains(PREPARING_PREFIX)) {
-            s = s.replace(PREPARING_PREFIX, "");
+            s = s.replace(PREPARING_PREFIX, SymbolConstant.EMPTY);
             sqlLog.append(s);
         }
 
         // 处理 SQL 参数：将参数值替换到 SQL 模板中的 ? 占位符位置
         if (s.contains(PARAMETERS_PREFIX)) {
 
-            s = s.replace(PARAMETERS_PREFIX, "");
+            s = s.replace(PARAMETERS_PREFIX, SymbolConstant.EMPTY);
 
             if (StringUtils.isNotEmpty(s)) {
                 
@@ -114,10 +115,10 @@ public class MybatisPlusLog implements Log {
                 for (String param : params) {
 
                     // 提取参数值部分（"(" 之前的字符串），并加上单引号包裹
-                    param = "'" + param.substring(0, param.indexOf("(")) + "'";
+                    param = SymbolConstant.SINGLE_QUOTE + param.substring(0, param.indexOf(SymbolConstant.LEFT_PARENTHESIS)) + SymbolConstant.SINGLE_QUOTE;
 
                     // 在 SQL 模板中找到第一个 "?" 占位符，用参数值替换
-                    int index = sqlLog.indexOf("?");
+                    int index = sqlLog.indexOf(SymbolConstant.QUESTION_MARK);
                     if (index != -1) {
                         sqlLog.replace(index, index + 1, param);
 
@@ -128,7 +129,7 @@ public class MybatisPlusLog implements Log {
             }
 
             // 一条完整的 SQL 拼接完成后，追加分号分隔符
-            sqlLog.append(";");
+            sqlLog.append(SymbolConstant.SEMICOLON);
 
         }
 

@@ -1,5 +1,6 @@
 package com.maozi.db.config;
 
+import com.maozi.common.constant.SymbolConstant;
 import jakarta.annotation.Nonnull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -81,7 +82,7 @@ public class DatabaseInitBeanFactoryPostProcessor implements BeanFactoryPostProc
 
         String url = environment.getProperty(DATASOURCE_URL);
         String username = environment.getProperty(DATASOURCE_USERNAME);
-        String password = environment.getProperty(DATASOURCE_PASSWORD, "");
+        String password = environment.getProperty(DATASOURCE_PASSWORD, SymbolConstant.EMPTY);
 
         // 非 MySQL 数据源或未配置时跳过
         if (url == null || !url.startsWith(JDBC_MYSQL_PREFIX) || username == null) {

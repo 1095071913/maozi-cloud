@@ -1,5 +1,6 @@
 package com.maozi.service.annotation;
 
+import com.maozi.common.constant.SymbolConstant;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,7 +35,7 @@ public @interface Post {
 
     /** 接口描述，同时作为 Swagger 文档的 summary */
     @AliasFor(value = "summary",annotation = Operation.class)
-    String description() default "";
+    String description() default SymbolConstant.EMPTY;
 
     /** 响应内容类型（Produces），透传给 {@link RequestMapping#produces} */
     @AliasFor(value = "produces",annotation = RequestMapping.class)

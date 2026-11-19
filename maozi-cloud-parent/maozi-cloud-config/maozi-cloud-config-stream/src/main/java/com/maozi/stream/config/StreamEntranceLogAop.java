@@ -22,6 +22,7 @@ import com.maozi.common.EnvironmentUtil;
 import com.maozi.common.LogUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.constant.LogTag;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.context.AbstractRequestContextHolder;
 import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.context.SqlLogContext;
@@ -118,7 +119,7 @@ public class StreamEntranceLogAop {
             }
 
             logs.put(LogTag.FUNCTION, proceedingJoinPoint.getSignature().getDeclaringTypeName()
-                + ":" + proceedingJoinPoint.getSignature().getName());
+                + SymbolConstant.COLON + proceedingJoinPoint.getSignature().getName());
 
             // 非生产环境直接记录消息参数；生产环境为避免参数外泄，仅在异常时补充记录
             boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD);

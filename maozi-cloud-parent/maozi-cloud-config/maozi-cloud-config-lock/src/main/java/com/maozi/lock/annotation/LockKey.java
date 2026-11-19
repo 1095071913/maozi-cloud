@@ -1,5 +1,7 @@
 package com.maozi.lock.annotation;
 
+import com.maozi.common.constant.SymbolConstant;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -20,6 +22,6 @@ import java.lang.annotation.Target;
 public @interface LockKey {
 
     /** SpEL 表达式，用于从参数对象中提取锁键值，为空时直接使用参数的 toString 值 */
-    String value() default "";
+    String value() default SymbolConstant.EMPTY;
 
 }

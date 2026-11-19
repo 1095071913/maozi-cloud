@@ -4,6 +4,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import com.maozi.common.constant.LogTag;
 import com.maozi.common.constant.SpringPropertyConstant;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.common.spi.ConfigInitializer;
 import org.slf4j.LoggerFactory;
@@ -74,7 +75,7 @@ public class NacosConfigInitializer implements ConfigInitializer {
         properties.merge(
             SpringPropertyConstant.SPRING_CONFIG_IMPORT,
             "optional:nacos:" + properties.getProperty(SpringPropertyConstant.SPRING_APPLICATION_NAME) + ".yml",
-            (existing, incoming) -> existing + "," + incoming
+            (existing, incoming) -> existing + SymbolConstant.COMMA + incoming
         );
 
         // 若已存在项目级 nacos.server 定义，

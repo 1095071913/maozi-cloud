@@ -9,6 +9,7 @@ import com.maozi.common.EnvironmentUtil;
 import com.maozi.common.LogUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.constant.LogTag;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.context.AbstractRequestContextHolder;
 import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.common.context.SqlLogContext;
@@ -65,7 +66,7 @@ public class RetryExecutorTask implements ExecutorMethod {
      * @return 带版本号前缀的场景值
      */
     public static String buildScene(String scene) {
-        return ApplicationEnvironmentContext.version + "_" + scene;
+        return ApplicationEnvironmentContext.version + SymbolConstant.UNDERLINE + scene;
     }
 
     /**
@@ -107,7 +108,7 @@ public class RetryExecutorTask implements ExecutorMethod {
 
             // 记录日志类型与重试目标方法
             logs.put(LogTag.TYPE, LogCommonTypeEnum.RPC_RETRY.getDesc());
-            logs.put(LogTag.FUNCTION, retryParam.getBeanName() + ":" + retryParam.getMethodName());
+            logs.put(LogTag.FUNCTION, retryParam.getBeanName() + SymbolConstant.COLON + retryParam.getMethodName());
             // 非生产环境记录请求参数
             if (EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD)) {
                 logs.put(LogTag.PARAM, Arrays.toString(retryParam.getData()));
@@ -149,7 +150,7 @@ public class RetryExecutorTask implements ExecutorMethod {
             }
 
             // 记录响应时间
-            logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + " ms");
+            logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + LogTag.RT_UNIT);
 
             // 存在异常描述时以 error 级别输出日志，否则以 info 级别输出
             LogUtil.log(log, ObjectUtil.isNotNull(ex), logs, ex);

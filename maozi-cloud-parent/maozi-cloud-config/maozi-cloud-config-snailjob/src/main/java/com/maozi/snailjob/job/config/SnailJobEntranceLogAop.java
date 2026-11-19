@@ -6,6 +6,7 @@ import com.maozi.common.EnvironmentUtil;
 import com.maozi.common.LogUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.constant.LogTag;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.context.AbstractRequestContextHolder;
 import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.common.context.SqlLogContext;
@@ -138,7 +139,7 @@ public class SnailJobEntranceLogAop {
             }
 
             // 记录调度耗时
-            logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + " ms");
+            logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + LogTag.RT_UNIT);
 
             // 按执行结果输出远程日志（上报至 SnailJob 服务端）
             String log = LogUtil.convertLog(logs);
@@ -176,7 +177,7 @@ public class SnailJobEntranceLogAop {
         }
 
         return proceedingJoinPoint.getSignature().getDeclaringTypeName()
-            + ":" + proceedingJoinPoint.getSignature().getName();
+            + SymbolConstant.COLON + proceedingJoinPoint.getSignature().getName();
 
     }
 

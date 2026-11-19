@@ -200,7 +200,7 @@ public class StripFirstPathFilter extends OncePerRequestFilter {
             if (path == null || path.length() <= 1) {
                 return SymbolConstant.SLASH;
             }
-            int secondSlash = path.indexOf('/', 1);
+            int secondSlash = path.indexOf(SymbolConstant.SLASH_CHAR, 1);
             return secondSlash < 0 ? SymbolConstant.SLASH : path.substring(secondSlash);
         }
 

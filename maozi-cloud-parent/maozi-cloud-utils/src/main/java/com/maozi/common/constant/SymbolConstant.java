@@ -59,4 +59,13 @@ public final class SymbolConstant {
     /** 右圆括号 */
     public static final String RIGHT_PARENTHESIS = ")";
 
+    /** 正斜杠字符（供 indexOf、append 等 char 参数场景使用） */
+    public static final char SLASH_CHAR = '/';
+
+    /** 冒号字符（供 indexOf、append 等 char 参数场景使用） */
+    public static final char COLON_CHAR = ':';
+
+    /** 问号字符（供 indexOf、append 等 char 参数场景使用） */
+    public static final char QUESTION_MARK_CHAR = '?';
+
 }

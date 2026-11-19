@@ -78,7 +78,7 @@ public class SecuritySecureConfig {
         // 在配置了 context-path 时返回 "/monitor/" —— 直接作默认落点会 404, 需去掉尾斜杠
         String defaultTargetUrl = this.adminServer.path(SymbolConstant.SLASH);
         if (!SymbolConstant.SLASH.equals(defaultTargetUrl)) {
-            defaultTargetUrl = StringUtils.trimTrailingCharacter(defaultTargetUrl, '/');
+            defaultTargetUrl = StringUtils.trimTrailingCharacter(defaultTargetUrl, SymbolConstant.SLASH_CHAR);
         }
         successHandler.setDefaultTargetUrl(defaultTargetUrl);
 

@@ -134,11 +134,11 @@ public class DatabaseInitBeanFactoryPostProcessor implements BeanFactoryPostProc
      * @return 数据库名称；URL 中未找到路径分隔符时返回 {@code null}
      */
     private String extractDatabaseName(String url) {
-        int dbStart = url.indexOf('/', JDBC_MYSQL_PREFIX.length());
+        int dbStart = url.indexOf(SymbolConstant.SLASH_CHAR, JDBC_MYSQL_PREFIX.length());
         if (dbStart < 0) {
             return null;
         }
-        int paramStart = url.indexOf('?', dbStart);
+        int paramStart = url.indexOf(SymbolConstant.QUESTION_MARK_CHAR, dbStart);
         if (paramStart > 0) {
             return url.substring(dbStart + 1, paramStart);
         }
@@ -156,8 +156,8 @@ public class DatabaseInitBeanFactoryPostProcessor implements BeanFactoryPostProc
      * @return 服务器级别连接 URL
      */
     private String buildServerUrl(String url) {
-        int dbStart = url.indexOf('/', JDBC_MYSQL_PREFIX.length());
-        int paramStart = url.indexOf('?', dbStart);
+        int dbStart = url.indexOf(SymbolConstant.SLASH_CHAR, JDBC_MYSQL_PREFIX.length());
+        int paramStart = url.indexOf(SymbolConstant.QUESTION_MARK_CHAR, dbStart);
         if (paramStart > 0) {
             return url.substring(0, dbStart + 1) + url.substring(paramStart);
         }

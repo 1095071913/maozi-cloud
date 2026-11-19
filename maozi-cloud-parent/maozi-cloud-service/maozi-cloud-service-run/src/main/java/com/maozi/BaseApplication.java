@@ -151,9 +151,6 @@ public class BaseApplication {
     /** Windows 路径盘符分隔符所在下标（如 /C:/path 中冒号位于下标 2） */
     private static final int WINDOWS_DRIVE_SEPARATOR_INDEX = 2;
 
-    /** Windows 路径盘符分隔符 */
-    private static final char WINDOWS_DRIVE_SEPARATOR = ':';
-
     /**
      * 应用启动入口方法
      * <p>
@@ -494,12 +491,12 @@ public class BaseApplication {
             // 截取 URL 开头至 .jar 结束（含 .jar）的部分
             String beforeJar = urlStr.substring(0, jarEndIndex + JAR_SUFFIX.length());
             // 找到最后一个冒号的位置，跳过协议前缀
-            int colonIndex = beforeJar.lastIndexOf(':');
+            int colonIndex = beforeJar.lastIndexOf(SymbolConstant.COLON_CHAR);
             if (colonIndex != -1) {
                 String path = beforeJar.substring(colonIndex + 1);
                 // 处理 Windows 路径可能出现的前导 /
                 if (path.startsWith(SymbolConstant.SLASH) && path.length() > WINDOWS_DRIVE_SEPARATOR_INDEX
-                    && path.charAt(WINDOWS_DRIVE_SEPARATOR_INDEX) == WINDOWS_DRIVE_SEPARATOR) {
+                    && path.charAt(WINDOWS_DRIVE_SEPARATOR_INDEX) == SymbolConstant.COLON_CHAR) {
                     path = path.substring(1);
                 }
                 return new File(path);

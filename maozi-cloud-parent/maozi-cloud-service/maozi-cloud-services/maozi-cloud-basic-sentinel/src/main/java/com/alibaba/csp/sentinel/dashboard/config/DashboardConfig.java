@@ -100,32 +100,32 @@ public class DashboardConfig {
         return val;
     }
 
-    /** Get the configured login username, or null if unset. */
+    /** Gets the configured login username, or null if unset. */
     public static String getAuthUsername() {
         return getConfigStr(CONFIG_AUTH_USERNAME);
     }
 
-    /** Get the configured login password, or null if unset. */
+    /** Gets the configured login password, or null if unset. */
     public static String getAuthPassword() {
         return getConfigStr(CONFIG_AUTH_PASSWORD);
     }
 
-    /** Get the hide-app-no-machine period in millisecond (default 0, min 60000). */
+    /** Gets the hide-app-no-machine period in millisecond (default 0, min 60000). */
     public static int getHideAppNoMachineMillis() {
         return getConfigInt(CONFIG_HIDE_APP_NO_MACHINE_MILLIS, 0, 60000);
     }
     
-    /** Get the remove-app-no-machine period in millisecond (default 0, min 120000). */
+    /** Gets the remove-app-no-machine period in millisecond (default 0, min 120000). */
     public static int getRemoveAppNoMachineMillis() {
         return getConfigInt(CONFIG_REMOVE_APP_NO_MACHINE_MILLIS, 0, 120000);
     }
 
-    /** Get the unhealthy machine timeout in millisecond (default 60000, min 30000). */
+    /** Gets the unhealthy machine timeout in millisecond (default 60000, min 30000). */
     public static int getUnhealthyMachineMillis() {
         return getConfigInt(CONFIG_UNHEALTHY_MACHINE_MILLIS, DEFAULT_MACHINE_HEALTHY_TIMEOUT_MS, 30000);
     }
     
-    /** Clear the cache of resolved config values. */
+    /** Clears the cache of resolved config values. */
     public static void clearCache() {
         cacheMap.clear();
     }

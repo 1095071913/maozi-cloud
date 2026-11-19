@@ -32,18 +32,18 @@ import java.util.List;
  */
 public class ParamFlowRuleEntity extends AbstractRuleEntity<ParamFlowRule> {
 
-    /** Create an entity with no wrapped rule. */
+    /** Creates an entity with no wrapped rule. */
     public ParamFlowRuleEntity() {
     }
 
-    /** Create an entity wrapping the given rule, which must not be null. */
+    /** Creates an entity wrapping the given rule, which must not be null. */
     public ParamFlowRuleEntity(ParamFlowRule rule) {
         AssertUtil.notNull(rule, "Authority rule should not be null");
         this.rule = rule;
     }
 
     /**
-     * Build an entity wrapping the given {@link ParamFlowRule}, carrying the given app, ip and port.
+     * Builds an entity wrapping the given {@link ParamFlowRule}, carrying the given app, ip and port.
      */
     public static ParamFlowRuleEntity fromParamFlowRule(String app, String ip, Integer port, ParamFlowRule rule) {
         ParamFlowRuleEntity entity = new ParamFlowRuleEntity(rule);
@@ -53,70 +53,70 @@ public class ParamFlowRuleEntity extends AbstractRuleEntity<ParamFlowRule> {
         return entity;
     }
 
-    /** Get the limitApp of the wrapped rule (excluded from JSON). */
+    /** Gets the limitApp of the wrapped rule (excluded from JSON). */
     @JsonIgnore
     @JSONField(serialize = false)
     public String getLimitApp() {
         return rule.getLimitApp();
     }
 
-    /** Get the resource name of the wrapped rule (excluded from JSON). */
+    /** Gets the resource name of the wrapped rule (excluded from JSON). */
     @JsonIgnore
     @JSONField(serialize = false)
     public String getResource() {
         return rule.getResource();
     }
 
-    /** Get the threshold type of the wrapped rule (excluded from JSON). */
+    /** Gets the threshold type of the wrapped rule (excluded from JSON). */
     @JsonIgnore
     @JSONField(serialize = false)
     public int getGrade() {
         return rule.getGrade();
     }
 
-    /** Get the index of the parameter the rule applies to (excluded from JSON). */
+    /** Gets the index of the parameter the rule applies to (excluded from JSON). */
     @JsonIgnore
     @JSONField(serialize = false)
     public Integer getParamIdx() {
         return rule.getParamIdx();
     }
 
-    /** Get the threshold count of the wrapped rule (excluded from JSON). */
+    /** Gets the threshold count of the wrapped rule (excluded from JSON). */
     @JsonIgnore
     @JSONField(serialize = false)
     public double getCount() {
         return rule.getCount();
     }
 
-    /** Get the parameter flow item list of the wrapped rule (excluded from JSON). */
+    /** Gets the parameter flow item list of the wrapped rule (excluded from JSON). */
     @JsonIgnore
     @JSONField(serialize = false)
     public List<ParamFlowItem> getParamFlowItemList() {
         return rule.getParamFlowItemList();
     }
 
-    /** Get the control behavior of the wrapped rule (excluded from JSON). */
+    /** Gets the control behavior of the wrapped rule (excluded from JSON). */
     @JsonIgnore
     @JSONField(serialize = false)
     public int getControlBehavior() {
         return rule.getControlBehavior();
     }
 
-    /** Get the max queueing timeout of the wrapped rule (excluded from JSON). */
+    /** Gets the max queueing timeout of the wrapped rule (excluded from JSON). */
     @JsonIgnore
     @JSONField(serialize = false)
     public int getMaxQueueingTimeMs() {
         return rule.getMaxQueueingTimeMs();
     }
 
-    /** Get the burst count of the wrapped rule (excluded from JSON). */
+    /** Gets the burst count of the wrapped rule (excluded from JSON). */
     @JsonIgnore
     @JSONField(serialize = false)
     public int getBurstCount() {
         return rule.getBurstCount();
     }
 
-    /** Get the statistic duration in seconds of the wrapped rule (excluded from JSON). */
+    /** Gets the statistic duration in seconds of the wrapped rule (excluded from JSON). */
     @JsonIgnore
     @JSONField(serialize = false)
     public long getDurationInSec() {
@@ -130,7 +130,7 @@ public class ParamFlowRuleEntity extends AbstractRuleEntity<ParamFlowRule> {
         return rule.isClusterMode();
     }
 
-    /** Get the cluster mode config of the wrapped rule (excluded from JSON). */
+    /** Gets the cluster mode config of the wrapped rule (excluded from JSON). */
     @JsonIgnore
     @JSONField(serialize = false)
     public ParamFlowClusterConfig getClusterConfig() {

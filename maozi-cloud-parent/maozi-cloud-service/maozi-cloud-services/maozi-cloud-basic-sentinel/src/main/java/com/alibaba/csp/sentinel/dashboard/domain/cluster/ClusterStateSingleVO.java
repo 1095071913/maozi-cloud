@@ -30,40 +30,40 @@ public class ClusterStateSingleVO {
     /** The target address. */
     private String target;
 
-    /** Get the address of the machine. */
+    /** Gets the address of the machine. */
     public String getAddress() {
         return address;
     }
 
-    /** Set the address of the machine and return this. */
+    /** Sets the address of the machine and returns this. */
     public ClusterStateSingleVO setAddress(String address) {
         this.address = address;
         return this;
     }
 
-    /** Get the cluster mode of the machine. */
+    /** Gets the cluster mode of the machine. */
     public Integer getMode() {
         return mode;
     }
 
-    /** Set the cluster mode of the machine and return this. */
+    /** Sets the cluster mode of the machine and returns this. */
     public ClusterStateSingleVO setMode(Integer mode) {
         this.mode = mode;
         return this;
     }
 
-    /** Get the target address. */
+    /** Gets the target address. */
     public String getTarget() {
         return target;
     }
 
-    /** Set the target address and return this. */
+    /** Sets the target address and returns this. */
     public ClusterStateSingleVO setTarget(String target) {
         this.target = target;
         return this;
     }
 
-    /** Get the string representation of this VO. */
+    /** Gets the string representation of this VO. */
     @Override
     public String toString() {
         return "ClusterStateSingleVO{" +

@@ -85,7 +85,7 @@ public class AuthController {
         return Result.ofSuccess(authUser);
     }
 
-    /** Invalidate the current session to log out. */
+    /** Invalidates the current session to log out. */
     @PostMapping(value = "/logout")
     public Result<?> logout(HttpServletRequest request) {
         request.getSession().invalidate();

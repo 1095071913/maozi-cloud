@@ -46,13 +46,13 @@ public class AppController {
     @Autowired
     private AppManagement appManagement;
 
-    /** Get the names of all registered apps. */
+    /** Gets the names of all registered apps. */
     @GetMapping("/names.json")
     public Result<List<String>> queryApps(HttpServletRequest request) {
         return Result.ofSuccess(appManagement.getAppNames());
     }
 
-    /** Get brief infos of all apps, sorted by app name. */
+    /** Gets brief infos of all apps, sorted by app name. */
     @GetMapping("/briefinfos.json")
     public Result<List<AppInfo>> queryAppInfos(HttpServletRequest request) {
         List<AppInfo> list = new ArrayList<>(appManagement.getBriefApps());

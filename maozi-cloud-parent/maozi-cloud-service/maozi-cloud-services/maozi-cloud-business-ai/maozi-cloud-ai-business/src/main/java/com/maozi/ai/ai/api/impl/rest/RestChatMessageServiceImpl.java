@@ -39,6 +39,7 @@ public class RestChatMessageServiceImpl extends BaseServiceResultImpl<ChatServic
         return ResultUtil.success(service.adminGenerateImage(param));
     }
 
+    /** AI流式对话（SSE 分片流，最后追加完成消息） */
     @Override
     public Flux<AbstractBaseResult<ChatResult>> chatResult(Long conversationId, ChatParam param) {
         return service.chatResult(conversationId, param);

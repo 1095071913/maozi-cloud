@@ -21,13 +21,13 @@ import java.util.regex.Pattern;
 /**
  * 远程调用异常处理切面
  * <p>
- * 拦截所有 RPC 和 REST 接口层方法（匹配 {@code api.rpc} 和 {@code api.rest} 包），
+ * 拦截所有 RPC 接口层方法（匹配 {@code api.rpc} 包），
  * 当调用抛出异常时，记录错误日志并返回统一的错误结果，避免异常向上层传播。
  * </p>
  * <p>
  * <b>注：</b>代码中保留了按包路径第 6 段是否为 {@code impl} 判断是否重新抛出异常的
  * 防御逻辑，
- * 但当前切点限定的包路径第 6 段恒为 {@code rpc} 或 {@code rest}，该判断恒为真，
+ * 但当前切点限定的包路径第 6 段恒为 {@code rpc}，"是接口层调用"的判断恒为真，
  * 因此实际所有被拦截的异常都会被捕获封装，重新抛出的分支当前不可达。
  * </p>
  *
@@ -73,7 +73,7 @@ public class DubboInvokeErrorAop {
                     .split(proceedingJoinPoint.getSignature().getDeclaringTypeName());
 
             // 判断是否为接口层调用：remoteInvokeClassSplit[5] 对应包路径中 api 下的子包名。
-            // 当前切点限定的子包名恒为 "rpc"/"rest"，下方条件恒不成立；
+            // 当前切点限定的子包名恒为 "rpc"，下方条件恒不成立；
             // 若未来切点扩展到 api.impl 包，此处可让实现层内部调用的异常继续向上抛出
             if(IMPL.equals(remoteInvokeClassSplit[5])){
                 // impl 层的调用直接抛出原始异常（当前切点下不可达，见类注释说明）

@@ -178,7 +178,7 @@ public class SentinelApiClient {
         httpClient.start();
     }
 
-    /** Check whether the given HTTP status code stands for success (2xx). */
+    /** Checks whether the given HTTP status code stands for success (2xx). */
     private boolean isSuccess(int statusCode) {
         return statusCode >= 200 && statusCode < 300;
     }
@@ -198,9 +198,9 @@ public class SentinelApiClient {
     }
     
     /**
-     * Check whether target instance (identified by tuple of app-ip:port)
+     * Checks whether target instance (identified by tuple of app-ip:port)
      * supports the form of "xxxxx; xx=xx" in "Content-Type" header.
-     * 
+     *
      * @param app target app name
      * @param ip target node's address
      * @param port target node's port
@@ -400,7 +400,7 @@ public class SentinelApiClient {
         return future;
     }
     
-    /** Close the underlying async HTTP client. */
+    /** Closes the underlying async HTTP client. */
     public void close() throws Exception {
         httpClient.close();
     }
@@ -440,7 +440,7 @@ public class SentinelApiClient {
         }
     }
     
-    /** Fetch rules of the given type from the getRules api. */
+    /** Fetches rules of the given type from the getRules api. */
     private <T extends Rule> List<T> fetchRules(String ip, int port, String type, Class<T> ruleType) {
         return fetchItems(ip, port, GET_RULES_PATH, type, ruleType);
     }
@@ -509,7 +509,7 @@ public class SentinelApiClient {
      *
      * @param ip          ip to fetch
      * @param port        port of the ip
-     * @param includeZero whether zero value should in the result list.
+     * @param includeZero whether zero-value nodes should be included in the result list
      * @return the fetched cluster node list, or null if fetching fails
      */
     public List<NodeVo> fetchClusterNodeOfMachine(String ip, int port, boolean includeZero) {
@@ -554,7 +554,7 @@ public class SentinelApiClient {
     }
 
     /**
-     * Fetch all parameter flow rules from provided machine.
+     * Fetches all parameter flow rules from provided machine.
      *
      * @param app  application name
      * @param ip   machine client IP
@@ -579,7 +579,7 @@ public class SentinelApiClient {
     }
 
     /**
-     * Fetch all authority rules from provided machine.
+     * Fetches all authority rules from provided machine.
      *
      * @param app  application name
      * @param ip   machine client IP

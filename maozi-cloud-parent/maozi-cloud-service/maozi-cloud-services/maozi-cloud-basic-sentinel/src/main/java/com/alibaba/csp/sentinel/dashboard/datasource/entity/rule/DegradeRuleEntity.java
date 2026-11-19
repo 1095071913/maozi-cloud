@@ -59,7 +59,7 @@ public class DegradeRuleEntity implements RuleEntity {
     private Date gmtModified;
 
     /**
-     * Build an entity from the given {@link DegradeRule}, carrying the given app, ip and port.
+     * Builds an entity from the given {@link DegradeRule}, carrying the given app, ip and port.
      */
     public static DegradeRuleEntity fromDegradeRule(String app, String ip, Integer port, DegradeRule rule) {
         DegradeRuleEntity entity = new DegradeRuleEntity();
@@ -77,157 +77,157 @@ public class DegradeRuleEntity implements RuleEntity {
         return entity;
     }
 
-    /** Get the IP address of the machine. */
+    /** Gets the IP address of the machine. */
     @Override
     public String getIp() {
         return ip;
     }
 
-    /** Set the IP address of the machine. */
+    /** Sets the IP address of the machine. */
     public void setIp(String ip) {
         this.ip = ip;
     }
 
-    /** Get the port of the machine. */
+    /** Gets the port of the machine. */
     @Override
     public Integer getPort() {
         return port;
     }
 
-    /** Set the port of the machine. */
+    /** Sets the port of the machine. */
     public void setPort(Integer port) {
         this.port = port;
     }
 
-    /** Get the entity id. */
+    /** Gets the entity id. */
     @Override
     public Long getId() {
         return id;
     }
 
-    /** Set the entity id. */
+    /** Sets the entity id. */
     @Override
     public void setId(Long id) {
         this.id = id;
     }
 
-    /** Get the application name. */
+    /** Gets the application name. */
     @Override
     public String getApp() {
         return app;
     }
 
-    /** Set the application name. */
+    /** Sets the application name. */
     public void setApp(String app) {
         this.app = app;
     }
 
-    /** Get the resource name. */
+    /** Gets the resource name. */
     public String getResource() {
         return resource;
     }
 
-    /** Set the resource name. */
+    /** Sets the resource name. */
     public void setResource(String resource) {
         this.resource = resource;
     }
 
-    /** Get the caller that the rule applies to. */
+    /** Gets the caller that the rule applies to. */
     public String getLimitApp() {
         return limitApp;
     }
 
-    /** Set the caller that the rule applies to. */
+    /** Sets the caller that the rule applies to. */
     public void setLimitApp(String limitApp) {
         this.limitApp = limitApp;
     }
 
-    /** Get the threshold count. */
+    /** Gets the threshold count. */
     public Double getCount() {
         return count;
     }
 
-    /** Set the threshold count. */
+    /** Sets the threshold count. */
     public void setCount(Double count) {
         this.count = count;
     }
 
-    /** Get the degrade time window in seconds. */
+    /** Gets the degrade time window in seconds. */
     public Integer getTimeWindow() {
         return timeWindow;
     }
 
-    /** Set the degrade time window in seconds. */
+    /** Sets the degrade time window in seconds. */
     public void setTimeWindow(Integer timeWindow) {
         this.timeWindow = timeWindow;
     }
 
-    /** Get the circuit breaking strategy. */
+    /** Gets the circuit breaking strategy. */
     public Integer getGrade() {
         return grade;
     }
 
-    /** Set the circuit breaking strategy. */
+    /** Sets the circuit breaking strategy. */
     public void setGrade(Integer grade) {
         this.grade = grade;
     }
 
-    /** Get the min request amount that triggers degrading. */
+    /** Gets the min request amount that triggers degrading. */
     public Integer getMinRequestAmount() {
         return minRequestAmount;
     }
 
-    /** Set the min request amount that triggers degrading and return this. */
+    /** Sets the min request amount that triggers degrading and returns this. */
     public DegradeRuleEntity setMinRequestAmount(Integer minRequestAmount) {
         this.minRequestAmount = minRequestAmount;
         return this;
     }
 
-    /** Get the slow call ratio threshold of the rule. */
+    /** Gets the slow call ratio threshold of the rule. */
     public Double getSlowRatioThreshold() {
         return slowRatioThreshold;
     }
 
-    /** Set the slow call ratio threshold of the rule and return this. */
+    /** Sets the slow call ratio threshold of the rule and returns this. */
     public DegradeRuleEntity setSlowRatioThreshold(Double slowRatioThreshold) {
         this.slowRatioThreshold = slowRatioThreshold;
         return this;
     }
 
-    /** Get the statistic interval in milliseconds. */
+    /** Gets the statistic interval in milliseconds. */
     public Integer getStatIntervalMs() {
         return statIntervalMs;
     }
 
-    /** Set the statistic interval in milliseconds and return this. */
+    /** Sets the statistic interval in milliseconds and returns this. */
     public DegradeRuleEntity setStatIntervalMs(Integer statIntervalMs) {
         this.statIntervalMs = statIntervalMs;
         return this;
     }
 
-    /** Get the create time. */
+    /** Gets the create time. */
     @Override
     public Date getGmtCreate() {
         return gmtCreate;
     }
 
-    /** Set the create time. */
+    /** Sets the create time. */
     public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
     }
 
-    /** Get the last modify time. */
+    /** Gets the last modify time. */
     public Date getGmtModified() {
         return gmtModified;
     }
 
-    /** Set the last modify time. */
+    /** Sets the last modify time. */
     public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
     }
 
     /**
-     * Convert to a {@link DegradeRule}, only setting minRequestAmount, slowRatioThreshold
+     * Converts to a {@link DegradeRule}, only setting minRequestAmount, slowRatioThreshold
      * and statIntervalMs when they are not null.
      */
     @Override

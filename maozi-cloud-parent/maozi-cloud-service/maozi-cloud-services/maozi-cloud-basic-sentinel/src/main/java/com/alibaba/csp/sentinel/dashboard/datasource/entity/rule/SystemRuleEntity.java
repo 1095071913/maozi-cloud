@@ -52,7 +52,7 @@ public class SystemRuleEntity implements RuleEntity {
     private Date gmtModified;
 
     /**
-     * Build an entity from the given {@link SystemRule}, carrying the given app, ip and port.
+     * Builds an entity from the given {@link SystemRule}, carrying the given app, ip and port.
      */
     public static SystemRuleEntity fromSystemRule(String app, String ip, Integer port, SystemRule rule) {
         SystemRuleEntity entity = new SystemRuleEntity();
@@ -67,123 +67,123 @@ public class SystemRuleEntity implements RuleEntity {
         return entity;
     }
 
-    /** Get the IP address of the machine. */
+    /** Gets the IP address of the machine. */
     @Override
     public String getIp() {
         return ip;
     }
 
-    /** Set the IP address of the machine. */
+    /** Sets the IP address of the machine. */
     public void setIp(String ip) {
         this.ip = ip;
     }
 
-    /** Get the port of the machine. */
+    /** Gets the port of the machine. */
     @Override
     public Integer getPort() {
         return port;
     }
 
-    /** Set the port of the machine. */
+    /** Sets the port of the machine. */
     public void setPort(Integer port) {
         this.port = port;
     }
 
-    /** Get the entity id. */
+    /** Gets the entity id. */
     @Override
     public Long getId() {
         return id;
     }
 
-    /** Set the entity id. */
+    /** Sets the entity id. */
     @Override
     public void setId(Long id) {
         this.id = id;
     }
 
-    /** Get the application name. */
+    /** Gets the application name. */
     @Override
     public String getApp() {
         return app;
     }
 
-    /** Set the application name. */
+    /** Sets the application name. */
     public void setApp(String app) {
         this.app = app;
     }
 
-    /** Get the highest system load threshold. */
+    /** Gets the highest system load threshold. */
     public Double getHighestSystemLoad() {
         return highestSystemLoad;
     }
 
-    /** Set the highest system load threshold. */
+    /** Sets the highest system load threshold. */
     public void setHighestSystemLoad(Double highestSystemLoad) {
         this.highestSystemLoad = highestSystemLoad;
     }
 
-    /** Get the average RT (ms) threshold for all inbound requests. */
+    /** Gets the average RT (ms) threshold for all inbound requests. */
     public Long getAvgRt() {
         return avgRt;
     }
 
-    /** Set the average RT (ms) threshold for all inbound requests. */
+    /** Sets the average RT (ms) threshold for all inbound requests. */
     public void setAvgRt(Long avgRt) {
         this.avgRt = avgRt;
     }
 
-    /** Get the max concurrent thread count threshold. */
+    /** Gets the max concurrent thread count threshold. */
     public Long getMaxThread() {
         return maxThread;
     }
 
-    /** Set the max concurrent thread count threshold. */
+    /** Sets the max concurrent thread count threshold. */
     public void setMaxThread(Long maxThread) {
         this.maxThread = maxThread;
     }
 
-    /** Get the max total QPS of all inbound requests. */
+    /** Gets the max total QPS of all inbound requests. */
     public Double getQps() {
         return qps;
     }
 
-    /** Set the max total QPS of all inbound requests. */
+    /** Sets the max total QPS of all inbound requests. */
     public void setQps(Double qps) {
         this.qps = qps;
     }
 
-    /** Get the highest CPU usage threshold. */
+    /** Gets the highest CPU usage threshold. */
     public Double getHighestCpuUsage() {
         return highestCpuUsage;
     }
 
-    /** Set the highest CPU usage threshold. */
+    /** Sets the highest CPU usage threshold. */
     public void setHighestCpuUsage(Double highestCpuUsage) {
         this.highestCpuUsage = highestCpuUsage;
     }
 
-    /** Get the create time. */
+    /** Gets the create time. */
     @Override
     public Date getGmtCreate() {
         return gmtCreate;
     }
 
-    /** Set the create time. */
+    /** Sets the create time. */
     public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
     }
 
-    /** Get the last modify time. */
+    /** Gets the last modify time. */
     public Date getGmtModified() {
         return gmtModified;
     }
 
-    /** Set the last modify time. */
+    /** Sets the last modify time. */
     public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
     }
 
-    /** Convert to a {@link SystemRule} with all threshold fields copied. */
+    /** Converts to a {@link SystemRule} with all threshold fields copied. */
     @Override
     public SystemRule toRule() {
         SystemRule rule = new SystemRule();

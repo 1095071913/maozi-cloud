@@ -33,32 +33,32 @@ public class ApiPredicateItemEntity {
     /** The strategy to match the pattern. */
     private Integer matchStrategy;
 
-    /** Create an empty item. */
+    /** Creates an empty item. */
     public ApiPredicateItemEntity() {
     }
 
-    /** Create an item with the given pattern and match strategy. */
+    /** Creates an item with the given pattern and match strategy. */
     public ApiPredicateItemEntity(String pattern, int matchStrategy) {
         this.pattern = pattern;
         this.matchStrategy = matchStrategy;
     }
 
-    /** Get the pattern to match the request path. */
+    /** Gets the pattern to match the request path. */
     public String getPattern() {
         return pattern;
     }
 
-    /** Set the pattern to match the request path. */
+    /** Sets the pattern to match the request path. */
     public void setPattern(String pattern) {
         this.pattern = pattern;
     }
 
-    /** Get the strategy to match the pattern. */
+    /** Gets the strategy to match the pattern. */
     public Integer getMatchStrategy() {
         return matchStrategy;
     }
 
-    /** Set the strategy to match the pattern. */
+    /** Sets the strategy to match the pattern. */
     public void setMatchStrategy(Integer matchStrategy) {
         this.matchStrategy = matchStrategy;
     }
@@ -73,13 +73,13 @@ public class ApiPredicateItemEntity {
                 Objects.equals(matchStrategy, that.matchStrategy);
     }
 
-    /** Get the hash code from the pattern and match strategy. */
+    /** Gets the hash code from the pattern and match strategy. */
     @Override
     public int hashCode() {
         return Objects.hash(pattern, matchStrategy);
     }
 
-    /** Build a string with all fields of this item. */
+    /** Builds a string with all fields of this item. */
     @Override
     public String toString() {
         return "ApiPredicateItemEntity{" +

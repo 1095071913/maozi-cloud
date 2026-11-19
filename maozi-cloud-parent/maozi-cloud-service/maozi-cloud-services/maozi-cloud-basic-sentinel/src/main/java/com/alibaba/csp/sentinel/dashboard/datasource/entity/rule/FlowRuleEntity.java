@@ -65,7 +65,7 @@ public class FlowRuleEntity implements RuleEntity {
     private Date gmtModified;
 
     /**
-     * Build an entity from the given {@link FlowRule}, carrying the given app, ip and port.
+     * Builds an entity from the given {@link FlowRule}, carrying the given app, ip and port.
      */
     public static FlowRuleEntity fromFlowRule(String app, String ip, Integer port, FlowRule rule) {
         FlowRuleEntity entity = new FlowRuleEntity();
@@ -86,137 +86,137 @@ public class FlowRuleEntity implements RuleEntity {
         return entity;
     }
 
-    /** Get the IP address of the machine. */
+    /** Gets the IP address of the machine. */
     @Override
     public String getIp() {
         return ip;
     }
 
-    /** Set the IP address of the machine. */
+    /** Sets the IP address of the machine. */
     public void setIp(String ip) {
         this.ip = ip;
     }
 
-    /** Get the port of the machine. */
+    /** Gets the port of the machine. */
     @Override
     public Integer getPort() {
         return port;
     }
 
-    /** Set the port of the machine. */
+    /** Sets the port of the machine. */
     public void setPort(Integer port) {
         this.port = port;
     }
 
-    /** Get the application name. */
+    /** Gets the application name. */
     @Override
     public String getApp() {
         return app;
     }
 
-    /** Set the application name. */
+    /** Sets the application name. */
     public void setApp(String app) {
         this.app = app;
     }
 
-    /** Get the entity id. */
+    /** Gets the entity id. */
     @Override
     public Long getId() {
         return id;
     }
 
-    /** Set the entity id. */
+    /** Sets the entity id. */
     @Override
     public void setId(Long id) {
         this.id = id;
     }
 
-    /** Get the caller that the rule applies to. */
+    /** Gets the caller that the rule applies to. */
     public String getLimitApp() {
         return limitApp;
     }
 
-    /** Set the caller that the rule applies to. */
+    /** Sets the caller that the rule applies to. */
     public void setLimitApp(String limitApp) {
         this.limitApp = limitApp;
     }
 
-    /** Get the resource name. */
+    /** Gets the resource name. */
     public String getResource() {
         return resource;
     }
 
-    /** Set the resource name. */
+    /** Sets the resource name. */
     public void setResource(String resource) {
         this.resource = resource;
     }
 
-    /** Get the threshold type: 0 for thread count and 1 for QPS. */
+    /** Gets the threshold type: 0 for thread count and 1 for QPS. */
     public Integer getGrade() {
         return grade;
     }
 
-    /** Set the threshold type: 0 for thread count and 1 for QPS. */
+    /** Sets the threshold type: 0 for thread count and 1 for QPS. */
     public void setGrade(Integer grade) {
         this.grade = grade;
     }
 
-    /** Get the threshold count of the rule. */
+    /** Gets the threshold count of the rule. */
     public Double getCount() {
         return count;
     }
 
-    /** Set the threshold count of the rule. */
+    /** Sets the threshold count of the rule. */
     public void setCount(Double count) {
         this.count = count;
     }
 
-    /** Get the flow control strategy. */
+    /** Gets the flow control strategy. */
     public Integer getStrategy() {
         return strategy;
     }
 
-    /** Set the flow control strategy. */
+    /** Sets the flow control strategy. */
     public void setStrategy(Integer strategy) {
         this.strategy = strategy;
     }
 
-    /** Get the related resource for association and chain strategy. */
+    /** Gets the related resource for association and chain strategy. */
     public String getRefResource() {
         return refResource;
     }
 
-    /** Set the related resource for association and chain strategy. */
+    /** Sets the related resource for association and chain strategy. */
     public void setRefResource(String refResource) {
         this.refResource = refResource;
     }
 
-    /** Get the control behavior. */
+    /** Gets the control behavior. */
     public Integer getControlBehavior() {
         return controlBehavior;
     }
 
-    /** Set the control behavior. */
+    /** Sets the control behavior. */
     public void setControlBehavior(Integer controlBehavior) {
         this.controlBehavior = controlBehavior;
     }
 
-    /** Get the warm up period in seconds. */
+    /** Gets the warm up period in seconds. */
     public Integer getWarmUpPeriodSec() {
         return warmUpPeriodSec;
     }
 
-    /** Set the warm up period in seconds. */
+    /** Sets the warm up period in seconds. */
     public void setWarmUpPeriodSec(Integer warmUpPeriodSec) {
         this.warmUpPeriodSec = warmUpPeriodSec;
     }
 
-    /** Get the max queueing time in milliseconds. */
+    /** Gets the max queueing time in milliseconds. */
     public Integer getMaxQueueingTimeMs() {
         return maxQueueingTimeMs;
     }
 
-    /** Set the max queueing time in milliseconds. */
+    /** Sets the max queueing time in milliseconds. */
     public void setMaxQueueingTimeMs(Integer maxQueueingTimeMs) {
         this.maxQueueingTimeMs = maxQueueingTimeMs;
     }
@@ -226,46 +226,46 @@ public class FlowRuleEntity implements RuleEntity {
         return clusterMode;
     }
 
-    /** Set whether the rule works in cluster mode and return this. */
+    /** Sets whether the rule works in cluster mode and returns this. */
     public FlowRuleEntity setClusterMode(boolean clusterMode) {
         this.clusterMode = clusterMode;
         return this;
     }
 
-    /** Get the flow rule config for cluster mode. */
+    /** Gets the flow rule config for cluster mode. */
     public ClusterFlowConfig getClusterConfig() {
         return clusterConfig;
     }
 
-    /** Set the flow rule config for cluster mode and return this. */
+    /** Sets the flow rule config for cluster mode and returns this. */
     public FlowRuleEntity setClusterConfig(ClusterFlowConfig clusterConfig) {
         this.clusterConfig = clusterConfig;
         return this;
     }
 
-    /** Get the create time. */
+    /** Gets the create time. */
     @Override
     public Date getGmtCreate() {
         return gmtCreate;
     }
 
-    /** Set the create time. */
+    /** Sets the create time. */
     public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
     }
 
-    /** Get the last modify time. */
+    /** Gets the last modify time. */
     public Date getGmtModified() {
         return gmtModified;
     }
 
-    /** Set the last modify time. */
+    /** Sets the last modify time. */
     public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
     }
 
     /**
-     * Convert to a {@link FlowRule}, only setting controlBehavior, warmUpPeriodSec and
+     * Converts to a {@link FlowRule}, only setting controlBehavior, warmUpPeriodSec and
      * maxQueueingTimeMs when they are not null.
      */
     @Override

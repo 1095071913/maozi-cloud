@@ -43,7 +43,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
     /** The version of the Sentinel client (since 0.2.0). */
     private String version;
 
-    /** Create a machine info with the given app name, ip and port. */
+    /** Creates a machine info with the given app name, ip and port. */
     public static MachineInfo of(String app, String ip, Integer port) {
         MachineInfo machineInfo = new MachineInfo();
         machineInfo.setApp(app);
@@ -52,77 +52,77 @@ public class MachineInfo implements Comparable<MachineInfo> {
         return machineInfo;
     }
 
-    /** Get the machine address in "ip:port" form. */
+    /** Gets the machine address in "ip:port" form. */
     public String toHostPort() {
         return ip + ":" + port;
     }
 
-    /** Get the command port of the machine. */
+    /** Gets the command port of the machine. */
     public Integer getPort() {
         return port;
     }
 
-    /** Set the command port of the machine. */
+    /** Sets the command port of the machine. */
     public void setPort(Integer port) {
         this.port = port;
     }
 
-    /** Get the app name. */
+    /** Gets the app name. */
     public String getApp() {
         return app;
     }
 
-    /** Set the app name. */
+    /** Sets the app name. */
     public void setApp(String app) {
         this.app = app;
     }
 
-    /** Get the app type. */
+    /** Gets the app type. */
     public Integer getAppType() {
         return appType;
     }
 
-    /** Set the app type. */
+    /** Sets the app type. */
     public void setAppType(Integer appType) {
         this.appType = appType;
     }
 
-    /** Get the hostname. */
+    /** Gets the hostname. */
     public String getHostname() {
         return hostname;
     }
 
-    /** Set the hostname. */
+    /** Sets the hostname. */
     public void setHostname(String hostname) {
         this.hostname = hostname;
     }
 
-    /** Get the ip address. */
+    /** Gets the ip address. */
     public String getIp() {
         return ip;
     }
 
-    /** Set the ip address. */
+    /** Sets the ip address. */
     public void setIp(String ip) {
         this.ip = ip;
     }
 
-    /** Get the heartbeat version. */
+    /** Gets the heartbeat version. */
     public long getHeartbeatVersion() {
         return heartbeatVersion;
     }
     
-    /** Set the heartbeat version. */
+    /** Sets the heartbeat version. */
     public void setHeartbeatVersion(long heartbeatVersion) {
         this.heartbeatVersion = heartbeatVersion;
     }
 
-    /** Get the version of the Sentinel client. */
+    /** Gets the version of the Sentinel client. */
     public String getVersion() {
         return version;
     }
 
-    /** Set the version of the Sentinel client and return this. */
+    /** Sets the version of the Sentinel client and returns this. */
     public MachineInfo setVersion(String version) {
         this.version = version;
         return this;
@@ -134,17 +134,17 @@ public class MachineInfo implements Comparable<MachineInfo> {
         return delta < DashboardConfig.getUnhealthyMachineMillis();
     }
 
-    /** Get the timestamp of the last heartbeat. */
+    /** Gets the timestamp of the last heartbeat. */
     public long getLastHeartbeat() {
         return lastHeartbeat;
     }
     
-    /** Set the timestamp of the last heartbeat. */
+    /** Sets the timestamp of the last heartbeat. */
     public void setLastHeartbeat(long lastHeartbeat) {
         this.lastHeartbeat = lastHeartbeat;
     }
 
-    /** Compare by port, then app name (case-insensitive), then ip (case-insensitive). */
+    /** Compares by port, then app name (case-insensitive), then ip (case-insensitive). */
     @Override
     public int compareTo(MachineInfo o) {
         if (this == o) {
@@ -159,7 +159,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
         return ip.compareToIgnoreCase(o.getIp());
     }
 
-    /** Get the string representation containing all fields of the machine. */
+    /** Gets the string representation containing all fields of the machine. */
     @Override
     public String toString() {
         return new StringBuilder("MachineInfo {")
@@ -186,7 +186,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
             Objects.equals(port, that.port);
     }
 
-    /** Get the hash code computed from app, ip and port. */
+    /** Gets the hash code computed from app, ip and port. */
     @Override
     public int hashCode() {
         return Objects.hash(app, ip, port);

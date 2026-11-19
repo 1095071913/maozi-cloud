@@ -31,17 +31,17 @@ public class SentinelVersion {
     /** The postfix of the version, may be null. */
     private String postfix;
     
-    /** Create a version of 0.0.0. */
+    /** Creates a version of 0.0.0. */
     public SentinelVersion() {
         this(0, 0, 0);
     }
     
-    /** Create a version of the given numbers without postfix. */
+    /** Creates a version of the given numbers without postfix. */
     public SentinelVersion(int major, int minor, int fix) {
         this(major, minor, fix, null);
     }
     
-    /** Create a version of the given numbers and postfix. */
+    /** Creates a version of the given numbers and postfix. */
     public SentinelVersion(int major, int minor, int fix, String postfix) {
         this.majorVersion = major;
         this.minorVersion = minor;
@@ -49,57 +49,57 @@ public class SentinelVersion {
         this.postfix = postfix;
     }
     
-    /** Get the full version as a single integer in the form major * 1000000 + minor * 1000 + fix. */
+    /** Gets the full version as a single integer in the form major * 1000000 + minor * 1000 + fix. */
     public int getFullVersion() {
         return majorVersion * 1000000 + minorVersion * 1000 + fixVersion;
     }
 
-    /** Get the major version number. */
+    /** Gets the major version number. */
     public int getMajorVersion() {
         return majorVersion;
     }
 
-    /** Set the major version number and return this. */
+    /** Sets the major version number and returns this. */
     public SentinelVersion setMajorVersion(int majorVersion) {
         this.majorVersion = majorVersion;
         return this;
     }
 
-    /** Get the minor version number. */
+    /** Gets the minor version number. */
     public int getMinorVersion() {
         return minorVersion;
     }
 
-    /** Set the minor version number and return this. */
+    /** Sets the minor version number and returns this. */
     public SentinelVersion setMinorVersion(int minorVersion) {
         this.minorVersion = minorVersion;
         return this;
     }
 
-    /** Get the fix version number. */
+    /** Gets the fix version number. */
     public int getFixVersion() {
         return fixVersion;
     }
 
-    /** Set the fix version number and return this. */
+    /** Sets the fix version number and returns this. */
     public SentinelVersion setFixVersion(int fixVersion) {
         this.fixVersion = fixVersion;
         return this;
     }
 
-    /** Get the postfix of the version. */
+    /** Gets the postfix of the version. */
     public String getPostfix() {
         return postfix;
     }
 
-    /** Set the postfix of the version and return this. */
+    /** Sets the postfix of the version and returns this. */
     public SentinelVersion setPostfix(String postfix) {
         this.postfix = postfix;
         return this;
     }
 
     /**
-     * Check whether this version is greater than the given one; a null version is treated
+     * Checks whether this version is greater than the given one; a null version is treated
      * as the smallest one.
      */
     public boolean greaterThan(SentinelVersion version) {
@@ -110,7 +110,7 @@ public class SentinelVersion {
     }
 
     /**
-     * Check whether this version is greater than or equal to the given one; a null version
+     * Checks whether this version is greater than or equal to the given one; a null version
      * is treated as the smallest one.
      */
     public boolean greaterOrEqual(SentinelVersion version) {
@@ -132,7 +132,7 @@ public class SentinelVersion {
         return postfix != null ? postfix.equals(that.postfix) : that.postfix == null;
     }
 
-    /** Get the hash code from all version numbers and the postfix. */
+    /** Gets the hash code from all version numbers and the postfix. */
     @Override
     public int hashCode() {
         int result = majorVersion;
@@ -142,7 +142,7 @@ public class SentinelVersion {
         return result;
     }
 
-    /** Build a string with all fields of this version. */
+    /** Builds a string with all fields of this version. */
     @Override
     public String toString() {
         return "SentinelVersion{" +

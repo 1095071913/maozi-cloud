@@ -26,7 +26,7 @@ public class AuthProperties {
     /** Whether login authentication is enabled, default true. */
     private boolean enabled = true;
 
-    /** Check whether login authentication is enabled. */
+    /** Checks whether login authentication is enabled. */
     public boolean isEnabled() {
         return enabled;
     }

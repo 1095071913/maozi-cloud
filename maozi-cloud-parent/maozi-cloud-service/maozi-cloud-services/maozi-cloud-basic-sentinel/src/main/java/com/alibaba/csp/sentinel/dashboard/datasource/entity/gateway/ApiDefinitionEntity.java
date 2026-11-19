@@ -54,7 +54,7 @@ public class ApiDefinitionEntity implements RuleEntity {
     private Set<ApiPredicateItemEntity> predicateItems;
 
     /**
-     * Build an entity from the given {@link ApiDefinition}, taking the pattern and
+     * Builds an entity from the given {@link ApiDefinition}, taking the pattern and
      * matchStrategy of each {@link ApiPathPredicateItem} as predicate items.
      */
     public static ApiDefinitionEntity fromApiDefinition(String app, String ip, Integer port, ApiDefinition apiDefinition) {
@@ -82,7 +82,7 @@ public class ApiDefinitionEntity implements RuleEntity {
     }
 
     /**
-     * Convert to an {@link ApiDefinition}, with each predicate item converted to an
+     * Converts to an {@link ApiDefinition}, with each predicate item converted to an
      * {@link ApiPathPredicateItem}.
      */
     public ApiDefinition toApiDefinition() {
@@ -104,104 +104,104 @@ public class ApiDefinitionEntity implements RuleEntity {
         return apiDefinition;
     }
 
-    /** Create an empty entity. */
+    /** Creates an empty entity. */
     public ApiDefinitionEntity() {
 
     }
 
-    /** Create an entity with the given API name and predicate items. */
+    /** Creates an entity with the given API name and predicate items. */
     public ApiDefinitionEntity(String apiName, Set<ApiPredicateItemEntity> predicateItems) {
         this.apiName = apiName;
         this.predicateItems = predicateItems;
     }
 
-    /** Get the name of the API. */
+    /** Gets the name of the API. */
     public String getApiName() {
         return apiName;
     }
 
-    /** Set the name of the API. */
+    /** Sets the name of the API. */
     public void setApiName(String apiName) {
         this.apiName = apiName;
     }
 
-    /** Get the predicate items of the API. */
+    /** Gets the predicate items of the API. */
     public Set<ApiPredicateItemEntity> getPredicateItems() {
         return predicateItems;
     }
 
-    /** Set the predicate items of the API. */
+    /** Sets the predicate items of the API. */
     public void setPredicateItems(Set<ApiPredicateItemEntity> predicateItems) {
         this.predicateItems = predicateItems;
     }
 
-    /** Get the entity id. */
+    /** Gets the entity id. */
     @Override
     public Long getId() {
         return id;
     }
 
-    /** Set the entity id. */
+    /** Sets the entity id. */
     @Override
     public void setId(Long id) {
         this.id = id;
     }
 
-    /** Get the application name. */
+    /** Gets the application name. */
     @Override
     public String getApp() {
         return app;
     }
 
-    /** Set the application name. */
+    /** Sets the application name. */
     public void setApp(String app) {
         this.app = app;
     }
 
-    /** Get the IP address of the machine. */
+    /** Gets the IP address of the machine. */
     @Override
     public String getIp() {
         return ip;
     }
 
-    /** Set the IP address of the machine. */
+    /** Sets the IP address of the machine. */
     public void setIp(String ip) {
         this.ip = ip;
     }
 
-    /** Get the port of the machine. */
+    /** Gets the port of the machine. */
     @Override
     public Integer getPort() {
         return port;
     }
 
-    /** Set the port of the machine. */
+    /** Sets the port of the machine. */
     public void setPort(Integer port) {
         this.port = port;
     }
 
-    /** Get the create time. */
+    /** Gets the create time. */
     @Override
     public Date getGmtCreate() {
         return gmtCreate;
     }
 
-    /** Set the create time. */
+    /** Sets the create time. */
     public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
     }
 
-    /** Get the last modify time. */
+    /** Gets the last modify time. */
     public Date getGmtModified() {
         return gmtModified;
     }
 
-    /** Set the last modify time. */
+    /** Sets the last modify time. */
     public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
     }
 
-    /** Always return null, as an API definition is not a common Sentinel rule. */
+    /** Always returns null, as an API definition is not a common Sentinel rule. */
     @Override
     public Rule toRule() {
         return null;
@@ -223,13 +223,13 @@ public class ApiDefinitionEntity implements RuleEntity {
                 Objects.equals(predicateItems, entity.predicateItems);
     }
 
-    /** Get the hash code from all fields of this entity. */
+    /** Gets the hash code from all fields of this entity. */
     @Override
     public int hashCode() {
         return Objects.hash(id, app, ip, port, gmtCreate, gmtModified, apiName, predicateItems);
     }
 
-    /** Build a string with all fields of this entity. */
+    /** Builds a string with all fields of this entity. */
     @Override
     public String toString() {
         return "ApiDefinitionEntity{" +

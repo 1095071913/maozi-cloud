@@ -41,7 +41,7 @@ public class DemoController {
     /** The logger, created with MachineRegistryController.class as its name. */
     Logger logger = LoggerFactory.getLogger(MachineRegistryController.class);
 
-    /** Return the "index" view name. */
+    /** Returns the "index" view name. */
     @RequestMapping("/greeting")
     public String greeting() {
         return "index";

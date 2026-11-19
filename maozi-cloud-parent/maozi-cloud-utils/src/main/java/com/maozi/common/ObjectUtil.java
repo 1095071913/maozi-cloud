@@ -9,8 +9,7 @@ import java.util.Objects;
 /**
  * 对象工具类
  * <p>
- * 提供对象空值判断、相等比较、条件校验等通用方法。
- * 支持多种数据类型的空值判断：CharSequence、Array、Collection、Optional、Map。
+ * 提供对象空值判断（null 判断）、相等比较、条件校验等通用方法。
  * </p>
  *
  * @author pengjinlong
@@ -40,14 +39,10 @@ public class ObjectUtil {
     }
 
     /**
-     * 判断对象是否为空
-     * <p>
-     * 支持 CharSequence、Array、Collection、Optional、Map 类型的空值判断。
-     * 其他类型对象仅判断是否为 null。
-     * </p>
+     * 判断对象是否为 null
      *
      * @param data 待检查对象
-     * @return 为空返回 true
+     * @return 为 null 返回 true
      */
     public static boolean isNull(Object data){
         return data == null;

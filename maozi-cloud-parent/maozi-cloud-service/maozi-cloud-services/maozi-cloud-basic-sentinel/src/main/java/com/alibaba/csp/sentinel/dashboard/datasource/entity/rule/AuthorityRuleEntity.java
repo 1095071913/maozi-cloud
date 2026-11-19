@@ -28,18 +28,18 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  */
 public class AuthorityRuleEntity extends AbstractRuleEntity<AuthorityRule> {
 
-    /** Create an entity with no wrapped rule. */
+    /** Creates an entity with no wrapped rule. */
     public AuthorityRuleEntity() {
     }
 
-    /** Create an entity wrapping the given rule, which must not be null. */
+    /** Creates an entity wrapping the given rule, which must not be null. */
     public AuthorityRuleEntity(AuthorityRule authorityRule) {
         AssertUtil.notNull(authorityRule, "Authority rule should not be null");
         this.rule = authorityRule;
     }
 
     /**
-     * Build an entity wrapping the given {@link AuthorityRule}, carrying the given app, ip and port.
+     * Builds an entity wrapping the given {@link AuthorityRule}, carrying the given app, ip and port.
      */
     public static AuthorityRuleEntity fromAuthorityRule(String app, String ip, Integer port, AuthorityRule rule) {
         AuthorityRuleEntity entity = new AuthorityRuleEntity(rule);
@@ -49,21 +49,21 @@ public class AuthorityRuleEntity extends AbstractRuleEntity<AuthorityRule> {
         return entity;
     }
 
-    /** Get the limitApp of the wrapped rule (excluded from JSON). */
+    /** Gets the limitApp of the wrapped rule (excluded from JSON). */
     @JsonIgnore
     @JSONField(serialize = false)
     public String getLimitApp() {
         return rule.getLimitApp();
     }
 
-    /** Get the resource name of the wrapped rule (excluded from JSON). */
+    /** Gets the resource name of the wrapped rule (excluded from JSON). */
     @JsonIgnore
     @JSONField(serialize = false)
     public String getResource() {
         return rule.getResource();
     }
 
-    /** Get the strategy (white/black list) of the wrapped rule (excluded from JSON). */
+    /** Gets the strategy (white/black list) of the wrapped rule (excluded from JSON). */
     @JsonIgnore
     @JSONField(serialize = false)
     public int getStrategy() {

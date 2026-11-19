@@ -22,7 +22,7 @@ package com.alibaba.csp.sentinel.dashboard.client;
  */
 public class CommandFailedException extends RuntimeException {
 
-    /** Create the exception without a message. */
+    /** Creates the exception without a message. */
     public CommandFailedException() {}
 
     /** Creates the exception with the given message. */

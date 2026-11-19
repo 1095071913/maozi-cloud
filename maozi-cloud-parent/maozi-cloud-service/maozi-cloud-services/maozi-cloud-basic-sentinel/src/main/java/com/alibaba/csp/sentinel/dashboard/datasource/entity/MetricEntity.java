@@ -53,7 +53,7 @@ public class MetricEntity {
     /** The hash code of the resource name, updated when the resource is set. */
     private int resourceCode;
 
-    /** Create a copy of the given entity with all fields copied. */
+    /** Creates a copy of the given entity with all fields copied. */
     public static MetricEntity copyOf(MetricEntity oldEntity) {
         MetricEntity entity = new MetricEntity();
         entity.setId(oldEntity.getId());
@@ -71,28 +71,28 @@ public class MetricEntity {
         return entity;
     }
 
-    /** Add the given value to the passed QPS. */
+    /** Adds the given value to the passed QPS. */
     public synchronized void addPassQps(Long passQps) {
         this.passQps += passQps;
     }
 
-    /** Add the given value to the blocked QPS. */
+    /** Adds the given value to the blocked QPS. */
     public synchronized void addBlockQps(Long blockQps) {
         this.blockQps += blockQps;
     }
 
-    /** Add the given value to the exception QPS. */
+    /** Adds the given value to the exception QPS. */
     public synchronized void addExceptionQps(Long exceptionQps) {
         this.exceptionQps += exceptionQps;
     }
 
-    /** Add the given value to the total count. */
+    /** Adds the given value to the total count. */
     public synchronized void addCount(int count) {
         this.count += count;
     }
 
     /**
-     * Accumulate the total rt by {@code avgRt * successQps} and add the given success QPS.
+     * Accumulates the total rt by {@code avgRt * successQps} and adds the given success QPS.
      */
     public synchronized void addRtAndSuccessQps(double avgRt, Long successQps) {
         this.rt += avgRt * successQps;
@@ -100,7 +100,7 @@ public class MetricEntity {
     }
 
     /**
-     * Set {@link #rt} to {@code avgRt * successQps} and the success QPS to the given value.
+     * Sets {@link #rt} to {@code avgRt * successQps} and the success QPS to the given value.
      *
      * @param avgRt      the average RT of the {@code successQps} requests
      * @param successQps the success QPS
@@ -110,133 +110,133 @@ public class MetricEntity {
         this.successQps = successQps;
     }
 
-    /** Get the entity id. */
+    /** Gets the entity id. */
     public Long getId() {
         return id;
     }
 
-    /** Set the entity id. */
+    /** Sets the entity id. */
     public void setId(Long id) {
         this.id = id;
     }
 
-    /** Get the create time. */
+    /** Gets the create time. */
     public Date getGmtCreate() {
         return gmtCreate;
     }
 
-    /** Set the create time. */
+    /** Sets the create time. */
     public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
     }
 
-    /** Get the last modify time. */
+    /** Gets the last modify time. */
     public Date getGmtModified() {
         return gmtModified;
     }
 
-    /** Set the last modify time. */
+    /** Sets the last modify time. */
     public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
     }
 
-    /** Get the application name. */
+    /** Gets the application name. */
     public String getApp() {
         return app;
     }
 
-    /** Set the application name. */
+    /** Sets the application name. */
     public void setApp(String app) {
         this.app = app;
     }
 
-    /** Get the timestamp of the metric. */
+    /** Gets the timestamp of the metric. */
     public Date getTimestamp() {
         return timestamp;
     }
 
-    /** Set the timestamp of the metric. */
+    /** Sets the timestamp of the metric. */
     public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
     }
 
-    /** Get the resource name. */
+    /** Gets the resource name. */
     public String getResource() {
         return resource;
     }
 
-    /** Set the resource name and update resourceCode to its hash code. */
+    /** Sets the resource name and updates resourceCode to its hash code. */
     public void setResource(String resource) {
         this.resource = resource;
         this.resourceCode = resource.hashCode();
     }
 
-    /** Get the passed QPS. */
+    /** Gets the passed QPS. */
     public Long getPassQps() {
         return passQps;
     }
 
-    /** Set the passed QPS. */
+    /** Sets the passed QPS. */
     public void setPassQps(Long passQps) {
         this.passQps = passQps;
     }
 
-    /** Get the blocked QPS. */
+    /** Gets the blocked QPS. */
     public Long getBlockQps() {
         return blockQps;
     }
 
-    /** Set the blocked QPS. */
+    /** Sets the blocked QPS. */
     public void setBlockQps(Long blockQps) {
         this.blockQps = blockQps;
     }
 
-    /** Get the exception QPS. */
+    /** Gets the exception QPS. */
     public Long getExceptionQps() {
         return exceptionQps;
     }
 
-    /** Set the exception QPS. */
+    /** Sets the exception QPS. */
     public void setExceptionQps(Long exceptionQps) {
         this.exceptionQps = exceptionQps;
     }
 
-    /** Get the summary RT of all success exits. */
+    /** Gets the summary RT of all success exits. */
     public double getRt() {
         return rt;
     }
 
-    /** Set the summary RT of all success exits. */
+    /** Sets the summary RT of all success exits. */
     public void setRt(double rt) {
         this.rt = rt;
     }
 
-    /** Get the total count of this aggregation. */
+    /** Gets the total count of this aggregation. */
     public int getCount() {
         return count;
     }
 
-    /** Set the total count of this aggregation. */
+    /** Sets the total count of this aggregation. */
     public void setCount(int count) {
         this.count = count;
     }
 
-    /** Get the hash code of the resource name. */
+    /** Gets the hash code of the resource name. */
     public int getResourceCode() {
         return resourceCode;
     }
 
-    /** Get the success QPS. */
+    /** Gets the success QPS. */
     public Long getSuccessQps() {
         return successQps;
     }
 
-    /** Set the success QPS. */
+    /** Sets the success QPS. */
     public void setSuccessQps(Long successQps) {
         this.successQps = successQps;
     }
 
-    /** Build a string with all fields of this entity. */
+    /** Builds a string with all fields of this entity. */
     @Override
     public String toString() {
         return "MetricEntity{" +

@@ -257,7 +257,7 @@ public class ClusterConfigController {
         return null;
     }
 
-    /** Build the error result returned when the client version does not support cluster flow control. */
+    /** Builds the error result returned when the client version does not support cluster flow control. */
     private <R> Result<R> unsupportedVersion() {
         return Result.ofFail(4041, "Sentinel client not supported for cluster flow control (unsupported version or dependency absent)");
     }

@@ -32,41 +32,41 @@ public class ConnectionGroupVO {
     /** The count of connected clients. */
     private Integer connectedCount;
 
-    /** Get the namespace of the connection group. */
+    /** Gets the namespace of the connection group. */
     public String getNamespace() {
         return namespace;
     }
 
-    /** Set the namespace of the connection group and return this. */
+    /** Sets the namespace of the connection group and returns this. */
     public ConnectionGroupVO setNamespace(String namespace) {
         this.namespace = namespace;
         return this;
     }
 
-    /** Get the list of connections in the group. */
+    /** Gets the list of connections in the group. */
     public List<ConnectionDescriptorVO> getConnectionSet() {
         return connectionSet;
     }
 
-    /** Set the list of connections and return this. */
+    /** Sets the list of connections and returns this. */
     public ConnectionGroupVO setConnectionSet(
         List<ConnectionDescriptorVO> connectionSet) {
         this.connectionSet = connectionSet;
         return this;
     }
 
-    /** Get the count of connected clients. */
+    /** Gets the count of connected clients. */
     public Integer getConnectedCount() {
         return connectedCount;
     }
 
-    /** Set the count of connected clients and return this. */
+    /** Sets the count of connected clients and returns this. */
     public ConnectionGroupVO setConnectedCount(Integer connectedCount) {
         this.connectedCount = connectedCount;
         return this;
     }
 
-    /** Get the string representation of this VO. */
+    /** Gets the string representation of this VO. */
     @Override
     public String toString() {
         return "ConnectionGroupVO{" +

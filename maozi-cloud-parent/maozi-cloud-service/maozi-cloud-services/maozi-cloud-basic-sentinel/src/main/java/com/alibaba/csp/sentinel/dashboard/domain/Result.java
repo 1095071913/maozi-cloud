@@ -32,7 +32,7 @@ public class Result<R> {
     /** The payload data of the result. */
     private R data;
 
-    /** Create a successful result carrying the given data and msg "success". */
+    /** Creates a successful result carrying the given data and msg "success". */
     public static <R> Result<R> ofSuccess(R data) {
         return new Result<R>()
             .setSuccess(true)
@@ -40,14 +40,14 @@ public class Result<R> {
             .setData(data);
     }
 
-    /** Create a successful result carrying the given message. */
+    /** Creates a successful result carrying the given message. */
     public static <R> Result<R> ofSuccessMsg(String msg) {
         return new Result<R>()
             .setSuccess(true)
             .setMsg(msg);
     }
 
-    /** Create a failed result with the given code and message. */
+    /** Creates a failed result with the given code and message. */
     public static <R> Result<R> ofFail(int code, String msg) {
         Result<R> result = new Result<>();
         result.setSuccess(false);
@@ -57,7 +57,7 @@ public class Result<R> {
     }
 
     /**
-     * Create a failed result whose message combines the class name and message
+     * Creates a failed result whose message combines the class name and message
      * of the given throwable.
      */
     public static <R> Result<R> ofThrowable(int code, Throwable throwable) {
@@ -73,46 +73,46 @@ public class Result<R> {
         return success;
     }
 
-    /** Set whether the operation is successful and return this. */
+    /** Sets whether the operation is successful and returns this. */
     public Result<R> setSuccess(boolean success) {
         this.success = success;
         return this;
     }
 
-    /** Get the result code. */
+    /** Gets the result code. */
     public int getCode() {
         return code;
     }
 
-    /** Set the result code and return this. */
+    /** Sets the result code and returns this. */
     public Result<R> setCode(int code) {
         this.code = code;
         return this;
     }
 
-    /** Get the result message. */
+    /** Gets the result message. */
     public String getMsg() {
         return msg;
     }
 
-    /** Set the result message and return this. */
+    /** Sets the result message and returns this. */
     public Result<R> setMsg(String msg) {
         this.msg = msg;
         return this;
     }
 
-    /** Get the payload data. */
+    /** Gets the payload data. */
     public R getData() {
         return data;
     }
 
-    /** Set the payload data and return this. */
+    /** Sets the payload data and returns this. */
     public Result<R> setData(R data) {
         this.data = data;
         return this;
     }
 
-    /** Get the string representation of the result. */
+    /** Gets the string representation of the result. */
     @Override
     public String toString() {
         return "Result{" +

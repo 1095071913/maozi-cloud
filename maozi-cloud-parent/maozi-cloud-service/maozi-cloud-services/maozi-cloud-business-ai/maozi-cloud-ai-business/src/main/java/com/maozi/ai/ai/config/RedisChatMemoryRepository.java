@@ -35,13 +35,13 @@ import java.util.Set;
  * 每个会话在 Redis 中使用三个 key 存储：
  * <ul>
  *   <li>{@code chat:memory:{conversationId}}：HASH，field = 消息雪花 ID，value = 消息 JSON</li>
-	 *   <li>{@code chat:memory:{conversationId}:order}：ZSET，全部消息的顺序索引，
-	 *   score = 写入时刻毫秒时间戳</li>
-	 *   <li>{@code chat:memory:{conversationId}:record}：ZSET，仅 USER / ASSISTANT 消息
-	 *   （用户对话记录）的顺序索引</li>
+ *   <li>{@code chat:memory:{conversationId}:order}：ZSET，全部消息的顺序索引，
+ *   score = 写入时刻毫秒时间戳</li>
+ *   <li>{@code chat:memory:{conversationId}:record}：ZSET，仅 USER / ASSISTANT 消息
+ *   （用户对话记录）的顺序索引</li>
  * </ul>
-	 * 消息以 {@link ChatMessage} 结构序列化为 JSON 存储，
-	 * 读取时按消息类型反序列化为对应的 Spring AI 消息对象。
+ * 消息以 {@link ChatMessage} 结构序列化为 JSON 存储，
+ * 读取时按消息类型反序列化为对应的 Spring AI 消息对象。
  * </p>
  *
  * @author pengjinlong

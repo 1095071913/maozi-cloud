@@ -29,29 +29,29 @@ public class ConnectionDescriptorVO {
     /** The remote host of the connection. */
     private String host;
 
-    /** Get the remote address of the connection. */
+    /** Gets the remote address of the connection. */
     public String getAddress() {
         return address;
     }
 
-    /** Set the remote address of the connection and return this. */
+    /** Sets the remote address of the connection and returns this. */
     public ConnectionDescriptorVO setAddress(String address) {
         this.address = address;
         return this;
     }
 
-    /** Get the remote host of the connection. */
+    /** Gets the remote host of the connection. */
     public String getHost() {
         return host;
     }
 
-    /** Set the remote host of the connection and return this. */
+    /** Sets the remote host of the connection and returns this. */
     public ConnectionDescriptorVO setHost(String host) {
         this.host = host;
         return this;
     }
 
-    /** Get the string representation of this VO. */
+    /** Gets the string representation of this VO. */
     @Override
     public String toString() {
         return "ConnectionDescriptorVO{" +

@@ -33,40 +33,40 @@ public class ClusterAppAssignResultVO {
     /** The total count of machines in the assignment. */
     private Integer totalCount;
 
-    /** Get the set of servers that failed in the assignment. */
+    /** Gets the set of servers that failed in the assignment. */
     public Set<String> getFailedServerSet() {
         return failedServerSet;
     }
 
-    /** Set the set of failed servers and return this. */
+    /** Sets the set of failed servers and returns this. */
     public ClusterAppAssignResultVO setFailedServerSet(Set<String> failedServerSet) {
         this.failedServerSet = failedServerSet;
         return this;
     }
 
-    /** Get the set of clients that failed in the assignment. */
+    /** Gets the set of clients that failed in the assignment. */
     public Set<String> getFailedClientSet() {
         return failedClientSet;
     }
 
-    /** Set the set of failed clients and return this. */
+    /** Sets the set of failed clients and returns this. */
     public ClusterAppAssignResultVO setFailedClientSet(Set<String> failedClientSet) {
         this.failedClientSet = failedClientSet;
         return this;
     }
 
-    /** Get the total count of machines in the assignment. */
+    /** Gets the total count of machines in the assignment. */
     public Integer getTotalCount() {
         return totalCount;
     }
 
-    /** Set the total count of machines and return this. */
+    /** Sets the total count of machines and returns this. */
     public ClusterAppAssignResultVO setTotalCount(Integer totalCount) {
         this.totalCount = totalCount;
         return this;
     }
 
-    /** Get the string representation of this VO. */
+    /** Gets the string representation of this VO. */
     @Override
     public String toString() {
         return "ClusterAppAssignResultVO{" +

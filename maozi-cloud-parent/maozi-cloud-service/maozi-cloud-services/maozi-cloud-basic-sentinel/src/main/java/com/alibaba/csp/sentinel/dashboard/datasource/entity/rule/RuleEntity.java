@@ -26,24 +26,24 @@ import java.util.Date;
  */
 public interface RuleEntity {
 
-    /** Get the entity id. */
+    /** Gets the entity id. */
     Long getId();
 
-    /** Set the entity id. */
+    /** Sets the entity id. */
     void setId(Long id);
 
-    /** Get the application name. */
+    /** Gets the application name. */
     String getApp();
 
-    /** Get the IP address of the machine. */
+    /** Gets the IP address of the machine. */
     String getIp();
 
-    /** Get the port of the machine. */
+    /** Gets the port of the machine. */
     Integer getPort();
 
-    /** Get the create time. */
+    /** Gets the create time. */
     Date getGmtCreate();
     
-    /** Convert this entity to a Sentinel rule. */
+    /** Converts this entity to a Sentinel rule. */
     Rule toRule();
 }

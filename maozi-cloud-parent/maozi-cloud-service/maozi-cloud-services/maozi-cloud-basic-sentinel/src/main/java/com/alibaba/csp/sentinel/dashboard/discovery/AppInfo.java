@@ -41,39 +41,39 @@ public class AppInfo {
     /** Default constructor. */
     public AppInfo() {}
 
-    /** Create an AppInfo with the given app name. */
+    /** Creates an AppInfo with the given app name. */
     public AppInfo(String app) {
         this.app = app;
     }
 
-    /** Create an AppInfo with the given app name and app type. */
+    /** Creates an AppInfo with the given app name and app type. */
     public AppInfo(String app, Integer appType) {
         this.app = app;
         this.appType = appType;
     }
 
-    /** Get the name of the application. */
+    /** Gets the name of the application. */
     public String getApp() {
         return app;
     }
 
-    /** Set the name of the application. */
+    /** Sets the name of the application. */
     public void setApp(String app) {
         this.app = app;
     }
 
-    /** Get the type of the application. */
+    /** Gets the type of the application. */
     public Integer getAppType() {
         return appType;
     }
 
-    /** Set the type of the application. */
+    /** Sets the type of the application. */
     public void setAppType(Integer appType) {
         this.appType = appType;
     }
 
     /**
-     * Get the current machines.
+     * Gets the current machines.
      *
      * @return a new copy of the current machines.
      */
@@ -88,7 +88,7 @@ public class AppInfo {
     }
 
     /**
-     * Add the machine to this application, removing the existing equal machine
+     * Adds the machine to this application, removing the existing equal machine
      * (matched by app, ip and port) first.
      */
     public boolean addMachine(MachineInfo machineInfo) {
@@ -97,7 +97,7 @@ public class AppInfo {
     }
 
     /**
-     * Remove the machine with the given ip and port from this application,
+     * Removes the machine with the given ip and port from this application,
      * returning true only if a matching machine was found and removed.
      */
     public synchronized boolean removeMachine(String ip, int port) {
@@ -112,14 +112,14 @@ public class AppInfo {
         return false;
     }
 
-    /** Get the machine with the given ip and port, if present. */
+    /** Gets the machine with the given ip and port, if present. */
     public Optional<MachineInfo> getMachine(String ip, int port) {
         return machines.stream()
             .filter(e -> e.getIp().equals(ip) && e.getPort().equals(port))
             .findFirst();
     }
 
-    /** Get the first machine matching the given ip, if present. */
+    /** Gets the first machine matching the given ip, if present. */
     public Optional<MachineInfo> getMachine(String ip) {
         return machines.stream()
             .filter(e -> e.getIp().equals(ip))
@@ -127,7 +127,7 @@ public class AppInfo {
     }
 
     /**
-     * Check whether the application still has a heartbeat within the given threshold (ms).
+     * Checks whether the application still has a heartbeat within the given threshold (ms).
      * An app with no machine is dead; when the threshold is positive, an app with any
      * healthy machine is alive, while an app with no healthy machine is alive only if
      * the latest heartbeat among all machines is within the threshold.
@@ -152,7 +152,7 @@ public class AppInfo {
     }
 
     /**
-     * Check whether current application should be displayed in the sidebar.
+     * Checks whether current application should be displayed in the sidebar.
      *
      * @return true if the application should be displayed in the sidebar, otherwise false
      */
@@ -161,7 +161,7 @@ public class AppInfo {
     }
 
     /**
-     * Check whether current application has no healthy machines and should be removed.
+     * Checks whether current application has no healthy machines and should be removed.
      *
      * @return true if the application is dead and should be removed, otherwise false
      */

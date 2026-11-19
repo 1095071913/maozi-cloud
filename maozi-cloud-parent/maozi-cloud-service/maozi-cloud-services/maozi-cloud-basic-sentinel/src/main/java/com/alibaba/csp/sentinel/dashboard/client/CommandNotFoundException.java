@@ -23,7 +23,7 @@ package com.alibaba.csp.sentinel.dashboard.client;
  */
 public class CommandNotFoundException extends Exception {
 
-    /** Create the exception without a message. */
+    /** Creates the exception without a message. */
     public CommandNotFoundException() { }
 
     /** Creates the exception with the given message. */

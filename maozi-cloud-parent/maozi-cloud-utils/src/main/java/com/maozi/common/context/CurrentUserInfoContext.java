@@ -57,7 +57,7 @@ public class CurrentUserInfoContext extends AbstractRequestContextHolder<Current
     /**
      * 获取当前登录用户信息的 JSON 字符串（用于服务间透传）
      *
-     * @return 用户信息 JSON 字符串，未登录时返回字面量 "null"，序列化失败时返回 null
+     * @return 用户信息 JSON 字符串，未登录或序列化失败时返回 null
      */
     public String getJson() {
         CurrentUserInfo currentUserInfo = super.get();

@@ -59,19 +59,19 @@ public class FakeAuthServiceImpl implements AuthService<HttpServletRequest> {
             return true;
         }
 
-        /** Get the fixed fake nick name. */
+        /** Gets the fixed fake nick name. */
         @Override
         public String getNickName() {
             return "FAKE_NICK_NAME";
         }
 
-        /** Get the fixed fake login name. */
+        /** Gets the fixed fake login name. */
         @Override
         public String getLoginName() {
             return "FAKE_LOGIN_NAME";
         }
 
-        /** Get the fixed fake user id. */
+        /** Gets the fixed fake user id. */
         @Override
         public String getId() {
             return "FAKE_EMP_ID";

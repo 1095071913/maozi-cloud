@@ -86,10 +86,11 @@ public final class LogUtil {
     }
 
     /**
-     * 输出 error 级别日志（Map 格式）
+     * 输出 error 级别日志（Map 格式，含异常堆栈）
      *
      * @param log Logger 实例
      * @param content 日志内容键值对
+     * @param e 异常对象
      */
     public static void error(Logger log, Map<String, String> content, Throwable e){
         log.error(LogUtil.convertLog(content), e);

@@ -63,7 +63,7 @@ import java.util.stream.Collectors;
 /**
  * AI对话服务基础实现
  * <p>
- * 提供流式对话、文生图与消息查询等基础能力，供 REST 层实现类继承使用。
+ * 提供流式对话、文生图与消息查询等基础能力，供 REST 层实现类持有并委托调用。
  * </p>
  *
  * @author maozi
@@ -443,6 +443,12 @@ public class ChatServiceImpl implements ChatService {
 
     }
 
+    /**
+     * 删除会话中的指定消息
+     *
+     * @param conversationId 会话 ID
+     * @param messageId 消息 ID
+     */
     public void adminRemoveMessage(Long conversationId, Long messageId) {
         chatMemoryRepository.deleteByMessageId(conversationId.toString(), messageId.toString());
     }

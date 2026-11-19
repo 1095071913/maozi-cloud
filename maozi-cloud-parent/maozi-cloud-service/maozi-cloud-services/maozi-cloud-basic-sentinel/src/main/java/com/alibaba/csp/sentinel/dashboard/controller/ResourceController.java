@@ -48,7 +48,7 @@ public class ResourceController {
     private SentinelApiClient httpFetcher;
 
     /**
-     * Fetch real time statistics info of the machine.
+     * Fetches real time statistics info of the machine.
      *
      * @param ip        ip to fetch
      * @param port      port of the ip

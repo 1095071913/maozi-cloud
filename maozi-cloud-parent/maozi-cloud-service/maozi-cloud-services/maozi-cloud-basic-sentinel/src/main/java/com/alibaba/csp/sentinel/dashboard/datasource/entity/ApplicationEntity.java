@@ -41,82 +41,82 @@ public class ApplicationEntity {
     /** The last fetch time. */
     private Date lastFetch;
 
-    /** Get the entity id. */
+    /** Gets the entity id. */
     public long getId() {
         return id;
     }
 
-    /** Set the entity id. */
+    /** Sets the entity id. */
     public void setId(long id) {
         this.id = id;
     }
 
-    /** Get the create time. */
+    /** Gets the create time. */
     public Date getGmtCreate() {
         return gmtCreate;
     }
 
-    /** Set the create time. */
+    /** Sets the create time. */
     public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
     }
 
-    /** Get the last modified time. */
+    /** Gets the last modified time. */
     public Date getGmtModified() {
         return gmtModified;
     }
 
-    /** Set the last modified time. */
+    /** Sets the last modified time. */
     public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
     }
 
-    /** Get the app name. */
+    /** Gets the app name. */
     public String getApp() {
         return app;
     }
 
-    /** Set the app name. */
+    /** Sets the app name. */
     public void setApp(String app) {
         this.app = app;
     }
 
-    /** Get the type of the application. */
+    /** Gets the type of the application. */
     public Integer getAppType() {
         return appType;
     }
 
-    /** Set the type of the application. */
+    /** Sets the type of the application. */
     public void setAppType(Integer appType) {
         this.appType = appType;
     }
 
-    /** Get the active console address of the application. */
+    /** Gets the active console address of the application. */
     public String getActiveConsole() {
         return activeConsole;
     }
 
-    /** Get the last fetch time. */
+    /** Gets the last fetch time. */
     public Date getLastFetch() {
         return lastFetch;
     }
 
-    /** Set the last fetch time. */
+    /** Sets the last fetch time. */
     public void setLastFetch(Date lastFetch) {
         this.lastFetch = lastFetch;
     }
 
-    /** Set the active console address of the application. */
+    /** Sets the active console address of the application. */
     public void setActiveConsole(String activeConsole) {
         this.activeConsole = activeConsole;
     }
 
-    /** Convert to an {@link AppInfo} with the app name and app type of this entity. */
+    /** Converts to an {@link AppInfo} with the app name and app type of this entity. */
     public AppInfo toAppInfo() {
         return new AppInfo(app, appType);
     }
 
-    /** Build a string with the fields of this entity except appType. */
+    /** Builds a string with the fields of this entity except appType. */
     @Override
     public String toString() {
         return "ApplicationEntity{" +

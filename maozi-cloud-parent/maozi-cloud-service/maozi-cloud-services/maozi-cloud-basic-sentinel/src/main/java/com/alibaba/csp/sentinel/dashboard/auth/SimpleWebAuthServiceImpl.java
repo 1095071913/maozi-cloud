@@ -65,19 +65,19 @@ public class SimpleWebAuthServiceImpl implements AuthService<HttpServletRequest>
             return true;
         }
 
-        /** Get the username as nick name. */
+        /** Gets the username as nick name. */
         @Override
         public String getNickName() {
             return username;
         }
 
-        /** Get the username as login name. */
+        /** Gets the username as login name. */
         @Override
         public String getLoginName() {
             return username;
         }
 
-        /** Get the username as user id. */
+        /** Gets the username as user id. */
         @Override
         public String getId() {
             return username;

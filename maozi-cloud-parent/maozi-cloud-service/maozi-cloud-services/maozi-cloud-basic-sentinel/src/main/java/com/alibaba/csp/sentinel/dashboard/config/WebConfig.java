@@ -59,7 +59,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Autowired
     private AuthorizationInterceptor authorizationInterceptor;
 
-    /** Register the authorization interceptor for all paths. */
+    /** Registers the authorization interceptor for all paths. */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authorizationInterceptor).addPathPatterns("/**");
@@ -76,7 +76,7 @@ public class WebConfig implements WebMvcConfigurer {
             .setCacheControl(CacheControl.noCache());
     }
 
-    /** Map the root path "/" to forward to /index.htm. */
+    /** Maps the root path "/" to forward to /index.htm. */
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         registry.addViewController("/").setViewName("forward:/index.htm");

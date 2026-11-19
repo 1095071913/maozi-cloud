@@ -51,7 +51,7 @@ import java.util.Set;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@TableName(value = "oauth2_registered_client",autoResultMap = true)
+@TableName(value = "oauth2_registered_client", autoResultMap = true)
 public class ClientDO extends AbstractBaseDomain {
     /** 序列化标识 */
     @Serial
@@ -87,10 +87,10 @@ public class ClientDO extends AbstractBaseDomain {
 
     /** 客户端配置项，存储OAuth2.0客户端的自定义配置（如是否需要用户确认授权等） */
     @TableField(typeHandler = OAuth2SettingsTypeHandler.class)
-    private Map<String,Object> clientSettings;
+    private Map<String, Object> clientSettings;
 
     /** 令牌配置项，存储OAuth2.0令牌相关的自定义配置（如令牌有效期、格式等） */
     @TableField(typeHandler = OAuth2SettingsTypeHandler.class)
-    private Map<String,Object> tokenSettings;
+    private Map<String, Object> tokenSettings;
     
 }

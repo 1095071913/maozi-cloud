@@ -77,7 +77,7 @@ public class CollectionUtil {
      * @param <V> 值类型
      * @return 空的 HashMap
      */
-    public static <K,V> Map<K,V> newHashMap() {
+    public static <K, V> Map<K, V> newHashMap() {
         return new HashMap<>();
     }
 
@@ -92,7 +92,7 @@ public class CollectionUtil {
      * @param <V> 值类型
      * @return 按预期元素个数定容的 HashMap
      */
-    public static <K,V> Map<K,V> newHashMap(int expectedSize) {
+    public static <K, V> Map<K, V> newHashMap(int expectedSize) {
         return new HashMap<>((int) (expectedSize / 0.75f) + 1);
     }
 
@@ -105,7 +105,7 @@ public class CollectionUtil {
      * @param <V> 值类型
      * @return 包含指定键值对的 HashMap
      */
-    public static <K,V> Map<K,V> newHashMap(K key, V value) {
+    public static <K, V> Map<K, V> newHashMap(K key, V value) {
         HashMap<K, V> map = new HashMap<>((int) (1 / 0.75f) + 1);
         map.put(key, value);
         return map;
@@ -154,7 +154,7 @@ public class CollectionUtil {
      * @param <V> 值类型
      * @return 包含原始数据的新 HashMap
      */
-    public static <K,V> Map<K,V> newHashMap(Map<K,V> map) {
+    public static <K, V> Map<K, V> newHashMap(Map<K, V> map) {
         return new HashMap<>(map);
     }
 
@@ -207,7 +207,7 @@ public class CollectionUtil {
      * @return 原集合
      * @throws BusinessResultException 集合为 null 或空时抛出
      */
-    public static <T> Collection<T> collectionIsEmptyThrowError(Collection<T> collection,String resourceName) {
+    public static <T> Collection<T> collectionIsEmptyThrowError(Collection<T> collection, String resourceName) {
 
         if(CollectionUtil.isEmpty(collection)) {
             throw new BusinessResultException(SystemErrorCode.DATA_NOT_EXIST_ERROR)
@@ -228,7 +228,7 @@ public class CollectionUtil {
      * @return 原 Map
      * @throws BusinessResultException Map 为 null 或空时抛出
      */
-    public static <K,V> Map<K,V> collectionIsEmptyThrowError(Map<K,V> map, String resourceName) {
+    public static <K, V> Map<K, V> collectionIsEmptyThrowError(Map<K, V> map, String resourceName) {
 
         if(CollectionUtil.isEmpty(map)) {
             throw new BusinessResultException(SystemErrorCode.DATA_NOT_EXIST_ERROR)

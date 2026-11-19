@@ -56,7 +56,7 @@ public class OauthFunctionCall {
         param.setName(name);
         param.setClientSecret(RandomUtil.randomString(CLIENT_SECRET_LENGTH));
         param.setAuthorizationGrantTypes(CollectionUtil.newHashSet(AuthTypeEnum.PASSWORD,
-                AuthTypeEnum.REFRESH_TOKEN,AuthTypeEnum.CLIENT_CREDENTIALS));
+                AuthTypeEnum.REFRESH_TOKEN, AuthTypeEnum.CLIENT_CREDENTIALS));
         param.setAccessTokenValiditySeconds(accessTokenValiditySeconds);
         param.setRefreshTokenValiditySeconds(refreshTokenValiditySeconds);
 

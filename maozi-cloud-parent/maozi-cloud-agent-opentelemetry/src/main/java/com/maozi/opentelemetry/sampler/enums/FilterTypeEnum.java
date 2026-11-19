@@ -19,13 +19,13 @@ import lombok.Getter;
 public enum FilterTypeEnum {
 
     /** HTTP 请求来源 */
-    HTTP(0,"Http",new HttpFilterHandle()),
+    HTTP(0, "Http", new HttpFilterHandle()),
 
     /** Redis 访问来源 */
-    REDIS(1,"Redis", new RedisFilterHandle()),
+    REDIS(1, "Redis", new RedisFilterHandle()),
 
     /** MySQL 访问来源 */
-    MYSQL(2,"Mysql",new MysqlFilterHandle()),
+    MYSQL(2, "Mysql", new MysqlFilterHandle()),
 
     ;
 

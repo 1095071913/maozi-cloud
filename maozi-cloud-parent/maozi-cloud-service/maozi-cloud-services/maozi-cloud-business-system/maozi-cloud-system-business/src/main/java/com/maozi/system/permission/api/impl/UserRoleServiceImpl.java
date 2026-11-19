@@ -50,9 +50,9 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
      */
     @Override
     public void checkUserBindRoleByRole(Long roleId) {
-        LambdaQueryWrapper<UserRoleDO> wrapper = Wrappers.<UserRoleDO>lambdaQuery().eq(UserRoleDO::getRoleId,roleId);
+        LambdaQueryWrapper<UserRoleDO> wrapper = Wrappers.<UserRoleDO>lambdaQuery().eq(UserRoleDO::getRoleId, roleId);
         ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1,
-                SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE,"【角色】已被用户绑定");
+                SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE, "【角色】已被用户绑定");
     }
 
     /**
@@ -107,7 +107,7 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
 
         LambdaQueryWrapper<UserRoleDO> wrapper = Wrappers.lambdaQuery();
         wrapper.select(UserRoleDO::getRoleId);
-        wrapper.eq(UserRoleDO::getUserId,userId);
+        wrapper.eq(UserRoleDO::getUserId, userId);
 
         return super.list(wrapper).stream().map(UserRoleDO::getRoleId).collect(Collectors.toList());
 
@@ -124,11 +124,11 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
     public void checkUserBindRole(Long userId, Long roleId) {
 
         LambdaQueryWrapper<UserRoleDO> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(UserRoleDO::getUserId,userId);
-        wrapper.eq(UserRoleDO::getRoleId,roleId);
+        wrapper.eq(UserRoleDO::getUserId, userId);
+        wrapper.eq(UserRoleDO::getRoleId, roleId);
 
         ObjectUtil.checkConditionThrowError(super.count(wrapper) > 0,
-                SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE,"【用户】未绑定该角色");
+                SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE, "【用户】未绑定该角色");
     }
 
     /**
@@ -143,7 +143,7 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
         LambdaQueryWrapper<UserRoleDO> wrapper = Wrappers.lambdaQuery(UserRoleDO.builder().roleId(roleId).build());
 
         wrapper.select(UserRoleDO::getUserId);
-        wrapper.eq(UserRoleDO::getRoleId,roleId);
+        wrapper.eq(UserRoleDO::getRoleId, roleId);
 
         return super.list(wrapper).stream().map(UserRoleDO::getUserId).collect(Collectors.toList());
 

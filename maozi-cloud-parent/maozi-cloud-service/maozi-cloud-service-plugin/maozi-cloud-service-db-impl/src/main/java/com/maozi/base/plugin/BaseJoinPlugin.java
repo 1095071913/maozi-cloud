@@ -28,6 +28,6 @@ public abstract class BaseJoinPlugin {
      * @param wrapper MyBatis-Plus-Join Lambda 包装器
      * @param joinPlugin 关联注解实例，包含表名、连接条件和别名等信息
      */
-    public abstract void apply(String abbreviationModelName,MPJLambdaWrapper<?> wrapper, JoinPlugin joinPlugin);
+    public abstract void apply(String abbreviationModelName, MPJLambdaWrapper<?> wrapper, JoinPlugin joinPlugin);
 
 }

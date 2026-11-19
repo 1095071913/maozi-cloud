@@ -60,8 +60,8 @@ public final class ResultUtil {
      * @param <T> 数据类型
      * @return 错误结果
      */
-    public static <T> ErrorResult<T> error(ErrorCode errorCode,T errorData) {
-        return new ErrorResult<>(errorCode,errorData);
+    public static <T> ErrorResult<T> error(ErrorCode errorCode, T errorData) {
+        return new ErrorResult<>(errorCode, errorData);
     }
 
 }

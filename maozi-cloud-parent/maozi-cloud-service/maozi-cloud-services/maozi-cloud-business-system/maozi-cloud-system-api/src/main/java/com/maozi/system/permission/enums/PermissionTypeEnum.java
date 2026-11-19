@@ -15,17 +15,17 @@ import lombok.Getter;
  * @author maozi
  * @date 2026/11/08
  */
-@Schema(description = "权限类型",type = "integer")
+@Schema(description = "权限类型", type = "integer")
 public enum PermissionTypeEnum implements BaseEnum {
 
     /** 目录类型 - 表示一级导航目录 */
-    DIRECTORY(0,"目录"),
+    DIRECTORY(0, "目录"),
 
     /** 菜单类型 - 表示具体的功能菜单页面 */
-    MENU(1,"菜单"),
+    MENU(1, "菜单"),
 
     /** 按钮类型 - 表示页面中的操作按钮权限 */
-    BUTTON(2,"按钮"),
+    BUTTON(2, "按钮"),
 
     ;
 
@@ -35,7 +35,7 @@ public enum PermissionTypeEnum implements BaseEnum {
      * @param value 权限类型的数值编码
      * @param desc  权限类型的中文描述
      */
-    PermissionTypeEnum(Integer value,String desc) {
+    PermissionTypeEnum(Integer value, String desc) {
 
         this.value = value;
 

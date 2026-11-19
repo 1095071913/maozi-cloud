@@ -76,7 +76,7 @@ public class ChatConversationServiceImpl extends BaseServiceImpl<ChatConversatio
 
         MPJLambdaWrapper<ChatConversationDO> wrapper =
                 super.buildQueryWrapper(pageParam, ChatConversationListResult.class);
-        wrapper.eq(ChatConversationDO::getUserId,userId);
+        wrapper.eq(ChatConversationDO::getUserId, userId);
 
         Page<ChatConversationListResult> page = super.selectJoinListPage(
                 super.convertPage(pageParam),

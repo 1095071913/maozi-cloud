@@ -34,7 +34,7 @@ public @interface Get {
     String[] value() default {};
 
     /** 接口描述，同时作为 Swagger 文档的 summary */
-    @AliasFor(value = "summary",annotation = Operation.class)
+    @AliasFor(value = "summary", annotation = Operation.class)
     String description() default SymbolConstant.EMPTY;
 
 }

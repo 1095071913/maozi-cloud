@@ -332,7 +332,7 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
             }
             case ASSISTANT -> {
                 return new AssistantMessage(chatMessage.getTextContent(),
-                        chatMessage.getMetadata(), chatMessage.getToolCalls(),chatMessage.getMedia());
+                        chatMessage.getMetadata(), chatMessage.getToolCalls(), chatMessage.getMedia());
             }
             case TOOL -> {
                 return new ToolResponseMessage(chatMessage.getToolResponses(), chatMessage.getMetadata());

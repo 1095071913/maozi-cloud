@@ -39,7 +39,7 @@ public class SqlInjector extends DefaultSqlInjector {
             Class<?> mapperClass, TableInfo tableInfo) {
 
         // 获取 MyBatis-Plus 默认提供的所有方法（如 insert、selectById、updateById 等）
-        List<AbstractMethod> methodList = super.getMethodList(configuration,mapperClass, tableInfo);
+        List<AbstractMethod> methodList = super.getMethodList(configuration, mapperClass, tableInfo);
 
         // 添加批量插入方法，过滤条件：排除字段填充类型为 UPDATE 的字段
         // （即只插入非更新填充的字段）

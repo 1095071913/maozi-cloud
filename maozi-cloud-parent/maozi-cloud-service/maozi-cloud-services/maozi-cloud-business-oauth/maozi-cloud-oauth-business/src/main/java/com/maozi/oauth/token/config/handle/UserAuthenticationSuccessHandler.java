@@ -42,7 +42,7 @@ public class UserAuthenticationSuccessHandler
      */
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
-            HttpServletResponse response,Authentication authentication) {
+            HttpServletResponse response, Authentication authentication) {
 
         OAuth2AccessTokenAuthenticationToken accessTokenAuthentication =
                 (OAuth2AccessTokenAuthenticationToken) authentication;
@@ -70,7 +70,7 @@ public class UserAuthenticationSuccessHandler
 
         }
 
-        oauthToken.setScope(String.join(SymbolConstant.SPACE,accessToken.getScopes()));
+        oauthToken.setScope(String.join(SymbolConstant.SPACE, accessToken.getScopes()));
 
         Object idToken = accessTokenAuthentication.getAdditionalParameters().get(OidcParameterNames.ID_TOKEN);
         if (idToken != null) {

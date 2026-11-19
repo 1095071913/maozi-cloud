@@ -21,6 +21,6 @@ public abstract class BaseQueryPlugin {
      * @param field 字段名
      * @param data 条件值
      */
-    public abstract void apply(MPJLambdaWrapper<?> wrapper,String field,Object data);
+    public abstract void apply(MPJLambdaWrapper<?> wrapper, String field, Object data);
 
 }

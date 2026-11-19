@@ -55,6 +55,6 @@ public class ClientListResult implements Serializable {
     /** 令牌配置项，存储OAuth2.0令牌相关的自定义配置，序列化时忽略 */
     @JsonIgnore
     @Schema(hidden = true)
-    private Map<String,Object> tokenSettings;
+    private Map<String, Object> tokenSettings;
 
 }

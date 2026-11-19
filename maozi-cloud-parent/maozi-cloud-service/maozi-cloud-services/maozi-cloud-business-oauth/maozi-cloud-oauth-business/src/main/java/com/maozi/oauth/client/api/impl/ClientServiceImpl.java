@@ -205,7 +205,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
 
         Class<ClientListResult> responseClass = ClientListResult.class;
         MPJLambdaWrapper<ClientDO> wrapper = super.buildQueryWrapper(pageParam.getData(), responseClass);
-        Page<ClientListResult> page = super.selectJoinListPage(super.convertPage(pageParam), responseClass,wrapper);
+        Page<ClientListResult> page = super.selectJoinListPage(super.convertPage(pageParam), responseClass, wrapper);
 
         page.getRecords().forEach(item -> {
 
@@ -238,11 +238,11 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
      * @return 键为主键ID、值为clientId的映射Map
      */
     @Override
-    public Map<Long,String> getClientIdsMap(Collection<Long> ids) {
+    public Map<Long, String> getClientIdsMap(Collection<Long> ids) {
 
         LambdaQueryWrapper<ClientDO> wrapper = Wrappers.lambdaQuery();
 
-        wrapper.select(ClientDO::getId,ClientDO::getClientId);
+        wrapper.select(ClientDO::getId, ClientDO::getClientId);
         
         wrapper.in(ClientDO::getId, ids);
 

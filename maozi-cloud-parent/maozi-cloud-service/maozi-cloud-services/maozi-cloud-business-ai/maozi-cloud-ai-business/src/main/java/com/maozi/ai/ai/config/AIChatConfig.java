@@ -76,7 +76,7 @@ public class AIChatConfig {
                                  OauthFunctionCall oauthFunctionCall) {
         return chatClientBuilder
                 .defaultAdvisors(chatMemoryAdvisor)
-                .defaultTools(systemFunctionCall,oauthFunctionCall)
+                .defaultTools(systemFunctionCall, oauthFunctionCall)
                 .build();
     }
 

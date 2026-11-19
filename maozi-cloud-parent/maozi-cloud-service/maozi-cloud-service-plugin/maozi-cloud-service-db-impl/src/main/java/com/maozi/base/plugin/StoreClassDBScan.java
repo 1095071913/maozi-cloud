@@ -49,14 +49,14 @@ public class StoreClassDBScan implements ApplicationRunner {
 
                 TableName annotation = clazz.getAnnotation(TableName.class);
 
-                storeClassDBMap.put(annotation.value(),clazz);
+                storeClassDBMap.put(annotation.value(), clazz);
 
             }
 
         });
 
         // 以 DB 类型注册到全局存储类映射，供运行时按表名反查实体类
-        StoreClass.STORE_CLASS_MAP.put(StoreClassTypeEnum.DB,storeClassDBMap);
+        StoreClass.STORE_CLASS_MAP.put(StoreClassTypeEnum.DB, storeClassDBMap);
 
     }
 

@@ -142,7 +142,7 @@ public class MetricFetcher {
             new NamedThreadFactory("sentinel-dashboard-metrics-fetchService", true), handler);
         fetchWorker = new ThreadPoolExecutor(cores, cores,
             keepAliveTime, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(queueSize),
-            new NamedThreadFactory("sentinel-dashboard-metrics-fetchWorker",true), handler);
+            new NamedThreadFactory("sentinel-dashboard-metrics-fetchWorker", true), handler);
         IOReactorConfig ioConfig = IOReactorConfig.custom()
             .setConnectTimeout(HTTP_CONNECT_TIMEOUT_MS)
             .setSoTimeout(HTTP_SO_TIMEOUT_MS)

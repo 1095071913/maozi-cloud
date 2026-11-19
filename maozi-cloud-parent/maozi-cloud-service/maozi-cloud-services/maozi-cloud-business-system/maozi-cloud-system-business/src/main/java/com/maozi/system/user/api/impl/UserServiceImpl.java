@@ -145,7 +145,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
         // 构建查询条件：按用户 ID 列表查询，仅取用户名与客户端 ID 字段
         LambdaQueryWrapper<UserDO> wrapper = Wrappers.lambdaQuery();
 
-        wrapper.select(UserDO::getUsername,UserDO::getClientId);
+        wrapper.select(UserDO::getUsername, UserDO::getClientId);
 
         wrapper.in(UserDO::getId, ids);
 
@@ -199,7 +199,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
             param.setPassword(PASSWORD_ENCODER.encode(param.getPassword()));
         }
 
-        id = super.saveUpdate(id,param);
+        id = super.saveUpdate(id, param);
 
         // 保存后同步更新用户与角色的绑定关系
         userRoleService.updateBind(id, param.getBindRoleIds(), param.getUnbindRoleIds());
@@ -226,7 +226,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
     public void adminRemove(Long id) {
 
         // 先获取用户的用户名和客户端ID，删除后需用于注销认证令牌
-        UserDO user = super.getById(id, UserDO::getUsername,UserDO::getClientId);
+        UserDO user = super.getById(id, UserDO::getUsername, UserDO::getClientId);
         if(Objects.isNull(user)){
             return;
         }
@@ -336,8 +336,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
         LambdaQueryWrapper<UserDO> wrapper = Wrappers.lambdaQuery();
 
         // 仅查询用户ID和密码字段
-        wrapper.select(UserDO::getId,UserDO::getPassword);
-        wrapper.eq(UserDO::getUsername,username);
+        wrapper.select(UserDO::getId, UserDO::getPassword);
+        wrapper.eq(UserDO::getUsername, username);
 
         UserDO domain = super.getOne(wrapper);
 

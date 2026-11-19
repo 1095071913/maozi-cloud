@@ -16,28 +16,28 @@ import lombok.Getter;
 public enum LogCommonTypeEnum implements BaseEnum {
 
     /** 网关层日志 */
-    GATEWAY(0,"Gateway"),
+    GATEWAY(0, "Gateway"),
 
     /** Web 接口日志 */
-    WEB(1,"Web"),
+    WEB(1, "Web"),
 
     /** RPC 调用日志 */
-    RPC(2,"RPC"),
+    RPC(2, "RPC"),
 
     /** 定时任务日志 */
-    JOB(3,"Job"),
+    JOB(3, "Job"),
 
     /** 消息队列日志 */
-    MQ(4,"MQ"),
+    MQ(4, "MQ"),
 
     /** RestTemplate 三方调用日志 */
-    REST_TEMPLATE(5,"RestTemplate"),
+    REST_TEMPLATE(5, "RestTemplate"),
 
     /** WebSocket 日志 */
-    WEB_SOCKET(6,"WebSocket"),
+    WEB_SOCKET(6, "WebSocket"),
 
     /** RPC 重试日志 */
-    RPC_RETRY(7,"RPCRetry"),
+    RPC_RETRY(7, "RPCRetry"),
 
     ;
 
@@ -47,7 +47,7 @@ public enum LogCommonTypeEnum implements BaseEnum {
      * @param value 枚举整型值
      * @param desc 日志类型英文描述
      */
-    LogCommonTypeEnum(Integer value,String desc) {
+    LogCommonTypeEnum(Integer value, String desc) {
 
         this.value = value;
 

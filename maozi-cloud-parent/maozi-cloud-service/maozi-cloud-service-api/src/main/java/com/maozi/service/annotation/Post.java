@@ -34,15 +34,15 @@ public @interface Post {
     String[] value() default {};
 
     /** 接口描述，同时作为 Swagger 文档的 summary */
-    @AliasFor(value = "summary",annotation = Operation.class)
+    @AliasFor(value = "summary", annotation = Operation.class)
     String description() default SymbolConstant.EMPTY;
 
     /** 响应内容类型（Produces），透传给 {@link RequestMapping#produces} */
-    @AliasFor(value = "produces",annotation = RequestMapping.class)
+    @AliasFor(value = "produces", annotation = RequestMapping.class)
     String[] produces() default {};
 
     /** 请求内容类型（Consumes），透传给 {@link RequestMapping#consumes} */
-    @AliasFor(value = "consumes",annotation = RequestMapping.class)
+    @AliasFor(value = "consumes", annotation = RequestMapping.class)
     String[] consumes() default {};
 
 }

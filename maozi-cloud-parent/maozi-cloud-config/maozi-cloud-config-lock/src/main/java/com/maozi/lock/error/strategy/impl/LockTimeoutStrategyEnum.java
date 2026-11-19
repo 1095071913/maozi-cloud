@@ -31,7 +31,7 @@ public enum LockTimeoutStrategyEnum implements LockTimeoutHandler {
          * 直接抛出限流异常
          */
         @Override
-        public void handle(String key,Long waitTime,Long leaseTime,Lock lock) {
+        public void handle(String key, Long waitTime, Long leaseTime, Lock lock) {
             ErrorCode errorCode = SystemErrorCode.CURRENT_LIMITING_ERROR;
             throw new BusinessResultException(errorCode).setHttpCode(errorCode.getCode());
         }
@@ -52,13 +52,13 @@ public enum LockTimeoutStrategyEnum implements LockTimeoutHandler {
          */
         @Override
         @SneakyThrows
-        public void handle(String key,Long waitTime,Long leaseTime,Lock lock){
+        public void handle(String key, Long waitTime, Long leaseTime, Lock lock){
 
             // 初始重试间隔 100ms
             Long interval = DEFAULT_INTERVAL;
 
             // 持续尝试获取锁，直到成功或重试间隔超过上限
-            while (!lock.lock(key,waitTime,leaseTime)) {
+            while (!lock.lock(key, waitTime, leaseTime)) {
 
                 // 如果当前重试间隔超过上限（3分钟），则停止重试并抛出限流异常
                 if (interval > DEFAULT_MAX_INTERVAL) {

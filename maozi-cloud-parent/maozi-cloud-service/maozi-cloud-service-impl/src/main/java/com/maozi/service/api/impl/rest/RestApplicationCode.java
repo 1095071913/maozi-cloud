@@ -34,7 +34,7 @@ public class RestApplicationCode {
      *
      * @return 枚举名称到枚举常量列表的映射
      */
-    @Get(value = PATH + "/list",description = "列表")
+    @Get(value = PATH + "/list", description = "列表")
     public AbstractBaseResult<Map<String, List<BaseEnum>>> list() {
         return ResultUtil.success(EnumConfig.getEnums());
     }
@@ -45,7 +45,7 @@ public class RestApplicationCode {
      * @param name 枚举名称（首字母小写）
      * @return 枚举常量列表
      */
-    @Get(value = PATH + "/{name}/get",description = "详情")
+    @Get(value = PATH + "/{name}/get", description = "详情")
     public AbstractBaseResult<List<BaseEnum>> get(@PathVariable("name") String name) {
         return ResultUtil.success(EnumConfig.getEnums().get(name));
     }

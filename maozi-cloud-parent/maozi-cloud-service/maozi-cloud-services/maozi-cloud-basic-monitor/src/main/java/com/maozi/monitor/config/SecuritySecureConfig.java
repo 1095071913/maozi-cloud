@@ -10,6 +10,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -131,7 +132,7 @@ public class SecuritySecureConfig {
                 .httpBasic(Customizer.withDefaults())
                 // 关闭 X-Frame-Options：管理后台"中间件管理"页以内嵌 iframe 打开监控台，
                 // Spring Security 默认下发的 DENY 会导致浏览器拒绝在 frame 中展示
-                .headers((headers) -> headers.frameOptions((frame) -> frame.disable()))
+                .headers((headers) -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .csrf((csrf) -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(csrfRequestHandler)

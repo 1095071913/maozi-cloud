@@ -89,7 +89,7 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
         }
 
         ossClient = builder
-            .credentialsProvider(new StaticCredentialsProvider(aliyun.getAccessKeyId(),aliyun.getAccessKeySecret()))
+            .credentialsProvider(new StaticCredentialsProvider(aliyun.getAccessKeyId(), aliyun.getAccessKeySecret()))
             .build();
 
     }
@@ -132,7 +132,7 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
      * @throws BusinessResultException 上传文件为空或上传过程发生异常时抛出
      */
     @Override
-    public ImageUploadResult upload(MultipartFile file,String path) {
+    public ImageUploadResult upload(MultipartFile file, String path) {
 
         // 上传文件为空时抛出业务异常
         if(Objects.isNull(file) || file.isEmpty()) {
@@ -143,26 +143,26 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
 
             ImageStorageProperties.Aliyun aliyun = imageStorageProperties.getAliyun();
 
-            String fileKey = buildObjectKey(path,file.getOriginalFilename());
+            String fileKey = buildObjectKey(path, file.getOriginalFilename());
 
             PutObjectRequest request = PutObjectRequest.newBuilder()
                 .bucket(aliyun.getBucket())
                 .key(fileKey)
                 .contentType(file.getContentType())
-                .body(BinaryData.fromStream(file.getInputStream(),file.getSize()))
+                .body(BinaryData.fromStream(file.getInputStream(), file.getSize()))
                 .build();
 
             ossClient.putObject(request);
 
             // 对象存储路径统一补上前导斜杠后返回
             return new ImageUploadResult(file.getOriginalFilename(),
-                    SymbolConstant.SLASH + fileKey,buildAccessUrl(fileKey), file.getSize());
+                    SymbolConstant.SLASH + fileKey, buildAccessUrl(fileKey), file.getSize());
 
         } catch (Exception e) {
             // 上传过程中的任意异常统一转换为业务异常抛出，并保留原始异常堆栈便于排查
             log.error("Upload file to oss failed, file: {}", file.getOriginalFilename(), e);
             throw new BusinessResultException(
-                    new ErrorCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE,"文件上传失败"), e);
+                    new ErrorCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE, "文件上传失败"), e);
         }
 
     }
@@ -181,15 +181,15 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
      * @param originalFilename 文件原始名称
      * @return 对象存储路径（Object Key）
      */
-    private String buildObjectKey(String path,String originalFilename) {
+    private String buildObjectKey(String path, String originalFilename) {
 
-        String directory = StringUtils.defaultIfEmpty(StringUtils.strip(path,SymbolConstant.SLASH),DEFAULT_DIRECTORY);
+        String directory = StringUtils.defaultIfEmpty(StringUtils.strip(path, SymbolConstant.SLASH), DEFAULT_DIRECTORY);
 
-        String extension = StringUtils.substringAfterLast(originalFilename,SymbolConstant.DOT);
+        String extension = StringUtils.substringAfterLast(originalFilename, SymbolConstant.DOT);
 
         String datePath = LocalDate.now().format(DATE_PATH_FORMATTER);
 
-        String fileName = UUID.randomUUID().toString().replace(SymbolConstant.HYPHEN,SymbolConstant.EMPTY);
+        String fileName = UUID.randomUUID().toString().replace(SymbolConstant.HYPHEN, SymbolConstant.EMPTY);
 
         return directory + SymbolConstant.SLASH + datePath + SymbolConstant.SLASH + fileName
                 + (StringUtils.isNotEmpty(extension) ? SymbolConstant.DOT + extension.toLowerCase() : SymbolConstant.EMPTY);
@@ -212,7 +212,7 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
         ImageStorageProperties.Aliyun aliyun = imageStorageProperties.getAliyun();
 
         if(StringUtils.isNotEmpty(aliyun.getDomain())) {
-            return StringUtils.removeEnd(aliyun.getDomain(),SymbolConstant.SLASH) + SymbolConstant.SLASH + fileKey;
+            return StringUtils.removeEnd(aliyun.getDomain(), SymbolConstant.SLASH) + SymbolConstant.SLASH + fileKey;
         }
 
         if(StringUtils.isNotEmpty(aliyun.getEndpoint())) {

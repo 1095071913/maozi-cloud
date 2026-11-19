@@ -52,7 +52,7 @@ public class UserInfoResult implements Serializable {
 
     /** 所属客户端信息，通过远程服务查询获取 */
     @Schema(description = "客户端")
-    @QueryMapping(isService = true,serviceName = "rpcClientService",relationField = "clientId")
+    @QueryMapping(isService = true, serviceName = "rpcClientService", relationField = "clientId")
     private DropDownResult client;
 
     /** 用户头像图标 */
@@ -65,7 +65,7 @@ public class UserInfoResult implements Serializable {
     private StatusEnum status;
 
     /** 用户关联的角色ID列表，通过用户角色服务查询自动填充 */
-    @Schema(description = "角色列表",ref = "StringArrayList")
+    @Schema(description = "角色列表", ref = "StringArrayList")
     @QueryMapping(isService = true, serviceName = SystemServiceConstant.USER_ROLE_SERVICE,
             functionName = "listRoleByUserId", relationField = "id")
     private List<Long> roleIds;

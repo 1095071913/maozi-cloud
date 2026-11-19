@@ -195,7 +195,7 @@ public class BaseApplication {
 
             // 追加各初始化器诊断信息并输出启动日志
             appendInitializerLogs(initializers, logs);
-            LogUtil.info(log,logs);
+            LogUtil.info(log, logs);
 
         } catch (Exception e) {
 
@@ -275,7 +275,7 @@ public class BaseApplication {
             if(StringUtils.isEmpty(environment)){
                 environment = EnvironmentTypeEnum.LOCAL.getDesc();
             }
-            properties.put(APPLICATION_ENVIRONMENT_KEY,environment);
+            properties.put(APPLICATION_ENVIRONMENT_KEY, environment);
         }
 
         // 解析应用版本：系统属性 > 环境变量 > 默认版本号
@@ -293,16 +293,16 @@ public class BaseApplication {
         if(StringUtils.isEmpty(applicationName)){
             throw new RuntimeException("服务名读取失败");
         }
-        String applicationProjectAbbreviation = applicationName.replace(PROJECT_PREFIX,SymbolConstant.EMPTY);
+        String applicationProjectAbbreviation = applicationName.replace(PROJECT_PREFIX, SymbolConstant.EMPTY);
         applicationProjectAbbreviation = applicationProjectAbbreviation.substring(0,
             applicationProjectAbbreviation.length() - PROJECT_NAME_SUFFIX_LENGTH);
 
         // 设置应用名、项目简称及基础启动参数（关闭启动信息日志、允许循环依赖）
-        properties.put(SpringPropertyConstant.SPRING_APPLICATION_NAME,applicationName);
-        properties.put(PROJECT_ABBREVIATION_KEY,applicationProjectAbbreviation);
+        properties.put(SpringPropertyConstant.SPRING_APPLICATION_NAME, applicationName);
+        properties.put(PROJECT_ABBREVIATION_KEY, applicationProjectAbbreviation);
 
-        properties.put(LOG_STARTUP_INFO_KEY,false);
-        properties.put(ALLOW_CIRCULAR_REFERENCES_KEY,true);
+        properties.put(LOG_STARTUP_INFO_KEY, false);
+        properties.put(ALLOW_CIRCULAR_REFERENCES_KEY, true);
 
         // 设置日志级别：根日志 ERROR，项目包 INFO
         properties.put(LOGGING_LEVEL_ROOT_KEY, LOG_LEVEL_ERROR);
@@ -310,10 +310,10 @@ public class BaseApplication {
 
         // 非本地环境输出异步文件日志，本地环境输出异步控制台日志
         if(!Objects.equals(environment, EnvironmentTypeEnum.LOCAL.getDesc())){
-            properties.put(LOGGING_APPENDER_KEY,APPENDER_ASYNC_FILE);
-            properties.put(LOGGING_FILE_NAME_KEY,"logs/${spring.application.name}.log");
+            properties.put(LOGGING_APPENDER_KEY, APPENDER_ASYNC_FILE);
+            properties.put(LOGGING_FILE_NAME_KEY, "logs/${spring.application.name}.log");
         }else{
-            properties.put(LOGGING_APPENDER_KEY,APPENDER_ASYNC_CONSOLE);
+            properties.put(LOGGING_APPENDER_KEY, APPENDER_ASYNC_CONSOLE);
         }
 
     }

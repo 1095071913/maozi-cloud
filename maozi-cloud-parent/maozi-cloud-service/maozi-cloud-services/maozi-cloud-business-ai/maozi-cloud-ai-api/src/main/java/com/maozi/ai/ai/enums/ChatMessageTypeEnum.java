@@ -13,14 +13,14 @@ import lombok.Getter;
  * @author pengjinlong
  * @since 2026/8/17 10:09
  */
-@Schema(description = "AI对话消息类型",type = "integer")
+@Schema(description = "AI对话消息类型", type = "integer")
 public enum ChatMessageTypeEnum {
 
     /** 用户消息 */
-    USER(0,"用户消息"),
+    USER(0, "用户消息"),
 
     /** AI消息 */
-    AI(1,"AI消息")
+    AI(1, "AI消息")
 
     ;
 
@@ -30,7 +30,7 @@ public enum ChatMessageTypeEnum {
      * @param value AI对话消息类型的数值编码
      * @param desc  AI对话消息类型的中文描述
      */
-    ChatMessageTypeEnum(Integer value,String desc) {
+    ChatMessageTypeEnum(Integer value, String desc) {
 
         this.value = value;
 

@@ -20,7 +20,7 @@ import java.lang.annotation.Target;
  * @author maozi
  * @date 2026/11/08
  */
-@Target({ElementType.FIELD,ElementType.TYPE_USE})
+@Target({ElementType.FIELD, ElementType.TYPE_USE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Constraint(validatedBy = ImageFileValidator.class)

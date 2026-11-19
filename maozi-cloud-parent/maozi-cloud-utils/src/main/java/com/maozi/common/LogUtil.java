@@ -50,7 +50,7 @@ public final class LogUtil {
      * @param log Logger 实例
      * @param content 日志内容键值对
      */
-    public static void info(Logger log,Map<String, String> content){
+    public static void info(Logger log, Map<String, String> content){
         log(log, false, content, null);
     }
 

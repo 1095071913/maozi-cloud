@@ -14,14 +14,14 @@ import lombok.Getter;
  * @author maozi
  * @date 2026/11/08
  */
-@Schema(description = "状态",type = "integer")
+@Schema(description = "状态", type = "integer")
 public enum StatusEnum implements BaseEnum {
 
     /** 禁用 */
-    DISABLE(0,"禁用"),
+    DISABLE(0, "禁用"),
 
     /** 启用 */
-    ENABLE(1,"启用"),
+    ENABLE(1, "启用"),
 
     ;
 
@@ -31,7 +31,7 @@ public enum StatusEnum implements BaseEnum {
      * @param value 状态值，对应数据库状态字段
      * @param desc 状态的中文描述
      */
-    StatusEnum(Integer value,String desc) {
+    StatusEnum(Integer value, String desc) {
 
         this.value = value;
 

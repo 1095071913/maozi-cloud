@@ -30,11 +30,11 @@ public class PageParam<D> implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** 当前页码（未传时默认取第 1 页，由分页转换处兜底） */
-    @Schema(description = "页数",defaultValue = "1")
+    @Schema(description = "页数", defaultValue = "1")
     private Long current;
 
     /** 每页数据条数（未传时默认每页 10 条，由分页转换处兜底） */
-    @Schema(description = "每页数量",defaultValue = "10")
+    @Schema(description = "每页数量", defaultValue = "10")
     private Long size;
 
     /** 查询条件数据 */

@@ -40,7 +40,7 @@ import java.io.Serial;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@TableName(value = "system_role",autoResultMap = true)
+@TableName(value = "system_role", autoResultMap = true)
 public class RoleDO extends AbstractBaseNameDomain {
     /** 序列化标识 */
     @Serial

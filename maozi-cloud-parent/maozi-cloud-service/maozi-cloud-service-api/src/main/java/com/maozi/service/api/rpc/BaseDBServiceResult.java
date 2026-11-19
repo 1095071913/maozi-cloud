@@ -32,7 +32,7 @@ public interface BaseDBServiceResult<D> {
      * @param columns 查询字段列表
      * @return 查询结果
      */
-    AbstractBaseResult<D> getByIdResult(Long id,String ... columns);
+    AbstractBaseResult<D> getByIdResult(Long id, String ... columns);
 
     /**
      * 根据 ID 集合批量查询记录
@@ -41,7 +41,7 @@ public interface BaseDBServiceResult<D> {
      * @param columns 查询字段列表
      * @return 以 ID 为键、数据为值的映射
      */
-    AbstractBaseResult<Map<Long,D>> listByIdsResult(Collection<Long> ids,String ... columns);
+    AbstractBaseResult<Map<Long, D>> listByIdsResult(Collection<Long> ids, String ... columns);
 
     /**
      * 根据关联 ID 查询关联记录列表
@@ -51,7 +51,7 @@ public interface BaseDBServiceResult<D> {
      * @param columns 查询字段列表
      * @return 关联记录列表
      */
-    AbstractBaseResult<List<D>> listByRelationIdResult(Long id,String relationField,String ... columns);
+    AbstractBaseResult<List<D>> listByRelationIdResult(Long id, String relationField, String ... columns);
 
     /**
      * 根据关联 ID 集合批量查询关联记录
@@ -61,8 +61,8 @@ public interface BaseDBServiceResult<D> {
      * @param columns 查询字段列表
      * @return 以关联 ID 为键、记录列表为值的映射
      */
-    AbstractBaseResult<Map<Long,List<D>>> listByRelationIdsResult(Collection<Long> ids,
-            String relationField,String ... columns);
+    AbstractBaseResult<Map<Long, List<D>>> listByRelationIdsResult(Collection<Long> ids,
+            String relationField, String ... columns);
 
     /**
      * 根据条件统计记录数
@@ -145,7 +145,7 @@ public interface BaseDBServiceResult<D> {
      * @return 查询结果
      * @throws com.maozi.common.result.error.exception.BusinessResultException 记录不存在或已禁用时抛出
      */
-    AbstractBaseResult<D> getAvailableByIdResult(Long id,String ... columns);
+    AbstractBaseResult<D> getAvailableByIdResult(Long id, String ... columns);
 
     /**
      * 根据 ID 获取下拉选择项

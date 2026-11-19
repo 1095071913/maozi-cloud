@@ -30,6 +30,6 @@ public interface ClientService {
      * @param ids 客户端主键ID集合
      * @return 键为主键ID、值为clientId的映射Map
      */
-    Map<Long,String> getClientIdsMap(Collection<Long> ids);
+    Map<Long, String> getClientIdsMap(Collection<Long> ids);
 
 }

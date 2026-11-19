@@ -54,7 +54,7 @@ public enum LockTypeEnum implements BaseEnum {
      * @param desc 枚举描述
      * @param lockClass 锁实现类
      */
-    LockTypeEnum(Integer value,String desc, Class< ? extends Lock> lockClass) {
+    LockTypeEnum(Integer value, String desc, Class< ? extends Lock> lockClass) {
 
         this.value = value;
 
@@ -156,7 +156,7 @@ public enum LockTypeEnum implements BaseEnum {
         try {
             return supplier.get();
         } finally {
-            unlock(key,unLockTimeoutStrategy);
+            unlock(key, unLockTimeoutStrategy);
         }
 
     }
@@ -171,15 +171,15 @@ public enum LockTypeEnum implements BaseEnum {
      * @param <T> 返回值类型
      * @return 业务逻辑执行结果
      */
-    public <T> T lock(String key, Long waitTime,Long leaseTime, Supplier<T> supplier) {
+    public <T> T lock(String key, Long waitTime, Long leaseTime, Supplier<T> supplier) {
 
-        lock(key,waitTime,leaseTime,LockTimeoutStrategyEnum.KEEP_ACQUIRE);
+        lock(key, waitTime, leaseTime, LockTimeoutStrategyEnum.KEEP_ACQUIRE);
 
         // 执行业务回调，确保在 finally 块中释放锁
         try {
             return supplier.get();
         } finally {
-            unlock(key,UnLockTimeoutStrategyEnum.NO_OPERATION);
+            unlock(key, UnLockTimeoutStrategyEnum.NO_OPERATION);
         }
 
     }
@@ -215,7 +215,7 @@ public enum LockTypeEnum implements BaseEnum {
      * @param leaseTime 锁的持有时间（秒）
      * @param strategy 加锁超时策略
      */
-    public void lock(String key,Long waitTime,Long leaseTime, LockTimeoutStrategyEnum strategy) {
+    public void lock(String key, Long waitTime, Long leaseTime, LockTimeoutStrategyEnum strategy) {
 
         // 从 Spring 容器中获取当前锁类型对应的锁实现类实例
         Lock lock = getLock();
@@ -224,8 +224,8 @@ public enum LockTypeEnum implements BaseEnum {
         key = RedisUtil.REDIS_KEY_PREFIX + LOCK_PREFIX + key;
 
         // 尝试获取锁，如果获取失败则交由超时策略处理
-        if(!lock.lock(key,waitTime,leaseTime)) {
-            strategy.handle(key,waitTime,leaseTime, lock);
+        if(!lock.lock(key, waitTime, leaseTime)) {
+            strategy.handle(key, waitTime, leaseTime, lock);
         }
 
     }
@@ -236,7 +236,7 @@ public enum LockTypeEnum implements BaseEnum {
      * @param key 锁键名
      */
     public void unlock(String key) {
-        unlock(key,UnLockTimeoutStrategyEnum.NO_OPERATION);
+        unlock(key, UnLockTimeoutStrategyEnum.NO_OPERATION);
     }
 
     /**

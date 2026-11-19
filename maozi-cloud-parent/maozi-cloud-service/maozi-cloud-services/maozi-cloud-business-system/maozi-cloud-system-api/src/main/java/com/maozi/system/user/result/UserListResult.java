@@ -41,7 +41,7 @@ public class UserListResult implements Serializable {
 
     /** 所属客户端信息，通过远程服务查询获取 */
     @Schema(description = "客户端")
-    @QueryMapping(relationField = "clientId",isService = true,serviceName = "rpcClientService")
+    @QueryMapping(relationField = "clientId", isService = true, serviceName = "rpcClientService")
     private DropDownResult client;
 
     /** 用户状态（启用/禁用） */

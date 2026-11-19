@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
  * @date 2026/11/08
  */
 @Service
-public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMapper,RolePermissionDO>
+public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMapper, RolePermissionDO>
         implements RolePermissionService {
 
     /** 资源名称，用于异常提示信息 */
@@ -73,7 +73,7 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
         LambdaQueryWrapper<RolePermissionDO> wrapper =
                 Wrappers.lambdaQuery(RolePermissionDO.builder().permissionId(permissionId).build());
         ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1,
-                SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE,"【权限】已被角色绑定");
+                SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE, "【权限】已被角色绑定");
     }
 
     /**

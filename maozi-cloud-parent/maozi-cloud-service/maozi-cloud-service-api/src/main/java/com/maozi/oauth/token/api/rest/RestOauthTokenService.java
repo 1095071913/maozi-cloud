@@ -36,7 +36,7 @@ public interface RestOauthTokenService {
      * @param token 待内省的令牌字符串
      * @return 令牌内省结果，包含 active、sub、authorities 等字段，令牌无效时 active 为 false
      */
-    @Get(value = PATH + "/{token}/introspect",description = "内省令牌")
+    @Get(value = PATH + "/{token}/introspect", description = "内省令牌")
     AbstractBaseResult<Map<String, Object>> introspectResult(@PathVariable("token") String token);
 
 }

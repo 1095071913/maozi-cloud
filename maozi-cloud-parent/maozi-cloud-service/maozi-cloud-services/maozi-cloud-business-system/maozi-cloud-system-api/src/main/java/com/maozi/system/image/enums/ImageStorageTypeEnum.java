@@ -16,11 +16,11 @@ import lombok.Getter;
  * @author maozi
  * @date 2026/11/08
  */
-@Schema(description = "图片存储类型",type = "integer")
+@Schema(description = "图片存储类型", type = "integer")
 public enum ImageStorageTypeEnum implements BaseEnum {
 
     /** 阿里云对象存储 */
-    ALIYUN_OSS(0,"aliyun","阿里云OSS"),
+    ALIYUN_OSS(0, "aliyun", "阿里云OSS"),
 
     ;
 
@@ -31,7 +31,7 @@ public enum ImageStorageTypeEnum implements BaseEnum {
      * @param code  存储类型的字符串编码，与配置文件中的 store-type 值对应
      * @param desc  存储类型的中文描述
      */
-    ImageStorageTypeEnum(Integer value,String code,String desc) {
+    ImageStorageTypeEnum(Integer value, String code, String desc) {
 
         this.value = value;
 

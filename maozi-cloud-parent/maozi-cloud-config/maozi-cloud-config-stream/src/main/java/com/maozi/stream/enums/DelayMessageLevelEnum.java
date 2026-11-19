@@ -17,58 +17,58 @@ import lombok.Getter;
 public enum DelayMessageLevelEnum implements BaseEnum {
 
     /** 延迟 1 秒 */
-    ONE(0,"1s"),
+    ONE(0, "1s"),
 
     /** 延迟 5 秒 */
-    TWO(1,"5s"),
+    TWO(1, "5s"),
 
     /** 延迟 10 秒 */
-    THREE(2,"10s"),
+    THREE(2, "10s"),
 
     /** 延迟 30 秒 */
-    FOUR(3,"30s"),
+    FOUR(3, "30s"),
 
     /** 延迟 1 分钟 */
-    FIVE(4,"1m"),
+    FIVE(4, "1m"),
 
     /** 延迟 2 分钟 */
-    SIX(5,"2m"),
+    SIX(5, "2m"),
 
     /** 延迟 3 分钟 */
-    SEVEN(6,"3m"),
+    SEVEN(6, "3m"),
 
     /** 延迟 4 分钟 */
-    EIGHT(7,"4m"),
+    EIGHT(7, "4m"),
 
     /** 延迟 5 分钟 */
-    NINE(8,"5m"),
+    NINE(8, "5m"),
 
     /** 延迟 6 分钟 */
-    TEN(9,"6m"),
+    TEN(9, "6m"),
 
     /** 延迟 7 分钟 */
-    ELEVEN(10,"7m"),
+    ELEVEN(10, "7m"),
 
     /** 延迟 8 分钟 */
-    TWELVE(11,"8m"),
+    TWELVE(11, "8m"),
 
     /** 延迟 9 分钟 */
-    THIRTEEN(12,"9m"),
+    THIRTEEN(12, "9m"),
 
     /** 延迟 10 分钟 */
-    FOURTEEN(13,"10m"),
+    FOURTEEN(13, "10m"),
 
     /** 延迟 20 分钟 */
-    FIFTEEN(14,"20m"),
+    FIFTEEN(14, "20m"),
 
     /** 延迟 30 分钟 */
-    SIXTEEN(15,"30m"),
+    SIXTEEN(15, "30m"),
 
     /** 延迟 1 小时 */
-    SEVENTEEN(16,"1h"),
+    SEVENTEEN(16, "1h"),
 
     /** 延迟 2 小时 */
-    EIGHTEEN(17,"2h"),
+    EIGHTEEN(17, "2h"),
 
     ;
 
@@ -79,7 +79,7 @@ public enum DelayMessageLevelEnum implements BaseEnum {
      * 发送时需换算为 RocketMQ 从 1 计数的延迟级别）
      * @param desc 延迟时间描述
      */
-    DelayMessageLevelEnum(Integer value,String desc) {
+    DelayMessageLevelEnum(Integer value, String desc) {
 
         this.value = value;
 

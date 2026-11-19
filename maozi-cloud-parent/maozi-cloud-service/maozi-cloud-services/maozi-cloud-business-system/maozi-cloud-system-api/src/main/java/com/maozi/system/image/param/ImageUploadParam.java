@@ -38,7 +38,7 @@ public class ImageUploadParam implements Serializable {
     private List<@ImageFile MultipartFile> files;
 
     /** 保存路径，作为对象存储的目录前缀，如 avatar、product/banner */
-    @Schema(description = "保存路径（对象存储目录前缀）",requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "保存路径（对象存储目录前缀）", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotEmpty(message = "保存路径不能为空")
     private String path;
 

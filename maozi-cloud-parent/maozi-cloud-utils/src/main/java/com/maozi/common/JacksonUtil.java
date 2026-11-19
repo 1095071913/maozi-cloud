@@ -143,7 +143,7 @@ public class JacksonUtil {
     public static String objectToJson(Object data){
 
         try {return OBJECT_MAPPER.writeValueAsString(data);} catch (JsonProcessingException e) {
-            log.error(e.getLocalizedMessage(),e);
+            log.error(e.getLocalizedMessage(), e);
             return null;
         }
 
@@ -160,7 +160,7 @@ public class JacksonUtil {
     public static <T> T jsonToObject(String jsonString, Class<T> type){
 
         try {return OBJECT_MAPPER.readValue(jsonString, type);} catch (JsonProcessingException e) {
-            log.error(e.getLocalizedMessage(),e);
+            log.error(e.getLocalizedMessage(), e);
             return null;
         }
 
@@ -177,7 +177,7 @@ public class JacksonUtil {
 
         TypeReference<List<T>> typeReference = new TypeReference<>() {};
 
-        try {return OBJECT_MAPPER.readValue(json,typeReference);} catch (Exception e) {
+        try {return OBJECT_MAPPER.readValue(json, typeReference);} catch (Exception e) {
             log.error("json deserialize failed, json={}", json, e);
             return Collections.emptyList();
         }
@@ -195,8 +195,8 @@ public class JacksonUtil {
 
         TypeReference<Map<String, T>> typeReference = new TypeReference<>() {};
 
-        try {return OBJECT_MAPPER.readValue(json,typeReference);} catch (Exception e) {
-            log.error(e.getLocalizedMessage(),e);
+        try {return OBJECT_MAPPER.readValue(json, typeReference);} catch (Exception e) {
+            log.error(e.getLocalizedMessage(), e);
             return Collections.emptyMap();
         }
 
@@ -213,8 +213,8 @@ public class JacksonUtil {
 
         TypeReference<Map<String, T>> typeReference = new TypeReference<>() {};
 
-        try {return OBJECT_MAPPER.convertValue(data,typeReference);} catch (Exception e) {
-            log.error(e.getLocalizedMessage(),e);
+        try {return OBJECT_MAPPER.convertValue(data, typeReference);} catch (Exception e) {
+            log.error(e.getLocalizedMessage(), e);
             return Collections.emptyMap();
         }
 
@@ -230,8 +230,8 @@ public class JacksonUtil {
      */
     public static <T> T mapToObject(Map<String, ?> data, Class<T> type) {
 
-        try {return OBJECT_MAPPER.convertValue(data,type);} catch (Exception e) {
-            log.error(e.getLocalizedMessage(),e);
+        try {return OBJECT_MAPPER.convertValue(data, type);} catch (Exception e) {
+            log.error(e.getLocalizedMessage(), e);
             return null;
         }
 
@@ -249,8 +249,8 @@ public class JacksonUtil {
 
         JavaType constructType = TypeFactory.defaultInstance().constructType(type);
 
-        try {return OBJECT_MAPPER.convertValue(data,constructType);} catch (Exception e) {
-            log.error(e.getLocalizedMessage(),e);
+        try {return OBJECT_MAPPER.convertValue(data, constructType);} catch (Exception e) {
+            log.error(e.getLocalizedMessage(), e);
             return null;
         }
 
@@ -263,12 +263,12 @@ public class JacksonUtil {
      * @param <T> 目标类型泛型
      * @return 对象列表，异常时返回空列表
      */
-    public static <T> List<T> mapListToListObject(List<Map<String,Object>> data) {
+    public static <T> List<T> mapListToListObject(List<Map<String, Object>> data) {
 
         TypeReference<List<T>> typeReference = new TypeReference<>() {};
 
-        try {return OBJECT_MAPPER.convertValue(data,typeReference);} catch (Exception e) {
-            log.error(e.getLocalizedMessage(),e);
+        try {return OBJECT_MAPPER.convertValue(data, typeReference);} catch (Exception e) {
+            log.error(e.getLocalizedMessage(), e);
             return Collections.emptyList();
         }
 
@@ -280,12 +280,12 @@ public class JacksonUtil {
      * @param data 对象列表
      * @return Map 列表，异常时返回空列表
      */
-    public static <T> List<Map<String,Object>> listObjectToMapList(List<?> data) {
+    public static <T> List<Map<String, Object>> listObjectToMapList(List<?> data) {
 
-        TypeReference<List<Map<String,Object>>> typeReference = new TypeReference<>() {};
+        TypeReference<List<Map<String, Object>>> typeReference = new TypeReference<>() {};
 
-        try {return OBJECT_MAPPER.convertValue(data,typeReference);} catch (Exception e) {
-            log.error(e.getLocalizedMessage(),e);
+        try {return OBJECT_MAPPER.convertValue(data, typeReference);} catch (Exception e) {
+            log.error(e.getLocalizedMessage(), e);
             return Collections.emptyList();
         }
 

@@ -36,8 +36,8 @@ public class ReadLock implements Lock {
      */
     @Override
     @SneakyThrows
-    public boolean lock(String key,Long waitTime,Long leaseTime) {
-        return redissonClient.getReadWriteLock(key).readLock().tryLock(waitTime,leaseTime,TimeUnit.SECONDS);
+    public boolean lock(String key, Long waitTime, Long leaseTime) {
+        return redissonClient.getReadWriteLock(key).readLock().tryLock(waitTime, leaseTime, TimeUnit.SECONDS);
     }
 
     /**

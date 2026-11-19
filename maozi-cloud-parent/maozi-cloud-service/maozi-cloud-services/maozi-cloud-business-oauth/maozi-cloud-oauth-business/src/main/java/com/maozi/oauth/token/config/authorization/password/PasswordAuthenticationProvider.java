@@ -41,7 +41,7 @@ public class PasswordAuthenticationProvider extends BaseGrantAuthenticationProvi
         String username = (String) additionalParameters.get(OAuth2ParameterNames.USERNAME);
         String password = (String) additionalParameters.get(OAuth2ParameterNames.PASSWORD);
 
-        return UsernamePasswordAuthenticationToken.unauthenticated(username,password);
+        return UsernamePasswordAuthenticationToken.unauthenticated(username, password);
 
     }
 

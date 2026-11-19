@@ -22,7 +22,7 @@ public class QueryInPlugin extends BaseQueryPlugin {
      * @param data 条件值（集合）
      */
     @Override
-    public void apply(MPJLambdaWrapper<?> wrapper,String field,Object data) {
+    public void apply(MPJLambdaWrapper<?> wrapper, String field, Object data) {
         wrapper.in(field, data);
     }
 

@@ -21,6 +21,6 @@ public interface LockTimeoutHandler {
      * @param leaseTime 持有时间
      * @param lock 锁实例
      */
-    void handle(String key,Long waitTime,Long leaseTime,Lock lock);
+    void handle(String key, Long waitTime, Long leaseTime, Lock lock);
 
 }

@@ -38,7 +38,7 @@ public interface OrderParam {
      */
     @Schema(description = "排序组件 key:排序字段"
             + " value: true降序、false升序、null不做排序、空字符串字段")
-    Map<String,Boolean> getOrderFieldMap();
+    Map<String, Boolean> getOrderFieldMap();
 
     /**
      * 获取主表可排序字段映射
@@ -46,7 +46,7 @@ public interface OrderParam {
      * @return key 为主表别名，value 为该表下可排序的字段及默认排序方向
      */
     @JsonIgnore
-    Map<String,Map<String,Boolean>> getOrderMainFieldsMap();
+    Map<String, Map<String, Boolean>> getOrderMainFieldsMap();
 
     /**
      * 获取升序排序字段映射
@@ -54,7 +54,7 @@ public interface OrderParam {
      * @return key 为主表别名，value 为该表下需要升序排序的字段列表
      */
     @JsonIgnore
-    Map<String,List<String>> getOrderAscFieldsMap();
+    Map<String, List<String>> getOrderAscFieldsMap();
 
     /**
      * 设置升序排序字段映射
@@ -62,7 +62,7 @@ public interface OrderParam {
      * @param orderAscFieldsMap 升序排序字段映射
      */
     @JsonIgnore
-    void setOrderAscFieldsMap(Map<String,List<String>> orderAscFieldsMap);
+    void setOrderAscFieldsMap(Map<String, List<String>> orderAscFieldsMap);
 
     /**
      * 获取降序排序字段映射
@@ -70,7 +70,7 @@ public interface OrderParam {
      * @return key 为主表别名，value 为该表下需要降序排序的字段列表
      */
     @JsonIgnore
-    Map<String,List<String>> getOrderDescFieldsMap();
+    Map<String, List<String>> getOrderDescFieldsMap();
 
     /**
      * 设置降序排序字段映射
@@ -78,7 +78,7 @@ public interface OrderParam {
      * @param orderDescFieldsMap 降序排序字段映射
      */
     @JsonIgnore
-    void setOrderDescFieldsMap(Map<String,List<String>> orderDescFieldsMap);
+    void setOrderDescFieldsMap(Map<String, List<String>> orderDescFieldsMap);
 
     /**
      * 初始化排序参数
@@ -91,15 +91,15 @@ public interface OrderParam {
 
         Map<String, Map<String, Boolean>> orderMainFieldsMap = getOrderMainFieldsMap();
 
-        Map<String,List<String>> orderAscFieldsMap = CollectionUtil.newHashMap(orderMainFieldsMap.size());
+        Map<String, List<String>> orderAscFieldsMap = CollectionUtil.newHashMap(orderMainFieldsMap.size());
 
-        Map<String,List<String>> orderDescFieldsMap = CollectionUtil.newHashMap(orderMainFieldsMap.size());
+        Map<String, List<String>> orderDescFieldsMap = CollectionUtil.newHashMap(orderMainFieldsMap.size());
 
         for (Map.Entry<String, Map<String, Boolean>> orderMainEntry : orderMainFieldsMap.entrySet()) {
 
             String key = orderMainEntry.getKey();
 
-            Map<String,Boolean> orderMainFields = orderMainEntry.getValue();
+            Map<String, Boolean> orderMainFields = orderMainEntry.getValue();
 
             List<String> orderAscFields = CollectionUtil.newArrayList(orderMainFields.size());
 

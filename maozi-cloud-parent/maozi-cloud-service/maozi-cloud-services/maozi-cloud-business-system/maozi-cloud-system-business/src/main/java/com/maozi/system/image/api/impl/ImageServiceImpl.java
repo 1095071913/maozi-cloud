@@ -42,7 +42,7 @@ public class ImageServiceImpl implements ImageService {
     private static final String DEFAULT_IMAGE_STORAGE_TYPE_CODE = ImageStorageTypeEnum.ALIYUN_OSS.getCode();
 
     /** 存储处理器索引，键为存储类型，值为对应处理器 */
-    private final Map<ImageStorageTypeEnum,ImageStorageHandler> handlerMap = new EnumMap<>(ImageStorageTypeEnum.class);
+    private final Map<ImageStorageTypeEnum, ImageStorageHandler> handlerMap = new EnumMap<>(ImageStorageTypeEnum.class);
 
     /** 容器内的存储处理器列表，由构造器注入，初始化时建立索引后不再使用 */
     private final List<ImageStorageHandler> handlers;
@@ -68,7 +68,7 @@ public class ImageServiceImpl implements ImageService {
      */
     @PostConstruct
     private void initHandlerMap() {
-        handlers.forEach(handler -> handlerMap.put(handler.getType(),handler));
+        handlers.forEach(handler -> handlerMap.put(handler.getType(), handler));
     }
 
     /**
@@ -102,7 +102,7 @@ public class ImageServiceImpl implements ImageService {
 
         List<ImageUploadResult> results = CollectionUtil.newArrayList(param.getFiles().size());
 
-        param.getFiles().forEach(file -> results.add(handler.upload(file,param.getPath())));
+        param.getFiles().forEach(file -> results.add(handler.upload(file, param.getPath())));
 
         return results;
 

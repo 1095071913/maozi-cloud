@@ -31,7 +31,7 @@ public enum QueryBaseTypeEnum {
     GE("ge", "大于等于"),
 
     /** 小于等于 */
-    LE("le","小于等于"),
+    LE("le", "小于等于"),
 
     ;
 
@@ -41,7 +41,7 @@ public enum QueryBaseTypeEnum {
      * @param type 查询类型标识，用于 MyBatis-Plus 查询条件构建时的类型匹配
      * @param name 查询类型的中文名称描述
      */
-    QueryBaseTypeEnum(String type,String name) {
+    QueryBaseTypeEnum(String type, String name) {
 
         this.type = type;
 

@@ -93,7 +93,7 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, Per
      */
     @Override
     public boolean has(Long id) {
-        return super.count(Wrappers.<PermissionDO>lambdaQuery().eq(PermissionDO::getId,id)) > 0;
+        return super.count(Wrappers.<PermissionDO>lambdaQuery().eq(PermissionDO::getId, id)) > 0;
     }
 
     /**
@@ -109,7 +109,7 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, Per
 
         wrapper.select(PermissionDO::getMark);
 
-        wrapper.in(PermissionDO::getId,ids);
+        wrapper.in(PermissionDO::getId, ids);
 
         return super.list(wrapper).stream().map(PermissionDO::getMark).collect(Collectors.toList());
 
@@ -125,10 +125,10 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, Per
         QueryWrapper<PermissionDO> wrapper = Wrappers.query();
 
         // 仅查询列表视图对象所需的字段列
-        wrapper.select(super.getColumns(PermissionListResult.class,false));
+        wrapper.select(super.getColumns(PermissionListResult.class, false));
 
         wrapper.orderByDesc(CollectionUtil.newArrayList(
-                super.getColumns(PermissionDO::getLevel,PermissionDO::getSort)));
+                super.getColumns(PermissionDO::getLevel, PermissionDO::getSort)));
 
         return super.list(wrapper, PermissionListResult::new);
 

@@ -17,10 +17,10 @@ import lombok.Getter;
 public enum DeletedEnum implements BaseEnum {
 
     /** 未删除 */
-    NONE(0,"未删除"),
+    NONE(0, "未删除"),
 
     /** 已删除 */
-    DEL(1,"已删除"),
+    DEL(1, "已删除"),
 
     ;
 
@@ -30,7 +30,7 @@ public enum DeletedEnum implements BaseEnum {
      * @param value 删除标记值，对应数据库删除标记字段
      * @param desc 删除状态的中文描述
      */
-    DeletedEnum(Integer value,String desc) {
+    DeletedEnum(Integer value, String desc) {
 
         this.value = value;
 

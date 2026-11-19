@@ -22,24 +22,24 @@ import java.util.Map;
  * @date 2026/11/08
  */
 @Data
-public class ClientListParam implements OrderParam,Serializable {
+public class ClientListParam implements OrderParam, Serializable {
     /** 序列化标识 */
     @Serial
     private static final long serialVersionUID = 1L;
 
     /** 客户端名称，支持模糊查询 */
     @Schema(description = "名称")
-    @QueryPlugin(value = QueryBaseTypeEnum.LIKE,field = "client_name")
+    @QueryPlugin(value = QueryBaseTypeEnum.LIKE, field = "client_name")
     private String name;
 
     /** 排序字段映射，key为字段名，value为排序方向（true 降序、false 升序、null 不排序） */
-    private Map<String,Boolean> orderFieldMap;
+    private Map<String, Boolean> orderFieldMap;
 
     /** 升序排序字段映射，key为主表别名，value为该表下需要升序排序的字段列表 */
-    private Map<String,List<String>> orderAscFieldsMap;
+    private Map<String, List<String>> orderAscFieldsMap;
 
     /** 降序排序字段映射，key为主表别名，value为该表下需要降序排序的字段列表 */
-    private Map<String,List<String>> orderDescFieldsMap;
+    private Map<String, List<String>> orderDescFieldsMap;
 
     /** 主排序字段映射，key为主表别名，value为该表下可排序字段及默认排序方向配置
      * （true 降序、false 升序），未设置时按默认规则兜底 */

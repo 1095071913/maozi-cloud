@@ -69,7 +69,7 @@ public class ChatMessage implements Serializable {
     private String messageType;
 
     /** 消息元数据（包含消息 ID、写入时间戳等，见 ChatMessageConstant） */
-    private Map<String,Object> metadata;
+    private Map<String, Object> metadata;
 
     /** 消息携带的媒体列表（多模态图片等），使用自定义序列化器保证无损往返 */
     @JsonSerialize(contentUsing = MediaSerializer.class)

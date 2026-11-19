@@ -28,7 +28,7 @@ public interface UserRoleService {
      * @param bindRoleIds 需要绑定的角色ID列表
      * @param unbindRoleIds 需要解绑的角色ID列表
      */
-    void updateBind(Long userId,List<Long> bindRoleIds,List<Long> unbindRoleIds);
+    void updateBind(Long userId, List<Long> bindRoleIds, List<Long> unbindRoleIds);
 
     /**
      * 根据用户ID获取关联的角色ID列表
@@ -53,7 +53,7 @@ public interface UserRoleService {
      * @param userId 用户ID
      * @param roleId 角色ID
      */
-    void checkUserBindRole(Long userId,Long roleId);
+    void checkUserBindRole(Long userId, Long roleId);
 
     /**
      * 解除用户与所有角色的绑定关系

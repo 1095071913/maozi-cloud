@@ -50,7 +50,7 @@ public class AuthenticationEntryPoint implements org.springframework.security.we
      * @param authException 认证异常
      */
     @Override
-    public void commence(HttpServletRequest request,HttpServletResponse response,
+    public void commence(HttpServletRequest request, HttpServletResponse response,
             AuthenticationException authException) {
 
         // 获取认证异常的直接原因

@@ -34,7 +34,7 @@ public interface RestRoleService {
      *
      * @return 返回角色列表数据，包含角色 ID、名称、描述、状态与创建时间
      */
-    @Get(value = PATH + "/list",description = "列表")
+    @Get(value = PATH + "/list", description = "列表")
     @PreAuthorize("hasAuthority('system:role:list')")
     AbstractBaseResult<List<RoleListResult>> listResult();
 
@@ -44,7 +44,7 @@ public interface RestRoleService {
      * @param param 角色保存参数，包含角色名称、描述、关联权限等必要信息
      * @return 返回新增角色的 ID
      */
-    @Post(value = PATH + "/save",description = "保存")
+    @Post(value = PATH + "/save", description = "保存")
     @PreAuthorize("hasAuthority('system:role:save')")
     AbstractBaseResult<Long> saveResult(@RequestBody @Valid RoleSaveUpdateParam param);
 
@@ -56,7 +56,7 @@ public interface RestRoleService {
      *
      * @return 返回角色下拉列表结果，包含角色 ID 和名称信息
      */
-    @Get(value = PATH + "/dropDownList",description = "下拉列表")
+    @Get(value = PATH + "/dropDownList", description = "下拉列表")
     @PreAuthorize("hasAuthority('system:role:save') or hasAuthority('system:role:update')")
     AbstractBaseResult<List<? extends DropDownResult>> dropDownListResult();
 
@@ -75,7 +75,7 @@ public interface RestRoleService {
      * @param id 角色 ID，用于查询指定角色的详细信息
      * @return 返回角色详细信息，包含角色名称、描述、状态及关联的权限ID列表等属性
      */
-    @Get(value = CURRENT_PATH + "/get",description = "详情")
+    @Get(value = CURRENT_PATH + "/get", description = "详情")
     @PreAuthorize("hasAuthority('system:role:get')")
     AbstractBaseResult<RoleInfoResult> getResult(@PathVariable Long id);
 
@@ -85,7 +85,7 @@ public interface RestRoleService {
      * @param id 角色 ID，指定需要删除的角色记录
      * @return 无返回数据，仅返回操作结果状态
      */
-    @Post(value = CURRENT_PATH + "/remove",description = "删除")
+    @Post(value = CURRENT_PATH + "/remove", description = "删除")
     @PreAuthorize("hasAuthority('system:role:remove')")
     AbstractBaseResult<Void> removeByIdResult(@PathVariable Long id);
 
@@ -96,7 +96,7 @@ public interface RestRoleService {
      * @param param 角色更新参数，包含需要修改的角色属性信息
      * @return 无返回数据，仅返回操作结果状态
      */
-    @Post(value = CURRENT_PATH + "/update",description = "更新")
+    @Post(value = CURRENT_PATH + "/update", description = "更新")
     @PreAuthorize("hasAuthority('system:role:update')")
     AbstractBaseResult<Void> updateResult(@PathVariable Long id, @RequestBody RoleSaveUpdateParam param);
 
@@ -107,7 +107,7 @@ public interface RestRoleService {
      * @param param 状态参数，包含需要更新的目标状态值（启用/禁用）
      * @return 无返回数据，仅返回操作结果状态
      */
-    @Post(value = CURRENT_PATH + "/updateStatus",description = "更新状态")
+    @Post(value = CURRENT_PATH + "/updateStatus", description = "更新状态")
     @PreAuthorize("hasAuthority('system:role:update')")
     AbstractBaseResult<Void> updateStatusResult(@PathVariable Long id, @RequestBody RequestParam<StatusEnum> param);
 

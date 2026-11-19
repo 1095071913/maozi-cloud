@@ -15,13 +15,13 @@ import lombok.Getter;
 public enum EnvironmentTypeEnum implements BaseEnum {
 
     /** 本地开发环境 */
-    LOCAL(0,"local"),
+    LOCAL(0, "local"),
 
     /** 测试环境 */
-    TEST(1,"test"),
+    TEST(1, "test"),
 
     /** 生产环境 */
-    PROD(2,"prod"),
+    PROD(2, "prod"),
 
     ;
 
@@ -31,7 +31,7 @@ public enum EnvironmentTypeEnum implements BaseEnum {
      * @param value 枚举整型值
      * @param desc 环境描述
      */
-    EnvironmentTypeEnum(Integer value,String desc) {
+    EnvironmentTypeEnum(Integer value, String desc) {
 
         this.value = value;
 

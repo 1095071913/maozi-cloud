@@ -164,9 +164,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param target 目标类型的 Supplier
      * @return 自定义分页结果
      */
-    public <R> PageResult<R> convertPageResult(Page<T> page,Supplier<R> target) {
-        return new PageResult<>(page.getCurrent(),page.getSize(),page.getTotal(),
-                CglibUtil.copyList(page.getRecords(),target));
+    public <R> PageResult<R> convertPageResult(Page<T> page, Supplier<R> target) {
+        return new PageResult<>(page.getCurrent(), page.getSize(), page.getTotal(),
+                CglibUtil.copyList(page.getRecords(), target));
     }
 
     /**
@@ -177,8 +177,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param responseData 响应数据列表
      * @return 自定义分页结果
      */
-    public <R> PageResult<R> convertPageResult(Page<T> page,List<R> responseData) {
-        return new PageResult<>(page.getCurrent(),page.getSize(),page.getTotal(),responseData);
+    public <R> PageResult<R> convertPageResult(Page<T> page, List<R> responseData) {
+        return new PageResult<>(page.getCurrent(), page.getSize(), page.getTotal(), responseData);
     }
 
     /**
@@ -189,7 +189,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 自定义分页结果
      */
     public <R> PageResult<R> convertPageResult(Page<R> page) {
-        return new PageResult<>(page.getCurrent(),page.getSize(),page.getTotal(),page.getRecords());
+        return new PageResult<>(page.getCurrent(), page.getSize(), page.getTotal(), page.getRecords());
     }
 
     /**
@@ -200,7 +200,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param function 提取 ID 的函数
      * @return 以 ID 为键、元素为值的 Map
      */
-    public <R> Map<Long,R> toMapByIds(List<R> collection,Function<R, Long> function) {
+    public <R> Map<Long, R> toMapByIds(List<R> collection, Function<R, Long> function) {
         return collection.stream().collect(
                 Collectors.toMap(function, Function.identity(), (oldValue, newValue) -> oldValue));
     }
@@ -284,7 +284,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 数据库列名数组
      */
     public String[] getColumns(Class<?> clazz){
-        return getColumns(clazz,true);
+        return getColumns(clazz, true);
     }
 
     /**
@@ -298,7 +298,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param isJoin 是否为关联查询模式（关联查询时列名会添加表别名前缀）
      * @return 数据库列名数组
      */
-    public String[] getColumns(Class<?> clazz,Boolean isJoin) {
+    public String[] getColumns(Class<?> clazz, Boolean isJoin) {
 
         List<String> columns = CollectionUtil.newArrayList(32);
 
@@ -356,7 +356,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param columns 查询字段列表
      * @return 实体对象，不存在返回 null
      */
-    public T getById(Long id,String ... columns){
+    public T getById(Long id, String ... columns){
 
         ObjectUtil.isNullThrowError(id, getResourceName());
 
@@ -365,7 +365,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
             wrapper.select(columns);
         }
 
-        wrapper.eq(getColumn(AbstractBaseDomain::getId),id);
+        wrapper.eq(getColumn(AbstractBaseDomain::getId), id);
 
         return super.getOne(wrapper);
 
@@ -387,7 +387,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
             wrapper.select(columns);
         }
 
-        wrapper.eq(AbstractBaseDomain::getId,id);
+        wrapper.eq(AbstractBaseDomain::getId, id);
 
         return super.getOne(wrapper);
 
@@ -407,7 +407,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         wrapper.select(getColumn(AbstractBaseDomain::getStatus));
 
-        wrapper.eq(getColumn(AbstractBaseDomain::getId),id);
+        wrapper.eq(getColumn(AbstractBaseDomain::getId), id);
 
         T domain = super.getOne(wrapper);
 
@@ -433,13 +433,13 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public void checkAvailable(List<Long> ids){
 
-        CollectionUtil.collectionIsEmptyThrowError(ids,getResourceName() + RESOURCE_SUFFIX_LIST);
+        CollectionUtil.collectionIsEmptyThrowError(ids, getResourceName() + RESOURCE_SUFFIX_LIST);
 
         QueryWrapper<T> wrapper = Wrappers.query();
 
         wrapper.select(getColumn(AbstractBaseDomain::getStatus));
 
-        wrapper.in(getColumn(AbstractBaseDomain::getId),ids);
+        wrapper.in(getColumn(AbstractBaseDomain::getId), ids);
 
         List<T> domains = super.list(wrapper);
         domains.forEach((domain)->{
@@ -462,7 +462,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @throws BusinessResultException 当实体不存在或状态为禁用时抛出异常
      */
     public T getAvailableById(Long id, SFunction<T, ?>... columns){
-        return getAvailableById(id,getColumns(columns));
+        return getAvailableById(id, getColumns(columns));
     }
 
     /**
@@ -476,7 +476,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 可用的实体对象
      * @throws BusinessResultException 当实体不存在或状态为禁用时抛出异常
      */
-    public T getAvailableById(Long id,String ... columns){
+    public T getAvailableById(Long id, String ... columns){
 
         ObjectUtil.isNullThrowError(id, getResourceName());
 
@@ -487,7 +487,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         newColumns[columns.length] = getColumn(AbstractBaseDomain::getStatus);
         wrapper.select(newColumns);
 
-        wrapper.eq(getColumn(AbstractBaseDomain::getId),id);
+        wrapper.eq(getColumn(AbstractBaseDomain::getId), id);
 
         T domain = super.getOne(wrapper);
 
@@ -514,7 +514,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public T getAvailableByParam(MPJLambdaWrapper<T> wrapper){
 
-        wrapper.selectAsClass(domainClass,domainClass);
+        wrapper.selectAsClass(domainClass, domainClass);
         wrapper.select(getColumn(AbstractBaseDomain::getStatus));
 
         T domain = super.getOne(wrapper);
@@ -567,7 +567,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         QueryWrapper<T> wrapper = Wrappers.query();
 
-        wrapper.select(getColumns(AbstractBaseNameDomain::getId,AbstractBaseNameDomain::getName));
+        wrapper.select(getColumns(AbstractBaseNameDomain::getId, AbstractBaseNameDomain::getName));
 
         wrapper.eq(getColumn(AbstractBaseDomain::getId), id);
 
@@ -588,7 +588,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         QueryWrapper<T> wrapper = Wrappers.query();
 
-        wrapper.select(getColumns(AbstractBaseNameDomain::getId,AbstractBaseNameDomain::getName));
+        wrapper.select(getColumns(AbstractBaseNameDomain::getId, AbstractBaseNameDomain::getName));
 
         wrapper.eq(getColumn(AbstractBaseDomain::getStatus), StatusEnum.ENABLE);
 
@@ -614,11 +614,11 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
             wrapper.select(columns);
         }
 
-        wrapper.eq(getColumn(AbstractBaseDomain::getId),id);
+        wrapper.eq(getColumn(AbstractBaseDomain::getId), id);
 
         T domain = super.getOne(wrapper);
 
-        ObjectUtil.isNullThrowError(domain,getResourceName());
+        ObjectUtil.isNullThrowError(domain, getResourceName());
 
         return domain;
 
@@ -636,11 +636,11 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         ObjectUtil.isNullThrowError(id, getResourceName());
 
-        wrapper.eq(getColumn(AbstractBaseDomain::getId),id);
+        wrapper.eq(getColumn(AbstractBaseDomain::getId), id);
 
         T domain = super.getOne(wrapper);
 
-        ObjectUtil.isNullThrowError(domain,getResourceName());
+        ObjectUtil.isNullThrowError(domain, getResourceName());
 
         return domain;
 
@@ -655,7 +655,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 转换后的对象
      * @throws BusinessResultException 当实体不存在时抛出异常
      */
-    public <R> R getByParamThrowError(Wrapper<T> wrapper,Class<R> clazz) {
+    public <R> R getByParamThrowError(Wrapper<T> wrapper, Class<R> clazz) {
 
         T domain = super.getOne(wrapper);
 
@@ -675,7 +675,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 转换后且填充了关联数据的对象
      * @throws BusinessResultException 当实体不存在时抛出异常
      */
-    public <R> R getByParamThrowErrorRelation(Wrapper<T> wrapper,Class<R> clazz) {
+    public <R> R getByParamThrowErrorRelation(Wrapper<T> wrapper, Class<R> clazz) {
 
         T domain = super.getOne(wrapper);
 
@@ -712,7 +712,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @throws BusinessResultException 当实体不存在时抛出异常
      */
     public <V> V getByIdThrowError(Long id, Class<V> clazz){
-        return CglibUtil.copy(getByIdThrowError(id, getColumns(clazz,false)), clazz);
+        return CglibUtil.copy(getByIdThrowError(id, getColumns(clazz, false)), clazz);
     }
 
     /**
@@ -726,7 +726,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 转换后的对象
      * @throws BusinessResultException 当实体不存在时抛出异常
      */
-    public <V,R> V getByIdThrowError(Long id, Class<V> clazz, SFunction<R, ?> ... columns){
+    public <V, R> V getByIdThrowError(Long id, Class<V> clazz, SFunction<R, ?> ... columns){
         return CglibUtil.copy(getByIdThrowError(id, columns), clazz);
     }
 
@@ -739,9 +739,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 转换后且填充了关联数据的对象
      * @throws BusinessResultException 当实体不存在时抛出异常
      */
-    public <V> V getByIdThrowErrorRelation(Long id,Class<V> clazz) {
+    public <V> V getByIdThrowErrorRelation(Long id, Class<V> clazz) {
 
-        V response = CglibUtil.copy(getByIdThrowError(id,getColumns(clazz, false)), clazz);
+        V response = CglibUtil.copy(getByIdThrowError(id, getColumns(clazz, false)), clazz);
 
         setRelationData(response, clazz);
 
@@ -759,7 +759,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 转换后且填充了关联数据的对象
      * @throws BusinessResultException 当查询参数为空或实体不存在时抛出异常
      */
-    public <V,R> V getByParamThrowErrorRelation(R dto, Class<V> clazz) {
+    public <V, R> V getByParamThrowErrorRelation(R dto, Class<V> clazz) {
 
         ObjectUtil.isNullThrowError(dto, getResourceName());
 
@@ -809,7 +809,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param columns 额外查询的 Lambda 函数引用字段
      * @return VO 列表
      */
-    public <R,V> List<V> list(Class<V> voClass, SFunction<R, ?>... columns) {
+    public <R, V> List<V> list(Class<V> voClass, SFunction<R, ?>... columns) {
 
         MPJLambdaWrapper<T> wrapper = MPJWrappers.lambdaJoin();
         wrapper.selectAsClass(domainClass, voClass);
@@ -830,7 +830,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param target 目标类型的 Supplier
      * @return 转换后的列表
      */
-    public <R> List<R> list(Wrapper<T> wrapper,Supplier<R> target) {
+    public <R> List<R> list(Wrapper<T> wrapper, Supplier<R> target) {
 
         List<T> list = super.list(wrapper);
 
@@ -846,7 +846,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param target 目标类型的 Supplier
      * @return 转换后的列表
      */
-    public <V> List<V> list(Object dto,Supplier<V> target) {
+    public <V> List<V> list(Object dto, Supplier<V> target) {
 
         ObjectUtil.isNullThrowError(dto, getResourceName());
 
@@ -871,15 +871,15 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param target 目标类型的 Supplier
      * @return 转换后的列表（未填充关联数据）
      */
-    public <V> List<V> listRelation(Object dto,Supplier<V> target) {
+    public <V> List<V> listRelation(Object dto, Supplier<V> target) {
 
         ObjectUtil.isNullThrowError(dto, getResourceName());
 
         V vo = target.get();
 
-        List<T> list = super.list(buildQueryWrapper(dto,vo.getClass()));
+        List<T> list = super.list(buildQueryWrapper(dto, vo.getClass()));
 
-        setRelationData(dto,vo.getClass());
+        setRelationData(dto, vo.getClass());
 
         return CglibUtil.copyList(list, () -> vo);
 
@@ -894,9 +894,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param target 目标类型的 Supplier
      * @return 分页结果
      */
-    public <V> PageResult<V> list(PageParam<?> pageParam,Wrapper<T> wrapper,Supplier<V> target) {
+    public <V> PageResult<V> list(PageParam<?> pageParam, Wrapper<T> wrapper, Supplier<V> target) {
 
-        Page<T> page = super.page(convertPage(pageParam),wrapper);
+        Page<T> page = super.page(convertPage(pageParam), wrapper);
 
         return convertPageResult(page, target);
 
@@ -910,9 +910,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param clazz VO 类型 Class 对象
      * @return 分页结果
      */
-    public <V> PageResult<V> list(PageParam<?> pageParam,Class<V> clazz) {
+    public <V> PageResult<V> list(PageParam<?> pageParam, Class<V> clazz) {
 
-        Page<V> page = selectJoinListPage(convertPage(pageParam),clazz,buildQueryWrapper(pageParam.getData(),clazz));
+        Page<V> page = selectJoinListPage(convertPage(pageParam), clazz, buildQueryWrapper(pageParam.getData(), clazz));
 
         return convertPageResult(page);
 
@@ -925,8 +925,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param wrapper 查询条件
      * @return MyBatis-Plus 分页对象
      */
-    public Page<T> list(PageParam<?> pageParam,Wrapper<T> wrapper) {
-        return super.page(convertPage(pageParam),wrapper);
+    public Page<T> list(PageParam<?> pageParam, Wrapper<T> wrapper) {
+        return super.page(convertPage(pageParam), wrapper);
     }
 
     /**
@@ -937,9 +937,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param clazz VO 类型 Class 对象
      * @return 填充了关联数据的分页结果
      */
-    public <V> PageResult<V> listRelation(PageParam<?> pageParam,Class<V> clazz) {
+    public <V> PageResult<V> listRelation(PageParam<?> pageParam, Class<V> clazz) {
 
-        PageResult<V> page = list(pageParam,clazz);
+        PageResult<V> page = list(pageParam, clazz);
 
         setRelationData(page, clazz);
 
@@ -956,7 +956,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public <P> Long getCountByParam(P param){
 
-        ObjectUtil.isNullThrowError(param,getResourceName());
+        ObjectUtil.isNullThrowError(param, getResourceName());
 
         return super.count(buildQueryWrapper(param));
 
@@ -974,7 +974,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public boolean saveUpdate(T domain) {
 
-        ObjectUtil.isNullThrowError(domain,getResourceName());
+        ObjectUtil.isNullThrowError(domain, getResourceName());
 
         // 携带 ID 视为更新：先校验数据存在
         if(ObjectUtil.isNotNull(domain.getId())) {
@@ -1007,7 +1007,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     @Transactional(rollbackFor = Exception.class)
     public Long saveUpdate(Long id, Object param) {
 
-        ObjectUtil.isNullThrowError(param,getResourceName());
+        ObjectUtil.isNullThrowError(param, getResourceName());
 
         T domain = CglibUtil.copy(param, domainClass);
         // 携带 ID 视为更新：回填 ID 并校验数据存在
@@ -1094,7 +1094,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     @Transactional(rollbackFor = Exception.class)
     public boolean removeById(Long id) {
 
-        ObjectUtil.isNullThrowError(id,getResourceName());
+        ObjectUtil.isNullThrowError(id, getResourceName());
 
         checkBind(id);
 
@@ -1176,7 +1176,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
                 // 嵌套参数：以注解指定的表名递归解析其内部字段的查询条件
                 if(annotation.nest()) {
-                    paramFieldSetWrapper(annotation.tableName(),field,wrapper);
+                    paramFieldSetWrapper(annotation.tableName(), field, wrapper);
                     continue;
                 }
 
@@ -1284,7 +1284,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param fieldsClass VO 类型 Class 对象
      * @return MPJ Lambda 查询条件构造器
      */
-    public MPJLambdaWrapper<T> buildQueryWrapper(Object param,Class<?> fieldsClass) {
+    public MPJLambdaWrapper<T> buildQueryWrapper(Object param, Class<?> fieldsClass) {
 
         if(param instanceof PageParam<?> pageParam) {
             param = pageParam.getData();
@@ -1303,7 +1303,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         }
 
-        paramFieldSetWrapper(null,param,wrapper);
+        paramFieldSetWrapper(null, param, wrapper);
 
         // 排序参数：初始化默认排序后，按默认表别名取升序/降序字段拼接 ORDER BY
         if(param instanceof OrderParam orderParam) {
@@ -1331,7 +1331,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return MPJ Lambda 查询条件构造器
      */
     public MPJLambdaWrapper<T> buildQueryWrapper(Object param) {
-        return buildQueryWrapper(param,null);
+        return buildQueryWrapper(param, null);
     }
 
     /**

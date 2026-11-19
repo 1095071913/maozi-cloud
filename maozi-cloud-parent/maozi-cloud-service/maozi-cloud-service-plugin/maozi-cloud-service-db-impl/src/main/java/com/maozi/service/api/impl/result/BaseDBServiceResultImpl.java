@@ -132,7 +132,7 @@ public class BaseDBServiceResultImpl<S extends BaseServiceImpl, D> extends BaseS
      * @return 数据库列名数组
      */
     public String[] getColumns(Class<?> clazz){
-        return service.getColumns(clazz,true);
+        return service.getColumns(clazz, true);
     }
 
     /**
@@ -142,7 +142,7 @@ public class BaseDBServiceResultImpl<S extends BaseServiceImpl, D> extends BaseS
      * @param isJoin 是否为关联查询模式（关联查询时列名会添加表别名前缀）
      * @return 数据库列名数组
      */
-    public String[] getColumns(Class<?> clazz,Boolean isJoin) {
+    public String[] getColumns(Class<?> clazz, Boolean isJoin) {
         return service.getColumns(clazz, isJoin);
     }
 
@@ -167,7 +167,7 @@ public class BaseDBServiceResultImpl<S extends BaseServiceImpl, D> extends BaseS
      * @return 包含 Map&lt;Long, D&gt; 的统一响应结果
      */
     @Override
-    public AbstractBaseResult<Map<Long,D>> listByIdsResult(Collection<Long> ids, String ... columns) {
+    public AbstractBaseResult<Map<Long, D>> listByIdsResult(Collection<Long> ids, String ... columns) {
 
         List<AbstractBaseDomain> domains = service.listByIds(ids, columns);
 
@@ -194,7 +194,7 @@ public class BaseDBServiceResultImpl<S extends BaseServiceImpl, D> extends BaseS
      * @return 包含 List&lt;D&gt; 的统一响应结果
      */
     @Override
-    public AbstractBaseResult<List<D>> listByRelationIdResult(Long id,String relationField,String ... columns) {
+    public AbstractBaseResult<List<D>> listByRelationIdResult(Long id, String relationField, String ... columns) {
 
         ObjectUtil.isNullThrowError(id, service.getResourceName());
 
@@ -204,7 +204,7 @@ public class BaseDBServiceResultImpl<S extends BaseServiceImpl, D> extends BaseS
         if(columns.length > 0) {
             wrapper.select(columns);
         }
-        wrapper.eq(relationField,id);
+        wrapper.eq(relationField, id);
 
         return ResultUtil.success(CglibUtil.copyList(service.list(wrapper),
                 () -> ReflectUtil.newInstance(getResultClass())));
@@ -223,7 +223,7 @@ public class BaseDBServiceResultImpl<S extends BaseServiceImpl, D> extends BaseS
     public AbstractBaseResult<Map<Long, List<D>>> listByRelationIdsResult(
             Collection<Long> ids, String relationField, String ... columns) {
 
-        CollectionUtil.collectionIsEmptyThrowError(ids,service.getResourceName() + RESOURCE_SUFFIX_LIST);
+        CollectionUtil.collectionIsEmptyThrowError(ids, service.getResourceName() + RESOURCE_SUFFIX_LIST);
 
         ObjectUtil.isNullThrowError(relationField, service.getResourceName() + RESOURCE_SUFFIX_GROUP);
 
@@ -231,7 +231,7 @@ public class BaseDBServiceResultImpl<S extends BaseServiceImpl, D> extends BaseS
         if(columns.length > 0) {
             wrapper.select(columns);
         }
-        wrapper.in(relationField,ids);
+        wrapper.in(relationField, ids);
 
         List<AbstractBaseDomain> domains = service.list(wrapper);
         if(CollectionUtil.isEmpty(domains)) {
@@ -391,7 +391,7 @@ public class BaseDBServiceResultImpl<S extends BaseServiceImpl, D> extends BaseS
      * @return 包含 DTO 的统一响应结果
      */
     @Override
-    public AbstractBaseResult<D> getAvailableByIdResult(Long id,String ... columns){
+    public AbstractBaseResult<D> getAvailableByIdResult(Long id, String ... columns){
 
         AbstractBaseDomain domain = service.getAvailableById(id, columns);
 
@@ -421,7 +421,7 @@ public class BaseDBServiceResultImpl<S extends BaseServiceImpl, D> extends BaseS
 
         QueryWrapper<AbstractBaseDomain> wrapper = Wrappers.query();
 
-        wrapper.select(getColumns(AbstractBaseNameDomain::getId,AbstractBaseNameDomain::getName));
+        wrapper.select(getColumns(AbstractBaseNameDomain::getId, AbstractBaseNameDomain::getName));
 
         wrapper.in(getColumn(AbstractBaseDomain::getId), ids);
 

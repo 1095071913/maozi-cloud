@@ -40,7 +40,7 @@ public enum AuthTypeEnum implements BaseEnum {
      * @param desc  枚举描述，授权类型的中文名称
      * @param auth  授权类型标识，对应OAuth2.0协议中的grant_type参数值
      */
-    AuthTypeEnum(Integer value,String desc,String auth) {
+    AuthTypeEnum(Integer value, String desc, String auth) {
         
         this.value = value;
         

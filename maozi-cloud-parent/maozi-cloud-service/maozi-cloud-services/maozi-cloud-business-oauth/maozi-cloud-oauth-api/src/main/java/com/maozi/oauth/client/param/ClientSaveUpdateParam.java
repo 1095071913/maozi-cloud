@@ -64,7 +64,7 @@ public class ClientSaveUpdateParam implements Serializable {
     private String name;
 
     /** 授权模式集合，指定该客户端支持的OAuth2.0授权类型 */
-    @Schema(description = "授权模式",ref = "IntegerArrayList")
+    @Schema(description = "授权模式", ref = "IntegerArrayList")
     private Set<AuthTypeEnum> authorizationGrantTypes;
 
     /** 授权令牌（AccessToken）有效期，单位为秒，新增时未填默认2小时 */
@@ -80,15 +80,15 @@ public class ClientSaveUpdateParam implements Serializable {
     private String remark;
 
     /** 客户端状态，控制客户端是否启用 */
-    @Schema(description = "状态",ref = "int")
+    @Schema(description = "状态", ref = "int")
     private StatusEnum status;
 
     /** 客户端配置项，存储OAuth2.0客户端的自定义配置，API接口中隐藏 */
     @Schema(hidden = true)
-    private Map<String,Object> clientSettings;
+    private Map<String, Object> clientSettings;
 
     /** 令牌配置项，存储OAuth2.0令牌相关的自定义配置，API接口中隐藏 */
     @Schema(hidden = true)
-    private Map<String,Object> tokenSettings;
+    private Map<String, Object> tokenSettings;
     
 }

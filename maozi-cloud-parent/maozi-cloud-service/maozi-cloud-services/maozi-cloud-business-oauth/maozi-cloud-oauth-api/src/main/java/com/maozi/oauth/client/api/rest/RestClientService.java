@@ -41,7 +41,7 @@ public interface RestClientService {
      * @param pageParam 分页查询参数，包含客户端列表的筛选条件
      * @return 返回客户端分页列表结果
      */
-    @Post(value = PATH + "/list",description = "列表")
+    @Post(value = PATH + "/list", description = "列表")
     @PreAuthorize("hasAuthority('system:client:list')")
     AbstractBaseResult<PageResult<ClientListResult>> listResult(@RequestBody PageParam<ClientListParam> pageParam);
 
@@ -51,7 +51,7 @@ public interface RestClientService {
      * @param param 客户端保存/更新的请求参数
      * @return 返回新增客户端的主键 ID
      */
-    @Post(value = PATH + "/save",description = "保存")
+    @Post(value = PATH + "/save", description = "保存")
     @PreAuthorize("hasAuthority('system:client:save')")
     AbstractBaseResult<Long> saveResult(@RequestBody ClientSaveUpdateParam param);
 
@@ -60,7 +60,7 @@ public interface RestClientService {
      *
      * @return 返回客户端下拉选项列表
      */
-    @Get(value = PATH + "/dropDownList",description = "下拉列表")
+    @Get(value = PATH + "/dropDownList", description = "下拉列表")
     @PreAuthorize("hasAuthority('system:client:list')")
     AbstractBaseResult<List<? extends DropDownResult>> dropDownListResult();
 
@@ -79,7 +79,7 @@ public interface RestClientService {
      * @param id 客户端唯一标识 ID
      * @return 返回客户端详细信息
      */
-    @Get(value = CURRENT_PATH + "/get",description = "详情")
+    @Get(value = CURRENT_PATH + "/get", description = "详情")
     @PreAuthorize("hasAuthority('system:client:get')")
     AbstractBaseResult<ClientInfoResult> getResult(@PathVariable Long id);
 
@@ -90,7 +90,7 @@ public interface RestClientService {
      * @param param 客户端保存/更新的请求参数
      * @return 返回空结果，表示操作成功
      */
-    @Post(value = CURRENT_PATH + "/update",description = "更新")
+    @Post(value = CURRENT_PATH + "/update", description = "更新")
     @PreAuthorize("hasAuthority('system:client:update')")
     AbstractBaseResult<Void> updateResult(@PathVariable Long id,@RequestBody ClientSaveUpdateParam param);
 
@@ -101,7 +101,7 @@ public interface RestClientService {
      * @param param 状态更新参数，包含目标状态值
      * @return 返回空结果，表示操作成功
      */
-    @Post(value = CURRENT_PATH + "/updateStatus",description = "更新状态")
+    @Post(value = CURRENT_PATH + "/updateStatus", description = "更新状态")
     @PreAuthorize("hasAuthority('system:client:update')")
     AbstractBaseResult<Void> updateStatusResult(@PathVariable Long id, @RequestBody RequestParam<StatusEnum> param);
 
@@ -111,7 +111,7 @@ public interface RestClientService {
      * @param id 客户端唯一标识 ID
      * @return 返回空结果，表示操作成功
      */
-    @Post(value = CURRENT_PATH + "/delete",description = "删除")
+    @Post(value = CURRENT_PATH + "/delete", description = "删除")
     @PreAuthorize("hasAuthority('system:client:remove')")
     AbstractBaseResult<Void> removeByIdResult(@PathVariable Long id);
 

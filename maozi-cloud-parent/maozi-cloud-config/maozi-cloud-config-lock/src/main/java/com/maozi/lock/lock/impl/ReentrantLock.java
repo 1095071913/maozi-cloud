@@ -39,8 +39,8 @@ public class ReentrantLock implements Lock {
      */
     @Override
     @SneakyThrows
-    public boolean lock(String key,Long waitTime,Long leaseTime) {
-        return redissonClient.getLock(key).tryLock(waitTime,leaseTime,TimeUnit.SECONDS);
+    public boolean lock(String key, Long waitTime, Long leaseTime) {
+        return redissonClient.getLock(key).tryLock(waitTime, leaseTime, TimeUnit.SECONDS);
     }
 
     /**

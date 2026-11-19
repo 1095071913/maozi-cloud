@@ -56,7 +56,7 @@ public enum QueryTypeEnum {
      * @param type 查询基础类型
      * @param queryPlugin 查询插件实例
      */
-    QueryTypeEnum(QueryBaseTypeEnum type,BaseQueryPlugin queryPlugin) {
+    QueryTypeEnum(QueryBaseTypeEnum type, BaseQueryPlugin queryPlugin) {
 
         this.type = type;
 

@@ -14,14 +14,14 @@ import lombok.Getter;
  * @author pengjinlong
  * @since 2026/8/16 18:45
  */
-@Schema(description = "AI对话类型",type = "integer")
+@Schema(description = "AI对话类型", type = "integer")
 public enum ChatTypeEnum {
 
     /** 完成对话（对话流已结束） */
-    FINISH(0,"完成对话"),
+    FINISH(0, "完成对话"),
 
     /** 持续对话中（AI 正在输出回复内容） */
-    OUTPUT(1,"持续对话中"),
+    OUTPUT(1, "持续对话中"),
 
     ;
 
@@ -31,7 +31,7 @@ public enum ChatTypeEnum {
      * @param value AI对话类型的数值编码
      * @param desc  AI对话类型的中文描述
      */
-    ChatTypeEnum(Integer value,String desc) {
+    ChatTypeEnum(Integer value, String desc) {
 
         this.value = value;
 

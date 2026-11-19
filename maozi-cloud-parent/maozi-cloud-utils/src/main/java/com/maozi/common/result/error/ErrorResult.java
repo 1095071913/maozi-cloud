@@ -106,7 +106,7 @@ public class ErrorResult<D> extends AbstractBaseResult<D> implements Serializabl
      * @param data 错误附加数据
      */
     public ErrorResult(Integer code, String message, D data) {
-        this(code,message);
+        this(code, message);
         this.data = data;
     }
 
@@ -127,7 +127,7 @@ public class ErrorResult<D> extends AbstractBaseResult<D> implements Serializabl
      * @param errorCode 错误码对象
      * @param errorData 错误附加数据
      */
-    public ErrorResult(ErrorCode errorCode,D errorData) {
+    public ErrorResult(ErrorCode errorCode, D errorData) {
         this(errorCode);
         this.data = errorData;
     }
@@ -226,7 +226,7 @@ public class ErrorResult<D> extends AbstractBaseResult<D> implements Serializabl
      * @param exceptionMessage 异常错误信息
      * @return 当前实例（链式调用）
      */
-    public ErrorResult<D> setMessage(String message,String exceptionMessage) {
+    public ErrorResult<D> setMessage(String message, String exceptionMessage) {
         this.message = message;
         this.exceptionMessage = exceptionMessage;
         return this;

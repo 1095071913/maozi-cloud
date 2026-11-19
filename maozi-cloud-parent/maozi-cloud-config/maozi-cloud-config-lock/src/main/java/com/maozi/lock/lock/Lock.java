@@ -20,7 +20,7 @@ public interface Lock {
      * @param leaseTime 锁的持有时间（秒），超时后自动释放
      * @return 是否成功获取锁
      */
-    boolean lock(String key,Long waitTime,Long leaseTime);
+    boolean lock(String key, Long waitTime, Long leaseTime);
 
     /**
      * 释放分布式锁

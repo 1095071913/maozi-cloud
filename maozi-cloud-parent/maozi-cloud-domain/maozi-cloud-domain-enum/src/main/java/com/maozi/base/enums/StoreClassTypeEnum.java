@@ -17,7 +17,7 @@ import lombok.Getter;
 public enum StoreClassTypeEnum implements BaseEnum {
 
     /** 数据库存储 */
-    DB(0,"数据库");
+    DB(0, "数据库");
 
     /**
      * 按整型值和描述构造枚举实例
@@ -25,7 +25,7 @@ public enum StoreClassTypeEnum implements BaseEnum {
      * @param value 存储类型的整型值
      * @param desc 存储类型的中文描述
      */
-    StoreClassTypeEnum(Integer value,String desc) {
+    StoreClassTypeEnum(Integer value, String desc) {
 
         this.value = value;
 

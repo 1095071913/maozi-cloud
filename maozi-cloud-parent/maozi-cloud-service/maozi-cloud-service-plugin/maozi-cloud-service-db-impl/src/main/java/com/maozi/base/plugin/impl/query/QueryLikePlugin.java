@@ -22,7 +22,7 @@ public class QueryLikePlugin extends BaseQueryPlugin{
      * @param data 条件值
      */
     @Override
-    public void apply(MPJLambdaWrapper<?> wrapper,String field,Object data) {
+    public void apply(MPJLambdaWrapper<?> wrapper, String field, Object data) {
         wrapper.like(field, data);
     }
 

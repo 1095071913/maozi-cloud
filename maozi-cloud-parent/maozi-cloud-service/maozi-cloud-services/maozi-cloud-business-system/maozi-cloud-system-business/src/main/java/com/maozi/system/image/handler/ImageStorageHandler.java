@@ -31,6 +31,6 @@ public interface ImageStorageHandler {
      * @param path 保存路径（对象存储目录前缀）
      * @return 上传结果，包含对象存储路径与访问地址等信息
      */
-    ImageUploadResult upload(MultipartFile file,String path);
+    ImageUploadResult upload(MultipartFile file, String path);
 
 }

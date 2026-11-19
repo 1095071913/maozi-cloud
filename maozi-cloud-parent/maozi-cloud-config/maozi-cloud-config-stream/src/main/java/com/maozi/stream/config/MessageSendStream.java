@@ -68,7 +68,7 @@ public class MessageSendStream {
         // 用于判断当前版本是否仍有存活实例
         // （元数据缺失 version 的实例归入默认版本分组，
         // 避免 groupingBy 分类函数返回 null 抛 NPE）
-        Map<String,List<ServiceInstance>> applicationClients = instances.stream()
+        Map<String, List<ServiceInstance>> applicationClients = instances.stream()
                 .collect(Collectors.groupingBy((instance)-> {
             String instanceVersion = instance.getMetadata().get(VersionContext.NACOS_VERSION_KEY);
             return instanceVersion != null ? instanceVersion : VersionContext.APPLICATION_DEFAULT_VERSION;
@@ -92,7 +92,7 @@ public class MessageSendStream {
         messageBuilder.setHeader(TestFlowContext.KEY, TestFlowContext.CONTEXT.get());
         messageBuilder.setHeader(CurrentUserInfoContext.KEY, CurrentUserInfoContext.CONTEXT.get());
 
-        return stream.send(bindingName,messageBuilder.build());
+        return stream.send(bindingName, messageBuilder.build());
 
     }
 
@@ -105,7 +105,7 @@ public class MessageSendStream {
      * @return 是否发送成功
      */
     public <D> Boolean sendMessage(String bindingName, D data){
-        return sendMessage(bindingName,MessageBuilder.withPayload(data).build());
+        return sendMessage(bindingName, MessageBuilder.withPayload(data).build());
     }
 
     /**
@@ -124,7 +124,7 @@ public class MessageSendStream {
         // 设置 RocketMQ 消息标签
         messageBuilder.setHeader(MessageConst.PROPERTY_TAGS, tags);
 
-        return sendMessage(bindingName,messageBuilder.build());
+        return sendMessage(bindingName, messageBuilder.build());
 
     }
 
@@ -144,7 +144,7 @@ public class MessageSendStream {
         // RocketMQ 延迟级别从 1 开始计数，枚举值从 0 开始，发送时需 +1 转换
         messageBuilder.setHeader(MessageConst.PROPERTY_DELAY_TIME_LEVEL, level.getValue() + 1);
 
-        return sendMessage(bindingName,messageBuilder.build());
+        return sendMessage(bindingName, messageBuilder.build());
 
     }
 
@@ -158,7 +158,7 @@ public class MessageSendStream {
      * @param <D> 数据类型
      * @return 是否发送成功
      */
-    public <D> Boolean sendMessage(String bindingName, D data,String tags,DelayMessageLevelEnum level){
+    public <D> Boolean sendMessage(String bindingName, D data, String tags, DelayMessageLevelEnum level){
 
         MessageBuilder<D> messageBuilder = MessageBuilder.withPayload(data);
 
@@ -168,7 +168,7 @@ public class MessageSendStream {
         // RocketMQ 延迟级别从 1 开始计数，枚举值从 0 开始，发送时需 +1 转换
         messageBuilder.setHeader(MessageConst.PROPERTY_DELAY_TIME_LEVEL, level.getValue() + 1);
 
-        return sendMessage(bindingName,messageBuilder.build());
+        return sendMessage(bindingName, messageBuilder.build());
 
     }
 

@@ -36,7 +36,7 @@ public interface RestPermissionService {
      *
      * @return 返回权限列表数据，包含权限 ID、名称、类型、父级 ID 等信息
      */
-    @Get(value = PATH + "/list",description = "列表")
+    @Get(value = PATH + "/list", description = "列表")
     @PreAuthorize("hasAuthority('system:permission:list')")
     AbstractBaseResult<List<PermissionListResult>> listResult();
 
@@ -46,7 +46,7 @@ public interface RestPermissionService {
      * @param param 权限保存参数，包含权限名称、类型、父级 ID、排序等必要信息
      * @return 返回新增权限的 ID
      */
-    @Post(value = PATH + "/save",description = "保存")
+    @Post(value = PATH + "/save", description = "保存")
     @PreAuthorize("hasAuthority('system:permission:save')")
     AbstractBaseResult<Long> saveResult(@RequestBody @Valid PermissionSaveUpdateParam param);
 
@@ -58,7 +58,7 @@ public interface RestPermissionService {
      *
      * @return 返回权限下拉列表结果，包含权限 ID、名称、上级 ID、层级深度及类型等信息
      */
-    @Get(value = PATH + "/dropDownList",description = "下拉列表")
+    @Get(value = PATH + "/dropDownList", description = "下拉列表")
     @PreAuthorize("hasAuthority('system:permission:save') or hasAuthority('system:permission:update')")
     AbstractBaseResult<List<? extends DropDownResult>> dropDownListResult();
 
@@ -77,7 +77,7 @@ public interface RestPermissionService {
      * @param id 权限 ID，用于查询指定权限的详细信息
      * @return 返回权限详细信息，包含权限名称、类型、路径、图标、排序等完整属性
      */
-    @Get(value = CURRENT_PATH + "/get",description = "详情")
+    @Get(value = CURRENT_PATH + "/get", description = "详情")
     @PreAuthorize("hasAuthority('system:permission:get')")
     AbstractBaseResult<PermissionInfoResult> getResult(@PathVariable Long id);
 
@@ -87,7 +87,7 @@ public interface RestPermissionService {
      * @param id 权限 ID，指定需要删除的权限记录
      * @return 无返回数据，仅返回操作结果状态
      */
-    @Post(value = CURRENT_PATH + "/remove",description = "删除")
+    @Post(value = CURRENT_PATH + "/remove", description = "删除")
     @PreAuthorize("hasAuthority('system:permission:remove')")
     AbstractBaseResult<Void> removeByIdResult(@PathVariable Long id);
 
@@ -98,7 +98,7 @@ public interface RestPermissionService {
      * @param param 权限更新参数，包含需要修改的权限属性信息
      * @return 无返回数据，仅返回操作结果状态
      */
-    @Post(value = CURRENT_PATH + "/update",description = "更新")
+    @Post(value = CURRENT_PATH + "/update", description = "更新")
     @PreAuthorize("hasAuthority('system:permission:update')")
     AbstractBaseResult<Void> saveUpdateResult(@PathVariable Long id, @RequestBody PermissionSaveUpdateParam param);
 

@@ -83,9 +83,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
             // 将用户ID写入附加属性，颁发令牌时会合并进claims
             Map<String, Object> attributes = CollectionUtil.newHashMap();
-            attributes.put(OAuth2TokenUserClaimConstants.USER_ID,oauthUserInfo.getUserId());
+            attributes.put(OAuth2TokenUserClaimConstants.USER_ID, oauthUserInfo.getUserId());
 
-            return new SecurityUserDetails(username,oauthUserInfo.getPassword(), grantedAuthorities, attributes);
+            return new SecurityUserDetails(username, oauthUserInfo.getPassword(), grantedAuthorities, attributes);
 
         }catch (Exception e){
 

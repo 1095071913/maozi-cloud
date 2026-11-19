@@ -82,7 +82,7 @@ public abstract class BaseGrantAuthenticationConverter<T extends BaseGrantAuthen
      * @param request HTTP请求对象
      * @param token   已创建的认证Token对象
      */
-    public void setTokenResult(HttpServletRequest request,T token) {}
+    public void setTokenResult(HttpServletRequest request, T token) {}
 
     /**
      * 将HTTP请求转换为认证对象
@@ -136,10 +136,10 @@ public abstract class BaseGrantAuthenticationConverter<T extends BaseGrantAuthen
         });
 
         T token = tokenClass.getDeclaredConstructor(AuthorizationGrantType.class,
-                Authentication.class,Set.class,Map.class)
+                Authentication.class, Set.class, Map.class)
                 .newInstance(new AuthorizationGrantType(getGrantType()), clientPrincipal,
                 requestedScopes, additionalParameters);
-        setTokenResult(request,token);
+        setTokenResult(request, token);
 
         return token;
     }

@@ -29,7 +29,7 @@ public class RestApplicationBase {
      *
      * @return 空的模版结果
      */
-    @Get(value = PATH + "/template",description = "模版")
+    @Get(value = PATH + "/template", description = "模版")
     public AbstractBaseResult<TemplateResult> template() {
         return new SuccessResult<>(null);
     }

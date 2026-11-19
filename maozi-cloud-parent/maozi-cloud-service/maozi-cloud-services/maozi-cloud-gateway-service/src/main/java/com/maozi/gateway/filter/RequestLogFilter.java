@@ -66,7 +66,7 @@ public class RequestLogFilter implements GlobalFilter, Ordered {
         Long requestTime = System.currentTimeMillis();
 
         // 构建日志信息 Map（后续固定写入 IP/TYPE/URL/METHOD 及 RT/DATA 标签，指定初始容量）
-        Map<String,String> logs = new LinkedHashMap<>(8);
+        Map<String, String> logs = new LinkedHashMap<>(8);
 
         // 记录客户端 IP 地址
         logs.put(LogTag.IP, WebUtil.getRequestHost(exchange.getRequest()));
@@ -79,7 +79,7 @@ public class RequestLogFilter implements GlobalFilter, Ordered {
 
         // 使用 ServerHttpResponseAgent 包装响应，在响应写入时自动记录日志
         return chain.filter(exchange.mutate().response(new ServerHttpResponseAgent(requestTime, logs,
-                exchange.getResponse(),exchange.getAttributes(),exchange.getRequest())).build());
+                exchange.getResponse(), exchange.getAttributes(), exchange.getRequest())).build());
 
     }
 

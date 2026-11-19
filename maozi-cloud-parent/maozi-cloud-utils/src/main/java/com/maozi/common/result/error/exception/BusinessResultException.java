@@ -44,9 +44,9 @@ public class BusinessResultException extends RuntimeException {
      * @param code 错误编码
      * @param message 错误信息
      */
-    public BusinessResultException(Integer code,String message) {
+    public BusinessResultException(Integer code, String message) {
         super(message);
-        this.errorResult = ResultUtil.error(new ErrorCode(code,message));
+        this.errorResult = ResultUtil.error(new ErrorCode(code, message));
     }
 
     /**
@@ -57,9 +57,9 @@ public class BusinessResultException extends RuntimeException {
      * @param data 错误附加数据
      * @param <D> 数据类型
      */
-    public <D> BusinessResultException(Integer code,String message,D data) {
+    public <D> BusinessResultException(Integer code, String message, D data) {
         super(message);
-        this.errorResult = ResultUtil.error(new ErrorCode(code,message),data);
+        this.errorResult = ResultUtil.error(new ErrorCode(code, message), data);
     }
 
     /**
@@ -95,7 +95,7 @@ public class BusinessResultException extends RuntimeException {
      */
     public <D> BusinessResultException(ErrorCode errorCode, D errorData) {
         super(errorCode.getExceptionMessage());
-        this.errorResult = ResultUtil.error(errorCode,errorData);
+        this.errorResult = ResultUtil.error(errorCode, errorData);
     }
 
     /**
@@ -104,7 +104,7 @@ public class BusinessResultException extends RuntimeException {
      * @param exceptionMessage 异常信息
      * @param errorCode 错误码
      */
-    public BusinessResultException(String exceptionMessage,ErrorCode errorCode) {
+    public BusinessResultException(String exceptionMessage, ErrorCode errorCode) {
         super(exceptionMessage);
         this.errorResult = ResultUtil.error(errorCode).setExceptionMessage(exceptionMessage);
     }
@@ -119,7 +119,7 @@ public class BusinessResultException extends RuntimeException {
      */
     public <D> BusinessResultException(String exceptionMessage, ErrorCode errorCode, D errorData) {
         super(exceptionMessage);
-        this.errorResult = ResultUtil.error(errorCode,errorData).setExceptionMessage(exceptionMessage);
+        this.errorResult = ResultUtil.error(errorCode, errorData).setExceptionMessage(exceptionMessage);
     }
 
     /**
@@ -186,8 +186,8 @@ public class BusinessResultException extends RuntimeException {
      * @param exceptionMessage 异常错误信息
      * @return 当前实例（链式调用）
      */
-    public BusinessResultException setMessage(String message,String exceptionMessage) {
-        this.errorResult.setMessage(message,exceptionMessage);
+    public BusinessResultException setMessage(String message, String exceptionMessage) {
+        this.errorResult.setMessage(message, exceptionMessage);
         return this;
     }
 

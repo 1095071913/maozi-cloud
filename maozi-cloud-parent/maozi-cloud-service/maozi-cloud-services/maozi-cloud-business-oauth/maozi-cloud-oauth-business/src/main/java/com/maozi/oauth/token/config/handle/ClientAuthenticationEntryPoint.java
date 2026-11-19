@@ -43,7 +43,7 @@ public class ClientAuthenticationEntryPoint implements AuthenticationEntryPoint 
 
     /** 未认证的错误码和错误信息 */
     private static final ErrorCode NO_AUTHENTICATION_CODE_DATA =
-            new ErrorCode(NO_AUTHENTICATION_CODE,"客户端未认证授权");
+            new ErrorCode(NO_AUTHENTICATION_CODE, "客户端未认证授权");
 
     /**
      * 处理未认证的客户端请求
@@ -62,7 +62,7 @@ public class ClientAuthenticationEntryPoint implements AuthenticationEntryPoint 
         AbstractBaseResult<Object> error = ResultUtil.error(NO_AUTHENTICATION_CODE_DATA)
                 .autoIdentifyHttpCode(NO_AUTHENTICATION_CODE);
             
-        WebUtil.writeResponseBody(response,error);
+        WebUtil.writeResponseBody(response, error);
         
     }
     

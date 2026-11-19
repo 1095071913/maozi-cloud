@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.ObjectUtil;
+import com.maozi.common.constant.SymbolConstant;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 
@@ -127,7 +128,7 @@ public interface OrderParam {
                     // 为空时仅取表别名的下划线形式（结果不含字段名）
                     String field = StringUtils.isEmpty(key)
                             ? underlineCase
-                            : String.join(".", underlineCase, StrUtil.toUnderlineCase(orderMainField));
+                            : String.join(SymbolConstant.DOT, underlineCase, StrUtil.toUnderlineCase(orderMainField));
 
                     if (orderMainFieldValue) {
                         orderDescFields.add(field);

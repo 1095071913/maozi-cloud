@@ -1,5 +1,7 @@
 package com.maozi.base.plugin.query;
 
+import com.maozi.common.constant.SymbolConstant;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -20,7 +22,7 @@ import java.lang.annotation.Target;
 public @interface QueryPlugin {
 
     /** 查询字段名，为空时使用被注解字段的名称 */
-    String field() default "";
+    String field() default SymbolConstant.EMPTY;
 
     /** 查询类型 */
     QueryBaseTypeEnum value();
@@ -29,6 +31,6 @@ public @interface QueryPlugin {
     boolean nest() default false;
 
     /** 关联表名 */
-    String tableName() default "";
+    String tableName() default SymbolConstant.EMPTY;
 
 }

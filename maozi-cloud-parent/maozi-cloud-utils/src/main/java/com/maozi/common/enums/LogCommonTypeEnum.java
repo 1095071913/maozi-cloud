@@ -1,5 +1,6 @@
 package com.maozi.common.enums;
 
+import com.maozi.common.constant.SymbolConstant;
 import lombok.Getter;
 
 /**
@@ -65,7 +66,7 @@ public enum LogCommonTypeEnum implements BaseEnum {
     /** 返回 {@code value.desc} 格式的枚举描述 */
     @Override
     public String toString() {
-        return value + "." + desc;
+        return value + SymbolConstant.DOT + desc;
     }
 
 }

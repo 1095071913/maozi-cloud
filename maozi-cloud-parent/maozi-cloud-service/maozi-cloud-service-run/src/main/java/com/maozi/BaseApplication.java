@@ -21,6 +21,7 @@ import com.maozi.common.CollectionUtil;
 import com.maozi.common.LogUtil;
 import com.maozi.common.constant.LogTag;
 import com.maozi.common.constant.SpringPropertyConstant;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.common.context.VersionContext;
 import com.maozi.common.enums.EnvironmentTypeEnum;
@@ -187,7 +188,7 @@ public class BaseApplication {
 
             // 启动应用并记录初始化耗时
             ConfigurableApplicationContext context = builder.bannerMode(Mode.OFF).run(args);
-            logs.put(LogTag.INIT_TIME, (System.currentTimeMillis() - begin) + " ms");
+            logs.put(LogTag.INIT_TIME, (System.currentTimeMillis() - begin) + LogTag.RT_UNIT);
 
             // Web 应用记录实际服务端口
             if (context instanceof WebServerApplicationContext webServerContext) {
@@ -295,7 +296,7 @@ public class BaseApplication {
         if(StringUtils.isEmpty(applicationName)){
             throw new RuntimeException("服务名读取失败");
         }
-        String applicationProjectAbbreviation = applicationName.replace(PROJECT_PREFIX,"");
+        String applicationProjectAbbreviation = applicationName.replace(PROJECT_PREFIX,SymbolConstant.EMPTY);
         applicationProjectAbbreviation = applicationProjectAbbreviation.substring(0,
             applicationProjectAbbreviation.length() - PROJECT_NAME_SUFFIX_LENGTH);
 
@@ -497,7 +498,7 @@ public class BaseApplication {
             if (colonIndex != -1) {
                 String path = beforeJar.substring(colonIndex + 1);
                 // 处理 Windows 路径可能出现的前导 /
-                if (path.startsWith("/") && path.length() > WINDOWS_DRIVE_SEPARATOR_INDEX
+                if (path.startsWith(SymbolConstant.SLASH) && path.length() > WINDOWS_DRIVE_SEPARATOR_INDEX
                     && path.charAt(WINDOWS_DRIVE_SEPARATOR_INDEX) == WINDOWS_DRIVE_SEPARATOR) {
                     path = path.substring(1);
                 }

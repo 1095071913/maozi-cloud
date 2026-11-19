@@ -11,9 +11,6 @@ package com.maozi.common.constant;
  */
 public class LogTag {
 
-    /** 链路追踪 ID */
-    public static final String TID = "Tid";
-
     /** Nacos 配置信息 */
     public static final String NACOS = "Nacos";
 
@@ -28,9 +25,6 @@ public class LogTag {
 
     /** 服务端口 */
     public static final String SERVICE_PORT = "ServicePort";
-
-    /** Dubbo 端口 */
-    public static final String DUBBO_PORT = "DubboPort";
 
     /** IP 地址 */
     public static final String IP = "IP";
@@ -67,5 +61,8 @@ public class LogTag {
 
     /** 响应耗时 */
     public static final String RT = "RT";
+
+    /** 响应耗时单位后缀 */
+    public static final String RT_UNIT = " ms";
 
 }

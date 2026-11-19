@@ -1,5 +1,7 @@
 package com.maozi.base.plugin.join;
 
+import com.maozi.common.constant.SymbolConstant;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -24,12 +26,12 @@ public @interface JoinPlugin {
     JoinBaseTypeEnum value();
 
     /** 关联条件，如 "a.id = b.a_id" */
-    String on() default "";
+    String on() default SymbolConstant.EMPTY;
 
     /** 关联表名 */
-    String tableName() default "";
+    String tableName() default SymbolConstant.EMPTY;
 
     /** 关联表别名 */
-    String tableAlias() default "";
+    String tableAlias() default SymbolConstant.EMPTY;
 
 }

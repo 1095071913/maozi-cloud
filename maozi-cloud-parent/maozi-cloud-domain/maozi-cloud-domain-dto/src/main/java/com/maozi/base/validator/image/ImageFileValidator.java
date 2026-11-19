@@ -1,5 +1,6 @@
 package com.maozi.base.validator.image;
 
+import com.maozi.common.constant.SymbolConstant;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.apache.commons.lang3.StringUtils;
@@ -52,7 +53,7 @@ public class ImageFileValidator implements ConstraintValidator<ImageFile, Multip
 
         // getOriginalFilename 可能为 null，取出的小写扩展名可能为空，此时直接不通过
         String contentType = file.getContentType();
-        String extension = StringUtils.lowerCase(StringUtils.substringAfterLast(file.getOriginalFilename(), "."));
+        String extension = StringUtils.lowerCase(StringUtils.substringAfterLast(file.getOriginalFilename(), SymbolConstant.DOT));
         if(StringUtils.isEmpty(extension)) {
             return false;
         }

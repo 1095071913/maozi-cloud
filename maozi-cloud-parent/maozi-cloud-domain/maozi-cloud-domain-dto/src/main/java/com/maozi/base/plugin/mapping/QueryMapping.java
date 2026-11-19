@@ -1,5 +1,7 @@
 package com.maozi.base.plugin.mapping;
 
+import com.maozi.common.constant.SymbolConstant;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -32,21 +34,21 @@ public @interface QueryMapping {
     boolean isService() default false;
 
     /** 远程服务名称 */
-    String serviceName() default "";
+    String serviceName() default SymbolConstant.EMPTY;
 
     /** 关联字段名 */
-    String relationField() default "";
+    String relationField() default SymbolConstant.EMPTY;
 
     /** 是否忽略该字段的映射 */
     boolean ignore() default false;
 
     /** 映射处理函数名称 */
-    String functionName() default "";
+    String functionName() default SymbolConstant.EMPTY;
 
     /** 来源表名 */
-    String tableName() default "";
+    String tableName() default SymbolConstant.EMPTY;
 
     /** 来源字段名 */
-    String field() default "";
+    String field() default SymbolConstant.EMPTY;
 
 }

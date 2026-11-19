@@ -1,5 +1,6 @@
 package com.maozi.opentelemetry.sampler.handle.filter.impl;
 
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.opentelemetry.sampler.handle.filter.BaseFilterHandle;
 import io.opentelemetry.api.common.AttributeType;
 import io.opentelemetry.api.common.Attributes;
@@ -98,7 +99,7 @@ public class HttpFilterHandle extends BaseFilterHandle {
             httpPath = httpPath.split(PROTOCOL_SEPARATOR)[1];
 
             // 定位域名后的首个 "/"，截取路径部分
-            int index = httpPath.indexOf("/");
+            int index = httpPath.indexOf(SymbolConstant.SLASH);
 
             if(index != -1){
 

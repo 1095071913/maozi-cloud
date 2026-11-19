@@ -1,5 +1,6 @@
 package com.maozi.service.config;
 
+import com.maozi.common.constant.SymbolConstant;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -136,9 +137,9 @@ public class StripFirstPathFilter extends OncePerRequestFilter {
 
         // 遍历排除前缀，命中则不裁剪
         for (String prefix : excludedPrefixes) {
-            String normalized = prefix.startsWith("/") ? prefix : "/" + prefix;
+            String normalized = prefix.startsWith(SymbolConstant.SLASH) ? prefix : SymbolConstant.SLASH + prefix;
             // 匹配 /prefix 本身或 /prefix/... 子路径
-            if (pathWithinApp.equals(normalized) || pathWithinApp.startsWith(normalized + "/")) {
+            if (pathWithinApp.equals(normalized) || pathWithinApp.startsWith(normalized + SymbolConstant.SLASH)) {
                 return false;
             }
         }
@@ -197,10 +198,10 @@ public class StripFirstPathFilter extends OncePerRequestFilter {
          */
         private static String stripFirstSegment(String path) {
             if (path == null || path.length() <= 1) {
-                return "/";
+                return SymbolConstant.SLASH;
             }
             int secondSlash = path.indexOf('/', 1);
-            return secondSlash < 0 ? "/" : path.substring(secondSlash);
+            return secondSlash < 0 ? SymbolConstant.SLASH : path.substring(secondSlash);
         }
 
         /**

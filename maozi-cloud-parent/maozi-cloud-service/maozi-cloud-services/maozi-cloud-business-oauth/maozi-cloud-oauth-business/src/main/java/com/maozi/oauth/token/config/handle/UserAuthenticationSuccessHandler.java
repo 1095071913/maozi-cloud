@@ -2,6 +2,7 @@ package com.maozi.oauth.token.config.handle;
 
 import com.maozi.common.ResultUtil;
 import com.maozi.common.WebUtil;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.oauth.token.dto.OauthTokenDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -69,7 +70,7 @@ public class UserAuthenticationSuccessHandler
 
         }
 
-        oauthToken.setScope(String.join(" ",accessToken.getScopes()));
+        oauthToken.setScope(String.join(SymbolConstant.SPACE,accessToken.getScopes()));
 
         Object idToken = accessTokenAuthentication.getAdditionalParameters().get(OidcParameterNames.ID_TOKEN);
         if (idToken != null) {

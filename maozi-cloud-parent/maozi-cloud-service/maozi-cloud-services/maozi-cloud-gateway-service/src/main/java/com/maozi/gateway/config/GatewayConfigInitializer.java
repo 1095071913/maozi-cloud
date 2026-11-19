@@ -1,6 +1,7 @@
 package com.maozi.gateway.config;
 
 import com.maozi.common.constant.SpringPropertyConstant;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.spi.ConfigInitializer;
 
 import java.util.Map;
@@ -40,7 +41,7 @@ public class GatewayConfigInitializer implements ConfigInitializer {
         properties.merge(
             SpringPropertyConstant.SPRING_CONFIG_IMPORT,
             NACOS_IMPORTS,
-            (existing, incoming) -> incoming + "," + existing
+            (existing, incoming) -> incoming + SymbolConstant.COMMA + existing
         );
 
     }

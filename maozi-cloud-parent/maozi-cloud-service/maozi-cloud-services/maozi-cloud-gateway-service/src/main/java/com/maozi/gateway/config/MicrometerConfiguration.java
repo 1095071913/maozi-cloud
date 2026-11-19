@@ -1,5 +1,6 @@
 package com.maozi.gateway.config;
 
+import com.maozi.common.constant.SymbolConstant;
 import io.micrometer.common.KeyValue;
 import io.micrometer.common.KeyValues;
 import jakarta.annotation.Nonnull;
@@ -34,7 +35,7 @@ public class MicrometerConfiguration {
     private static final String UNKNOWN = "UNKNOWN";
 
     /** URL 路径分隔符切分模式（预编译） */
-    private static final java.util.regex.Pattern PATH_SPLIT_PATTERN = java.util.regex.Pattern.compile("/");
+    private static final java.util.regex.Pattern PATH_SPLIT_PATTERN = java.util.regex.Pattern.compile(SymbolConstant.SLASH);
 
     /**
      * 创建自定义请求观测约定，修复 URI 标签为 UNKNOWN 的问题
@@ -58,13 +59,13 @@ public class MicrometerConfiguration {
 
                 KeyValues lowCardinalityKeyValues = super.getLowCardinalityKeyValues(context);
 
-                if (isUriTagNullOrUnknown(context, lowCardinalityKeyValues)) {
+                if (isUriTagNullOrUnknown(lowCardinalityKeyValues)) {
 
                     String path = context.getCarrier().getPath().value();
 
                     String[] pathSection = PATH_SPLIT_PATTERN.split(path);
 
-                    path = pathSection.length > 2 ? "/"+pathSection[1]+"/"+pathSection[2]+"/**" : UNKNOWN;
+                    path = pathSection.length > 2 ? SymbolConstant.SLASH + pathSection[1] + SymbolConstant.SLASH + pathSection[2] + "/**" : UNKNOWN;
 
                     return lowCardinalityKeyValues.and(KeyValue.of(KEY_URI, path));
 
@@ -77,12 +78,10 @@ public class MicrometerConfiguration {
             /**
              * 判断 URI 标签是否缺失或为 UNKNOWN
              *
-             * @param context 请求观测上下文
              * @param lowCardinalityKeyValues 当前低基数键值集合
              * @return {@code true} 表示 URI 标签缺失或为 UNKNOWN
              */
-            private static boolean isUriTagNullOrUnknown(ServerRequestObservationContext context,
-                    KeyValues lowCardinalityKeyValues) {
+            private static boolean isUriTagNullOrUnknown(KeyValues lowCardinalityKeyValues) {
 
                 Optional<KeyValue> uriKeyValue = lowCardinalityKeyValues.stream()
                         .filter(keyValue -> KEY_URI.equals(keyValue.getKey())).findFirst();

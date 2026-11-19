@@ -138,7 +138,7 @@ public class ServerHttpResponseAgent extends ServerHttpResponseDecorator {
                 }
 
                 // 记录响应耗时（RT）
-                logs.put(LogTag.RT, System.currentTimeMillis() - requestTime + " ms");
+                logs.put(LogTag.RT, System.currentTimeMillis() - requestTime + LogTag.RT_UNIT);
                 // 记录响应数据
                 logs.put(LogTag.DATA, outputStream.toString());
 

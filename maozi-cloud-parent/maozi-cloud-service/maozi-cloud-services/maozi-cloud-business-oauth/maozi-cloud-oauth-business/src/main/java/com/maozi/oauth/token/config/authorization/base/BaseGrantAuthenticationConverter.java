@@ -2,6 +2,7 @@ package com.maozi.oauth.token.config.authorization.base;
 
 import com.baomidou.mybatisplus.core.toolkit.ReflectionKit;
 import com.maozi.common.CollectionUtil;
+import com.maozi.common.constant.SymbolConstant;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
 import org.springframework.security.core.Authentication;
@@ -119,7 +120,7 @@ public abstract class BaseGrantAuthenticationConverter<T extends BaseGrantAuthen
         Set<String> requestedScopes = null;
         if (StringUtils.hasText(scope)) {
             requestedScopes = new HashSet<>(
-                    Arrays.asList(StringUtils.delimitedListToStringArray(scope, ",")));
+                    Arrays.asList(StringUtils.delimitedListToStringArray(scope, SymbolConstant.COMMA)));
         }
 
         // 参数检查

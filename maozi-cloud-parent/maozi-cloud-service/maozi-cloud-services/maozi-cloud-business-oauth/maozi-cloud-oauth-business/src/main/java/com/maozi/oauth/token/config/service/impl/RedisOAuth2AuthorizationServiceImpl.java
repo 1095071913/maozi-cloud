@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.maozi.common.CollectionUtil;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.oauth.client.enums.AuthTypeEnum;
 import com.maozi.oauth.token.config.service.OAuth2AuthorizationService;
 import com.maozi.oauth.token.param.ClientUserParam;
@@ -509,7 +510,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
      * @return 令牌索引的Redis键（令牌值经过Base64编码）
      */
     private String indexKey(String type, String value) {
-        return INDEX_KEY_PREFIX + type + ":" + encode(value);
+        return INDEX_KEY_PREFIX + type + SymbolConstant.COLON + encode(value);
     }
 
     /**
@@ -520,7 +521,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
      * @return 用户主体索引的Redis键（各部分经过Base64编码）
      */
     private String principalIndexKey(String registeredClientId, String principalName) {
-        return PRINCIPAL_INDEX_KEY_PREFIX + encode(registeredClientId) + ":" + encode(principalName);
+        return PRINCIPAL_INDEX_KEY_PREFIX + encode(registeredClientId) + SymbolConstant.COLON + encode(principalName);
     }
 
     /**

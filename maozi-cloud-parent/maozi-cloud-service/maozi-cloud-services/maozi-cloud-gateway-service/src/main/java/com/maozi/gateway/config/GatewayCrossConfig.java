@@ -1,10 +1,12 @@
 package com.maozi.gateway.config;
 
+import com.maozi.common.constant.SymbolConstant;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.gateway.discovery.DiscoveryClientRouteDefinitionLocator;
 import org.springframework.cloud.gateway.discovery.DiscoveryLocatorProperties;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -12,7 +14,6 @@ import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.codec.support.DefaultServerCodecConfigurer;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.stereotype.Component;
 import org.springframework.web.cors.reactive.CorsUtils;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
@@ -32,11 +33,8 @@ import reactor.core.publisher.Mono;
  * @author maozi
  * @date 2026/11/08
  */
-@Component
+@Configuration
 public class GatewayCrossConfig {
-
-    /** 允许所有响应头暴露给前端 */
-    private static final String ALL = "*";
 
     /**
      * CORS 预检请求缓存时间（秒）；注意值带 long 后缀 L，
@@ -116,7 +114,7 @@ public class GatewayCrossConfig {
             // 允许携带凭证
             headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, ALLOW_CREDENTIALS_VALUE);
             // 暴露给前端的响应头
-            headers.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, ALL);
+            headers.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, SymbolConstant.ASTERISK);
             // 预检请求缓存时间
             headers.add(HttpHeaders.ACCESS_CONTROL_MAX_AGE, MAX_AGE);
 

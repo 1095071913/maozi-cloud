@@ -1,6 +1,7 @@
 package com.maozi.oauth.client.handler;
 
 import com.maozi.common.ObjectUtil;
+import com.maozi.common.constant.SymbolConstant;
 import com.maozi.db.handler.JacksonTypeHandler;
 import com.maozi.oauth.client.enums.AuthTypeEnum;
 
@@ -54,7 +55,7 @@ public class Oauth2AuthTypeHandler extends JacksonTypeHandler {
      */
     @Override
     public Object parse(String json) {
-        return Arrays.stream(json.split(","))
+        return Arrays.stream(json.split(SymbolConstant.COMMA))
                 .map(String::trim) // 去除空格（容错）
                 .map(AuthTypeEnum::getByAuth)
                 .filter(ObjectUtil::isNotNull)
@@ -84,7 +85,7 @@ public class Oauth2AuthTypeHandler extends JacksonTypeHandler {
                 .map(AuthTypeEnum.class::cast)                // 安全强转
                 .map(AuthTypeEnum::getAuth)                   // 提取getAuth()
                 .filter(Objects::nonNull)                 // 过滤null值，避免出现",,,"
-                .collect(Collectors.joining(","));        // 逗号拼接
+                .collect(Collectors.joining(SymbolConstant.COMMA));        // 逗号拼接
 
     }
 

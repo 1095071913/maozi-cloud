@@ -26,7 +26,7 @@ import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.dto.CurrentUserInfo;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.service.api.annotation.RestService;
-import com.maozi.service.api.impl.result.BaseServiceResultImpl;
+import com.maozi.service.api.impl.result.BaseDBServiceResultImpl;
 import com.maozi.system.user.api.impl.UserServiceImpl;
 import com.maozi.system.user.api.rest.RestUserService;
 import com.maozi.system.user.param.UserIndividualUpdateParam;
@@ -46,7 +46,7 @@ import com.maozi.system.user.result.UserListResult;
  * @date 2026/11/08
  */
 @RestService
-public class RestUserServiceImpl extends BaseServiceResultImpl<UserServiceImpl, Void> implements RestUserService {
+public class RestUserServiceImpl extends BaseDBServiceResultImpl<UserServiceImpl, Void> implements RestUserService {
 
     /**
      * 分页查询用户列表

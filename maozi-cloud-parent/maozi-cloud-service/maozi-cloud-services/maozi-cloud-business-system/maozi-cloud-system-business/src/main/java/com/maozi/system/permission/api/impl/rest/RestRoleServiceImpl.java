@@ -3,7 +3,7 @@ package com.maozi.system.permission.api.impl.rest;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.service.api.annotation.RestService;
-import com.maozi.service.api.impl.result.BaseServiceResultImpl;
+import com.maozi.service.api.impl.result.BaseDBServiceResultImpl;
 import com.maozi.system.permission.api.impl.RoleServiceImpl;
 import com.maozi.system.permission.api.rest.RestRoleService;
 import com.maozi.system.role.param.RoleSaveUpdateParam;
@@ -21,7 +21,7 @@ import java.util.List;
  * @date 2026/11/08
  */
 @RestService
-public class RestRoleServiceImpl extends BaseServiceResultImpl<RoleServiceImpl, Void> implements RestRoleService {
+public class RestRoleServiceImpl extends BaseDBServiceResultImpl<RoleServiceImpl, Void> implements RestRoleService {
 
     /**
      * 查询角色列表

@@ -52,7 +52,7 @@ public class DubboRequestEntranceLogAop extends AbstractRequestEntranceLogAop {
     private static final String BASE_RPC_POINT = ApplicationEnvironmentContext.PACKAGE_PREFIX
         + ".common.result.AbstractBaseResult "
         + ApplicationEnvironmentContext.PACKAGE_PREFIX
-        + ".service.api.impl.result.BaseServiceResultImpl.*(..)";
+        + ".service.api.impl.result.BaseDBServiceResultImpl.*(..)";
 
     /** 组合切点表达式 */
     private static final String POINT = "execution(" + RPC_POINT + ") || execution(" + BASE_RPC_POINT + ")";

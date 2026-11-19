@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * 基础服务结果接口
  * <p>
- * 定义通用的 CRUD 服务方法签名，由 {@code BaseServiceResultImpl}
+ * 定义通用的 CRUD 服务方法签名，由 {@code BaseDBServiceResultImpl}
  * 基于 {@code BaseServiceImpl} 统一实现，
  * 业务服务继承后即具备这些能力，
  * 涵盖查询、计数、新增/修改、删除、可用性校验和下拉列表等标准操作。
@@ -23,7 +23,7 @@ import java.util.Map;
  * @author maozi
  * @date 2026/11/08
  */
-public interface BaseServiceResult<D> {
+public interface BaseDBServiceResult<D> {
 
     /**
      * 根据 ID 查询单条记录

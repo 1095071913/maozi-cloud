@@ -4,7 +4,7 @@ import com.maozi.base.result.DropDownResult;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.service.api.annotation.RestService;
-import com.maozi.service.api.impl.result.BaseServiceResultImpl;
+import com.maozi.service.api.impl.result.BaseDBServiceResultImpl;
 import com.maozi.system.config.api.impl.RegionServiceImpl;
 import com.maozi.system.config.api.rest.RestRegionService;
 
@@ -21,7 +21,7 @@ import java.util.List;
  * @date 2026/11/08
  */
 @RestService
-public class RestRegionServiceImpl extends BaseServiceResultImpl<RegionServiceImpl, Void> implements RestRegionService {
+public class RestRegionServiceImpl extends BaseDBServiceResultImpl<RegionServiceImpl, Void> implements RestRegionService {
 
     /**
      * 根据父级ID查询子地区下拉列表

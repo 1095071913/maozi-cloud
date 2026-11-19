@@ -4,7 +4,7 @@ import com.maozi.base.result.DropDownResult;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.service.api.annotation.RemoteService;
-import com.maozi.service.api.impl.result.BaseServiceResultImpl;
+import com.maozi.service.api.impl.result.BaseDBServiceResultImpl;
 import com.maozi.system.config.api.impl.RegionServiceImpl;
 import com.maozi.system.config.api.rpc.RpcRegionService;
 
@@ -18,7 +18,7 @@ import com.maozi.system.config.api.rpc.RpcRegionService;
  * @date 2026/11/08
  */
 @RemoteService
-public class RpcRegionServiceImpl extends BaseServiceResultImpl<RegionServiceImpl, Void> implements RpcRegionService {
+public class RpcRegionServiceImpl extends BaseDBServiceResultImpl<RegionServiceImpl, Void> implements RpcRegionService {
 
     /**
      * 根据ID远程获取地区下拉信息

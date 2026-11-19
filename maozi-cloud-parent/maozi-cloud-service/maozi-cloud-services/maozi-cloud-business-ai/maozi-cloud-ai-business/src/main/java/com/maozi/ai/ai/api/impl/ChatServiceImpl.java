@@ -443,4 +443,8 @@ public class ChatServiceImpl implements ChatService {
 
     }
 
+    public void adminRemoveMessage(Long conversationId, Long messageId) {
+        chatMemoryRepository.deleteByMessageId(conversationId.toString(), messageId.toString());
+    }
+
 }

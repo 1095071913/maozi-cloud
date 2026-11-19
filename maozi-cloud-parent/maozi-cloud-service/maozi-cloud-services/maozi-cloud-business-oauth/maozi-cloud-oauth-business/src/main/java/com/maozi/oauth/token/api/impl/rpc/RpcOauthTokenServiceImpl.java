@@ -4,8 +4,11 @@ import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.oauth.token.api.impl.OauthTokenServiceImpl;
 import com.maozi.oauth.token.api.rpc.RpcOauthTokenService;
+import com.maozi.oauth.token.config.service.OAuth2AuthorizationService;
 import com.maozi.oauth.token.param.ClientUserParam;
 import com.maozi.service.api.annotation.RemoteService;
+import com.maozi.service.api.impl.rest.BaseServiceResultImpl;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
@@ -22,14 +25,17 @@ import java.util.Map;
  * @date 2026/11/08
  */
 @RemoteService
-public class RpcOauthTokenServiceImpl extends OauthTokenServiceImpl implements RpcOauthTokenService {
+@RequiredArgsConstructor
+public class RpcOauthTokenServiceImpl extends BaseServiceResultImpl<OauthTokenServiceImpl> implements RpcOauthTokenService {
 
+    protected final OAuth2AuthorizationService authorizationService;
+    
     /**
      * RPC 令牌内省，返回统一结果封装
      */
     @Override
     public AbstractBaseResult<Map<String, Object>> introspectResult(String token) {
-        return ResultUtil.success(super.introspect(token));
+        return ResultUtil.success(service.introspect(token));
     }
 
     /**

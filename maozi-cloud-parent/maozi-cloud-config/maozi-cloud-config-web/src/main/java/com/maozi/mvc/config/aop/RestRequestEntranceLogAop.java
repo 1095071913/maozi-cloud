@@ -56,7 +56,7 @@ public class RestRequestEntranceLogAop extends AbstractRequestEntranceLogAop {
     private static final String BASE_RPC_POINT = ApplicationEnvironmentContext.PACKAGE_PREFIX
         + ".common.result.AbstractBaseResult "
         + ApplicationEnvironmentContext.PACKAGE_PREFIX
-        + ".service.api.impl.result.BaseServiceResultImpl.*(..)";
+        + ".service.api.impl.result.BaseDBServiceResultImpl.*(..)";
 
     /** 组合切点表达式 */
     private static final String POINT = "execution(" + REST_POINT + ") || execution(" + BASE_RPC_POINT + ")";

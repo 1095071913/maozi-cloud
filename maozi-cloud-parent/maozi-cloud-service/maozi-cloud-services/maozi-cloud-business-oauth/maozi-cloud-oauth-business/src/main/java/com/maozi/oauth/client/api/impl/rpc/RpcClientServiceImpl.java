@@ -6,12 +6,12 @@ import com.maozi.oauth.client.api.rpc.RpcClientService;
 import com.maozi.oauth.client.dto.ClientDTO;
 import com.maozi.oauth.client.param.ClientSaveUpdateParam;
 import com.maozi.service.api.annotation.RemoteService;
-import com.maozi.service.api.impl.result.BaseServiceResultImpl;
+import com.maozi.service.api.impl.result.BaseDBServiceResultImpl;
 
 /**
  * OAuth2客户端RPC服务实现类
  * <p>
- * 除 aiSaveResult 在本类实现外，其余方法沿用 BaseServiceResultImpl 的通用实现，
+ * 除 aiSaveResult 在本类实现外，其余方法沿用 BaseDBServiceResultImpl 的通用实现，
  * 内部委托注入的 ClientServiceImpl 完成业务处理。
  * </p>
  *
@@ -19,7 +19,7 @@ import com.maozi.service.api.impl.result.BaseServiceResultImpl;
  * @date 2026/11/08
  */
 @RemoteService
-public class RpcClientServiceImpl extends BaseServiceResultImpl<ClientServiceImpl, ClientDTO>
+public class RpcClientServiceImpl extends BaseDBServiceResultImpl<ClientServiceImpl, ClientDTO>
         implements RpcClientService {
 
     /**

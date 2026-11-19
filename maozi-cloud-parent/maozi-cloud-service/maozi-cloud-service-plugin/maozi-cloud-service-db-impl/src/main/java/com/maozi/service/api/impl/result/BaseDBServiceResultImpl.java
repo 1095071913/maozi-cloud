@@ -19,8 +19,8 @@ import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.db.domain.AbstractBaseDomain;
 import com.maozi.db.domain.AbstractBaseNameDomain;
 import com.maozi.service.api.impl.BaseServiceImpl;
-import com.maozi.service.api.rpc.BaseServiceResult;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.maozi.service.api.impl.rest.BaseServiceResultImpl;
+import com.maozi.service.api.rpc.BaseDBServiceResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.ParameterizedType;
@@ -45,11 +45,7 @@ import java.util.stream.Collectors;
  * @date 2026/11/11 21:41
  */
 @SuppressWarnings("unchecked")
-public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements BaseServiceResult<D> {
-
-    /** 关联的通用业务服务 */
-    @Autowired
-    protected S service;
+public class BaseDBServiceResultImpl<S extends BaseServiceImpl, D> extends BaseServiceResultImpl<S> implements BaseDBServiceResult<D> {
 
     /** 数据传输对象（DTO）Class 对象 */
     protected Class<D> resultClass;
@@ -62,16 +58,6 @@ public class BaseServiceResultImpl<S extends BaseServiceImpl, D> implements Base
 
     /** 资源名称后缀：状态 */
     private static final String RESOURCE_SUFFIX_STATUS = "状态";
-
-    /**
-     * 构造方法
-     * <p>
-     * 构造方法内禁止加入业务逻辑，resultClass 改为在 {@link #getResultClass()} 中懒加载解析。
-     * </p>
-     */
-    public BaseServiceResultImpl() {
-
-    }
 
     /**
      * 获取结果 DTO 的 Class 对象

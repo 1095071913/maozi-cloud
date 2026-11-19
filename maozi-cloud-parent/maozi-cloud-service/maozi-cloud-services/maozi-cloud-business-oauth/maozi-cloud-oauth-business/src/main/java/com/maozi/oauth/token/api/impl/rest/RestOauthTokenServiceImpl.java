@@ -5,6 +5,7 @@ import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.oauth.token.api.impl.OauthTokenServiceImpl;
 import com.maozi.oauth.token.api.rest.RestOauthTokenService;
 import com.maozi.service.api.annotation.RestService;
+import com.maozi.service.api.impl.rest.BaseServiceResultImpl;
 
 import java.util.Map;
 
@@ -19,14 +20,14 @@ import java.util.Map;
  * @date 2026/7/8 17:15
  */
 @RestService
-public class RestOauthTokenServiceImpl extends OauthTokenServiceImpl implements RestOauthTokenService {
+public class RestOauthTokenServiceImpl extends BaseServiceResultImpl<OauthTokenServiceImpl> implements RestOauthTokenService {
 
     /**
      * REST 令牌内省，返回统一结果封装
      */
     @Override
     public AbstractBaseResult<Map<String, Object>> introspectResult(String token) {
-        return ResultUtil.success(super.introspect(token));
+        return ResultUtil.success(service.introspect(token));
     }
 
 }

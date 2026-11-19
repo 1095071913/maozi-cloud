@@ -21,7 +21,7 @@ import java.util.List;
  * @date 2026/11/08
  */
 @RestService
-public class RestRoleServiceImpl extends BaseDBServiceResultImpl<RoleServiceImpl, Void> implements RestRoleService {
+public class RestRoleServiceImpl extends BaseDBServiceResultImpl<RoleServiceImpl> implements RestRoleService {
 
     /**
      * 查询角色列表

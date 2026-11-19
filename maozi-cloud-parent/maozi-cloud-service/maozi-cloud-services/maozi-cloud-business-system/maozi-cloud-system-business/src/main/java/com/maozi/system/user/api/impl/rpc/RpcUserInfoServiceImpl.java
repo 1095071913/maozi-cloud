@@ -19,7 +19,7 @@ import com.maozi.system.user.dto.SystemUser;
  * @date 2026/11/08
  */
 @RemoteService
-public class RpcUserInfoServiceImpl extends BaseDBServiceResultImpl<UserServiceImpl, Void> implements RpcUserInfoService {
+public class RpcUserInfoServiceImpl extends BaseDBServiceResultImpl<UserServiceImpl> implements RpcUserInfoService {
 
     /**
      * 根据用户 ID 查询系统用户信息

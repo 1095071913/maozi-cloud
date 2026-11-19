@@ -46,7 +46,7 @@ import com.maozi.system.user.result.UserListResult;
  * @date 2026/11/08
  */
 @RestService
-public class RestUserServiceImpl extends BaseDBServiceResultImpl<UserServiceImpl, Void> implements RestUserService {
+public class RestUserServiceImpl extends BaseDBServiceResultImpl<UserServiceImpl> implements RestUserService {
 
     /**
      * 分页查询用户列表

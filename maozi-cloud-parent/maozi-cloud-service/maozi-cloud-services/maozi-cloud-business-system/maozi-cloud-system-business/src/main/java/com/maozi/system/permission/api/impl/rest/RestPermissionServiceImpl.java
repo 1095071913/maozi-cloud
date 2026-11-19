@@ -23,7 +23,7 @@ import java.util.List;
  * @date 2026/11/08
  */
 @RestService
-public class RestPermissionServiceImpl extends BaseDBServiceResultImpl<PermissionServiceImpl, Void>
+public class RestPermissionServiceImpl extends BaseDBServiceResultImpl<PermissionServiceImpl>
         implements RestPermissionService {
 
     /**

@@ -19,7 +19,7 @@ import com.maozi.service.api.impl.result.BaseDBServiceResultImpl;
  * @date 2026/11/14
  */
 @RestService
-public class RestChatConversationImpl extends BaseDBServiceResultImpl<ChatConversationServiceImpl, Void>
+public class RestChatConversationImpl extends BaseDBServiceResultImpl<ChatConversationServiceImpl>
         implements RestChatConversationService {
 
     /** 查询当前用户的会话分页列表 */

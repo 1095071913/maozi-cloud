@@ -19,7 +19,7 @@ import com.maozi.system.config.result.ConfigDropDownResult;
  * @date 2026/11/08
  */
 @RemoteService
-public class RpcConfigServiceImpl extends BaseDBServiceResultImpl<ConfigServiceImpl, Void> implements RpcConfigService {
+public class RpcConfigServiceImpl extends BaseDBServiceResultImpl<ConfigServiceImpl> implements RpcConfigService {
 
     /**
      * 根据配置键名远程获取配置值

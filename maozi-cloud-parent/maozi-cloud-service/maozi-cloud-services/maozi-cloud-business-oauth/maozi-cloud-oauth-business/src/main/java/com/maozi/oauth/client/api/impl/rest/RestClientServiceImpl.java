@@ -12,7 +12,7 @@ import com.maozi.oauth.client.param.ClientSaveUpdateParam;
 import com.maozi.oauth.client.result.ClientInfoResult;
 import com.maozi.oauth.client.result.ClientListResult;
 import com.maozi.service.api.annotation.RestService;
-import com.maozi.service.api.impl.result.BaseDBServiceResultImpl;
+import com.maozi.service.api.impl.result.BaseDBTServiceResultImpl;
 
 
 /**
@@ -26,7 +26,7 @@ import com.maozi.service.api.impl.result.BaseDBServiceResultImpl;
  * @date 2026/11/08
  */
 @RestService
-public class RestClientServiceImpl extends BaseDBServiceResultImpl<ClientServiceImpl, ClientDTO>
+public class RestClientServiceImpl extends BaseDBTServiceResultImpl<ClientServiceImpl, ClientDTO>
         implements RestClientService {
 
     /** 分页查询客户端列表 */

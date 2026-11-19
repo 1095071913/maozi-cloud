@@ -18,7 +18,7 @@ import com.maozi.system.config.api.rpc.RpcRegionService;
  * @date 2026/11/08
  */
 @RemoteService
-public class RpcRegionServiceImpl extends BaseDBServiceResultImpl<RegionServiceImpl, Void> implements RpcRegionService {
+public class RpcRegionServiceImpl extends BaseDBServiceResultImpl<RegionServiceImpl> implements RpcRegionService {
 
     /**
      * 根据ID远程获取地区下拉信息

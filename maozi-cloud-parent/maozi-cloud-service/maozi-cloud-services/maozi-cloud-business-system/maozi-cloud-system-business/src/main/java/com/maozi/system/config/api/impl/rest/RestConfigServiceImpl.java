@@ -28,7 +28,7 @@ import java.util.List;
  * @date 2026/11/08
  */
 @RestService
-public class RestConfigServiceImpl extends BaseDBServiceResultImpl<ConfigServiceImpl, Void> implements RestConfigService {
+public class RestConfigServiceImpl extends BaseDBServiceResultImpl<ConfigServiceImpl> implements RestConfigService {
 
     /**
      * 分页查询全局配置列表

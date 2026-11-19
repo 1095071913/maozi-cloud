@@ -21,7 +21,7 @@ import java.util.List;
  * @date 2026/11/08
  */
 @RestService
-public class RestRegionServiceImpl extends BaseDBServiceResultImpl<RegionServiceImpl, Void> implements RestRegionService {
+public class RestRegionServiceImpl extends BaseDBServiceResultImpl<RegionServiceImpl> implements RestRegionService {
 
     /**
      * 根据父级ID查询子地区下拉列表

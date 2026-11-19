@@ -20,7 +20,7 @@ import com.maozi.system.user.result.OauthUserInfoResult;
  * @date 2026/11/08
  */
 @RemoteService
-public class RpcUserServiceImpl extends BaseDBServiceResultImpl<UserServiceImpl, Void> implements RpcUserService {
+public class RpcUserServiceImpl extends BaseDBServiceResultImpl<UserServiceImpl> implements RpcUserService {
 
     /**
      * 根据用户名获取 OAuth 认证所需的用户信息

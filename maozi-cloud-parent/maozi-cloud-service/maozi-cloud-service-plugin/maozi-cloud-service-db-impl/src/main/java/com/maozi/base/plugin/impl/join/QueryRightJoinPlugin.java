@@ -18,6 +18,12 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class QueryRightJoinPlugin extends BaseJoinPlugin {
 
+    /** 右联目标为空时的异常提示后缀 */
+    private static final String JOIN_TARGET_ERROR = "右联目标";
+
+    /** 右联条件为空时的异常提示后缀 */
+    private static final String JOIN_CONDITION_ERROR = "右联条件";
+
     /**
      * 应用右连接条件
      *
@@ -26,20 +32,23 @@ public class QueryRightJoinPlugin extends BaseJoinPlugin {
      * @param joinPlugin 关联注解实例
      */
     @Override
-    public void apply(String abbreviationModelName,MPJLambdaWrapper<?> wrapper, JoinPlugin joinPlugin) {
-
-        ObjectUtil.isNullThrowError(joinPlugin.tableName(),abbreviationModelName + "右联目标");
-
-        ObjectUtil.isNullThrowError(joinPlugin.on(),abbreviationModelName + "右联条件");
+    public void apply(String abbreviationModelName, MPJLambdaWrapper<?> wrapper, JoinPlugin joinPlugin) {
 
         String tableName = joinPlugin.tableName();
+        ObjectUtil.checkConditionThrowError(StringUtils.isNotEmpty(tableName),
+            abbreviationModelName + JOIN_TARGET_ERROR);
+
+        String on = joinPlugin.on();
+        ObjectUtil.checkConditionThrowError(StringUtils.isNotEmpty(on),
+            abbreviationModelName + JOIN_CONDITION_ERROR);
 
         // 配置了表别名时拼接为 "表名 as 别名"
-        if(StringUtils.isNotEmpty(joinPlugin.tableAlias())){
-            tableName += " as " + joinPlugin.tableAlias();
+        String tableAlias = joinPlugin.tableAlias();
+        if(StringUtils.isNotEmpty(tableAlias)){
+            tableName += SQL_AS + tableAlias;
         }
 
-        wrapper.rightJoin(tableName + " on " + joinPlugin.on());
+        wrapper.rightJoin(tableName + SQL_ON + on);
 
     }
 

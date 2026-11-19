@@ -15,6 +15,12 @@ import com.maozi.base.plugin.join.JoinPlugin;
  */
 public abstract class BaseJoinPlugin {
 
+    /** 表别名拼接关键字 */
+    protected static final String SQL_AS = " AS ";
+
+    /** 连接条件拼接关键字 */
+    protected static final String SQL_ON = " ON ";
+
     /**
      * 将关联查询条件应用到 Wrapper 中
      *

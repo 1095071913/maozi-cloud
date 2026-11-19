@@ -331,7 +331,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
     public OauthUserInfoResult getOauthUserInfoByUsername(String username){
 
         // 用户名为空时抛出数据不存在业务异常
-        ObjectUtil.isNullEmptyThrowError(username, getResourceName());
+        ObjectUtil.isNullThrowError(username, getResourceName());
 
         LambdaQueryWrapper<UserDO> wrapper = Wrappers.lambdaQuery();
 
@@ -342,7 +342,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
         UserDO domain = super.getOne(wrapper);
 
         // 用户不存在时抛出业务异常
-        ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
+        ObjectUtil.isNullThrowError(domain, getResourceName());
 
         // 查询权限标识并组装返回结果
         Long userId = domain.getId();

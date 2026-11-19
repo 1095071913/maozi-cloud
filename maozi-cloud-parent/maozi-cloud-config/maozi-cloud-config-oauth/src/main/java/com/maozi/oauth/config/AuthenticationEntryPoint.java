@@ -78,7 +78,7 @@ public class AuthenticationEntryPoint implements org.springframework.security.we
         }
 
         // 将错误结果写入HTTP响应体
-        WebUtil.writeResponseBody(response,errorResult);
+        WebUtil.writeResponseBody(response, errorResult);
 
     }
 

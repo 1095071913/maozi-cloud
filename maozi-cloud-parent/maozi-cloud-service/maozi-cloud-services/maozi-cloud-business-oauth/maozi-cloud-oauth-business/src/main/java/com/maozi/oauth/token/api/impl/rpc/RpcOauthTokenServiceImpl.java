@@ -55,12 +55,12 @@ public class RpcOauthTokenServiceImpl extends BaseServiceResultImpl<OauthTokenSe
     /**
      * 批量注销多个用户的授权记录，内部通过MGET+批量DEL减少Redis网络往返
      *
-     * @param clientUsers 客户端用户参数列表，每项包含clientId和username
+     * @param clientUserParams 客户端用户参数列表，每项包含clientId和username
      * @return 无数据的统一响应结果
      */
     @Override
-    public AbstractBaseResult<Void> destroyByPrincipalsResult(List<ClientUserParam> clientUsers) {
-        authorizationService.removeAllByPrincipals(clientUsers);
+    public AbstractBaseResult<Void> destroyByPrincipalsResult(List<ClientUserParam> clientUserParams) {
+        authorizationService.removeAllByPrincipals(clientUserParams);
         return ResultUtil.success();
     }
 

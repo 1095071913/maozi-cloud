@@ -196,9 +196,9 @@ public class BaseDBServiceResultImpl<S extends BaseServiceImpl, D> extends BaseS
     @Override
     public AbstractBaseResult<List<D>> listByRelationIdResult(Long id,String relationField,String ... columns) {
 
-        ObjectUtil.isNullEmptyThrowError(id, service.getResourceName());
+        ObjectUtil.isNullThrowError(id, service.getResourceName());
 
-        ObjectUtil.isNullEmptyThrowError(relationField, service.getResourceName() + RESOURCE_SUFFIX_GROUP);
+        ObjectUtil.isNullThrowError(relationField, service.getResourceName() + RESOURCE_SUFFIX_GROUP);
 
         QueryWrapper<AbstractBaseDomain> wrapper = Wrappers.query();
         if(columns.length > 0) {
@@ -225,7 +225,7 @@ public class BaseDBServiceResultImpl<S extends BaseServiceImpl, D> extends BaseS
 
         CollectionUtil.collectionIsEmptyThrowError(ids,service.getResourceName() + RESOURCE_SUFFIX_LIST);
 
-        ObjectUtil.isNullEmptyThrowError(relationField, service.getResourceName() + RESOURCE_SUFFIX_GROUP);
+        ObjectUtil.isNullThrowError(relationField, service.getResourceName() + RESOURCE_SUFFIX_GROUP);
 
         QueryWrapper<AbstractBaseDomain> wrapper = Wrappers.query();
         if(columns.length > 0) {
@@ -310,7 +310,7 @@ public class BaseDBServiceResultImpl<S extends BaseServiceImpl, D> extends BaseS
     public AbstractBaseResult<Void> updateStatusResult(Long id, RequestParam<StatusEnum> param){
 
         StatusEnum status = param.getData();
-        ObjectUtil.isNullEmptyThrowError(status, SystemErrorCode.PARAM_ERROR, RESOURCE_SUFFIX_STATUS);
+        ObjectUtil.isNullThrowError(status, SystemErrorCode.PARAM_ERROR, RESOURCE_SUFFIX_STATUS);
 
         // 目标状态为禁用时，需先检查是否存在绑定关系
         if(param.getData() == StatusEnum.DISABLE){

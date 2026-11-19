@@ -28,9 +28,9 @@ public class QueryInnerJoinPlugin extends BaseJoinPlugin {
     @Override
     public void apply(String abbreviationModelName,MPJLambdaWrapper<?> wrapper, JoinPlugin joinPlugin) {
 
-        ObjectUtil.isNullEmptyThrowError(joinPlugin.tableName(),abbreviationModelName + "内联目标");
+        ObjectUtil.isNullThrowError(joinPlugin.tableName(),abbreviationModelName + "内联目标");
 
-        ObjectUtil.isNullEmptyThrowError(joinPlugin.on(),abbreviationModelName + "内联条件");
+        ObjectUtil.isNullThrowError(joinPlugin.on(),abbreviationModelName + "内联条件");
 
         String tableName = joinPlugin.tableName();
 

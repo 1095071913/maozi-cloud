@@ -54,7 +54,7 @@ public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper, ConfigDO> i
     public ConfigDropDownResult commonGetConfigByName(String name) {
 
         // 配置名称为空时抛出业务异常
-        ObjectUtil.isNullEmptyThrowError(name, getResourceName());
+        ObjectUtil.isNullThrowError(name, getResourceName());
 
         LambdaQueryWrapper<ConfigDO> wrapper = Wrappers.lambdaQuery();
 
@@ -83,7 +83,7 @@ public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper, ConfigDO> i
     public List<ConfigDropDownResult> commonDropDownList(String type) {
 
         // 配置类型为空时抛出业务异常
-        ObjectUtil.isNullEmptyThrowError(type, getResourceName() + "类型");
+        ObjectUtil.isNullThrowError(type, getResourceName() + "类型");
 
         LambdaQueryWrapper<ConfigDO> wrapper = Wrappers.lambdaQuery();
 

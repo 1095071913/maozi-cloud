@@ -357,7 +357,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public T getById(Long id,String ... columns){
 
-        ObjectUtil.isNullEmptyThrowError(id, getResourceName());
+        ObjectUtil.isNullThrowError(id, getResourceName());
 
         QueryWrapper<T> wrapper = Wrappers.query();
         if(columns.length > 0) {
@@ -379,7 +379,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public T getById(Long id, SFunction<T, ?>... columns){
 
-        ObjectUtil.isNullEmptyThrowError(id, getResourceName());
+        ObjectUtil.isNullThrowError(id, getResourceName());
 
         LambdaQueryWrapper<T> wrapper = Wrappers.lambdaQuery();
         if(columns.length > 0) {
@@ -400,7 +400,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public void checkAvailable(Long id){
 
-        ObjectUtil.isNullEmptyThrowError(id, getResourceName());
+        ObjectUtil.isNullThrowError(id, getResourceName());
 
         QueryWrapper<T> wrapper = Wrappers.query();
 
@@ -410,7 +410,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         T domain = super.getOne(wrapper);
 
-        ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
+        ObjectUtil.isNullThrowError(domain, getResourceName());
 
         if(domain.getStatus() == StatusEnum.DISABLE) {
             throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
@@ -477,7 +477,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public T getAvailableById(Long id,String ... columns){
 
-        ObjectUtil.isNullEmptyThrowError(id, getResourceName());
+        ObjectUtil.isNullThrowError(id, getResourceName());
 
         QueryWrapper<T> wrapper = Wrappers.query();
 
@@ -490,7 +490,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         T domain = super.getOne(wrapper);
 
-        ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
+        ObjectUtil.isNullThrowError(domain, getResourceName());
 
         if(domain.getStatus() == StatusEnum.DISABLE) {
             throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
@@ -518,7 +518,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         T domain = super.getOne(wrapper);
 
-        ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
+        ObjectUtil.isNullThrowError(domain, getResourceName());
 
         if(domain.getStatus() == StatusEnum.DISABLE) {
             throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
@@ -562,7 +562,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public DropDownResult dropDown(Long id){
 
-        ObjectUtil.isNullEmptyThrowError(id, getResourceName());
+        ObjectUtil.isNullThrowError(id, getResourceName());
 
         QueryWrapper<T> wrapper = Wrappers.query();
 
@@ -572,7 +572,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         T domain = super.getOne(wrapper);
 
-        ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
+        ObjectUtil.isNullThrowError(domain, getResourceName());
 
         return CglibUtil.copy(domain, DropDownResult.class);
 
@@ -605,7 +605,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public T getByIdThrowError(Long id, String ... columns){
 
-        ObjectUtil.isNullEmptyThrowError(id, getResourceName());
+        ObjectUtil.isNullThrowError(id, getResourceName());
 
         QueryWrapper<T> wrapper = Wrappers.query();
 
@@ -617,7 +617,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         T domain = super.getOne(wrapper);
 
-        ObjectUtil.isNullEmptyThrowError(domain,getResourceName());
+        ObjectUtil.isNullThrowError(domain,getResourceName());
 
         return domain;
 
@@ -633,13 +633,13 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public T getByIdThrowError(Long id, MPJLambdaWrapper<T> wrapper){
 
-        ObjectUtil.isNullEmptyThrowError(id, getResourceName());
+        ObjectUtil.isNullThrowError(id, getResourceName());
 
         wrapper.eq(getColumn(AbstractBaseDomain::getId),id);
 
         T domain = super.getOne(wrapper);
 
-        ObjectUtil.isNullEmptyThrowError(domain,getResourceName());
+        ObjectUtil.isNullThrowError(domain,getResourceName());
 
         return domain;
 
@@ -658,7 +658,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         T domain = super.getOne(wrapper);
 
-        ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
+        ObjectUtil.isNullThrowError(domain, getResourceName());
 
         return CglibUtil.copy(domain, clazz);
 
@@ -678,7 +678,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         T domain = super.getOne(wrapper);
 
-        ObjectUtil.isNullEmptyThrowError(domain, getResourceName());
+        ObjectUtil.isNullThrowError(domain, getResourceName());
 
         R response = CglibUtil.copy(domain, clazz);
 
@@ -760,7 +760,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public <V,R> V getByParamThrowErrorRelation(R dto, Class<V> clazz) {
 
-        ObjectUtil.isNullEmptyThrowError(dto, getResourceName());
+        ObjectUtil.isNullThrowError(dto, getResourceName());
 
         MPJLambdaWrapper<T> wrapper = buildQueryWrapper(dto, clazz);
 
@@ -768,7 +768,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         V response = CglibUtil.copy(super.getOne(wrapper), clazz);
 
-        ObjectUtil.isNullEmptyThrowError(response, getResourceName());
+        ObjectUtil.isNullThrowError(response, getResourceName());
 
         setRelationData(response, clazz);
 
@@ -847,7 +847,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public <V> List<V> list(Object dto,Supplier<V> target) {
 
-        ObjectUtil.isNullEmptyThrowError(dto, getResourceName());
+        ObjectUtil.isNullThrowError(dto, getResourceName());
 
         V vo = target.get();
 
@@ -872,7 +872,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public <V> List<V> listRelation(Object dto,Supplier<V> target) {
 
-        ObjectUtil.isNullEmptyThrowError(dto, getResourceName());
+        ObjectUtil.isNullThrowError(dto, getResourceName());
 
         V vo = target.get();
 
@@ -955,7 +955,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public <P> Long getCountByParam(P param){
 
-        ObjectUtil.isNullEmptyThrowError(param,getResourceName());
+        ObjectUtil.isNullThrowError(param,getResourceName());
 
         return super.count(buildQueryWrapper(param));
 
@@ -973,7 +973,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public boolean saveUpdate(T domain) {
 
-        ObjectUtil.isNullEmptyThrowError(domain,getResourceName());
+        ObjectUtil.isNullThrowError(domain,getResourceName());
 
         // 携带 ID 视为更新：先校验数据存在
         if(ObjectUtil.isNotNull(domain.getId())) {
@@ -1006,7 +1006,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     @Transactional(rollbackFor = Exception.class)
     public Long saveUpdate(Long id, Object param) {
 
-        ObjectUtil.isNullEmptyThrowError(param,getResourceName());
+        ObjectUtil.isNullThrowError(param,getResourceName());
 
         T domain = CglibUtil.copy(param, domainClass);
         // 携带 ID 视为更新：回填 ID 并校验数据存在
@@ -1093,7 +1093,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     @Transactional(rollbackFor = Exception.class)
     public boolean removeById(Long id) {
 
-        ObjectUtil.isNullEmptyThrowError(id,getResourceName());
+        ObjectUtil.isNullThrowError(id,getResourceName());
 
         checkBind(id);
 
@@ -1133,13 +1133,13 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
                     JoinBaseTypeEnum value = annotation.value();
 
-                    ObjectUtil.isNullEmptyThrowError(value, getResourceName() + RESOURCE_SUFFIX_JOIN_TYPE);
+                    ObjectUtil.isNullThrowError(value, getResourceName() + RESOURCE_SUFFIX_JOIN_TYPE);
 
-                    ObjectUtil.isNullEmptyThrowError(value.getType(), getResourceName() + RESOURCE_SUFFIX_JOIN_TYPE);
+                    ObjectUtil.isNullThrowError(value.getType(), getResourceName() + RESOURCE_SUFFIX_JOIN_TYPE);
 
                     JoinTypeEnum joinType = JoinTypeEnum.get(value.getType());
 
-                    ObjectUtil.isNullEmptyThrowError(joinType, getResourceName() + RESOURCE_SUFFIX_JOIN_TYPE);
+                    ObjectUtil.isNullThrowError(joinType, getResourceName() + RESOURCE_SUFFIX_JOIN_TYPE);
 
                     Objects.requireNonNull(joinType).getJoinPlugin().apply(getResourceName(), wrapper, annotation);
 
@@ -1180,13 +1180,13 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
                 }
 
                 QueryBaseTypeEnum value = annotation.value();
-                ObjectUtil.isNullEmptyThrowError(value, getResourceName() + RESOURCE_SUFFIX_QUERY_TYPE);
+                ObjectUtil.isNullThrowError(value, getResourceName() + RESOURCE_SUFFIX_QUERY_TYPE);
                 
                 String type = value.getType();
-                ObjectUtil.isNullEmptyThrowError(type, getResourceName() + RESOURCE_SUFFIX_QUERY_TYPE);
+                ObjectUtil.isNullThrowError(type, getResourceName() + RESOURCE_SUFFIX_QUERY_TYPE);
 
                 QueryTypeEnum queryType = QueryTypeEnum.get(type);
-                ObjectUtil.isNullEmptyThrowError(queryType, getResourceName() + RESOURCE_SUFFIX_QUERY_TYPE);
+                ObjectUtil.isNullThrowError(queryType, getResourceName() + RESOURCE_SUFFIX_QUERY_TYPE);
 
                 // 字段注解显式指定表名时，覆盖外层传入的表名
                 if(StringUtils.isNotEmpty(annotation.tableName())){
@@ -1289,7 +1289,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
             param = pageParam.getData();
         }
 
-        ObjectUtil.isNullEmptyThrowError(param, getResourceName() + RESOURCE_SUFFIX_PARAM);
+        ObjectUtil.isNullThrowError(param, getResourceName() + RESOURCE_SUFFIX_PARAM);
 
         MPJLambdaWrapper<T> wrapper = MPJWrappers.lambdaJoin();
         wrapper.selectAsClass(domainClass, fieldsClass);

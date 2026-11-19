@@ -55,8 +55,8 @@ public class ObjectUtil {
      * @param sourceName 资源名称
      * @throws BusinessResultException 对象为 null 或空时抛出
      */
-    public static void isNullEmptyThrowError(Object data, String sourceName) {
-        isNullEmptyThrowError(data,SystemErrorCode.DATA_NOT_EXIST_ERROR, sourceName);
+    public static void isNullThrowError(Object data, String sourceName) {
+        isNullThrowError(data, SystemErrorCode.DATA_NOT_EXIST_ERROR, sourceName);
     }
 
     /**
@@ -66,8 +66,8 @@ public class ObjectUtil {
      * @param sourceName 资源名称
      * @throws BusinessResultException 对象不为空时抛出
      */
-    public static void isNotNullEmptyThrowError(Object data, String sourceName) {
-        isNotNullEmptyThrowError(data, SystemErrorCode.DATA_EXIST_ERROR, sourceName);
+    public static void isNotNullThrowError(Object data, String sourceName) {
+        isNotNullThrowError(data, SystemErrorCode.DATA_EXIST_ERROR, sourceName);
     }
 
     /**
@@ -78,7 +78,7 @@ public class ObjectUtil {
      * @param resourceName 资源名称
      * @throws BusinessResultException 对象为 null 或空时抛出
      */
-    public static void isNullEmptyThrowError(Object data, ErrorCode errorCode, String resourceName) {
+    public static void isNullThrowError(Object data, ErrorCode errorCode, String resourceName) {
         if(isNull(data)) {
             throw new BusinessResultException(errorCode)
                     .setResource(resourceName);
@@ -93,7 +93,7 @@ public class ObjectUtil {
      * @param resourceName 资源名称
      * @throws BusinessResultException 对象不为空时抛出
      */
-    public static void isNotNullEmptyThrowError(Object data, ErrorCode errorCode, String resourceName) {
+    public static void isNotNullThrowError(Object data, ErrorCode errorCode, String resourceName) {
         if(isNotNull(data)) {
             throw new BusinessResultException(errorCode)
                     .setResource(resourceName);
@@ -107,7 +107,7 @@ public class ObjectUtil {
      * @param errorCode 错误码
      * @throws BusinessResultException 对象为 null 或空时抛出
      */
-    public static void isNullEmptyThrowError(Object data, ErrorCode errorCode) {
+    public static void isNullThrowError(Object data, ErrorCode errorCode) {
         if(isNull(data)) {
             throw new BusinessResultException(errorCode);
         }
@@ -120,7 +120,7 @@ public class ObjectUtil {
      * @param errorCode 错误码
      * @throws BusinessResultException 对象不为空时抛出
      */
-    public static void isNotNullEmptyThrowError(Object data, ErrorCode errorCode) {
+    public static void isNotNullThrowError(Object data, ErrorCode errorCode) {
         if(isNotNull(data)) {
             throw new BusinessResultException(errorCode);
         }

@@ -4,7 +4,6 @@ import com.maozi.common.constant.SpringPropertyConstant;
 import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.spi.ConfigInitializer;
 
-import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -40,13 +39,5 @@ public class JobConfigInitializer implements ConfigInitializer {
             (existing, incoming) -> incoming + SymbolConstant.COMMA + existing
         );
     }
-
-    /**
-     * 空实现，XXL-Job 配置初始化无需向启动日志追加诊断信息
-     *
-     * @param logs 启动日志容器，本实现不写入
-     */
-    @Override
-    public void appendLogs(Map<String, String> logs) {}
 
 }

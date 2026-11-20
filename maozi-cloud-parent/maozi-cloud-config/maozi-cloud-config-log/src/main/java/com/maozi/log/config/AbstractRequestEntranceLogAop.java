@@ -86,19 +86,8 @@ public abstract class AbstractRequestEntranceLogAop {
      */
     protected Object doAround(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 
-        // 请求开始时间戳
-        long startTime = System.currentTimeMillis();
-
-        // 方法参数字符串
-        String param = Arrays.toString(proceedingJoinPoint.getArgs());
-
         // 日志信息集合
         Map<String, String> logs = requestLog(proceedingJoinPoint);
-
-        // 非生产环境记录请求参数
-        if (EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD)) {
-            logs.put(LogTag.PARAM, param);
-        }
 
         // 方法返回结果，初始为 null
         Object resultData = null;
@@ -106,16 +95,21 @@ public abstract class AbstractRequestEntranceLogAop {
 
         // 执行目标业务方法
         try {
+            
             resultData = proceedingJoinPoint.proceed();
+            
+            if (EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD)) {
+                logs.put(LogTag.PARAM, Arrays.toString(proceedingJoinPoint.getArgs()));
+            }
 
         // 权限拒绝异常交由 Spring Security 处理
         } catch (AccessDeniedException accessDeniedException) {
             throw accessDeniedException;
-
+            
         // 业务异常：封装为业务错误结果（已包含错误码和错误信息），不记录 error 日志
         } catch (BusinessResultException businessResultException) {
             resultData = businessResultException.getErrorResult();
-
+            
         // 未预期的系统异常：封装为统一的系统错误结果，并记录详细的错误日志
         } catch (Throwable e) {
 
@@ -126,8 +120,7 @@ public abstract class AbstractRequestEntranceLogAop {
             resultData = ResultUtil.error(SystemErrorCode.SYSTEM_ERROR)
                     .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
 
-            // 系统异常时无论环境均记录请求参数
-            logs.put(LogTag.PARAM, param);
+            logs.put(LogTag.PARAM, Arrays.toString(proceedingJoinPoint.getArgs()));
 
             // 获取当前登录用户 ID
             Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);

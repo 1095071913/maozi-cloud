@@ -73,19 +73,13 @@ public class SnailJobEntranceLogAop {
     @Around(POINT)
     public Object around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 
-        // 任务开始执行时间戳
-        long startTime = System.currentTimeMillis();
-
         // 入口方法入参
         Object[] args = proceedingJoinPoint.getArgs();
 
         // 提取任务业务参数，供任务执行过程读取
         JobContext jobContext = (JobContext) args[0];
         String businessParam = (String) jobContext.getJobArgsHolder().getJobParams();
-
-        // 非生产环境直接记录任务参数；生产环境为避免参数外泄，仅在异常时补充记录
-        boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD);
-
+        
         // 日志信息集合
         Map<String, String> logs = new LinkedHashMap<>(16);
 
@@ -102,21 +96,20 @@ public class SnailJobEntranceLogAop {
             logs.put(LogTag.TYPE, LogCommonTypeEnum.JOB.getDesc());
             logs.put(LogTag.FUNCTION, getExecutorInfo(proceedingJoinPoint));
 
+            Object result = proceedingJoinPoint.proceed(args);
+
             // 非生产环境记录任务参数
-            if (isNotProd) {
+            if (EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD)) {
                 logs.put(LogTag.PARAM, businessParam);
             }
 
-            return proceedingJoinPoint.proceed(args);
+            return result;
 
         } catch (Exception e) {
 
             ex = e;
 
-            // 生产环境异常时补充记录任务参数
-            if (!isNotProd) {
-                logs.put(LogTag.PARAM, businessParam);
-            }
+            logs.put(LogTag.PARAM, businessParam);
 
             // 异常原样上抛，由 SnailJob 框架按任务失败处理
             throw e;
@@ -129,9 +122,6 @@ public class SnailJobEntranceLogAop {
             if (ObjectUtil.isNotNull(sqlLog)) {
                 logs.put(LogTag.SQL, sqlLog.toString());
             }
-
-            // 记录调度耗时
-            logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + LogTag.RT_UNIT);
 
             // 按执行结果输出远程日志（上报至 SnailJob 服务端）
             String log = LogUtil.convertLog(logs);

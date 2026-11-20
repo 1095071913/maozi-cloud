@@ -212,9 +212,6 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
         logs.put(LogTag.URL, request.getURI().toString());
         logs.put(LogTag.METHOD, Objects.requireNonNull(request.getMethod()).toString());
 
-        // 记录异常描述
-        logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
-
         // 根据异常类型构建不同的错误响应
         ErrorResult<?> result;
 
@@ -232,9 +229,6 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
             result = ResultUtil.error(SystemErrorCode.SYSTEM_ERROR)
                                .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
         }
-
-        // 记录错误响应内容
-        logs.put(LogTag.DATA, result.toString());
 
         // 记录错误响应日志
         LogUtil.error(log, logs, e);

@@ -4,7 +4,6 @@ import com.maozi.common.constant.SpringPropertyConstant;
 import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.spi.ConfigInitializer;
 
-import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -42,9 +41,5 @@ public class SeataConfigInitializer implements ConfigInitializer {
             (existing, incoming) -> incoming + SymbolConstant.COMMA + existing
         );
     }
-
-    /** 空实现，Seata 配置初始化无需向启动日志追加诊断信息。 */
-    @Override
-    public void appendLogs(Map<String, String> logs) {}
 
 }

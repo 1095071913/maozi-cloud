@@ -50,15 +50,6 @@ public class LogTag {
     /** 错误用户 */
     public static final String ERROR_USER = "ErrorUser";
 
-    /** 错误描述 */
-    public static final String ERROR_DESC = "ErrorDesc";
-
-    /** 错误行号 */
-    public static final String ERROR_LINE = "ErrorLine";
-
-    /** 响应耗时 */
-    public static final String RT = "RT";
-
     /** 响应耗时单位后缀 */
     public static final String RT_UNIT = "ms";
 

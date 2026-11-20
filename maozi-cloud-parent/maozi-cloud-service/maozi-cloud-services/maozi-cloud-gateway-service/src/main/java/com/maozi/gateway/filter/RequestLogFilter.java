@@ -63,9 +63,6 @@ public class RequestLogFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
-        // 记录请求开始时间，用于计算响应耗时
-        Long requestTime = System.currentTimeMillis();
-
         // 构建日志信息 Map（后续固定写入 IP/TYPE/URL/METHOD 及 RT/DATA 标签，指定初始容量）
         Map<String, String> logs = new LinkedHashMap<>(8);
 
@@ -81,8 +78,8 @@ public class RequestLogFilter implements GlobalFilter, Ordered {
         logs.put(LogTag.METHOD, Objects.requireNonNull(request.getMethod()).toString());
 
         // 使用 ServerHttpResponseAgent 包装响应，在响应写入时自动记录日志
-        return chain.filter(exchange.mutate().response(new ServerHttpResponseAgent(requestTime, logs,
-                exchange.getResponse(), exchange.getAttributes(), request)).build());
+        return chain.filter(exchange.mutate().response(new ServerHttpResponseAgent(logs, 
+                exchange.getResponse(), request)).build());
 
     }
 

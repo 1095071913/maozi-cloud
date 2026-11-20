@@ -4,7 +4,6 @@ import com.maozi.common.constant.SpringPropertyConstant;
 import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.spi.ConfigInitializer;
 
-import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -38,13 +37,5 @@ public class MonitorConfigInitializer implements ConfigInitializer {
             (existing, incoming) -> incoming + SymbolConstant.COMMA + existing
         );
     }
-
-    /**
-     * 本初始化器无需输出额外的启动诊断信息，空实现
-     *
-     * @param logs 启动日志容器
-     */
-    @Override
-    public void appendLogs(Map<String, String> logs) {}
 
 }

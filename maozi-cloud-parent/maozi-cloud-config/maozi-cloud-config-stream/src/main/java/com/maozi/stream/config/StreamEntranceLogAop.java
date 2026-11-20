@@ -93,12 +93,6 @@ public class StreamEntranceLogAop {
 
         return (message) -> {
 
-            // 消息处理开始时间戳
-            long beginTime = System.currentTimeMillis();
-
-            // 消息体内容
-            Object messageData = message.getPayload();
-
             // 消息头
             MessageHeaders headers = message.getHeaders();
 
@@ -124,12 +118,6 @@ public class StreamEntranceLogAop {
             logs.put(LogTag.FUNCTION, signature.getDeclaringTypeName()
                 + SymbolConstant.COLON + signature.getName());
 
-            // 非生产环境直接记录消息参数；生产环境为避免参数外泄，仅在异常时补充记录
-            boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD);
-            if (isNotProd) {
-                logs.put(LogTag.PARAM, messageData.toString());
-            }
-
             // 从消息头中提取版本号设置到链路上下文
             Object versionObj = headers.get(VersionContext.KEY);
             if(ObjectUtil.isNotNull(versionObj)){
@@ -150,14 +138,21 @@ public class StreamEntranceLogAop {
 
             Exception ex = null;
             try {
+                
                 // 执行消息消费逻辑
                 resultData.accept(message);
+
+                // 非生产环境直接记录消息参数；生产环境为避免参数外泄，仅在异常时补充记录
+                if (EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD)) {
+                    logs.put(LogTag.PARAM, message.getPayload().toString());
+                }
+                
             } catch (Exception e) {
                 
                 ex = e;
 
                 // 生产环境异常时补充记录消息参数
-                logs.put(LogTag.PARAM, messageData.toString());
+                logs.put(LogTag.PARAM, message.getPayload().toString());
 
                 // 异常原样上抛，交由消息容器按消费失败处理
                 throw e;
@@ -169,9 +164,6 @@ public class StreamEntranceLogAop {
                 if (ObjectUtil.isNotNull(sqlLog)) {
                     logs.put(LogTag.SQL, sqlLog.toString());
                 }
-
-                // 记录响应时间
-                logs.put(LogTag.RT, String.valueOf(System.currentTimeMillis() - beginTime));
 
                 // 按处理结果以 info/error 级别输出日志
                 LogUtil.log(log, ObjectUtil.isNotNull(ex), logs, ex);

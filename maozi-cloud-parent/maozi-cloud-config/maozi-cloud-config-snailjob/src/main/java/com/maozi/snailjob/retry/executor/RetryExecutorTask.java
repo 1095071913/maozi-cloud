@@ -84,9 +84,6 @@ public class RetryExecutorTask implements ExecutorMethod {
     @Override
     public Object doExecute(Object params) {
 
-        // 请求开始时间戳
-        long startTime = System.currentTimeMillis();
-
         // 回调参数，第一个元素为重试任务参数
         Object[] args = (Object[]) params;
         RetryTaskParam retryParam = (RetryTaskParam) args[0];
@@ -109,14 +106,15 @@ public class RetryExecutorTask implements ExecutorMethod {
             // 记录日志类型与重试目标方法
             logs.put(LogTag.TYPE, LogCommonTypeEnum.RPC_RETRY.getDesc());
             logs.put(LogTag.FUNCTION, retryParam.getBeanName() + SymbolConstant.COLON + retryParam.getMethodName());
-            // 非生产环境记录请求参数
-            if (EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD)) {
-                logs.put(LogTag.PARAM, Arrays.toString(retryParam.getData()));
-            }
 
             boolean result = executeTask(retryParam);
             if (!result) {
                 throw new BusinessResultException("远程重试失败");
+            }
+
+            // 非生产环境记录请求参数
+            if (EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD)) {
+                logs.put(LogTag.PARAM, Arrays.toString(retryParam.getData()));
             }
 
         } catch (Exception e) {
@@ -140,15 +138,13 @@ public class RetryExecutorTask implements ExecutorMethod {
                 logs.put(LogTag.SQL, sqlLog.toString());
             }
 
-            // 记录响应时间
-            logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + LogTag.RT_UNIT);
-
             // 存在异常描述时以 error 级别输出日志，否则以 info 级别输出
             LogUtil.log(log, ObjectUtil.isNotNull(ex), logs, ex);
 
             // 清理重试流量标记与链路上下文
             RetryContextHolder.clear();
             AbstractRequestContextHolder.clearContext();
+            
         }
 
         return true;

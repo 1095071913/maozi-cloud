@@ -1,6 +1,5 @@
 package com.maozi.common.spi;
 
-import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -23,16 +22,5 @@ public interface ConfigInitializer {
      * @param properties 系统属性容器，实现类将需注入的配置项写入此 Properties
      */
     void initialize(Properties properties);
-
-    /**
-     * 追加启动日志
-     * <p>
-     * 在 {@link #initialize(Properties)} 执行之后调用，无论成功或失败均会触发，
-     * 实现类可将本次初始化的诊断信息写入此 Map 以便统一输出。
-     * </p>
-     *
-     * @param logs 启动日志容器
-     */
-    void appendLogs(Map<String, String> logs);
 
 }

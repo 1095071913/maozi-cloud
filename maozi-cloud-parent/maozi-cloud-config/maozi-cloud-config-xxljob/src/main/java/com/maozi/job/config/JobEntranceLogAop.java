@@ -57,12 +57,6 @@ public class JobEntranceLogAop {
     @Around(POINT)
     public void around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 
-        // 任务开始执行时间戳
-        long startTime = System.currentTimeMillis();
-
-        // 获取任务参数
-        String arg = XxlJobHelper.getJobParam();
-
         // 将当前应用版本写入版本上下文，保证任务内发起的远程调用按版本灰度路由
         VersionContext.CONTEXT.set(ApplicationEnvironmentContext.version);
 
@@ -76,24 +70,22 @@ public class JobEntranceLogAop {
         logs.put(LogTag.FUNCTION, signature.getDeclaringTypeName()
             + SymbolConstant.COLON + signature.getName());
 
-        // 非生产环境直接记录任务参数；生产环境为避免参数外泄，仅在异常时补充记录
-        boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD);
-        if (isNotProd) {
-            logs.put(LogTag.PARAM, arg);
-        }
-
         Exception ex = null;
         try {
+            
             // 执行任务方法
             proceedingJoinPoint.proceed();
+
+            // 非生产环境直接记录任务参数；生产环境为避免参数外泄，仅在异常时补充记录
+            if (EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD)) {
+                logs.put(LogTag.PARAM, XxlJobHelper.getJobParam());
+            }
+            
         } catch (Exception e) {
             
             ex = e;
 
-            // 生产环境异常时补充记录任务参数
-            if (!isNotProd) {
-                logs.put(LogTag.PARAM, arg);
-            }
+            logs.put(LogTag.PARAM, XxlJobHelper.getJobParam());
 
             // 异常原样上抛，交由 XXL-JOB 框架按任务失败处理
             throw e;
@@ -105,9 +97,6 @@ public class JobEntranceLogAop {
             if (ObjectUtil.isNotNull(sqlLog)) {
                 logs.put(LogTag.SQL, sqlLog.toString());
             }
-
-            // 记录任务执行耗时
-            logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + LogTag.RT_UNIT);
 
             // 按执行结果以 info/error 级别输出日志
             LogUtil.log(log, ObjectUtil.isNotNull(ex), logs, ex);

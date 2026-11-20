@@ -7,7 +7,6 @@ import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.spi.ConfigInitializer;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -103,9 +102,5 @@ public class NacosConfigInitializer implements ConfigInitializer {
         }
 
     }
-
-    /** 追加 Nacos 配置中心地址到启动日志。 */
-    @Override
-    public void appendLogs(Map<String, String> logs) {}
 
 }

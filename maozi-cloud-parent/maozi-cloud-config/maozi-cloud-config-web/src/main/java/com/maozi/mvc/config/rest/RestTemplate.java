@@ -75,16 +75,14 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
         // 捕获的异常引用，供 finally 中合并输出结构化日志与异常堆栈
         Throwable ex = null;
 
-        // 记录请求开始时间，用于计算响应耗时
-        long startTime = System.currentTimeMillis();
-
         // 使用有序 Map 收集请求全链路日志信息
         // （后续固定写入 IP/TYPE/URL/METHOD 等标签，指定初始容量）
         Map<String, String> logs = new LinkedHashMap<>(16);
 
-        // HTTP 响应对象，用于 finally 中统一关闭
-        ClientHttpResponse response = null;
 
+        // HTTP 响应对象，用于 finally 中统一关闭
+        ClientHttpRequest request = null;
+        ClientHttpResponse response = null;
         try {
 
             // 校验 URL 和 HTTP 方法不能为空
@@ -92,7 +90,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
             Assert.notNull(method, "HttpMethod is required");
 
             // 创建 HTTP 请求对象
-            ClientHttpRequest request = super.createRequest(url, method);
+            request = super.createRequest(url, method);
 
             // 记录请求类型、URI 和 HTTP 方法到日志
             logs.put(LogTag.TYPE, LogCommonTypeEnum.REST_TEMPLATE.getDesc());
@@ -102,16 +100,6 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
             // 执行请求回调，设置请求头和请求体
             if (requestCallback != null) {
                 requestCallback.doWithRequest(request);
-            }
-
-            // 从请求输出流中读取请求参数内容，用于日志记录
-            InputStream paramData = parse(request.getBody());
-            String requestParam = new String(readStream(paramData));
-
-            // 非生产环境才记录请求参数，避免生产环境敏感信息写入日志
-            boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD);
-            if (isNotProd) {
-                logs.put(LogTag.PARAM, requestParam);
             }
 
             // 执行 HTTP 请求并获取响应
@@ -127,6 +115,14 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
             logs.put(LogTag.CODE, Integer.toString(response.getStatusCode().value()));
             if (ObjectUtil.isNotNull(data)) {
                 logs.put(LogTag.DATA, data.toString());
+            }
+
+            // 从请求输出流中读取请求参数内容，用于日志记录
+            // 非生产环境才记录请求参数，避免生产环境敏感信息写入日志
+            if (EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD)) {
+                InputStream paramData = parse(request.getBody());
+                String requestParam = new String(readStream(paramData));
+                logs.put(LogTag.PARAM, requestParam);
             }
 
             return data;
@@ -145,9 +141,20 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
                 logs.put(LogTag.ERROR_USER, userId.toString());
             }
 
+            if(ObjectUtil.isNotNull(request)){
+                try {
+                    OutputStream body = request.getBody();
+                    InputStream paramData = parse(body);
+                    String requestParam = new String(readStream(paramData));
+                    logs.put(LogTag.PARAM, requestParam);
+                } catch (Exception exc) {
+                    ex = exc;
+                }
+            }
+            
             // RestClientException 原样上抛，其他异常包装为 RestClientException
-            throw (e instanceof RestClientException restClientException) ? restClientException
-                : new RestClientException(e.getMessage(), e);
+            throw (ex instanceof RestClientException restClientException) ? restClientException
+                : new RestClientException(ex.getMessage(), ex);
 
         } finally {
 
@@ -161,9 +168,6 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
             if (ObjectUtil.isNotNull(sqlLog)) {
                 logs.put(LogTag.SQL, sqlLog.toString());
             }
-
-            // 最终记录响应耗时（包含异常情况下的耗时）
-            logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + LogTag.RT_UNIT);
 
             // 根据是否有异常，以对应日志级别输出完整的请求日志
             // （异常时结构化字段与异常堆栈合并为一条日志，避免重复打印）

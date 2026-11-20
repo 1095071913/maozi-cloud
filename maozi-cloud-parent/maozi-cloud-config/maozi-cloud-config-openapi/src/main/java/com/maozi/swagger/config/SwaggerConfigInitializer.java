@@ -4,7 +4,6 @@ import com.maozi.common.constant.RemoteConstant;
 import com.maozi.common.enums.EnvironmentTypeEnum;
 import com.maozi.common.spi.ConfigInitializer;
 
-import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -52,9 +51,5 @@ public class SwaggerConfigInitializer implements ConfigInitializer {
         properties.put(SPRINGDOC_API_DOCS_ENABLED_KEY, !EnvironmentTypeEnum.PROD.getDesc().equals(environment));
         properties.put(SPRINGDOC_PATHS_TO_EXCLUDE_KEY, EXCLUDE_REMOTE_PATHS);
     }
-
-    /** 空实现，Swagger 配置初始化无需向启动日志追加诊断信息。 */
-    @Override
-    public void appendLogs(Map<String, String> logs) {}
 
 }

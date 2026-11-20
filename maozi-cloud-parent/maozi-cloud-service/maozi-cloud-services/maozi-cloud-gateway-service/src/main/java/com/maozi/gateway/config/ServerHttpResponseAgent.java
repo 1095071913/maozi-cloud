@@ -3,7 +3,6 @@ package com.maozi.gateway.config;
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.JacksonUtil;
 import com.maozi.common.LogUtil;
-import com.maozi.common.constant.LogTag;
 import com.maozi.common.context.TraceIdContext;
 import com.maozi.common.result.success.SuccessResult;
 import io.opentelemetry.api.trace.Span;
@@ -47,9 +46,6 @@ public class ServerHttpResponseAgent extends ServerHttpResponseDecorator {
     /** 响应体中业务状态码的字段名 */
     private static final String RESULT_CODE_KEY = "code";
 
-    /** 请求开始时间戳（毫秒），用于计算响应耗时 */
-    private final Long requestTime;
-
     /** 日志信息收集 Map，由 RequestLogFilter 传入并在此处补充响应数据 */
     private final Map<String, String> logs;
 
@@ -59,21 +55,16 @@ public class ServerHttpResponseAgent extends ServerHttpResponseDecorator {
     /**
      * 构造响应代理装饰器。
      *
-     * @param requestTime 请求开始时间戳（毫秒）
      * @param logs        日志信息收集 Map
      * @param response    原始服务端响应对象
-     * @param attributes  Exchange 上下文属性 Map（当前实现未使用）
      * @param request     服务端请求对象，用于读取链路追踪 ID 请求头
      */
-    public ServerHttpResponseAgent(Long requestTime, Map<String, String> logs, ServerHttpResponse response,
-        Map<String, Object> attributes, ServerHttpRequest request) {
+    public ServerHttpResponseAgent(Map<String, String> logs, ServerHttpResponse response, 
+                                   ServerHttpRequest request) {
 
         super(response);
 
-        this.requestTime = requestTime;
-
         this.logs = logs;
-
         this.request = request;
 
     }
@@ -138,11 +129,6 @@ public class ServerHttpResponseAgent extends ServerHttpResponseDecorator {
                     }
                     MDC.put(TraceIdContext.MDC_TRACE_ID_KEY, traceId);
                 }
-
-                // 记录响应耗时（RT）
-                logs.put(LogTag.RT, System.currentTimeMillis() - requestTime + LogTag.RT_UNIT);
-                // 记录响应数据
-                logs.put(LogTag.DATA, responseBody);
 
                 // 根据响应状态和业务码决定日志级别
                 if (Objects.requireNonNull(super.getDelegate().getStatusCode()).value() != HttpStatus.OK.value()) {

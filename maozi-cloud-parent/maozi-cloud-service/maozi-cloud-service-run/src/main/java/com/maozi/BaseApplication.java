@@ -169,9 +169,6 @@ public class BaseApplication {
         // 初始化系统属性（环境、版本、应用名、日志等）
         initProperties();
 
-        // 加载并执行运行时配置初始化器
-        List<ConfigInitializer> initializers = initFileProperties();
-
         // 启动日志信息集合
         Map<String, String> logs = new LinkedHashMap<>();
 
@@ -193,14 +190,9 @@ public class BaseApplication {
                 logs.put(LogTag.SERVICE_PORT, Integer.toString(actualPort));
             }
 
-            // 追加各初始化器诊断信息并输出启动日志
-            appendInitializerLogs(initializers, logs);
             LogUtil.info(log, logs);
 
         } catch (Exception e) {
-
-            // 追加初始化器诊断信息与错误位置
-            appendInitializerLogs(initializers, logs);
 
             // 记录错误日志并退出进程
             LogUtil.error(log, logs, e);
@@ -354,22 +346,6 @@ public class BaseApplication {
 
         return initializers;
 
-    }
-
-    /**
-     * 依次追加各初始化器的启动日志
-     * <p>
-     * 在 Spring Boot 应用启动（成功或失败）之后调用，将各 {@link ConfigInitializer}
-     * 的诊断信息写入 logs 以便统一输出。
-     * </p>
-     *
-     * @param initializers 已加载的配置初始化器列表
-     * @param logs 启动日志容器
-     */
-    private static void appendInitializerLogs(List<ConfigInitializer> initializers, Map<String, String> logs) {
-        for (ConfigInitializer initializer : initializers) {
-            initializer.appendLogs(logs);
-        }
     }
 
     /**

@@ -45,6 +45,9 @@ public class FakeAuthServiceImpl implements AuthService<HttpServletRequest> {
     /** Fake auth user that passes all privilege checking with fixed fake identity values. */
     static final class AuthUserImpl implements AuthUser {
 
+        /** Serializable version uid, required by the AuthUser contract. */
+        private static final long serialVersionUID = 1L;
+
         /** {@inheritDoc} Always returns true, ignoring the target and privilege. */
         @Override
         public boolean authTarget(String target, PrivilegeType privilegeType) {

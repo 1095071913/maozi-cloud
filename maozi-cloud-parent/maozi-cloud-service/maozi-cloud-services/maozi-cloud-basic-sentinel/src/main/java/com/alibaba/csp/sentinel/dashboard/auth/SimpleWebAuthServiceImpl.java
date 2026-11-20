@@ -45,6 +45,9 @@ public class SimpleWebAuthServiceImpl implements AuthService<HttpServletRequest>
     /** Auth user identified only by username and treated as a super user that passes all checks. */
     public static final class SimpleWebAuthUserImpl implements AuthUser {
 
+        /** Serializable version uid, required by session persistence. */
+        private static final long serialVersionUID = 1L;
+
         /** The username of the logged-in user. */
         private String username;
 

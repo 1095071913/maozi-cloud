@@ -15,6 +15,8 @@
  */
 package com.alibaba.csp.sentinel.dashboard.auth;
 
+import java.io.Serializable;
+
 /**
  * Interface for authentication and authorization.
  *
@@ -62,9 +64,10 @@ public interface AuthService<R> {
     }
 
     /**
-     * Represents the current user.
+     * Represents the current user. Serializable so that implementations can be
+     * stored in the HTTP session, which may be persisted by the servlet container.
      */
-    interface AuthUser {
+    interface AuthUser extends Serializable {
 
         /**
          * Check whether the current user has the given privilege on the target, which may

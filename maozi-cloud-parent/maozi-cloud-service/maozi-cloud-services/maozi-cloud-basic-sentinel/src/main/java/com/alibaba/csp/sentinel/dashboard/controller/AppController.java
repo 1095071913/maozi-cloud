@@ -23,6 +23,7 @@ import com.alibaba.csp.sentinel.dashboard.domain.vo.MachineInfoVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -76,7 +77,7 @@ public class AppController {
      * Removes the machine identified by app/ip/port from the registry. An unknown app
      * returns success with null data, while a failed removal returns code 1.
      */
-    @RequestMapping(value = "/{app}/machine/remove.json")
+    @PostMapping(value = "/{app}/machine/remove.json")
     public Result<String> removeMachineById(
             @PathVariable("app") String app,
             @RequestParam(name = "ip") String ip,

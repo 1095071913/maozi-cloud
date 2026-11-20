@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -67,7 +68,7 @@ public class MetricController {
      * page is returned with its sorted, de-duplicated metric data.
      */
     @ResponseBody
-    @RequestMapping("/queryTopResourceMetric.json")
+    @GetMapping("/queryTopResourceMetric.json")
     public Result<?> queryTopResourceMetric(final String app,
                                             Integer pageIndex,
                                             Integer pageSize,
@@ -152,7 +153,7 @@ public class MetricController {
 
     /** Queries the metric data of the given resource of the app in the time range, sorted and de-duplicated by timestamp. */
     @ResponseBody
-    @RequestMapping("/queryByAppAndResource.json")
+    @GetMapping("/queryByAppAndResource.json")
     public Result<?> queryByAppAndResource(String app, String identity, Long startTime, Long endTime) {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(-1, "app can't be null or empty");

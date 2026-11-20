@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -39,16 +40,16 @@ import java.util.concurrent.TimeUnit;
 public class DemoController {
 
     /** The logger, created with MachineRegistryController.class as its name. */
-    Logger logger = LoggerFactory.getLogger(MachineRegistryController.class);
+    static final Logger logger = LoggerFactory.getLogger(MachineRegistryController.class);
 
     /** Returns the "index" view name. */
-    @RequestMapping("/greeting")
+    @GetMapping("/greeting")
     public String greeting() {
         return "index";
     }
 
     /** Creates a four-level nested call link (head1 -> head2 -> head3 -> head4) with Sentinel entries. */
-    @RequestMapping("/link")
+    @GetMapping("/link")
     @ResponseBody
     public String link() throws BlockException {
 
@@ -66,7 +67,7 @@ public class DemoController {
     }
 
     /** Starts 10 threads that keep entering the given resource for the given seconds. */
-    @RequestMapping("/loop")
+    @GetMapping("/loop")
     @ResponseBody
     public String loop(String name, int time) throws BlockException {
         for (int i = 0; i < 10; i++) {
@@ -78,7 +79,7 @@ public class DemoController {
     }
 
     /** Starts 10 threads that keep entering the given resource for the given seconds, sleeping 3s per entry. */
-    @RequestMapping("/slow")
+    @GetMapping("/slow")
     @ResponseBody
     public String slow(String name, int time) throws BlockException {
         for (int i = 0; i < 10; i++) {
@@ -136,8 +137,8 @@ public class DemoController {
                 try {
                     TimeUnit.MILLISECONDS.sleep(ThreadLocalRandom.current().nextInt(200));
                 } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    Thread.currentThread().interrupt();
+                    logger.warn("Demo loop task interrupted", e);
                 }
 
             }

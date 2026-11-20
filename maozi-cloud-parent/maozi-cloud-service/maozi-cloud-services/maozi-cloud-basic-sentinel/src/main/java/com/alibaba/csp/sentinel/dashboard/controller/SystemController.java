@@ -122,7 +122,7 @@ public class SystemController {
      * Adds a system rule requiring exactly one threshold; unset thresholds are persisted
      * as -1 (fake value meaning "not enabled"), then the app's rules are published to Nacos.
      */
-    @RequestMapping("/new.json")
+    @GetMapping("/new.json")
     @AuthAction(PrivilegeType.WRITE_RULE)
     public Result<SystemRuleEntity> apiAdd(String app, String ip, Integer port,
                                            Double highestSystemLoad, Double highestCpuUsage, Long avgRt,
@@ -252,7 +252,7 @@ public class SystemController {
     }
 
     /** Deletes the rule of the given id and publishes the app's rules; an unknown id returns success with null data. */
-    @RequestMapping("/delete.json")
+    @GetMapping("/delete.json")
     @AuthAction(PrivilegeType.DELETE_RULE)
     public Result<?> delete(Long id) {
         if (id == null) {

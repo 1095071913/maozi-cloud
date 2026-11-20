@@ -144,14 +144,6 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
             if (ObjectUtil.isNotNull(userId)) {
                 logs.put(LogTag.ERROR_USER, userId.toString());
             }
-            logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
-
-            // 记录异常发生的第一行代码位置
-            // （热点异常在 JVM fast-throw 优化下堆栈可能为空，需判长度）
-            StackTraceElement[] errorLines = e.getStackTrace();
-            if (errorLines.length > 0) {
-                logs.put(LogTag.ERROR_LINE, errorLines[0].toString());
-            }
 
             // RestClientException 原样上抛，其他异常包装为 RestClientException
             throw (e instanceof RestClientException restClientException) ? restClientException

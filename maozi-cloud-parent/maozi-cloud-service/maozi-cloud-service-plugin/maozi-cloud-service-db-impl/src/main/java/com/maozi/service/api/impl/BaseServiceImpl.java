@@ -1148,8 +1148,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
                 continue;
             }
 
-            Object data = ReflectUtil.invokeGet(param, fieldName);
             // 字段值为空时不参与查询条件构建，直接跳过
+            Object data = ReflectUtil.invokeGet(param, fieldName);
             if(Objects.isNull(data)) {
                 continue;
             }

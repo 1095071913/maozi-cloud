@@ -95,15 +95,6 @@ public class JobEntranceLogAop {
                 logs.put(LogTag.PARAM, arg);
             }
 
-            // 记录异常描述
-            logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
-
-            // 记录异常发生的第一行代码位置
-            StackTraceElement[] errorLines = e.getStackTrace();
-            if (errorLines.length > 0) {
-                logs.put(LogTag.ERROR_LINE, errorLines[0].toString());
-            }
-
             // 异常原样上抛，交由 XXL-JOB 框架按任务失败处理
             throw e;
 

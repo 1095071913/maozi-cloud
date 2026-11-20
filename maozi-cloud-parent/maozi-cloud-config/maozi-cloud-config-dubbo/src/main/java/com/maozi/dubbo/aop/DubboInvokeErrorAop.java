@@ -93,15 +93,7 @@ public class DubboInvokeErrorAop {
             logs.put(LogTag.FUNCTION, proceedingJoinPoint.getSignature()             // 被调用的方法全路径
                     .getDeclaringTypeName() + SymbolConstant.COLON + proceedingJoinPoint.getSignature().getName());
             logs.put(LogTag.PARAM, Arrays.toString(proceedingJoinPoint.getArgs()));  // 方法入参
-            logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());                    // 异常描述信息
-
-            // 记录异常发生的代码行（热点异常在 JVM fast-throw 优化下堆栈可能为空，
-            // 需判长度）
-            StackTraceElement[] errorLines = e.getStackTrace();
-            if (errorLines.length > 0) {
-                logs.put(LogTag.ERROR_LINE, errorLines[0].toString());
-            }
-
+            
             // 记录结构化的错误日志信息
             LogUtil.error(log, logs, e);
 

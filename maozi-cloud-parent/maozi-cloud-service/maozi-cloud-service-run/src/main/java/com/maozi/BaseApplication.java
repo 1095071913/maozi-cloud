@@ -201,13 +201,10 @@ public class BaseApplication {
 
             // 追加初始化器诊断信息与错误位置
             appendInitializerLogs(initializers, logs);
-            logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
-
-            StackTraceElement stackTraceElement = e.getStackTrace()[0];
-            logs.put(LogTag.ERROR_LINE, stackTraceElement.toString());
 
             // 记录错误日志并退出进程
             LogUtil.error(log, logs, e);
+            
             System.exit(1);
 
         }

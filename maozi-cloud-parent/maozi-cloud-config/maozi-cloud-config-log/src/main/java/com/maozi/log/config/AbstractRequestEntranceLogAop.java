@@ -136,15 +136,6 @@ public abstract class AbstractRequestEntranceLogAop {
                 logs.put(LogTag.ERROR_USER, userId.toString());
             }
 
-            // 记录异常描述
-            logs.put(LogTag.ERROR_DESC, e.getLocalizedMessage());
-
-            // 记录异常发生的第一行代码位置
-            StackTraceElement[] errorLines = e.getStackTrace();
-            if (errorLines.length > 0) {
-                logs.put(LogTag.ERROR_LINE, errorLines[0].toString());
-            }
-
             return resultData;
 
         } finally {
@@ -154,9 +145,6 @@ public abstract class AbstractRequestEntranceLogAop {
             if (ObjectUtil.isNotNull(sqlLog)) {
                 logs.put(LogTag.SQL, sqlLog.toString());
             }
-
-            // 记录响应时间
-            logs.put(LogTag.RT, (System.currentTimeMillis() - startTime) + LogTag.RT_UNIT);
 
             // 判断结果是否为框架统一响应类型且请求失败（业务或系统错误）
             if (ObjectUtil.isNotNull(resultData) 

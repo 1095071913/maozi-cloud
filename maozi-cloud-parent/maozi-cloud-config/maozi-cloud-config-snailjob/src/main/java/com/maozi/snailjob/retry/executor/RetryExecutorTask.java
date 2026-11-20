@@ -130,15 +130,6 @@ public class RetryExecutorTask implements ExecutorMethod {
             // 异常时无论环境均记录请求参数
             logs.put(LogTag.PARAM, Arrays.toString(retryParam.getData()));
 
-            // 记录异常描述
-            logs.put(LogTag.ERROR_DESC, ex.getLocalizedMessage());
-
-            // 记录异常发生的第一行代码位置
-            StackTraceElement[] errorLines = ex.getStackTrace();
-            if (errorLines.length > 0) {
-                logs.put(LogTag.ERROR_LINE, errorLines[0].toString());
-            }
-
             throw ex;
 
         } finally {

@@ -11,9 +11,6 @@ package com.maozi.common.constant;
  */
 public class LogTag {
 
-    /** Nacos 配置信息 */
-    public static final String NACOS = "Nacos";
-
     /** 初始化耗时 */
     public static final String INIT_TIME = "InitTime";
 
@@ -63,6 +60,6 @@ public class LogTag {
     public static final String RT = "RT";
 
     /** 响应耗时单位后缀 */
-    public static final String RT_UNIT = " ms";
+    public static final String RT_UNIT = "ms";
 
 }

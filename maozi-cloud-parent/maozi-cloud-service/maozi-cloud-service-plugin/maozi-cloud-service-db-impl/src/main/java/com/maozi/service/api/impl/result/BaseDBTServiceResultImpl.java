@@ -21,6 +21,7 @@ import com.maozi.db.domain.AbstractBaseNameDomain;
 import com.maozi.service.api.impl.BaseServiceImpl;
 import com.maozi.service.api.impl.rest.BaseServiceResultImpl;
 import com.maozi.service.api.rpc.BaseDBServiceResult;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.ParameterizedType;
@@ -198,7 +199,7 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D> extends Base
 
         ObjectUtil.isNullThrowError(id, service.getResourceName());
 
-        ObjectUtil.isNullThrowError(relationField, service.getResourceName() + RESOURCE_SUFFIX_GROUP);
+        ObjectUtil.checkConditionThrowError(StringUtils.isNotEmpty(relationField), service.getResourceName() + RESOURCE_SUFFIX_GROUP);
 
         QueryWrapper<AbstractBaseDomain> wrapper = Wrappers.query();
         if(columns.length > 0) {
@@ -225,7 +226,7 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D> extends Base
 
         CollectionUtil.collectionIsEmptyThrowError(ids, service.getResourceName() + RESOURCE_SUFFIX_LIST);
 
-        ObjectUtil.isNullThrowError(relationField, service.getResourceName() + RESOURCE_SUFFIX_GROUP);
+        ObjectUtil.checkConditionThrowError(StringUtils.isNotEmpty(relationField), service.getResourceName() + RESOURCE_SUFFIX_GROUP);
 
         QueryWrapper<AbstractBaseDomain> wrapper = Wrappers.query();
         if(columns.length > 0) {

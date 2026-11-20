@@ -13,6 +13,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.regex.Pattern;
 
@@ -104,22 +105,44 @@ public class DatabaseInitBeanFactoryPostProcessor implements BeanFactoryPostProc
                 ps.setString(1, dbName);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (!rs.next()) {
-                        // 数据库不存在，使用 utf8mb4 字符集创建，
-                        // 支持完整的 Unicode 字符（包括 Emoji）
-                        // DDL 中库名无法使用占位符，先以正则校验合法标识符再拼接
-                        if (!VALID_DB_NAME_PATTERN.matcher(dbName).matches()) {
-                            throw new IllegalArgumentException("非法数据库名称: " + dbName);
-                        }
-                        try (Statement createStmt = connection.createStatement()) {
-                            createStmt.executeUpdate("CREATE DATABASE `" + dbName
-                                    + "` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci");
-                        }
+                        // 数据库不存在，自动创建
+                        createDatabase(connection, dbName);
                     }
                 }
             }
 
         } catch (Exception e) {
             throw new RuntimeException("数据库初始化失败: " + dbName, e);
+        }
+
+    }
+
+    /**
+     * 创建目标数据库
+     * <p>
+     * 使用 utf8mb4 字符集创建（支持完整的 Unicode 字符，包括 Emoji）。
+     * DDL 中的库名为标识符，无法通过 PreparedStatement 占位符绑定（JDBC 不支持
+     * 标识符参数化），只能在校验后拼接：拼接前以 {@link #VALID_DB_NAME_PATTERN}
+     * 白名单校验库名，仅放行字母、数字、下划线与连字符，不含反引号、引号、
+     * 分号等任何 SQL 元字符；且库名来源于内部数据源配置而非外部用户输入，
+     * 动态拼接无注入风险。
+     * </p>
+     *
+     * @param connection 数据库连接
+     * @param dbName 数据库名称
+     * @throws IllegalArgumentException 数据库名称未通过白名单校验时抛出
+     * @throws SQLException 执行建库语句失败时抛出，由调用方统一捕获处理
+     */
+    @SuppressWarnings("java:S2077")
+    private void createDatabase(Connection connection, String dbName) throws SQLException {
+
+        if (!VALID_DB_NAME_PATTERN.matcher(dbName).matches()) {
+            throw new IllegalArgumentException("非法数据库名称: " + dbName);
+        }
+
+        try (Statement createStmt = connection.createStatement()) {
+            createStmt.executeUpdate("CREATE DATABASE `" + dbName
+                    + "` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci");
         }
 
     }

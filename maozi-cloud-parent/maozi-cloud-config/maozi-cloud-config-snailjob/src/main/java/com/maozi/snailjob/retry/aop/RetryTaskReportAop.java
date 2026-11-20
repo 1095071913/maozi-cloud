@@ -162,7 +162,7 @@ public class RetryTaskReportAop {
      */
     private boolean retryCondition(RetryTask retryTask, Object result) {
         Class<? extends RetryCondition> retryCondition = retryTask.retryIfResult();
-        return RetryCondition.NoRetry.class.getName().equals(retryCondition.getName())
+        return RetryCondition.NoRetry.class.isAssignableFrom(retryCondition)
                 ||
                 !SpringUtil.getBean(retryCondition).shouldRetry(result);
     }
@@ -267,6 +267,12 @@ public class RetryTaskReportAop {
             if (retryCondition(retryTask, result)) {
                 return new LocalRetryResultDTO(true, result);
             }
+
+        } catch (InterruptedException e) {
+
+            // 恢复线程中断标记，避免吞掉中断信号导致后续 sleep 无法及时退出
+            Thread.currentThread().interrupt();
+            log.warn("local retry interrupted", e);
 
         } catch (Throwable e) {
             log.warn("local retry invoke error", e);

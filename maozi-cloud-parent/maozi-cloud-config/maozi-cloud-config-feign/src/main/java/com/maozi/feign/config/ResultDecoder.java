@@ -7,10 +7,10 @@ import com.maozi.common.result.success.SuccessResult;
 import feign.FeignException;
 import feign.Response;
 import feign.codec.Decoder;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -38,11 +38,11 @@ import java.util.Map;
  * @date 2026/11/08
  */
 @Component
+@RequiredArgsConstructor
 public class ResultDecoder implements Decoder {
 
     /** HTTP 消息转换器工厂 */
-    @Autowired
-    private ObjectFactory<HttpMessageConverters> messageConverters;
+    private final ObjectFactory<HttpMessageConverters> messageConverters;
 
     /**
      * 解码 Feign 响应

@@ -2,7 +2,7 @@ package com.maozi.gateway.config;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 import reactor.core.publisher.Hooks;
 import reactor.netty.channel.AbortedException;
 
@@ -21,7 +21,7 @@ import reactor.netty.channel.AbortedException;
  * @date 2026/11/08
  */
 @Slf4j
-@Configuration
+@Component
 public class ReactorHooksConfiguration {
 
     /**

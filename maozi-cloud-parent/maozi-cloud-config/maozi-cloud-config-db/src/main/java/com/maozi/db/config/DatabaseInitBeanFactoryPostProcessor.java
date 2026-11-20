@@ -6,8 +6,8 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.EnvironmentAware;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
  * @author maozi
  * @date 2026/11/08
  */
-@Configuration
+@Component
 public class DatabaseInitBeanFactoryPostProcessor implements BeanFactoryPostProcessor, EnvironmentAware {
 
     /** 数据源 URL 配置键 */

@@ -8,9 +8,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
+import org.springframework.stereotype.Component;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -39,7 +39,7 @@ import java.io.IOException;
  * @author maozi
  * @date 2026/11/08
  */
-@Configuration
+@Component
 @Order(SecurityProperties.DEFAULT_FILTER_ORDER - 2)
 public class CrossOriginFilter extends OncePerRequestFilter {
 

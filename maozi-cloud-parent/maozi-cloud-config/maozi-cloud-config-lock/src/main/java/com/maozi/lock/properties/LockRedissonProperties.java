@@ -2,7 +2,7 @@ package com.maozi.lock.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 /**
  * 分布式锁配置属性
@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
  * @date 2026/11/08
  */
 @Data
-@Configuration
+@Component
 @ConfigurationProperties(prefix = "lock.redisson")
 public class LockRedissonProperties {
 

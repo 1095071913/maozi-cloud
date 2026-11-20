@@ -6,8 +6,8 @@ import com.maozi.common.result.error.code.ErrorCode;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.web.firewall.RequestRejectedException;
+import org.springframework.stereotype.Component;
 
 /**
  * 请求拒绝处理器
@@ -19,7 +19,7 @@ import org.springframework.security.web.firewall.RequestRejectedException;
  * @author maozi
  * @date 2026/11/08
  */
-@Configuration
+@Component
 public class RequestRejectedHandler implements org.springframework.security.web.firewall.RequestRejectedHandler {
 
    /**

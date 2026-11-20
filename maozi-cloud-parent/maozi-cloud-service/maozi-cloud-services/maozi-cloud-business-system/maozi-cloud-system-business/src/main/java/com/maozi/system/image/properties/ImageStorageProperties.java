@@ -2,7 +2,7 @@ package com.maozi.system.image.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -19,7 +19,7 @@ import java.io.Serializable;
  * @date 2026/11/08
  */
 @Data
-@Configuration
+@Component
 @ConfigurationProperties("oss")
 public class ImageStorageProperties implements Serializable {
     /** 序列化标识 */

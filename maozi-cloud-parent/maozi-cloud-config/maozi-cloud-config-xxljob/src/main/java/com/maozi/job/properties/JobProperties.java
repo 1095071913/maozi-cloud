@@ -2,7 +2,7 @@ package com.maozi.job.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 /**
  * XXL-Job 分布式任务调度配置属性
@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
  * @date 2026/11/08
  */
 @Data
-@Configuration
+@Component
 @ConfigurationProperties(prefix = "xxl.job")
 public class JobProperties {
 

@@ -20,7 +20,7 @@ package com.maozi.db.config;
 import com.maozi.base.enums.DeletedEnum;
 import com.maozi.base.enums.StatusEnum;
 import org.apache.ibatis.reflection.MetaObject;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
@@ -34,7 +34,7 @@ import java.time.LocalDateTime;
  * @author maozi
  * @date 2026/11/08
  */
-@Configuration
+@Component
 public class MetaObjectHandler implements com.baomidou.mybatisplus.core.handlers.MetaObjectHandler {
 
     /** 状态字段名 */

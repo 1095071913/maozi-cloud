@@ -33,7 +33,7 @@ import java.util.Map;
  * @author pengjinlong
  * @since 2026/8/13 21:25
  */
-@SuppressWarnings("java:S6769")
+@SuppressWarnings("java:S4544")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")

@@ -1144,7 +1144,6 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         for(Field field : fields) {
 
             String fieldName = field.getName();
-
             if(SerializeUtil.SERIAL_VERSION_UID_FIELD_NAME.equals(fieldName)){
                 continue;
             }
@@ -1246,9 +1245,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     private void applyFieldQueryCondition(String tableName, Field field, Object data, MPJLambdaWrapper<T> wrapper) {
 
         String fieldName = field.getName();
-
         QueryPlugin annotation = field.getAnnotation(QueryPlugin.class);
-
         if (ObjectUtil.isNotNull(annotation)) {
 
             // 注解显式指定字段名时优先使用

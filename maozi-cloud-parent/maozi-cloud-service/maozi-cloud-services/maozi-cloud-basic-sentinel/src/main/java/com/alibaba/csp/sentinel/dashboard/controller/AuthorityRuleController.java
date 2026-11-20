@@ -27,7 +27,6 @@ import com.alibaba.csp.sentinel.slots.block.RuleConstant;
 import com.alibaba.csp.sentinel.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,20 +56,24 @@ public class AuthorityRuleController {
     private final Logger logger = LoggerFactory.getLogger(AuthorityRuleController.class);
 
     /** Local storage of authority rule entities. */
-    @Autowired
-    private RuleRepository<AuthorityRuleEntity, Long> repository;
+    private final RuleRepository<AuthorityRuleEntity, Long> repository;
     /** Registry of apps and machines, used for machine validity check. */
-    @Autowired
-    private AppManagement appManagement;
+    private final AppManagement appManagement;
 
     /** Nacos-based dynamic provider of authority rules. */
-    @Autowired
-    @Qualifier("authorityRuleNacosProvider")
-    private DynamicRuleProvider<List<AuthorityRuleEntity>> ruleProvider;
+    private final DynamicRuleProvider<List<AuthorityRuleEntity>> ruleProvider;
     /** Nacos-based dynamic publisher of authority rules. */
-    @Autowired
-    @Qualifier("authorityRuleNacosPublisher")
-    private DynamicRulePublisher<List<AuthorityRuleEntity>> rulePublisher;
+    private final DynamicRulePublisher<List<AuthorityRuleEntity>> rulePublisher;
+
+    public AuthorityRuleController(RuleRepository<AuthorityRuleEntity, Long> repository,
+                                   AppManagement appManagement,
+                                   @Qualifier("authorityRuleNacosProvider") DynamicRuleProvider<List<AuthorityRuleEntity>> ruleProvider,
+                                   @Qualifier("authorityRuleNacosPublisher") DynamicRulePublisher<List<AuthorityRuleEntity>> rulePublisher) {
+        this.repository = repository;
+        this.appManagement = appManagement;
+        this.ruleProvider = ruleProvider;
+        this.rulePublisher = rulePublisher;
+    }
 
     /**
      * Queries the app's authority rules from the dynamic provider, stamps each entity

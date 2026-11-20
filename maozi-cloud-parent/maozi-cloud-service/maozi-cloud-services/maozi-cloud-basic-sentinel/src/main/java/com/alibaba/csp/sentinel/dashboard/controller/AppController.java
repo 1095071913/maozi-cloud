@@ -20,7 +20,6 @@ import com.alibaba.csp.sentinel.dashboard.discovery.AppManagement;
 import com.alibaba.csp.sentinel.dashboard.discovery.MachineInfo;
 import com.alibaba.csp.sentinel.dashboard.domain.Result;
 import com.alibaba.csp.sentinel.dashboard.domain.vo.MachineInfoVo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,8 +43,11 @@ import java.util.List;
 public class AppController {
 
     /** Registry of apps and machines. */
-    @Autowired
-    private AppManagement appManagement;
+    private final AppManagement appManagement;
+
+    public AppController(AppManagement appManagement) {
+        this.appManagement = appManagement;
+    }
 
     /** Gets the names of all registered apps. */
     @GetMapping("/names.json")

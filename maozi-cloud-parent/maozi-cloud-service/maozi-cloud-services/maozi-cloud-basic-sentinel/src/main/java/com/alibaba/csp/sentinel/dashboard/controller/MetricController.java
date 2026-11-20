@@ -22,7 +22,6 @@ import com.alibaba.csp.sentinel.dashboard.repository.metric.MetricsRepository;
 import com.alibaba.csp.sentinel.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -55,12 +54,15 @@ public class MetricController {
     private static final long DEFAULT_QUERY_INTERVAL_MS = 1000 * 60 * 5;
 
     /** The repository that stores and queries metric entities. */
-    @Autowired
-    private MetricsRepository<MetricEntity> metricStore;
+    private final MetricsRepository<MetricEntity> metricStore;
 
     /** Metric aggregation granularity N in seconds (same config as {@code JdbcMetricsRepository}), used to align query boundaries. */
     @Value("${sentinel.metric.aggregate-seconds:1}")
     private int aggregateSeconds;
+
+    public MetricController(MetricsRepository<MetricEntity> metricStore) {
+        this.metricStore = metricStore;
+    }
 
     /**
      * Queries the top resources of the app within the time range (only those with data points

@@ -30,7 +30,6 @@ import com.alibaba.csp.sentinel.slots.block.RuleConstant;
 import com.alibaba.csp.sentinel.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -60,20 +59,24 @@ public class ParamFlowRuleController {
     private final Logger logger = LoggerFactory.getLogger(ParamFlowRuleController.class);
 
     /** The app management service used to validate machine-to-app relationship. */
-    @Autowired
-    private AppManagement appManagement;
+    private final AppManagement appManagement;
     /** The repository that stores parameter flow rule entities in memory. */
-    @Autowired
-    private RuleRepository<ParamFlowRuleEntity, Long> repository;
+    private final RuleRepository<ParamFlowRuleEntity, Long> repository;
 
     /** The Nacos provider that pulls parameter flow rules for a given app. */
-    @Autowired
-    @Qualifier("paramFlowRuleNacosProvider")
-    private DynamicRuleProvider<List<ParamFlowRuleEntity>> ruleProvider;
+    private final DynamicRuleProvider<List<ParamFlowRuleEntity>> ruleProvider;
     /** The Nacos publisher that pushes parameter flow rules to a given app. */
-    @Autowired
-    @Qualifier("paramFlowRuleNacosPublisher")
-    private DynamicRulePublisher<List<ParamFlowRuleEntity>> rulePublisher;
+    private final DynamicRulePublisher<List<ParamFlowRuleEntity>> rulePublisher;
+
+    public ParamFlowRuleController(AppManagement appManagement,
+                                   RuleRepository<ParamFlowRuleEntity, Long> repository,
+                                   @Qualifier("paramFlowRuleNacosProvider") DynamicRuleProvider<List<ParamFlowRuleEntity>> ruleProvider,
+                                   @Qualifier("paramFlowRuleNacosPublisher") DynamicRulePublisher<List<ParamFlowRuleEntity>> rulePublisher) {
+        this.appManagement = appManagement;
+        this.repository = repository;
+        this.ruleProvider = ruleProvider;
+        this.rulePublisher = rulePublisher;
+    }
 
     /**
      * Whether the machine's client version supports parameter flow control (>= 0.2.0);

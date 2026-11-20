@@ -29,7 +29,6 @@ import com.alibaba.csp.sentinel.util.AssertUtil;
 import com.alibaba.csp.sentinel.util.function.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -57,11 +56,16 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
     private final Logger LOGGER = LoggerFactory.getLogger(ClusterAssignServiceImpl.class);
 
     /** Client for sending cluster mode/config modifications to machines. */
-    @Autowired
-    private SentinelApiClient sentinelApiClient;
+    private final SentinelApiClient sentinelApiClient;
     /** Service for querying the cluster state of app machines. */
-    @Autowired
-    private ClusterConfigService clusterConfigService;
+    private final ClusterConfigService clusterConfigService;
+
+    /** Injects the Sentinel API client and the cluster config service. */
+    public ClusterAssignServiceImpl(SentinelApiClient sentinelApiClient,
+                                    ClusterConfigService clusterConfigService) {
+        this.sentinelApiClient = sentinelApiClient;
+        this.clusterConfigService = clusterConfigService;
+    }
 
     /**
      * Whether the machineId is an {@code ip:port} address, which refers to a token

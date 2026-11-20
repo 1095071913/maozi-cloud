@@ -19,7 +19,6 @@ import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.AuthorityRuleEn
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
 import com.alibaba.csp.sentinel.slots.block.authority.AuthorityRule;
 import com.alibaba.nacos.api.config.ConfigService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -35,11 +34,14 @@ import java.util.stream.Collectors;
 public class AuthorityRuleNacosPublisher implements DynamicRulePublisher<List<AuthorityRuleEntity>> {
 
     /** Nacos config service used to write rule configs. */
-    @Autowired
-    private ConfigService configService;
+    private final ConfigService configService;
     /** Nacos connection properties, supplies the rule config group. */
-    @Autowired
-    private NacosProperties nacosProperties;
+    private final NacosProperties nacosProperties;
+
+    public AuthorityRuleNacosPublisher(ConfigService configService, NacosProperties nacosProperties) {
+        this.configService = configService;
+        this.nacosProperties = nacosProperties;
+    }
 
     /**
      * Push the authority rules of an app to the Nacos config

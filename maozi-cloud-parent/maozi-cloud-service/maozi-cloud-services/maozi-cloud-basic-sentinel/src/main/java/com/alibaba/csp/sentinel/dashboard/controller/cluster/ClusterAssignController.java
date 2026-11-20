@@ -23,7 +23,6 @@ import com.alibaba.csp.sentinel.dashboard.service.ClusterAssignService;
 import com.alibaba.csp.sentinel.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -47,8 +46,11 @@ public class ClusterAssignController {
     private final Logger logger = LoggerFactory.getLogger(ClusterAssignController.class);
 
     /** The service that applies or unbinds cluster role assignments for machines. */
-    @Autowired
-    private ClusterAssignService clusterAssignService;
+    private final ClusterAssignService clusterAssignService;
+
+    public ClusterAssignController(ClusterAssignService clusterAssignService) {
+        this.clusterAssignService = clusterAssignService;
+    }
 
     /** Applies a full cluster assignment (server map plus remaining client list) to all machines of the app. */
     @PostMapping("/all_server/{app}")

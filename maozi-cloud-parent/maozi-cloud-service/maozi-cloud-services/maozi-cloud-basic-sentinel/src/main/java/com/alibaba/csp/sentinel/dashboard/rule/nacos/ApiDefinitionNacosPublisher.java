@@ -19,7 +19,6 @@ import com.alibaba.csp.sentinel.adapter.gateway.common.api.ApiDefinition;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.ApiDefinitionEntity;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
 import com.alibaba.nacos.api.config.ConfigService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -35,11 +34,14 @@ import java.util.stream.Collectors;
 public class ApiDefinitionNacosPublisher implements DynamicRulePublisher<List<ApiDefinitionEntity>> {
 
     /** Nacos config service used to write rule configs. */
-    @Autowired
-    private ConfigService configService;
+    private final ConfigService configService;
     /** Nacos connection properties, supplies the rule config group. */
-    @Autowired
-    private NacosProperties nacosProperties;
+    private final NacosProperties nacosProperties;
+
+    public ApiDefinitionNacosPublisher(ConfigService configService, NacosProperties nacosProperties) {
+        this.configService = configService;
+        this.nacosProperties = nacosProperties;
+    }
 
     /**
      * Push the gateway API definitions of an app to the Nacos config

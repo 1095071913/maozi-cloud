@@ -22,7 +22,6 @@ import com.alibaba.csp.sentinel.dashboard.auth.LoginAuthenticationFilter;
 import com.alibaba.csp.sentinel.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -52,12 +51,17 @@ public class WebConfig implements WebMvcConfigurer {
     private final Logger logger = LoggerFactory.getLogger(WebConfig.class);
 
     /** The login authentication filter to register. */
-    @Autowired
-    private LoginAuthenticationFilter loginAuthenticationFilter;
+    private final LoginAuthenticationFilter loginAuthenticationFilter;
 
     /** The authorization interceptor to register. */
-    @Autowired
-    private AuthorizationInterceptor authorizationInterceptor;
+    private final AuthorizationInterceptor authorizationInterceptor;
+
+    /** Injects the login authentication filter and the authorization interceptor. */
+    public WebConfig(LoginAuthenticationFilter loginAuthenticationFilter,
+                     AuthorizationInterceptor authorizationInterceptor) {
+        this.loginAuthenticationFilter = loginAuthenticationFilter;
+        this.authorizationInterceptor = authorizationInterceptor;
+    }
 
     /** Registers the authorization interceptor for all paths. */
     @Override

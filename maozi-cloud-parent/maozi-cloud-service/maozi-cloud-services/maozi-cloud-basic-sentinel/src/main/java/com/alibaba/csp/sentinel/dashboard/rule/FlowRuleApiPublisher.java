@@ -20,7 +20,6 @@ import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.FlowRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.discovery.AppManagement;
 import com.alibaba.csp.sentinel.dashboard.discovery.MachineInfo;
 import com.alibaba.csp.sentinel.util.StringUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -37,11 +36,14 @@ import java.util.Set;
 public class FlowRuleApiPublisher implements DynamicRulePublisher<List<FlowRuleEntity>> {
 
     /** Client for talking to the Sentinel transport endpoints of machines. */
-    @Autowired
-    private SentinelApiClient sentinelApiClient;
+    private final SentinelApiClient sentinelApiClient;
     /** Registry that provides machine information per application. */
-    @Autowired
-    private AppManagement appManagement;
+    private final AppManagement appManagement;
+
+    public FlowRuleApiPublisher(SentinelApiClient sentinelApiClient, AppManagement appManagement) {
+        this.sentinelApiClient = sentinelApiClient;
+        this.appManagement = appManagement;
+    }
 
     /**
      * Push the given flow rules to every healthy machine of the application through the

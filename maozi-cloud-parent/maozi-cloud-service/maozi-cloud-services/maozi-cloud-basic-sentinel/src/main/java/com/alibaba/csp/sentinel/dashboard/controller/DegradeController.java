@@ -28,7 +28,6 @@ import com.alibaba.csp.sentinel.slots.block.degrade.circuitbreaker.CircuitBreake
 import com.alibaba.csp.sentinel.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,20 +56,23 @@ public class DegradeController {
     private final Logger logger = LoggerFactory.getLogger(DegradeController.class);
 
     /** The repository that stores degrade rule entities in memory. */
-    @Autowired
-    private RuleRepository<DegradeRuleEntity, Long> repository;
+    private final RuleRepository<DegradeRuleEntity, Long> repository;
     /** The app management service used to validate machine-to-app relationship. */
-    @Autowired
-    private AppManagement appManagement;
-
+    private final AppManagement appManagement;
     /** The Nacos provider that pulls degrade rules for a given app. */
-    @Autowired
-    @Qualifier("degradeRuleNacosProvider")
-    private DynamicRuleProvider<List<DegradeRuleEntity>> ruleProvider;
+    private final DynamicRuleProvider<List<DegradeRuleEntity>> ruleProvider;
     /** The Nacos publisher that pushes degrade rules to a given app. */
-    @Autowired
-    @Qualifier("degradeRuleNacosPublisher")
-    private DynamicRulePublisher<List<DegradeRuleEntity>> rulePublisher;
+    private final DynamicRulePublisher<List<DegradeRuleEntity>> rulePublisher;
+
+    public DegradeController(RuleRepository<DegradeRuleEntity, Long> repository,
+                             AppManagement appManagement,
+                             @Qualifier("degradeRuleNacosProvider") DynamicRuleProvider<List<DegradeRuleEntity>> ruleProvider,
+                             @Qualifier("degradeRuleNacosPublisher") DynamicRulePublisher<List<DegradeRuleEntity>> rulePublisher) {
+        this.repository = repository;
+        this.appManagement = appManagement;
+        this.ruleProvider = ruleProvider;
+        this.rulePublisher = rulePublisher;
+    }
 
     /**
      * Fetches the app's degrade rules from Nacos, stamps each rule with the given machine

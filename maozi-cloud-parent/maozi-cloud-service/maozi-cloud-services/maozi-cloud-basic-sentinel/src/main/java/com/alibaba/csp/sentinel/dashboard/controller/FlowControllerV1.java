@@ -26,7 +26,6 @@ import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
 import com.alibaba.csp.sentinel.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,20 +54,23 @@ public class FlowControllerV1 {
     private final Logger logger = LoggerFactory.getLogger(FlowControllerV1.class);
 
     /** The in-memory repository that stores flow rule entities. */
-    @Autowired
-    private InMemoryRuleRepositoryAdapter<FlowRuleEntity> repository;
+    private final InMemoryRuleRepositoryAdapter<FlowRuleEntity> repository;
     /** The app management service used to validate machine-to-app relationship. */
-    @Autowired
-    private AppManagement appManagement;
-
+    private final AppManagement appManagement;
     /** The Nacos provider that pulls flow rules for a given app. */
-    @Autowired
-    @Qualifier("flowRuleNacosProvider")
-    private DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider;
+    private final DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider;
     /** The Nacos publisher that pushes flow rules to a given app. */
-    @Autowired
-    @Qualifier("flowRuleNacosPublisher")
-    private DynamicRulePublisher<List<FlowRuleEntity>> rulePublisher;
+    private final DynamicRulePublisher<List<FlowRuleEntity>> rulePublisher;
+
+    public FlowControllerV1(InMemoryRuleRepositoryAdapter<FlowRuleEntity> repository,
+                            AppManagement appManagement,
+                            @Qualifier("flowRuleNacosProvider") DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider,
+                            @Qualifier("flowRuleNacosPublisher") DynamicRulePublisher<List<FlowRuleEntity>> rulePublisher) {
+        this.repository = repository;
+        this.appManagement = appManagement;
+        this.ruleProvider = ruleProvider;
+        this.rulePublisher = rulePublisher;
+    }
 
     /** Fetches the app's flow rules from Nacos, stamps each with the machine info, persists them and returns them. */
     @GetMapping("/rules")

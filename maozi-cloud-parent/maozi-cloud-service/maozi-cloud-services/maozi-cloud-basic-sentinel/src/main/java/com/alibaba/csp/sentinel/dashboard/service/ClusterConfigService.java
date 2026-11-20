@@ -31,7 +31,6 @@ import com.alibaba.csp.sentinel.dashboard.domain.cluster.state.ClusterUniversalS
 import com.alibaba.csp.sentinel.dashboard.util.AsyncUtils;
 import com.alibaba.csp.sentinel.dashboard.util.ClusterEntityUtils;
 import com.alibaba.csp.sentinel.util.StringUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -51,11 +50,15 @@ import java.util.stream.Collectors;
 public class ClusterConfigService {
 
     /** Client for sending cluster state/config requests to machines. */
-    @Autowired
-    private SentinelApiClient sentinelApiClient;
+    private final SentinelApiClient sentinelApiClient;
     /** Registry providing the applications and their machines. */
-    @Autowired
-    private AppManagement appManagement;
+    private final AppManagement appManagement;
+
+    /** Injects the Sentinel API client and the app registry. */
+    public ClusterConfigService(SentinelApiClient sentinelApiClient, AppManagement appManagement) {
+        this.sentinelApiClient = sentinelApiClient;
+        this.appManagement = appManagement;
+    }
 
     /**
      * Modifies the cluster client config of the requesting machine and then switches

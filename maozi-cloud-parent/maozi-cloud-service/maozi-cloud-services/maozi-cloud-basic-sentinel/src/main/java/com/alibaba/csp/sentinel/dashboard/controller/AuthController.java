@@ -22,7 +22,6 @@ import com.alibaba.csp.sentinel.dashboard.domain.Result;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -52,8 +51,11 @@ public class AuthController {
     private String authPassword;
 
     /** The auth service used to check the login state. */
-    @Autowired
-    private AuthService<HttpServletRequest> authService;
+    private final AuthService<HttpServletRequest> authService;
+
+    public AuthController(AuthService<HttpServletRequest> authService) {
+        this.authService = authService;
+    }
 
     /**
      * Logs the user in, preferring sentinel.dashboard.auth.* (env or system property) over the

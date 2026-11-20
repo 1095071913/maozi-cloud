@@ -16,7 +16,6 @@
 package com.alibaba.csp.sentinel.dashboard.discovery;
 
 import com.alibaba.csp.sentinel.util.StringUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
@@ -33,11 +32,15 @@ import java.util.Set;
 public class AppManagement implements MachineDiscovery {
 
     /** Spring application context used to resolve the underlying discovery bean. */
-    @Autowired
-    private ApplicationContext context;
+    private final ApplicationContext context;
 
     /** The underlying machine discovery implementation. */
     private MachineDiscovery machineDiscovery;
+
+    /** Injects the Spring application context used to resolve the discovery implementation. */
+    public AppManagement(ApplicationContext context) {
+        this.context = context;
+    }
 
     /** Resolve the underlying {@link SimpleMachineDiscovery} bean as the discovery implementation. */
     @PostConstruct

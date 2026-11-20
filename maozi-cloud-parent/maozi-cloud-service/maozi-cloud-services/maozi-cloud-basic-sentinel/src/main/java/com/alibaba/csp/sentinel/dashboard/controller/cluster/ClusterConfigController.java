@@ -35,7 +35,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -65,12 +64,15 @@ public class ClusterConfigController {
     private final SentinelVersion version140 = new SentinelVersion().setMajorVersion(1).setMinorVersion(4);
 
     /** The app management service used to look up machines of an app. */
-    @Autowired
-    private AppManagement appManagement;
+    private final AppManagement appManagement;
 
     /** The service that fetches cluster states and modifies cluster configs. */
-    @Autowired
-    private ClusterConfigService clusterConfigService;
+    private final ClusterConfigService clusterConfigService;
+
+    public ClusterConfigController(AppManagement appManagement, ClusterConfigService clusterConfigService) {
+        this.appManagement = appManagement;
+        this.clusterConfigService = clusterConfigService;
+    }
 
     /**
      * Modifies the cluster config of a single machine: the raw JSON payload is dispatched

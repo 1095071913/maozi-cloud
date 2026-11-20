@@ -26,7 +26,6 @@ import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
 import com.alibaba.csp.sentinel.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,20 +47,23 @@ public class SystemController {
     private final Logger logger = LoggerFactory.getLogger(SystemController.class);
 
     /** The repository that stores system rule entities in memory. */
-    @Autowired
-    private RuleRepository<SystemRuleEntity, Long> repository;
+    private final RuleRepository<SystemRuleEntity, Long> repository;
     /** The app management service used to validate machine-to-app relationship. */
-    @Autowired
-    private AppManagement appManagement;
-
+    private final AppManagement appManagement;
     /** The Nacos provider that pulls system rules for a given app. */
-    @Autowired
-    @Qualifier("systemRuleNacosProvider")
-    private DynamicRuleProvider<List<SystemRuleEntity>> ruleProvider;
+    private final DynamicRuleProvider<List<SystemRuleEntity>> ruleProvider;
     /** The Nacos publisher that pushes system rules to a given app. */
-    @Autowired
-    @Qualifier("systemRuleNacosPublisher")
-    private DynamicRulePublisher<List<SystemRuleEntity>> rulePublisher;
+    private final DynamicRulePublisher<List<SystemRuleEntity>> rulePublisher;
+
+    public SystemController(RuleRepository<SystemRuleEntity, Long> repository,
+                            AppManagement appManagement,
+                            @Qualifier("systemRuleNacosProvider") DynamicRuleProvider<List<SystemRuleEntity>> ruleProvider,
+                            @Qualifier("systemRuleNacosPublisher") DynamicRulePublisher<List<SystemRuleEntity>> rulePublisher) {
+        this.repository = repository;
+        this.appManagement = appManagement;
+        this.ruleProvider = ruleProvider;
+        this.rulePublisher = rulePublisher;
+    }
 
     /** Validates app/ip/port and that the ip belongs to the given app; returns the first error or null. */
     private <R> Result<R> checkBasicParams(String app, String ip, Integer port) {

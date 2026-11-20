@@ -37,7 +37,6 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.net.ConnectException;
@@ -109,11 +108,9 @@ public class MetricFetcher {
     private Map<String, AtomicLong> appLastFetchTime = new ConcurrentHashMap<>();
 
     /** Metric repository used to persist the fetched metric entities. */
-    @Autowired
-    private MetricsRepository<MetricEntity> metricStore;
+    private final MetricsRepository<MetricEntity> metricStore;
     /** Registry of applications and machines, used to enumerate the fetch targets. */
-    @Autowired
-    private AppManagement appManagement;
+    private final AppManagement appManagement;
 
     /** Shared async HTTP client used to pull metrics from the Sentinel clients. */
     private CloseableHttpAsyncClient httpclient;
@@ -132,7 +129,9 @@ public class MetricFetcher {
      * Creates the fetch executors and the shared async HTTP client,
      * then starts the periodic fetch-all schedule.
      */
-    public MetricFetcher() {
+    public MetricFetcher(MetricsRepository<MetricEntity> metricStore, AppManagement appManagement) {
+        this.metricStore = metricStore;
+        this.appManagement = appManagement;
         int cores = Runtime.getRuntime().availableProcessors() * CPU_CORE_MULTIPLIER;
         long keepAliveTime = 0;
         int queueSize = 2048;

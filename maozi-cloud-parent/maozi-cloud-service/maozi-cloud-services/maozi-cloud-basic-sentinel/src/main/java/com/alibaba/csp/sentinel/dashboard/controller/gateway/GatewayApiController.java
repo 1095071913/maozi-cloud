@@ -29,7 +29,6 @@ import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
 import com.alibaba.csp.sentinel.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -63,17 +62,20 @@ public class GatewayApiController {
     private final Logger logger = LoggerFactory.getLogger(GatewayApiController.class);
 
     /** The in-memory store that keeps gateway API definitions. */
-    @Autowired
-    private InMemApiDefinitionStore repository;
+    private final InMemApiDefinitionStore repository;
 
     /** The Nacos provider that pulls gateway API definitions for a given app. */
-    @Autowired
-    @Qualifier("apiDefinitionNacosProvider")
-    private DynamicRuleProvider<List<ApiDefinitionEntity>> ruleProvider;
+    private final DynamicRuleProvider<List<ApiDefinitionEntity>> ruleProvider;
     /** The Nacos publisher that pushes gateway API definitions to a given app. */
-    @Autowired
-    @Qualifier("apiDefinitionNacosPublisher")
-    private DynamicRulePublisher<List<ApiDefinitionEntity>> rulePublisher;
+    private final DynamicRulePublisher<List<ApiDefinitionEntity>> rulePublisher;
+
+    public GatewayApiController(InMemApiDefinitionStore repository,
+                                @Qualifier("apiDefinitionNacosProvider") DynamicRuleProvider<List<ApiDefinitionEntity>> ruleProvider,
+                                @Qualifier("apiDefinitionNacosPublisher") DynamicRulePublisher<List<ApiDefinitionEntity>> rulePublisher) {
+        this.repository = repository;
+        this.ruleProvider = ruleProvider;
+        this.rulePublisher = rulePublisher;
+    }
 
     /** Fetches the app's gateway API definitions from Nacos, stamps machine info, persists them and returns them. */
     @GetMapping("/list.json")

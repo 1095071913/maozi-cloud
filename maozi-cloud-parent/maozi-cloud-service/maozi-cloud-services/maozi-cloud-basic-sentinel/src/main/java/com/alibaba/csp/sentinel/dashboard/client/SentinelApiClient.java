@@ -65,7 +65,6 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -161,11 +160,11 @@ public class SentinelApiClient {
     private static final SentinelVersion version171 = new SentinelVersion(1, 7, 1);
     
     /** Registry of apps and machines, used for machine validity and version checks. */
-    @Autowired
-    private AppManagement appManagement;
+    private final AppManagement appManagement;
 
     /** Creates and starts the underlying async HTTP client, with redirects disabled. */
-    public SentinelApiClient() {
+    public SentinelApiClient(AppManagement appManagement) {
+        this.appManagement = appManagement;
         IOReactorConfig ioConfig = IOReactorConfig.custom().setConnectTimeout(3000).setSoTimeout(10000)
             .setIoThreadCount(Runtime.getRuntime().availableProcessors() * 2).build();
         httpClient = HttpAsyncClients.custom().setRedirectStrategy(new DefaultRedirectStrategy() {
@@ -431,7 +430,11 @@ public class SentinelApiClient {
                 params.put("type", type);
             }
             return fetchItemsAsync(ip, port, api, type, ruleType).get();
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.error("Error when fetching items from api: {} -> {}", api, type, e);
+            return null;
+        } catch (ExecutionException e) {
             logger.error("Error when fetching items from api: {} -> {}", api, type, e);
             return null;
         } catch (Exception e) {
@@ -463,6 +466,7 @@ public class SentinelApiClient {
             logger.info("setRules result: {}, type={}", result, type);
             return true;
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             logger.warn("setRules API failed: {}", type, e);
             return false;
         } catch (ExecutionException e) {
@@ -892,6 +896,10 @@ public class SentinelApiClient {
             String result = executeCommand(app, ip, port, MODIFY_GATEWAY_API_PATH, params, true).get();
             logger.info("Modify gateway apis: {}", result);
             return true;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.warn("Error when modifying gateway apis", e);
+            return false;
         } catch (Exception e) {
             logger.warn("Error when modifying gateway apis", e);
             return false;
@@ -934,6 +942,10 @@ public class SentinelApiClient {
             String result = executeCommand(app, ip, port, MODIFY_GATEWAY_FLOW_RULE_PATH, params, true).get();
             logger.info("Modify gateway flow rules: {}", result);
             return true;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.warn("Error when modifying gateway apis", e);
+            return false;
         } catch (Exception e) {
             logger.warn("Error when modifying gateway apis", e);
             return false;

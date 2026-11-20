@@ -22,7 +22,6 @@ import com.alibaba.csp.sentinel.util.StringUtil;
 import org.apache.http.conn.util.InetAddressUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,8 +41,11 @@ public class MachineRegistryController {
     private final Logger logger = LoggerFactory.getLogger(MachineRegistryController.class);
 
     /** The app management service that keeps track of registered machines. */
-    @Autowired
-    private AppManagement appManagement;
+    private final AppManagement appManagement;
+
+    public MachineRegistryController(AppManagement appManagement) {
+        this.appManagement = appManagement;
+    }
 
     /**
      * Receives a heartbeat from a Sentinel client, validates the reported app/ip/port

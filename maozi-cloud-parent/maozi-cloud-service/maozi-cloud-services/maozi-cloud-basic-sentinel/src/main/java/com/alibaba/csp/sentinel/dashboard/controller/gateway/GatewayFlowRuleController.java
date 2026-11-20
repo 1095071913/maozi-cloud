@@ -30,7 +30,6 @@ import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
 import com.alibaba.csp.sentinel.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -75,17 +74,20 @@ public class GatewayFlowRuleController {
     private final Logger logger = LoggerFactory.getLogger(GatewayFlowRuleController.class);
 
     /** The in-memory store that keeps gateway flow rules. */
-    @Autowired
-    private InMemGatewayFlowRuleStore repository;
+    private final InMemGatewayFlowRuleStore repository;
 
     /** The Nacos provider that pulls gateway flow rules for a given app. */
-    @Autowired
-    @Qualifier("gatewayFlowRuleNacosProvider")
-    private DynamicRuleProvider<List<GatewayFlowRuleEntity>> ruleProvider;
+    private final DynamicRuleProvider<List<GatewayFlowRuleEntity>> ruleProvider;
     /** The Nacos publisher that pushes gateway flow rules to a given app. */
-    @Autowired
-    @Qualifier("gatewayFlowRuleNacosPublisher")
-    private DynamicRulePublisher<List<GatewayFlowRuleEntity>> rulePublisher;
+    private final DynamicRulePublisher<List<GatewayFlowRuleEntity>> rulePublisher;
+
+    public GatewayFlowRuleController(InMemGatewayFlowRuleStore repository,
+                                     @Qualifier("gatewayFlowRuleNacosProvider") DynamicRuleProvider<List<GatewayFlowRuleEntity>> ruleProvider,
+                                     @Qualifier("gatewayFlowRuleNacosPublisher") DynamicRulePublisher<List<GatewayFlowRuleEntity>> rulePublisher) {
+        this.repository = repository;
+        this.ruleProvider = ruleProvider;
+        this.rulePublisher = rulePublisher;
+    }
 
     /** Fetches the app's gateway flow rules from Nacos, stamps machine info, persists them and returns them. */
     @GetMapping("/list.json")

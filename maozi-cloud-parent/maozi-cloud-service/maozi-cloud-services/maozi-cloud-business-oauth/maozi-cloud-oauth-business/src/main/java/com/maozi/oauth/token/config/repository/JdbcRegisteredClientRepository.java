@@ -40,8 +40,14 @@ public class JdbcRegisteredClientRepository
     /** 数据库表名 */
     private static final String TABLE_NAME = "oauth2_registered_client";
 
-    /** 基础查询SQL，以WHERE结尾，后续直接拼接过滤条件 */
+    /** 基础查询SQL，以WHERE结尾，供下方静态查询SQL常量复用 */
     private static final String LOAD_SQL = "SELECT " + COLUMN_NAMES + " FROM " + TABLE_NAME + " WHERE ";
+
+    /** 按主键查询启用状态客户端的 SQL */
+    private static final String FIND_BY_ID_SQL = LOAD_SQL + "id = ? AND status = ?";
+
+    /** 按客户端ID查询启用状态客户端的 SQL */
+    private static final String FIND_BY_CLIENT_ID_SQL = LOAD_SQL + "client_id = ? AND status = ?";
 
     /**
      * 构造函数
@@ -61,7 +67,7 @@ public class JdbcRegisteredClientRepository
     @Override
     public RegisteredClient findById(String id) {
         Assert.hasText(id, "id cannot be empty");
-        return findByWithStatus("id = ?", id);
+        return findByEnabled(FIND_BY_ID_SQL, id);
     }
 
     /**
@@ -73,23 +79,24 @@ public class JdbcRegisteredClientRepository
     @Override
     public RegisteredClient findByClientId(String clientId) {
         Assert.hasText(clientId, "clientId cannot be empty");
-        return findByWithStatus("client_id = ?", clientId);
+        return findByEnabled(FIND_BY_CLIENT_ID_SQL, clientId);
     }
 
     /**
-     * 带状态过滤条件的客户端查询方法
+     * 查询启用状态的客户端
      * <p>
-     * 在指定的过滤条件基础上，追加状态为启用的条件，只返回启用状态的客户端。
+     * 执行传入的静态 SQL 常量（类内定义，非动态拼接），
+     * 查询条件值与状态值均通过 {@code ?} 占位符参数化绑定，
+     * 无 SQL 注入风险。
      * </p>
      *
-     * @param filter SQL过滤条件（如 "id = ?" 或 "client_id = ?"）
-     * @param args   过滤条件的参数值
+     * @param sql 静态查询 SQL 常量（含查询值与状态两个 ? 占位符）
+     * @param arg 查询条件值（客户端唯一标识或客户端ID）
      * @return 匹配的已注册客户端信息，如果不存在则返回null
      */
-    private RegisteredClient findByWithStatus(String filter, Object... args) {
-        String sql = LOAD_SQL + filter + " AND status = " + StatusEnum.ENABLE.getValue();
+    private RegisteredClient findByEnabled(String sql, Object arg) {
         List<RegisteredClient> result = super.getJdbcOperations().query(
-                sql, super.getRegisteredClientRowMapper(), args);
+                sql, super.getRegisteredClientRowMapper(), arg, StatusEnum.ENABLE.getValue());
         return !result.isEmpty() ? result.get(0) : null;
     }
 

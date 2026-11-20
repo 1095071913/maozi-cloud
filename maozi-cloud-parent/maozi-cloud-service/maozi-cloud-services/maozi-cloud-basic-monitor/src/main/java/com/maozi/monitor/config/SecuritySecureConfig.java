@@ -63,11 +63,25 @@ public class SecuritySecureConfig {
 
     /**
      * 安全过滤链：配置认证授权、表单登录、CSRF、Remember-Me 等
+     * <p>
+     * CSRF 豁免路径安全性说明：监控台自身面向浏览器的操作仍受完整 CSRF 保护
+     * （CookieCsrfTokenRepository + SPA 明文 token 处理器），仅豁免无法参与
+     * CSRF 令牌交互的端点——
+     * </p>
+     * <ul>
+     *     <li>POST /instances 与 DELETE /instances/*：SBA 客户端注册/注销实例，
+     *     属服务间调用（HTTP Basic 认证），非浏览器流量无法携带 CSRF 令牌，
+     *     且端点仍要求认证，为 SBA 官方安全配置的标准豁免项；</li>
+     *     <li>/actuator/**：健康检查等探针端点由程序调用，本配置中即 permitAll；</li>
+     *     <li>/logout：SBA 前端登出请求不携带 CSRF 令牌，不豁免会 403，
+     *     豁免后最坏后果为被恶意登出（低危），不影响会话与数据安全。</li>
+     * </ul>
      *
      * @param http HttpSecurity 对象，用于构建监控台的安全过滤器链
      * @return 配置完成的监控台安全过滤器链
      * @throws Exception 配置过程中可能抛出的异常
      */
+    @SuppressWarnings("java:S4502")
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // 登录成功后重定向处理器

@@ -22,10 +22,18 @@ import java.util.Map;
  * 扩展了 attributes 附加属性（如用户ID），用于在颁发令牌时随 claims 一并写入；
  * 同时支持 Jackson 序列化/反序列化，以配合授权信息存入 Redis。
  * </p>
+ * <p>
+ * {@code @JsonTypeInfo(Id.CLASS)} 多态反序列化安全性说明：本类的 JSON 报文
+ * 仅由 {@code RedisOAuth2AuthorizationServiceImpl} 写入 Redis 并从 Redis 读回
+ * （注册了 Spring Security 官方 SecurityJackson2Modules），报文内容完全由
+ * 服务端生成；外部用户输入（令牌字符串）仅用作 Redis 键，不会成为被反序列化
+ * 的 JSON 报文，攻击者无法通过 {@code @class} 属性驱动任意类实例化，配置安全。
+ * </p>
  *
  * @author pengjinlong
  * @since 2026/8/13 21:25
  */
+@SuppressWarnings("java:S6769")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")

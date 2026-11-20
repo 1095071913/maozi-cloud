@@ -46,11 +46,20 @@ public class ResourceServerConfig {
      * 配置白名单路径放行、其余请求需要认证，以及 OAuth2 资源服务器的
      * 不透明令牌认证和自定义异常处理器。
      * </p>
+     * <p>
+     * 禁用 CSRF 防护依据：本服务为无状态 OAuth2 资源服务器，认证凭证仅通过
+     * {@code Authorization} 请求头中的 Bearer 令牌（Opaque Token 内省）传递，
+     * 不使用 Cookie 与会话。CSRF 攻击依赖浏览器自动附带凭证，而请求头中的
+     * Bearer 令牌不会被浏览器自动携带，跨站请求无法伪造认证头，CSRF 攻击
+     * 不成立，因此无需 CSRF 防护（Spring Security 官方对纯 API 资源服务器的
+     * 推荐做法）。
+     * </p>
      *
      * @param http HTTP 安全构建器
      * @return 安全过滤器链
      * @throws Exception 安全配置异常
      */
+    @SuppressWarnings("java:S4502")
     @Bean
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
 

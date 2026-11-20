@@ -149,11 +149,11 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param pageParam 分页查询参数
      * @return MyBatis-Plus 分页对象
      */
-    public <R> com.baomidou.mybatisplus.extension.plugins.pagination.Page<R> convertPage(PageParam<?> pageParam){
+    public <R> Page<R> convertPage(PageParam<?> pageParam){
         // 分页参数未传时兜底：默认第 1 页、每页 10 条
         long current = pageParam.getCurrent() == null ? DEFAULT_PAGE_CURRENT : pageParam.getCurrent();
         long size = pageParam.getSize() == null ? DEFAULT_PAGE_SIZE : pageParam.getSize();
-        return new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(current, size);
+        return new Page<>(current, size);
     }
 
     /**

@@ -116,9 +116,7 @@ public class DegradeController {
         if (checkResult != null) {
             return checkResult;
         }
-        Date date = new Date();
-        entity.setGmtCreate(date);
-        entity.setGmtModified(date);
+        entity.setGmtCreateAndModified(new Date());
         try {
             entity = repository.save(entity);
         } catch (Throwable t) {

@@ -144,9 +144,7 @@ public class ParamFlowRuleController {
         }
         entity.setId(null);
         entity.getRule().setResource(entity.getResource().trim());
-        Date date = new Date();
-        entity.setGmtCreate(date);
-        entity.setGmtModified(date);
+        entity.setGmtCreateAndModified(new Date());
         try {
             entity = repository.save(entity);
             publishRules(entity.getApp());

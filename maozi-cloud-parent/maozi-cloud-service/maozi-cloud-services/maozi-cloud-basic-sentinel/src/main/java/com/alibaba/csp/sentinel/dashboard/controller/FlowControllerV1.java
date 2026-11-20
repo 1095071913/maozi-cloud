@@ -165,9 +165,7 @@ public class FlowControllerV1 {
             return checkResult;
         }
         entity.setId(null);
-        Date date = new Date();
-        entity.setGmtCreate(date);
-        entity.setGmtModified(date);
+        entity.setGmtCreateAndModified(new Date());
         entity.setLimitApp(entity.getLimitApp().trim());
         entity.setResource(entity.getResource().trim());
         try {

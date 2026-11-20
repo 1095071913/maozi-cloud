@@ -173,9 +173,7 @@ public class GatewayApiController {
             return Result.ofFail(-1, "apiName exists: " + apiName);
         }
 
-        Date date = new Date();
-        entity.setGmtCreate(date);
-        entity.setGmtModified(date);
+        entity.setGmtCreateAndModified(new Date());
 
         try {
             entity = repository.save(entity);

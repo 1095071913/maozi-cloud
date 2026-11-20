@@ -43,7 +43,19 @@ public interface RuleEntity {
 
     /** Gets the create time. */
     Date getGmtCreate();
-    
+
+    /** Sets the create time. */
+    void setGmtCreate(Date gmtCreate);
+
+    /** Sets the last modify time. */
+    void setGmtModified(Date gmtModified);
+
+    /** Sets both the create time and the last modify time to the given date. */
+    default void setGmtCreateAndModified(Date date) {
+        setGmtCreate(date);
+        setGmtModified(date);
+    }
+
     /** Converts this entity to a Sentinel rule. */
     Rule toRule();
 }

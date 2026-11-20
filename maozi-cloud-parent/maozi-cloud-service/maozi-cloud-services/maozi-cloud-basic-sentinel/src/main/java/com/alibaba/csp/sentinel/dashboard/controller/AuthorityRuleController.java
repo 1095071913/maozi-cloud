@@ -150,9 +150,7 @@ public class AuthorityRuleController {
             return checkResult;
         }
         entity.setId(null);
-        Date date = new Date();
-        entity.setGmtCreate(date);
-        entity.setGmtModified(date);
+        entity.setGmtCreateAndModified(new Date());
         try {
             entity = repository.save(entity);
         } catch (Throwable throwable) {

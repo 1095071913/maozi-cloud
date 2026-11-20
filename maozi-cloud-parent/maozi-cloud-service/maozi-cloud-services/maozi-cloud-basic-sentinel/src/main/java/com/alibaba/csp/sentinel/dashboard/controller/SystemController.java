@@ -175,9 +175,7 @@ public class SystemController {
         } else {
             entity.setQps(-1D);
         }
-        Date date = new Date();
-        entity.setGmtCreate(date);
-        entity.setGmtModified(date);
+        entity.setGmtCreateAndModified(new Date());
         try {
             entity = repository.save(entity);
         } catch (Throwable throwable) {

@@ -269,9 +269,7 @@ public class GatewayFlowRuleController {
             entity.setMaxQueueingTimeoutMs(maxQueueingTimeoutMs);
         }
 
-        Date date = new Date();
-        entity.setGmtCreate(date);
-        entity.setGmtModified(date);
+        entity.setGmtCreateAndModified(new Date());
 
         try {
             entity = repository.save(entity);

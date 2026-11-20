@@ -110,10 +110,10 @@ public abstract class AbstractRuleEntity<T extends AbstractRule> implements Rule
         return gmtCreate;
     }
 
-    /** Sets the create time and returns this. */
-    public AbstractRuleEntity<T> setGmtCreate(Date gmtCreate) {
+    /** Sets the create time. */
+    @Override
+    public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
-        return this;
     }
 
     /** Gets the last modify time. */
@@ -121,10 +121,10 @@ public abstract class AbstractRuleEntity<T extends AbstractRule> implements Rule
         return gmtModified;
     }
 
-    /** Sets the last modify time and returns this. */
-    public AbstractRuleEntity<T> setGmtModified(Date gmtModified) {
+    /** Sets the last modify time. */
+    @Override
+    public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
-        return this;
     }
 
     /** Returns the wrapped rule object directly. */

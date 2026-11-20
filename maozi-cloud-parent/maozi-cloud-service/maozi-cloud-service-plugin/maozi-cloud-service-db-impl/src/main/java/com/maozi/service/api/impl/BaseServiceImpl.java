@@ -1127,8 +1127,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * 根据参数对象的注解信息构建查询条件
      * <p>
      * 先应用类级 JoinPlugins 注解拼接关联查询，再遍历字段：值为空的跳过，
-     * QueryPlugin 注解按查询类型拼接（nest 嵌套参数递归解析），
-     * TimeParam 字段生成时间范围条件。
+     * 其余交由 {@link #applyFieldQueryCondition} 按注解与字段类型拼接。
      * </p>
      *
      * @param tableName 表别名
@@ -1139,36 +1138,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         Class<?> paramClass = param.getClass();
 
-        // 解析类级 JoinPlugins 注解：逐个校验连接类型并应用关联插件拼接 JOIN
-        if (paramClass.isAnnotationPresent(JoinPlugins.class)) {
-
-            JoinPlugins annotations = paramClass.getAnnotation(JoinPlugins.class);
-
-            JoinPlugin[] joinPlugins = annotations.value();
-            if(ObjectUtil.isNotNull(joinPlugins) && joinPlugins.length > 0){
-
-                Arrays.stream(joinPlugins).forEach(annotation -> {
-
-                    String resourceName = getResourceName();
-
-                    JoinBaseTypeEnum value = annotation.value();
-
-                    ObjectUtil.isNullThrowError(value, resourceName + RESOURCE_SUFFIX_JOIN_TYPE);
-
-                    String type = value.getType();
-                    ObjectUtil.isNullThrowError(type, resourceName + RESOURCE_SUFFIX_JOIN_TYPE);
-
-                    JoinTypeEnum joinType = JoinTypeEnum.get(type);
-
-                    ObjectUtil.isNullThrowError(joinType, resourceName + RESOURCE_SUFFIX_JOIN_TYPE);
-
-                    Objects.requireNonNull(joinType).getJoinPlugin().apply(resourceName, wrapper, annotation);
-
-                });
-
-            }
-
-        }
+        applyJoinPlugins(paramClass, wrapper);
 
         Field[] fields = ReflectUtil.getFields(paramClass);
         for(Field field : fields) {
@@ -1185,65 +1155,156 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
                 continue;
             }
 
-            QueryPlugin annotation = field.getAnnotation(QueryPlugin.class);
+            applyFieldQueryCondition(tableName, field, data, wrapper);
 
-            boolean isNotNullAnnotation = ObjectUtil.isNotNull(annotation);
+        }
 
-            String annotationField = isNotNullAnnotation ? annotation.field() : null;
+    }
 
-            fieldName = StringUtils.isNotEmpty(annotationField) ? annotationField : fieldName;
+    /**
+     * 解析类级 JoinPlugins 注解并拼接关联查询
+     * <p>
+     * 逐个校验连接类型后应用关联插件拼接 JOIN。
+     * </p>
+     *
+     * @param paramClass 查询参数类型
+     * @param wrapper MPJ Lambda 查询条件构造器
+     */
+    private void applyJoinPlugins(Class<?> paramClass, MPJLambdaWrapper<T> wrapper) {
 
-            if(isNotNullAnnotation) {
+        if (!paramClass.isAnnotationPresent(JoinPlugins.class)) {
+            return;
+        }
 
-                String annotationTableName = annotation.tableName();
+        JoinPlugin[] joinPlugins = paramClass.getAnnotation(JoinPlugins.class).value();
+        if (ObjectUtil.isNull(joinPlugins) || joinPlugins.length < 1) {
+            return;
+        }
 
-                // 嵌套参数：以注解指定的表名递归解析其内部字段的查询条件
-                if(annotation.nest()) {
-                    paramFieldSetWrapper(annotationTableName, field, wrapper);
-                    continue;
-                }
+        Arrays.stream(joinPlugins).forEach(annotation ->
+                resolveJoinTypeEnum(annotation.value()).getJoinPlugin().apply(getResourceName(), wrapper, annotation));
 
-                String resourceName = getResourceName();
+    }
 
-                QueryBaseTypeEnum value = annotation.value();
-                ObjectUtil.isNullThrowError(value, resourceName + RESOURCE_SUFFIX_QUERY_TYPE);
+    /**
+     * 解析并校验连接类型枚举
+     *
+     * @param baseType 注解配置的连接类型
+     * @return 连接类型枚举
+     */
+    private JoinTypeEnum resolveJoinTypeEnum(JoinBaseTypeEnum baseType) {
 
-                String type = value.getType();
-                ObjectUtil.isNullThrowError(type, resourceName + RESOURCE_SUFFIX_QUERY_TYPE);
+        String resourceName = getResourceName();
 
-                QueryTypeEnum queryType = QueryTypeEnum.get(type);
-                ObjectUtil.isNullThrowError(queryType, resourceName + RESOURCE_SUFFIX_QUERY_TYPE);
+        ObjectUtil.isNullThrowError(baseType, resourceName + RESOURCE_SUFFIX_JOIN_TYPE);
 
-                // 字段注解显式指定表名时，覆盖外层传入的表名
-                if(StringUtils.isNotEmpty(annotationTableName)){
-                    tableName = annotationTableName;
-                }
+        String type = baseType.getType();
+        ObjectUtil.isNullThrowError(type, resourceName + RESOURCE_SUFFIX_JOIN_TYPE);
 
-                if (StringUtils.isNotEmpty(tableName)) {
-                    fieldName = String.join(SymbolConstant.DOT, tableName, fieldName);
-                }
+        JoinTypeEnum joinType = JoinTypeEnum.get(type);
+        ObjectUtil.isNullThrowError(joinType, resourceName + RESOURCE_SUFFIX_JOIN_TYPE);
 
-                Objects.requireNonNull(queryType).getQueryPlugin().apply(wrapper, fieldName, data);
+        return joinType;
 
+    }
+
+    /**
+     * 解析并校验查询类型枚举
+     *
+     * @param baseType 注解配置的查询类型
+     * @return 查询类型枚举
+     */
+    private QueryTypeEnum resolveQueryTypeEnum(QueryBaseTypeEnum baseType) {
+
+        String resourceName = getResourceName();
+
+        ObjectUtil.isNullThrowError(baseType, resourceName + RESOURCE_SUFFIX_QUERY_TYPE);
+
+        String type = baseType.getType();
+        ObjectUtil.isNullThrowError(type, resourceName + RESOURCE_SUFFIX_QUERY_TYPE);
+
+        QueryTypeEnum queryType = QueryTypeEnum.get(type);
+        ObjectUtil.isNullThrowError(queryType, resourceName + RESOURCE_SUFFIX_QUERY_TYPE);
+
+        return queryType;
+
+    }
+
+    /**
+     * 处理单个参数字段的查询条件
+     * <p>
+     * QueryPlugin 注解按查询类型拼接（nest 嵌套参数递归解析，
+     * 注意：递归入参保持历史行为传入 Field 对象而非字段值）；
+     * TimeParam 字段生成时间范围条件（不依赖 QueryPlugin 注解）。
+     * </p>
+     *
+     * @param tableName 表别名
+     * @param field 参数字段
+     * @param data 字段值
+     * @param wrapper MPJ Lambda 查询条件构造器
+     */
+    private void applyFieldQueryCondition(String tableName, Field field, Object data, MPJLambdaWrapper<T> wrapper) {
+
+        String fieldName = field.getName();
+
+        QueryPlugin annotation = field.getAnnotation(QueryPlugin.class);
+
+        if (ObjectUtil.isNotNull(annotation)) {
+
+            // 注解显式指定字段名时优先使用
+            String annotationField = annotation.field();
+            if (StringUtils.isNotEmpty(annotationField)) {
+                fieldName = annotationField;
             }
 
-            // 时间范围参数：起始时间拼 >= 条件、结束时间拼 <= 条件
-            // （不依赖 QueryPlugin 注解）
-            if(data instanceof TimeParam timeParam) {
-
-                Long startTime = timeParam.getStartTime();
-                if(ObjectUtil.isNotNull(startTime)) {
-                    QueryTypeEnum.GE.getQueryPlugin().apply(wrapper, fieldName, startTime);
-                }
-
-                Long endTime = timeParam.getEndTime();
-                if(ObjectUtil.isNotNull(endTime)) {
-                    QueryTypeEnum.LE.getQueryPlugin().apply(wrapper, fieldName, endTime);
-                }
-
+            // 嵌套参数：以注解指定的表名递归解析其内部字段的查询条件
+            if (annotation.nest()) {
+                paramFieldSetWrapper(annotation.tableName(), field, wrapper);
+                return;
             }
 
+            // 字段注解显式指定表名时，覆盖外层传入的表名
+            String annotationTableName = annotation.tableName();
+            if (StringUtils.isNotEmpty(annotationTableName)) {
+                tableName = annotationTableName;
+            }
 
+            if (StringUtils.isNotEmpty(tableName)) {
+                fieldName = String.join(SymbolConstant.DOT, tableName, fieldName);
+            }
+
+            resolveQueryTypeEnum(annotation.value()).getQueryPlugin().apply(wrapper, fieldName, data);
+
+        }
+
+        // 时间范围参数：起始时间拼 >= 条件、结束时间拼 <= 条件
+        // （不依赖 QueryPlugin 注解）
+        if (data instanceof TimeParam timeParam) {
+            applyTimeParamCondition(fieldName, timeParam, wrapper);
+        }
+
+    }
+
+    /**
+     * 拼接时间范围条件
+     * <p>
+     * 起始时间拼 >= 条件、结束时间拼 <= 条件。
+     * </p>
+     *
+     * @param fieldName 字段名（可含表别名前缀）
+     * @param timeParam 时间范围参数
+     * @param wrapper MPJ Lambda 查询条件构造器
+     */
+    private void applyTimeParamCondition(String fieldName, TimeParam timeParam, MPJLambdaWrapper<T> wrapper) {
+
+        Long startTime = timeParam.getStartTime();
+        if (ObjectUtil.isNotNull(startTime)) {
+            QueryTypeEnum.GE.getQueryPlugin().apply(wrapper, fieldName, startTime);
+        }
+
+        Long endTime = timeParam.getEndTime();
+        if (ObjectUtil.isNotNull(endTime)) {
+            QueryTypeEnum.LE.getQueryPlugin().apply(wrapper, fieldName, endTime);
         }
 
     }
@@ -1252,7 +1313,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * 设置查询映射关联（MPJ 关联查询的 selectCollection/selectAssociation）
      * <p>
      * 遍历 VO 类中带 QueryMapping 注解且未标记 ignore、isService 的字段，
-     * 按注解表名从 StoreClass 解析关联实体后构建映射。
+     * 逐个构建映射关联。
      * </p>
      *
      * @param clazz VO 类型 Class 对象
@@ -1264,39 +1325,67 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
             Field[] fields = clazz.getDeclaredFields();
             for(Field field : fields) {
-
-                QueryMapping annotation = field.getAnnotation(QueryMapping.class);
-                if(ObjectUtil.isNotNull(annotation) && !annotation.ignore() && !annotation.isService()) {
-
-                    Class<?> type = field.getType();
-
-                    String tableName = annotation.tableName();
-                    ObjectUtil.checkConditionThrowError(StringUtils.isNotEmpty(tableName),
-                            getResourceName() + RESOURCE_SUFFIX_MAPPING_NAME);
-
-                    Map<String, Class<?>> dbClassMap = StoreClass.STORE_CLASS_MAP.get(StoreClassTypeEnum.DB);
-                    Class<?> relationClazz = dbClassMap == null ? null : dbClassMap.get(tableName);
-                    ObjectUtil.checkConditionThrowError(ObjectUtil.isNotNull(relationClazz),
-                            getResourceName() + RESOURCE_SUFFIX_MAPPING_NOT_EXIST);
-
-                    ObjectUtil.checkConditionThrowError(!type.isPrimitive(),
-                            getResourceName() + RESOURCE_SUFFIX_MAPPING_TYPE_ERROR);
-
-                    String fieldName = field.getName();
-
-                    if (List.class.equals(type)) {
-                        wrapper.selectCollection(relationClazz,
-                                (response) -> ReflectUtil.invokeGet(response, fieldName));
-                    }else{
-                        wrapper.selectAssociation(relationClazz,
-                                (response) -> ReflectUtil.invokeGet(response, fieldName));
-                    }
-
-                }
-
+                applyQueryMappingField(field, wrapper);
             }
 
         }
+
+    }
+
+    /**
+     * 解析单个 QueryMapping 字段并构建 MPJ 映射关联
+     * <p>
+     * 按注解表名从 StoreClass 解析关联实体后构建映射：
+     * List 类型走 selectCollection，其余走 selectAssociation。
+     * </p>
+     *
+     * @param field VO 字段
+     * @param wrapper MPJ Lambda 查询条件构造器
+     */
+    private void applyQueryMappingField(Field field, MPJLambdaWrapper<T> wrapper) {
+
+        QueryMapping annotation = field.getAnnotation(QueryMapping.class);
+        if (ObjectUtil.isNull(annotation) || annotation.ignore() || annotation.isService()) {
+            return;
+        }
+
+        String tableName = annotation.tableName();
+        ObjectUtil.checkConditionThrowError(StringUtils.isNotEmpty(tableName),
+                getResourceName() + RESOURCE_SUFFIX_MAPPING_NAME);
+
+        Class<?> relationClazz = resolveRelationClass(tableName);
+
+        Class<?> type = field.getType();
+        ObjectUtil.checkConditionThrowError(!type.isPrimitive(),
+                getResourceName() + RESOURCE_SUFFIX_MAPPING_TYPE_ERROR);
+
+        String fieldName = field.getName();
+
+        if (List.class.equals(type)) {
+            wrapper.selectCollection(relationClazz,
+                    (response) -> ReflectUtil.invokeGet(response, fieldName));
+        }else{
+            wrapper.selectAssociation(relationClazz,
+                    (response) -> ReflectUtil.invokeGet(response, fieldName));
+        }
+
+    }
+
+    /**
+     * 按表名从 StoreClass 解析关联实体 Class
+     *
+     * @param tableName 表名
+     * @return 关联实体 Class 对象
+     */
+    private Class<?> resolveRelationClass(String tableName) {
+
+        Map<String, Class<?>> dbClassMap = StoreClass.STORE_CLASS_MAP.get(StoreClassTypeEnum.DB);
+        Class<?> relationClazz = dbClassMap == null ? null : dbClassMap.get(tableName);
+
+        ObjectUtil.checkConditionThrowError(ObjectUtil.isNotNull(relationClazz),
+                getResourceName() + RESOURCE_SUFFIX_MAPPING_NOT_EXIST);
+
+        return relationClazz;
 
     }
 
@@ -1331,20 +1420,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         paramFieldSetWrapper(null, param, wrapper);
 
-        // 排序参数：初始化默认排序后，按默认表别名取升序/降序字段拼接 ORDER BY
-        if(param instanceof OrderParam orderParam) {
-
-            orderParam.initOrderParam();
-
-            List<String> asc = orderParam.getOrderAscFieldsMap().get(QueryEnvironmentContext.defaultOrderKey);
-
-            List<String> desc = orderParam.getOrderDescFieldsMap().get(QueryEnvironmentContext.defaultOrderKey);
-
-            wrapper.orderByAscStr(CollectionUtil.isNotEmpty(asc), asc);
-
-            wrapper.orderByDescStr(CollectionUtil.isNotEmpty(desc), desc);
-
-        }
+        applyOrderParam(param, wrapper);
 
         return wrapper;
 
@@ -1358,6 +1434,33 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public MPJLambdaWrapper<T> buildQueryWrapper(Object param) {
         return buildQueryWrapper(param, null);
+    }
+
+    /**
+     * 拼接排序条件
+     * <p>
+     * 初始化默认排序后，按默认表别名取升序/降序字段拼接 ORDER BY。
+     * </p>
+     *
+     * @param param 查询参数对象
+     * @param wrapper MPJ Lambda 查询条件构造器
+     */
+    private void applyOrderParam(Object param, MPJLambdaWrapper<T> wrapper) {
+
+        if (!(param instanceof OrderParam orderParam)) {
+            return;
+        }
+
+        orderParam.initOrderParam();
+
+        List<String> asc = orderParam.getOrderAscFieldsMap().get(QueryEnvironmentContext.defaultOrderKey);
+
+        List<String> desc = orderParam.getOrderDescFieldsMap().get(QueryEnvironmentContext.defaultOrderKey);
+
+        wrapper.orderByAscStr(CollectionUtil.isNotEmpty(asc), asc);
+
+        wrapper.orderByDescStr(CollectionUtil.isNotEmpty(desc), desc);
+
     }
 
     /**
@@ -1398,9 +1501,36 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     }
 
     /**
+     * 获取字段的服务填充注解配置
+     * <p>
+     * 无 QueryMapping 注解或标记 ignore 时返回 null；
+     * 有关联的注解先校验关联字段与自定义方法名至少配置其一；
+     * 未标记 isService 的同样返回 null（不参与服务填充）。
+     * </p>
+     *
+     * @param field VO 字段
+     * @return 服务填充注解配置，无需处理时返回 null
+     */
+    private QueryMapping getRelationAnnotation(Field field) {
+
+        QueryMapping annotation = field.getAnnotation(QueryMapping.class);
+        if (Objects.isNull(annotation) || annotation.ignore()) {
+            return null;
+        }
+
+        ObjectUtil.checkConditionThrowError(
+            StringUtils.isNotEmpty(annotation.relationField()) || StringUtils.isNotEmpty(annotation.functionName()),
+            getResourceName() + RESOURCE_SUFFIX_RELATION_FIELD_NOT_SET
+        );
+
+        return annotation.isService() ? annotation : null;
+
+    }
+
+    /**
      * 批量设置关联数据
      * <p>
-     * 遍历 VO 类中所有带 QueryMapping 注解的字段，
+     * 遍历 VO 类中所有需服务填充的 QueryMapping 字段，
      * 批量收集 ID 后统一调用服务获取关联数据。
      * </p>
      *
@@ -1416,22 +1546,13 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         Field[] fields = ReflectUtil.getFields(clazz);
         for (Field field : fields) {
 
-            QueryMapping annotation = field.getAnnotation(QueryMapping.class);
-            if (Objects.isNull(annotation) || annotation.ignore()) {
+            QueryMapping annotation = getRelationAnnotation(field);
+            if (Objects.isNull(annotation)) {
                 continue;
             }
 
-            String functionName = annotation.functionName();
-            String relationFieldName = annotation.relationField();
-            ObjectUtil.checkConditionThrowError(
-                StringUtils.isNotEmpty(relationFieldName) || StringUtils.isNotEmpty(functionName),
-                getResourceName() + RESOURCE_SUFFIX_RELATION_FIELD_NOT_SET
-            );
-
-            if (annotation.isService()) {
-                Object service = resolveServiceBean(annotation);
-                setBatchRelationField(responses, field, service, functionName, relationFieldName);
-            }
+            setBatchRelationField(responses, field, resolveServiceBean(annotation),
+                    annotation.functionName(), annotation.relationField());
 
         }
 
@@ -1440,7 +1561,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     /**
      * 单个对象设置关联数据
      * <p>
-     * 遍历 VO 类中所有带 QueryMapping 注解的字段，逐个调用服务获取关联数据。
+     * 遍历 VO 类中所有需服务填充的 QueryMapping 字段，逐个调用服务获取关联数据。
      * </p>
      *
      * @param data 响应数据对象
@@ -1451,22 +1572,13 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         Field[] fields = ReflectUtil.getFields(clazz);
         for (Field field : fields) {
 
-            QueryMapping annotation = field.getAnnotation(QueryMapping.class);
-            if (Objects.isNull(annotation) || annotation.ignore()) {
+            QueryMapping annotation = getRelationAnnotation(field);
+            if (Objects.isNull(annotation)) {
                 continue;
             }
 
-            String functionName = annotation.functionName();
-            String relationFieldName = annotation.relationField();
-            ObjectUtil.checkConditionThrowError(
-                StringUtils.isNotEmpty(relationFieldName) || StringUtils.isNotEmpty(functionName),
-                getResourceName() + RESOURCE_SUFFIX_RELATION_FIELD_NOT_SET
-            );
-
-            if (annotation.isService()) {
-                Object service = resolveServiceBean(annotation);
-                setSingleRelationField(data, field, service, functionName, relationFieldName);
-            }
+            setSingleRelationField(data, field, resolveServiceBean(annotation),
+                    annotation.functionName(), annotation.relationField());
 
         }
 
@@ -1476,8 +1588,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * 批量模式：设置单个字段的关联数据
      * <p>
      * 按字段类型分发：functionName 自定义方法、List 一对多、DropDownResult 下拉、
-     * 其余一对一；
-     * 批量收集 ID 统一调用服务后分发回各响应对象（一对多以对象自身主键为关联值）。
+     * 其余一对一；批量收集 ID 统一调用服务后分发回各响应对象
+     * （一对多以对象自身主键为关联值）。
      * </p>
      *
      * @param responses 响应数据列表
@@ -1490,90 +1602,164 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
             String functionName, String relationFieldName) {
 
         Class<?> type = field.getType();
-        // 自定义方法分支：按关联字段收集参数统一调用，再按关联字段取回并分发结果
+
         if (StringUtils.isNotEmpty(functionName)) {
-
-            Set<Object> param = CollectionUtil.newHashSet(responses.size());
-            for (Object response : responses) {
-                param.add(ReflectUtil.invokeGet(response, relationFieldName));
-            }
-
-            if (CollectionUtil.isNotEmpty(param)) {
-                Map<Long, Object> result = ReflectUtil.invoke(service, functionName, param, relationFieldName);
-                for (Object response : responses) {
-                    Long id = ReflectUtil.invokeGet(response, relationFieldName);
-                    Object data = result.get(id);
-                    if (ObjectUtil.isNotNull(data)) {
-                        ReflectUtil.invokeSet(response, field.getName(), data);
-                    }
-                }
-            }
-
-        // 一对多分支：以对象自身主键 ID 作为关联值，按关联字段分组取回列表
+            setBatchRelationFieldByFunction(responses, field, service, functionName, relationFieldName);
         } else if (type.equals(List.class)) {
-
-            Set<Long> relationIds = CollectionUtil.newHashSet(responses.size());
-            for (Object response : responses) {
-                relationIds.add(ReflectUtil.invokeFunGetId(response));
-            }
-
-            if (CollectionUtil.isNotEmpty(relationIds)) {
-                AbstractBaseResult<Map<Long, List<?>>> rpcResult = ReflectUtil.invoke(
-                    service, ResultFunName.LIST_BY_RELATION_IDS_RESULT, relationIds,
-                    relationFieldName, getColumns(field.getClass()));
-                Map<Long, List<?>> resultData = rpcResult.getResultNotNullDataThrowError(getResourceName());
-                for (Object response : responses) {
-                    Long id = ReflectUtil.invokeFunGetId(response);
-                    List<?> list = resultData.get(id);
-                    if (CollectionUtil.isNotEmpty(list)) {
-                        ReflectUtil.invokeSet(response, field.getName(), list);
-                    }
-                }
-            }
-
-        // 下拉关联分支：按关联字段批量取回下拉选项，转 Map 后按 ID 分发
+            setBatchListRelationField(responses, field, service, relationFieldName);
         } else if (DropDownResult.class.equals(type)) {
-
-            Set<Long> relationIds = CollectionUtil.newHashSet(responses.size());
-            for (Object response : responses) {
-                relationIds.add(ReflectUtil.invokeGet(response, relationFieldName));
-            }
-
-            if (CollectionUtil.isNotEmpty(relationIds)) {
-                AbstractBaseResult<List<DropDownResult>> rpcResult = ReflectUtil.invoke(
-                    service, ResultFunName.DROP_DOWN_LIST_RESULT, relationIds);
-                List<DropDownResult> resultData = rpcResult.getResultNotNullDataThrowError(getResourceName());
-                Map<Long, DropDownResult> relationsMap = toMapByIds(resultData, DropDownResult::getId);
-                for (Object response : responses) {
-                    Long id = ReflectUtil.invokeGet(response, relationFieldName);
-                    DropDownResult relation = relationsMap.get(id);
-                    if (ObjectUtil.isNotNull(relation)) {
-                        ReflectUtil.invokeSet(response, field.getName(), relation);
-                    }
-                }
-            }
-
-        // 一对一分支：按关联字段批量取回关联对象，转 Map 后按 ID 分发
+            setBatchDropDownRelationField(responses, field, service, relationFieldName);
         } else {
+            setBatchOneToOneRelationField(responses, field, service, relationFieldName);
+        }
 
-            Set<Long> relationIds = CollectionUtil.newHashSet(responses.size());
-            for (Object response : responses) {
-                relationIds.add(ReflectUtil.invokeGet(response, relationFieldName));
+    }
+
+    /**
+     * 批量模式-自定义方法：按关联字段收集参数统一调用，再按关联字段取回并分发结果
+     *
+     * @param responses 响应数据列表
+     * @param field 当前字段
+     * @param service 服务 Bean
+     * @param functionName 自定义方法名
+     * @param relationFieldName 关联字段名
+     */
+    private void setBatchRelationFieldByFunction(List<?> responses, Field field, Object service,
+            String functionName, String relationFieldName) {
+
+        Set<Object> param = CollectionUtil.newHashSet(responses.size());
+        for (Object response : responses) {
+            param.add(ReflectUtil.invokeGet(response, relationFieldName));
+        }
+
+        if (CollectionUtil.isEmpty(param)) {
+            return;
+        }
+
+        Map<Long, Object> result = ReflectUtil.invoke(service, functionName, param, relationFieldName);
+
+        setRelationFieldFromMap(responses, relationFieldName, field.getName(), result);
+
+    }
+
+    /**
+     * 批量模式-一对多：以对象自身主键 ID 作为关联值，按关联字段分组取回列表
+     *
+     * @param responses 响应数据列表
+     * @param field 当前字段
+     * @param service 服务 Bean
+     * @param relationFieldName 关联字段名
+     */
+    private void setBatchListRelationField(List<?> responses, Field field, Object service,
+            String relationFieldName) {
+
+        Set<Long> relationIds = CollectionUtil.newHashSet(responses.size());
+        for (Object response : responses) {
+            relationIds.add(ReflectUtil.invokeFunGetId(response));
+        }
+
+        if (CollectionUtil.isEmpty(relationIds)) {
+            return;
+        }
+
+        AbstractBaseResult<Map<Long, List<?>>> rpcResult = ReflectUtil.invoke(
+            service, ResultFunName.LIST_BY_RELATION_IDS_RESULT, relationIds,
+            relationFieldName, getColumns(field.getClass()));
+        Map<Long, List<?>> resultData = rpcResult.getResultNotNullDataThrowError(getResourceName());
+
+        for (Object response : responses) {
+            Long id = ReflectUtil.invokeFunGetId(response);
+            List<?> list = resultData.get(id);
+            if (CollectionUtil.isNotEmpty(list)) {
+                ReflectUtil.invokeSet(response, field.getName(), list);
             }
+        }
 
-            if (CollectionUtil.isNotEmpty(relationIds)) {
-                AbstractBaseResult<Map<Long, Object>> rpcResult = ReflectUtil.invoke(
-                    service, ResultFunName.LIST_BY_IDS_RESULT, relationIds, getColumns(field.getClass()));
-                Map<Long, Object> resultData = rpcResult.getResultNotNullDataThrowError(getResourceName());
-                for (Object response : responses) {
-                    Long id = ReflectUtil.invokeGet(response, relationFieldName);
-                    Object relation = resultData.get(id);
-                    if (ObjectUtil.isNotNull(relation)) {
-                        ReflectUtil.invokeSet(response, field.getName(), relation);
-                    }
-                }
+    }
+
+    /**
+     * 批量模式-下拉关联：按关联字段批量取回下拉选项，转 Map 后按 ID 分发
+     *
+     * @param responses 响应数据列表
+     * @param field 当前字段
+     * @param service 服务 Bean
+     * @param relationFieldName 关联字段名
+     */
+    private void setBatchDropDownRelationField(List<?> responses, Field field, Object service,
+            String relationFieldName) {
+
+        Set<Long> relationIds = collectRelationIds(responses, relationFieldName);
+        if (CollectionUtil.isEmpty(relationIds)) {
+            return;
+        }
+
+        AbstractBaseResult<List<DropDownResult>> rpcResult = ReflectUtil.invoke(
+            service, ResultFunName.DROP_DOWN_LIST_RESULT, relationIds);
+        List<DropDownResult> resultData = rpcResult.getResultNotNullDataThrowError(getResourceName());
+
+        Map<Long, DropDownResult> relationsMap = toMapByIds(resultData, DropDownResult::getId);
+
+        setRelationFieldFromMap(responses, relationFieldName, field.getName(), relationsMap);
+
+    }
+
+    /**
+     * 批量模式-一对一：按关联字段批量取回关联对象，转 Map 后按 ID 分发
+     *
+     * @param responses 响应数据列表
+     * @param field 当前字段
+     * @param service 服务 Bean
+     * @param relationFieldName 关联字段名
+     */
+    private void setBatchOneToOneRelationField(List<?> responses, Field field, Object service,
+            String relationFieldName) {
+
+        Set<Long> relationIds = collectRelationIds(responses, relationFieldName);
+        if (CollectionUtil.isEmpty(relationIds)) {
+            return;
+        }
+
+        AbstractBaseResult<Map<Long, Object>> rpcResult = ReflectUtil.invoke(
+            service, ResultFunName.LIST_BY_IDS_RESULT, relationIds, getColumns(field.getClass()));
+        Map<Long, Object> resultData = rpcResult.getResultNotNullDataThrowError(getResourceName());
+
+        setRelationFieldFromMap(responses, relationFieldName, field.getName(), resultData);
+
+    }
+
+    /**
+     * 按关联字段批量收集关联 ID（去重）
+     *
+     * @param responses 响应数据列表
+     * @param relationFieldName 关联字段名
+     * @return 关联 ID 集合
+     */
+    private Set<Long> collectRelationIds(List<?> responses, String relationFieldName) {
+
+        Set<Long> relationIds = CollectionUtil.newHashSet(responses.size());
+        for (Object response : responses) {
+            relationIds.add(ReflectUtil.invokeGet(response, relationFieldName));
+        }
+        return relationIds;
+
+    }
+
+    /**
+     * 按关联字段从结果 Map 中取值并回填到目标字段
+     *
+     * @param responses 响应数据列表
+     * @param relationFieldName 关联字段名
+     * @param fieldName 回填目标字段名
+     * @param resultData 以关联 ID 为键的结果 Map
+     */
+    private void setRelationFieldFromMap(List<?> responses, String relationFieldName, String fieldName,
+            Map<Long, ?> resultData) {
+
+        for (Object response : responses) {
+            Object data = resultData.get(ReflectUtil.invokeGet(response, relationFieldName));
+            if (ObjectUtil.isNotNull(data)) {
+                ReflectUtil.invokeSet(response, fieldName, data);
             }
-
         }
 
     }
@@ -1596,60 +1782,111 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         Class<?> type = field.getType();
 
-        String fieldName = field.getName();
-
-        // 自定义方法分支：配置了关联字段则携带其值调用，否则无参调用
         if (StringUtils.isNotEmpty(functionName)) {
-
-            Object result = null;
-            if (StringUtils.isNotEmpty(relationFieldName)) {
-                Object param = ReflectUtil.invokeGet(data, relationFieldName);
-                result = ReflectUtil.invoke(service, functionName, param);
-            } else {
-                result = ReflectUtil.invoke(service, functionName);
-            }
-
-            if (ObjectUtil.isNotNull(result)) {
-                ReflectUtil.invokeSet(data, fieldName, result);
-            }
-
-        // 一对多分支：以对象自身主键作为关联值查询关联列表
+            setSingleRelationFieldByFunction(data, field, service, functionName, relationFieldName);
         } else if (type.equals(List.class)) {
-
-            Long id = ReflectUtil.invokeFunGetId(data);
-            AbstractBaseResult<List<?>> rpcResult = ReflectUtil.invoke(
-                service, ResultFunName.LIST_BY_RELATION_ID_RESULT, id, relationFieldName, getColumns(field.getClass()));
-            List<?> resultData = rpcResult.getResultDataThrowError();
-            if (CollectionUtil.isNotEmpty(resultData)) {
-                ReflectUtil.invokeSet(data, fieldName, resultData);
-            }
-
-        // 下拉关联分支：按关联字段值查询单个下拉选项
+            setSingleListRelationField(data, field, service, relationFieldName);
         } else if (type.equals(DropDownResult.class)) {
-
-            Long relationId = ReflectUtil.invokeGet(data, relationFieldName);
-            if (ObjectUtil.isNotNull(relationId)) {
-                AbstractBaseResult<DropDownResult> rpcResult = ReflectUtil.invoke(
-                    service, ResultFunName.DROP_DOWN_RESULT, relationId);
-                DropDownResult resultData = rpcResult.getResultDataThrowError();
-                if (ObjectUtil.isNotNull(resultData)) {
-                    ReflectUtil.invokeSet(data, fieldName, resultData);
-                }
-            }
-
-        // 一对一分支：按关联字段值查询单个关联对象
+            setSingleDropDownRelationField(data, field, service, relationFieldName);
         } else {
+            setSingleOneToOneRelationField(data, field, service, relationFieldName);
+        }
 
-            Long relationId = ReflectUtil.invokeGet(data, relationFieldName);
-            if (ObjectUtil.isNotNull(relationId)) {
-                AbstractBaseResult<Object> rpcResult = ReflectUtil.invoke(
-                    service, ResultFunName.GET_BY_ID_RESULT, relationId, getColumns(field.getClass()));
-                Object resultData = rpcResult.getResultDataThrowError();
-                if (ObjectUtil.isNotNull(resultData)) {
-                    ReflectUtil.invokeSet(data, fieldName, resultData);
-                }
-            }
+    }
 
+    /**
+     * 单对象模式-自定义方法：配置了关联字段则携带其值调用，否则无参调用
+     *
+     * @param data 响应数据对象
+     * @param field 当前字段
+     * @param service 服务 Bean
+     * @param functionName 自定义方法名
+     * @param relationFieldName 关联字段名
+     */
+    private void setSingleRelationFieldByFunction(Object data, Field field, Object service,
+            String functionName, String relationFieldName) {
+
+        Object result = StringUtils.isNotEmpty(relationFieldName)
+                ? ReflectUtil.invoke(service, functionName, ReflectUtil.invokeGet(data, relationFieldName))
+                : ReflectUtil.invoke(service, functionName);
+
+        if (ObjectUtil.isNotNull(result)) {
+            ReflectUtil.invokeSet(data, field.getName(), result);
+        }
+
+    }
+
+    /**
+     * 单对象模式-一对多：以对象自身主键作为关联值查询关联列表
+     *
+     * @param data 响应数据对象
+     * @param field 当前字段
+     * @param service 服务 Bean
+     * @param relationFieldName 关联字段名
+     */
+    private void setSingleListRelationField(Object data, Field field, Object service,
+            String relationFieldName) {
+
+        Long id = ReflectUtil.invokeFunGetId(data);
+
+        AbstractBaseResult<List<?>> rpcResult = ReflectUtil.invoke(
+            service, ResultFunName.LIST_BY_RELATION_ID_RESULT, id, relationFieldName, getColumns(field.getClass()));
+        List<?> resultData = rpcResult.getResultDataThrowError();
+
+        if (CollectionUtil.isNotEmpty(resultData)) {
+            ReflectUtil.invokeSet(data, field.getName(), resultData);
+        }
+
+    }
+
+    /**
+     * 单对象模式-下拉关联：按关联字段值查询单个下拉选项
+     *
+     * @param data 响应数据对象
+     * @param field 当前字段
+     * @param service 服务 Bean
+     * @param relationFieldName 关联字段名
+     */
+    private void setSingleDropDownRelationField(Object data, Field field, Object service,
+            String relationFieldName) {
+
+        Long relationId = ReflectUtil.invokeGet(data, relationFieldName);
+        if (ObjectUtil.isNull(relationId)) {
+            return;
+        }
+
+        AbstractBaseResult<DropDownResult> rpcResult = ReflectUtil.invoke(
+            service, ResultFunName.DROP_DOWN_RESULT, relationId);
+        DropDownResult resultData = rpcResult.getResultDataThrowError();
+
+        if (ObjectUtil.isNotNull(resultData)) {
+            ReflectUtil.invokeSet(data, field.getName(), resultData);
+        }
+
+    }
+
+    /**
+     * 单对象模式-一对一：按关联字段值查询单个关联对象
+     *
+     * @param data 响应数据对象
+     * @param field 当前字段
+     * @param service 服务 Bean
+     * @param relationFieldName 关联字段名
+     */
+    private void setSingleOneToOneRelationField(Object data, Field field, Object service,
+            String relationFieldName) {
+
+        Long relationId = ReflectUtil.invokeGet(data, relationFieldName);
+        if (ObjectUtil.isNull(relationId)) {
+            return;
+        }
+
+        AbstractBaseResult<Object> rpcResult = ReflectUtil.invoke(
+            service, ResultFunName.GET_BY_ID_RESULT, relationId, getColumns(field.getClass()));
+        Object resultData = rpcResult.getResultDataThrowError();
+
+        if (ObjectUtil.isNotNull(resultData)) {
+            ReflectUtil.invokeSet(data, field.getName(), resultData);
         }
 
     }

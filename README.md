@@ -54,11 +54,13 @@
 
 ## 代码质量
 
-> 每次提交代码前检查
+> 每次提交代码前扫描检查代码
 
 - 严格遵循《阿里巴巴 Java 开发手册》规范
 
 - 基于 Maven 集成 SonarQube 实现代码扫描，保障扫描结果零 Issues
+
+<img src="maozi-cloud-images/90371433143707258084.png" alt="null" style="zoom:50%;" />
 
 ## 🏗️ 示例演示
 

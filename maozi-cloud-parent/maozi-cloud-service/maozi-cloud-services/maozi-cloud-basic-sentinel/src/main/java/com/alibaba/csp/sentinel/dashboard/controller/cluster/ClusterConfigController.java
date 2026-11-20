@@ -114,9 +114,7 @@ public class ClusterConfigController {
             logger.error("Error when modifying cluster config", ex.getCause());
             return errorResponse(ex);
         } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            logger.error("Error when modifying cluster config", ex);
-            return Result.ofFail(-1, ex.getMessage());
+            return onInterrupted(logger, "Error when modifying cluster config", ex);
         } catch (Throwable ex) {
             logger.error("Error when modifying cluster config", ex);
             return Result.ofFail(-1, ex.getMessage());
@@ -157,9 +155,7 @@ public class ClusterConfigController {
             logger.error("Error when fetching cluster state", ex.getCause());
             return errorResponse(ex);
         } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            logger.error("Error when fetching cluster state", ex);
-            return Result.ofFail(-1, ex.getMessage());
+            return onInterrupted(logger, "Error when fetching cluster state", ex);
         } catch (Throwable throwable) {
             logger.error("Error when fetching cluster state", throwable);
             return Result.ofFail(-1, throwable.getMessage());
@@ -181,9 +177,7 @@ public class ClusterConfigController {
             logger.error("Error when fetching cluster server state of app: " + app, ex.getCause());
             return errorResponse(ex);
         } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            logger.error("Error when fetching cluster server state of app: " + app, ex);
-            return Result.ofFail(-1, ex.getMessage());
+            return onInterrupted(logger, "Error when fetching cluster server state of app: " + app, ex);
         } catch (Throwable throwable) {
             logger.error("Error when fetching cluster server state of app: " + app, throwable);
             return Result.ofFail(-1, throwable.getMessage());
@@ -205,9 +199,7 @@ public class ClusterConfigController {
             logger.error("Error when fetching cluster token client state of app: " + app, ex.getCause());
             return errorResponse(ex);
         } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            logger.error("Error when fetching cluster token client state of app: " + app, ex);
-            return Result.ofFail(-1, ex.getMessage());
+            return onInterrupted(logger, "Error when fetching cluster token client state of app: " + app, ex);
         } catch (Throwable throwable) {
             logger.error("Error when fetching cluster token client state of app: " + app, throwable);
             return Result.ofFail(-1, throwable.getMessage());
@@ -228,9 +220,7 @@ public class ClusterConfigController {
             logger.error("Error when fetching cluster state of app: " + app, ex.getCause());
             return errorResponse(ex);
         } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            logger.error("Error when fetching cluster state of app: " + app, ex);
-            return Result.ofFail(-1, ex.getMessage());
+            return onInterrupted(logger, "Error when fetching cluster state of app: " + app, ex);
         } catch (Throwable throwable) {
             logger.error("Error when fetching cluster state of app: " + app, throwable);
             return Result.ofFail(-1, throwable.getMessage());
@@ -286,4 +276,11 @@ public class ClusterConfigController {
 
     /** The JSON field name of the cluster mode in the modify request payload. */
     private static final String KEY_MODE = "mode";
+
+    public static <T> Result<T> onInterrupted(Logger logger, String message, InterruptedException ex) {
+        Thread.currentThread().interrupt();
+        logger.error(message, ex);
+        return Result.ofFail(-1, ex.getMessage());
+    }
+    
 }

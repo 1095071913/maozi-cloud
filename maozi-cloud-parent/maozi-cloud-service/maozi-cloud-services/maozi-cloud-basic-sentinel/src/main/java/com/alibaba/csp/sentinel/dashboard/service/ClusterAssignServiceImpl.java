@@ -98,9 +98,7 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
             // Modify mode to NOT-STARTED for all associated token clients.
             modifyToNonStarted(toModifySet, failedSet);
         } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            LOGGER.error("Failed to unbind machine <{}>", machineId, ex);
-            failedSet.add(machineId);
+            onInterrupted(machineId, "Failed to unbind machine <{}>", ex, failedSet);
         } catch (Exception ex) {
             Throwable e = ex instanceof ExecutionException ? ex.getCause() : ex;
             LOGGER.error("Failed to unbind machine <{}>", machineId, e);
@@ -153,9 +151,7 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
             // Modify mode to NOT-STARTED for all chosen token servers and associated token clients.
             modifyToNonStarted(toModifySet, failedSet);
         } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            LOGGER.error("Failed to unbind machine <{}>", machineId, ex);
-            failedSet.add(machineId);
+            onInterrupted(machineId, "Failed to unbind machine <{}>", ex, failedSet);
         } catch (Exception ex) {
             Throwable e = ex instanceof ExecutionException ? ex.getCause() : ex;
             LOGGER.error("Failed to unbind machine <{}>", machineId, e);
@@ -287,9 +283,7 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
         try {
             t.r2.get(10, TimeUnit.SECONDS);
         } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            LOGGER.error("Request for <{}> failed", t.r1, ex);
-            failedSet.add(t.r1);
+            onInterrupted(t.r1, "Request for <{}> failed", ex, failedSet);
         } catch (Exception ex) {
             if (ex instanceof ExecutionException) {
                 LOGGER.error("Request for <{}> failed", t.r1, ex.getCause());
@@ -298,6 +292,16 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
             }
             failedSet.add(t.r1);
         }
+    }
+
+    /**
+     * Restores the current thread's interrupt flag, logs the failure of the given
+     * machine with the given message and records the machine id in the failed set.
+     */
+    private void onInterrupted(String machineId, String message, InterruptedException ex, Set<String> failedSet) {
+        Thread.currentThread().interrupt();
+        LOGGER.error(message, machineId, ex);
+        failedSet.add(machineId);
     }
 
     /**

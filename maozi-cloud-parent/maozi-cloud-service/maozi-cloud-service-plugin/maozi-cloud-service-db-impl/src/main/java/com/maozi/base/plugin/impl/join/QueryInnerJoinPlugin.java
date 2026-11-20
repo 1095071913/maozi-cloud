@@ -2,15 +2,12 @@ package com.maozi.base.plugin.impl.join;
 
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.maozi.base.plugin.BaseJoinPlugin;
-import com.maozi.base.plugin.join.JoinPlugin;
-import com.maozi.common.ObjectUtil;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * 内连接（INNER JOIN）插件
  * <p>
- * 实现内连接的 SQL 拼接逻辑，校验关联表名和连接条件不能为空，
- * 支持表别名设置。
+ * 公共校验与 SQL 拼接逻辑见 {@link BaseJoinPlugin}，
+ * 本类仅声明内连接的异常标识与拼接方式。
  * </p>
  *
  * @author maozi
@@ -18,38 +15,25 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class QueryInnerJoinPlugin extends BaseJoinPlugin {
 
-    /** 内联目标为空时的异常提示后缀 */
-    private static final String JOIN_TARGET_ERROR = "内联目标";
-
-    /** 内联条件为空时的异常提示后缀 */
-    private static final String JOIN_CONDITION_ERROR = "内联条件";
-
     /**
-     * 应用内连接条件
+     * 获取关联方式名称，用于异常信息标识
      *
-     * @param abbreviationModelName 模型简称
-     * @param wrapper MyBatis-Plus-Join Lambda 包装器
-     * @param joinPlugin 关联注解实例
+     * @return 内联
      */
     @Override
-    public void apply(String abbreviationModelName, MPJLambdaWrapper<?> wrapper, JoinPlugin joinPlugin) {
+    protected String joinName() {
+        return "内联";
+    }
 
-        String tableName = joinPlugin.tableName();
-        ObjectUtil.checkConditionThrowError(StringUtils.isNotEmpty(tableName),
-            abbreviationModelName + JOIN_TARGET_ERROR);
-
-        String on = joinPlugin.on();
-        ObjectUtil.checkConditionThrowError(StringUtils.isNotEmpty(on),
-            abbreviationModelName + JOIN_CONDITION_ERROR);
-
-        // 配置了表别名时拼接为 "表名 as 别名"
-        String tableAlias = joinPlugin.tableAlias();
-        if(StringUtils.isNotEmpty(tableAlias)){
-            tableName += SQL_AS + tableAlias;
-        }
-
-        wrapper.innerJoin(tableName + SQL_ON + on);
-
+    /**
+     * 应用内连接 SQL
+     *
+     * @param wrapper MyBatis-Plus-Join Lambda 包装器
+     * @param joinSql 拼接好的关联 SQL
+     */
+    @Override
+    protected void doJoin(MPJLambdaWrapper<?> wrapper, String joinSql) {
+        wrapper.innerJoin(joinSql);
     }
 
 }

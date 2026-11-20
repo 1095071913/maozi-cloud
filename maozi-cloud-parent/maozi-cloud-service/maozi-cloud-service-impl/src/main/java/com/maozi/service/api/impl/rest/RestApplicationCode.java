@@ -6,7 +6,9 @@ import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.mvc.config.enums.EnumConfig;
 import com.maozi.service.annotation.Get;
 import com.maozi.service.api.annotation.RestService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
@@ -45,7 +47,8 @@ public class RestApplicationCode {
      * @param name 枚举名称（首字母小写）
      * @return 枚举常量列表
      */
-    @Get(value = PATH + "/{name}/get", description = "详情")
+    @Operation(description = "详情")
+    @GetMapping(value = PATH + "/{name}/get")
     public AbstractBaseResult<List<BaseEnum>> get(@PathVariable("name") String name) {
         return ResultUtil.success(EnumConfig.getEnums().get(name));
     }

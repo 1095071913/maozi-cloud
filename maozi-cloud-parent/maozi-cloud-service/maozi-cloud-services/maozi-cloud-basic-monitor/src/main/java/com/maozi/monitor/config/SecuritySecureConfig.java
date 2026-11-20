@@ -76,12 +76,18 @@ public class SecuritySecureConfig {
      *     <li>/logout：SBA 前端登出请求不携带 CSRF 令牌，不豁免会 403，
      *     豁免后最坏后果为被恶意登出（低危），不影响会话与数据安全。</li>
      * </ul>
+     * <p>
+     * XSRF-TOKEN cookie 未设 HttpOnly（S3330）：SPA 前端需 JS 读取该 cookie
+     * 放入 X-XSRF-TOKEN 请求头（double-submit 模式），设 HttpOnly 会导致全部写请求 403。
+     * 该 token 非登录凭证，泄露不构成会话劫持；JSESSIONID 与 Remember-Me cookie
+     * 仍保持 HttpOnly，风险可控。
+     * </p>
      *
      * @param http HttpSecurity 对象，用于构建监控台的安全过滤器链
      * @return 配置完成的监控台安全过滤器链
      * @throws Exception 配置过程中可能抛出的异常
      */
-    @SuppressWarnings("java:S4502")
+    @SuppressWarnings({"java:S4502", "java:S3330"})
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // 登录成功后重定向处理器

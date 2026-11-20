@@ -306,7 +306,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         List<String> columns = CollectionUtil.newArrayList(32);
 
-        for( ; !Object.class.getName().equals(clazz.getName()); clazz = clazz.getSuperclass()){
+        for( ; !clazz.isAssignableFrom(Object.class); clazz = clazz.getSuperclass()){
 
             Field[] fields = clazz.getDeclaredFields();
             for(Field field : fields) {
@@ -1260,10 +1260,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public void setQueryMappingWrapper(Class<?> clazz, MPJLambdaWrapper<T> wrapper){
 
-        for(;!Object.class.getName().equals(clazz.getName());clazz = clazz.getSuperclass()){
+        for(;!clazz.isAssignableFrom(Object.class);clazz = clazz.getSuperclass()){
 
             Field[] fields = clazz.getDeclaredFields();
-
             for(Field field : fields) {
 
                 QueryMapping annotation = field.getAnnotation(QueryMapping.class);

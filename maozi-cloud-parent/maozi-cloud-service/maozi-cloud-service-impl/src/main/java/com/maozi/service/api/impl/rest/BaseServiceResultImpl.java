@@ -1,7 +1,5 @@
 package com.maozi.service.api.impl.rest;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 /**
  * REST 服务结果实现基类
  * <p>
@@ -14,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class BaseServiceResultImpl<S> {
 
     /** 关联的通用业务服务 */
-    @Autowired
     protected S service;
     
 }

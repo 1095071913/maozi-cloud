@@ -46,7 +46,7 @@ public class RestApplicationCode {
      * @return 枚举常量列表
      */
     @Get(value = PATH + "/{name}/get", description = "详情")
-    public AbstractBaseResult<List<BaseEnum>> get(@PathVariable("name") String name) {
+    public AbstractBaseResult<List<BaseEnum>> get(@PathVariable String name) {
         return ResultUtil.success(EnumConfig.getEnums().get(name));
     }
 

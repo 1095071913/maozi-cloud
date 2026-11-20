@@ -128,6 +128,9 @@ public class DemoController {
                         TimeUnit.MILLISECONDS.sleep(3000);
                     }
 
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    stop = true;
                 } catch (Exception e) {
                 } finally {
                     if (e1 != null) {
@@ -138,6 +141,7 @@ public class DemoController {
                     TimeUnit.MILLISECONDS.sleep(ThreadLocalRandom.current().nextInt(200));
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
+                    stop = true;
                     logger.warn("Demo loop task interrupted", e);
                 }
 

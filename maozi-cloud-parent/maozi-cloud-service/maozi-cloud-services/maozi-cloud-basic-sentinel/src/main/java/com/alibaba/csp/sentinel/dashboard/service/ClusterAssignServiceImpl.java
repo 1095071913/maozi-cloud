@@ -97,6 +97,10 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
                 .collect(Collectors.toSet());
             // Modify mode to NOT-STARTED for all associated token clients.
             modifyToNonStarted(toModifySet, failedSet);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            LOGGER.error("Failed to unbind machine <{}>", machineId, ex);
+            failedSet.add(machineId);
         } catch (Exception ex) {
             Throwable e = ex instanceof ExecutionException ? ex.getCause() : ex;
             LOGGER.error("Failed to unbind machine <{}>", machineId, e);
@@ -148,6 +152,10 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
             }
             // Modify mode to NOT-STARTED for all chosen token servers and associated token clients.
             modifyToNonStarted(toModifySet, failedSet);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            LOGGER.error("Failed to unbind machine <{}>", machineId, ex);
+            failedSet.add(machineId);
         } catch (Exception ex) {
             Throwable e = ex instanceof ExecutionException ? ex.getCause() : ex;
             LOGGER.error("Failed to unbind machine <{}>", machineId, e);
@@ -278,6 +286,10 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
     private void handleFutureSync(Tuple2<String, CompletableFuture<Void>> t, Set<String> failedSet) {
         try {
             t.r2.get(10, TimeUnit.SECONDS);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            LOGGER.error("Request for <{}> failed", t.r1, ex);
+            failedSet.add(t.r1);
         } catch (Exception ex) {
             if (ex instanceof ExecutionException) {
                 LOGGER.error("Request for <{}> failed", t.r1, ex.getCause());

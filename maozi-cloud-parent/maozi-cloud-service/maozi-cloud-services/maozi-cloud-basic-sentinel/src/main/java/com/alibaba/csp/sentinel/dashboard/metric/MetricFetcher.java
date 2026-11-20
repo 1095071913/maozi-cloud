@@ -289,6 +289,9 @@ public class MetricFetcher {
         }
         try {
             latch.await(maxWaitSeconds, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.info("{} metric, wait http client error:", msg, e);
         } catch (Exception e) {
             logger.info("{} metric, wait http client error:", msg, e);
         }

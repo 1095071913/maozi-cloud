@@ -76,6 +76,9 @@ public final class AsyncUtils {
     public static <T> T getValue(CompletableFuture<T> future) {
         try {
             return future.get(10, TimeUnit.SECONDS);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            LOG.error("getValue for async result failed", ex);
         } catch (Exception ex) {
             LOG.error("getValue for async result failed", ex);
         }

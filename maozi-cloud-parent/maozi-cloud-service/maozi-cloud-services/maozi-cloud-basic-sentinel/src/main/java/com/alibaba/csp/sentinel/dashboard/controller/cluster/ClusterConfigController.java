@@ -113,6 +113,10 @@ public class ClusterConfigController {
         } catch (ExecutionException ex) {
             logger.error("Error when modifying cluster config", ex.getCause());
             return errorResponse(ex);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            logger.error("Error when modifying cluster config", ex);
+            return Result.ofFail(-1, ex.getMessage());
         } catch (Throwable ex) {
             logger.error("Error when modifying cluster config", ex);
             return Result.ofFail(-1, ex.getMessage());
@@ -152,6 +156,10 @@ public class ClusterConfigController {
         } catch (ExecutionException ex) {
             logger.error("Error when fetching cluster state", ex.getCause());
             return errorResponse(ex);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            logger.error("Error when fetching cluster state", ex);
+            return Result.ofFail(-1, ex.getMessage());
         } catch (Throwable throwable) {
             logger.error("Error when fetching cluster state", throwable);
             return Result.ofFail(-1, throwable.getMessage());
@@ -172,6 +180,10 @@ public class ClusterConfigController {
         } catch (ExecutionException ex) {
             logger.error("Error when fetching cluster server state of app: " + app, ex.getCause());
             return errorResponse(ex);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            logger.error("Error when fetching cluster server state of app: " + app, ex);
+            return Result.ofFail(-1, ex.getMessage());
         } catch (Throwable throwable) {
             logger.error("Error when fetching cluster server state of app: " + app, throwable);
             return Result.ofFail(-1, throwable.getMessage());
@@ -192,6 +204,10 @@ public class ClusterConfigController {
         } catch (ExecutionException ex) {
             logger.error("Error when fetching cluster token client state of app: " + app, ex.getCause());
             return errorResponse(ex);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            logger.error("Error when fetching cluster token client state of app: " + app, ex);
+            return Result.ofFail(-1, ex.getMessage());
         } catch (Throwable throwable) {
             logger.error("Error when fetching cluster token client state of app: " + app, throwable);
             return Result.ofFail(-1, throwable.getMessage());
@@ -211,6 +227,10 @@ public class ClusterConfigController {
         } catch (ExecutionException ex) {
             logger.error("Error when fetching cluster state of app: " + app, ex.getCause());
             return errorResponse(ex);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            logger.error("Error when fetching cluster state of app: " + app, ex);
+            return Result.ofFail(-1, ex.getMessage());
         } catch (Throwable throwable) {
             logger.error("Error when fetching cluster state of app: " + app, throwable);
             return Result.ofFail(-1, throwable.getMessage());

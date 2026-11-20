@@ -17,7 +17,6 @@
 package com.maozi;
 
 import cn.hutool.extra.spring.SpringUtil;
-import com.maozi.common.CollectionUtil;
 import com.maozi.common.LogUtil;
 import com.maozi.common.constant.LogTag;
 import com.maozi.common.constant.SpringPropertyConstant;
@@ -169,6 +168,8 @@ public class BaseApplication {
         // 初始化系统属性（环境、版本、应用名、日志等）
         initProperties();
 
+        initFileProperties();
+
         // 启动日志信息集合
         Map<String, String> logs = new LinkedHashMap<>();
 
@@ -314,14 +315,10 @@ public class BaseApplication {
      * 反射实例化文件中登记的 {@link ConfigInitializer} 实现类并依次执行其 initialize
      * 方法写入系统属性，最终返回初始化器列表供启动日志输出使用。
      * </p>
-     *
-     * @return 已加载并执行完成的配置初始化器列表
      */
-    private static List<ConfigInitializer> initFileProperties() {
+    private static void initFileProperties() {
 
         Properties properties = System.getProperties();
-
-        List<ConfigInitializer> initializers = CollectionUtil.newArrayList();
 
         ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         try {
@@ -335,7 +332,6 @@ public class BaseApplication {
                 for (String className : registrations.stringPropertyNames()) {
                     ConfigInitializer initializer = instantiateInitializer(className);
                     initializer.initialize(properties);
-                    initializers.add(initializer);
                 }
             }
         } catch (IOException e) {
@@ -343,8 +339,6 @@ public class BaseApplication {
         } catch (Exception e) {
             throw new RuntimeException("执行运行时配置初始化器失败", e);
         }
-
-        return initializers;
 
     }
 

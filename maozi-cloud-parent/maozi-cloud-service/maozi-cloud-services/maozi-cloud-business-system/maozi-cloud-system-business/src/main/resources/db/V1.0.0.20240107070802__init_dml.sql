@@ -1,49 +1,10 @@
-/*
- Navicat Premium Dump SQL
+-- 初始化数据（DML）：数据脚本独立于表结构，整体包裹在事务中，任一语句失败全部回滚
+START TRANSACTION;
 
- Source Server         : 本地环境mysql
- Source Server Type    : MySQL
- Source Server Version : 80029 (8.0.29)
- Source Host           : localhost:3306
- Source Schema         : maozi-cloud-system-service-local-db
-
- Target Server Type    : MySQL
- Target Server Version : 80029 (8.0.29)
- File Encoding         : 65001
-
- Date: 07/09/2026 12:08:31
-*/
-
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
-
--- 系统服务数据库初始化脚本：包含配置、地区、权限、角色、用户及关联关系表的建表语句与初始数据
-
--- ----------------------------
--- Table structure for system_config
--- ----------------------------
--- 全局配置表：按类型存储配置项，包含配置类型定义、中间件访问信息、AI 系统提示词与 AI 对话示例
-DROP TABLE IF EXISTS `system_config`;
-CREATE TABLE `system_config` (
-                                 `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
-                                 `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '配置名称',
-                                 `alias` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '别名',
-                                 `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '配置类型',
-                                 `value` varchar(2000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '配置值',
-                                 `sort` int NOT NULL DEFAULT '0' COMMENT '排序',
-                                 `is_deleted` tinyint unsigned NOT NULL DEFAULT '0' COMMENT '是否删除（1是 0否）',
-                                 `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态',
-                                 `version` int NOT NULL DEFAULT '0' COMMENT '版本号',
-                                 `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-                                 PRIMARY KEY (`id`) USING BTREE,
-                                 KEY `idx_name` (`name`) USING BTREE,
-                                 KEY `idx_type` (`type`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='全局配置';
 
 -- ----------------------------
 -- Records of system_config
 -- ----------------------------
-BEGIN;
 INSERT INTO `system_config` (`id`, `name`, `alias`, `type`, `value`, `sort`, `is_deleted`, `status`, `version`, `create_time`) VALUES (1, 'system_config_type', '配置类型', 'system_config_type', '{\n  \"system_config_type\": \"配置类型管理\",\n  \"system_middleware_config\": \"中间件管理\",\n  \"ai_system_prompt\": \"AI系统提示词管理\",\n  \"ai_chat_example\": \"AI对话示例\"\n}', 0, 0, 1, 0, '2026-08-18 18:28:43');
 INSERT INTO `system_config` (`id`, `name`, `alias`, `type`, `value`, `sort`, `is_deleted`, `status`, `version`, `create_time`) VALUES (8, 'porn_identification_officer', '鉴黄师', 'ai_system_prompt', '# 身份\n你是一位资深的鉴黄师,能根据用户输入的消息判断是否有涉及到黄赌毒等违规行为\n\n# 技能\n能根据用户输入的消息判断是否有涉及到黄赌毒等违规行为\n\n# 限制\n你只能回答true或者false,true代表未发现涉及违规行为 false代表发现\n\n# 例子\n用户: 我要把你们全部杀掉分尸\n回答: false', 1, 0, 1, 0, '2026-08-18 20:14:35');
 INSERT INTO `system_config` (`id`, `name`, `alias`, `type`, `value`, `sort`, `is_deleted`, `status`, `version`, `create_time`) VALUES (9, 'Nacos', '注册配置中心', 'system_middleware_config', '{\n  \"type\": \"Nacos\",\n  \"url\": \"http://localhost:8848/nacos\",\n  \"icon\": \"https://img.alicdn.com/imgextra/i3/O1CN01GdSxST24NB7Yl5Pdx_!!6000000007378-2-tps-80-80.png\",\n  \"username\": \"nacos\",\n  \"password\": \"nacos\"\n}', 1, 0, 1, 0, '2026-08-21 01:30:12');
@@ -57,37 +18,10 @@ INSERT INTO `system_config` (`id`, `name`, `alias`, `type`, `value`, `sort`, `is
 INSERT INTO `system_config` (`id`, `name`, `alias`, `type`, `value`, `sort`, `is_deleted`, `status`, `version`, `create_time`) VALUES (19, 'select_current_user', '查询个人信息', 'ai_chat_example', '帮我查询我的个人信息', 98, 0, 1, 0, '2026-08-30 19:23:35');
 INSERT INTO `system_config` (`id`, `name`, `alias`, `type`, `value`, `sort`, `is_deleted`, `status`, `version`, `create_time`) VALUES (20, 'save_mini_client', '新增小程序客户端', 'ai_chat_example', '帮我新增小程序客户端', 99, 0, 1, 0, '2026-08-30 19:23:57');
 INSERT INTO `system_config` (`id`, `name`, `alias`, `type`, `value`, `sort`, `is_deleted`, `status`, `version`, `create_time`) VALUES (21, 'Snail-Job', '定时任务与重试平台', 'system_middleware_config', '{\n  \"type\": \"Snail-Job\",\n  \"url\": \"http://localhost:8800/snail-job\",\n  \"icon\": \"https://snailjob.opensnail.com/logo.svg\",\n  \"username\": \"admin\",\n  \"password\": \"admin\"\n}', 2, 0, 1, 0, '2026-09-02 22:35:33');
-COMMIT;
-
--- ----------------------------
--- Table structure for system_config_region
--- ----------------------------
--- 地区表：存储中国省市区三级行政区划数据，含经纬度、拼音、邮政编码等扩展信息
-DROP TABLE IF EXISTS `system_config_region`;
-CREATE TABLE `system_config_region` (
-                                        `id` int NOT NULL AUTO_INCREMENT COMMENT '主键',
-                                        `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '名称',
-                                        `parent_id` int NOT NULL DEFAULT '1' COMMENT '父级ID',
-                                        `sname` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '简称',
-                                        `level` int NOT NULL COMMENT '级别',
-                                        `city_code` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '编码',
-                                        `mail_code` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '邮政编码',
-                                        `mername` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '组合名称',
-                                        `lng` decimal(10,6) NOT NULL COMMENT '经度',
-  `lat` decimal(10,6) NOT NULL COMMENT '纬度',
-  `pinyin` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '拼音',
-  `is_deleted` tinyint unsigned NOT NULL DEFAULT '0' COMMENT '是否删除（1是 0否）',
-  `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态',
-  `version` int NOT NULL DEFAULT '0' COMMENT '版本号',
-  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 创建时间，默认当前时间戳
-  PRIMARY KEY (`id`) USING BTREE,
-  KEY `actable_idx_name` (`name`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=900001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='地区';
 
 -- ----------------------------
 -- Records of system_config_region
 -- ----------------------------
-BEGIN;
 INSERT INTO `system_config_region` (`id`, `name`, `parent_id`, `sname`, `level`, `city_code`, `mail_code`, `mername`, `lng`, `lat`, `pinyin`, `is_deleted`, `status`, `version`, `create_time`) VALUES (100000, '中国', 0, '中国', 0, '', '', '中国', 116, 40, 'China', 0, 1, 0, '2026-06-04 03:27:04');
 INSERT INTO `system_config_region` (`id`, `name`, `parent_id`, `sname`, `level`, `city_code`, `mail_code`, `mername`, `lng`, `lat`, `pinyin`, `is_deleted`, `status`, `version`, `create_time`) VALUES (110000, '北京', 100000, '北京', 1, '', '', '中国,北京', 116, 40, 'Beijing', 0, 1, 0, '2026-06-04 03:27:04');
 INSERT INTO `system_config_region` (`id`, `name`, `parent_id`, `sname`, `level`, `city_code`, `mail_code`, `mername`, `lng`, `lat`, `pinyin`, `is_deleted`, `status`, `version`, `create_time`) VALUES (110100, '北京市', 110000, '北京', 2, '010', '100000', '中国,北京,北京市', 116, 40, 'Beijing', 0, 1, 0, '2026-06-04 03:27:04');
@@ -3838,36 +3772,10 @@ INSERT INTO `system_config_region` (`id`, `name`, `parent_id`, `sname`, `level`,
 INSERT INTO `system_config_region` (`id`, `name`, `parent_id`, `sname`, `level`, `city_code`, `mail_code`, `mername`, `lng`, `lat`, `pinyin`, `is_deleted`, `status`, `version`, `create_time`) VALUES (820300, '路环岛', 820000, '路环岛', 2, '00853', '999078', '中国,澳门特别行政区,路环岛', 114, 22, 'Coloane', 0, 1, 0, '2026-06-04 03:27:04');
 INSERT INTO `system_config_region` (`id`, `name`, `parent_id`, `sname`, `level`, `city_code`, `mail_code`, `mername`, `lng`, `lat`, `pinyin`, `is_deleted`, `status`, `version`, `create_time`) VALUES (820301, '圣方济各堂区', 820300, '圣方济各堂区', 3, '00853', '999078', '中国,澳门特别行政区,路环岛,圣方济各堂区', 114, 22, 'St Francis Xavier\'s Parish', 0, 1, 0, '2026-06-04 03:27:04');
 INSERT INTO `system_config_region` (`id`, `name`, `parent_id`, `sname`, `level`, `city_code`, `mail_code`, `mername`, `lng`, `lat`, `pinyin`, `is_deleted`, `status`, `version`, `create_time`) VALUES (900000, '钓鱼岛', 100000, '钓鱼岛', 1, '', '', '中国,钓鱼岛', 123, 26, 'DiaoyuDao', 0, 1, 0, '2026-06-04 03:27:04');
-COMMIT;
-
--- ----------------------------
--- Table structure for system_permission
--- ----------------------------
--- 权限表：树形结构存储菜单与操作权限，level 为节点深度，type 区分权限类型
-DROP TABLE IF EXISTS `system_permission`;
-CREATE TABLE `system_permission` (
-                                     `id` int NOT NULL AUTO_INCREMENT COMMENT '主键',
-                                     `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '名称',
-                                     `parent_id` int NOT NULL DEFAULT '0' COMMENT '父ID',
-                                     `icon` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '图标',
-                                     `mark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '标识',
-                                     `level` int NOT NULL COMMENT '深度',
-                                     `route` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '路由',
-                                     `service_uri` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '服务地址',
-                                     `type` tinyint NOT NULL COMMENT '类型',
-                                     `sort` int NOT NULL DEFAULT '0' COMMENT '排序',
-                                     `is_deleted` tinyint unsigned NOT NULL DEFAULT '0' COMMENT '是否删除（1是 0否）',
-                                     `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态',
-                                     `version` int NOT NULL DEFAULT '0' COMMENT '版本号',
-                                     `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 创建时间，默认当前时间戳
-                                     PRIMARY KEY (`id`) USING BTREE,
-                                     KEY `actable_idx_name` (`name`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=271 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='权限';
 
 -- ----------------------------
 -- Records of system_permission
 -- ----------------------------
-BEGIN;
 INSERT INTO `system_permission` (`id`, `name`, `parent_id`, `icon`, `mark`, `level`, `route`, `service_uri`, `type`, `sort`, `is_deleted`, `status`, `version`, `create_time`) VALUES (1, '系统', 0, 'http://dummyimage.com/100x100', 'system', 0, '/system', '/system', 0, -99, 0, 1, 0, '2026-06-04 03:27:22');
 INSERT INTO `system_permission` (`id`, `name`, `parent_id`, `icon`, `mark`, `level`, `route`, `service_uri`, `type`, `sort`, `is_deleted`, `status`, `version`, `create_time`) VALUES (2, '账号管理', 1, 'http://dummyimage.com/100x100', 'system:user:list', 1, '/system/user', '/user/list', 1, 998, 0, 1, 0, '2026-06-04 03:27:22');
 INSERT INTO `system_permission` (`id`, `name`, `parent_id`, `icon`, `mark`, `level`, `route`, `service_uri`, `type`, `sort`, `is_deleted`, `status`, `version`, `create_time`) VALUES (3, '角色管理', 1, 'http://dummyimage.com/100x100', 'system:role:list', 1, '/system/role', '/role/list', 1, 999, 0, 1, 0, '2026-06-04 03:27:22');
@@ -3895,52 +3803,15 @@ INSERT INTO `system_permission` (`id`, `name`, `parent_id`, `icon`, `mark`, `lev
 INSERT INTO `system_permission` (`id`, `name`, `parent_id`, `icon`, `mark`, `level`, `route`, `service_uri`, `type`, `sort`, `is_deleted`, `status`, `version`, `create_time`) VALUES (250, '更新', 247, 'http://dummyimage.com/100x100', 'system:config:update', 2, '/system/config/update', '/config/**/update', 2, -97, 0, 1, 0, '2026-08-18 14:43:15');
 INSERT INTO `system_permission` (`id`, `name`, `parent_id`, `icon`, `mark`, `level`, `route`, `service_uri`, `type`, `sort`, `is_deleted`, `status`, `version`, `create_time`) VALUES (251, '删除', 247, 'http://dummyimage.com/100x100', 'system:config:remove', 2, '/system/config/remove', '/config/**/remove', 2, -96, 0, 1, 0, '2026-08-18 14:46:30');
 INSERT INTO `system_permission` (`id`, `name`, `parent_id`, `icon`, `mark`, `level`, `route`, `service_uri`, `type`, `sort`, `is_deleted`, `status`, `version`, `create_time`) VALUES (252, '中间件管理', 1, 'http://dummyimage.com/100x100', 'system:middleware:list', 1, '/system/middleware', '/middleware/list', 1, -998, 0, 1, 0, '2026-08-21 04:49:28');
-COMMIT;
-
--- ----------------------------
--- Table structure for system_role
--- ----------------------------
--- 角色表：存储系统角色，初始内置超级管理员角色
-DROP TABLE IF EXISTS `system_role`;
-CREATE TABLE `system_role` (
-                               `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '描述',
-                               `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '名称',
-                               `id` int NOT NULL AUTO_INCREMENT COMMENT '主键',
-                               `is_deleted` tinyint unsigned NOT NULL DEFAULT '0' COMMENT '是否删除（1是 0否）',
-                               `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态',
-                               `version` int NOT NULL DEFAULT '0' COMMENT '版本号',
-                               `create_time` datetime DEFAULT CURRENT_TIMESTAMP, -- 创建时间，默认当前时间戳
-                               PRIMARY KEY (`id`) USING BTREE,
-                               KEY `actable_idx_name` (`name`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=122 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='角色';
 
 -- ----------------------------
 -- Records of system_role
 -- ----------------------------
-BEGIN;
 INSERT INTO `system_role` (`description`, `name`, `id`, `is_deleted`, `status`, `version`, `create_time`) VALUES ('系统最高权限', '超级管理员', 1, 0, 1, 0, '2026-06-04 03:23:37');
-COMMIT;
-
--- ----------------------------
--- Table structure for system_role_permission
--- ----------------------------
--- 角色权限关系表：记录角色与权限的多对多关联
-DROP TABLE IF EXISTS `system_role_permission`;
-CREATE TABLE `system_role_permission` (
-                                          `role_id` int NOT NULL COMMENT '角色ID',
-                                          `permission_id` int NOT NULL COMMENT '权限ID',
-                                          `id` int NOT NULL AUTO_INCREMENT COMMENT '主键',
-                                          `is_deleted` tinyint unsigned NOT NULL DEFAULT '0' COMMENT '是否删除（1是 0否）',
-                                          `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态',
-                                          `version` int NOT NULL DEFAULT '0' COMMENT '版本号',
-                                          `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 创建时间，默认当前时间戳
-                                          PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=2669 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='角色权限关系';
 
 -- ----------------------------
 -- Records of system_role_permission
 -- ----------------------------
-BEGIN;
 INSERT INTO `system_role_permission` (`role_id`, `permission_id`, `id`, `is_deleted`, `status`, `version`, `create_time`) VALUES (1, 1, 1, 0, 1, 0, '2024-09-16 10:31:44');
 INSERT INTO `system_role_permission` (`role_id`, `permission_id`, `id`, `is_deleted`, `status`, `version`, `create_time`) VALUES (1, 2, 2, 0, 1, 0, '2024-09-16 10:31:44');
 INSERT INTO `system_role_permission` (`role_id`, `permission_id`, `id`, `is_deleted`, `status`, `version`, `create_time`) VALUES (1, 3, 3, 0, 1, 0, '2024-09-16 10:31:44');
@@ -3968,59 +3839,15 @@ INSERT INTO `system_role_permission` (`role_id`, `permission_id`, `id`, `is_dele
 INSERT INTO `system_role_permission` (`role_id`, `permission_id`, `id`, `is_deleted`, `status`, `version`, `create_time`) VALUES (1, 250, 2468, 0, 1, 0, '2026-08-18 18:28:26');
 INSERT INTO `system_role_permission` (`role_id`, `permission_id`, `id`, `is_deleted`, `status`, `version`, `create_time`) VALUES (1, 251, 2469, 0, 1, 0, '2026-08-18 18:28:26');
 INSERT INTO `system_role_permission` (`role_id`, `permission_id`, `id`, `is_deleted`, `status`, `version`, `create_time`) VALUES (1, 252, 2470, 0, 1, 0, '2026-08-21 04:57:46');
-COMMIT;
-
--- ----------------------------
--- Table structure for system_user
--- ----------------------------
--- 用户表：存储账号、密码、所属客户端等信息，初始内置 admin 账号
-DROP TABLE IF EXISTS `system_user`;
-CREATE TABLE `system_user` (
-                               `username` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '账号',
-                               `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '密码',
-                               `icon` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '图标',
-                               `client_id` int NOT NULL COMMENT '客户端ID',
-                               `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '名称',
-                               `id` int NOT NULL AUTO_INCREMENT COMMENT '主键',
-                               `is_deleted` tinyint unsigned NOT NULL DEFAULT '0' COMMENT '是否删除（1是 0否）',
-                               `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态',
-                               `version` int NOT NULL DEFAULT '0' COMMENT '版本号',
-                               `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 创建时间，默认当前时间戳
-                               PRIMARY KEY (`id`) USING BTREE,
-                               KEY `actable_idx_username` (`username`) USING BTREE,
-                               KEY `actable_idx_name` (`name`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=121 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='用户';
 
 -- ----------------------------
 -- Records of system_user
 -- ----------------------------
-BEGIN;
 INSERT INTO `system_user` (`username`, `password`, `icon`, `client_id`, `name`, `id`, `is_deleted`, `status`, `version`, `create_time`) VALUES ('admin', '{bcrypt}$2a$10$pTvtE2olTSE/2gU58CF0mOl/qaDXfhnx9y/4UOhhaEdznVhyXHVla', 'http://dummyimage.com/100x100', 1, 'admin', 1, 0, 1, 0, '2026-06-04 03:25:58');
-COMMIT;
-
--- ----------------------------
--- Table structure for system_user_role
--- ----------------------------
--- 用户角色关系表：记录用户与角色的多对多关联
-DROP TABLE IF EXISTS `system_user_role`;
-CREATE TABLE `system_user_role` (
-                                    `role_id` int NOT NULL COMMENT '角色ID',
-                                    `user_id` int NOT NULL COMMENT '用户ID',
-                                    `id` int NOT NULL AUTO_INCREMENT COMMENT '主键',
-                                    `is_deleted` tinyint unsigned NOT NULL DEFAULT '0' COMMENT '是否删除（1是 0否）',
-                                    `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态',
-                                    `version` int NOT NULL DEFAULT '0' COMMENT '版本号',
-                                    `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 创建时间，默认当前时间戳
-                                    PRIMARY KEY (`id`) USING BTREE,
-                                    KEY `actable_idx_role_id` (`role_id`) USING BTREE,
-                                    KEY `actable_idx_user_id` (`user_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=240 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='用户角色关系';
 
 -- ----------------------------
 -- Records of system_user_role
 -- ----------------------------
-BEGIN;
 INSERT INTO `system_user_role` (`role_id`, `user_id`, `id`, `is_deleted`, `status`, `version`, `create_time`) VALUES (1, 1, 1, 0, 1, 0, '2026-06-04 03:26:17');
-COMMIT;
 
-SET FOREIGN_KEY_CHECKS = 1;
+COMMIT;

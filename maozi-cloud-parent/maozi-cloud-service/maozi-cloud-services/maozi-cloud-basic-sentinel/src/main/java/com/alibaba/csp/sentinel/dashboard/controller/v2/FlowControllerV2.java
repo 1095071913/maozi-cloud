@@ -18,14 +18,14 @@ package com.alibaba.csp.sentinel.dashboard.controller.v2;
 import com.alibaba.csp.sentinel.dashboard.auth.AuthAction;
 import com.alibaba.csp.sentinel.dashboard.auth.AuthService;
 import com.alibaba.csp.sentinel.dashboard.auth.AuthService.PrivilegeType;
+import com.alibaba.csp.sentinel.dashboard.controller.AbstractFlowRuleController;
+import com.alibaba.csp.sentinel.dashboard.controller.RuleEntityValidator;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.FlowRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.domain.Result;
 import com.alibaba.csp.sentinel.dashboard.repository.rule.InMemoryRuleRepositoryAdapter;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRuleProvider;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
 import com.alibaba.csp.sentinel.util.StringUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,125 +48,53 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(value = "/v2/flow")
-public class FlowControllerV2 {
-
-    /** The logger of this controller. */
-    private final Logger logger = LoggerFactory.getLogger(FlowControllerV2.class);
-
-    /** The in-memory repository that stores flow rule entities. */
-    private final InMemoryRuleRepositoryAdapter<FlowRuleEntity> repository;
-
-    /** The Nacos provider that pulls flow rules for a given app. */
-    private final DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider;
-    /** The Nacos publisher that pushes flow rules to a given app. */
-    private final DynamicRulePublisher<List<FlowRuleEntity>> rulePublisher;
+public class FlowControllerV2 extends AbstractFlowRuleController {
 
     public FlowControllerV2(InMemoryRuleRepositoryAdapter<FlowRuleEntity> repository,
                             @Qualifier("flowRuleNacosProvider") DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider,
                             @Qualifier("flowRuleNacosPublisher") DynamicRulePublisher<List<FlowRuleEntity>> rulePublisher) {
-        this.repository = repository;
-        this.ruleProvider = ruleProvider;
-        this.rulePublisher = rulePublisher;
+        super(repository, ruleProvider, rulePublisher);
     }
 
     /** Fetches the app's flow rules from Nacos, restoring the entity id from the cluster flow id, persists them and returns them. */
     @GetMapping("/rules")
     @AuthAction(PrivilegeType.READ_RULE)
     public Result<List<FlowRuleEntity>> apiQueryMachineRules(@RequestParam String app) {
-
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(-1, "app can't be null or empty");
         }
-        try {
-            List<FlowRuleEntity> rules = ruleProvider.getRules(app);
-            if (rules != null && !rules.isEmpty()) {
-                for (FlowRuleEntity entity : rules) {
-                    entity.setApp(app);
-                    if (entity.getClusterConfig() != null && entity.getClusterConfig().getFlowId() != null) {
-                        entity.setId(entity.getClusterConfig().getFlowId());
-                    }
+        return fetchAndSaveRules(app, rules -> {
+            for (FlowRuleEntity entity : rules) {
+                entity.setApp(app);
+                if (entity.getClusterConfig() != null && entity.getClusterConfig().getFlowId() != null) {
+                    entity.setId(entity.getClusterConfig().getFlowId());
                 }
             }
-            rules = repository.saveAll(rules);
-            return Result.ofSuccess(rules);
-        } catch (Throwable throwable) {
-            logger.error("Error when querying flow rules", throwable);
-            return Result.ofThrowable(-1, throwable);
-        }
+        });
     }
 
-    /** Validates the rule entity field by field; returns the first error or null. */
-    private <R> Result<R> checkEntityInternal(FlowRuleEntity entity) {
+    /** Validates the body and app inline (v2 rules carry no machine info), then the flow-rule specific fields via the shared validator; returns the first error or null. */
+    @Override
+    protected <R> Result<R> checkEntityInternal(FlowRuleEntity entity) {
         if (entity == null) {
             return Result.ofFail(-1, "invalid body");
         }
         if (StringUtil.isBlank(entity.getApp())) {
             return Result.ofFail(-1, "app can't be null or empty");
         }
-        if (StringUtil.isBlank(entity.getLimitApp())) {
-            return Result.ofFail(-1, "limitApp can't be null or empty");
-        }
-        if (StringUtil.isBlank(entity.getResource())) {
-            return Result.ofFail(-1, "resource can't be null or empty");
-        }
-        if (entity.getGrade() == null) {
-            return Result.ofFail(-1, "grade can't be null");
-        }
-        if (entity.getGrade() != 0 && entity.getGrade() != 1) {
-            return Result.ofFail(-1, "grade must be 0 or 1, but " + entity.getGrade() + " got");
-        }
-        if (entity.getCount() == null || entity.getCount() < 0) {
-            return Result.ofFail(-1, "count should be at lease zero");
-        }
-        if (entity.getStrategy() == null) {
-            return Result.ofFail(-1, "strategy can't be null");
-        }
-        if (entity.getStrategy() != 0 && StringUtil.isBlank(entity.getRefResource())) {
-            return Result.ofFail(-1, "refResource can't be null or empty when strategy!=0");
-        }
-        if (entity.getControlBehavior() == null) {
-            return Result.ofFail(-1, "controlBehavior can't be null");
-        }
-        int controlBehavior = entity.getControlBehavior();
-        if (controlBehavior == 1 && entity.getWarmUpPeriodSec() == null) {
-            return Result.ofFail(-1, "warmUpPeriodSec can't be null when controlBehavior==1");
-        }
-        if (controlBehavior == 2 && entity.getMaxQueueingTimeMs() == null) {
-            return Result.ofFail(-1, "maxQueueingTimeMs can't be null when controlBehavior==2");
-        }
-        if (entity.isClusterMode() && entity.getClusterConfig() == null) {
-            return Result.ofFail(-1, "cluster config should be valid");
-        }
-        return null;
+        return RuleEntityValidator.checkFlowRuleFields(entity);
     }
 
     /** Adds a new flow rule after validation (id reset for generation) and publishes the app's rules. */
     @PostMapping("/rule")
     @AuthAction(value = AuthService.PrivilegeType.WRITE_RULE)
     public Result<FlowRuleEntity> apiAddFlowRule(@RequestBody FlowRuleEntity entity) {
-
-        Result<FlowRuleEntity> checkResult = checkEntityInternal(entity);
-        if (checkResult != null) {
-            return checkResult;
-        }
-        entity.setId(null);
-        entity.setGmtCreateAndModified(new Date());
-        entity.setLimitApp(entity.getLimitApp().trim());
-        entity.setResource(entity.getResource().trim());
-        try {
-            entity = repository.save(entity);
-            publishRules(entity.getApp());
-        } catch (Throwable throwable) {
-            logger.error("Failed to add flow rule", throwable);
-            return Result.ofThrowable(-1, throwable);
-        }
-        return Result.ofSuccess(entity);
+        return addFlowRule(entity);
     }
 
     /** Updates the rule of the given id (app/ip/port/gmtCreate inherited from the old entity) and publishes the app's rules. */
     @PutMapping("/rule/{id}")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
-
     public Result<FlowRuleEntity> apiUpdateFlowRule(@PathVariable("id") Long id,
                                                     @RequestBody FlowRuleEntity entity) {
         if (id == null || id <= 0) {
@@ -189,20 +117,9 @@ public class FlowControllerV2 {
         }
 
         entity.setId(id);
-        Date date = new Date();
         entity.setGmtCreate(oldEntity.getGmtCreate());
-        entity.setGmtModified(date);
-        try {
-            entity = repository.save(entity);
-            if (entity == null) {
-                return Result.ofFail(-1, "save entity fail");
-            }
-            publishRules(oldEntity.getApp());
-        } catch (Throwable throwable) {
-            logger.error("Failed to update flow rule", throwable);
-            return Result.ofThrowable(-1, throwable);
-        }
-        return Result.ofSuccess(entity);
+        entity.setGmtModified(new Date());
+        return saveAndPublish(entity);
     }
 
     /** Deletes the rule of the given id and publishes the app's rules; an unknown id returns success with null data. */
@@ -212,23 +129,6 @@ public class FlowControllerV2 {
         if (id == null || id <= 0) {
             return Result.ofFail(-1, "Invalid id");
         }
-        FlowRuleEntity oldEntity = repository.findById(id);
-        if (oldEntity == null) {
-            return Result.ofSuccess(null);
-        }
-
-        try {
-            repository.delete(id);
-            publishRules(oldEntity.getApp());
-        } catch (Exception e) {
-            return Result.ofFail(-1, e.getMessage());
-        }
-        return Result.ofSuccess(id);
-    }
-
-    /** Publishes all local rules of the app to Nacos. */
-    private void publishRules(/*@NonNull*/ String app) throws Exception {
-        List<FlowRuleEntity> rules = repository.findAllByApp(app);
-        rulePublisher.publish(app, rules);
+        return deleteAndPublish(id);
     }
 }

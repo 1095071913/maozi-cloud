@@ -111,19 +111,14 @@ public class AuthorityRuleController {
         }
     }
 
-    /** Validates the rule entity (app/ip/port, rule object, resource, limitApp, strategy); returns the first error or null. */
+    /** Validates the base machine fields via the shared validator, then the authority-rule specific fields; returns the first error or null. */
     private <R> Result<R> checkEntityInternal(AuthorityRuleEntity entity) {
         if (entity == null) {
             return Result.ofFail(-1, "bad rule body");
         }
-        if (StringUtil.isBlank(entity.getApp())) {
-            return Result.ofFail(-1, "app can't be null or empty");
-        }
-        if (StringUtil.isBlank(entity.getIp())) {
-            return Result.ofFail(-1, "ip can't be null or empty");
-        }
-        if (entity.getPort() == null || entity.getPort() <= 0) {
-            return Result.ofFail(-1, "port can't be null");
+        Result<R> baseResult = RuleEntityValidator.checkBaseFields(entity);
+        if (baseResult != null) {
+            return baseResult;
         }
         if (entity.getRule() == null) {
             return Result.ofFail(-1, "rule can't be null");

@@ -201,19 +201,11 @@ public class DegradeController {
         }
     }
 
-    /** Validates the rule entity field by field, including strategy-specific threshold ranges; returns the first error or null. */
+    /** Validates the machine fields via the shared validator, then the degrade-rule specific fields; returns the first error or null. */
     private <R> Result<R> checkEntityInternal(DegradeRuleEntity entity) {
-        if (StringUtil.isBlank(entity.getApp())) {
-            return Result.ofFail(-1, "app can't be blank");
-        }
-        if (StringUtil.isBlank(entity.getIp())) {
-            return Result.ofFail(-1, "ip can't be null or empty");
-        }
-        if (!appManagement.isValidMachineOfApp(entity.getApp(), entity.getIp())) {
-            return Result.ofFail(-1, "given ip does not belong to given app");
-        }
-        if (entity.getPort() == null || entity.getPort() <= 0) {
-            return Result.ofFail(-1, "invalid port: " + entity.getPort());
+        Result<R> baseResult = RuleEntityValidator.checkBaseFields(entity, appManagement);
+        if (baseResult != null) {
+            return baseResult;
         }
         if (StringUtil.isBlank(entity.getLimitApp())) {
             return Result.ofFail(-1, "limitApp can't be null or empty");

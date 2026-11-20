@@ -18,6 +18,7 @@ package com.alibaba.csp.sentinel.dashboard.controller.gateway;
 
 import com.alibaba.csp.sentinel.dashboard.auth.AuthAction;
 import com.alibaba.csp.sentinel.dashboard.auth.AuthService;
+import com.alibaba.csp.sentinel.dashboard.controller.RuleEntityValidator;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.GatewayFlowRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.GatewayParamFlowItemEntity;
 import com.alibaba.csp.sentinel.dashboard.domain.Result;
@@ -124,25 +125,16 @@ public class GatewayFlowRuleController {
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
     public Result<GatewayFlowRuleEntity> addFlowRule(@RequestBody AddFlowRuleReqVo reqVo) {
 
-        String app = reqVo.getApp();
-        if (StringUtil.isBlank(app)) {
-            return Result.ofFail(-1, "app can't be null or empty");
-        }
-
         GatewayFlowRuleEntity entity = new GatewayFlowRuleEntity();
-        entity.setApp(app.trim());
-
-        String ip = reqVo.getIp();
-        if (StringUtil.isBlank(ip)) {
-            return Result.ofFail(-1, "ip can't be null or empty");
+        entity.setApp(reqVo.getApp());
+        entity.setIp(reqVo.getIp());
+        entity.setPort(reqVo.getPort());
+        Result<GatewayFlowRuleEntity> baseResult = RuleEntityValidator.checkBaseFields(entity);
+        if (baseResult != null) {
+            return baseResult;
         }
-        entity.setIp(ip.trim());
-
-        Integer port = reqVo.getPort();
-        if (port == null) {
-            return Result.ofFail(-1, "port can't be null");
-        }
-        entity.setPort(port);
+        entity.setApp(entity.getApp().trim());
+        entity.setIp(entity.getIp().trim());
 
         // Resource type: Route ID or API group name.
         Integer resourceMode = reqVo.getResourceMode();
@@ -161,128 +153,18 @@ public class GatewayFlowRuleController {
         }
         entity.setResource(resource.trim());
 
-        // Parameter item against request attributes.
-        GatewayParamFlowItemVo paramItem = reqVo.getParamItem();
-        if (paramItem != null) {
-            GatewayParamFlowItemEntity itemEntity = new GatewayParamFlowItemEntity();
-            entity.setParamItem(itemEntity);
-
-            // Parse strategy: 0-ClientIP, 1-Remote Host, 2-Header, 3-URL parameter, 4-Cookie.
-            Integer parseStrategy = paramItem.getParseStrategy();
-            if (!Arrays.asList(PARAM_PARSE_STRATEGY_CLIENT_IP, PARAM_PARSE_STRATEGY_HOST, PARAM_PARSE_STRATEGY_HEADER
-                    , PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
-                return Result.ofFail(-1, "invalid parseStrategy: " + parseStrategy);
-            }
-            itemEntity.setParseStrategy(paramItem.getParseStrategy());
-
-            // Field name is required for parse strategies 2-Header, 3-URL parameter and 4-Cookie.
-            if (Arrays.asList(PARAM_PARSE_STRATEGY_HEADER, PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
-                // Field name.
-                String fieldName = paramItem.getFieldName();
-                if (StringUtil.isBlank(fieldName)) {
-                    return Result.ofFail(-1, "fieldName can't be null or empty");
-                }
-                itemEntity.setFieldName(paramItem.getFieldName());
-            }
-
-            String pattern = paramItem.getPattern();
-            // Validate the match strategy only when the pattern is not empty.
-            if (StringUtil.isNotEmpty(pattern)) {
-                itemEntity.setPattern(pattern);
-                Integer matchStrategy = paramItem.getMatchStrategy();
-                if (!Arrays.asList(PARAM_MATCH_STRATEGY_EXACT, PARAM_MATCH_STRATEGY_CONTAINS, PARAM_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
-                    return Result.ofFail(-1, "invalid matchStrategy: " + matchStrategy);
-                }
-                itemEntity.setMatchStrategy(matchStrategy);
-            }
+        Result<GatewayFlowRuleEntity> checkResult = checkAndFillParamItem(reqVo.getParamItem(), entity);
+        if (checkResult != null) {
+            return checkResult;
         }
-
-        // Threshold type: 0-thread count, 1-QPS.
-        Integer grade = reqVo.getGrade();
-        if (grade == null) {
-            return Result.ofFail(-1, "grade can't be null");
-        }
-        if (!Arrays.asList(FLOW_GRADE_THREAD, FLOW_GRADE_QPS).contains(grade)) {
-            return Result.ofFail(-1, "invalid grade: " + grade);
-        }
-        entity.setGrade(grade);
-
-        // QPS threshold.
-        Double count = reqVo.getCount();
-        if (count == null) {
-            return Result.ofFail(-1, "count can't be null");
-        }
-        if (count < 0) {
-            return Result.ofFail(-1, "count should be at lease zero");
-        }
-        entity.setCount(count);
-
-        // Interval.
-        Long interval = reqVo.getInterval();
-        if (interval == null) {
-            return Result.ofFail(-1, "interval can't be null");
-        }
-        if (interval <= 0) {
-            return Result.ofFail(-1, "interval should be greater than zero");
-        }
-        entity.setInterval(interval);
-
-        // Interval unit.
-        Integer intervalUnit = reqVo.getIntervalUnit();
-        if (intervalUnit == null) {
-            return Result.ofFail(-1, "intervalUnit can't be null");
-        }
-        if (!Arrays.asList(INTERVAL_UNIT_SECOND, INTERVAL_UNIT_MINUTE, INTERVAL_UNIT_HOUR, INTERVAL_UNIT_DAY).contains(intervalUnit)) {
-            return Result.ofFail(-1, "Invalid intervalUnit: " + intervalUnit);
-        }
-        entity.setIntervalUnit(intervalUnit);
-
-        // Control behavior: 0-fast fail, 2-uniform rate limiter.
-        Integer controlBehavior = reqVo.getControlBehavior();
-        if (controlBehavior == null) {
-            return Result.ofFail(-1, "controlBehavior can't be null");
-        }
-        if (!Arrays.asList(CONTROL_BEHAVIOR_DEFAULT, CONTROL_BEHAVIOR_RATE_LIMITER).contains(controlBehavior)) {
-            return Result.ofFail(-1, "invalid controlBehavior: " + controlBehavior);
-        }
-        entity.setControlBehavior(controlBehavior);
-
-        if (CONTROL_BEHAVIOR_DEFAULT == controlBehavior) {
-            // Burst size is required for control behavior 0 (fast fail).
-            Integer burst = reqVo.getBurst();
-            if (burst == null) {
-                return Result.ofFail(-1, "burst can't be null");
-            }
-            if (burst < 0) {
-                return Result.ofFail(-1, "invalid burst: " + burst);
-            }
-            entity.setBurst(burst);
-        } else if (CONTROL_BEHAVIOR_RATE_LIMITER == controlBehavior) {
-            // Timeout is required for control behavior 2 (uniform rate limiter).
-            Integer maxQueueingTimeoutMs = reqVo.getMaxQueueingTimeoutMs();
-            if (maxQueueingTimeoutMs == null) {
-                return Result.ofFail(-1, "maxQueueingTimeoutMs can't be null");
-            }
-            if (maxQueueingTimeoutMs < 0) {
-                return Result.ofFail(-1, "invalid maxQueueingTimeoutMs: " + maxQueueingTimeoutMs);
-            }
-            entity.setMaxQueueingTimeoutMs(maxQueueingTimeoutMs);
+        checkResult = checkAndFillRuleFields(reqVo.getGrade(), reqVo.getCount(), reqVo.getInterval(),
+            reqVo.getIntervalUnit(), reqVo.getControlBehavior(), reqVo.getBurst(), reqVo.getMaxQueueingTimeoutMs(), entity);
+        if (checkResult != null) {
+            return checkResult;
         }
 
         entity.setGmtCreateAndModified(new Date());
-
-        try {
-            entity = repository.save(entity);
-        } catch (Throwable throwable) {
-            logger.error("add gateway flow rule error:", throwable);
-            return Result.ofThrowable(-1, throwable);
-        }
-
-        if (!publishRules(app)) {
-            logger.warn("publish gateway flow rules fail after add");
-        }
-
-        return Result.ofSuccess(entity);
+        return saveAndPublish(entity, "add");
     }
 
     /** Updates the rule of the given id (param item replaced, or cleared when absent) after validation, then publishes the app's rules. */
@@ -290,8 +172,7 @@ public class GatewayFlowRuleController {
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
     public Result<GatewayFlowRuleEntity> updateFlowRule(@RequestBody UpdateFlowRuleReqVo reqVo) {
 
-        String app = reqVo.getApp();
-        if (StringUtil.isBlank(app)) {
+        if (StringUtil.isBlank(reqVo.getApp())) {
             return Result.ofFail(-1, "app can't be null or empty");
         }
 
@@ -305,131 +186,18 @@ public class GatewayFlowRuleController {
             return Result.ofFail(-1, "gateway flow rule does not exist, id=" + id);
         }
 
-        // Parameter item against request attributes.
-        GatewayParamFlowItemVo paramItem = reqVo.getParamItem();
-        if (paramItem != null) {
-            GatewayParamFlowItemEntity itemEntity = new GatewayParamFlowItemEntity();
-            entity.setParamItem(itemEntity);
-
-            // Parse strategy: 0-ClientIP, 1-Remote Host, 2-Header, 3-URL parameter, 4-Cookie.
-            Integer parseStrategy = paramItem.getParseStrategy();
-            if (!Arrays.asList(PARAM_PARSE_STRATEGY_CLIENT_IP, PARAM_PARSE_STRATEGY_HOST, PARAM_PARSE_STRATEGY_HEADER
-                    , PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
-                return Result.ofFail(-1, "invalid parseStrategy: " + parseStrategy);
-            }
-            itemEntity.setParseStrategy(paramItem.getParseStrategy());
-
-            // Field name is required for parse strategies 2-Header, 3-URL parameter and 4-Cookie.
-            if (Arrays.asList(PARAM_PARSE_STRATEGY_HEADER, PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
-                // Field name.
-                String fieldName = paramItem.getFieldName();
-                if (StringUtil.isBlank(fieldName)) {
-                    return Result.ofFail(-1, "fieldName can't be null or empty");
-                }
-                itemEntity.setFieldName(paramItem.getFieldName());
-            }
-
-            String pattern = paramItem.getPattern();
-            // Validate the match strategy only when the pattern is not empty.
-            if (StringUtil.isNotEmpty(pattern)) {
-                itemEntity.setPattern(pattern);
-                Integer matchStrategy = paramItem.getMatchStrategy();
-                if (!Arrays.asList(PARAM_MATCH_STRATEGY_EXACT, PARAM_MATCH_STRATEGY_CONTAINS, PARAM_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
-                    return Result.ofFail(-1, "invalid matchStrategy: " + matchStrategy);
-                }
-                itemEntity.setMatchStrategy(matchStrategy);
-            }
-        } else {
-            entity.setParamItem(null);
+        Result<GatewayFlowRuleEntity> checkResult = checkAndFillParamItem(reqVo.getParamItem(), entity);
+        if (checkResult != null) {
+            return checkResult;
+        }
+        checkResult = checkAndFillRuleFields(reqVo.getGrade(), reqVo.getCount(), reqVo.getInterval(),
+            reqVo.getIntervalUnit(), reqVo.getControlBehavior(), reqVo.getBurst(), reqVo.getMaxQueueingTimeoutMs(), entity);
+        if (checkResult != null) {
+            return checkResult;
         }
 
-        // Threshold type: 0-thread count, 1-QPS.
-        Integer grade = reqVo.getGrade();
-        if (grade == null) {
-            return Result.ofFail(-1, "grade can't be null");
-        }
-        if (!Arrays.asList(FLOW_GRADE_THREAD, FLOW_GRADE_QPS).contains(grade)) {
-            return Result.ofFail(-1, "invalid grade: " + grade);
-        }
-        entity.setGrade(grade);
-
-        // QPS threshold.
-        Double count = reqVo.getCount();
-        if (count == null) {
-            return Result.ofFail(-1, "count can't be null");
-        }
-        if (count < 0) {
-            return Result.ofFail(-1, "count should be at lease zero");
-        }
-        entity.setCount(count);
-
-        // Interval.
-        Long interval = reqVo.getInterval();
-        if (interval == null) {
-            return Result.ofFail(-1, "interval can't be null");
-        }
-        if (interval <= 0) {
-            return Result.ofFail(-1, "interval should be greater than zero");
-        }
-        entity.setInterval(interval);
-
-        // Interval unit.
-        Integer intervalUnit = reqVo.getIntervalUnit();
-        if (intervalUnit == null) {
-            return Result.ofFail(-1, "intervalUnit can't be null");
-        }
-        if (!Arrays.asList(INTERVAL_UNIT_SECOND, INTERVAL_UNIT_MINUTE, INTERVAL_UNIT_HOUR, INTERVAL_UNIT_DAY).contains(intervalUnit)) {
-            return Result.ofFail(-1, "Invalid intervalUnit: " + intervalUnit);
-        }
-        entity.setIntervalUnit(intervalUnit);
-
-        // Control behavior: 0-fast fail, 2-uniform rate limiter.
-        Integer controlBehavior = reqVo.getControlBehavior();
-        if (controlBehavior == null) {
-            return Result.ofFail(-1, "controlBehavior can't be null");
-        }
-        if (!Arrays.asList(CONTROL_BEHAVIOR_DEFAULT, CONTROL_BEHAVIOR_RATE_LIMITER).contains(controlBehavior)) {
-            return Result.ofFail(-1, "invalid controlBehavior: " + controlBehavior);
-        }
-        entity.setControlBehavior(controlBehavior);
-
-        if (CONTROL_BEHAVIOR_DEFAULT == controlBehavior) {
-            // Burst size is required for control behavior 0 (fast fail).
-            Integer burst = reqVo.getBurst();
-            if (burst == null) {
-                return Result.ofFail(-1, "burst can't be null");
-            }
-            if (burst < 0) {
-                return Result.ofFail(-1, "invalid burst: " + burst);
-            }
-            entity.setBurst(burst);
-        } else if (CONTROL_BEHAVIOR_RATE_LIMITER == controlBehavior) {
-            // Timeout is required for control behavior 2 (uniform rate limiter).
-            Integer maxQueueingTimeoutMs = reqVo.getMaxQueueingTimeoutMs();
-            if (maxQueueingTimeoutMs == null) {
-                return Result.ofFail(-1, "maxQueueingTimeoutMs can't be null");
-            }
-            if (maxQueueingTimeoutMs < 0) {
-                return Result.ofFail(-1, "invalid maxQueueingTimeoutMs: " + maxQueueingTimeoutMs);
-            }
-            entity.setMaxQueueingTimeoutMs(maxQueueingTimeoutMs);
-        }
-
-        Date date = new Date();
-        entity.setGmtModified(date);
-
-        try {
-            entity = repository.save(entity);
-        } catch (Throwable throwable) {
-            logger.error("update gateway flow rule error:", throwable);
-            return Result.ofThrowable(-1, throwable);
-        }
-
-        if (!publishRules(app)) {
-            logger.warn("publish gateway flow rules fail after update");
-        }
-
-        return Result.ofSuccess(entity);
+        entity.setGmtModified(new Date());
+        return saveAndPublish(entity, "update");
     }
 
 
@@ -459,6 +227,143 @@ public class GatewayFlowRuleController {
         }
 
         return Result.ofSuccess(id);
+    }
+
+    /**
+     * Validates the request parameter item (parse strategy, field name for the header/URL
+     * parameter/cookie strategies, and pattern with its match strategy) and fills it on the
+     * entity, or clears the entity's item when the request carries none; returns the first
+     * error result or null when valid.
+     */
+    private <R> Result<R> checkAndFillParamItem(GatewayParamFlowItemVo paramItem, GatewayFlowRuleEntity entity) {
+        if (paramItem == null) {
+            entity.setParamItem(null);
+            return null;
+        }
+
+        GatewayParamFlowItemEntity itemEntity = new GatewayParamFlowItemEntity();
+        entity.setParamItem(itemEntity);
+
+        // Parse strategy: 0-ClientIP, 1-Remote Host, 2-Header, 3-URL parameter, 4-Cookie.
+        Integer parseStrategy = paramItem.getParseStrategy();
+        if (!Arrays.asList(PARAM_PARSE_STRATEGY_CLIENT_IP, PARAM_PARSE_STRATEGY_HOST, PARAM_PARSE_STRATEGY_HEADER
+                , PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
+            return Result.ofFail(-1, "invalid parseStrategy: " + parseStrategy);
+        }
+        itemEntity.setParseStrategy(paramItem.getParseStrategy());
+
+        // Field name is required for parse strategies 2-Header, 3-URL parameter and 4-Cookie.
+        if (Arrays.asList(PARAM_PARSE_STRATEGY_HEADER, PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
+            // Field name.
+            String fieldName = paramItem.getFieldName();
+            if (StringUtil.isBlank(fieldName)) {
+                return Result.ofFail(-1, "fieldName can't be null or empty");
+            }
+            itemEntity.setFieldName(paramItem.getFieldName());
+        }
+
+        String pattern = paramItem.getPattern();
+        // Validate the match strategy only when the pattern is not empty.
+        if (StringUtil.isNotEmpty(pattern)) {
+            itemEntity.setPattern(pattern);
+            Integer matchStrategy = paramItem.getMatchStrategy();
+            if (!Arrays.asList(PARAM_MATCH_STRATEGY_EXACT, PARAM_MATCH_STRATEGY_CONTAINS, PARAM_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
+                return Result.ofFail(-1, "invalid matchStrategy: " + matchStrategy);
+            }
+            itemEntity.setMatchStrategy(matchStrategy);
+        }
+        return null;
+    }
+
+    /**
+     * Validates the rule fields shared by add and update (grade, count, interval with its
+     * unit, and controlBehavior with the burst / maxQueueingTimeoutMs it requires) and
+     * fills them on the entity; returns the first error result or null when valid.
+     */
+    private <R> Result<R> checkAndFillRuleFields(Integer grade, Double count, Long interval, Integer intervalUnit,
+                                                 Integer controlBehavior, Integer burst, Integer maxQueueingTimeoutMs,
+                                                 GatewayFlowRuleEntity entity) {
+        // Threshold type: 0-thread count, 1-QPS.
+        if (grade == null) {
+            return Result.ofFail(-1, "grade can't be null");
+        }
+        if (!Arrays.asList(FLOW_GRADE_THREAD, FLOW_GRADE_QPS).contains(grade)) {
+            return Result.ofFail(-1, "invalid grade: " + grade);
+        }
+        entity.setGrade(grade);
+
+        // QPS threshold.
+        if (count == null) {
+            return Result.ofFail(-1, "count can't be null");
+        }
+        if (count < 0) {
+            return Result.ofFail(-1, "count should be at lease zero");
+        }
+        entity.setCount(count);
+
+        // Interval.
+        if (interval == null) {
+            return Result.ofFail(-1, "interval can't be null");
+        }
+        if (interval <= 0) {
+            return Result.ofFail(-1, "interval should be greater than zero");
+        }
+        entity.setInterval(interval);
+
+        // Interval unit.
+        if (intervalUnit == null) {
+            return Result.ofFail(-1, "intervalUnit can't be null");
+        }
+        if (!Arrays.asList(INTERVAL_UNIT_SECOND, INTERVAL_UNIT_MINUTE, INTERVAL_UNIT_HOUR, INTERVAL_UNIT_DAY).contains(intervalUnit)) {
+            return Result.ofFail(-1, "Invalid intervalUnit: " + intervalUnit);
+        }
+        entity.setIntervalUnit(intervalUnit);
+
+        // Control behavior: 0-fast fail, 2-uniform rate limiter.
+        if (controlBehavior == null) {
+            return Result.ofFail(-1, "controlBehavior can't be null");
+        }
+        if (!Arrays.asList(CONTROL_BEHAVIOR_DEFAULT, CONTROL_BEHAVIOR_RATE_LIMITER).contains(controlBehavior)) {
+            return Result.ofFail(-1, "invalid controlBehavior: " + controlBehavior);
+        }
+        entity.setControlBehavior(controlBehavior);
+
+        if (CONTROL_BEHAVIOR_DEFAULT == controlBehavior) {
+            // Burst size is required for control behavior 0 (fast fail).
+            if (burst == null) {
+                return Result.ofFail(-1, "burst can't be null");
+            }
+            if (burst < 0) {
+                return Result.ofFail(-1, "invalid burst: " + burst);
+            }
+            entity.setBurst(burst);
+        } else if (CONTROL_BEHAVIOR_RATE_LIMITER == controlBehavior) {
+            // Timeout is required for control behavior 2 (uniform rate limiter).
+            if (maxQueueingTimeoutMs == null) {
+                return Result.ofFail(-1, "maxQueueingTimeoutMs can't be null");
+            }
+            if (maxQueueingTimeoutMs < 0) {
+                return Result.ofFail(-1, "invalid maxQueueingTimeoutMs: " + maxQueueingTimeoutMs);
+            }
+            entity.setMaxQueueingTimeoutMs(maxQueueingTimeoutMs);
+        }
+        return null;
+    }
+
+    /** Saves the entity and publishes the app's rules (logging the given action on failure); returns the saved entity or a failure result. */
+    private Result<GatewayFlowRuleEntity> saveAndPublish(GatewayFlowRuleEntity entity, String action) {
+        try {
+            entity = repository.save(entity);
+        } catch (Throwable throwable) {
+            logger.error(action + " gateway flow rule error:", throwable);
+            return Result.ofThrowable(-1, throwable);
+        }
+
+        if (!publishRules(entity.getApp())) {
+            logger.warn("publish gateway flow rules fail after " + action);
+        }
+
+        return Result.ofSuccess(entity);
     }
 
     /** Publishes all local rules of the app to Nacos; returns false on error. */

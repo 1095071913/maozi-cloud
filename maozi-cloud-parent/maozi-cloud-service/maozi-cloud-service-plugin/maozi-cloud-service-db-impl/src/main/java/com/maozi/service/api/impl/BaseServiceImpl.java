@@ -1233,7 +1233,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * 处理单个参数字段的查询条件
      * <p>
      * QueryPlugin 注解按查询类型拼接（nest 嵌套参数递归解析，
-     * 注意：递归入参保持历史行为传入 Field 对象而非字段值）；
+     * 递归时以嵌套字段值作为参数对象）；
      * TimeParam 字段生成时间范围条件（不依赖 QueryPlugin 注解）。
      * </p>
      *
@@ -1256,7 +1256,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
             // 嵌套参数：以注解指定的表名递归解析其内部字段的查询条件
             if (annotation.nest()) {
-                paramFieldSetWrapper(annotation.tableName(), field, wrapper);
+                paramFieldSetWrapper(annotation.tableName(), data, wrapper);
                 return;
             }
 
@@ -1661,7 +1661,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         AbstractBaseResult<Map<Long, List<?>>> rpcResult = ReflectUtil.invoke(
             service, ResultFunName.LIST_BY_RELATION_IDS_RESULT, relationIds,
-            relationFieldName, getColumns(field.getClass()));
+            relationFieldName, getColumns(field.getType()));
         Map<Long, List<?>> resultData = rpcResult.getResultNotNullDataThrowError(getResourceName());
 
         for (Object response : responses) {
@@ -1717,7 +1717,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         }
 
         AbstractBaseResult<Map<Long, Object>> rpcResult = ReflectUtil.invoke(
-            service, ResultFunName.LIST_BY_IDS_RESULT, relationIds, getColumns(field.getClass()));
+            service, ResultFunName.LIST_BY_IDS_RESULT, relationIds, getColumns(field.getType()));
         Map<Long, Object> resultData = rpcResult.getResultNotNullDataThrowError(getResourceName());
 
         setRelationFieldFromMap(responses, relationFieldName, field.getName(), resultData);
@@ -1827,7 +1827,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         Long id = ReflectUtil.invokeFunGetId(data);
 
         AbstractBaseResult<List<?>> rpcResult = ReflectUtil.invoke(
-            service, ResultFunName.LIST_BY_RELATION_ID_RESULT, id, relationFieldName, getColumns(field.getClass()));
+            service, ResultFunName.LIST_BY_RELATION_ID_RESULT, id, relationFieldName, getColumns(field.getType()));
         List<?> resultData = rpcResult.getResultDataThrowError();
 
         if (CollectionUtil.isNotEmpty(resultData)) {
@@ -1879,7 +1879,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         }
 
         AbstractBaseResult<Object> rpcResult = ReflectUtil.invoke(
-            service, ResultFunName.GET_BY_ID_RESULT, relationId, getColumns(field.getClass()));
+            service, ResultFunName.GET_BY_ID_RESULT, relationId, getColumns(field.getType()));
         Object resultData = rpcResult.getResultDataThrowError();
 
         if (ObjectUtil.isNotNull(resultData)) {

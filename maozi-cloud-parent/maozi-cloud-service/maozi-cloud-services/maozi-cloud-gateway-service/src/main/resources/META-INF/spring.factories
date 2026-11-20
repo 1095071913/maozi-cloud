@@ -1,6 +1,0 @@
-# Spring 标准扩展点注册文件
-# 注册 Sentinel 应用名称初始化器，环境准备完成后先于
-# Spring Cloud Alibaba 的 Sentinel 上下文初始化器执行，
-# 以 spring.cloud.sentinel.name 覆盖 Sentinel 注册名称
-org.springframework.context.ApplicationContextInitializer=\
-com.maozi.gateway.sentinel.ApplicationNameInitializer

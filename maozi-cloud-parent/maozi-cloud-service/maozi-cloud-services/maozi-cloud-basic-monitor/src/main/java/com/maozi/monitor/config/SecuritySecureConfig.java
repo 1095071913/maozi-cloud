@@ -161,9 +161,11 @@ public class SecuritySecureConfig {
      */
     @Bean
     public UserDetailsService userDetailsService() {
+        SecurityProperties.User securityUser = security.getUser();
+
         UserDetails user = User.builder()
-                .username(security.getUser().getName())
-                .password("{noop}" + security.getUser().getPassword())
+                .username(securityUser.getName())
+                .password("{noop}" + securityUser.getPassword())
                 .roles("USER")
                 .build();
         return new InMemoryUserDetailsManager(user);

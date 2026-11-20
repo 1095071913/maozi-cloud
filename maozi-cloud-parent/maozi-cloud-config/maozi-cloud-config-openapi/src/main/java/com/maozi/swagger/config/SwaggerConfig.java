@@ -11,6 +11,7 @@ import com.maozi.common.CollectionUtil;
 import com.maozi.common.constant.AuthorizationConstant;
 import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.common.properties.ApiWhitelistProperties;
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.info.Info;
@@ -147,21 +148,22 @@ public class SwaggerConfig {
 
         return openApi -> {
 
-            if (openApi.getComponents() == null || openApi.getComponents().getSchemas() == null) {
+            Components components = openApi.getComponents();
+            if (components == null || components.getSchemas() == null) {
                 return;
             }
 
-            Map<String, Schema> schemas = openApi.getComponents().getSchemas();
+            Map<String, Schema> schemas = components.getSchemas();
             if (CollectionUtil.isEmpty(schemas)) {
                 return;
             }
 
             for (Schema<?> schema : schemas.values()) {
-                if (schema.getProperties() == null) {
-                    continue;
-                }
 
                 Map<String, Schema> properties = schema.getProperties();
+                if (properties == null) {
+                    continue;
+                }
                 properties.forEach((fieldName, fieldSchema) -> {
                     // Long 字段在文档中呈现为 int64，改为 string 避免 JS 精度丢失
                     if (FORMAT_INT64.equals(fieldSchema.getFormat())) {

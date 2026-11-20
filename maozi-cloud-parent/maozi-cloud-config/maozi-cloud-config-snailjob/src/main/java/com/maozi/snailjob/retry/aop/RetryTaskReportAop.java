@@ -99,9 +99,11 @@ public class RetryTaskReportAop {
         // 若为非重试流量则执行本地重试与远程上报
         if (!retryTraffic) {
 
+            RetryType retryStrategy = retryTask.retryStrategy();
+
             // 本地重试
-            if (retryTask.retryStrategy() == RetryType.ONLY_LOCAL
-                || retryTask.retryStrategy() == RetryType.LOCAL_REMOTE) {
+            if (retryStrategy == RetryType.ONLY_LOCAL
+                || retryStrategy == RetryType.LOCAL_REMOTE) {
 
                 // 本地重试成功，直接返回重试结果
                 LocalRetryResultDTO localRetryResult =
@@ -113,8 +115,8 @@ public class RetryTaskReportAop {
             }
 
             // 本地重试未启用或失败后，将方法信息封装为重试任务上报 SnailJob 服务端
-            if (retryTask.retryStrategy() == RetryType.ONLY_REMOTE
-                || retryTask.retryStrategy() == RetryType.LOCAL_REMOTE) {
+            if (retryStrategy == RetryType.ONLY_REMOTE
+                || retryStrategy == RetryType.LOCAL_REMOTE) {
 
                 RetryTaskParam retryTaskParam = new RetryTaskParam();
                 retryTaskParam.setBeanName(getBeanName(proceedingJoinPoint.getTarget()));
@@ -176,7 +178,8 @@ public class RetryTaskReportAop {
      * @return Spring Bean 名称
      */
     private String getBeanName(Object bean) {
-        return bean.getClass().getSimpleName().toLowerCase().charAt(0) + bean.getClass().getSimpleName().substring(1);
+        String simpleName = bean.getClass().getSimpleName();
+        return simpleName.toLowerCase().charAt(0) + simpleName.substring(1);
     }
 
     /**

@@ -45,19 +45,20 @@ public class RedissonConfig {
 
         Config config = new Config();
 
+        String password = lockRedissonProperties.getPassword();
         if(ObjectUtil.isNotNull(lockRedissonProperties.getNodeAddresses())){
             // 集群模式：配置多个 Redis 节点地址和密码
             config.useClusterServers()
-                    .setPassword(lockRedissonProperties.getPassword())
+                    .setPassword(password)
                     .addNodeAddress(lockRedissonProperties.getNodeAddresses());
         }else {
+            Integer database = lockRedissonProperties.getDatabase();
             // 单节点模式：配置单个 Redis 地址、数据库编号和密码
             // （逻辑库未配置时默认 0，避免自动拆箱 NPE）
             config.useSingleServer()
                     .setAddress(lockRedissonProperties.getAddress())
-                    .setDatabase(lockRedissonProperties.getDatabase() == null
-                            ? DEFAULT_DATABASE : lockRedissonProperties.getDatabase())
-                    .setPassword(lockRedissonProperties.getPassword());
+                    .setDatabase(database == null ? DEFAULT_DATABASE : database)
+                    .setPassword(password);
         }
 
         // 使用 Netty NIO 事件循环组，提高 Redisson 与 Redis 之间的网络通信性能

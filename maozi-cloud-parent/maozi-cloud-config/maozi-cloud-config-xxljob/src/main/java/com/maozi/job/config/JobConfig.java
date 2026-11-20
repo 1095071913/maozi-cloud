@@ -44,11 +44,12 @@ public class JobConfig {
         xxlJobSpringExecutor.setAdminAddresses(admin.getAddresses());
         xxlJobSpringExecutor.setAppname(executor.getAppName());
         xxlJobSpringExecutor.setIp(executor.getIp());
-        xxlJobSpringExecutor.setPort(executor.getPort() == null ? 0 : executor.getPort());
+        Integer port = executor.getPort();
+        xxlJobSpringExecutor.setPort(port == null ? 0 : port);
         xxlJobSpringExecutor.setAccessToken(properties.getAccessToken());
         xxlJobSpringExecutor.setLogPath(executor.getLogPath());
-        xxlJobSpringExecutor.setLogRetentionDays(executor.getLogRetentionDays() == null
-                ? 0 : executor.getLogRetentionDays());
+        Integer logRetentionDays = executor.getLogRetentionDays();
+        xxlJobSpringExecutor.setLogRetentionDays(logRetentionDays == null ? 0 : logRetentionDays);
         return xxlJobSpringExecutor;
     }
 

@@ -179,24 +179,28 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
 
         }else {
 
-            if(ObjectUtil.isNotNull(param.getClientId()) && StringUtils.isNotBlank(param.getUsername())) {
+            Long clientId = param.getClientId();
+            String username = param.getUsername();
+
+            if(ObjectUtil.isNotNull(clientId) && StringUtils.isNotBlank(username)) {
 
                 // 校验客户端存在且可用，不可用则抛出异常
-                rpcClientService.checkAvailableResult(param.getClientId()).getResultDataThrowError();
+                rpcClientService.checkAvailableResult(clientId).getResultDataThrowError();
 
                 // 校验同一客户端下用户名未被占用，已存在则抛出异常
                 super.checkNotHas(MPJWrappers.lambdaJoin(UserDO.builder()
-                        .clientId(param.getClientId())
-                        .username(param.getUsername())
+                        .clientId(clientId)
+                        .username(username)
                         .build()));
 
             }
 
         }
 
-        if(StringUtils.isNotBlank(param.getPassword())) {
+        String password = param.getPassword();
+        if(StringUtils.isNotBlank(password)) {
             // 密码非空时先加密再入库
-            param.setPassword(PASSWORD_ENCODER.encode(param.getPassword()));
+            param.setPassword(PASSWORD_ENCODER.encode(password));
         }
 
         id = super.saveUpdate(id, param);

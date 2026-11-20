@@ -21,6 +21,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -81,10 +82,13 @@ public class SwaggerGlobalFilter implements GlobalFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest();
         // 获取请求路径
         String path = request.getPath().toString();
+
+        InetSocketAddress localAddress = request.getLocalAddress();
+
         // 获取网关主机地址
-        String host = Objects.requireNonNull(request.getLocalAddress()).getHostString();
+        String host = Objects.requireNonNull(localAddress).getHostString();
         // 获取网关端口
-        int port = request.getLocalAddress().getPort();
+        int port = localAddress.getPort();
 
         // 仅处理 Swagger API 文档请求，其他请求直接放行
         if (!path.endsWith(API_DOC_PATH)) {

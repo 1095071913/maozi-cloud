@@ -128,8 +128,9 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
         }
         
         // 客户端密钥非空时加密存储（更新未传密钥则保持原值）
-        if(StringUtils.isNotBlank(param.getClientSecret())) {
-            param.setClientSecret(PASSWORD_ENCODER.encode(param.getClientSecret()));
+        String clientSecret = param.getClientSecret();
+        if(StringUtils.isNotBlank(clientSecret)) {
+            param.setClientSecret(PASSWORD_ENCODER.encode(clientSecret));
         }
 
         Long accessTokenValiditySeconds = param.getAccessTokenValiditySeconds();

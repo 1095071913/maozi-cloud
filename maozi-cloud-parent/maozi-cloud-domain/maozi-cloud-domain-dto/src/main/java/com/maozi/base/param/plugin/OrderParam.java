@@ -91,9 +91,11 @@ public interface OrderParam {
 
         Map<String, Map<String, Boolean>> orderMainFieldsMap = getOrderMainFieldsMap();
 
-        Map<String, List<String>> orderAscFieldsMap = CollectionUtil.newHashMap(orderMainFieldsMap.size());
+        int orderMainFieldsMapSize = orderMainFieldsMap.size();
 
-        Map<String, List<String>> orderDescFieldsMap = CollectionUtil.newHashMap(orderMainFieldsMap.size());
+        Map<String, List<String>> orderAscFieldsMap = CollectionUtil.newHashMap(orderMainFieldsMapSize);
+
+        Map<String, List<String>> orderDescFieldsMap = CollectionUtil.newHashMap(orderMainFieldsMapSize);
 
         for (Map.Entry<String, Map<String, Boolean>> orderMainEntry : orderMainFieldsMap.entrySet()) {
 
@@ -101,9 +103,11 @@ public interface OrderParam {
 
             Map<String, Boolean> orderMainFields = orderMainEntry.getValue();
 
-            List<String> orderAscFields = CollectionUtil.newArrayList(orderMainFields.size());
+            int orderMainFieldsSize = orderMainFields.size();
 
-            List<String> orderDescFields = CollectionUtil.newArrayList(orderMainFields.size());
+            List<String> orderAscFields = CollectionUtil.newArrayList(orderMainFieldsSize);
+
+            List<String> orderDescFields = CollectionUtil.newArrayList(orderMainFieldsSize);
 
             for (Map.Entry<String, Boolean> orderMainFieldEntry : orderMainFields.entrySet()) {
 

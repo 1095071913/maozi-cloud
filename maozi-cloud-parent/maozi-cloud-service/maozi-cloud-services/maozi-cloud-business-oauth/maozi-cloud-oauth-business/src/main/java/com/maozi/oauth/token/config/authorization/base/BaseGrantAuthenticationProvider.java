@@ -151,12 +151,14 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
         }
 
         // 以下令牌生成流程参考OAuth2AuthorizationCodeAuthenticationProvider实现
+        AuthorizationGrantType authorizationGrantType = authenticationToken.getAuthorizationGrantType();
+
         DefaultOAuth2TokenContext.Builder tokenContextBuilder = DefaultOAuth2TokenContext.builder()
                 .registeredClient(registeredClient)
                 .principal(userAuthenticationToken)
                 .authorizationServerContext(AuthorizationServerContextHolder.getContext())
                 .authorizedScopes(authorizedScopes)
-                .authorizationGrantType(authenticationToken.getAuthorizationGrantType())
+                .authorizationGrantType(authorizationGrantType)
                 .authorizationGrant(authenticationToken);
 
         // 初始化OAuth2Authorization构建器
@@ -167,7 +169,7 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
                 .principalName(userAuthenticationToken.getName())
                 // 设置当前用户认证信息，防止刷新token时因获取不到认证信息而抛出空指针异常
                 .attribute(Principal.class.getName(), userAuthenticationToken)
-                .authorizationGrantType(authenticationToken.getAuthorizationGrantType());
+                .authorizationGrantType(authorizationGrantType);
 
         // ----- Access token -----
         OAuth2TokenContext tokenContext = tokenContextBuilder.tokenType(OAuth2TokenType.ACCESS_TOKEN).build();
@@ -326,8 +328,9 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
     public static OAuth2ClientAuthenticationToken getAuthenticatedClientElseThrowInvalidClient(
             Authentication authentication) {
         OAuth2ClientAuthenticationToken clientPrincipal = null;
-        if (OAuth2ClientAuthenticationToken.class.isAssignableFrom(authentication.getPrincipal().getClass())) {
-            clientPrincipal = (OAuth2ClientAuthenticationToken) authentication.getPrincipal();
+        Object principal = authentication.getPrincipal();
+        if (OAuth2ClientAuthenticationToken.class.isAssignableFrom(principal.getClass())) {
+            clientPrincipal = (OAuth2ClientAuthenticationToken) principal;
         }
         if (clientPrincipal != null && clientPrincipal.isAuthenticated()) {
             return clientPrincipal;

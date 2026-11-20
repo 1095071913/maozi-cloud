@@ -9,6 +9,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.util.Map;
 
 /**
  * 重试时恢复 lb:// 地址的负载均衡重选过滤器。
@@ -63,14 +64,16 @@ public class RetryReselectInstanceFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         URI url = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
 
+        Map<String, Object> attributes = exchange.getAttributes();
+
         if (url != null && SCHEME_LB.equals(url.getScheme())) {
             // 首次尝试：LB 还没解析，记录 lb 地址
-            exchange.getAttributes().put(ORIGINAL_LB_URL_ATTR, url);
+            attributes.put(ORIGINAL_LB_URL_ATTR, url);
 
         } else if (url != null && exchange.getAttribute(ORIGINAL_LB_URL_ATTR) != null) {
             // 重试：地址已被 LB 替换成具体节点(http://A)，恢复成 lb://，
             // 后续 LB 过滤器会重新 choose() → RoundRobin 轮到下一个节点
-            exchange.getAttributes().put(
+            attributes.put(
                     ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR,
                     exchange.getAttribute(ORIGINAL_LB_URL_ATTR)
             );

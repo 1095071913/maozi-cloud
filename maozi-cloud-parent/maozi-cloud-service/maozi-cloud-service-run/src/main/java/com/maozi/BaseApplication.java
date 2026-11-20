@@ -428,10 +428,11 @@ public class BaseApplication {
     private static Class<?> findMainClass() {
         for (StackTraceElement element : Thread.currentThread().getStackTrace()) {
             if (MAIN_METHOD_NAME.equals(element.getMethodName())) {
+                String className = element.getClassName();
                 try {
-                    return Class.forName(element.getClassName());
+                    return Class.forName(className);
                 } catch (ClassNotFoundException e) {
-                    log.error("main class not loadable: {}", element.getClassName(), e);
+                    log.error("main class not loadable: {}", className, e);
                 }
             }
         }
@@ -449,9 +450,9 @@ public class BaseApplication {
     private static String deriveProjectName(File dir) {
         File current = dir;
         while (current != null) {
-            String name = current.getName().toLowerCase();
-            if (!isBuildDir(name)) {
-                return current.getName();
+            String name = current.getName();
+            if (!isBuildDir(name.toLowerCase())) {
+                return name;
             }
             current = current.getParentFile();
         }

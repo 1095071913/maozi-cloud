@@ -32,6 +32,7 @@ import com.maozi.common.enums.EnvironmentTypeEnum;
 import com.maozi.common.enums.LogCommonTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.core.Ordered;
@@ -118,8 +119,10 @@ public class StreamEntranceLogAop {
                 logs.put(LOG_TAG_TOPIC, topic.toString());
             }
 
-            logs.put(LogTag.FUNCTION, proceedingJoinPoint.getSignature().getDeclaringTypeName()
-                + SymbolConstant.COLON + proceedingJoinPoint.getSignature().getName());
+            Signature signature = proceedingJoinPoint.getSignature();
+
+            logs.put(LogTag.FUNCTION, signature.getDeclaringTypeName()
+                + SymbolConstant.COLON + signature.getName());
 
             // 非生产环境直接记录消息参数；生产环境为避免参数外泄，仅在异常时补充记录
             boolean isNotProd = EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD);

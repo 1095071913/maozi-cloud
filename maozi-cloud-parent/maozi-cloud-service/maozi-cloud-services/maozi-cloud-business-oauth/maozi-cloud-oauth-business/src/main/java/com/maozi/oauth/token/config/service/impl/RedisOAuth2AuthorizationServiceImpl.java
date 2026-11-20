@@ -175,13 +175,14 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
     @Override
     public void save(OAuth2Authorization authorization) {
         Assert.notNull(authorization, "authorization cannot be null");
+        String id = authorization.getId();
         AuthorizationData data = AuthorizationData.from(authorization);
-        String authKey = authorizationKey(authorization.getId());
+        String authKey = authorizationKey(id);
         String payload = write(data);
 
-        removeExistingAuthorizations(data.registeredClientId(), data.principalName(), authorization.getId());
+        removeExistingAuthorizations(data.registeredClientId(), data.principalName(), id);
 
-        OAuth2Authorization previous = findById(authorization.getId());
+        OAuth2Authorization previous = findById(id);
         if (previous != null) {
             remove(previous);
         }
@@ -190,13 +191,15 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
         setValue(authKey, payload, authorizationTtl);
 
         for (TokenIndex index : data.indexes()) {
-            String indexKey = indexKey(index.type(), index.value());
-            Duration ttl = resolveIndexTtl(data, index.type(), index.value());
-            setValue(indexKey, authorization.getId(), ttl);
+            String type = index.type();
+            String value = index.value();
+            String indexKey = indexKey(type, value);
+            Duration ttl = resolveIndexTtl(data, type, value);
+            setValue(indexKey, id, ttl);
         }
 
         String principalIndexKey = principalIndexKey(data.registeredClientId(), data.principalName());
-        this.redisTemplate.opsForSet().add(principalIndexKey, authorization.getId());
+        this.redisTemplate.opsForSet().add(principalIndexKey, id);
         setTtl(principalIndexKey, authorizationTtl);
     }
 
@@ -211,19 +214,20 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
     @Override
     public void remove(OAuth2Authorization authorization) {
         Assert.notNull(authorization, "authorization cannot be null");
-        OAuth2Authorization current = findById(authorization.getId());
+        String id = authorization.getId();
+        OAuth2Authorization current = findById(id);
         if (current == null) {
             return;
         }
         AuthorizationData data = AuthorizationData.from(current);
         List<String> keys = CollectionUtil.newArrayList();
-        keys.add(authorizationKey(authorization.getId()));
+        keys.add(authorizationKey(id));
         for (TokenIndex index : data.indexes()) {
             keys.add(indexKey(index.type(), index.value()));
         }
         this.redisTemplate.delete(keys);
         this.redisTemplate.opsForSet().remove(
-                principalIndexKey(data.registeredClientId(), data.principalName()), authorization.getId());
+                principalIndexKey(data.registeredClientId(), data.principalName()), id);
     }
 
     /**
@@ -266,25 +270,27 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
                     OAuth2ParameterNames.DEVICE_CODE);
         }
 
-        if (OAuth2ParameterNames.STATE.equals(tokenType.getValue())) {
+        String tokenTypeValue = tokenType.getValue();
+
+        if (OAuth2ParameterNames.STATE.equals(tokenTypeValue)) {
             return findByTokenIndex(STATE_TYPE, token);
         }
-        if (OAuth2ParameterNames.CODE.equals(tokenType.getValue())) {
+        if (OAuth2ParameterNames.CODE.equals(tokenTypeValue)) {
             return findByTokenIndex(AUTHORIZATION_CODE_TYPE, token);
         }
         if (OAuth2TokenType.ACCESS_TOKEN.equals(tokenType)) {
             return findByTokenIndex(OAuth2ParameterNames.ACCESS_TOKEN, token);
         }
-        if (OidcParameterNames.ID_TOKEN.equals(tokenType.getValue())) {
+        if (OidcParameterNames.ID_TOKEN.equals(tokenTypeValue)) {
             return findByTokenIndex(OIDC_ID_TOKEN_TYPE, token);
         }
         if (OAuth2TokenType.REFRESH_TOKEN.equals(tokenType)) {
             return findByTokenIndex(OAuth2ParameterNames.REFRESH_TOKEN, token);
         }
-        if (OAuth2ParameterNames.USER_CODE.equals(tokenType.getValue())) {
+        if (OAuth2ParameterNames.USER_CODE.equals(tokenTypeValue)) {
             return findByTokenIndex(OAuth2ParameterNames.USER_CODE, token);
         }
-        if (OAuth2ParameterNames.DEVICE_CODE.equals(tokenType.getValue())) {
+        if (OAuth2ParameterNames.DEVICE_CODE.equals(tokenTypeValue)) {
             return findByTokenIndex(OAuth2ParameterNames.DEVICE_CODE, token);
         }
         return null;
@@ -339,8 +345,9 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
                 .authorizedScopes(data.authorizedScopes())
                 .attributes(attrs -> attrs.putAll(data.attributes()));
 
-        if (StringUtils.hasText(data.state())) {
-            builder.attribute(OAuth2ParameterNames.STATE, data.state());
+        String state = data.state();
+        if (StringUtils.hasText(state)) {
+            builder.attribute(OAuth2ParameterNames.STATE, state);
         }
 
         applyToken(builder, data.authorizationCode());
@@ -367,43 +374,51 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
         if (tokenData == null || tokenData.value() == null) {
             return;
         }
-        if (tokenData.type() == TokenKindEnum.AUTHORIZATION_CODE) {
+
+        TokenKindEnum tokenKind = tokenData.type();
+        String tokenValue = tokenData.value();
+        Instant issuedAt = tokenData.issuedAt();
+        Instant expiresAt = tokenData.expiresAt();
+        Map<String, Object> tokenMetadata = tokenData.metadata();
+
+        if (tokenKind == TokenKindEnum.AUTHORIZATION_CODE) {
             OAuth2AuthorizationCode token = new OAuth2AuthorizationCode(
-                    tokenData.value(), tokenData.issuedAt(), tokenData.expiresAt());
-            builder.token(token, metadata -> metadata.putAll(tokenData.metadata()));
+                    tokenValue, issuedAt, expiresAt);
+            builder.token(token, metadata -> metadata.putAll(tokenMetadata));
             return;
         }
-        if (tokenData.type() == TokenKindEnum.ACCESS_TOKEN) {
+        if (tokenKind == TokenKindEnum.ACCESS_TOKEN) {
             OAuth2AccessToken.TokenType tokenType = OAuth2AccessToken.TokenType.BEARER;
-            Set<String> scopes = tokenData.scopes() != null ? tokenData.scopes() : Collections.emptySet();
-            OAuth2AccessToken token = new OAuth2AccessToken(tokenType, tokenData.value(),
-                    tokenData.issuedAt(), tokenData.expiresAt(), scopes);
-            builder.token(token, metadata -> metadata.putAll(tokenData.metadata()));
+            Set<String> tokenScopes = tokenData.scopes();
+            Set<String> scopes = tokenScopes != null ? tokenScopes : Collections.emptySet();
+            OAuth2AccessToken token = new OAuth2AccessToken(tokenType, tokenValue,
+                    issuedAt, expiresAt, scopes);
+            builder.token(token, metadata -> metadata.putAll(tokenMetadata));
             return;
         }
-        if (tokenData.type() == TokenKindEnum.OIDC_ID_TOKEN) {
+        if (tokenKind == TokenKindEnum.OIDC_ID_TOKEN) {
             @SuppressWarnings("unchecked")
-            Map<String, Object> claims = (Map<String, Object>) tokenData.metadata()
+            Map<String, Object> claims = (Map<String, Object>) tokenMetadata
                     .getOrDefault(OAuth2Authorization.Token.CLAIMS_METADATA_NAME, Collections.emptyMap());
-            OidcIdToken token = new OidcIdToken(tokenData.value(), tokenData.issuedAt(), tokenData.expiresAt(), claims);
-            builder.token(token, metadata -> metadata.putAll(tokenData.metadata()));
+            OidcIdToken token = new OidcIdToken(tokenValue, issuedAt, expiresAt, claims);
+            builder.token(token, metadata -> metadata.putAll(tokenMetadata));
             return;
         }
-        if (tokenData.type() == TokenKindEnum.REFRESH_TOKEN) {
+        if (tokenKind == TokenKindEnum.REFRESH_TOKEN) {
             OAuth2RefreshToken token = new OAuth2RefreshToken(
-                    tokenData.value(), tokenData.issuedAt(), tokenData.expiresAt());
-            builder.token(token, metadata -> metadata.putAll(tokenData.metadata()));
+                    tokenValue, issuedAt, expiresAt);
+            builder.token(token, metadata -> metadata.putAll(tokenMetadata));
             return;
         }
-        if (tokenData.type() == TokenKindEnum.USER_CODE) {
-            OAuth2UserCode token = new OAuth2UserCode(tokenData.value(), tokenData.issuedAt(), tokenData.expiresAt());
-            builder.token(token, metadata -> metadata.putAll(tokenData.metadata()));
+        if (tokenKind == TokenKindEnum.USER_CODE) {
+            OAuth2UserCode token = new OAuth2UserCode(tokenValue, issuedAt, expiresAt);
+            builder.token(token, metadata -> metadata.putAll(tokenMetadata));
             return;
         }
-        if (tokenData.type() == TokenKindEnum.DEVICE_CODE) {
+        if (tokenKind == TokenKindEnum.DEVICE_CODE) {
             OAuth2DeviceCode token = new OAuth2DeviceCode(
-                    tokenData.value(), tokenData.issuedAt(), tokenData.expiresAt());
-            builder.token(token, metadata -> metadata.putAll(tokenData.metadata()));
+                    tokenValue, issuedAt, expiresAt);
+            builder.token(token, metadata -> metadata.putAll(tokenMetadata));
         }
     }
 
@@ -447,9 +462,10 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
     private Duration resolveAuthorizationTtl(AuthorizationData data) {
         Instant maxExpiry = null;
         for (TokenData<?> token : data.tokens()) {
-            if (token != null && token.expiresAt() != null) {
-                if (maxExpiry == null || token.expiresAt().isAfter(maxExpiry)) {
-                    maxExpiry = token.expiresAt();
+            if (token != null) {
+                Instant expiresAt = token.expiresAt();
+                if (expiresAt != null && (maxExpiry == null || expiresAt.isAfter(maxExpiry))) {
+                    maxExpiry = expiresAt;
                 }
             }
         }
@@ -485,10 +501,11 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
         if (token == null || !Objects.equals(token.value(), value)) {
             return null;
         }
-        if (token.expiresAt() == null) {
+        Instant expiresAt = token.expiresAt();
+        if (expiresAt == null) {
             return null;
         }
-        Duration ttl = Duration.between(Instant.now(), token.expiresAt());
+        Duration ttl = Duration.between(Instant.now(), expiresAt);
         return ttl.isNegative() ? Duration.ZERO : ttl;
     }
 
@@ -594,9 +611,11 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
 
         // 1. 根据每个用户的clientId和username计算主体索引键，
         // 通过SMEMBERS获取每个用户在该客户端下的所有授权ID
-        List<String> principalIndexKeys = CollectionUtil.newArrayList(clientUsers.size());
+        int clientUserSize = clientUsers.size();
+
+        List<String> principalIndexKeys = CollectionUtil.newArrayList(clientUserSize);
         // 预估容量：每个用户可能持有多个授权 ID，按用户数 8 倍预分配减少扩容 rehash
-        Set<String> allAuthIds = new HashSet<>(Math.max(16, clientUsers.size() * 8));
+        Set<String> allAuthIds = new HashSet<>(Math.max(16, clientUserSize * 8));
         for (ClientUserParam clientUser : clientUsers) {
             String pKey = principalIndexKey(clientUser.getClientId().toString(), clientUser.getUsername());
             principalIndexKeys.add(pKey);
@@ -804,8 +823,11 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
          * @param token   令牌数据
          */
         private static void addIndex(List<TokenIndex> indexes, String type, @Nullable TokenData<?> token) {
-            if (token != null && StringUtils.hasText(token.value())) {
-                indexes.add(new TokenIndex(type, token.value()));
+            if (token != null) {
+                String value = token.value();
+                if (StringUtils.hasText(value)) {
+                    indexes.add(new TokenIndex(type, value));
+                }
             }
         }
 
@@ -822,14 +844,15 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
             if (token == null) {
                 return null;
             }
+            T authToken = token.getToken();
             Set<String> scopes = null;
-            if (token.getToken() instanceof OAuth2AccessToken accessToken) {
+            if (authToken instanceof OAuth2AccessToken accessToken) {
                 scopes = accessToken.getScopes();
             }
             return new TokenData<>(kind,
-                    token.getToken().getTokenValue(),
-                    token.getToken().getIssuedAt(),
-                    token.getToken().getExpiresAt(),
+                    authToken.getTokenValue(),
+                    authToken.getIssuedAt(),
+                    authToken.getExpiresAt(),
                     CollectionUtil.newHashMap(token.getMetadata()),
                     scopes != null ? new HashSet<>(scopes) : null);
         }

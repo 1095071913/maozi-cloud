@@ -17,6 +17,7 @@ import com.maozi.snailjob.job.config.context.SnailJobParamContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.core.Ordered;
@@ -171,13 +172,18 @@ public class SnailJobEntranceLogAop {
     private String getExecutorInfo(ProceedingJoinPoint proceedingJoinPoint) {
 
         for (Object param : proceedingJoinPoint.getArgs()) {
-            if (param instanceof JobContext jobContext && StringUtils.isNotEmpty(jobContext.getExecutorInfo())) {
-                return jobContext.getExecutorInfo();
+            if (param instanceof JobContext jobContext) {
+
+                String executorInfo = jobContext.getExecutorInfo();
+                if (StringUtils.isNotEmpty(executorInfo)) {
+                    return executorInfo;
+                }
             }
         }
 
-        return proceedingJoinPoint.getSignature().getDeclaringTypeName()
-            + SymbolConstant.COLON + proceedingJoinPoint.getSignature().getName();
+        Signature signature = proceedingJoinPoint.getSignature();
+        return signature.getDeclaringTypeName()
+            + SymbolConstant.COLON + signature.getName();
 
     }
 

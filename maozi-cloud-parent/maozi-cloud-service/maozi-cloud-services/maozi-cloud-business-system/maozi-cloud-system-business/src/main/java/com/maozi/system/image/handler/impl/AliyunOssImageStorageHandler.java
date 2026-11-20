@@ -84,8 +84,10 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
         OSSClientBuilder builder = OSSClient.newBuilder()
             .region(aliyun.getRegion());
 
-        if(StringUtils.isNotEmpty(aliyun.getEndpoint())) {
-            builder.endpoint(aliyun.getEndpoint());
+        String endpoint = aliyun.getEndpoint();
+
+        if(StringUtils.isNotEmpty(endpoint)) {
+            builder.endpoint(endpoint);
         }
 
         ossClient = builder
@@ -139,28 +141,32 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
             throw new BusinessResultException(new ErrorCode("上传文件不能为空"));
         }
 
+        String originalFilename = file.getOriginalFilename();
+
+        long fileSize = file.getSize();
+
         try {
 
             ImageStorageProperties.Aliyun aliyun = imageStorageProperties.getAliyun();
 
-            String fileKey = buildObjectKey(path, file.getOriginalFilename());
+            String fileKey = buildObjectKey(path, originalFilename);
 
             PutObjectRequest request = PutObjectRequest.newBuilder()
                 .bucket(aliyun.getBucket())
                 .key(fileKey)
                 .contentType(file.getContentType())
-                .body(BinaryData.fromStream(file.getInputStream(), file.getSize()))
+                .body(BinaryData.fromStream(file.getInputStream(), fileSize))
                 .build();
 
             ossClient.putObject(request);
 
             // 对象存储路径统一补上前导斜杠后返回
-            return new ImageUploadResult(file.getOriginalFilename(),
-                    SymbolConstant.SLASH + fileKey, buildAccessUrl(fileKey), file.getSize());
+            return new ImageUploadResult(originalFilename,
+                    SymbolConstant.SLASH + fileKey, buildAccessUrl(fileKey), fileSize);
 
         } catch (Exception e) {
             // 上传过程中的任意异常统一转换为业务异常抛出，并保留原始异常堆栈便于排查
-            log.error("Upload file to oss failed, file: {}", file.getOriginalFilename(), e);
+            log.error("Upload file to oss failed, file: {}", originalFilename, e);
             throw new BusinessResultException(
                     new ErrorCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE, "文件上传失败"), e);
         }
@@ -211,20 +217,26 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
 
         ImageStorageProperties.Aliyun aliyun = imageStorageProperties.getAliyun();
 
-        if(StringUtils.isNotEmpty(aliyun.getDomain())) {
-            return StringUtils.removeEnd(aliyun.getDomain(), SymbolConstant.SLASH) + SymbolConstant.SLASH + fileKey;
+        String bucket = aliyun.getBucket();
+
+        String domain = aliyun.getDomain();
+
+        if(StringUtils.isNotEmpty(domain)) {
+            return StringUtils.removeEnd(domain, SymbolConstant.SLASH) + SymbolConstant.SLASH + fileKey;
         }
 
-        if(StringUtils.isNotEmpty(aliyun.getEndpoint())) {
+        String endpoint = aliyun.getEndpoint();
 
-            URI endpoint = URI.create(aliyun.getEndpoint());
+        if(StringUtils.isNotEmpty(endpoint)) {
 
-            return endpoint.getScheme() + PROTOCOL_SEPARATOR + aliyun.getBucket()
-                    + SymbolConstant.DOT + endpoint.getHost() + SymbolConstant.SLASH + fileKey;
+            URI endpointUri = URI.create(endpoint);
+
+            return endpointUri.getScheme() + PROTOCOL_SEPARATOR + bucket
+                    + SymbolConstant.DOT + endpointUri.getHost() + SymbolConstant.SLASH + fileKey;
 
         }
 
-        return HTTPS_SCHEME_PREFIX + aliyun.getBucket() + ".oss-" + aliyun.getRegion() + SymbolConstant.DOT + "aliyuncs.com" + SymbolConstant.SLASH + fileKey;
+        return HTTPS_SCHEME_PREFIX + bucket + ".oss-" + aliyun.getRegion() + SymbolConstant.DOT + "aliyuncs.com" + SymbolConstant.SLASH + fileKey;
 
     }
 

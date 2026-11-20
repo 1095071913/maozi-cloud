@@ -51,14 +51,16 @@ public class TraceIdFilter implements GlobalFilter, Ordered {
         // 当 OpenTelemetry 未生成有效 traceId 时，使用自定义链路追踪 ID
         if (TraceIdContext.TRACE_ID_VALUE.equals(Span.current().getSpanContext().getTraceId())) {
 
+            ServerHttpRequest request = exchange.getRequest();
+
             // 优先复用请求头中携带的 traceId，缺失时生成 UUID
-            String traceId = exchange.getRequest().getHeaders().getFirst(TraceIdContext.KEY);
+            String traceId = request.getHeaders().getFirst(TraceIdContext.KEY);
             if (StringUtils.isEmpty(traceId)) {
                 traceId = UUID.randomUUID().toString();
             }
 
             // 将 traceId 写入请求头，供下游路由服务延续链路
-            ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
+            ServerHttpRequest mutatedRequest = request.mutate()
                 .header(TraceIdContext.KEY, traceId)
                 .build();
 

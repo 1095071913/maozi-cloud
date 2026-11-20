@@ -136,7 +136,8 @@ public final class LogUtil {
               .append(entry.getValue()).append(ENTRY_SUFFIX);
         }
         sb.delete(0, ENTRY_PREFIX_LENGTH);
-        sb.delete(sb.length() - ENTRY_SUFFIX_LENGTH, sb.length());
+        int length = sb.length();
+        sb.delete(length - ENTRY_SUFFIX_LENGTH, length);
 
         return sb.toString();
 

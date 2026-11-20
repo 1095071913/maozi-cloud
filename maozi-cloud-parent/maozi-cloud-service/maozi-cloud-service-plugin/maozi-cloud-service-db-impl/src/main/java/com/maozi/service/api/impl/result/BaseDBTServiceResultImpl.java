@@ -197,9 +197,11 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D> extends Base
     @Override
     public AbstractBaseResult<List<D>> listByRelationIdResult(Long id, String relationField, String ... columns) {
 
-        ObjectUtil.isNullThrowError(id, service.getResourceName());
+        String resourceName = service.getResourceName();
 
-        ObjectUtil.checkConditionThrowError(StringUtils.isNotEmpty(relationField), service.getResourceName() + RESOURCE_SUFFIX_GROUP);
+        ObjectUtil.isNullThrowError(id, resourceName);
+
+        ObjectUtil.checkConditionThrowError(StringUtils.isNotEmpty(relationField), resourceName + RESOURCE_SUFFIX_GROUP);
 
         QueryWrapper<AbstractBaseDomain> wrapper = Wrappers.query();
         if(columns.length > 0) {
@@ -224,9 +226,11 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D> extends Base
     public AbstractBaseResult<Map<Long, List<D>>> listByRelationIdsResult(
             Collection<Long> ids, String relationField, String ... columns) {
 
-        CollectionUtil.collectionIsEmptyThrowError(ids, service.getResourceName() + RESOURCE_SUFFIX_LIST);
+        String resourceName = service.getResourceName();
 
-        ObjectUtil.checkConditionThrowError(StringUtils.isNotEmpty(relationField), service.getResourceName() + RESOURCE_SUFFIX_GROUP);
+        CollectionUtil.collectionIsEmptyThrowError(ids, resourceName + RESOURCE_SUFFIX_LIST);
+
+        ObjectUtil.checkConditionThrowError(StringUtils.isNotEmpty(relationField), resourceName + RESOURCE_SUFFIX_GROUP);
 
         QueryWrapper<AbstractBaseDomain> wrapper = Wrappers.query();
         if(columns.length > 0) {
@@ -314,7 +318,7 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D> extends Base
         ObjectUtil.isNullThrowError(status, SystemErrorCode.PARAM_ERROR, RESOURCE_SUFFIX_STATUS);
 
         // 目标状态为禁用时，需先检查是否存在绑定关系
-        if(param.getData() == StatusEnum.DISABLE){
+        if(status == StatusEnum.DISABLE){
             service.checkBind(id);
         }
 

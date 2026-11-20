@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames
 import org.springframework.security.oauth2.server.authorization.authentication.OAuth2AccessTokenAuthenticationToken;
 
 import java.time.Duration;
+import java.time.Instant;
 
 /**
  * 用户认证成功处理器
@@ -53,8 +54,11 @@ public class UserAuthenticationSuccessHandler
         oauthToken.setTokenType(accessToken.getTokenType().getValue());
         oauthToken.setAccessToken(accessToken.getTokenValue());
 
-        if (accessToken.getIssuedAt() != null && accessToken.getExpiresAt() != null) {
-            long expiresIn = Duration.between(accessToken.getIssuedAt(), accessToken.getExpiresAt()).getSeconds();
+        Instant issuedAt = accessToken.getIssuedAt();
+        Instant expiresAt = accessToken.getExpiresAt();
+
+        if (issuedAt != null && expiresAt != null) {
+            long expiresIn = Duration.between(issuedAt, expiresAt).getSeconds();
             oauthToken.setExpiresIn(expiresIn);
         }
 
@@ -63,9 +67,12 @@ public class UserAuthenticationSuccessHandler
 
             oauthToken.setRefreshToken(refreshToken.getTokenValue());
 
-            if (refreshToken.getIssuedAt() != null && refreshToken.getExpiresAt() != null) {
+            Instant refreshIssuedAt = refreshToken.getIssuedAt();
+            Instant refreshExpiresAt = refreshToken.getExpiresAt();
+
+            if (refreshIssuedAt != null && refreshExpiresAt != null) {
                 oauthToken.setRefreshTokenExpiresIn(
-                        Duration.between(refreshToken.getIssuedAt(), refreshToken.getExpiresAt()).getSeconds());
+                        Duration.between(refreshIssuedAt, refreshExpiresAt).getSeconds());
             }
 
         }

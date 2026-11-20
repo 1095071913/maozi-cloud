@@ -151,8 +151,12 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public <R> Page<R> convertPage(PageParam<?> pageParam){
         // 分页参数未传时兜底：默认第 1 页、每页 10 条
-        long current = pageParam.getCurrent() == null ? DEFAULT_PAGE_CURRENT : pageParam.getCurrent();
-        long size = pageParam.getSize() == null ? DEFAULT_PAGE_SIZE : pageParam.getSize();
+        Long currentParam = pageParam.getCurrent();
+        long current = currentParam == null ? DEFAULT_PAGE_CURRENT : currentParam;
+
+        Long sizeParam = pageParam.getSize();
+        long size = sizeParam == null ? DEFAULT_PAGE_SIZE : sizeParam;
+
         return new Page<>(current, size);
     }
 
@@ -307,7 +311,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
             Field[] fields = clazz.getDeclaredFields();
             for(Field field : fields) {
 
-                if(SerializeUtil.SERIAL_VERSION_UID_FIELD_NAME.equals(field.getName())){
+                String fieldName = field.getName();
+
+                if(SerializeUtil.SERIAL_VERSION_UID_FIELD_NAME.equals(fieldName)){
                     continue;
                 }
 
@@ -315,29 +321,36 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
                 if(Objects.isNull(annotation)) {
 
                     // 无注解：字段名转下划线，关联模式下追加默认表别名前缀
-                    String fieldName = StrUtil.toUnderlineCase(field.getName());
+                    String columnName = StrUtil.toUnderlineCase(fieldName);
                     columns.add(isJoin
-                            ? String.join(SymbolConstant.DOT, QueryEnvironmentContext.defaultOrderKey, fieldName)
-                            : fieldName);
+                            ? String.join(SymbolConstant.DOT, QueryEnvironmentContext.defaultOrderKey, columnName)
+                            : columnName);
 
-                }else if(annotation.ignore() && (StringUtils.isNotEmpty(annotation.field())
-                        || StringUtils.isNotEmpty(annotation.tableName()))){
+                }else {
 
-                // ignore 且显式指定来源字段或表名：按注解配置生成列名，
-                // 未指定的部分回退字段名/默认别名
-                String tableName = StringUtils.isNotEmpty(annotation.tableName()) ?
-                            annotation.tableName()
-                            :
-                            QueryEnvironmentContext.defaultOrderKey;
+                    String annotationField = annotation.field();
+                    String annotationTableName = annotation.tableName();
 
-                    String fieldName = StringUtils.isNotEmpty(annotation.field()) ?
-                        annotation.field() : StrUtil.toUnderlineCase(field.getName());
+                    if(annotation.ignore() && (StringUtils.isNotEmpty(annotationField)
+                            || StringUtils.isNotEmpty(annotationTableName))){
 
-                    if (Boolean.TRUE.equals(isJoin)) {
-                        fieldName = String.join(SymbolConstant.DOT, tableName, fieldName);
+                    // ignore 且显式指定来源字段或表名：按注解配置生成列名，
+                    // 未指定的部分回退字段名/默认别名
+                    String tableName = StringUtils.isNotEmpty(annotationTableName) ?
+                                annotationTableName
+                                :
+                                QueryEnvironmentContext.defaultOrderKey;
+
+                        String columnName = StringUtils.isNotEmpty(annotationField) ?
+                            annotationField : StrUtil.toUnderlineCase(fieldName);
+
+                        if (Boolean.TRUE.equals(isJoin)) {
+                            columnName = String.join(SymbolConstant.DOT, tableName, columnName);
+                        }
+
+                        columns.add(columnName);
+
                     }
-
-                    columns.add(fieldName);
 
                 }
 
@@ -639,7 +652,6 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         wrapper.eq(getColumn(AbstractBaseDomain::getId), id);
 
         T domain = super.getOne(wrapper);
-
         ObjectUtil.isNullThrowError(domain, getResourceName());
 
         return domain;
@@ -658,7 +670,6 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     public <R> R getByParamThrowError(Wrapper<T> wrapper, Class<R> clazz) {
 
         T domain = super.getOne(wrapper);
-
         ObjectUtil.isNullThrowError(domain, getResourceName());
 
         return CglibUtil.copy(domain, clazz);
@@ -877,9 +888,11 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         V vo = target.get();
 
-        List<T> list = super.list(buildQueryWrapper(dto, vo.getClass()));
+        Class<?> voClass = vo.getClass();
 
-        setRelationData(dto, vo.getClass());
+        List<T> list = super.list(buildQueryWrapper(dto, voClass));
+
+        setRelationData(dto, voClass);
 
         return CglibUtil.copyList(list, () -> vo);
 
@@ -977,11 +990,13 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         ObjectUtil.isNullThrowError(domain, getResourceName());
 
         // 携带 ID 视为更新：先校验数据存在
-        if(ObjectUtil.isNotNull(domain.getId())) {
+        Long id = domain.getId();
+
+        if(ObjectUtil.isNotNull(id)) {
 
             QueryWrapper<T> wrapper = Wrappers.query();
 
-            wrapper.eq(getColumn(AbstractBaseDomain::getId), domain.getId());
+            wrapper.eq(getColumn(AbstractBaseDomain::getId), id);
 
             ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
             ObjectUtil.checkConditionThrowError(super.count(wrapper) > 0, errorCode,
@@ -1016,7 +1031,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
             domain.setId(id);
 
             QueryWrapper<T> wrapper = Wrappers.query();
-            wrapper.eq(getColumn(AbstractBaseDomain::getId), domain.getId());
+            wrapper.eq(getColumn(AbstractBaseDomain::getId), id);
 
             ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
             ObjectUtil.checkConditionThrowError(super.count(wrapper) > 0, errorCode,
@@ -1049,10 +1064,12 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         Consumer<T> consumer = (domain) -> {
 
             // 携带 ID 视为更新：先校验数据存在
-            if(ObjectUtil.isNotNull(domain.getId())) {
+            Long domainId = domain.getId();
+
+            if(ObjectUtil.isNotNull(domainId)) {
 
                 QueryWrapper<T> wrapper = Wrappers.query();
-                wrapper.eq(getColumn(AbstractBaseDomain::getId), domain.getId());
+                wrapper.eq(getColumn(AbstractBaseDomain::getId), domainId);
 
                 ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
                 ObjectUtil.checkConditionThrowError(super.count(wrapper) > 0, errorCode,
@@ -1132,17 +1149,20 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
                 Arrays.stream(joinPlugins).forEach(annotation -> {
 
+                    String resourceName = getResourceName();
+
                     JoinBaseTypeEnum value = annotation.value();
 
-                    ObjectUtil.isNullThrowError(value, getResourceName() + RESOURCE_SUFFIX_JOIN_TYPE);
+                    ObjectUtil.isNullThrowError(value, resourceName + RESOURCE_SUFFIX_JOIN_TYPE);
 
-                    ObjectUtil.isNullThrowError(value.getType(), getResourceName() + RESOURCE_SUFFIX_JOIN_TYPE);
+                    String type = value.getType();
+                    ObjectUtil.isNullThrowError(type, resourceName + RESOURCE_SUFFIX_JOIN_TYPE);
 
-                    JoinTypeEnum joinType = JoinTypeEnum.get(value.getType());
+                    JoinTypeEnum joinType = JoinTypeEnum.get(type);
 
-                    ObjectUtil.isNullThrowError(joinType, getResourceName() + RESOURCE_SUFFIX_JOIN_TYPE);
+                    ObjectUtil.isNullThrowError(joinType, resourceName + RESOURCE_SUFFIX_JOIN_TYPE);
 
-                    Objects.requireNonNull(joinType).getJoinPlugin().apply(getResourceName(), wrapper, annotation);
+                    Objects.requireNonNull(joinType).getJoinPlugin().apply(resourceName, wrapper, annotation);
 
                 });
 
@@ -1150,14 +1170,16 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         }
 
-        Field[] fields = ReflectUtil.getFields(param.getClass());
+        Field[] fields = ReflectUtil.getFields(paramClass);
         for(Field field : fields) {
 
-            if(SerializeUtil.SERIAL_VERSION_UID_FIELD_NAME.equals(field.getName())){
+            String fieldName = field.getName();
+
+            if(SerializeUtil.SERIAL_VERSION_UID_FIELD_NAME.equals(fieldName)){
                 continue;
             }
 
-            Object data = ReflectUtil.invokeGet(param, field.getName());
+            Object data = ReflectUtil.invokeGet(param, fieldName);
             // 字段值为空时不参与查询条件构建，直接跳过
             if(Objects.isNull(data)) {
                 continue;
@@ -1166,32 +1188,35 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
             QueryPlugin annotation = field.getAnnotation(QueryPlugin.class);
 
             boolean isNotNullAnnotation = ObjectUtil.isNotNull(annotation);
-            
-            String fieldName = isNotNullAnnotation && StringUtils.isNotEmpty(annotation.field()) ?
-                    annotation.field()
-                    :
-                    field.getName();
+
+            String annotationField = isNotNullAnnotation ? annotation.field() : null;
+
+            fieldName = StringUtils.isNotEmpty(annotationField) ? annotationField : fieldName;
 
             if(isNotNullAnnotation) {
 
+                String annotationTableName = annotation.tableName();
+
                 // 嵌套参数：以注解指定的表名递归解析其内部字段的查询条件
                 if(annotation.nest()) {
-                    paramFieldSetWrapper(annotation.tableName(), field, wrapper);
+                    paramFieldSetWrapper(annotationTableName, field, wrapper);
                     continue;
                 }
 
+                String resourceName = getResourceName();
+
                 QueryBaseTypeEnum value = annotation.value();
-                ObjectUtil.isNullThrowError(value, getResourceName() + RESOURCE_SUFFIX_QUERY_TYPE);
-                
+                ObjectUtil.isNullThrowError(value, resourceName + RESOURCE_SUFFIX_QUERY_TYPE);
+
                 String type = value.getType();
-                ObjectUtil.isNullThrowError(type, getResourceName() + RESOURCE_SUFFIX_QUERY_TYPE);
+                ObjectUtil.isNullThrowError(type, resourceName + RESOURCE_SUFFIX_QUERY_TYPE);
 
                 QueryTypeEnum queryType = QueryTypeEnum.get(type);
-                ObjectUtil.isNullThrowError(queryType, getResourceName() + RESOURCE_SUFFIX_QUERY_TYPE);
+                ObjectUtil.isNullThrowError(queryType, resourceName + RESOURCE_SUFFIX_QUERY_TYPE);
 
                 // 字段注解显式指定表名时，覆盖外层传入的表名
-                if(StringUtils.isNotEmpty(annotation.tableName())){
-                    tableName = annotation.tableName();
+                if(StringUtils.isNotEmpty(annotationTableName)){
+                    tableName = annotationTableName;
                 }
 
                 if (StringUtils.isNotEmpty(tableName)) {
@@ -1258,12 +1283,14 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
                     ObjectUtil.checkConditionThrowError(!type.isPrimitive(),
                             getResourceName() + RESOURCE_SUFFIX_MAPPING_TYPE_ERROR);
 
+                    String fieldName = field.getName();
+
                     if (List.class.equals(type)) {
                         wrapper.selectCollection(relationClazz,
-                                (response) -> ReflectUtil.invokeGet(response, field.getName()));
+                                (response) -> ReflectUtil.invokeGet(response, fieldName));
                     }else{
                         wrapper.selectAssociation(relationClazz,
-                                (response) -> ReflectUtil.invokeGet(response, field.getName()));
+                                (response) -> ReflectUtil.invokeGet(response, fieldName));
                     }
 
                 }
@@ -1570,6 +1597,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         Class<?> type = field.getType();
 
+        String fieldName = field.getName();
+
         // 自定义方法分支：配置了关联字段则携带其值调用，否则无参调用
         if (StringUtils.isNotEmpty(functionName)) {
 
@@ -1582,7 +1611,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
             }
 
             if (ObjectUtil.isNotNull(result)) {
-                ReflectUtil.invokeSet(data, field.getName(), result);
+                ReflectUtil.invokeSet(data, fieldName, result);
             }
 
         // 一对多分支：以对象自身主键作为关联值查询关联列表
@@ -1593,7 +1622,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
                 service, ResultFunName.LIST_BY_RELATION_ID_RESULT, id, relationFieldName, getColumns(field.getClass()));
             List<?> resultData = rpcResult.getResultDataThrowError();
             if (CollectionUtil.isNotEmpty(resultData)) {
-                ReflectUtil.invokeSet(data, field.getName(), resultData);
+                ReflectUtil.invokeSet(data, fieldName, resultData);
             }
 
         // 下拉关联分支：按关联字段值查询单个下拉选项
@@ -1605,7 +1634,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
                     service, ResultFunName.DROP_DOWN_RESULT, relationId);
                 DropDownResult resultData = rpcResult.getResultDataThrowError();
                 if (ObjectUtil.isNotNull(resultData)) {
-                    ReflectUtil.invokeSet(data, field.getName(), resultData);
+                    ReflectUtil.invokeSet(data, fieldName, resultData);
                 }
             }
 
@@ -1618,7 +1647,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
                     service, ResultFunName.GET_BY_ID_RESULT, relationId, getColumns(field.getClass()));
                 Object resultData = rpcResult.getResultDataThrowError();
                 if (ObjectUtil.isNotNull(resultData)) {
-                    ReflectUtil.invokeSet(data, field.getName(), resultData);
+                    ReflectUtil.invokeSet(data, fieldName, resultData);
                 }
             }
 

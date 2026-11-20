@@ -236,8 +236,10 @@ public class ChatMessage implements Serializable {
 
             generator.writeStartObject();
 
-            if (media.getId() != null) {
-                generator.writeStringField(FIELD_ID, media.getId());
+            String id = media.getId();
+
+            if (id != null) {
+                generator.writeStringField(FIELD_ID, id);
             }
 
             MimeType mimeType = media.getMimeType();

@@ -328,7 +328,8 @@ public class ChatServiceImpl implements ChatService {
         String chatStopLockKey = AI_CHAT_STOP_KEY + conversationId;
         String chatGenerateImageStopLockKey = AI_CHAT_GENERATE_IMAGE_STOP_KEY + conversationId;
 
-        int count = ObjectUtil.isNotNull(param.getCount()) ? param.getCount() : DEFAULT_IMAGE_COUNT;
+        Integer countParam = param.getCount();
+        int count = ObjectUtil.isNotNull(countParam) ? countParam : DEFAULT_IMAGE_COUNT;
 
         // 写入对话与文生图进行中标记，过期时间按生成数量放大，防止异常导致标记残留
         stringValueOperations.setIfAbsent(chatStopLockKey, Boolean.TRUE.toString(),

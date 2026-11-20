@@ -124,8 +124,10 @@ public class ServerHttpResponseAgent extends ServerHttpResponseDecorator {
 
                 });
 
+                String responseBody = outputStream.toString();
+
                 // 尝试将响应体解析为 Map，判断是否为自定义响应格式
-                Map<?, ?> result = JacksonUtil.jsonToObject(outputStream.toString(), Map.class);
+                Map<?, ?> result = JacksonUtil.jsonToObject(responseBody, Map.class);
 
                 // 当 OpenTelemetry 未生成有效 traceId 时，从请求头获取或生成 traceId 写入 MDC；
                 // OTel 已有则由其 MDC 集成接管，不覆盖
@@ -140,7 +142,7 @@ public class ServerHttpResponseAgent extends ServerHttpResponseDecorator {
                 // 记录响应耗时（RT）
                 logs.put(LogTag.RT, System.currentTimeMillis() - requestTime + LogTag.RT_UNIT);
                 // 记录响应数据
-                logs.put(LogTag.DATA, outputStream.toString());
+                logs.put(LogTag.DATA, responseBody);
 
                 // 根据响应状态和业务码决定日志级别
                 if (Objects.requireNonNull(super.getDelegate().getStatusCode()).value() != HttpStatus.OK.value()) {

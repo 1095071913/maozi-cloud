@@ -131,18 +131,22 @@ public class LockAop {
 
         // 如果方法声明在接口上，直接使用接口方法；
         // 否则从目标类获取实际方法，确保获取到正确的参数注解
+        Object target = joinPoint.getTarget();
+
+        Object[] args = joinPoint.getArgs();
+
         method = method.getDeclaringClass().isInterface()
                 ? signature.getMethod()
-                : joinPoint.getTarget().getClass().getDeclaredMethod(signature.getName(),
+                : target.getClass().getDeclaredMethod(signature.getName(),
                         method.getParameterTypes());
 
         List<String> keyList = CollectionUtil.newArrayList();
 
         // 收集通过 SpEL 表达式定义的锁键（来自 @Lock 注解的 keys 属性）
-        keyList.addAll(getSpelDefinitionKey(joinPoint.getTarget(), lock.keys(), method, joinPoint.getArgs()));
+        keyList.addAll(getSpelDefinitionKey(target, lock.keys(), method, args));
 
         // 收集通过 @LockKey 注解标记的参数值作为锁键
-        keyList.addAll(getParameterKey(method.getParameters(), joinPoint.getArgs()));
+        keyList.addAll(getParameterKey(method.getParameters(), args));
 
         // 每个业务键前后各拼接 "_"，键之间不加分隔符，形如 "_key1__key2_"
         // （分隔符为空、前缀 "_"、后缀 "_"）
@@ -205,7 +209,10 @@ public class LockAop {
                 Object parameterValue = parameterValues[i];
 
                 LockKey keyAnnotation = parameter.getAnnotation(LockKey.class);
-                if (keyAnnotation.value().isEmpty()) {
+
+                String spel = keyAnnotation.value();
+
+                if (spel.isEmpty()) {
                     // 如果 @LockKey 未指定 SpEL 表达式，直接使用参数的 toString 值作为锁键
                     parameterKeys.add(ObjectUtils.nullSafeToString(parameterValue));
 
@@ -214,7 +221,7 @@ public class LockAop {
                     // 如果 @LockKey 指定了 SpEL 表达式，则以参数对象为根对象解析表达式
                     // 例如参数为 User 对象，表达式为 "id"，则提取 user.getId() 的值
                     StandardEvaluationContext context = new StandardEvaluationContext(parameterValue);
-                    Object key = parser.parseExpression(keyAnnotation.value()).getValue(context);
+                    Object key = parser.parseExpression(spel).getValue(context);
                     parameterKeys.add(ObjectUtils.nullSafeToString(key));
 
                 }

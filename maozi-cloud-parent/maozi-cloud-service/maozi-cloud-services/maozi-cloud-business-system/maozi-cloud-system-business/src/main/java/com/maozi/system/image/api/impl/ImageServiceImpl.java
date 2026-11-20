@@ -12,6 +12,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -100,9 +101,11 @@ public class ImageServiceImpl implements ImageService {
             throw new BusinessResultException("未知的图片存储类型：" + storeTypeCode);
         }
 
-        List<ImageUploadResult> results = CollectionUtil.newArrayList(param.getFiles().size());
+        List<MultipartFile> files = param.getFiles();
 
-        param.getFiles().forEach(file -> results.add(handler.upload(file, param.getPath())));
+        List<ImageUploadResult> results = CollectionUtil.newArrayList(files.size());
+
+        files.forEach(file -> results.add(handler.upload(file, param.getPath())));
 
         return results;
 

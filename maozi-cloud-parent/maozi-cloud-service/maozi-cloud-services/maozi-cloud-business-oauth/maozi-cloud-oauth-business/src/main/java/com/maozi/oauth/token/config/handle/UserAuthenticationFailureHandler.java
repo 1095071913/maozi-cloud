@@ -48,10 +48,10 @@ public class UserAuthenticationFailureHandler implements
         // 则使用其携带的错误信息（保留了原始的业务错误详情）；
         // 否则使用默认的用户认证错误码返回
 
+        Throwable cause = ObjectUtil.isNotNull(causeException) ? causeException.getCause() : null;
+
         ErrorResult<?> errorResult = null;
-        if(ObjectUtil.isNotNull(causeException)
-            && ObjectUtil.isNotNull(causeException.getCause())
-            && causeException.getCause() instanceof BusinessResultException businessResultException){
+        if(ObjectUtil.isNotNull(cause) && cause instanceof BusinessResultException businessResultException){
             
             errorResult = businessResultException.getErrorResult().autoIdentifyHttpCode();
             if(errorResult.isSystemError()){

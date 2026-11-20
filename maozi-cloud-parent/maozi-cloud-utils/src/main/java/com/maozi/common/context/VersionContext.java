@@ -57,8 +57,8 @@ public class VersionContext extends AbstractRequestContextHolder<String> {
      * @return 非空版本号或默认版本
      */
     private String getVersionOrDefault(Object version) {
-        boolean hasVersion = ObjectUtil.isNotNull(version) && StringUtils.isNotBlank(version.toString());
-        return hasVersion ? version.toString() : APPLICATION_DEFAULT_VERSION;
+        String versionStr = ObjectUtil.isNotNull(version) ? version.toString() : null;
+        return StringUtils.isNotBlank(versionStr) ? versionStr : APPLICATION_DEFAULT_VERSION;
     }
 
 }

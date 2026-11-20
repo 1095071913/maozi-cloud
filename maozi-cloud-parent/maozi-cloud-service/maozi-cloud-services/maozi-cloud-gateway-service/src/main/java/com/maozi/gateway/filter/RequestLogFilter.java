@@ -24,6 +24,7 @@ import com.maozi.gateway.utils.WebUtil;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -68,18 +69,20 @@ public class RequestLogFilter implements GlobalFilter, Ordered {
         // 构建日志信息 Map（后续固定写入 IP/TYPE/URL/METHOD 及 RT/DATA 标签，指定初始容量）
         Map<String, String> logs = new LinkedHashMap<>(8);
 
+        ServerHttpRequest request = exchange.getRequest();
+
         // 记录客户端 IP 地址
-        logs.put(LogTag.IP, WebUtil.getRequestHost(exchange.getRequest()));
+        logs.put(LogTag.IP, WebUtil.getRequestHost(request));
         // 记录日志类型（网关）
         logs.put(LogTag.TYPE, LogCommonTypeEnum.GATEWAY.getDesc());
         // 记录请求 URL
-        logs.put(LogTag.URL, exchange.getRequest().getURI().toString());
+        logs.put(LogTag.URL, request.getURI().toString());
         // 记录 HTTP 请求方法
-        logs.put(LogTag.METHOD, Objects.requireNonNull(exchange.getRequest().getMethod()).toString());
+        logs.put(LogTag.METHOD, Objects.requireNonNull(request.getMethod()).toString());
 
         // 使用 ServerHttpResponseAgent 包装响应，在响应写入时自动记录日志
         return chain.filter(exchange.mutate().response(new ServerHttpResponseAgent(requestTime, logs,
-                exchange.getResponse(), exchange.getAttributes(), exchange.getRequest())).build());
+                exchange.getResponse(), exchange.getAttributes(), request)).build());
 
     }
 

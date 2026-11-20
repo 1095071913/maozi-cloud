@@ -99,9 +99,10 @@ public class InterfaceMethodRequestMappingHandlerMapping extends RequestMappingH
         Set<Class<?>> interfaces = ClassUtils.getAllInterfacesForClassAsSet(handlerType);
         for (Class<?> interfaceClass : interfaces) {
 
+            String methodName = method.getName();
             try {
 
-                Method candidate = interfaceClass.getDeclaredMethod(method.getName(), method.getParameterTypes());
+                Method candidate = interfaceClass.getDeclaredMethod(methodName, method.getParameterTypes());
                 if (AnnotatedElementUtils.hasAnnotation(candidate, RequestMapping.class)) {
                     return candidate;
                 }
@@ -109,7 +110,7 @@ public class InterfaceMethodRequestMappingHandlerMapping extends RequestMappingH
             } catch (NoSuchMethodException e) {
                 // 当前接口未声明同签名方法，继续检查下一个接口
                 // （debug 级别留痕，避免异常被静默吞掉）
-                log.debug("Interface {} does not declare method {}", interfaceClass.getName(), method.getName(), e);
+                log.debug("Interface {} does not declare method {}", interfaceClass.getName(), methodName, e);
             }
 
         }

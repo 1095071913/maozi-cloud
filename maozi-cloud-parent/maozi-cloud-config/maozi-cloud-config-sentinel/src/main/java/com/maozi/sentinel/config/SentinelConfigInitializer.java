@@ -51,9 +51,9 @@ public class SentinelConfigInitializer implements ConfigInitializer {
         // 设置 Sentinel 客户端向控制台上报心跳的接口路径
         properties.put(HEARTBEAT_API_PATH_KEY, HEARTBEAT_API_PATH_VALUE);
         properties.merge(
-                SpringPropertyConstant.SPRING_CONFIG_IMPORT,
-                IMPORTS,
-                (existing, incoming) -> incoming + SymbolConstant.COMMA + existing
+            SpringPropertyConstant.SPRING_CONFIG_IMPORT,
+            IMPORTS,
+            (existing, incoming) -> incoming + SymbolConstant.COMMA + existing
         );
         BaseApplication.addBannerFilter(BANNER_FLAG);
     }

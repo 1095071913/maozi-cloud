@@ -57,6 +57,12 @@
 			<artifactId>maozi-cloud-config-nacos</artifactId>
 			<version>${maozi-cloud-config-nacos.version}</version>
 		</dependency>
+
+        <dependency>
+            <groupId>com.maozi</groupId>
+            <artifactId>maozi-cloud-config-sentinel</artifactId>
+            <version>${maozi-cloud-config-sentinel.version}</version>
+        </dependency>
 		<!-- ============ 项目内部依赖 End ============ -->
 
 
@@ -73,18 +79,6 @@
 		<dependency>
 			<groupId>com.alibaba.cloud</groupId>
 			<artifactId>spring-cloud-alibaba-sentinel-gateway</artifactId>
-		</dependency>
-
-		<!-- Spring Cloud Alibaba Sentinel 核心依赖，提供限流熔断能力 -->
-		<dependency>
-			<groupId>com.alibaba.cloud</groupId>
-			<artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
-		</dependency>
-
-		<!-- Sentinel 数据源 Nacos 扩展，将限流规则持久化到 Nacos 配置中心 -->
-		<dependency>
-			<groupId>com.alibaba.csp</groupId>
-			<artifactId>sentinel-datasource-nacos</artifactId>
 		</dependency>
 
 		<!-- SpringDoc OpenAPI WebFlux 支持，用于聚合各服务的 Swagger 文档 -->

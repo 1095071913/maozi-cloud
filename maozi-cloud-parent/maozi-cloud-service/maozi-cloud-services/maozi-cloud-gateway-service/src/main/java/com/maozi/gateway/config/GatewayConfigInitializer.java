@@ -1,5 +1,7 @@
 package com.maozi.gateway.config;
 
+import com.alibaba.cloud.sentinel.gateway.ConfigConstants;
+import com.alibaba.csp.sentinel.config.SentinelConfig;
 import com.maozi.common.constant.SpringPropertyConstant;
 import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.spi.ConfigInitializer;
@@ -37,6 +39,7 @@ public class GatewayConfigInitializer implements ConfigInitializer {
     public void initialize(Properties properties) {
 
         properties.put(SpringPropertyConstant.ALLOW_BEAN_DEFINITION_OVERRIDING, true);
+        properties.put(SentinelConfig.APP_TYPE_PROP_KEY, ConfigConstants.APP_TYPE_SCG_GATEWAY);
 
         properties.merge(
             SpringPropertyConstant.SPRING_CONFIG_IMPORT,
@@ -52,7 +55,6 @@ public class GatewayConfigInitializer implements ConfigInitializer {
      * @param logs 启动诊断日志收集容器（本实现不写入任何内容）
      */
     @Override
-    public void appendLogs(Map<String, String> logs) {
-    }
+    public void appendLogs(Map<String, String> logs) {}
 
 }

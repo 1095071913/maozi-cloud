@@ -65,7 +65,6 @@ public class ApplicationNameInitializer
 
         ConfigurableEnvironment environment = applicationContext.getEnvironment();
         String applicationName = environment.getProperty(APPLICATION_NAME_KEY);
-
         if (StringUtils.isNotEmpty(applicationName)) {
             System.setProperty(SentinelConfig.APP_NAME_PROP_KEY, applicationName);
         }

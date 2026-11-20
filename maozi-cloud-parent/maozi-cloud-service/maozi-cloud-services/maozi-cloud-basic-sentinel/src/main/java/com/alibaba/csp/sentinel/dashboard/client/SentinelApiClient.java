@@ -424,7 +424,7 @@ public class SentinelApiClient {
         try {
             AssertUtil.notEmpty(ip, "Bad machine IP");
             AssertUtil.isTrue(port > 0, "Bad machine port");
-            Map<String, String> params = null;
+            Map<String, String> params;
             if (StringUtil.isNotEmpty(type)) {
                 params = new HashMap<>(1);
                 params.put("type", type);

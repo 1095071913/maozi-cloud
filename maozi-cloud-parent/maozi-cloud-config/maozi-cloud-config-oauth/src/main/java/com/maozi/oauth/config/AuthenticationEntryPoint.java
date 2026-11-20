@@ -62,7 +62,7 @@ public class AuthenticationEntryPoint implements org.springframework.security.we
         // 则使用其携带的错误信息（保留了原始的业务错误详情）；
         // 否则使用默认的用户认证错误码返回
 
-        ErrorResult<?> errorResult = null;
+        ErrorResult<?> errorResult;
         Throwable cause = ObjectUtil.isNotNull(causeException) ? causeException.getCause() : null;
         if(ObjectUtil.isNotNull(cause) && cause instanceof BusinessResultException businessResultException){
 

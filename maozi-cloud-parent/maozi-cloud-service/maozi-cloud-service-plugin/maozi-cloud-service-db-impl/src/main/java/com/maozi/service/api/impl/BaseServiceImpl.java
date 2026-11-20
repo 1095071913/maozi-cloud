@@ -1803,9 +1803,15 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     private void setSingleRelationFieldByFunction(Object data, Field field, Object service,
             String functionName, String relationFieldName) {
 
-        Object result = StringUtils.isNotEmpty(relationFieldName)
-                ? ReflectUtil.invoke(service, functionName, ReflectUtil.invokeGet(data, relationFieldName))
-                : ReflectUtil.invoke(service, functionName);
+        Object result;
+        if (StringUtils.isNotEmpty(relationFieldName)) {
+            // 先赋值给 Object 类型局部变量，避免泛型返回值直接传入可变参数时
+            // 被编译器推断为 Object[] 并插入 checkcast，导致运行时 ClassCastException
+            Object relationValue = ReflectUtil.invokeGet(data, relationFieldName);
+            result = ReflectUtil.invoke(service, functionName, relationValue);
+        } else {
+            result = ReflectUtil.invoke(service, functionName);
+        }
 
         if (ObjectUtil.isNotNull(result)) {
             ReflectUtil.invokeSet(data, field.getName(), result);

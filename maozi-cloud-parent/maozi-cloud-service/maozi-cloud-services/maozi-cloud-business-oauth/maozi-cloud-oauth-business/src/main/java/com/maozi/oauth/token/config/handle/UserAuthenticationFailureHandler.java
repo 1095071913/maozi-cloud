@@ -50,7 +50,7 @@ public class UserAuthenticationFailureHandler implements
 
         Throwable cause = ObjectUtil.isNotNull(causeException) ? causeException.getCause() : null;
 
-        ErrorResult<?> errorResult = null;
+        ErrorResult<?> errorResult;
         if(ObjectUtil.isNotNull(cause) && cause instanceof BusinessResultException businessResultException){
             
             errorResult = businessResultException.getErrorResult().autoIdentifyHttpCode();

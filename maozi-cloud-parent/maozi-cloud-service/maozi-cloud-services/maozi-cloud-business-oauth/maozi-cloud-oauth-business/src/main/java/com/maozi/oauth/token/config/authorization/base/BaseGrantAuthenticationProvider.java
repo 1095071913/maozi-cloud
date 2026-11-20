@@ -140,7 +140,7 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
         Set<String> authorizedScopes = getAuthorizedScopes(registeredClient, authenticationToken.getScopes());
 
         // 调用子类认证逻辑构造用户名密码令牌，再由DAO认证提供者完成密码校验
-        Authentication userAuthenticationToken = null;
+        Authentication userAuthenticationToken;
         try {
             UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                     subAuthenticate(authenticationToken);

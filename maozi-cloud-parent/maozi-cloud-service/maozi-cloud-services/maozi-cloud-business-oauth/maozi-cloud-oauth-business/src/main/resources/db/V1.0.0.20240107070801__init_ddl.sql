@@ -94,7 +94,9 @@ CREATE TABLE `oauth2_registered_client` (
                                             `is_deleted` tinyint unsigned NOT NULL DEFAULT '0' COMMENT '是否删除（1是 0否）',
                                             `status` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '1',
                                             `create_time` datetime NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-                                            PRIMARY KEY (`id`)
+                                            PRIMARY KEY (`id`),
+                                            -- 客户端标识业务唯一；覆盖认证链路高频查询：WHERE client_id = ? AND status = ?（JdbcRegisteredClientRepository.findByClientId）
+                                            UNIQUE KEY `uk_client_id` (`client_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=94 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -26,5 +26,8 @@ CREATE TABLE IF NOT EXISTS `sentinel_metric` (
   -- Semantic uniqueness: one aggregated row per app/resource/timestamp, re-pulled data is overwritten by upsert.
   UNIQUE KEY `uk_app_resource_timestamp` (`app`, `resource`, `timestamp`),
   -- Supports the aggregate query "list recently active resources of an app".
-  KEY `idx_app_timestamp` (`app`, `timestamp`)
+  KEY `idx_app_timestamp` (`app`, `timestamp`),
+  -- Supports the daily retention cleanup "DELETE ... WHERE timestamp < ? LIMIT n":
+  -- timestamp is not the leading column of any other index, without this the cleanup scans the whole table.
+  KEY `idx_timestamp` (`timestamp`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'Sentinel 监控指标表';

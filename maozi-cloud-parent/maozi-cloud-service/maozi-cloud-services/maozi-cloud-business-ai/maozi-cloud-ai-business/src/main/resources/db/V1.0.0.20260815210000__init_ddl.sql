@@ -9,5 +9,7 @@ CREATE TABLE `ai_chat_conversation` (
                                    `is_deleted` tinyint unsigned NOT NULL DEFAULT '0' COMMENT '是否删除（1是 0否）',
                                    `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态',
                                    `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 创建时间，默认当前时间戳
-                                   PRIMARY KEY (`id`) USING BTREE
+                                   PRIMARY KEY (`id`) USING BTREE,
+                                   -- 覆盖会话分页列表查询：WHERE user_id = ? AND is_deleted = 0 ORDER BY create_time DESC（等值过滤 + 排序，避免 filesort）
+                                   KEY `idx_user_id_create_time` (`user_id`, `create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='AI聊天对话记录';

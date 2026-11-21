@@ -62,6 +62,8 @@ CREATE TABLE `system_config_region` (
   `version` int NOT NULL DEFAULT '0' COMMENT '版本号',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 创建时间，默认当前时间戳
   PRIMARY KEY (`id`) USING BTREE,
+  -- 覆盖省市区级联查询：WHERE parent_id = ?（RegionServiceImpl.commonList，前端高频调用）
+  KEY `idx_parent_id` (`parent_id`) USING BTREE,
   KEY `actable_idx_name` (`name`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=900001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='地区';
 
@@ -86,6 +88,8 @@ CREATE TABLE `system_permission` (
                                      `version` int NOT NULL DEFAULT '0' COMMENT '版本号',
                                      `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 创建时间，默认当前时间戳
                                      PRIMARY KEY (`id`) USING BTREE,
+                                     -- 覆盖删除权限前的子权限校验：WHERE parent_id = ?
+                                     KEY `idx_parent_id` (`parent_id`) USING BTREE,
                                      KEY `actable_idx_name` (`name`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=271 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='权限';
 
@@ -119,7 +123,11 @@ CREATE TABLE `system_role_permission` (
                                           `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态',
                                           `version` int NOT NULL DEFAULT '0' COMMENT '版本号',
                                           `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 创建时间，默认当前时间戳
-                                          PRIMARY KEY (`id`) USING BTREE
+                                          PRIMARY KEY (`id`) USING BTREE,
+                                          -- 覆盖登录权限链路：WHERE role_id IN (...)；覆盖解绑：WHERE role_id = ? AND permission_id = ?
+                                          KEY `idx_role_id` (`role_id`) USING BTREE,
+                                          -- 覆盖删除权限前的绑定校验：WHERE permission_id = ?
+                                          KEY `idx_permission_id` (`permission_id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=2669 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='角色权限关系';
 
 -- ----------------------------

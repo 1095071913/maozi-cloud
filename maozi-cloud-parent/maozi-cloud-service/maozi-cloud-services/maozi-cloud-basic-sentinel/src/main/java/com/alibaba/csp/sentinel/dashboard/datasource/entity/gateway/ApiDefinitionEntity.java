@@ -57,7 +57,8 @@ public class ApiDefinitionEntity implements RuleEntity {
      * Builds an entity from the given {@link ApiDefinition}, taking the pattern and
      * matchStrategy of each {@link ApiPathPredicateItem} as predicate items.
      */
-    public static ApiDefinitionEntity fromApiDefinition(String app, String ip, Integer port, ApiDefinition apiDefinition) {
+    public static ApiDefinitionEntity fromApiDefinition(String app, String ip, Integer port, 
+        ApiDefinition apiDefinition) {
         ApiDefinitionEntity entity = new ApiDefinitionEntity();
         entity.setApp(app);
         entity.setIp(ip);
@@ -187,6 +188,7 @@ public class ApiDefinitionEntity implements RuleEntity {
     }
 
     /** Sets the create time. */
+    @Override
     public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
     }
@@ -197,6 +199,7 @@ public class ApiDefinitionEntity implements RuleEntity {
     }
 
     /** Sets the last modify time. */
+    @Override
     public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
     }

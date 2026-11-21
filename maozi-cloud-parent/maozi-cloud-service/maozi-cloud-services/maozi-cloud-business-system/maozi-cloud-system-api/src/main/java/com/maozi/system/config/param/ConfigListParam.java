@@ -30,6 +30,9 @@ public class ConfigListParam implements OrderParam, Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    /** 默认升序排序字段名（排序值字段） */
+    public static final String SORT_KEY = "sort";
+
     /** 配置名称（模糊查询） */
     @Schema(description = "名称")
     @QueryPlugin(value = QueryBaseTypeEnum.LIKE)
@@ -69,7 +72,7 @@ public class ConfigListParam implements OrderParam, Serializable {
         if (orderMainFieldsMap == null) {
             orderMainFieldsMap = Map.of(
                 QueryEnvironmentContext.defaultOrderKey, Map.of(
-                    "sort", Boolean.FALSE,
+                    SORT_KEY, Boolean.FALSE,
                     CREATE_TIME_KEY, Boolean.TRUE
                 )
             );

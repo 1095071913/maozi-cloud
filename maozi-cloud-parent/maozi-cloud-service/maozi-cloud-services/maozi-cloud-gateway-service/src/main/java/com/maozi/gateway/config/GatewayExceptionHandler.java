@@ -220,7 +220,7 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
             result = ResultUtil.error(SystemErrorCode.SERVICE_NOT_EXIST_ERROR)
                                .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
 
-        }else if(BlockException.isBlockException(e)){
+        }else if (BlockException.isBlockException(e)){
             // Sentinel 限流异常
             result = ResultUtil.error(SystemErrorCode.CURRENT_LIMITING_ERROR)
                                .setHttpCode(SystemErrorCode.CURRENT_LIMITING_ERROR_DEFAULT_CODE);

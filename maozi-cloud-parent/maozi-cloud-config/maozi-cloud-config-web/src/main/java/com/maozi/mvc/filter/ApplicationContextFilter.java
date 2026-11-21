@@ -66,16 +66,16 @@ public class ApplicationContextFilter extends OncePerRequestFilter {
         // 上下文中尚无当前用户信息时，从请求头解析并补齐
         // （供网关/上游透传用户信息的场景）
         CurrentUserInfo currentUserInfo = CurrentUserInfoContext.CONTEXT.get();
-        if(Objects.isNull(currentUserInfo)){
+        if (Objects.isNull(currentUserInfo)){
             CurrentUserInfoContext.CONTEXT.set(request.getHeader(CurrentUserInfoContext.KEY));
         }
 
         // OTel 尚未产生有效 traceId（32 个 0 占位值）时，从请求头读取，
         // 为空则生成随机 UUID，写入上下文并回写响应头
         String traceId = Span.current().getSpanContext().getTraceId();
-        if(TraceIdContext.TRACE_ID_VALUE.equals(traceId)){
+        if (TraceIdContext.TRACE_ID_VALUE.equals(traceId)){
             traceId = request.getHeader(TraceIdContext.KEY);
-            if(StringUtils.isEmpty(traceId)){
+            if (StringUtils.isEmpty(traceId)){
                 traceId = UUID.randomUUID().toString();
             }
             TraceIdContext.CONTEXT.set(traceId);

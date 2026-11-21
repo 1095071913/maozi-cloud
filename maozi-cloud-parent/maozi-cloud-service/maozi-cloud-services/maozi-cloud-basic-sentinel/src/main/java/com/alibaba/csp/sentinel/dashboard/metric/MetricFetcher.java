@@ -299,10 +299,10 @@ public class MetricFetcher {
                 fail.incrementAndGet();
                 httpGet.abort();
                 if (ex instanceof SocketTimeoutException) {
-                    logger.error("Failed to fetch metric from <{}>: socket timeout", url);
+                    logger.error("Failed to fetch metric from <{}>: socket timeout", url, ex);
                 } else if (ex instanceof ConnectException) {
                     logger.error("Failed to fetch metric from <{}> (ConnectionException: {})",
-                        url, ex.getMessage());
+                        url, ex.getMessage(), ex);
                 } else {
                     logger.error("{} metric {} error", msg, url, ex);
                 }
@@ -378,12 +378,9 @@ public class MetricFetcher {
         }
         String body = EntityUtils.toString(response.getEntity(), charset != null ? charset : DEFAULT_CHARSET);
         if (StringUtil.isEmpty(body) || body.startsWith(NO_METRICS)) {
-            //logger.info(machine.getApp() + ":" + machine.getIp() + ":" + machine.getPort() + ", bodyStr is empty");
             return;
         }
         String[] lines = body.split("\n");
-        //logger.info(machine.getApp() + ":" + machine.getIp() + ":" + machine.getPort() +
-        //    ", bodyStr.length()=" + body.length() + ", lines=" + lines.length);
         handleBody(lines, machine, metricMap);
     }
 
@@ -393,7 +390,6 @@ public class MetricFetcher {
      * the metrics of all machines of the app (ignoring ip and port).
      */
     private void handleBody(String[] lines, MachineInfo machine, Map<String, MetricEntity> map) {
-        //logger.info("handleBody() lines=" + lines.length + ", machine=" + machine);
         if (lines.length < 1) {
             return;
         }
@@ -429,7 +425,7 @@ public class MetricFetcher {
                 metricEntity.addExceptionQps(node.getExceptionQps());
                 metricEntity.addCount(1);
             } catch (Exception e) {
-                logger.warn("handleBody line exception, machine: {}, line: {}", machine.toLogString(), line);
+                logger.warn("handleBody line exception, machine: {}, line: {}", machine.toLogString(), line, e);
             }
         }
     }

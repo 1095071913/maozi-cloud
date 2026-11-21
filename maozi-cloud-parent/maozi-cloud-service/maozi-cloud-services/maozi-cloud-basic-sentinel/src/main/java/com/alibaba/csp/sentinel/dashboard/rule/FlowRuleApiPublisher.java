@@ -64,7 +64,7 @@ public class FlowRuleApiPublisher implements DynamicRulePublisher<List<FlowRuleE
             if (!machine.isHealthy()) {
                 continue;
             }
-            // TODO: parse the results
+            // TODO parse the results. by maozi 2026/11/21.
             sentinelApiClient.setFlowRuleOfMachine(app, machine.getIp(), machine.getPort(), rules);
         }
     }

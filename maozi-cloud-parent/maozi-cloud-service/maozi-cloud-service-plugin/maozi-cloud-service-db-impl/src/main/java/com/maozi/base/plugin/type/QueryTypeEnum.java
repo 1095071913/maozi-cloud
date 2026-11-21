@@ -74,9 +74,9 @@ public enum QueryTypeEnum {
 
         QueryTypeEnum[] queryTypes = QueryTypeEnum.values();
 
-        for(QueryTypeEnum queryType : queryTypes) {
+        for (QueryTypeEnum queryType : queryTypes) {
 
-            if(queryType.getType().getType().equals(type)) {
+            if (queryType.getType().getType().equals(type)) {
                 return queryType;
             }
 

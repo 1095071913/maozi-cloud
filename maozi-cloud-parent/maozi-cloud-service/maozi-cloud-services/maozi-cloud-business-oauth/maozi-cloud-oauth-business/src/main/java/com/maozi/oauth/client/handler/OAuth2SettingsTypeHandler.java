@@ -65,7 +65,7 @@ public class OAuth2SettingsTypeHandler extends JacksonTypeHandler {
             return OAUTH2_OBJECT_MAPPER.readValue(json, javaType);
         } catch (JacksonException e) {
             log.error("反序列化 OAuth2 Settings JSON: {} -> {} 失败", json, javaType, e);
-            throw new RuntimeException(e);
+            throw new IllegalStateException("反序列化 OAuth2 Settings 失败", e);
         }
     }
 
@@ -77,7 +77,7 @@ public class OAuth2SettingsTypeHandler extends JacksonTypeHandler {
      *
      * @param obj 待序列化的设置对象
      * @return 序列化后的JSON字符串
-     * @throws RuntimeException JSON序列化失败时抛出
+     * @throws IllegalStateException JSON序列化失败时抛出
      */
     @Override
     public String toJson(Object obj) {
@@ -85,7 +85,7 @@ public class OAuth2SettingsTypeHandler extends JacksonTypeHandler {
             return OAUTH2_OBJECT_MAPPER.writeValueAsString(obj);
         } catch (JsonProcessingException e) {
             log.error("序列化 OAuth2 Settings 对象: {} -> JSON 失败", obj, e);
-            throw new RuntimeException(e);
+            throw new IllegalStateException("序列化 OAuth2 Settings 失败", e);
         }
     }
 

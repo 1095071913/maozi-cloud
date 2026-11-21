@@ -10,6 +10,7 @@ import io.opentelemetry.sdk.trace.samplers.SamplingDecision;
 import io.opentelemetry.sdk.trace.samplers.SamplingResult;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -74,24 +75,29 @@ public class FilterSampler implements Sampler {
     public SamplingResult shouldSample(Context parentContext, String traceId, String name, SpanKind spanKind,
             Attributes attributes, List<LinkData> parentLinks) {
 
+        // 属性集合空保护：预检查规避空指针，避免依赖运行时异常兜底分支
+        if (Objects.isNull(attributes)) {
+            return SamplingResult.create(SamplingDecision.RECORD_AND_SAMPLE);
+        }
+
         try{
 
             // 启动阶段（main 线程）的 Span 直接丢弃，避免上报噪声
-            if(MAIN_THREAD_NAME.equals(Thread.currentThread().getName())){
+            if (MAIN_THREAD_NAME.equals(Thread.currentThread().getName())){
                 return SamplingResult.create(SamplingDecision.DROP);
             }
 
             // 通过SpanName过滤
-            if(EXCLUDED_TARGETS.contains(name)){
+            if (EXCLUDED_TARGETS.contains(name)){
                 return SamplingResult.create(SamplingDecision.DROP);
             }
 
             // 通过属性过滤
-            if(!attributes.isEmpty()){
-                for(FilterTypeEnum type : FilterTypeEnum.values()){
+            if (!attributes.isEmpty()){
+                for (FilterTypeEnum type : FilterTypeEnum.values()){
 
                     // 任一过滤器命中即丢弃该 Span
-                    if(type.getHandle().filter(attributes)){
+                    if (type.getHandle().filter(attributes)){
                         return SamplingResult.create(SamplingDecision.DROP);
                     }
 
@@ -101,7 +107,8 @@ public class FilterSampler implements Sampler {
             // 未命中任何过滤规则，放行采样
             return SamplingResult.create(SamplingDecision.RECORD_AND_SAMPLE);
 
-        // 若异常则不过滤（放行采样），兜底保证采样链路不中断
+        // 边界兜底：javaagent 采样热路径不允许异常逃逸到 OTel SDK 中断采样链路，
+        // 捕获后完整记录异常（含堆栈）并放行采样，非以异常做流程控制
         }catch (RuntimeException e){
 
             // 使用 Supplier 延迟构造日志消息，避免无谓的字符串拼接开销

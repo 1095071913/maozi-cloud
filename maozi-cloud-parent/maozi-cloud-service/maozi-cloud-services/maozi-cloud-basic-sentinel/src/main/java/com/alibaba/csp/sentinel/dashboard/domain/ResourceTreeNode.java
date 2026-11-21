@@ -302,5 +302,26 @@ public class ResourceTreeNode {
     public void setChildren(List<ResourceTreeNode> children) {
         this.children = children;
     }
-}
 
+    @Override
+    public String toString() {
+        return "ResourceTreeNode{"
+                + "id='" + id + '\''
+                + ", parentId='" + parentId + '\''
+                + ", resource='" + resource + '\''
+                + ", threadNum=" + threadNum
+                + ", passQps=" + passQps
+                + ", blockQps=" + blockQps
+                + ", totalQps=" + totalQps
+                + ", averageRt=" + averageRt
+                + ", successQps=" + successQps
+                + ", exceptionQps=" + exceptionQps
+                + ", oneMinutePass=" + oneMinutePass
+                + ", oneMinuteBlock=" + oneMinuteBlock
+                + ", oneMinuteException=" + oneMinuteException
+                + ", oneMinuteTotal=" + oneMinuteTotal
+                + ", visible=" + visible
+                + ", children=" + children
+                + '}';
+    }
+}

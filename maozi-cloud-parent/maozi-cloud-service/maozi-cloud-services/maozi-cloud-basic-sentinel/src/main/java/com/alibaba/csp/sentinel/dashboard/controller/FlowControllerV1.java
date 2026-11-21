@@ -20,9 +20,10 @@ import com.alibaba.csp.sentinel.dashboard.auth.AuthService.PrivilegeType;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.FlowRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.discovery.AppManagement;
 import com.alibaba.csp.sentinel.dashboard.domain.Result;
-import com.alibaba.csp.sentinel.dashboard.repository.rule.InMemoryRuleRepositoryAdapter;
+import com.alibaba.csp.sentinel.dashboard.repository.rule.AbstractInMemoryRuleRepository;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRuleProvider;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
+import com.alibaba.csp.sentinel.slots.block.RuleConstant;
 import com.alibaba.csp.sentinel.util.StringUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -51,10 +52,11 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
     /** The app management service used to validate machine-to-app relationship. */
     private final AppManagement appManagement;
 
-    public FlowControllerV1(InMemoryRuleRepositoryAdapter<FlowRuleEntity> repository,
+    public FlowControllerV1(AbstractInMemoryRuleRepository<FlowRuleEntity> repository,
                             AppManagement appManagement,
                             @Qualifier("flowRuleNacosProvider") DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider,
-                            @Qualifier("flowRuleNacosPublisher") DynamicRulePublisher<List<FlowRuleEntity>> rulePublisher) {
+                            @Qualifier("flowRuleNacosPublisher") DynamicRulePublisher<List<FlowRuleEntity>>
+                                rulePublisher) {
         super(repository, ruleProvider, rulePublisher);
         this.appManagement = appManagement;
     }
@@ -86,7 +88,10 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
         });
     }
 
-    /** Validates the machine fields (app/ip/port and machine-to-app relationship), then the flow-rule specific fields; returns the first error or null. */
+    /**
+     * Validates the machine fields (app/ip/port and machine-to-app relationship), then the flow-rule specific fields;
+     * returns the first error or null.
+     */
     @Override
     protected <R> Result<R> checkEntityInternal(FlowRuleEntity entity) {
         Result<R> baseResult = RuleEntityValidator.checkBaseFields(entity, appManagement);
@@ -96,7 +101,9 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
         return RuleEntityValidator.checkFlowRuleFields(entity);
     }
 
-    /** Adds a new flow rule after validation (id reset so the repository generates one) and publishes the app's rules. */
+    /**
+     * Adds a new flow rule after validation (id reset so the repository generates one) and publishes the app's rules.
+     */
     @PostMapping("/rule")
     @AuthAction(PrivilegeType.WRITE_RULE)
     public Result<FlowRuleEntity> apiAddFlowRule(@RequestBody FlowRuleEntity entity) {
@@ -132,7 +139,7 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
             entity.setResource(resource.trim());
         }
         if (grade != null) {
-            if (grade != 0 && grade != 1) {
+            if (grade != RuleConstant.FLOW_GRADE_THREAD && grade != RuleConstant.FLOW_GRADE_QPS) {
                 return Result.ofFail(-1, "grade must be 0 or 1, but " + grade + " got");
             }
             entity.setGrade(grade);
@@ -141,11 +148,12 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
             entity.setCount(count);
         }
         if (strategy != null) {
-            if (strategy != 0 && strategy != 1 && strategy != 2) {
+            if (strategy != RuleConstant.STRATEGY_DIRECT && strategy != RuleConstant.STRATEGY_RELATE
+                && strategy != RuleConstant.STRATEGY_CHAIN) {
                 return Result.ofFail(-1, "strategy must be in [0, 1, 2], but " + strategy + " got");
             }
             entity.setStrategy(strategy);
-            if (strategy != 0) {
+            if (strategy != RuleConstant.STRATEGY_DIRECT) {
                 if (StringUtil.isBlank(refResource)) {
                     return Result.ofFail(-1, "refResource can't be null or empty when strategy!=0");
                 }
@@ -153,13 +161,15 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
             }
         }
         if (controlBehavior != null) {
-            if (controlBehavior != 0 && controlBehavior != 1 && controlBehavior != 2) {
+            if (controlBehavior != RuleConstant.CONTROL_BEHAVIOR_DEFAULT
+                && controlBehavior != RuleConstant.CONTROL_BEHAVIOR_WARM_UP
+                && controlBehavior != RuleConstant.CONTROL_BEHAVIOR_RATE_LIMITER) {
                 return Result.ofFail(-1, "controlBehavior must be in [0, 1, 2], but " + controlBehavior + " got");
             }
-            if (controlBehavior == 1 && warmUpPeriodSec == null) {
+            if (controlBehavior == RuleConstant.CONTROL_BEHAVIOR_WARM_UP && warmUpPeriodSec == null) {
                 return Result.ofFail(-1, "warmUpPeriodSec can't be null when controlBehavior==1");
             }
-            if (controlBehavior == 2 && maxQueueingTimeMs == null) {
+            if (controlBehavior == RuleConstant.CONTROL_BEHAVIOR_RATE_LIMITER && maxQueueingTimeMs == null) {
                 return Result.ofFail(-1, "maxQueueingTimeMs can't be null when controlBehavior==2");
             }
             entity.setControlBehavior(controlBehavior);

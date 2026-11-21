@@ -105,16 +105,16 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
     @Transactional(rollbackFor = Exception.class)
     public Long adminSaveUpdate(Long id, ClientSaveUpdateParam param) {
 
-        if(Objects.isNull(id)) {
+        if (Objects.isNull(id)) {
 
             // 新增：自动生成客户端标识（clientId）
             param.setClientId(String.valueOf(IdWorker.getId()));
 
-            if(Objects.isNull(param.getAccessTokenValiditySeconds())){
+            if (Objects.isNull(param.getAccessTokenValiditySeconds())){
                 param.setAccessTokenValiditySeconds(DEFAULT_ACCESS_TOKEN_VALIDITY_SECONDS);
             }
 
-            if(Objects.isNull(param.getRefreshTokenValiditySeconds())){
+            if (Objects.isNull(param.getRefreshTokenValiditySeconds())){
                 param.setRefreshTokenValiditySeconds(DEFAULT_REFRESH_TOKEN_VALIDITY_SECONDS);
             }
 
@@ -129,13 +129,13 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
         
         // 客户端密钥非空时加密存储（更新未传密钥则保持原值）
         String clientSecret = param.getClientSecret();
-        if(StringUtils.isNotBlank(clientSecret)) {
+        if (StringUtils.isNotBlank(clientSecret)) {
             param.setClientSecret(PASSWORD_ENCODER.encode(clientSecret));
         }
 
         Long accessTokenValiditySeconds = param.getAccessTokenValiditySeconds();
         Long refreshTokenValiditySeconds = param.getRefreshTokenValiditySeconds();
-        if(ObjectUtil.isNotNull(accessTokenValiditySeconds)
+        if (ObjectUtil.isNotNull(accessTokenValiditySeconds)
                 && ObjectUtil.isNotNull(refreshTokenValiditySeconds)) {
 
             TokenSettings.Builder builder = TokenSettings.builder();
@@ -177,7 +177,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
                 ClientDO::getTokenSettings, ClientDO::getRemark, ClientDO::getStatus);
 
         // 防御性判空（getAvailableById在数据不存在时已抛出异常，正常不会进入该分支）
-        if(Objects.isNull(domain)){
+        if (Objects.isNull(domain)){
             return null;
         }
 

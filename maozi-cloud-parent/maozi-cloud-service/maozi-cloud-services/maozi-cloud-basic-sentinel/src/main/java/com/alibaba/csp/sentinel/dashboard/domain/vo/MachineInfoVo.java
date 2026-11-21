@@ -154,4 +154,18 @@ public class MachineInfoVo {
     public void setHealthy(boolean healthy) {
         this.healthy = healthy;
     }
+
+    @Override
+    public String toString() {
+        return "MachineInfoVo{"
+                + "app='" + app + '\''
+                + ", hostname='" + hostname + '\''
+                + ", ip='" + ip + '\''
+                + ", port=" + port
+                + ", heartbeatVersion=" + heartbeatVersion
+                + ", lastHeartbeat=" + lastHeartbeat
+                + ", healthy=" + healthy
+                + ", version='" + version + '\''
+                + '}';
+    }
 }

@@ -108,7 +108,7 @@ public class ChatConversationServiceImpl extends BaseServiceImpl<ChatConversatio
     public Long adminSave(RequestParam<String> param) {
 
         String title = param.getData();
-        if(StringUtils.isBlank(title)){
+        if (StringUtils.isBlank(title)){
             throw new BusinessResultException("消息不能为空");
         }
 
@@ -133,7 +133,7 @@ public class ChatConversationServiceImpl extends BaseServiceImpl<ChatConversatio
     public void adminUpdateTitle(Long conversationId, RequestParam<String> param) {
 
         String title = param.getData();
-        if(StringUtils.isBlank(title)){
+        if (StringUtils.isBlank(title)){
             throw new BusinessResultException("标题不能为空");
         }
 
@@ -161,7 +161,7 @@ public class ChatConversationServiceImpl extends BaseServiceImpl<ChatConversatio
         LambdaQueryWrapper<ChatConversationDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ChatConversationDO::getId, conversationId);
         wrapper.eq(ChatConversationDO::getUserId, CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId));
-        if(remove(wrapper)){
+        if (remove(wrapper)){
             chatMemory.clear(conversationId);
         }
     }

@@ -212,6 +212,7 @@ public class DegradeRuleEntity implements RuleEntity {
     }
 
     /** Sets the create time. */
+    @Override
     public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
     }
@@ -222,6 +223,7 @@ public class DegradeRuleEntity implements RuleEntity {
     }
 
     /** Sets the last modify time. */
+    @Override
     public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
     }
@@ -249,5 +251,25 @@ public class DegradeRuleEntity implements RuleEntity {
         }
 
         return rule;
+    }
+
+    @Override
+    public String toString() {
+        return "DegradeRuleEntity{"
+                + "id=" + id
+                + ", app='" + app + '\''
+                + ", ip='" + ip + '\''
+                + ", port=" + port
+                + ", resource='" + resource + '\''
+                + ", limitApp='" + limitApp + '\''
+                + ", count=" + count
+                + ", timeWindow=" + timeWindow
+                + ", grade=" + grade
+                + ", minRequestAmount=" + minRequestAmount
+                + ", slowRatioThreshold=" + slowRatioThreshold
+                + ", statIntervalMs=" + statIntervalMs
+                + ", gmtCreate=" + gmtCreate
+                + ", gmtModified=" + gmtModified
+                + '}';
     }
 }

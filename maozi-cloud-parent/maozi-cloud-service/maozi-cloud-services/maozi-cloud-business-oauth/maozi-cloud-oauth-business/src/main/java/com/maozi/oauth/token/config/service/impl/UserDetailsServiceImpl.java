@@ -78,7 +78,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     ? List.of() : authoritiesResult;
             // 权限数量已知（等于远程返回的权限数），按此指定初始容量避免扩容
             List<GrantedAuthority> grantedAuthorities = CollectionUtil.newArrayList(authorities.size());
-            authorities.forEach((permission)->{
+            authorities.forEach((permission) -> {
                 grantedAuthorities.add(new SimpleGrantedAuthority(permission));
             });
 
@@ -93,9 +93,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
             // 业务错误（如用户不存在）转为用户认证失败，
             // 其余统一转为系统错误（均保留原始异常链）
-            if(e instanceof BusinessResultException businessResultException){
+            if (e instanceof BusinessResultException businessResultException){
                 ErrorResult<?> errorResult = businessResultException.getErrorResult();
-                if(errorResult.isBusinessError()){
+                if (errorResult.isBusinessError()){
                     errorResult = ResultUtil.error(SystemErrorCode.USER_AUTH_ERROR)
                         .setHttpCode(SystemErrorCode.USER_AUTH_ERROR_DEFAULT_CODE);
                 }

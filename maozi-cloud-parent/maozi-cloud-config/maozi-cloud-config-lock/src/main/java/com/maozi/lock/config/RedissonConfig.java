@@ -3,6 +3,7 @@ package com.maozi.lock.config;
 import com.maozi.common.ObjectUtil;
 import com.maozi.lock.properties.LockRedissonProperties;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import jakarta.annotation.Resource;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
@@ -46,7 +47,7 @@ public class RedissonConfig {
         Config config = new Config();
 
         String password = lockRedissonProperties.getPassword();
-        if(ObjectUtil.isNotNull(lockRedissonProperties.getNodeAddresses())){
+        if (ObjectUtil.isNotNull(lockRedissonProperties.getNodeAddresses())){
             // 集群模式：配置多个 Redis 节点地址和密码
             config.useClusterServers()
                     .setPassword(password)
@@ -61,8 +62,11 @@ public class RedissonConfig {
                     .setPassword(password);
         }
 
-        // 使用 Netty NIO 事件循环组，提高 Redisson 与 Redis 之间的网络通信性能
-        config.setEventLoopGroup(new NioEventLoopGroup());
+        // 使用 Netty NIO 事件循环组，提高 Redisson 与 Redis 之间的网络通信性能；
+        // 通过自定义线程工厂指定有意义的线程名前缀，便于日志回溯定位归属
+        config.setEventLoopGroup(new NioEventLoopGroup(
+                Runtime.getRuntime().availableProcessors(),
+                new DefaultThreadFactory("redisson-netty", true)));
 
         return Redisson.create(config);
 

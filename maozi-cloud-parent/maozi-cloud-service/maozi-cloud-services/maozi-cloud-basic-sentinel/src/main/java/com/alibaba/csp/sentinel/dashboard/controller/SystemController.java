@@ -60,8 +60,10 @@ public class SystemController {
 
     public SystemController(RuleRepository<SystemRuleEntity, Long> repository,
                             AppManagement appManagement,
-                            @Qualifier("systemRuleNacosProvider") DynamicRuleProvider<List<SystemRuleEntity>> ruleProvider,
-                            @Qualifier("systemRuleNacosPublisher") DynamicRulePublisher<List<SystemRuleEntity>> rulePublisher) {
+                            @Qualifier("systemRuleNacosProvider") DynamicRuleProvider<List<SystemRuleEntity>>
+                                ruleProvider,
+                            @Qualifier("systemRuleNacosPublisher") DynamicRulePublisher<List<SystemRuleEntity>>
+                                rulePublisher) {
         this.repository = repository;
         this.appManagement = appManagement;
         this.ruleProvider = ruleProvider;
@@ -191,7 +193,10 @@ public class SystemController {
         return Result.ofSuccess(entity);
     }
 
-    /** Updates the rule of the given id by applying only non-null params (negative thresholds rejected) and publishes the app's rules. */
+    /**
+     * Updates the rule of the given id by applying only non-null params (negative thresholds rejected) and publishes
+     * the app's rules.
+     */
     @GetMapping("/save.json")
     @AuthAction(PrivilegeType.WRITE_RULE)
     public Result<SystemRuleEntity> apiUpdateIfNotNull(Long id, String app, Double highestSystemLoad,

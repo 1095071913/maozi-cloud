@@ -39,8 +39,14 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping(value = "/demo", produces = MediaType.APPLICATION_JSON_VALUE)
 public class DemoController {
 
-    /** The logger, created with MachineRegistryController.class as its name. */
-    static final Logger logger = LoggerFactory.getLogger(MachineRegistryController.class);
+    /** The logger of this controller. */
+    private static final Logger logger = LoggerFactory.getLogger(DemoController.class);
+
+    /** Milliseconds per second, used to convert the demo duration to the elapsed check. */
+    private static final long MILLIS_PER_SECOND = 1000L;
+
+    /** Sleep time in milliseconds after each entry in slow-call mode. */
+    private static final long SLOW_CALL_SLEEP_MS = 3000L;
 
     /** Returns the "index" view name. */
     @GetMapping("/greeting")
@@ -107,7 +113,10 @@ public class DemoController {
             this.slow = slow;
         }
 
-        /** Enters a context named by the start timestamp, loops entering the resource (3s sleep in slow mode, up to 200ms pause between iterations) until the duration elapses. */
+        /**
+         * Enters a context named by the start timestamp, loops entering the resource
+         * (3s sleep in slow mode, up to 200ms pause between iterations) until the duration elapses.
+         */
         @Override
         public void run() {
             long startTime = System.currentTimeMillis();
@@ -115,7 +124,7 @@ public class DemoController {
             while (!stop) {
 
                 long now = System.currentTimeMillis();
-                if (now - startTime > time * 1000) {
+                if (now - startTime > time * MILLIS_PER_SECOND) {
                     stop = true;
                 }
                 Entry e1 = null;
@@ -123,7 +132,7 @@ public class DemoController {
                     e1 = SphU.entry(name);
 
                     if (slow) {
-                        TimeUnit.MILLISECONDS.sleep(3000);
+                        TimeUnit.MILLISECONDS.sleep(SLOW_CALL_SLEEP_MS);
                     }
 
                 } catch (InterruptedException e) {

@@ -224,7 +224,7 @@ public enum LockTypeEnum implements BaseEnum {
         key = RedisUtil.REDIS_KEY_PREFIX + LOCK_PREFIX + key;
 
         // 尝试获取锁，如果获取失败则交由超时策略处理
-        if(!lock.lock(key, waitTime, leaseTime)) {
+        if (!lock.lock(key, waitTime, leaseTime)) {
             strategy.handle(key, waitTime, leaseTime, lock);
         }
 

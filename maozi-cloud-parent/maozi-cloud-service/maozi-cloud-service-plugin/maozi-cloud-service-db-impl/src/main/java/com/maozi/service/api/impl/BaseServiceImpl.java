@@ -136,7 +136,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     @Override
     public Class<T> currentModelClass() {
-        if(Objects.isNull(domainClass)){
+        if (Objects.isNull(domainClass)){
             domainClass = super.currentModelClass();
         }
         return domainClass;
@@ -269,7 +269,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         String[] columns = new String[functions.length];
 
         int i = 0;
-        for(SFunction<?, ?> sfunction : functions) {
+        for (SFunction<?, ?> sfunction : functions) {
 
             columns[i] = getColumn(sfunction);
 
@@ -306,19 +306,19 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         List<String> columns = CollectionUtil.newArrayList(32);
 
-        for( ; Objects.nonNull(clazz) && !clazz.isAssignableFrom(Object.class); clazz = clazz.getSuperclass()){
+        for ( ; Objects.nonNull(clazz) && !clazz.isAssignableFrom(Object.class); clazz = clazz.getSuperclass()){
 
             Field[] fields = clazz.getDeclaredFields();
-            for(Field field : fields) {
+            for (Field field : fields) {
 
                 String fieldName = field.getName();
 
-                if(SerializeUtil.SERIAL_VERSION_UID_FIELD_NAME.equals(fieldName)){
+                if (SerializeUtil.SERIAL_VERSION_UID_FIELD_NAME.equals(fieldName)){
                     continue;
                 }
 
                 QueryMapping annotation = field.getAnnotation(QueryMapping.class);
-                if(Objects.isNull(annotation)) {
+                if (Objects.isNull(annotation)) {
 
                     // 无注解：字段名转下划线，关联模式下追加默认表别名前缀
                     String columnName = StrUtil.toUnderlineCase(fieldName);
@@ -331,7 +331,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
                     String annotationField = annotation.field();
                     String annotationTableName = annotation.tableName();
 
-                    if(annotation.ignore() && (StringUtils.isNotEmpty(annotationField)
+                    if (annotation.ignore() && (StringUtils.isNotEmpty(annotationField)
                             || StringUtils.isNotEmpty(annotationTableName))){
 
                     // ignore 且显式指定来源字段或表名：按注解配置生成列名，
@@ -374,7 +374,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         ObjectUtil.isNullThrowError(id, getResourceName());
 
         QueryWrapper<T> wrapper = Wrappers.query();
-        if(columns.length > 0) {
+        if (columns.length > 0) {
             wrapper.select(columns);
         }
 
@@ -396,7 +396,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         ObjectUtil.isNullThrowError(id, getResourceName());
 
         LambdaQueryWrapper<T> wrapper = Wrappers.lambdaQuery();
-        if(columns.length > 0) {
+        if (columns.length > 0) {
             wrapper.select(columns);
         }
 
@@ -429,7 +429,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         ObjectUtil.isNullThrowError(domain, resourceName);
 
-        if(domain.getStatus() == StatusEnum.DISABLE) {
+        if (domain.getStatus() == StatusEnum.DISABLE) {
             throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
                     .setResource(resourceName);
         }
@@ -458,9 +458,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         wrapper.in(getColumn(AbstractBaseDomain::getId), ids);
 
         List<T> domains = super.list(wrapper);
-        domains.forEach((domain)->{
+        domains.forEach((domain) -> {
 
-            if(domain.getStatus() == StatusEnum.DISABLE) {
+            if (domain.getStatus() == StatusEnum.DISABLE) {
                 throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
                         .setResource(getResourceName());
             }
@@ -512,7 +512,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         ObjectUtil.isNullThrowError(domain, resourceName);
 
-        if(domain.getStatus() == StatusEnum.DISABLE) {
+        if (domain.getStatus() == StatusEnum.DISABLE) {
             throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
                         .setResource(resourceName);
         }
@@ -540,7 +540,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         ObjectUtil.isNullThrowError(domain, getResourceName());
 
-        if(domain.getStatus() == StatusEnum.DISABLE) {
+        if (domain.getStatus() == StatusEnum.DISABLE) {
             throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
                     .setResource(getResourceName());
         }
@@ -635,7 +635,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         QueryWrapper<T> wrapper = Wrappers.query();
 
-        if(columns.length > 0) {
+        if (columns.length > 0) {
             wrapper.select(columns);
         }
 
@@ -819,7 +819,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         CollectionUtil.collectionIsEmptyThrowError(ids, getResourceName() + RESOURCE_SUFFIX_LIST);
 
         QueryWrapper<T> wrapper = Wrappers.query();
-        if(columns.length > 0) {
+        if (columns.length > 0) {
             wrapper.select(columns);
         }
 
@@ -843,7 +843,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         MPJLambdaWrapper<T> wrapper = MPJWrappers.lambdaJoin();
         wrapper.selectAsClass(domainClass, voClass);
 
-        if(columns.length > 0) {
+        if (columns.length > 0) {
             wrapper.select(columns);
         }
 
@@ -1010,7 +1010,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         // 携带 ID 视为更新：先校验数据存在
         Long id = domain.getId();
 
-        if(ObjectUtil.isNotNull(id)) {
+        if (ObjectUtil.isNotNull(id)) {
 
             QueryWrapper<T> wrapper = Wrappers.query();
 
@@ -1044,7 +1044,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         T domain = CglibUtil.copy(param, domainClass);
         // 携带 ID 视为更新：回填 ID 并校验数据存在
-        if(ObjectUtil.isNotNull(id)) {
+        if (ObjectUtil.isNotNull(id)) {
 
             domain.setId(id);
 
@@ -1084,7 +1084,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
             // 携带 ID 视为更新：先校验数据存在
             Long domainId = domain.getId();
 
-            if(ObjectUtil.isNotNull(domainId)) {
+            if (ObjectUtil.isNotNull(domainId)) {
 
                 QueryWrapper<T> wrapper = Wrappers.query();
                 wrapper.eq(getColumn(AbstractBaseDomain::getId), domainId);
@@ -1159,16 +1159,16 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         applyJoinPlugins(paramClass, wrapper);
 
         Field[] fields = ReflectUtil.getFields(paramClass);
-        for(Field field : fields) {
+        for (Field field : fields) {
 
             String fieldName = field.getName();
-            if(SerializeUtil.SERIAL_VERSION_UID_FIELD_NAME.equals(fieldName)){
+            if (SerializeUtil.SERIAL_VERSION_UID_FIELD_NAME.equals(fieldName)){
                 continue;
             }
 
             // 字段值为空时不参与查询条件构建，直接跳过
             Object data = ReflectUtil.invokeGet(param, fieldName);
-            if(Objects.isNull(data)) {
+            if (Objects.isNull(data)) {
                 continue;
             }
 
@@ -1336,10 +1336,10 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public void setQueryMappingWrapper(Class<?> clazz, MPJLambdaWrapper<T> wrapper){
 
-        for( ; Objects.nonNull(clazz) && !clazz.isAssignableFrom(Object.class); clazz = clazz.getSuperclass()){
+        for ( ; Objects.nonNull(clazz) && !clazz.isAssignableFrom(Object.class); clazz = clazz.getSuperclass()){
 
             Field[] fields = clazz.getDeclaredFields();
-            for(Field field : fields) {
+            for (Field field : fields) {
                 applyQueryMappingField(field, wrapper);
             }
 
@@ -1419,7 +1419,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public MPJLambdaWrapper<T> buildQueryWrapper(Object param, Class<?> fieldsClass) {
 
-        if(param instanceof PageParam<?> pageParam) {
+        if (param instanceof PageParam<?> pageParam) {
             param = pageParam.getData();
         }
 
@@ -1428,12 +1428,12 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         MPJLambdaWrapper<T> wrapper = MPJWrappers.lambdaJoin();
         wrapper.selectAsClass(domainClass, fieldsClass);
 
-        if(ObjectUtil.isNotNull(fieldsClass)) {
+        if (ObjectUtil.isNotNull(fieldsClass)) {
 
             wrapper.select(getColumns(fieldsClass));
 
-//            setQueryMappingWrapper(fieldsClass,wrapper);
-
+            // setQueryMappingWrapper(fieldsClass, wrapper) 已由 selectAsClass 字段映射机制替代，
+            // 暂保留注释备查，确认无回切需求后删除。maozi 2026/11/21
         }
 
         paramFieldSetWrapper(null, param, wrapper);

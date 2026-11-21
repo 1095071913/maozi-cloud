@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @since 0.2.1
  */
 @Component
-public class InMemParamFlowRuleStore extends InMemoryRuleRepositoryAdapter<ParamFlowRuleEntity> {
+public class InMemParamFlowRuleStore extends AbstractInMemoryRuleRepository<ParamFlowRuleEntity> {
 
     /** Static id generator for stored entities. */
     private static AtomicLong ids = new AtomicLong(0);

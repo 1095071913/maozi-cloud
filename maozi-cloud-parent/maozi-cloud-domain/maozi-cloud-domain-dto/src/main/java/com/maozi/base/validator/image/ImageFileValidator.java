@@ -55,7 +55,7 @@ public class ImageFileValidator implements ConstraintValidator<ImageFile, Multip
         String contentType = file.getContentType();
         String extension = StringUtils.lowerCase(StringUtils
                 .substringAfterLast(file.getOriginalFilename(), SymbolConstant.DOT));
-        if(StringUtils.isEmpty(extension)) {
+        if (StringUtils.isEmpty(extension)) {
             return false;
         }
         return ALLOWED_IMAGE_EXTENSIONS.contains(extension)

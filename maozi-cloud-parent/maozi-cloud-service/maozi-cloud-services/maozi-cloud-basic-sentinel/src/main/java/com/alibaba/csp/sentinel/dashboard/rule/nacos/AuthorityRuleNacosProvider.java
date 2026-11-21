@@ -55,7 +55,7 @@ public class AuthorityRuleNacosProvider implements DynamicRuleProvider<List<Auth
     @Override
     public List<AuthorityRuleEntity> getRules(String appName) throws Exception {
         String rules = NacosConfigUtil.readFreshConfig(configService, appName,
-            NacosConfigUtil.AUTHORITY_DATA_ID_POSTFIX, nacosProperties.getGroup(), 3000);
+            NacosConfigUtil.AUTHORITY_DATA_ID_POSTFIX, nacosProperties.getGroup(), NacosConfigUtil.READ_TIMEOUT_MS);
         if (StringUtil.isEmpty(rules)) {
             return new ArrayList<>();
         }

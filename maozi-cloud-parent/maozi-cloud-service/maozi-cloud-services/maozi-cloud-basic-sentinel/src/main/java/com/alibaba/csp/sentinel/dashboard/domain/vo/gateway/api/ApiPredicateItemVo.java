@@ -58,4 +58,12 @@ public class ApiPredicateItemVo {
     public void setMatchStrategy(Integer matchStrategy) {
         this.matchStrategy = matchStrategy;
     }
+
+    @Override
+    public String toString() {
+        return "ApiPredicateItemVo{"
+                + "pattern='" + pattern + '\''
+                + ", matchStrategy=" + matchStrategy
+                + '}';
+    }
 }

@@ -70,6 +70,9 @@ public final class NacosConfigUtil {
     /** Default Nacos config group for all Sentinel rule configs. */
     public static final String GROUP_ID = "SENTINEL_GROUP";
 
+    /** Timeout in milliseconds of a single fresh config read from Nacos, shared by all rule providers. */
+    public static final long READ_TIMEOUT_MS = 3000L;
+
     /** DataId postfix of flow rules. */
     public static final String FLOW_DATA_ID_POSTFIX = "-flow-rules.json";
     /** DataId postfix of degrade rules. */

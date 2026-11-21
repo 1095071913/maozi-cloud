@@ -31,9 +31,9 @@ public class ServerFlowConfig {
     /** Default statistic interval in milliseconds. */
     public static final int DEFAULT_INTERVAL_MS = 1000;
     /** Default sample count in the statistic interval. */
-    public static final int DEFAULT_SAMPLE_COUNT= 10;
+    public static final int DEFAULT_SAMPLE_COUNT = 10;
     /** Default value of max allowed QPS. */
-    public static final double DEFAULT_MAX_ALLOWED_QPS= 30000;
+    public static final double DEFAULT_MAX_ALLOWED_QPS = 30000;
 
     /** The namespace of the server flow config. */
     private final String namespace;

@@ -59,14 +59,16 @@ public class AuthConfiguration {
     /** Provides the default login authentication filter backed by the given auth service. */
     @Bean
     @ConditionalOnMissingBean
-    public LoginAuthenticationFilter loginAuthenticationFilter(AuthService<HttpServletRequest> httpServletRequestAuthService) {
+    public LoginAuthenticationFilter loginAuthenticationFilter(AuthService<HttpServletRequest>
+        httpServletRequestAuthService) {
         return new DefaultLoginAuthenticationFilter(httpServletRequestAuthService);
     }
 
     /** Provides the default privilege-based authorization interceptor backed by the given auth service. */
     @Bean
     @ConditionalOnMissingBean
-    public AuthorizationInterceptor authorizationInterceptor(AuthService<HttpServletRequest> httpServletRequestAuthService) {
+    public AuthorizationInterceptor authorizationInterceptor(AuthService<HttpServletRequest>
+        httpServletRequestAuthService) {
         return new DefaultAuthorizationInterceptor(httpServletRequestAuthService);
     }
 

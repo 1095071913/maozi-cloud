@@ -82,7 +82,7 @@ public final class ObjectUtil {
      * @throws BusinessResultException 对象为 null 或空时抛出
      */
     public static void isNullThrowError(Object data, ErrorCode errorCode, String resourceName) {
-        if(isNull(data)) {
+        if (isNull(data)) {
             throw new BusinessResultException(errorCode)
                     .setResource(resourceName);
         }
@@ -97,7 +97,7 @@ public final class ObjectUtil {
      * @throws BusinessResultException 对象不为空时抛出
      */
     public static void isNotNullThrowError(Object data, ErrorCode errorCode, String resourceName) {
-        if(isNotNull(data)) {
+        if (isNotNull(data)) {
             throw new BusinessResultException(errorCode)
                     .setResource(resourceName);
         }
@@ -111,7 +111,7 @@ public final class ObjectUtil {
      * @throws BusinessResultException 对象为 null 或空时抛出
      */
     public static void isNullThrowError(Object data, ErrorCode errorCode) {
-        if(isNull(data)) {
+        if (isNull(data)) {
             throw new BusinessResultException(errorCode);
         }
     }
@@ -124,7 +124,7 @@ public final class ObjectUtil {
      * @throws BusinessResultException 对象不为空时抛出
      */
     public static void isNotNullThrowError(Object data, ErrorCode errorCode) {
-        if(isNotNull(data)) {
+        if (isNotNull(data)) {
             throw new BusinessResultException(errorCode);
         }
     }
@@ -137,7 +137,7 @@ public final class ObjectUtil {
      * @throws BusinessResultException 条件为 false 时抛出（HTTP 500 系统错误）
      */
     public static void checkConditionThrowError(boolean condition, String message) {
-        if(condition) {
+        if (condition) {
             return;
         }
         throw new BusinessResultException(message, SystemErrorCode.SYSTEM_ERROR)
@@ -153,7 +153,7 @@ public final class ObjectUtil {
      * @throws BusinessResultException 条件为 false 时抛出
      */
     public static void checkConditionThrowError(boolean condition, Integer code, String message) {
-        if(condition) {
+        if (condition) {
             return;
         }
         throw new BusinessResultException(code, message);
@@ -168,7 +168,7 @@ public final class ObjectUtil {
      * @throws BusinessResultException 条件为 false 时抛出
      */
     public static void checkConditionThrowError(boolean condition, ErrorCode errorCode, String message) {
-        if(condition) {
+        if (condition) {
             return;
         }
         throw new BusinessResultException(errorCode).setMessage(message);

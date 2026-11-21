@@ -62,7 +62,7 @@ public class ApplicationDubboContextTransmitFilter implements Filter {
 
         // 将当前线程的用户信息写入 RPC 附件，供服务提供者读取
         String currentUserInfoJson = CurrentUserInfoContext.CONTEXT.getJson();
-        if(StringUtils.isNotEmpty(currentUserInfoJson)){
+        if (StringUtils.isNotEmpty(currentUserInfoJson)){
             clientAttachment.setAttachment(CurrentUserInfoContext.KEY, currentUserInfoJson);
         }
 

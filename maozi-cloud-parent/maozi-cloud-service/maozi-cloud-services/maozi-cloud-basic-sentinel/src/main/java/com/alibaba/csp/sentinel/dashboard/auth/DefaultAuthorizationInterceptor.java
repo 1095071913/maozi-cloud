@@ -35,6 +35,12 @@ import java.lang.reflect.Method;
  */
 public class DefaultAuthorizationInterceptor implements AuthorizationInterceptor {
 
+    /** Name of the HTTP Content-Type header. */
+    private static final String HTTP_HEADER_CONTENT_TYPE = "Content-Type";
+
+    /** JSON content type with UTF-8 charset, used for the privilege-denied response body. */
+    private static final String CONTENT_TYPE_JSON_UTF8 = "application/json;charset=UTF-8";
+
     /** The authentication service used to resolve the current user from the request. */
     private final AuthService<HttpServletRequest> authService;
 
@@ -77,7 +83,7 @@ public class DefaultAuthorizationInterceptor implements AuthorizationInterceptor
     /** Writes the given failure message to the response as a JSON body. */
     private void responseNoPrivilegeMsg(HttpServletResponse response, String message) throws IOException {
         Result result = Result.ofFail(-1, message);
-        response.addHeader("Content-Type", "application/json;charset=UTF-8");
+        response.addHeader(HTTP_HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON_UTF8);
         response.getOutputStream().write(JSON.toJSONBytes(result));
     }
 

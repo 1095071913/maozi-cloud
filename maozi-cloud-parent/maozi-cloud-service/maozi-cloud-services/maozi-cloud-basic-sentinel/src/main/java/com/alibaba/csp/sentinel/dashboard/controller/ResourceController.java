@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 public class ResourceController {
 
     /** The logger of this controller. */
-    private static Logger logger = LoggerFactory.getLogger(ResourceController.class);
+    private static final Logger logger = LoggerFactory.getLogger(ResourceController.class);
 
     /** The client used to fetch resource node info from Sentinel clients via HTTP. */
     private final SentinelApiClient httpFetcher;

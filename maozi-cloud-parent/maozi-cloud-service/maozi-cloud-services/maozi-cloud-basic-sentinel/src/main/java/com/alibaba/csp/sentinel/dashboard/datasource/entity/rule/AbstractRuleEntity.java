@@ -132,4 +132,17 @@ public abstract class AbstractRuleEntity<T extends AbstractRule> implements Rule
     public T toRule() {
         return rule;
     }
+
+    @Override
+    public String toString() {
+        return "AbstractRuleEntity{"
+                + "id=" + id
+                + ", app='" + app + '\''
+                + ", ip='" + ip + '\''
+                + ", port=" + port
+                + ", rule=" + rule
+                + ", gmtCreate=" + gmtCreate
+                + ", gmtModified=" + gmtModified
+                + '}';
+    }
 }

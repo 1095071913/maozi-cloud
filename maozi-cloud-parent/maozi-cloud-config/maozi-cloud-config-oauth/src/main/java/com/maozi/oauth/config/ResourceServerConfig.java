@@ -70,7 +70,7 @@ public class ResourceServerConfig {
         whitelist.addAll(ApiWhitelistProperties.DEFAULT_WHITE_LIST);
 
         List<String> configWhitelist = apiWhitelistProperties.getConfigWhitelist();
-        if(CollectionUtil.isNotEmpty(configWhitelist)){
+        if (CollectionUtil.isNotEmpty(configWhitelist)){
             whitelist.addAll(configWhitelist);
         }
 

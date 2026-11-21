@@ -102,7 +102,7 @@ public class ClusterConfigController {
                         if (r != null) {
                             return r;
                         }
-                        // TODO: bad design here, should refactor!
+                        // TODO bad design here, should refactor! by maozi 2026/11/21.
                         clusterConfigService.modifyClusterServerConfig(d).get();
                         return Result.ofSuccess(true);
                     default:
@@ -174,12 +174,12 @@ public class ClusterConfigController {
                 .thenApply(Result::ofSuccess)
                 .get();
         } catch (ExecutionException ex) {
-            logger.error("Error when fetching cluster server state of app: " + app, ex.getCause());
+            logger.error("Error when fetching cluster server state of app: {}", app, ex.getCause());
             return errorResponse(ex);
         } catch (InterruptedException ex) {
             return onInterrupted(logger, "Error when fetching cluster server state of app: " + app, ex);
         } catch (Throwable throwable) {
-            logger.error("Error when fetching cluster server state of app: " + app, throwable);
+            logger.error("Error when fetching cluster server state of app: {}", app, throwable);
             return Result.ofFail(-1, throwable.getMessage());
         }
     }
@@ -196,12 +196,12 @@ public class ClusterConfigController {
                 .thenApply(Result::ofSuccess)
                 .get();
         } catch (ExecutionException ex) {
-            logger.error("Error when fetching cluster token client state of app: " + app, ex.getCause());
+            logger.error("Error when fetching cluster token client state of app: {}", app, ex.getCause());
             return errorResponse(ex);
         } catch (InterruptedException ex) {
             return onInterrupted(logger, "Error when fetching cluster token client state of app: " + app, ex);
         } catch (Throwable throwable) {
-            logger.error("Error when fetching cluster token client state of app: " + app, throwable);
+            logger.error("Error when fetching cluster token client state of app: {}", app, throwable);
             return Result.ofFail(-1, throwable.getMessage());
         }
     }
@@ -217,12 +217,12 @@ public class ClusterConfigController {
                 .thenApply(Result::ofSuccess)
                 .get();
         } catch (ExecutionException ex) {
-            logger.error("Error when fetching cluster state of app: " + app, ex.getCause());
+            logger.error("Error when fetching cluster state of app: {}", app, ex.getCause());
             return errorResponse(ex);
         } catch (InterruptedException ex) {
             return onInterrupted(logger, "Error when fetching cluster state of app: " + app, ex);
         } catch (Throwable throwable) {
-            logger.error("Error when fetching cluster state of app: " + app, throwable);
+            logger.error("Error when fetching cluster state of app: {}", app, throwable);
             return Result.ofFail(-1, throwable.getMessage());
         }
     }
@@ -274,14 +274,19 @@ public class ClusterConfigController {
         return null;
     }
 
+    /** Error code returned when the client version does not support cluster flow control. */
+    private static final int CODE_UNSUPPORTED_CLIENT = 4041;
+
     /** Builds the error result returned when the client version does not support cluster flow control. */
     private <R> Result<R> unsupportedVersion() {
-        return Result.ofFail(4041, "Sentinel client not supported for cluster flow control (unsupported version or dependency absent)");
+        return Result.ofFail(CODE_UNSUPPORTED_CLIENT, 
+            "Sentinel client not supported for cluster flow control (unsupported version or dependency absent)");
     }
 
     /** The JSON field name of the cluster mode in the modify request payload. */
     private static final String KEY_MODE = "mode";
 
+    /** Restores the interrupt flag, logs the message with the exception and returns the fail result. */
     public static <T> Result<T> onInterrupted(Logger logger, String message, InterruptedException ex) {
         Thread.currentThread().interrupt();
         logger.error(message, ex);

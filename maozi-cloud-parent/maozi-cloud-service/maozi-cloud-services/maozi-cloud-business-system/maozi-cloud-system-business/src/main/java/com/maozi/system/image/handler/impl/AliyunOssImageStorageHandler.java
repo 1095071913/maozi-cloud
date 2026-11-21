@@ -82,7 +82,7 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
         ImageStorageProperties.Aliyun aliyun = imageStorageProperties.getAliyun();
 
         // 阿里云连接配置缺失时快速失败，给出明确的配置提示
-        if(aliyun == null) {
+        if (aliyun == null) {
             throw new IllegalStateException("图片存储配置 oss.aliyun 未配置，"
                     + "无法初始化阿里云 OSS 客户端");
         }
@@ -92,7 +92,7 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
 
         String endpoint = aliyun.getEndpoint();
 
-        if(StringUtils.isNotEmpty(endpoint)) {
+        if (StringUtils.isNotEmpty(endpoint)) {
             builder.endpoint(endpoint);
         }
 
@@ -107,7 +107,7 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
      */
     @PreDestroy
     public void destroy() {
-        if(ossClient != null) {
+        if (ossClient != null) {
             try {
                 ossClient.close();
             } catch (Exception e) {
@@ -143,7 +143,7 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
     public ImageUploadResult upload(MultipartFile file, String path) {
 
         // 上传文件为空时抛出业务异常
-        if(Objects.isNull(file) || file.isEmpty()) {
+        if (Objects.isNull(file) || file.isEmpty()) {
             throw new BusinessResultException(new ErrorCode("上传文件不能为空"));
         }
 
@@ -229,13 +229,13 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
 
         String domain = aliyun.getDomain();
 
-        if(StringUtils.isNotEmpty(domain)) {
+        if (StringUtils.isNotEmpty(domain)) {
             return StringUtils.removeEnd(domain, SymbolConstant.SLASH) + SymbolConstant.SLASH + fileKey;
         }
 
         String endpoint = aliyun.getEndpoint();
 
-        if(StringUtils.isNotEmpty(endpoint)) {
+        if (StringUtils.isNotEmpty(endpoint)) {
 
             URI endpointUri = URI.create(endpoint);
 

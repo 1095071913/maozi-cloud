@@ -250,6 +250,7 @@ public class FlowRuleEntity implements RuleEntity {
     }
 
     /** Sets the create time. */
+    @Override
     public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
     }
@@ -260,6 +261,7 @@ public class FlowRuleEntity implements RuleEntity {
     }
 
     /** Sets the last modify time. */
+    @Override
     public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
     }
@@ -291,4 +293,26 @@ public class FlowRuleEntity implements RuleEntity {
         return flowRule;
     }
 
+    @Override
+    public String toString() {
+        return "FlowRuleEntity{"
+                + "id=" + id
+                + ", app='" + app + '\''
+                + ", ip='" + ip + '\''
+                + ", port=" + port
+                + ", limitApp='" + limitApp + '\''
+                + ", resource='" + resource + '\''
+                + ", grade=" + grade
+                + ", count=" + count
+                + ", strategy=" + strategy
+                + ", refResource='" + refResource + '\''
+                + ", controlBehavior=" + controlBehavior
+                + ", warmUpPeriodSec=" + warmUpPeriodSec
+                + ", maxQueueingTimeMs=" + maxQueueingTimeMs
+                + ", clusterMode=" + clusterMode
+                + ", clusterConfig=" + clusterConfig
+                + ", gmtCreate=" + gmtCreate
+                + ", gmtModified=" + gmtModified
+                + '}';
+    }
 }

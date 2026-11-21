@@ -90,15 +90,15 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
     @Transactional(rollbackFor = Exception.class)
     public void updateBind(Long roleId, Set<Long> bindPermissionIds, Set<Long> unbindPermissionIds) {
 
-        if(CollectionUtil.isNotEmpty(bindPermissionIds)) {
+        if (CollectionUtil.isNotEmpty(bindPermissionIds)) {
 
-            Consumer<Long> consumer = (permissionId)->{
+            Consumer<Long> consumer = (permissionId) -> {
 
                 RolePermissionDO domainSave =
                         RolePermissionDO.builder().roleId(roleId).permissionId(permissionId).build();
 
                 // 绑定关系不存在且权限存在时才保存，避免重复绑定
-                if(super.count(Wrappers.lambdaQuery(domainSave)) < 1 && permissionService.has(permissionId)) {
+                if (super.count(Wrappers.lambdaQuery(domainSave)) < 1 && permissionService.has(permissionId)) {
                     super.save(domainSave);
                 }
 
@@ -108,9 +108,9 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
 
         }
 
-        if(CollectionUtil.isNotEmpty(unbindPermissionIds)) {
+        if (CollectionUtil.isNotEmpty(unbindPermissionIds)) {
 
-            Consumer<Long> consumer = (permissionId)->{
+            Consumer<Long> consumer = (permissionId) -> {
                 super.remove(Wrappers.lambdaQuery(
                         RolePermissionDO.builder().roleId(roleId).permissionId(permissionId).build()));
             };

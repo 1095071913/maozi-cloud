@@ -19,6 +19,7 @@ import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.FlowRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.RuleEntity;
 import com.alibaba.csp.sentinel.dashboard.discovery.AppManagement;
 import com.alibaba.csp.sentinel.dashboard.domain.Result;
+import com.alibaba.csp.sentinel.slots.block.RuleConstant;
 import com.alibaba.csp.sentinel.util.StringUtil;
 
 /**
@@ -81,7 +82,7 @@ public final class RuleEntityValidator {
         if (grade == null) {
             return Result.ofFail(-1, "grade can't be null");
         }
-        if (grade != 0 && grade != 1) {
+        if (grade != RuleConstant.FLOW_GRADE_THREAD && grade != RuleConstant.FLOW_GRADE_QPS) {
             return Result.ofFail(-1, "grade must be 0 or 1, but " + grade + " got");
         }
         Double count = entity.getCount();
@@ -92,7 +93,7 @@ public final class RuleEntityValidator {
         if (strategy == null) {
             return Result.ofFail(-1, "strategy can't be null");
         }
-        if (strategy != 0 && StringUtil.isBlank(entity.getRefResource())) {
+        if (strategy != RuleConstant.STRATEGY_DIRECT && StringUtil.isBlank(entity.getRefResource())) {
             return Result.ofFail(-1, "refResource can't be null or empty when strategy!=0");
         }
         Integer controlBehaviorValue = entity.getControlBehavior();
@@ -100,10 +101,10 @@ public final class RuleEntityValidator {
             return Result.ofFail(-1, "controlBehavior can't be null");
         }
         int controlBehavior = controlBehaviorValue;
-        if (controlBehavior == 1 && entity.getWarmUpPeriodSec() == null) {
+        if (controlBehavior == RuleConstant.CONTROL_BEHAVIOR_WARM_UP && entity.getWarmUpPeriodSec() == null) {
             return Result.ofFail(-1, "warmUpPeriodSec can't be null when controlBehavior==1");
         }
-        if (controlBehavior == 2 && entity.getMaxQueueingTimeMs() == null) {
+        if (controlBehavior == RuleConstant.CONTROL_BEHAVIOR_RATE_LIMITER && entity.getMaxQueueingTimeMs() == null) {
             return Result.ofFail(-1, "maxQueueingTimeMs can't be null when controlBehavior==2");
         }
         if (entity.isClusterMode() && entity.getClusterConfig() == null) {

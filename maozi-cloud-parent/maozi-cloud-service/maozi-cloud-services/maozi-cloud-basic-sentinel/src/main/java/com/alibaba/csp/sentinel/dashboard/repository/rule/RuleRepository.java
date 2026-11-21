@@ -75,11 +75,4 @@ public interface RuleRepository<T, ID> {
      */
     List<T> findAllByApp(String appName);
 
-    ///**
-    // * Find all by app and enable switch.
-    // * @param app
-    // * @param enable
-    // * @return
-    // */
-    //List<T> findAllByAppAndEnable(String app, boolean enable);
 }

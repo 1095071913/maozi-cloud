@@ -51,7 +51,7 @@ public class JacksonConfig {
 
         // 扫描项目基础包下的所有类，将枚举类统一配置为输出整数值（而非字符串名称）
         ClassUtil.scanPackage(ApplicationEnvironmentContext.PACKAGE_PREFIX).forEach(item -> {
-            if(item.isEnum()) {
+            if (item.isEnum()) {
                 objectMapper.configOverride(item).setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER_INT));
             }
         });

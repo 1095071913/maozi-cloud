@@ -71,7 +71,7 @@ public class JacksonTypeHandler extends com.baomidou.mybatisplus.extension.handl
             return objectMapper.readValue(json, javaType);
         } catch (JacksonException e) {
             log.error("反序列化 JSON: {} -> {} 失败", json, javaType, e);
-            throw new RuntimeException(e);
+            throw new IllegalStateException("反序列化 JSON 失败", e);
         }
     }
 
@@ -87,7 +87,7 @@ public class JacksonTypeHandler extends com.baomidou.mybatisplus.extension.handl
             return JacksonUtil.getObjectMapper().writeValueAsString(obj);
         } catch (JsonProcessingException e) {
             log.error("序列化对象: {} -> JSON 失败", obj, e);
-            throw new RuntimeException(e);
+            throw new IllegalStateException("序列化对象为 JSON 失败", e);
         }
     }
 

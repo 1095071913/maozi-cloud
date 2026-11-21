@@ -61,8 +61,8 @@ public enum ImageStorageTypeEnum implements BaseEnum {
      */
     public static ImageStorageTypeEnum get(String code) {
 
-        for(ImageStorageTypeEnum type : values()) {
-            if(type.code.equalsIgnoreCase(code)) {
+        for (ImageStorageTypeEnum type : values()) {
+            if (type.code.equalsIgnoreCase(code)) {
                 return type;
             }
         }

@@ -77,6 +77,7 @@ public class SwaggerGlobalFilter implements GlobalFilter, Ordered {
      * @param chain    网关过滤器链
      * @return 过滤器链执行结果
      */
+    @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
         ServerHttpRequest request = exchange.getRequest();

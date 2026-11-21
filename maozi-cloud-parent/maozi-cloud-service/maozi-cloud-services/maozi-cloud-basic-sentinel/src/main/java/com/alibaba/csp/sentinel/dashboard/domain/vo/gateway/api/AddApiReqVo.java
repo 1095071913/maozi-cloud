@@ -89,5 +89,15 @@ public class AddApiReqVo {
     public void setPredicateItems(List<ApiPredicateItemVo> predicateItems) {
         this.predicateItems = predicateItems;
     }
-}
 
+    @Override
+    public String toString() {
+        return "AddApiReqVo{"
+                + "app='" + app + '\''
+                + ", ip='" + ip + '\''
+                + ", port=" + port
+                + ", apiName='" + apiName + '\''
+                + ", predicateItems=" + predicateItems
+                + '}';
+    }
+}

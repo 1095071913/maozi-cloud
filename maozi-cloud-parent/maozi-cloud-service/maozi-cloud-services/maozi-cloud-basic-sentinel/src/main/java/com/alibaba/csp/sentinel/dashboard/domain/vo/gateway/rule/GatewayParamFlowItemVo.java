@@ -74,4 +74,14 @@ public class GatewayParamFlowItemVo {
     public void setMatchStrategy(Integer matchStrategy) {
         this.matchStrategy = matchStrategy;
     }
+
+    @Override
+    public String toString() {
+        return "GatewayParamFlowItemVo{"
+                + "parseStrategy=" + parseStrategy
+                + ", fieldName='" + fieldName + '\''
+                + ", pattern='" + pattern + '\''
+                + ", matchStrategy=" + matchStrategy
+                + '}';
+    }
 }

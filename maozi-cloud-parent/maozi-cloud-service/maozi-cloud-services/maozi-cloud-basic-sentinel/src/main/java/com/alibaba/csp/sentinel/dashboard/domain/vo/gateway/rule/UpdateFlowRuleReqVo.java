@@ -152,4 +152,20 @@ public class UpdateFlowRuleReqVo {
     public void setParamItem(GatewayParamFlowItemVo paramItem) {
         this.paramItem = paramItem;
     }
+
+    @Override
+    public String toString() {
+        return "UpdateFlowRuleReqVo{"
+                + "id=" + id
+                + ", app='" + app + '\''
+                + ", grade=" + grade
+                + ", count=" + count
+                + ", interval=" + interval
+                + ", intervalUnit=" + intervalUnit
+                + ", controlBehavior=" + controlBehavior
+                + ", burst=" + burst
+                + ", maxQueueingTimeoutMs=" + maxQueueingTimeoutMs
+                + ", paramItem=" + paramItem
+                + '}';
+    }
 }

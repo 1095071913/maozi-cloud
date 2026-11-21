@@ -83,8 +83,10 @@ public class GatewayFlowRuleController {
     private final DynamicRulePublisher<List<GatewayFlowRuleEntity>> rulePublisher;
 
     public GatewayFlowRuleController(InMemGatewayFlowRuleStore repository,
-                                     @Qualifier("gatewayFlowRuleNacosProvider") DynamicRuleProvider<List<GatewayFlowRuleEntity>> ruleProvider,
-                                     @Qualifier("gatewayFlowRuleNacosPublisher") DynamicRulePublisher<List<GatewayFlowRuleEntity>> rulePublisher) {
+                                     @Qualifier("gatewayFlowRuleNacosProvider")
+                                         DynamicRuleProvider<List<GatewayFlowRuleEntity>> ruleProvider,
+                                     @Qualifier("gatewayFlowRuleNacosPublisher")
+                                         DynamicRulePublisher<List<GatewayFlowRuleEntity>> rulePublisher) {
         this.repository = repository;
         this.ruleProvider = ruleProvider;
         this.rulePublisher = rulePublisher;
@@ -158,7 +160,8 @@ public class GatewayFlowRuleController {
             return checkResult;
         }
         checkResult = checkAndFillRuleFields(reqVo.getGrade(), reqVo.getCount(), reqVo.getInterval(),
-            reqVo.getIntervalUnit(), reqVo.getControlBehavior(), reqVo.getBurst(), reqVo.getMaxQueueingTimeoutMs(), entity);
+            reqVo.getIntervalUnit(), reqVo.getControlBehavior(), reqVo.getBurst(), reqVo.getMaxQueueingTimeoutMs(), 
+                entity);
         if (checkResult != null) {
             return checkResult;
         }
@@ -167,7 +170,10 @@ public class GatewayFlowRuleController {
         return saveAndPublish(entity, "add");
     }
 
-    /** Updates the rule of the given id (param item replaced, or cleared when absent) after validation, then publishes the app's rules. */
+    /**
+     * Updates the rule of the given id (param item replaced, or cleared when absent) after validation, then publishes
+     * the app's rules.
+     */
     @PostMapping("/save.json")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
     public Result<GatewayFlowRuleEntity> updateFlowRule(@RequestBody UpdateFlowRuleReqVo reqVo) {
@@ -191,7 +197,8 @@ public class GatewayFlowRuleController {
             return checkResult;
         }
         checkResult = checkAndFillRuleFields(reqVo.getGrade(), reqVo.getCount(), reqVo.getInterval(),
-            reqVo.getIntervalUnit(), reqVo.getControlBehavior(), reqVo.getBurst(), reqVo.getMaxQueueingTimeoutMs(), entity);
+            reqVo.getIntervalUnit(), reqVo.getControlBehavior(), reqVo.getBurst(), reqVo.getMaxQueueingTimeoutMs(), 
+                entity);
         if (checkResult != null) {
             return checkResult;
         }
@@ -253,7 +260,8 @@ public class GatewayFlowRuleController {
         itemEntity.setParseStrategy(parseStrategy);
 
         // Field name is required for parse strategies 2-Header, 3-URL parameter and 4-Cookie.
-        if (Arrays.asList(PARAM_PARSE_STRATEGY_HEADER, PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
+        if (Arrays.asList(PARAM_PARSE_STRATEGY_HEADER, PARAM_PARSE_STRATEGY_URL_PARAM, 
+            PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
             // Field name.
             String fieldName = paramItem.getFieldName();
             if (StringUtil.isBlank(fieldName)) {
@@ -267,7 +275,8 @@ public class GatewayFlowRuleController {
         if (StringUtil.isNotEmpty(pattern)) {
             itemEntity.setPattern(pattern);
             Integer matchStrategy = paramItem.getMatchStrategy();
-            if (!Arrays.asList(PARAM_MATCH_STRATEGY_EXACT, PARAM_MATCH_STRATEGY_CONTAINS, PARAM_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
+            if (!Arrays.asList(PARAM_MATCH_STRATEGY_EXACT, PARAM_MATCH_STRATEGY_CONTAINS, 
+                PARAM_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
                 return Result.ofFail(-1, "invalid matchStrategy: " + matchStrategy);
             }
             itemEntity.setMatchStrategy(matchStrategy);
@@ -314,7 +323,8 @@ public class GatewayFlowRuleController {
         if (intervalUnit == null) {
             return Result.ofFail(-1, "intervalUnit can't be null");
         }
-        if (!Arrays.asList(INTERVAL_UNIT_SECOND, INTERVAL_UNIT_MINUTE, INTERVAL_UNIT_HOUR, INTERVAL_UNIT_DAY).contains(intervalUnit)) {
+        if (!Arrays.asList(INTERVAL_UNIT_SECOND, INTERVAL_UNIT_MINUTE, INTERVAL_UNIT_HOUR, 
+            INTERVAL_UNIT_DAY).contains(intervalUnit)) {
             return Result.ofFail(-1, "Invalid intervalUnit: " + intervalUnit);
         }
         entity.setIntervalUnit(intervalUnit);
@@ -350,7 +360,10 @@ public class GatewayFlowRuleController {
         return null;
     }
 
-    /** Saves the entity and publishes the app's rules (logging the given action on failure); returns the saved entity or a failure result. */
+    /**
+     * Saves the entity and publishes the app's rules (logging the given action on failure); returns the saved entity
+     * or a failure result.
+     */
     private Result<GatewayFlowRuleEntity> saveAndPublish(GatewayFlowRuleEntity entity, String action) {
         try {
             entity = repository.save(entity);
@@ -360,7 +373,7 @@ public class GatewayFlowRuleController {
         }
 
         if (!publishRules(entity.getApp())) {
-            logger.warn("publish gateway flow rules fail after " + action);
+            logger.warn("publish gateway flow rules fail after {}", action);
         }
 
         return Result.ofSuccess(entity);

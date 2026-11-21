@@ -43,7 +43,7 @@ public class ExcelFileValidator implements ConstraintValidator<ExcelFile, Multip
     public boolean isValid(MultipartFile file, ConstraintValidatorContext context) {
 
         // 文件为空时跳过校验，交给 @NotNull 等注解处理非空逻辑
-        if(file == null || file.isEmpty()) {
+        if (file == null || file.isEmpty()) {
             return true;
         }
 

@@ -67,8 +67,10 @@ public class AuthorityRuleController {
 
     public AuthorityRuleController(RuleRepository<AuthorityRuleEntity, Long> repository,
                                    AppManagement appManagement,
-                                   @Qualifier("authorityRuleNacosProvider") DynamicRuleProvider<List<AuthorityRuleEntity>> ruleProvider,
-                                   @Qualifier("authorityRuleNacosPublisher") DynamicRulePublisher<List<AuthorityRuleEntity>> rulePublisher) {
+                                   @Qualifier("authorityRuleNacosProvider")
+                                       DynamicRuleProvider<List<AuthorityRuleEntity>> ruleProvider,
+                                   @Qualifier("authorityRuleNacosPublisher")
+                                       DynamicRulePublisher<List<AuthorityRuleEntity>> rulePublisher) {
         this.repository = repository;
         this.appManagement = appManagement;
         this.ruleProvider = ruleProvider;
@@ -111,7 +113,10 @@ public class AuthorityRuleController {
         }
     }
 
-    /** Validates the base machine fields via the shared validator, then the authority-rule specific fields; returns the first error or null. */
+    /**
+     * Validates the base machine fields via the shared validator, then the authority-rule specific fields; returns
+     * the first error or null.
+     */
     private <R> Result<R> checkEntityInternal(AuthorityRuleEntity entity) {
         if (entity == null) {
             return Result.ofFail(-1, "bad rule body");

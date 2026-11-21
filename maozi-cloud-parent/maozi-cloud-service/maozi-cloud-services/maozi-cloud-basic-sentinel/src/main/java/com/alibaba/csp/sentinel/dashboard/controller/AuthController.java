@@ -78,7 +78,7 @@ public class AuthController {
          */
         if (StringUtils.isNotBlank(authUsername) && !authUsername.equals(username)
                 || StringUtils.isNotBlank(authPassword) && !authPassword.equals(password)) {
-            LOGGER.error("Login failed: Invalid username or password, username=" + username);
+            LOGGER.error("Login failed: Invalid username or password, username={}", username);
             return Result.ofFail(-1, "Invalid username or password");
         }
 

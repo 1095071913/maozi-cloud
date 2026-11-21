@@ -51,14 +51,14 @@ public class RedisFilterHandle extends BaseFilterHandle {
 
         // 读取 db.system 来源标识，非 redis 来源不过滤
         String type = attributes.get(InternalAttributeKeyImpl.create(ATTR_DB_SYSTEM, AttributeType.STRING));
-        if(Objects.isNull(type) || !getNames().contains(type)){
+        if (Objects.isNull(type) || !getNames().contains(type)){
             return false;
         }
 
         // 比对 db.statement 是否命中排除指令列表
         // （属性缺失时不过滤，避免不可变集合 contains(null) 抛 NPE）
         String statement = attributes.get(InternalAttributeKeyImpl.create(ATTR_DB_STATEMENT, AttributeType.STRING));
-        if(Objects.isNull(statement)){
+        if (Objects.isNull(statement)){
             return false;
         }
         return EXCLUDED_STATEMENT.contains(statement);

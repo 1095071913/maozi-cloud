@@ -215,7 +215,7 @@ public final class CollectionUtil {
      */
     public static <T> Collection<T> collectionIsEmptyThrowError(Collection<T> collection, String resourceName) {
 
-        if(CollectionUtil.isEmpty(collection)) {
+        if (CollectionUtil.isEmpty(collection)) {
             throw new BusinessResultException(SystemErrorCode.DATA_NOT_EXIST_ERROR)
                     .setResource(resourceName);
         }
@@ -236,7 +236,7 @@ public final class CollectionUtil {
      */
     public static <K, V> Map<K, V> collectionIsEmptyThrowError(Map<K, V> map, String resourceName) {
 
-        if(CollectionUtil.isEmpty(map)) {
+        if (CollectionUtil.isEmpty(map)) {
             throw new BusinessResultException(SystemErrorCode.DATA_NOT_EXIST_ERROR)
                     .setResource(resourceName);
         }

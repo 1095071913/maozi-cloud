@@ -77,12 +77,12 @@ public class GrayRouter extends AbstractRouter {
                 invoker.getUrl().getParameter(ProviderFirstParams.APPLICATION_VERSION_KEY);
 
             // 如果请求版本号非空且与服务实例版本完全匹配，则归为灰度节点
-            if(StringUtils.isNotBlank(version) && Objects.equals(version, clientApplicationVersion)){
+            if (StringUtils.isNotBlank(version) && Objects.equals(version, clientApplicationVersion)){
                 grayApplicationClients.add(invoker);
             }
 
             // 如果服务实例版本为默认版本，则归为主版本节点
-            if(VersionContext.APPLICATION_DEFAULT_VERSION.equals(clientApplicationVersion)){
+            if (VersionContext.APPLICATION_DEFAULT_VERSION.equals(clientApplicationVersion)){
                 mainApplicationClients.add(invoker);
             }
 

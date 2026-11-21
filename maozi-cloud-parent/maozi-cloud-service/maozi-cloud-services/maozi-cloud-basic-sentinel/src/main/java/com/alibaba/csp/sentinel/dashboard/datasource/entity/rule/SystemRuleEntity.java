@@ -169,6 +169,7 @@ public class SystemRuleEntity implements RuleEntity {
     }
 
     /** Sets the create time. */
+    @Override
     public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
     }
@@ -179,6 +180,7 @@ public class SystemRuleEntity implements RuleEntity {
     }
 
     /** Sets the last modify time. */
+    @Override
     public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
     }
@@ -193,5 +195,22 @@ public class SystemRuleEntity implements RuleEntity {
         rule.setQps(qps);
         rule.setHighestCpuUsage(highestCpuUsage);
         return rule;
+    }
+
+    @Override
+    public String toString() {
+        return "SystemRuleEntity{"
+                + "id=" + id
+                + ", app='" + app + '\''
+                + ", ip='" + ip + '\''
+                + ", port=" + port
+                + ", highestSystemLoad=" + highestSystemLoad
+                + ", avgRt=" + avgRt
+                + ", maxThread=" + maxThread
+                + ", qps=" + qps
+                + ", highestCpuUsage=" + highestCpuUsage
+                + ", gmtCreate=" + gmtCreate
+                + ", gmtModified=" + gmtModified
+                + '}';
     }
 }

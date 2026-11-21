@@ -55,7 +55,7 @@ public class SystemRuleNacosProvider implements DynamicRuleProvider<List<SystemR
     @Override
     public List<SystemRuleEntity> getRules(String appName) throws Exception {
         String rules = NacosConfigUtil.readFreshConfig(configService, appName,
-            NacosConfigUtil.SYSTEM_DATA_ID_POSTFIX, nacosProperties.getGroup(), 3000);
+            NacosConfigUtil.SYSTEM_DATA_ID_POSTFIX, nacosProperties.getGroup(), NacosConfigUtil.READ_TIMEOUT_MS);
         if (StringUtil.isEmpty(rules)) {
             return new ArrayList<>();
         }

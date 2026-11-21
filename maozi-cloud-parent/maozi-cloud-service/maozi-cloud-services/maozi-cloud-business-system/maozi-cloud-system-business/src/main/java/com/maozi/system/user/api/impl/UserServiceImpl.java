@@ -173,7 +173,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
     public Long adminSaveUpdate(Long id, UserSaveUpdateParam param) {
 
         boolean hasId = ObjectUtil.isNotNull(id);
-        if(hasId) {
+        if (hasId) {
 
             // 更新时不允许修改用户名和客户端ID，置空以忽略这两个字段
             param.setUsername(null);
@@ -185,7 +185,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
             Long clientId = param.getClientId();
             String username = param.getUsername();
 
-            if(ObjectUtil.isNotNull(clientId) && StringUtils.isNotBlank(username)) {
+            if (ObjectUtil.isNotNull(clientId) && StringUtils.isNotBlank(username)) {
 
                 // 校验客户端存在且可用，不可用则抛出异常
                 rpcClientService.checkAvailableResult(clientId).getResultDataThrowError();
@@ -201,7 +201,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
         }
 
         String password = param.getPassword();
-        if(StringUtils.isNotBlank(password)) {
+        if (StringUtils.isNotBlank(password)) {
             // 密码非空时先加密再入库
             param.setPassword(PASSWORD_ENCODER.encode(password));
         }
@@ -211,7 +211,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
         // 保存后同步更新用户与角色的绑定关系
         userRoleService.updateBind(id, param.getBindRoleIds(), param.getUnbindRoleIds());
 
-        if(hasId && StatusEnum.DISABLE == param.getStatus()){
+        if (hasId && StatusEnum.DISABLE == param.getStatus()){
             // 更新时目标状态为禁用，销毁该用户的全部OAuth2令牌，强制下线
             UserDO user = super.getByIdThrowError(id, UserDO::getUsername, UserDO::getClientId);
             rpcOauthTokenService.destroyByPrincipalResult(user.getClientId(), user.getUsername())
@@ -234,11 +234,11 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
 
         // 先获取用户的用户名和客户端ID，删除后需用于注销认证令牌
         UserDO user = super.getById(id, UserDO::getUsername, UserDO::getClientId);
-        if(Objects.isNull(user)){
+        if (Objects.isNull(user)){
             return;
         }
 
-        if(super.removeById(id)){
+        if (super.removeById(id)){
             // 删除成功后销毁该用户全部 OAuth2 令牌，强制下线
             rpcOauthTokenService.destroyByPrincipalResult(user.getClientId(), user.getUsername())
                     .getResultDataThrowError();
@@ -264,7 +264,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
         UserDO user = super.getByIdThrowError(id, UserDO::getUsername, UserDO::getClientId, UserDO::getStatus);
 
         // 当前状态与目标状态一致时，无需更新，直接返回
-        if(user.getStatus() == status){
+        if (user.getStatus() == status){
             return;
         }
 
@@ -274,7 +274,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
         super.updateById(user);
 
         // 禁用用户后销毁其全部OAuth2令牌，强制下线
-        if(StatusEnum.DISABLE == status){
+        if (StatusEnum.DISABLE == status){
             rpcOauthTokenService.destroyByPrincipalResult(user.getClientId(), user.getUsername())
                     .getResultDataThrowError();
         }
@@ -301,11 +301,11 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
         String paramNewPassword = param.getNewPassword();
 
         // 旧密码与新密码同时传入时，先校验旧密码，再将新密码加密
-        if(StringUtils.isNotBlank(paramPassword) && StringUtils.isNotBlank(paramNewPassword)){
+        if (StringUtils.isNotBlank(paramPassword) && StringUtils.isNotBlank(paramNewPassword)){
             UserDO domain = super.getByIdThrowError(userId, UserDO::getPassword);
 
             // 旧密码与库中密文不匹配时抛出业务异常
-            if(!UserServiceImpl.PASSWORD_ENCODER.matches(paramPassword, domain.getPassword())){
+            if (!UserServiceImpl.PASSWORD_ENCODER.matches(paramPassword, domain.getPassword())){
                 throw new BusinessResultException("旧密码不正确");
             }
 
@@ -391,7 +391,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
         List<Long> roleIds = userRoleService.listRoleByUserId(userId);
 
         // 未绑定角色时直接返回空列表，避免无效的权限查询
-        if(roleIds.isEmpty()) {
+        if (roleIds.isEmpty()) {
             return List.of();
         }
 

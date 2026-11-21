@@ -141,7 +141,7 @@ public abstract class AbstractBaseResult<D> implements Serializable {
             throwError();
         }
 
-        if(Objects.isNull(getData())) {
+        if (Objects.isNull(getData())) {
             throw new BusinessResultException(SystemErrorCode.DATA_NOT_EXIST_ERROR).setResource(resourceName);
         }
 

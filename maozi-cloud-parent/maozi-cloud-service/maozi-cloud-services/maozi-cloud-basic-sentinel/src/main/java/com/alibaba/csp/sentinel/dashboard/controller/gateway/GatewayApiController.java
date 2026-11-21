@@ -70,8 +70,10 @@ public class GatewayApiController {
     private final DynamicRulePublisher<List<ApiDefinitionEntity>> rulePublisher;
 
     public GatewayApiController(InMemApiDefinitionStore repository,
-                                @Qualifier("apiDefinitionNacosProvider") DynamicRuleProvider<List<ApiDefinitionEntity>> ruleProvider,
-                                @Qualifier("apiDefinitionNacosPublisher") DynamicRulePublisher<List<ApiDefinitionEntity>> rulePublisher) {
+                                @Qualifier("apiDefinitionNacosProvider") DynamicRuleProvider<List<ApiDefinitionEntity>>
+                                    ruleProvider,
+                                @Qualifier("apiDefinitionNacosPublisher")
+                                    DynamicRulePublisher<List<ApiDefinitionEntity>> rulePublisher) {
         this.repository = repository;
         this.ruleProvider = ruleProvider;
         this.rulePublisher = rulePublisher;
@@ -107,7 +109,10 @@ public class GatewayApiController {
         }
     }
 
-    /** Adds a new API definition after validation (duplicate apiName within the app rejected), then publishes the app's APIs to Nacos. */
+    /**
+     * Adds a new API definition after validation (duplicate apiName within the app rejected), then publishes the
+     * app's APIs to Nacos.
+     */
     @PostMapping("/new.json")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
     public Result<ApiDefinitionEntity> addApi(HttpServletRequest request, @RequestBody AddApiReqVo reqVo) {
@@ -155,7 +160,8 @@ public class GatewayApiController {
 
             // Match strategy.
             Integer matchStrategy = predicateItem.getMatchStrategy();
-            if (!Arrays.asList(URL_MATCH_STRATEGY_EXACT, URL_MATCH_STRATEGY_PREFIX, URL_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
+            if (!Arrays.asList(URL_MATCH_STRATEGY_EXACT, URL_MATCH_STRATEGY_PREFIX, 
+                URL_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
                 return Result.ofFail(-1, "invalid matchStrategy: " + matchStrategy);
             }
             predicateItemEntity.setMatchStrategy(matchStrategy);
@@ -173,7 +179,7 @@ public class GatewayApiController {
 
         // Reject a duplicate API name within the app.
         List<ApiDefinitionEntity> allApis = repository.findAllByApp(trimmedApp);
-        if (allApis.stream().map(o -> o.getApiName()).anyMatch(o -> o.equals(trimmedApiName))) {
+        if (allApis.stream().map(ApiDefinitionEntity::getApiName).anyMatch(trimmedApiName::equals)) {
             return Result.ofFail(-1, "apiName exists: " + apiName);
         }
 
@@ -224,7 +230,8 @@ public class GatewayApiController {
 
             // Match strategy.
             int matchStrategy = predicateItem.getMatchStrategy();
-            if (!Arrays.asList(URL_MATCH_STRATEGY_EXACT, URL_MATCH_STRATEGY_PREFIX, URL_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
+            if (!Arrays.asList(URL_MATCH_STRATEGY_EXACT, URL_MATCH_STRATEGY_PREFIX, 
+                URL_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
                 return Result.ofFail(-1, "Invalid matchStrategy: " + matchStrategy);
             }
             predicateItemEntity.setMatchStrategy(matchStrategy);
@@ -257,7 +264,10 @@ public class GatewayApiController {
         return Result.ofSuccess(entity);
     }
 
-    /** Deletes the API definition of the given id and publishes the app's APIs; an unknown id returns success with null data. */
+    /**
+     * Deletes the API definition of the given id and publishes the app's APIs; an unknown id returns success with
+     * null data.
+     */
     @PostMapping("/delete.json")
     @AuthAction(AuthService.PrivilegeType.DELETE_RULE)
 

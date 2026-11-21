@@ -57,6 +57,18 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
     /** Logger of this class. */
     private final Logger LOGGER = LoggerFactory.getLogger(ClusterAssignServiceImpl.class);
 
+    /** Timeout in seconds of a single cluster assign/read operation against the command API. */
+    private static final long CLUSTER_OP_TIMEOUT_SECONDS = 10L;
+
+    /** Request timeout in milliseconds applied to the cluster client config. */
+    private static final int CLIENT_REQUEST_TIMEOUT_MS = 20;
+
+    /** Idle time in seconds applied to the cluster server transport config. */
+    private static final int SERVER_IDLE_SECONDS = 600;
+
+    /** Upper bound (exclusive) of the max allowed QPS of the cluster server. */
+    private static final double MAX_ALLOWED_QPS_LIMIT = 200_000D;
+
     /** Client for sending cluster mode/config modifications to machines. */
     private final SentinelApiClient sentinelApiClient;
     /** Service for querying the cluster state of app machines. */
@@ -90,7 +102,7 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
         Set<String> failedSet = new HashSet<>();
         try {
             List<ClusterUniversalStatePairVO> list = clusterConfigService.getClusterUniversalState(app)
-                .get(10, TimeUnit.SECONDS);
+                .get(CLUSTER_OP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             Set<String> toModifySet = list.stream()
                 .filter(e -> {
                     // Cache the state object to avoid repeated calls within the same element.
@@ -151,7 +163,7 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
         Set<String> failedSet = new HashSet<>();
         try {
             ClusterGroupEntity entity = clusterConfigService.getClusterUniversalStateForAppMachine(app, machineId)
-                .get(10, TimeUnit.SECONDS);
+                .get(CLUSTER_OP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             Set<String> toModifySet = new HashSet<>();
             toModifySet.add(machineId);
             if (entity.getClientSet() != null) {
@@ -275,7 +287,7 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
                 CompletableFuture<Void> f = sentinelApiClient
                     .modifyClusterMode(ipPort.r1, ipPort.r2, ClusterStateManager.CLUSTER_CLIENT)
                     .thenCompose(v -> sentinelApiClient.modifyClusterClientConfig(app, ipPort.r1, ipPort.r2,
-                        new ClusterClientConfig().setRequestTimeout(20)
+                        new ClusterClientConfig().setRequestTimeout(CLIENT_REQUEST_TIMEOUT_MS)
                             .setServerHost(serverIp)
                             .setServerPort(serverPort)
                     ));
@@ -290,7 +302,7 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
      */
     private void handleFutureSync(Tuple2<String, CompletableFuture<Void>> t, Set<String> failedSet) {
         try {
-            t.r2.get(10, TimeUnit.SECONDS);
+            t.r2.get(CLUSTER_OP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (InterruptedException ex) {
             onInterrupted(t.r1, "Request for <{}> failed", ex, failedSet);
         } catch (Exception ex) {
@@ -321,7 +333,7 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
                                                             ClusterAppAssignMap assignMap) {
         ServerTransportConfig transportConfig = new ServerTransportConfig()
             .setPort(assignMap.getPort())
-            .setIdleSeconds(600);
+            .setIdleSeconds(SERVER_IDLE_SECONDS);
         return sentinelApiClient.modifyClusterServerTransportConfig(app, ip, commandPort, transportConfig)
             .thenCompose(v -> applyServerFlowConfigChange(app, ip, commandPort, assignMap))
             .thenCompose(v -> applyServerNamespaceSetConfig(app, ip, commandPort, assignMap));
@@ -334,7 +346,7 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
     private CompletableFuture<Void> applyServerFlowConfigChange(String app, String ip, int commandPort,
                                                                 ClusterAppAssignMap assignMap) {
         Double maxAllowedQps = assignMap.getMaxAllowedQps();
-        if (maxAllowedQps == null || maxAllowedQps <= 0 || maxAllowedQps > 20_0000) {
+        if (maxAllowedQps == null || maxAllowedQps <= 0 || maxAllowedQps > MAX_ALLOWED_QPS_LIMIT) {
             return CompletableFuture.completedFuture(null);
         }
         return sentinelApiClient.modifyClusterServerFlowConfig(app, ip, commandPort,

@@ -61,9 +61,9 @@ public enum JoinTypeEnum {
 
         JoinTypeEnum[] joinTypes = JoinTypeEnum.values();
 
-        for(JoinTypeEnum joinType : joinTypes) {
+        for (JoinTypeEnum joinType : joinTypes) {
 
-            if(joinType.getType().getType().equals(type)) {
+            if (joinType.getType().getType().equals(type)) {
                 return joinType;
             }
 

@@ -43,7 +43,7 @@ public class ApplicationUserContextFilter implements HandlerInterceptor {
 
         // 获取当前认证信息（OAuth2 认证时主体为 DefaultOAuth2AuthenticatedPrincipal）
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(ObjectUtil.isNotNull(authentication) && authentication.isAuthenticated()
+        if (ObjectUtil.isNotNull(authentication) && authentication.isAuthenticated()
             && authentication.getPrincipal() instanceof DefaultOAuth2AuthenticatedPrincipal authenticatedPrincipal){
 
             Long userId = authenticatedPrincipal.getAttribute(OAuth2TokenUserClaimConstants.USER_ID);
@@ -51,7 +51,7 @@ public class ApplicationUserContextFilter implements HandlerInterceptor {
             // client_id 在令牌声明中以字符串形式存储，需转换为 Long
             Long clientId = null;
             String clientIdStr = authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.CLIENT_ID);
-            if(StringUtils.isNotEmpty(clientIdStr)){
+            if (StringUtils.isNotEmpty(clientIdStr)){
                 clientId = Long.parseLong(clientIdStr);
             }
 

@@ -70,8 +70,10 @@ public class ParamFlowRuleController {
 
     public ParamFlowRuleController(AppManagement appManagement,
                                    RuleRepository<ParamFlowRuleEntity, Long> repository,
-                                   @Qualifier("paramFlowRuleNacosProvider") DynamicRuleProvider<List<ParamFlowRuleEntity>> ruleProvider,
-                                   @Qualifier("paramFlowRuleNacosPublisher") DynamicRulePublisher<List<ParamFlowRuleEntity>> rulePublisher) {
+                                   @Qualifier("paramFlowRuleNacosProvider")
+                                       DynamicRuleProvider<List<ParamFlowRuleEntity>> ruleProvider,
+                                   @Qualifier("paramFlowRuleNacosPublisher")
+                                       DynamicRulePublisher<List<ParamFlowRuleEntity>> rulePublisher) {
         this.appManagement = appManagement;
         this.repository = repository;
         this.ruleProvider = ruleProvider;
@@ -155,7 +157,10 @@ public class ParamFlowRuleController {
         }
     }
 
-    /** Validates the base machine fields via the shared validator, then the param-flow-rule specific fields; returns the first error or null. */
+    /**
+     * Validates the base machine fields via the shared validator, then the param-flow-rule specific fields; returns
+     * the first error or null.
+     */
     private <R> Result<R> checkEntityInternal(ParamFlowRuleEntity entity) {
         if (entity == null) {
             return Result.ofFail(-1, "bad rule body");
@@ -219,7 +224,7 @@ public class ParamFlowRuleController {
             publishRules(entity.getApp());
             return Result.ofSuccess(entity);
         } catch (Throwable throwable) {
-            logger.error("Error when updating parameter flow rules, id=" + id, throwable);
+            logger.error("Error when updating parameter flow rules, id={}", id, throwable);
             return Result.ofFail(-1, throwable.getMessage());
         }
     }
@@ -252,9 +257,12 @@ public class ParamFlowRuleController {
         rulePublisher.publish(app, rules);
     }
 
+    /** Error code returned when the client version does not support parameter flow control. */
+    private static final int CODE_UNSUPPORTED_CLIENT = 4041;
+
     /** Builds the error result returned when the client version does not support parameter flow control. */
     private <R> Result<R> unsupportedVersion() {
-        return Result.ofFail(4041,
+        return Result.ofFail(CODE_UNSUPPORTED_CLIENT,
             "Sentinel client not supported for parameter flow control (unsupported version or dependency absent)");
     }
 

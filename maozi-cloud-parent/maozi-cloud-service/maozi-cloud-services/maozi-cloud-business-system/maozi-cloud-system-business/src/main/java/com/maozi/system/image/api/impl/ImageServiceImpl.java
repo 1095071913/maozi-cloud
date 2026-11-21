@@ -97,7 +97,7 @@ public class ImageServiceImpl implements ImageService {
         ImageStorageTypeEnum storeType = ImageStorageTypeEnum.get(storeTypeCode);
 
         ImageStorageHandler handler = handlerMap.get(storeType);
-        if(Objects.isNull(handler)) {
+        if (Objects.isNull(handler)) {
             throw new BusinessResultException("未知的图片存储类型：" + storeTypeCode);
         }
 

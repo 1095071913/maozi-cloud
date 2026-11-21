@@ -53,7 +53,7 @@ public class CodeConfig {
         // 从 Spring 容器中获取所有 AbstractBaseErrorCode 类型的 Bean
         Map<String, AbstractBaseErrorCode> codeBeans = SpringUtil.getBeansOfType(AbstractBaseErrorCode.class);
 
-        for(AbstractBaseErrorCode errorCodeBean : codeBeans.values()){
+        for (AbstractBaseErrorCode errorCodeBean : codeBeans.values()){
             registerErrorCode(errorCodeBean);
         }
 
@@ -79,7 +79,7 @@ public class CodeConfig {
                 field.setAccessible(true); // 设置可访问私有字段
 
                 // 仅提取 ErrorCode 类型的字段值
-                if(field.get(errorCodeBean) instanceof ErrorCode errorCode){
+                if (field.get(errorCodeBean) instanceof ErrorCode errorCode){
                     // 以错误码值为键注册到全局映射表
                     ERROR_CODES.put(errorCode.getCode(), errorCode);
                 }

@@ -91,14 +91,15 @@ import java.util.stream.Collectors;
 @Component
 public class SentinelApiClient {
     /** Logger of this API client. */
-    private static Logger logger = LoggerFactory.getLogger(SentinelApiClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(SentinelApiClient.class);
 
     /** Default charset for encoding request params and decoding response bodies. */
     private static final Charset DEFAULT_CHARSET = Charset.forName(SentinelConfig.charset());
     /** Name of the HTTP Content-Type header. */
     private static final String HTTP_HEADER_CONTENT_TYPE = "Content-Type";
     /** Plain urlencoded Content-Type, used when the target client does not support the enhanced form. */
-    private static final String HTTP_HEADER_CONTENT_TYPE_URLENCODED = ContentType.create(URLEncodedUtils.CONTENT_TYPE).toString();
+    private static final String HTTP_HEADER_CONTENT_TYPE_URLENCODED =
+        ContentType.create(URLEncodedUtils.CONTENT_TYPE).toString();
 
     /** Command path of fetching the resource tree in JSON. */
     private static final String RESOURCE_URL_PATH = "jsonTree";
@@ -160,6 +161,20 @@ public class SentinelApiClient {
     /** Success keyword echoed by the Sentinel client for rule modification commands. */
     private static final String CLIENT_RESPONSE_SUCCESS = "success";
 
+    /** Cluster node type param value: only nodes with non-zero values. */
+    private static final String CLUSTER_NODE_TYPE_NOT_ZERO = "notZero";
+    /** Cluster node type param value: include nodes with zero values. */
+    private static final String CLUSTER_NODE_TYPE_ZERO = "zero";
+
+    /** HTTP connect timeout in milliseconds when talking to Sentinel clients. */
+    private static final int CONNECT_TIMEOUT_MS = 3000;
+    /** HTTP socket timeout in milliseconds when talking to Sentinel clients. */
+    private static final int SO_TIMEOUT_MS = 10000;
+    /** Max total connections of the underlying async HTTP client. */
+    private static final int MAX_CONN_TOTAL = 4000;
+    /** Max connections per route of the underlying async HTTP client. */
+    private static final int MAX_CONN_PER_ROUTE = 1000;
+
     /** The underlying async HTTP client used to talk to Sentinel clients. */
     private CloseableHttpAsyncClient httpClient;
 
@@ -174,7 +189,8 @@ public class SentinelApiClient {
     /** Creates and starts the underlying async HTTP client, with redirects disabled. */
     public SentinelApiClient(AppManagement appManagement) {
         this.appManagement = appManagement;
-        IOReactorConfig ioConfig = IOReactorConfig.custom().setConnectTimeout(3000).setSoTimeout(10000)
+        IOReactorConfig ioConfig = IOReactorConfig.custom().setConnectTimeout(CONNECT_TIMEOUT_MS)
+            .setSoTimeout(SO_TIMEOUT_MS)
             .setIoThreadCount(Runtime.getRuntime().availableProcessors() * 2).build();
         httpClient = HttpAsyncClients.custom().setRedirectStrategy(new DefaultRedirectStrategy() {
             /** Always returns false to disable redirects for sentinel client commands. */
@@ -182,7 +198,8 @@ public class SentinelApiClient {
             protected boolean isRedirectable(final String method) {
                 return false;
             }
-        }).setMaxConnTotal(4000).setMaxConnPerRoute(1000).setDefaultIOReactorConfig(ioConfig).build();
+        }).setMaxConnTotal(MAX_CONN_TOTAL).setMaxConnPerRoute(MAX_CONN_PER_ROUTE)
+            .setDefaultIOReactorConfig(ioConfig).build();
         httpClient.start();
     }
 
@@ -191,9 +208,13 @@ public class SentinelApiClient {
         return statusCode >= HTTP_STATUS_OK_MIN && statusCode < HTTP_STATUS_OK_MAX;
     }
 
-    /** Whether the failed response means the command is unknown to the client (status 400 with the unknown-command message). */
+    /**
+     * Whether the failed response means the command is unknown to the client (status 400 with the unknown-command
+     * message).
+     */
     private boolean isCommandNotFound(int statusCode, String body) {
-        return statusCode == HTTP_STATUS_BAD_REQUEST && StringUtil.isNotEmpty(body) && body.contains(CommandConstants.MSG_UNKNOWN_COMMAND_PREFIX);
+        return statusCode == HTTP_STATUS_BAD_REQUEST && StringUtil.isNotEmpty(body) &&
+            body.contains(CommandConstants.MSG_UNKNOWN_COMMAND_PREFIX);
     }
     
     /** Whether the registered machine's client version supports receiving commands via POST (>= 1.6.0). */
@@ -221,7 +242,9 @@ public class SentinelApiClient {
                 .orElse(false);
     }
     
-    /** Builds a url-encoded query string (no leading '?' or '&'), skipping entries with empty or unencodable key/value. */
+    /**
+     * Builds a url-encoded query string (no leading '?' or '&'), skipping entries with empty or unencodable key/value.
+     */
     private StringBuilder queryString(Map<String, String> params) {
         StringBuilder queryStringBuilder = new StringBuilder();
         for (Entry<String, String> entry : params.entrySet()) {
@@ -250,7 +273,8 @@ public class SentinelApiClient {
      * @param supportEnhancedContentType see {@link #isSupportEnhancedContentType(String, String, int)}
      * @return the built POST request
      */
-    protected static HttpUriRequest postRequest(String url, Map<String, String> params, boolean supportEnhancedContentType) {
+    protected static HttpUriRequest postRequest(String url, Map<String, String> params, 
+        boolean supportEnhancedContentType) {
         HttpPost httpPost = new HttpPost(url);
         if (params != null && !params.isEmpty()) {
             List<NameValuePair> list = new ArrayList<>(params.size());
@@ -275,7 +299,10 @@ public class SentinelApiClient {
         }
     }
     
-    /** Reads the response body using the charset parsed from the Content-Type header, falling back to the default charset. */
+    /**
+     * Reads the response body using the charset parsed from the Content-Type header, falling back to the default
+     * charset.
+     */
     private String getBody(HttpResponse response) throws Exception {
         Charset charset = null;
         try {
@@ -313,7 +340,8 @@ public class SentinelApiClient {
      * @param params the query parameters
      * @return the future completed with the response body
      */
-    private CompletableFuture<String> executeCommand(String ip, int port, String api, Map<String, String> params, boolean useHttpPost) {
+    private CompletableFuture<String> executeCommand(String ip, int port, String api, Map<String, String> params, 
+        boolean useHttpPost) {
         return executeCommand(null, ip, port, api, params, useHttpPost);
     }
 
@@ -328,7 +356,8 @@ public class SentinelApiClient {
      * @param params the request parameters
      * @return the future completed with the response body
      */
-    private CompletableFuture<String> executeCommand(String app, String ip, int port, String api, Map<String, String> params, boolean useHttpPost) {
+    private CompletableFuture<String> executeCommand(String app, String ip, int port, String api, 
+        Map<String, String> params, boolean useHttpPost) {
         CompletableFuture<String> future = new CompletableFuture<>();
         if (StringUtil.isBlank(ip) || StringUtil.isBlank(api)) {
             future.completeExceptionally(new IllegalArgumentException("Bad URL or command name"));
@@ -419,7 +448,8 @@ public class SentinelApiClient {
     
     /** Fetches the JSON array returned by the given command (via GET) and parses each item into the given type. */
     @Nullable
-    private <T> CompletableFuture<List<T>> fetchItemsAsync(String ip, int port, String api, String type, Class<T> ruleType) {
+    private <T> CompletableFuture<List<T>> fetchItemsAsync(String ip, int port, String api, String type, 
+        Class<T> ruleType) {
         AssertUtil.notEmpty(ip, "Bad machine IP");
         AssertUtil.isTrue(port > 0, "Bad machine port");
         Map<String, String> params = null;
@@ -492,7 +522,8 @@ public class SentinelApiClient {
     }
 
     /** Async variant of {@link #setRules}; requires a "success" reply, and a null rules list fails the future. */
-    private CompletableFuture<Void> setRulesAsync(String app, String ip, int port, String type, List<? extends RuleEntity> entities) {
+    private CompletableFuture<Void> setRulesAsync(String app, String ip, int port, String type, 
+        List<? extends RuleEntity> entities) {
         try {
             AssertUtil.notNull(entities, "rules cannot be null");
             AssertUtil.notEmpty(app, "Bad app name");
@@ -530,10 +561,7 @@ public class SentinelApiClient {
      * @return the fetched cluster node list, or null if fetching fails
      */
     public List<NodeVo> fetchClusterNodeOfMachine(String ip, int port, boolean includeZero) {
-        String type = "notZero";
-        if (includeZero) {
-            type = "zero";
-        }
+        String type = includeZero ? CLUSTER_NODE_TYPE_ZERO : CLUSTER_NODE_TYPE_NOT_ZERO;
         return fetchItems(ip, port, CLUSTER_NODE_PATH, type, NodeVo.class);
     }
 
@@ -632,7 +660,8 @@ public class SentinelApiClient {
     }
 
     /** Asynchronously pushes flow rules via {@link #setRulesAsync}; a null rules list fails the future. */
-    public CompletableFuture<Void> setFlowRuleOfMachineAsync(String app, String ip, int port, List<FlowRuleEntity> rules) {
+    public CompletableFuture<Void> setFlowRuleOfMachineAsync(String app, String ip, int port, 
+        List<FlowRuleEntity> rules) {
         return setRulesAsync(app, ip, port, FLOW_RULE_TYPE, rules);
     }
 
@@ -679,7 +708,8 @@ public class SentinelApiClient {
     }
 
     /** Asynchronously pushes parameter flow rules; a null list completes the future immediately without pushing. */
-    public CompletableFuture<Void> setParamFlowRuleOfMachine(String app, String ip, int port, List<ParamFlowRuleEntity> rules) {
+    public CompletableFuture<Void> setParamFlowRuleOfMachine(String app, String ip, int port, 
+        List<ParamFlowRuleEntity> rules) {
         if (rules == null) {
             return CompletableFuture.completedFuture(null);
         }
@@ -697,7 +727,7 @@ public class SentinelApiClient {
                     if (CommandConstants.MSG_SUCCESS.equals(e)) {
                         return CompletableFuture.completedFuture(null);
                     } else {
-                        logger.warn("Push parameter flow rules to client failed: " + e);
+                        logger.warn("Push parameter flow rules to client failed: {}", e);
                         return AsyncUtils.newFailedFuture(new RuntimeException(e));
                     }
                 });
@@ -736,7 +766,7 @@ public class SentinelApiClient {
                     if (CommandConstants.MSG_SUCCESS.equals(e)) {
                         return CompletableFuture.completedFuture(null);
                     } else {
-                        logger.warn("Error when modifying cluster mode: " + e);
+                        logger.warn("Error when modifying cluster mode: {}", e);
                         return AsyncUtils.newFailedFuture(new RuntimeException(e));
                     }
                 });
@@ -761,7 +791,8 @@ public class SentinelApiClient {
     }
 
     /** Modifies the cluster client config of the machine. */
-    public CompletableFuture<Void> modifyClusterClientConfig(String app, String ip, int port, ClusterClientConfig config) {
+    public CompletableFuture<Void> modifyClusterClientConfig(String app, String ip, int port, 
+        ClusterClientConfig config) {
         if (StringUtil.isBlank(ip) || port <= 0) {
             return AsyncUtils.newFailedFuture(new IllegalArgumentException("Invalid parameter"));
         }
@@ -773,7 +804,7 @@ public class SentinelApiClient {
                     if (CommandConstants.MSG_SUCCESS.equals(e)) {
                         return CompletableFuture.completedFuture(null);
                     } else {
-                        logger.warn("Error when modifying cluster client config: " + e);
+                        logger.warn("Error when modifying cluster client config: {}", e);
                         return AsyncUtils.newFailedFuture(new RuntimeException(e));
                     }
                 });
@@ -784,7 +815,8 @@ public class SentinelApiClient {
     }
 
     /** Modifies the cluster server flow config of the machine. */
-    public CompletableFuture<Void> modifyClusterServerFlowConfig(String app, String ip, int port, ServerFlowConfig config) {
+    public CompletableFuture<Void> modifyClusterServerFlowConfig(String app, String ip, int port, 
+        ServerFlowConfig config) {
         if (StringUtil.isBlank(ip) || port <= 0) {
             return AsyncUtils.newFailedFuture(new IllegalArgumentException("Invalid parameter"));
         }
@@ -796,7 +828,7 @@ public class SentinelApiClient {
                     if (CommandConstants.MSG_SUCCESS.equals(e)) {
                         return CompletableFuture.completedFuture(null);
                     } else {
-                        logger.warn("Error when modifying cluster server flow config: " + e);
+                        logger.warn("Error when modifying cluster server flow config: {}", e);
                         return AsyncUtils.newFailedFuture(new RuntimeException(e));
                     }
                 });
@@ -807,7 +839,8 @@ public class SentinelApiClient {
     }
 
     /** Modifies the cluster server transport config (port and idle seconds) of the machine. */
-    public CompletableFuture<Void> modifyClusterServerTransportConfig(String app, String ip, int port, ServerTransportConfig config) {
+    public CompletableFuture<Void> modifyClusterServerTransportConfig(String app, String ip, int port, 
+        ServerTransportConfig config) {
         if (StringUtil.isBlank(ip) || port <= 0) {
             return AsyncUtils.newFailedFuture(new IllegalArgumentException("Invalid parameter"));
         }
@@ -820,7 +853,7 @@ public class SentinelApiClient {
                     if (CommandConstants.MSG_SUCCESS.equals(e)) {
                         return CompletableFuture.completedFuture(null);
                     } else {
-                        logger.warn("Error when modifying cluster server transport config: " + e);
+                        logger.warn("Error when modifying cluster server transport config: {}", e);
                         return AsyncUtils.newFailedFuture(new RuntimeException(e));
                     }
                 });
@@ -929,7 +962,9 @@ public class SentinelApiClient {
             return executeCommand(ip, port, FETCH_GATEWAY_FLOW_RULE_PATH, false)
                     .thenApply(r -> {
                         List<GatewayFlowRule> gatewayFlowRules = JSON.parseArray(r, GatewayFlowRule.class);
-                        List<GatewayFlowRuleEntity> entities = gatewayFlowRules.stream().map(rule -> GatewayFlowRuleEntity.fromGatewayFlowRule(app, ip, port, rule)).collect(Collectors.toList());
+                        List<GatewayFlowRuleEntity> entities = gatewayFlowRules.stream()
+                            .map(rule -> GatewayFlowRuleEntity.fromGatewayFlowRule(app, ip, port, rule))
+                            .collect(Collectors.toList());
                         return entities;
                     });
         } catch (Exception ex) {

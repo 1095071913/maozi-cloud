@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author leyou
  */
 @Component
-public class InMemDegradeRuleStore extends InMemoryRuleRepositoryAdapter<DegradeRuleEntity> {
+public class InMemDegradeRuleStore extends AbstractInMemoryRuleRepository<DegradeRuleEntity> {
 
     /** Static id generator for stored entities. */
     private static AtomicLong ids = new AtomicLong(0);

@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author leyou
  */
-public abstract class InMemoryRuleRepositoryAdapter<T extends RuleEntity> implements RuleRepository<T, Long> {
+public abstract class AbstractInMemoryRuleRepository<T extends RuleEntity> implements RuleRepository<T, Long> {
 
     /** Rules grouped by machine ({@code <machine, <id, rule>>}). */
     private Map<MachineInfo, Map<Long, T>> machineRules = new ConcurrentHashMap<>(16);
@@ -76,7 +76,7 @@ public abstract class InMemoryRuleRepositoryAdapter<T extends RuleEntity> implem
      */
     @Override
     public List<T> saveAll(List<T> rules) {
-        // TODO: check here.
+        // TODO check here. by maozi 2026/11/21.
         allRules.clear();
         machineRules.clear();
         appRules.clear();

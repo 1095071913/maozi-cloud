@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.repository.gateway;
 
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.GatewayFlowRuleEntity;
-import com.alibaba.csp.sentinel.dashboard.repository.rule.InMemoryRuleRepositoryAdapter;
+import com.alibaba.csp.sentinel.dashboard.repository.rule.AbstractInMemoryRuleRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @since 1.7.0
  */
 @Component
-public class InMemGatewayFlowRuleStore extends InMemoryRuleRepositoryAdapter<GatewayFlowRuleEntity> {
+public class InMemGatewayFlowRuleStore extends AbstractInMemoryRuleRepository<GatewayFlowRuleEntity> {
 
     /** Static id generator for stored entities. */
     private static AtomicLong ids = new AtomicLong(0);

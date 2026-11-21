@@ -89,7 +89,7 @@ public final class JacksonUtil {
      */
     public static ObjectMapper initObjectMapperConfig(ObjectMapper objectMapper){
 
-        if(Objects.isNull(objectMapper)){
+        if (Objects.isNull(objectMapper)){
             return null;
         }
 

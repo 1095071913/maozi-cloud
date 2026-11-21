@@ -263,7 +263,7 @@ public class ErrorResult<D> extends AbstractBaseResult<D> implements Serializabl
     public ErrorResult<D> autoIdentifyHttpCode() {
 
         HttpServletResponse response = WebUtil.getResponse();
-        if(ObjectUtil.isNotNull(response)) {
+        if (ObjectUtil.isNotNull(response)) {
             response.setStatus(getHttpCode());
         }
 

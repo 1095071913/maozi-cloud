@@ -260,4 +260,21 @@ public class MetricVo implements Comparable<MetricVo> {
     public int compareTo(MetricVo o) {
         return Long.compare(this.timestamp, o.timestamp);
     }
+
+    @Override
+    public String toString() {
+        return "MetricVo{"
+                + "id=" + id
+                + ", app='" + app + '\''
+                + ", timestamp=" + timestamp
+                + ", gmtCreate=" + gmtCreate
+                + ", resource='" + resource + '\''
+                + ", passQps=" + passQps
+                + ", blockQps=" + blockQps
+                + ", successQps=" + successQps
+                + ", exceptionQps=" + exceptionQps
+                + ", rt=" + rt
+                + ", count=" + count
+                + '}';
+    }
 }

@@ -405,7 +405,8 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         normalized.setSuccessQps(bucket.getSuccessQps());
         normalized.setBlockQps(bucket.getBlockQps());
         normalized.setExceptionQps(bucket.getExceptionQps());
-        // rt keeps the total-RT semantics (avg RT * successQPS): rt / successQps on read is the request-weighted mean RT.
+        // rt keeps the total-RT semantics (avg RT * successQPS): rt / successQps on read is the request-weighted mean
+            // RT.
         normalized.setRt(bucket.getRt());
         normalized.setCount(bucket.getCount());
         return normalized;

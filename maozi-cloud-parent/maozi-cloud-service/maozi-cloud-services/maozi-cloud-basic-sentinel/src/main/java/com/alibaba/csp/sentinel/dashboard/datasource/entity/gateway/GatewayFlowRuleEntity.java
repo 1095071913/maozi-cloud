@@ -247,6 +247,7 @@ public class GatewayFlowRuleEntity implements RuleEntity {
     }
 
     /** Sets the create time. */
+    @Override
     public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
     }
@@ -263,6 +264,7 @@ public class GatewayFlowRuleEntity implements RuleEntity {
     }
 
     /** Sets the last modify time. */
+    @Override
     public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
     }
@@ -394,7 +396,8 @@ public class GatewayFlowRuleEntity implements RuleEntity {
     /** Gets the hash code from all fields of this entity. */
     @Override
     public int hashCode() {
-        return Objects.hash(id, app, ip, port, gmtCreate, gmtModified, resource, resourceMode, grade, count, interval, intervalUnit, controlBehavior, burst, maxQueueingTimeoutMs, paramItem);
+        return Objects.hash(id, app, ip, port, gmtCreate, gmtModified, resource, resourceMode, grade, count, interval, 
+            intervalUnit, controlBehavior, burst, maxQueueingTimeoutMs, paramItem);
     }
 
     /** Builds a string with all fields of this entity. */

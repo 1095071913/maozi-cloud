@@ -81,7 +81,7 @@ public class MachineRegistryController {
             return Result.ofFail(-1, "hostname too long");
         }
         if (port == -1) {
-            logger.warn("Receive heartbeat from " + ip + " but port not set yet");
+            logger.warn("Receive heartbeat from {} but port not set yet", ip);
             return Result.ofFail(-1, "your port not set yet");
         }
         String sentinelVersion = StringUtil.isBlank(v) ? "unknown" : v;

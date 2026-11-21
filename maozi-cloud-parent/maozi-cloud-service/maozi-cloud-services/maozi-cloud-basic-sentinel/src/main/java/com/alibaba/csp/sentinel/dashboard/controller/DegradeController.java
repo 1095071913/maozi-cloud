@@ -66,8 +66,10 @@ public class DegradeController {
 
     public DegradeController(RuleRepository<DegradeRuleEntity, Long> repository,
                              AppManagement appManagement,
-                             @Qualifier("degradeRuleNacosProvider") DynamicRuleProvider<List<DegradeRuleEntity>> ruleProvider,
-                             @Qualifier("degradeRuleNacosPublisher") DynamicRulePublisher<List<DegradeRuleEntity>> rulePublisher) {
+                             @Qualifier("degradeRuleNacosProvider") DynamicRuleProvider<List<DegradeRuleEntity>>
+                                 ruleProvider,
+                             @Qualifier("degradeRuleNacosPublisher") DynamicRulePublisher<List<DegradeRuleEntity>>
+                                 rulePublisher) {
         this.repository = repository;
         this.appManagement = appManagement;
         this.ruleProvider = ruleProvider;
@@ -129,7 +131,10 @@ public class DegradeController {
         return Result.ofSuccess(entity);
     }
 
-    /** Updates the rule of the given id (app/ip/port/id/gmtCreate inherited from the old entity) and publishes the app's rules. */
+    /**
+     * Updates the rule of the given id (app/ip/port/id/gmtCreate inherited from the old entity) and publishes the
+     * app's rules.
+     */
     @PutMapping("/rule/{id}")
     @AuthAction(PrivilegeType.WRITE_RULE)
     public Result<DegradeRuleEntity> apiUpdateRule(@PathVariable("id") Long id,
@@ -201,7 +206,10 @@ public class DegradeController {
         }
     }
 
-    /** Validates the machine fields via the shared validator, then the degrade-rule specific fields; returns the first error or null. */
+    /**
+     * Validates the machine fields via the shared validator, then the degrade-rule specific fields; returns the first
+     * error or null.
+     */
     private <R> Result<R> checkEntityInternal(DegradeRuleEntity entity) {
         Result<R> baseResult = RuleEntityValidator.checkBaseFields(entity, appManagement);
         if (baseResult != null) {

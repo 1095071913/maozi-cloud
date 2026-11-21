@@ -113,9 +113,6 @@ public class ResourceVo {
         }
         List<ResourceVo> list = new ArrayList<>();
         visit(root, list, false, true);
-        //if(!list.isEmpty()){
-        //    list.remove(0);
-        //}
         return list;
     }
 
@@ -125,7 +122,6 @@ public class ResourceVo {
      */
     private static void visit(ResourceTreeNode node, List<ResourceVo> list, boolean parentVisible, boolean isRoot) {
         boolean visible = !isRoot && (node.isVisible() || parentVisible);
-        //boolean visible = node.isVisible();
         if (visible) {
             ResourceVo vo = new ResourceVo();
             vo.parentTtId = node.getParentId();
@@ -297,5 +293,26 @@ public class ResourceVo {
     /** Set whether this node is visible in the resource tree. */
     public void setVisible(boolean visible) {
         this.visible = visible;
+    }
+
+    @Override
+    public String toString() {
+        return "ResourceVo{"
+                + "parentTtId='" + parentTtId + '\''
+                + ", ttId='" + ttId + '\''
+                + ", resource='" + resource + '\''
+                + ", threadNum=" + threadNum
+                + ", passQps=" + passQps
+                + ", blockQps=" + blockQps
+                + ", totalQps=" + totalQps
+                + ", averageRt=" + averageRt
+                + ", passRequestQps=" + passRequestQps
+                + ", exceptionQps=" + exceptionQps
+                + ", oneMinutePass=" + oneMinutePass
+                + ", oneMinuteBlock=" + oneMinuteBlock
+                + ", oneMinuteException=" + oneMinuteException
+                + ", oneMinuteTotal=" + oneMinuteTotal
+                + ", visible=" + visible
+                + '}';
     }
 }

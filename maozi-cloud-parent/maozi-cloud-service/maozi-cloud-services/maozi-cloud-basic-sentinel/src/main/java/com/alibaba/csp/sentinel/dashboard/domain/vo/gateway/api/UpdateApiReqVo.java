@@ -63,4 +63,13 @@ public class UpdateApiReqVo {
     public void setPredicateItems(List<ApiPredicateItemVo> predicateItems) {
         this.predicateItems = predicateItems;
     }
+
+    @Override
+    public String toString() {
+        return "UpdateApiReqVo{"
+                + "id=" + id
+                + ", app='" + app + '\''
+                + ", predicateItems=" + predicateItems
+                + '}';
+    }
 }

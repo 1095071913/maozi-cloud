@@ -112,7 +112,7 @@ public class DatabaseInitBeanFactoryPostProcessor implements BeanFactoryPostProc
             }
 
         } catch (Exception e) {
-            throw new RuntimeException("数据库初始化失败: " + dbName, e);
+            throw new IllegalStateException("数据库初始化失败: " + dbName, e);
         }
 
     }

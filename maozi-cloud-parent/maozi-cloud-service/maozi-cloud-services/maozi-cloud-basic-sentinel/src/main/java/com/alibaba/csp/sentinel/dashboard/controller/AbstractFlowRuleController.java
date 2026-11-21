@@ -17,7 +17,7 @@ package com.alibaba.csp.sentinel.dashboard.controller;
 
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.FlowRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.domain.Result;
-import com.alibaba.csp.sentinel.dashboard.repository.rule.InMemoryRuleRepositoryAdapter;
+import com.alibaba.csp.sentinel.dashboard.repository.rule.AbstractInMemoryRuleRepository;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRuleProvider;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
 import org.slf4j.Logger;
@@ -38,13 +38,13 @@ public abstract class AbstractFlowRuleController {
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     /** The in-memory repository that stores flow rule entities. */
-    protected final InMemoryRuleRepositoryAdapter<FlowRuleEntity> repository;
+    protected final AbstractInMemoryRuleRepository<FlowRuleEntity> repository;
     /** The Nacos provider that pulls flow rules for a given app. */
     protected final DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider;
     /** The Nacos publisher that pushes flow rules to a given app. */
     protected final DynamicRulePublisher<List<FlowRuleEntity>> rulePublisher;
 
-    protected AbstractFlowRuleController(InMemoryRuleRepositoryAdapter<FlowRuleEntity> repository,
+    protected AbstractFlowRuleController(AbstractInMemoryRuleRepository<FlowRuleEntity> repository,
                                          DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider,
                                          DynamicRulePublisher<List<FlowRuleEntity>> rulePublisher) {
         this.repository = repository;

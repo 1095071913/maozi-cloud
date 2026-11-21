@@ -69,13 +69,13 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
     @Transactional(rollbackFor = Exception.class)
     public void updateBind(Long userId, List<Long> bindRoleIds, List<Long> unbindRoleIds) {
 
-        if(CollectionUtil.isNotEmpty(bindRoleIds)) {
+        if (CollectionUtil.isNotEmpty(bindRoleIds)) {
 
-            Consumer<Long> consumer = (roleId)->{
+            Consumer<Long> consumer = (roleId) -> {
 
                 UserRoleDO domainSave = UserRoleDO.builder().userId(userId).roleId(roleId).build();
                 // 绑定关系不存在且角色存在时才保存，避免重复绑定
-                if(super.count(Wrappers.lambdaQuery(domainSave)) < 1 && roleService.has(roleId)) {
+                if (super.count(Wrappers.lambdaQuery(domainSave)) < 1 && roleService.has(roleId)) {
                     super.save(domainSave);
                 }
 
@@ -85,7 +85,7 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
 
         }
 
-        if(CollectionUtil.isNotEmpty(unbindRoleIds)) {
+        if (CollectionUtil.isNotEmpty(unbindRoleIds)) {
 
             Consumer<Long> consumer = (roleId) -> super.remove(
                 Wrappers.lambdaQuery(UserRoleDO.builder().userId(userId).roleId(roleId).build()

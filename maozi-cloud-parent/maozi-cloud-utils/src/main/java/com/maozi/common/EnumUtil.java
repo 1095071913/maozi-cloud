@@ -38,9 +38,9 @@ public final class EnumUtil {
 
         T[] values = clazz.getEnumConstants();
 
-        for(T iEnum : values) {
+        for (T iEnum : values) {
 
-            if(Objects.equals(iEnum.getValue(), value)) {
+            if (Objects.equals(iEnum.getValue(), value)) {
                 return iEnum;
             }
 
@@ -69,9 +69,9 @@ public final class EnumUtil {
 
         T[] values = clazz.getEnumConstants();
 
-        for(T iEnum : values) {
+        for (T iEnum : values) {
 
-            if(Objects.equals(iEnum.getValue(), value)) {
+            if (Objects.equals(iEnum.getValue(), value)) {
                 return iEnum;
             }
 

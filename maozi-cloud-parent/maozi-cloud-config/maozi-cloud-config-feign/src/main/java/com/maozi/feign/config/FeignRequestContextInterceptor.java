@@ -37,7 +37,7 @@ public class FeignRequestContextInterceptor implements RequestInterceptor {
     public void apply(RequestTemplate requestTemplate) {
 
         String currentUserInfoJson = CurrentUserInfoContext.CONTEXT.getJson();
-        if(StringUtils.isNotEmpty(currentUserInfoJson)){
+        if (StringUtils.isNotEmpty(currentUserInfoJson)){
             requestTemplate.header(CurrentUserInfoContext.KEY, currentUserInfoJson);
         }
 

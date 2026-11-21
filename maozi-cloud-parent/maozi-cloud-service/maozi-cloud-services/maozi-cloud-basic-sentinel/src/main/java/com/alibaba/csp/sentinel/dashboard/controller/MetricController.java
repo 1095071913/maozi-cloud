@@ -48,15 +48,24 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MetricController {
 
     /** The logger of this controller. */
-    private static Logger logger = LoggerFactory.getLogger(MetricController.class);
+    private static final Logger logger = LoggerFactory.getLogger(MetricController.class);
 
     /** Default query window in ms when the caller provides no start time: the last 5 minutes. */
     private static final long DEFAULT_QUERY_INTERVAL_MS = 1000 * 60 * 5;
 
+    /** Default page size of the top-resource metric query. */
+    private static final int DEFAULT_PAGE_SIZE = 6;
+
+    /** Max page size of the top-resource metric query. */
+    private static final int MAX_PAGE_SIZE = 20;
+
     /** The repository that stores and queries metric entities. */
     private final MetricsRepository<MetricEntity> metricStore;
 
-    /** Metric aggregation granularity N in seconds (same config as {@code JdbcMetricsRepository}), used to align query boundaries. */
+    /**
+     * Metric aggregation granularity N in seconds (same config as {@code JdbcMetricsRepository}), used to align query
+     * boundaries.
+     */
     @Value("${sentinel.metric.aggregate-seconds:1}")
     private int aggregateSeconds;
 
@@ -83,10 +92,10 @@ public class MetricController {
             pageIndex = 1;
         }
         if (pageSize == null) {
-            pageSize = 6;
+            pageSize = DEFAULT_PAGE_SIZE;
         }
-        if (pageSize >= 20) {
-            pageSize = 20;
+        if (pageSize >= MAX_PAGE_SIZE) {
+            pageSize = MAX_PAGE_SIZE;
         }
         if (desc == null) {
             desc = true;
@@ -139,7 +148,8 @@ public class MetricController {
         }
         logger.debug("queryTopResourceMetric() total query time={} ms", System.currentTimeMillis() - time);
         Map<String, Object> resultMap = new HashMap<>(16);
-        // Send the aggregation granularity N to the frontend: the leading/trailing zero padding of the chart depends on it (N seconds before/after a point).
+        // Send the aggregation granularity N to the frontend: the leading/trailing zero padding of the chart depends on
+            // it (N seconds before/after a point).
         resultMap.put("aggregateSeconds", Math.max(1, aggregateSeconds));
         resultMap.put("totalCount", totalCount);
         resultMap.put("totalPage", totalPage);
@@ -155,7 +165,10 @@ public class MetricController {
         return Result.ofSuccess(resultMap);
     }
 
-    /** Queries the metric data of the given resource of the app in the time range, sorted and de-duplicated by timestamp. */
+    /**
+     * Queries the metric data of the given resource of the app in the time range, sorted and de-duplicated by
+     * timestamp.
+     */
     @ResponseBody
     @GetMapping("/queryByAppAndResource.json")
     public Result<?> queryByAppAndResource(String app, String identity, Long startTime, Long endTime) {

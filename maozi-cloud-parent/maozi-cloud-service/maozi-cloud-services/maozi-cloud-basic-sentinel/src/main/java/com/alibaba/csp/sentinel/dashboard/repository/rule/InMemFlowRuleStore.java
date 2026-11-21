@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author leyou
  */
 @Component
-public class InMemFlowRuleStore extends InMemoryRuleRepositoryAdapter<FlowRuleEntity> {
+public class InMemFlowRuleStore extends AbstractInMemoryRuleRepository<FlowRuleEntity> {
 
     /** Static id generator for stored entities. */
     private static AtomicLong ids = new AtomicLong(0);

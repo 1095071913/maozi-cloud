@@ -59,7 +59,7 @@ public class OauthTokenServiceImpl implements OauthTokenService {
         // 校验授权记录对应的客户端是否仍已注册
         RegisteredClient authorizedClient = this.registeredClientRepository.findById(
                 authorization.getRegisteredClientId());
-        if(Objects.isNull(authorizedClient)){
+        if (Objects.isNull(authorizedClient)){
             return CollectionUtil.newHashMap(OAuth2TokenIntrospectionClaimNames.ACTIVE, false);
         }
 

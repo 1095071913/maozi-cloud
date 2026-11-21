@@ -66,7 +66,7 @@ public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper, ConfigDO> i
         wrapper.eq(ConfigDO::getName, name);
 
         ConfigDO domain = super.getOne(wrapper);
-        if(Objects.isNull(domain)){
+        if (Objects.isNull(domain)){
             return null;
         }
 
@@ -120,12 +120,12 @@ public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper, ConfigDO> i
 
         // 传入配置名称时校验唯一性，更新时排除自身记录
         String name = param.getName();
-        if(StringUtils.isNotBlank(name)) {
+        if (StringUtils.isNotBlank(name)) {
 
             LambdaQueryWrapper<ConfigDO> wrapper = Wrappers.lambdaQuery();
             wrapper.eq(ConfigDO::getName, name);
 
-            if(ObjectUtil.isNotNull(id)) {
+            if (ObjectUtil.isNotNull(id)) {
                 wrapper.ne(ConfigDO::getId, id);
             }
 

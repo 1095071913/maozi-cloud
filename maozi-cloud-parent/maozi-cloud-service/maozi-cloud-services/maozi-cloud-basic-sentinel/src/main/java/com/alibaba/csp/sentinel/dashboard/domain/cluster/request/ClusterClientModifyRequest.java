@@ -99,4 +99,15 @@ public class ClusterClientModifyRequest implements ClusterModifyRequest {
         this.clientConfig = clientConfig;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "ClusterClientModifyRequest{"
+                + "app='" + app + '\''
+                + ", ip='" + ip + '\''
+                + ", port=" + port
+                + ", mode=" + mode
+                + ", clientConfig=" + clientConfig
+                + '}';
+    }
 }

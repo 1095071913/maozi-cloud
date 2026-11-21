@@ -22,7 +22,7 @@ import com.alibaba.csp.sentinel.dashboard.controller.AbstractFlowRuleController;
 import com.alibaba.csp.sentinel.dashboard.controller.RuleEntityValidator;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.FlowRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.domain.Result;
-import com.alibaba.csp.sentinel.dashboard.repository.rule.InMemoryRuleRepositoryAdapter;
+import com.alibaba.csp.sentinel.dashboard.repository.rule.AbstractInMemoryRuleRepository;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRuleProvider;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
 import com.alibaba.csp.sentinel.slots.block.flow.ClusterFlowConfig;
@@ -51,13 +51,17 @@ import java.util.List;
 @RequestMapping(value = "/v2/flow")
 public class FlowControllerV2 extends AbstractFlowRuleController {
 
-    public FlowControllerV2(InMemoryRuleRepositoryAdapter<FlowRuleEntity> repository,
+    public FlowControllerV2(AbstractInMemoryRuleRepository<FlowRuleEntity> repository,
                             @Qualifier("flowRuleNacosProvider") DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider,
-                            @Qualifier("flowRuleNacosPublisher") DynamicRulePublisher<List<FlowRuleEntity>> rulePublisher) {
+                            @Qualifier("flowRuleNacosPublisher") DynamicRulePublisher<List<FlowRuleEntity>>
+                                rulePublisher) {
         super(repository, ruleProvider, rulePublisher);
     }
 
-    /** Fetches the app's flow rules from Nacos, restoring the entity id from the cluster flow id, persists them and returns them. */
+    /**
+     * Fetches the app's flow rules from Nacos, restoring the entity id from the cluster flow id, persists them and
+     * returns them.
+     */
     @GetMapping("/rules")
     @AuthAction(PrivilegeType.READ_RULE)
     public Result<List<FlowRuleEntity>> apiQueryMachineRules(@RequestParam String app) {
@@ -79,7 +83,10 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
         });
     }
 
-    /** Validates the body and app inline (v2 rules carry no machine info), then the flow-rule specific fields via the shared validator; returns the first error or null. */
+    /**
+     * Validates the body and app inline (v2 rules carry no machine info), then the flow-rule specific fields via the
+     * shared validator; returns the first error or null.
+     */
     @Override
     protected <R> Result<R> checkEntityInternal(FlowRuleEntity entity) {
         if (entity == null) {
@@ -98,7 +105,10 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
         return addFlowRule(entity);
     }
 
-    /** Updates the rule of the given id (app/ip/port/gmtCreate inherited from the old entity) and publishes the app's rules. */
+    /**
+     * Updates the rule of the given id (app/ip/port/gmtCreate inherited from the old entity) and publishes the app's
+     * rules.
+     */
     @PutMapping("/rule/{id}")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
     public Result<FlowRuleEntity> apiUpdateFlowRule(@PathVariable("id") Long id,

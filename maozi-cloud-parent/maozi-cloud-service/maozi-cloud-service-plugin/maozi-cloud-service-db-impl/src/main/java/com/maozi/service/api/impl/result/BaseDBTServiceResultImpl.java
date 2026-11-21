@@ -76,7 +76,7 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
     public Class<D> getResultClass(){
 
         // 懒加载解析泛型实参，避免在构造方法中执行业务逻辑
-        if(Objects.isNull(resultClass)) {
+        if (Objects.isNull(resultClass)) {
 
             // 沿继承链向上查找带泛型参数的父类，提取第二个泛型实参作为结果 DTO 类型
             for (Class<?> superClass = this.getClass();
@@ -85,7 +85,7 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
 
                 Type genericSuperclass = superClass.getGenericSuperclass();
 
-                if(genericSuperclass instanceof ParameterizedType type) {
+                if (genericSuperclass instanceof ParameterizedType type) {
 
                     resultClass = (Class<D>) type.getActualTypeArguments()[1];
 
@@ -97,7 +97,7 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
 
         }
 
-        if(Void.class.equals(resultClass)) {
+        if (Void.class.equals(resultClass)) {
             throw new BusinessResultException(SystemErrorCode.NOT_SET_RESPONSE_ERROR)
                     .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
         }
@@ -207,7 +207,7 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
                 resourceName + RESOURCE_SUFFIX_GROUP);
 
         QueryWrapper<AbstractBaseDomain> wrapper = Wrappers.query();
-        if(columns.length > 0) {
+        if (columns.length > 0) {
             wrapper.select(columns);
         }
         wrapper.eq(relationField, id);
@@ -237,13 +237,13 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
                 resourceName + RESOURCE_SUFFIX_GROUP);
 
         QueryWrapper<AbstractBaseDomain> wrapper = Wrappers.query();
-        if(columns.length > 0) {
+        if (columns.length > 0) {
             wrapper.select(columns);
         }
         wrapper.in(relationField, ids);
 
         List<AbstractBaseDomain> domains = service.list(wrapper);
-        if(CollectionUtil.isEmpty(domains)) {
+        if (CollectionUtil.isEmpty(domains)) {
             return ResultUtil.success(Collections.emptyMap());
         }
 
@@ -316,13 +316,14 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
      * @param param 携带目标状态的请求参数（data 为空时抛出参数错误异常）
      * @return 统一响应结果
      */
+    @Override
     public AbstractBaseResult<Void> updateStatusResult(Long id, RequestParam<StatusEnum> param){
 
         StatusEnum status = param.getData();
         ObjectUtil.isNullThrowError(status, SystemErrorCode.PARAM_ERROR, RESOURCE_SUFFIX_STATUS);
 
         // 目标状态为禁用时，需先检查是否存在绑定关系
-        if(status == StatusEnum.DISABLE){
+        if (status == StatusEnum.DISABLE){
             service.checkBind(id);
         }
 

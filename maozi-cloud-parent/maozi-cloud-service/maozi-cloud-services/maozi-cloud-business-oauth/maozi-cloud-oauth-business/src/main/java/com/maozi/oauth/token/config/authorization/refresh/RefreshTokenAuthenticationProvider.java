@@ -114,7 +114,7 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
         Map<String, Object> existingClaims = accessTokenClaims != null ? accessTokenClaims : Collections.emptyMap();
         Map<String, Object> claims = CollectionUtil.newHashMap(existingClaims);
         claims.put(OAuth2TokenUserClaimConstants.AUTHORITIES, authorities);
-        if (userDetails instanceof SecurityUserDetails securityUserDetails){
+        if (userDetails instanceof SecurityUserDetails securityUserDetails) {
             claims.putAll(securityUserDetails.getAttributes());
         }
 

@@ -53,7 +53,7 @@ public class AIChatConfig {
      * @return 对话记忆 Advisor
      */
     @Bean
-    public Advisor chatMemoryAdvisor(ChatMemory chatMemory){
+    public Advisor chatMemoryAdvisor(ChatMemory chatMemory) {
         return MessageChatMemoryAdvisor.builder(chatMemory).build();
     }
 

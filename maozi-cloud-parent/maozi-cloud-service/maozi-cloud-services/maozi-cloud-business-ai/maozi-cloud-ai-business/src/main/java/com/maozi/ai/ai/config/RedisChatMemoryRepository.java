@@ -164,13 +164,13 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
         // 从索引 ZSET 中按 score 范围取出消息 ID
         Set<String> messageIds = redisClient.boundZSetOps(aiChatMemoryKey + indexKeySuffix)
                 .rangeByScore(minScore, Double.POSITIVE_INFINITY);
-        if (CollectionUtil.isEmpty(messageIds)){
+        if (CollectionUtil.isEmpty(messageIds)) {
             return CollectionUtil.newArrayList();
         }
 
         // 从消息主体 HASH 中批量取出消息 JSON
         List<String> messages = redisClient.<String, String>boundHashOps(aiChatMemoryKey).multiGet(messageIds);
-        if (CollectionUtil.isEmpty(messages)){
+        if (CollectionUtil.isEmpty(messages)) {
             return CollectionUtil.newArrayList();
         }
 
@@ -210,7 +210,7 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
             String createTime = (String) metadata.get(ChatMessageConstant.CREATE_TIME);
 
             // 首次写入的消息：生成雪花 ID 并记录写入时间戳到消息元数据
-            if (StringUtils.isEmpty(messageId)){
+            if (StringUtils.isEmpty(messageId)) {
                 createTime = String.valueOf(System.currentTimeMillis());
                 messageId = String.valueOf(IdWorker.getId());
                 metadata.put(ChatMessageConstant.ID, messageId);
@@ -235,7 +235,7 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
 
         redisClient.boundZSetOps(aiChatMemoryKey + AI_CHAT_MEMORY_ORDER_KEY_SUFFIX).add(orderTuples);
 
-        if (!recordTuples.isEmpty()){
+        if (!recordTuples.isEmpty()) {
             redisClient.boundZSetOps(aiChatMemoryKey + AI_CHAT_MEMORY_RECORD_KEY_SUFFIX).add(recordTuples);
         }
 
@@ -285,12 +285,12 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
         chatMessage.setTextContent(message.getText());
 
         // AI 消息补充工具调用信息
-        if (message instanceof AssistantMessage assistantMessage){
+        if (message instanceof AssistantMessage assistantMessage) {
             chatMessage.setToolCalls(assistantMessage.getToolCalls());
         }
 
         // 工具响应消息补充工具响应信息
-        if (message instanceof ToolResponseMessage toolResponseMessage){
+        if (message instanceof ToolResponseMessage toolResponseMessage) {
             chatMessage.setToolResponses(toolResponseMessage.getResponses());
         }
 
@@ -310,15 +310,15 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
      * @return 消息对象
      * @throws RuntimeException 消息数据非法（反序列化为空或消息类型缺失、无法识别）时抛出
      */
-    public Message jsonToMessage(String json){
+    public Message jsonToMessage(String json) {
 
         ChatMessage chatMessage = JacksonUtil.jsonToObject(json, ChatMessage.class);
-        if (Objects.isNull(chatMessage)){
+        if (Objects.isNull(chatMessage)) {
             throw new BusinessResultException("消息数据转换失败");
         }
 
         String messageTypeString = chatMessage.getMessageType();
-        if (StringUtils.isEmpty(messageTypeString)){
+        if (StringUtils.isEmpty(messageTypeString)) {
             throw new BusinessResultException("消息类型缺失");
         }
 

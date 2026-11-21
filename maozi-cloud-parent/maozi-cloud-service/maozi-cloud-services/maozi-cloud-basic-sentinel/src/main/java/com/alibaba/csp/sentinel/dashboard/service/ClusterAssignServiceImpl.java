@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
 public class ClusterAssignServiceImpl implements ClusterAssignService {
 
     /** Logger of this class. */
-    private final Logger LOGGER = LoggerFactory.getLogger(ClusterAssignServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClusterAssignServiceImpl.class);
 
     /** Timeout in seconds of a single cluster assign/read operation against the command API. */
     private static final long CLUSTER_OP_TIMEOUT_SECONDS = 10L;
@@ -221,7 +221,8 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
         // Assign server and apply config.
         clusterMap.stream()
             .filter(Objects::nonNull)
-            .filter(ClusterAppAssignMap::getBelongToApp)
+            // belongToApp 为 Boolean 包装类型，请求体缺省时为 null，需判空避免拆箱 NPE
+            .filter(e -> Boolean.TRUE.equals(e.getBelongToApp()))
             .map(e -> {
                 String ip = e.getIp();
                 int commandPort = parsePort(e);

@@ -73,7 +73,7 @@ public class RestRequestEntranceLogAop extends AbstractRequestEntranceLogAop {
     public Object doAround(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 
         // 非 HTTP 流量时直接放行，不记录 HTTP 入口日志
-        if (WebUtil.notHttpRequest()){
+        if (WebUtil.notHttpRequest()) {
             return proceedingJoinPoint.proceed();
         }
 

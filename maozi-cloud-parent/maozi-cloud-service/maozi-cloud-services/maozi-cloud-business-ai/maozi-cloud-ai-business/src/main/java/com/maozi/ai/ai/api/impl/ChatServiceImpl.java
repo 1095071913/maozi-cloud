@@ -226,9 +226,9 @@ public class ChatServiceImpl implements ChatService {
 
         // 携带图片时构建多模态消息
         List<String> images = param.getImages();
-        if (CollectionUtil.isNotEmpty(images)){
+        if (CollectionUtil.isNotEmpty(images)) {
             List<Media> medias = CollectionUtil.newArrayList(images.size());
-            for (String image : images){
+            for (String image : images) {
                 // 根据图片后缀解析对应的 MIME 类型
                 MimeType mimeType = IMAGE_MIME_TYPE_MAP.entrySet().stream()
                         .filter(entry -> image.endsWith(entry.getKey()))
@@ -258,7 +258,7 @@ public class ChatServiceImpl implements ChatService {
     private ChatClient.ChatClientRequestSpec buildChatClientRequest(UserMessage userMessage,
             boolean hasImage, ChatParam param) {
         ChatClient.ChatClientRequestSpec chatClientRequest;
-        if (hasImage){
+        if (hasImage) {
 
             userMessage.getMetadata().put(DashScopeApiConstants.MESSAGE_FORMAT, MessageFormat.IMAGE);
 
@@ -273,16 +273,16 @@ public class ChatServiceImpl implements ChatService {
 
             chatClientRequest = chatClient.prompt(chatPrompt);
 
-        }else{
+        } else {
             // 纯文本对话使用默认模型
             chatClientRequest = chatClient.prompt(new Prompt(userMessage));
         }
 
         // 配置了提示词 key 时，从系统配置服务获取提示词内容作为系统消息
         String promptConfig = param.getPromptConfig();
-        if (StringUtils.isNotBlank(promptConfig)){
+        if (StringUtils.isNotBlank(promptConfig)) {
             promptConfig = rpcConfigService.getResult(promptConfig).getResultDataThrowError();
-            if (StringUtils.isNotBlank(promptConfig)){
+            if (StringUtils.isNotBlank(promptConfig)) {
                 chatClientRequest.system(promptConfig);
             }
         }
@@ -300,7 +300,7 @@ public class ChatServiceImpl implements ChatService {
      * @param messages 会话记忆中的消息列表
      * @return 前端展示的消息结果列表
      */
-    protected List<ChatItemResult> convertMessageList(List<Message> messages){
+    protected List<ChatItemResult> convertMessageList(List<Message> messages) {
 
         return messages.stream()
                 .map(message -> {
@@ -311,7 +311,7 @@ public class ChatServiceImpl implements ChatService {
                     // 跳过避免级联调用 NPE
                     Object idValue = metadata.get(ChatMessageConstant.ID);
                     Object createTimeValue = metadata.get(ChatMessageConstant.CREATE_TIME);
-                    if (idValue == null || createTimeValue == null){
+                    if (idValue == null || createTimeValue == null) {
                         return null;
                     }
 
@@ -321,11 +321,11 @@ public class ChatServiceImpl implements ChatService {
                             .toLocalDateTime();
 
                     List<String> images = CollectionUtil.newArrayList();
-                    if (message instanceof UserMessage userMessage){
+                    if (message instanceof UserMessage userMessage) {
                         userMessage.getMedia().forEach(media -> images.add(media.getData().toString()));
                     }
 
-                    if (message instanceof AssistantMessage assistantMessage){
+                    if (message instanceof AssistantMessage assistantMessage) {
                         assistantMessage.getMedia().forEach(media -> images.add(media.getData().toString()));
                     }
 
@@ -436,7 +436,7 @@ public class ChatServiceImpl implements ChatService {
         Boolean isLocked = RedisUtil.getRedisClient().hasKey(AI_CHAT_STOP_KEY + conversationId);
 
         List<Message> messages = chatMemoryRepository.findRecordByConversationId(conversationId.toString());
-        if (CollectionUtil.isEmpty(messages)){
+        if (CollectionUtil.isEmpty(messages)) {
             return new ChatListResult(
                     isLocked,
                     CollectionUtil.newArrayList()
@@ -474,7 +474,7 @@ public class ChatServiceImpl implements ChatService {
     public List<ChatItemResult> adminGetAfterMessages(Long conversationId, Long createTime) {
 
         List<Message> messages = chatMemoryRepository.findRecordAfterTimestamp(conversationId.toString(), createTime);
-        if (CollectionUtil.isEmpty(messages)){
+        if (CollectionUtil.isEmpty(messages)) {
             return CollectionUtil.newArrayList();
         }
 

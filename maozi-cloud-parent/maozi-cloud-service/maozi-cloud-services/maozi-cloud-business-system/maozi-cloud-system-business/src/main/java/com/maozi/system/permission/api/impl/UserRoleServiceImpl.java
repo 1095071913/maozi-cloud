@@ -33,6 +33,12 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
     /** 资源名称，用于异常提示信息 */
     public static final String RESOURCE_NAME = "用户角色关系";
 
+    /** 删除校验失败提示语：角色已被用户绑定 */
+    private static final String BIND_FORBIDDEN_BY_USER_MESSAGE = "【角色】已被用户绑定";
+
+    /** 解绑校验失败提示语：用户未绑定该角色 */
+    private static final String UNBIND_FORBIDDEN_NOT_BOUND_MESSAGE = "【用户】未绑定该角色";
+
     /** 角色服务，用于校验角色是否存在 */
     @Resource(name = SystemServiceConstant.ROLE_SERVICE)
     protected RoleService roleService;
@@ -53,7 +59,7 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
     public void checkUserBindRoleByRole(Long roleId) {
         LambdaQueryWrapper<UserRoleDO> wrapper = Wrappers.<UserRoleDO>lambdaQuery().eq(UserRoleDO::getRoleId, roleId);
         ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1,
-                SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE, "【角色】已被用户绑定");
+                SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE, BIND_FORBIDDEN_BY_USER_MESSAGE);
     }
 
     /**
@@ -129,7 +135,7 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
         wrapper.eq(UserRoleDO::getRoleId, roleId);
 
         ObjectUtil.checkConditionThrowError(super.count(wrapper) > 0,
-                SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE, "【用户】未绑定该角色");
+                SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE, UNBIND_FORBIDDEN_NOT_BOUND_MESSAGE);
     }
 
     /**

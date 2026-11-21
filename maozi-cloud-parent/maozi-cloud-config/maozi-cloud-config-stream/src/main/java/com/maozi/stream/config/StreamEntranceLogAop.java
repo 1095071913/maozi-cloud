@@ -203,19 +203,19 @@ public class StreamEntranceLogAop {
 
         // 从消息头中提取版本号设置到链路上下文
         Object versionObj = headers.get(VersionContext.KEY);
-        if (ObjectUtil.isNotNull(versionObj)){
+        if (ObjectUtil.isNotNull(versionObj)) {
             VersionContext.CONTEXT.set(versionObj.toString());
         }
 
         // 从消息头中提取测试流量标记设置到链路上下文
         Object testFlowObj = headers.get(TestFlowContext.KEY);
-        if (ObjectUtil.isNotNull(testFlowObj)){
+        if (ObjectUtil.isNotNull(testFlowObj)) {
             TestFlowContext.CONTEXT.set(testFlowObj.toString());
         }
 
         // 从消息头中提取当前登录用户信息设置到链路上下文
         Object currentUserInfoObj = headers.get(CurrentUserInfoContext.KEY);
-        if (ObjectUtil.isNotNull(currentUserInfoObj)){
+        if (ObjectUtil.isNotNull(currentUserInfoObj)) {
             CurrentUserInfoContext.CONTEXT.set(currentUserInfoObj.toString());
         }
 

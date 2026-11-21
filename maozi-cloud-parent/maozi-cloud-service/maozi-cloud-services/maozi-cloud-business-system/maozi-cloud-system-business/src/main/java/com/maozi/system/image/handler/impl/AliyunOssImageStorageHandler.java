@@ -69,6 +69,15 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
     /** 阿里云公网访问域名后缀 */
     private static final String ALIYUN_PUBLIC_DOMAIN_SUFFIX = "aliyuncs.com";
 
+    /** 初始化失败提示语：阿里云连接配置缺失 */
+    private static final String CONFIG_MISSING_MESSAGE = "图片存储配置 oss.aliyun 未配置，无法初始化阿里云 OSS 客户端";
+
+    /** 上传校验失败提示语：上传文件为空 */
+    private static final String UPLOAD_FILE_EMPTY_MESSAGE = "上传文件不能为空";
+
+    /** 上传失败提示语 */
+    private static final String UPLOAD_FAILED_MESSAGE = "文件上传失败";
+
     /**
      * 初始化 OSS 客户端
      * <p>
@@ -83,8 +92,7 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
 
         // 阿里云连接配置缺失时快速失败，给出明确的配置提示
         if (aliyun == null) {
-            throw new IllegalStateException("图片存储配置 oss.aliyun 未配置，"
-                    + "无法初始化阿里云 OSS 客户端");
+            throw new IllegalStateException(CONFIG_MISSING_MESSAGE);
         }
 
         OSSClientBuilder builder = OSSClient.newBuilder()
@@ -144,7 +152,7 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
 
         // 上传文件为空时抛出业务异常
         if (Objects.isNull(file) || file.isEmpty()) {
-            throw new BusinessResultException(new ErrorCode("上传文件不能为空"));
+            throw new BusinessResultException(new ErrorCode(UPLOAD_FILE_EMPTY_MESSAGE));
         }
 
         String originalFilename = file.getOriginalFilename();
@@ -174,7 +182,7 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
             // 上传过程中的任意异常统一转换为业务异常抛出，并保留原始异常堆栈便于排查
             log.error("Upload file to oss failed, file: {}", originalFilename, e);
             throw new BusinessResultException(
-                    new ErrorCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE, "文件上传失败"), e);
+                    new ErrorCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE, UPLOAD_FAILED_MESSAGE), e);
         }
 
     }

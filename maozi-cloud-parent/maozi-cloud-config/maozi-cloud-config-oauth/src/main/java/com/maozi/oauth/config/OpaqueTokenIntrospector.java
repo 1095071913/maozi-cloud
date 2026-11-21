@@ -71,7 +71,7 @@ public class OpaqueTokenIntrospector
             throw new BadOpaqueTokenException(e.getMessage(),
                     new BusinessResultException(SystemErrorCode.SYSTEM_ERROR, e)
                             .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE));
-        }catch (BusinessResultException e){
+        }catch (BusinessResultException e) {
             // 业务异常（如RPC调用返回的业务错误），
             // 转换为令牌无效异常并保留原始业务错误信息与堆栈
             BusinessResultException businessException = new BusinessResultException(e.getErrorResult());

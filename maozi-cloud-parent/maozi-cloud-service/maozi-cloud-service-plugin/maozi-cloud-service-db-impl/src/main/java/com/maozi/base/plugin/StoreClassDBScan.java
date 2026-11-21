@@ -45,7 +45,7 @@ public class StoreClassDBScan implements ApplicationRunner {
         ClassUtil.scanPackage(ApplicationEnvironmentContext.PACKAGE_PREFIX + subPath).forEach(clazz ->{
 
             // 仅收集标注 @TableName 的实体类，建立表名到类类型的映射
-            if (clazz.isAnnotationPresent(TableName.class)){
+            if (clazz.isAnnotationPresent(TableName.class)) {
 
                 TableName annotation = clazz.getAnnotation(TableName.class);
 

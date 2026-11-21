@@ -73,7 +73,7 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
      * @return 结果 DTO 的 Class 对象
      * @throws BusinessResultException 当未设置响应类型时抛出异常
      */
-    public Class<D> getResultClass(){
+    public Class<D> getResultClass() {
 
         // 懒加载解析泛型实参，避免在构造方法中执行业务逻辑
         if (Objects.isNull(resultClass)) {
@@ -134,7 +134,7 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
      * @param clazz Class 对象
      * @return 数据库列名数组
      */
-    public String[] getColumns(Class<?> clazz){
+    public String[] getColumns(Class<?> clazz) {
         return service.getColumns(clazz, true);
     }
 
@@ -267,7 +267,7 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
      * @return 包含记录数的统一响应结果
      */
     @Override
-    public AbstractBaseResult<Long> countByParamResult(D dto){
+    public AbstractBaseResult<Long> countByParamResult(D dto) {
         return ResultUtil.success(service.countByParam(dto));
     }
 
@@ -280,7 +280,7 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public AbstractBaseResult<Long> saveUpdateResult(Long id, Object param){
+    public AbstractBaseResult<Long> saveUpdateResult(Long id, Object param) {
         return ResultUtil.success(service.saveUpdate(id, param));
     }
 
@@ -292,7 +292,7 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public AbstractBaseResult<Void> saveUpdateBatchResult(List<SaveUpdateBatch> collection){
+    public AbstractBaseResult<Void> saveUpdateBatchResult(List<SaveUpdateBatch> collection) {
 
         CollectionUtil.collectionIsEmptyThrowError(collection, service.getResourceName() + RESOURCE_SUFFIX_LIST);
 
@@ -317,13 +317,13 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
      * @return 统一响应结果
      */
     @Override
-    public AbstractBaseResult<Void> updateStatusResult(Long id, RequestParam<StatusEnum> param){
+    public AbstractBaseResult<Void> updateStatusResult(Long id, RequestParam<StatusEnum> param) {
 
         StatusEnum status = param.getData();
         ObjectUtil.isNullThrowError(status, SystemErrorCode.PARAM_ERROR, RESOURCE_SUFFIX_STATUS);
 
         // 目标状态为禁用时，需先检查是否存在绑定关系
-        if (status == StatusEnum.DISABLE){
+        if (status == StatusEnum.DISABLE) {
             service.checkBind(id);
         }
 
@@ -376,7 +376,7 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
      * @return 统一响应结果
      */
     @Override
-    public AbstractBaseResult<Void> checkAvailableResult(Long id){
+    public AbstractBaseResult<Void> checkAvailableResult(Long id) {
         service.checkAvailable(id);
         return ResultUtil.success();
     }
@@ -388,7 +388,7 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
      * @return 统一响应结果
      */
     @Override
-    public AbstractBaseResult<Void> checkAvailableResult(List<Long> ids){
+    public AbstractBaseResult<Void> checkAvailableResult(List<Long> ids) {
         service.checkAvailable(ids);
         return ResultUtil.success();
     }
@@ -401,7 +401,7 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
      * @return 包含 DTO 的统一响应结果
      */
     @Override
-    public AbstractBaseResult<D> getAvailableByIdResult(Long id, String ... columns){
+    public AbstractBaseResult<D> getAvailableByIdResult(Long id, String ... columns) {
 
         AbstractBaseDomain domain = service.getAvailableById(id, columns);
 
@@ -416,7 +416,7 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
      * @return 包含下拉选项的统一响应结果
      */
     @Override
-    public AbstractBaseResult<DropDownResult> dropDownResult(Long id){
+    public AbstractBaseResult<DropDownResult> dropDownResult(Long id) {
         return ResultUtil.success(service.dropDown(id));
     }
 
@@ -427,7 +427,7 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
      * @return 包含下拉选项列表的统一响应结果
      */
     @Override
-    public AbstractBaseResult<List<DropDownResult>> dropDownListResult(Collection<Long> ids){
+    public AbstractBaseResult<List<DropDownResult>> dropDownListResult(Collection<Long> ids) {
 
         QueryWrapper<AbstractBaseDomain> wrapper = Wrappers.query();
 
@@ -445,7 +445,7 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
      * @return 包含下拉选项列表的统一响应结果
      */
     @Override
-    public AbstractBaseResult<List<DropDownResult>> dropDownListResult(){
+    public AbstractBaseResult<List<DropDownResult>> dropDownListResult() {
         return ResultUtil.success(service.dropDownList());
     }
 

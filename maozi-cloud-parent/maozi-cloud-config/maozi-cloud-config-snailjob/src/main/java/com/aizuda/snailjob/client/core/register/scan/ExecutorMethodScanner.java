@@ -44,6 +44,18 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class ExecutorMethodScanner implements Scanner, ApplicationContextAware {
 
+    /** AOP 代理类名标记（CGLIB/ByteBuddy 生成的代理类名中包含该标记） */
+    private static final String AOP_PROXY_CLASS_NAME_MARKER = "$$";
+
+    /** 统一重试执行器的执行方法名 */
+    private static final String EXECUTOR_METHOD_NAME = "doExecute";
+
+    /** 统一处理器克隆注册信息时的本地重试次数 */
+    private static final int UNIFIED_HANDLER_LOCAL_RETRY_TIMES = 1;
+
+    /** 统一处理器克隆注册信息时的本地重试间隔 */
+    private static final int UNIFIED_HANDLER_LOCAL_RETRY_INTERVAL = 1;
+
     /** Spring 应用上下文，用于扫描时获取容器中的 Bean */
     private ApplicationContext applicationContext;
 
@@ -77,9 +89,9 @@ public class ExecutorMethodScanner implements Scanner, ApplicationContextAware {
                             Object beanObj = applicationContext.getBean(retryBeanDefinitionName);
                             Class<?> clazz = beanObj.getClass();
 
-                            // 类名含 $$ 说明是 AOP 代理类，
+                            // 类名含 AOP 代理标记说明是 AOP 代理类，
                             // 取目标原始类以确保能扫描到方法上的注解
-                            if (clazz.getName().contains("$$")) {
+                            if (clazz.getName().contains(AOP_PROXY_CLASS_NAME_MARKER)) {
                                 clazz = AopUtils.getTargetClass(beanObj);
                             }
 
@@ -159,10 +171,10 @@ public class ExecutorMethodScanner implements Scanner, ApplicationContextAware {
     private RetryerInfo resolvingRetryable(ExecutorMethodRegister retryable, Object executor) {
 
         try {
-            Class executorNotProxy = AopUtils.getTargetClass(executor);
+            Class<?> executorNotProxy = AopUtils.getTargetClass(executor);
             String executorClassName = executorNotProxy.getName();
             Class<? extends IdempotentIdGenerate> idempotentIdGenerate = retryable.idempotentId();
-            Method executorMethodName = executorNotProxy.getMethod("doExecute", Object.class);
+            Method executorMethodName = executorNotProxy.getMethod(EXECUTOR_METHOD_NAME, Object.class);
             Class<? extends RetryCompleteCallback> retryCompleteCallback = retryable.retryCompleteCallback();
             boolean async = retryable.async();
             long timeout = retryable.timeout();
@@ -176,8 +188,8 @@ public class ExecutorMethodScanner implements Scanner, ApplicationContextAware {
                     executor,
                     executorMethodName,
                     RetryType.ONLY_REMOTE,
-                    1,
-                    1,
+                    UNIFIED_HANDLER_LOCAL_RETRY_TIMES,
+                    UNIFIED_HANDLER_LOCAL_RETRY_INTERVAL,
                     idempotentIdGenerate,
                     retryable.bizNo(),
                     (Class<? extends ExecutorMethod>) executor.getClass(),

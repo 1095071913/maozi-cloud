@@ -89,13 +89,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
             return new SecurityUserDetails(username, oauthUserInfo.getPassword(), grantedAuthorities, attributes);
 
-        }catch (Exception e){
+        }catch (Exception e) {
 
             // 业务错误（如用户不存在）转为用户认证失败，
             // 其余统一转为系统错误（均保留原始异常链）
-            if (e instanceof BusinessResultException businessResultException){
+            if (e instanceof BusinessResultException businessResultException) {
                 ErrorResult<?> errorResult = businessResultException.getErrorResult();
-                if (errorResult.isBusinessError()){
+                if (errorResult.isBusinessError()) {
                     errorResult = ResultUtil.error(SystemErrorCode.USER_AUTH_ERROR)
                         .setHttpCode(SystemErrorCode.USER_AUTH_ERROR_DEFAULT_CODE);
                 }

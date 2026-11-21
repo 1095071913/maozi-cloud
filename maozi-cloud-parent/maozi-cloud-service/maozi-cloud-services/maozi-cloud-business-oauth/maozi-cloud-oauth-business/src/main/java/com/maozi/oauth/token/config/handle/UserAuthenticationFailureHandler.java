@@ -51,14 +51,14 @@ public class UserAuthenticationFailureHandler implements
         Throwable cause = ObjectUtil.isNotNull(causeException) ? causeException.getCause() : null;
 
         ErrorResult<?> errorResult;
-        if (ObjectUtil.isNotNull(cause) && cause instanceof BusinessResultException businessResultException){
+        if (ObjectUtil.isNotNull(cause) && cause instanceof BusinessResultException businessResultException) {
             
             errorResult = businessResultException.getErrorResult().autoIdentifyHttpCode();
-            if (errorResult.isSystemError()){
+            if (errorResult.isSystemError()) {
                 log.error("用户认证授权内部服务错误", businessResultException);
             }
             
-        }else{
+        } else {
             errorResult = ResultUtil.error(SystemErrorCode.USER_AUTH_ERROR)
                 .autoIdentifyHttpCode(SystemErrorCode.USER_AUTH_ERROR_DEFAULT_CODE);
         }

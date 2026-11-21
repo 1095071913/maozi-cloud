@@ -90,7 +90,7 @@ public enum LockTypeEnum implements BaseEnum {
      *
      * @return 锁实现类实例
      */
-    public Lock getLock(){
+    public Lock getLock() {
         return SpringUtil.getBean(lockClass);
     }
 
@@ -270,7 +270,7 @@ public enum LockTypeEnum implements BaseEnum {
      * @param key 锁键名
      * @return 是否处于锁定状态
      */
-    public boolean isLocked(String key){
+    public boolean isLocked(String key) {
         // 从 Spring 容器中获取当前锁类型对应的锁实现类实例
         Lock lock = getLock();
 

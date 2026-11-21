@@ -47,12 +47,12 @@ public class RedissonConfig {
         Config config = new Config();
 
         String password = lockRedissonProperties.getPassword();
-        if (ObjectUtil.isNotNull(lockRedissonProperties.getNodeAddresses())){
+        if (ObjectUtil.isNotNull(lockRedissonProperties.getNodeAddresses())) {
             // 集群模式：配置多个 Redis 节点地址和密码
             config.useClusterServers()
                     .setPassword(password)
                     .addNodeAddress(lockRedissonProperties.getNodeAddresses());
-        }else {
+        } else {
             Integer database = lockRedissonProperties.getDatabase();
             // 单节点模式：配置单个 Redis 地址、数据库编号和密码
             // （逻辑库未配置时默认 0，避免自动拆箱 NPE）

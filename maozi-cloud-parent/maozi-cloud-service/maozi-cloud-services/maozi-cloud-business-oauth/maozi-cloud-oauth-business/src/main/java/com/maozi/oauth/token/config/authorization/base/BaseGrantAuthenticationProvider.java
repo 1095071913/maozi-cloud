@@ -287,7 +287,7 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.toList());
                 claims.put(OAuth2TokenUserClaimConstants.AUTHORITIES, authorities);
-                if (finalUserAuthenticationToken.getPrincipal() instanceof SecurityUserDetails securityUserDetails){
+                if (finalUserAuthenticationToken.getPrincipal() instanceof SecurityUserDetails securityUserDetails) {
                     claims.putAll(securityUserDetails.getAttributes());
                 }
                 metadata.put(OAuth2Authorization.Token.CLAIMS_METADATA_NAME, claims);
@@ -298,7 +298,7 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toList());
             claims.put(OAuth2TokenUserClaimConstants.AUTHORITIES, authorities);
-            if (userAuthenticationToken.getPrincipal() instanceof SecurityUserDetails securityUserDetails){
+            if (userAuthenticationToken.getPrincipal() instanceof SecurityUserDetails securityUserDetails) {
                 claims.putAll(securityUserDetails.getAttributes());
             }
             authorizationBuilder.token(accessToken, (metadata) ->

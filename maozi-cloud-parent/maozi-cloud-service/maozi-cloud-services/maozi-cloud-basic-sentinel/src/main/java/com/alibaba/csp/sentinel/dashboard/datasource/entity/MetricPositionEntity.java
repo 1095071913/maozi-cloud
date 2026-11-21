@@ -27,7 +27,7 @@ public class MetricPositionEntity extends BaseEntity {
     /** The IP address of the machine. */
     private String ip;
     /** The port Sentinel listens on in the application. */
-    private int port;
+    private Integer port;
 
     /** The hostname of the machine, a redundant field. */
     private String hostname;
@@ -46,12 +46,12 @@ public class MetricPositionEntity extends BaseEntity {
     }
 
     /** Gets the port Sentinel listens on in the application. */
-    public int getPort() {
+    public Integer getPort() {
         return port;
     }
 
     /** Sets the port Sentinel listens on in the application. */
-    public void setPort(int port) {
+    public void setPort(Integer port) {
         this.port = port;
     }
 

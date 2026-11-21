@@ -83,21 +83,21 @@ public class FilterSampler implements Sampler {
         try{
 
             // 启动阶段（main 线程）的 Span 直接丢弃，避免上报噪声
-            if (MAIN_THREAD_NAME.equals(Thread.currentThread().getName())){
+            if (MAIN_THREAD_NAME.equals(Thread.currentThread().getName())) {
                 return SamplingResult.create(SamplingDecision.DROP);
             }
 
             // 通过SpanName过滤
-            if (EXCLUDED_TARGETS.contains(name)){
+            if (EXCLUDED_TARGETS.contains(name)) {
                 return SamplingResult.create(SamplingDecision.DROP);
             }
 
             // 通过属性过滤
-            if (!attributes.isEmpty()){
-                for (FilterTypeEnum type : FilterTypeEnum.values()){
+            if (!attributes.isEmpty()) {
+                for (FilterTypeEnum type : FilterTypeEnum.values()) {
 
                     // 任一过滤器命中即丢弃该 Span
-                    if (type.getHandle().filter(attributes)){
+                    if (type.getHandle().filter(attributes)) {
                         return SamplingResult.create(SamplingDecision.DROP);
                     }
 
@@ -109,7 +109,7 @@ public class FilterSampler implements Sampler {
 
         // 边界兜底：javaagent 采样热路径不允许异常逃逸到 OTel SDK 中断采样链路，
         // 捕获后完整记录异常（含堆栈）并放行采样，非以异常做流程控制
-        }catch (Exception e){
+        }catch (Exception e) {
 
             // 使用 Supplier 延迟构造日志消息，避免无谓的字符串拼接开销
             // （JUL 惰性重载签名：Level, Throwable, Supplier）

@@ -95,6 +95,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
     /** get 方法名前缀的长度 */
     private static final int GETTER_PREFIX_LENGTH = 3;
+    /** 列名集合的初始容量（实体类字段数量通常不超过该值，避免扩容） */
+    private static final int COLUMN_LIST_INIT_CAPACITY = 32;
     /** 资源名称后缀：参数 */
     private static final String RESOURCE_SUFFIX_PARAM = "参数";
     /** 资源名称后缀：列表 */
@@ -137,7 +139,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     @Override
     public Class<T> currentModelClass() {
-        if (Objects.isNull(domainClass)){
+        if (Objects.isNull(domainClass)) {
             domainClass = super.currentModelClass();
         }
         return domainClass;
@@ -150,7 +152,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param pageParam 分页查询参数
      * @return MyBatis-Plus 分页对象
      */
-    public <R> Page<R> convertPage(PageParam<?> pageParam){
+    public <R> Page<R> convertPage(PageParam<?> pageParam) {
         // 分页参数未传时兜底：默认第 1 页、每页 10 条
         Long currentParam = pageParam.getCurrent();
         long current = currentParam == null ? DEFAULT_PAGE_CURRENT : currentParam;
@@ -288,7 +290,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param clazz Class 对象
      * @return 数据库列名数组
      */
-    public String[] getColumns(Class<?> clazz){
+    public String[] getColumns(Class<?> clazz) {
         return getColumns(clazz, true);
     }
 
@@ -305,16 +307,16 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public String[] getColumns(Class<?> clazz, Boolean isJoin) {
 
-        List<String> columns = CollectionUtil.newArrayList(32);
+        List<String> columns = CollectionUtil.newArrayList(COLUMN_LIST_INIT_CAPACITY);
 
-        for ( ; Objects.nonNull(clazz) && !clazz.isAssignableFrom(Object.class); clazz = clazz.getSuperclass()){
+        for (; Objects.nonNull(clazz) && !clazz.isAssignableFrom(Object.class); clazz = clazz.getSuperclass()) {
 
             Field[] fields = clazz.getDeclaredFields();
             for (Field field : fields) {
 
                 String fieldName = field.getName();
 
-                if (SerializeUtil.SERIAL_VERSION_UID_FIELD_NAME.equals(fieldName)){
+                if (SerializeUtil.SERIAL_VERSION_UID_FIELD_NAME.equals(fieldName)) {
                     continue;
                 }
 
@@ -327,13 +329,13 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
                             ? String.join(SymbolConstant.DOT, QueryEnvironmentContext.defaultOrderKey, columnName)
                             : columnName);
 
-                }else {
+                } else {
 
                     String annotationField = annotation.field();
                     String annotationTableName = annotation.tableName();
 
                     if (annotation.ignore() && (StringUtils.isNotEmpty(annotationField)
-                            || StringUtils.isNotEmpty(annotationTableName))){
+                            || StringUtils.isNotEmpty(annotationTableName))) {
 
                     // ignore 且显式指定来源字段或表名：按注解配置生成列名，
                     // 未指定的部分回退字段名/默认别名
@@ -370,7 +372,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param columns 查询字段列表
      * @return 实体对象，不存在返回 null
      */
-    public T getById(Long id, String ... columns){
+    public T getById(Long id, String ... columns) {
 
         ObjectUtil.isNullThrowError(id, getResourceName());
 
@@ -392,7 +394,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param columns Lambda 函数引用指定的查询字段
      * @return 实体对象，不存在返回 null
      */
-    public T getById(Long id, SFunction<T, ?>... columns){
+    public T getById(Long id, SFunction<T, ?>... columns) {
 
         ObjectUtil.isNullThrowError(id, getResourceName());
 
@@ -413,7 +415,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param id 实体 ID
      * @throws BusinessResultException 当实体不存在或状态为禁用时抛出异常
      */
-    public void checkAvailable(Long id){
+    public void checkAvailable(Long id) {
 
         // 缓存资源名称，避免同一方法内重复调用
         String resourceName = getResourceName();
@@ -448,7 +450,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param ids 实体 ID 列表
      * @throws BusinessResultException 当 ID 集合为空或任一已存在实体状态为禁用时抛出异常
      */
-    public void checkAvailable(List<Long> ids){
+    public void checkAvailable(List<Long> ids) {
 
         CollectionUtil.collectionIsEmptyThrowError(ids, getResourceName() + RESOURCE_SUFFIX_LIST);
 
@@ -478,7 +480,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 可用的实体对象
      * @throws BusinessResultException 当实体不存在或状态为禁用时抛出异常
      */
-    public T getAvailableById(Long id, SFunction<T, ?>... columns){
+    public T getAvailableById(Long id, SFunction<T, ?>... columns) {
         return getAvailableById(id, getColumns(columns));
     }
 
@@ -493,7 +495,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 可用的实体对象
      * @throws BusinessResultException 当实体不存在或状态为禁用时抛出异常
      */
-    public T getAvailableById(Long id, String ... columns){
+    public T getAvailableById(Long id, String ... columns) {
 
         // 缓存资源名称，避免同一方法内重复调用
         String resourceName = getResourceName();
@@ -532,7 +534,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 可用的实体对象
      * @throws BusinessResultException 当实体不存在或状态为禁用时抛出异常
      */
-    public T getAvailableByParam(MPJLambdaWrapper<T> wrapper){
+    public T getAvailableByParam(MPJLambdaWrapper<T> wrapper) {
 
         wrapper.selectAsClass(domainClass, domainClass);
         wrapper.select(getColumn(AbstractBaseDomain::getStatus));
@@ -581,7 +583,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 下拉选项结果
      * @throws BusinessResultException 当实体不存在时抛出异常
      */
-    public DropDownResult dropDown(Long id){
+    public DropDownResult dropDown(Long id) {
 
         // 缓存资源名称，避免同一方法内重复调用
         String resourceName = getResourceName();
@@ -607,7 +609,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      *
      * @return 下拉选项列表
      */
-    public List<DropDownResult> dropDownList(){
+    public List<DropDownResult> dropDownList() {
 
         QueryWrapper<T> wrapper = Wrappers.query();
 
@@ -627,7 +629,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 实体对象
      * @throws BusinessResultException 当实体不存在时抛出异常
      */
-    public T getByIdThrowError(Long id, String ... columns){
+    public T getByIdThrowError(Long id, String ... columns) {
 
         // 缓存资源名称，避免同一方法内重复调用
         String resourceName = getResourceName();
@@ -658,7 +660,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 实体对象
      * @throws BusinessResultException 当实体不存在时抛出异常
      */
-    public T getByIdThrowError(Long id, MPJLambdaWrapper<T> wrapper){
+    public T getByIdThrowError(Long id, MPJLambdaWrapper<T> wrapper) {
 
         // 缓存资源名称，避免同一方法内重复调用
         String resourceName = getResourceName();
@@ -738,7 +740,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 转换后的对象
      * @throws BusinessResultException 当实体不存在时抛出异常
      */
-    public <V> V getByIdThrowError(Long id, Class<V> clazz){
+    public <V> V getByIdThrowError(Long id, Class<V> clazz) {
         return CglibUtil.copy(getByIdThrowError(id, getColumns(clazz, false)), clazz);
     }
 
@@ -753,7 +755,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 转换后的对象
      * @throws BusinessResultException 当实体不存在时抛出异常
      */
-    public <V, R> V getByIdThrowError(Long id, Class<V> clazz, SFunction<R, ?> ... columns){
+    public <V, R> V getByIdThrowError(Long id, Class<V> clazz, SFunction<R, ?> ... columns) {
         return CglibUtil.copy(getByIdThrowError(id, columns), clazz);
     }
 
@@ -986,7 +988,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param param 查询参数
      * @return 符合条件的记录数
      */
-    public <P> Long countByParam(P param){
+    public <P> Long countByParam(P param) {
 
         ObjectUtil.isNullThrowError(param, getResourceName());
 
@@ -1056,7 +1058,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
             ObjectUtil.checkConditionThrowError(super.count(wrapper) > 0, errorCode,
                 getResourceName() + errorCode.getMessage());
 
-        }else {
+        } else {
             // 未携带 ID 视为新增：校验参数合法性
             ValidatorUtil.validate(param);
         }
@@ -1163,7 +1165,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         for (Field field : fields) {
 
             String fieldName = field.getName();
-            if (SerializeUtil.SERIAL_VERSION_UID_FIELD_NAME.equals(fieldName)){
+            if (SerializeUtil.SERIAL_VERSION_UID_FIELD_NAME.equals(fieldName)) {
                 continue;
             }
 
@@ -1340,9 +1342,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param clazz VO 类型 Class 对象
      * @param wrapper MPJ Lambda 查询条件构造器
      */
-    public void setQueryMappingWrapper(Class<?> clazz, MPJLambdaWrapper<T> wrapper){
+    public void setQueryMappingWrapper(Class<?> clazz, MPJLambdaWrapper<T> wrapper) {
 
-        for ( ; Objects.nonNull(clazz) && !clazz.isAssignableFrom(Object.class); clazz = clazz.getSuperclass()){
+        for (; Objects.nonNull(clazz) && !clazz.isAssignableFrom(Object.class); clazz = clazz.getSuperclass()) {
 
             Field[] fields = clazz.getDeclaredFields();
             for (Field field : fields) {
@@ -1388,7 +1390,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         if (List.class.equals(type)) {
             wrapper.selectCollection(relationClazz,
                     (response) -> ReflectUtil.invokeGet(response, fieldName));
-        }else{
+        } else {
             wrapper.selectAssociation(relationClazz,
                     (response) -> ReflectUtil.invokeGet(response, fieldName));
         }

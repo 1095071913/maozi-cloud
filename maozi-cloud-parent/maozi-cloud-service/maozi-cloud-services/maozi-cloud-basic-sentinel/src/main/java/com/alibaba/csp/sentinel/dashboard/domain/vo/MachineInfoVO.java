@@ -38,16 +38,16 @@ public class MachineInfoVO {
     private String ip;
 
     /** The command port of the machine. */
-    private int port;
+    private Integer port;
 
     /** The version of the heartbeat. */
-    private long heartbeatVersion;
+    private Long heartbeatVersion;
 
     /** The timestamp of the last heartbeat. */
-    private long lastHeartbeat;
+    private Long lastHeartbeat;
 
     /** Whether the machine is healthy. */
-    private boolean healthy;
+    private Boolean healthy;
 
     /** The version of the Sentinel client of the machine. */
     private String version;
@@ -106,32 +106,32 @@ public class MachineInfoVO {
     }
 
     /** Get the command port. */
-    public int getPort() {
+    public Integer getPort() {
         return port;
     }
 
     /** Set the command port. */
-    public void setPort(int port) {
+    public void setPort(Integer port) {
         this.port = port;
     }
 
     /** Get the timestamp of the last heartbeat. */
-    public long getLastHeartbeat() {
+    public Long getLastHeartbeat() {
         return lastHeartbeat;
     }
-    
+
     /** Set the timestamp of the last heartbeat. */
-    public void setLastHeartbeat(long lastHeartbeat) {
+    public void setLastHeartbeat(Long lastHeartbeat) {
         this.lastHeartbeat = lastHeartbeat;
     }
-    
+
     /** Set the version of the heartbeat. */
-    public void setHeartbeatVersion(long heartbeatVersion) {
+    public void setHeartbeatVersion(Long heartbeatVersion) {
         this.heartbeatVersion = heartbeatVersion;
     }
-    
+
     /** Get the version of the heartbeat. */
-    public long getHeartbeatVersion() {
+    public Long getHeartbeatVersion() {
         return heartbeatVersion;
     }
 
@@ -147,12 +147,12 @@ public class MachineInfoVO {
     }
 
     /** Whether the machine is healthy. */
-    public boolean isHealthy() {
+    public Boolean getHealthy() {
         return healthy;
     }
 
     /** Set whether the machine is healthy. */
-    public void setHealthy(boolean healthy) {
+    public void setHealthy(Boolean healthy) {
         this.healthy = healthy;
     }
 

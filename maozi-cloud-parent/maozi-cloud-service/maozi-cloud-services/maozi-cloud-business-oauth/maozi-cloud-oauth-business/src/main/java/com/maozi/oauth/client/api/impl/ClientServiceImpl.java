@@ -110,11 +110,11 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
             // 新增：自动生成客户端标识（clientId）
             param.setClientId(String.valueOf(IdWorker.getId()));
 
-            if (Objects.isNull(param.getAccessTokenValiditySeconds())){
+            if (Objects.isNull(param.getAccessTokenValiditySeconds())) {
                 param.setAccessTokenValiditySeconds(DEFAULT_ACCESS_TOKEN_VALIDITY_SECONDS);
             }
 
-            if (Objects.isNull(param.getRefreshTokenValiditySeconds())){
+            if (Objects.isNull(param.getRefreshTokenValiditySeconds())) {
                 param.setRefreshTokenValiditySeconds(DEFAULT_REFRESH_TOKEN_VALIDITY_SECONDS);
             }
 
@@ -122,7 +122,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
             ClientSettings clientSettings = ClientSettings.builder().requireAuthorizationConsent(Boolean.FALSE).build();
             param.setClientSettings(clientSettings.getSettings());
 
-        }else{
+        } else {
             // 更新：清空clientId，防止客户端标识被修改
             param.setClientId(null);
         }
@@ -177,7 +177,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
                 ClientDO::getTokenSettings, ClientDO::getRemark, ClientDO::getStatus);
 
         // 防御性判空（getAvailableById在数据不存在时已抛出异常，正常不会进入该分支）
-        if (Objects.isNull(domain)){
+        if (Objects.isNull(domain)) {
             return null;
         }
 
@@ -202,7 +202,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
      * @param pageParam 分页查询参数，包含查询条件和分页信息
      * @return 分页结果，包含客户端列表数据
      */
-    public PageResult<ClientListResult> adminList(PageParam<ClientListParam> pageParam){
+    public PageResult<ClientListResult> adminList(PageParam<ClientListParam> pageParam) {
 
         Class<ClientListResult> responseClass = ClientListResult.class;
         MPJLambdaWrapper<ClientDO> wrapper = super.buildQueryWrapper(pageParam.getData(), responseClass);

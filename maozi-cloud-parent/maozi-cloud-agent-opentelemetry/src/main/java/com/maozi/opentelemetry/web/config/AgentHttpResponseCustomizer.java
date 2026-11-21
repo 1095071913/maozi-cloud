@@ -54,7 +54,7 @@ public class AgentHttpResponseCustomizer implements HttpServerResponseCustomizer
         // 网关未找到目标服务时的转发响应 = io.netty.handler.codec.http.DefaultFullHttpResponse
         // 网关找到目标服务时的转发响应 = io.netty.handler.codec.http.DefaultHttpResponse
         // 服务层的响应对象 = io.undertow.server.HttpServerExchange（不注入）
-        if (ADD_TRACEID_CLASS.contains(response.getClass().getName())){
+        if (ADD_TRACEID_CLASS.contains(response.getClass().getName())) {
             responseMutator.appendHeader(response, TRACE_ID_HEADER_KEY, spanContext.getTraceId());
         }
 

@@ -48,12 +48,12 @@ public class CodeConfig {
      * </p>
      */
     @PostConstruct
-    private void initErrorCode(){
+    private void initErrorCode() {
 
         // 从 Spring 容器中获取所有 BaseErrorCode 类型的 Bean
         Map<String, BaseErrorCode> codeBeans = SpringUtil.getBeansOfType(BaseErrorCode.class);
 
-        for (BaseErrorCode errorCodeBean : codeBeans.values()){
+        for (BaseErrorCode errorCodeBean : codeBeans.values()) {
             registerErrorCode(errorCodeBean);
         }
 
@@ -79,7 +79,7 @@ public class CodeConfig {
                 field.setAccessible(true); // 设置可访问私有字段
 
                 // 仅提取 ErrorCode 类型的字段值
-                if (field.get(errorCodeBean) instanceof ErrorCode errorCode){
+                if (field.get(errorCodeBean) instanceof ErrorCode errorCode) {
                     // 以错误码值为键注册到全局映射表
                     ERROR_CODES.put(errorCode.getCode(), errorCode);
                 }

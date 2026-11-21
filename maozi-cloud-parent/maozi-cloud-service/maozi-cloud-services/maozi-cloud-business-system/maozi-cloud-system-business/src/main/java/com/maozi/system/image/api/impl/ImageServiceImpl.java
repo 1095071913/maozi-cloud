@@ -42,6 +42,9 @@ public class ImageServiceImpl implements ImageService {
     /** 存储类型未配置时默认使用的存储类型编码 */
     private static final String DEFAULT_IMAGE_STORAGE_TYPE_CODE = ImageStorageTypeEnum.ALIYUN_OSS.getCode();
 
+    /** 未知存储类型异常提示语前缀 */
+    private static final String UNKNOWN_STORAGE_TYPE_MESSAGE_PREFIX = "未知的图片存储类型：";
+
     /** 存储处理器索引，键为存储类型，值为对应处理器 */
     private final Map<ImageStorageTypeEnum, ImageStorageHandler> handlerMap = new EnumMap<>(ImageStorageTypeEnum.class);
 
@@ -98,7 +101,7 @@ public class ImageServiceImpl implements ImageService {
 
         ImageStorageHandler handler = handlerMap.get(storeType);
         if (Objects.isNull(handler)) {
-            throw new BusinessResultException("未知的图片存储类型：" + storeTypeCode);
+            throw new BusinessResultException(UNKNOWN_STORAGE_TYPE_MESSAGE_PREFIX + storeTypeCode);
         }
 
         List<MultipartFile> files = param.getFiles();

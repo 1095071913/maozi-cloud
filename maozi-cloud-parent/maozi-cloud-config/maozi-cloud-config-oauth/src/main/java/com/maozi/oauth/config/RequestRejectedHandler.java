@@ -30,7 +30,7 @@ public class RequestRejectedHandler implements org.springframework.security.web.
     * @param ex 请求拒绝异常
     */
    @Override
-   public void handle(HttpServletRequest request, HttpServletResponse response, RequestRejectedException ex){
+   public void handle(HttpServletRequest request, HttpServletResponse response, RequestRejectedException ex) {
        // 获取恶意请求错误码
        ErrorCode errorCode = SystemErrorCode.MALICE_REQUEST_ERROR;
        // 构建错误响应并自动根据错误码设置HTTP状态码，写入响应体

@@ -61,7 +61,7 @@ public class EnumConfig {
      *
      * @param packageName 需要扫描的包路径
      */
-    private void initEnum(String packageName){
+    private void initEnum(String packageName) {
 
         // 扫描指定包下的所有类
         ClassUtil.scanPackage(packageName)

@@ -37,7 +37,7 @@ public enum FilterTypeEnum {
      * @param desc 来源类型的英文描述
      * @param handle 该类型绑定的过滤器实现
      */
-    FilterTypeEnum(Integer value, String desc, BaseFilterHandle handle){
+    FilterTypeEnum(Integer value, String desc, BaseFilterHandle handle) {
 
         this.value = value;
 

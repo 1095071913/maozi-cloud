@@ -215,7 +215,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
         }
 
         // 记录请求参数，读取失败时追加为被抑制异常，不覆盖原始异常
-        if (ObjectUtil.isNotNull(request)){
+        if (ObjectUtil.isNotNull(request)) {
             try {
                 appendRequestParamLog(request, logs);
             } catch (Exception exc) {

@@ -53,6 +53,9 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
     /** 资源名称，用于异常提示信息 */
     public static final String RESOURCE_NAME = "角色权限关系";
 
+    /** 删除校验失败提示语：权限已被角色绑定 */
+    private static final String BIND_FORBIDDEN_BY_ROLE_MESSAGE = "【权限】已被角色绑定";
+
     /** 权限服务，用于校验权限是否存在 */
     @Resource(name = SystemServiceConstant.PERMISSION_SERVICE)
     protected PermissionService permissionService;
@@ -74,7 +77,7 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
         LambdaQueryWrapper<RolePermissionDO> wrapper =
                 Wrappers.lambdaQuery(RolePermissionDO.builder().permissionId(permissionId).build());
         ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1,
-                SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE, "【权限】已被角色绑定");
+                SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE, BIND_FORBIDDEN_BY_ROLE_MESSAGE);
     }
 
     /**

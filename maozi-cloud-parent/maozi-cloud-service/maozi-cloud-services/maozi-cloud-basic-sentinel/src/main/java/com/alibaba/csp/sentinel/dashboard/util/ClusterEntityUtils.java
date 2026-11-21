@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -61,9 +62,9 @@ public final class ClusterEntityUtils {
         for (ClusterUniversalStatePairVO stateVO : list) {
             // Cache the state object to avoid repeated calls within the same iteration.
             ClusterUniversalStateVO state = stateVO.getState();
-            int mode = state.getStateInfo().getMode();
+            Integer mode = state.getStateInfo().getMode();
 
-            if (mode == ClusterStateManager.CLUSTER_SERVER) {
+            if (Objects.equals(mode, ClusterStateManager.CLUSTER_SERVER)) {
                 String ip = stateVO.getIp();
                 String serverId = ip + '@' + stateVO.getCommandPort();
                 ClusterServerStateVO serverStateVO = state.getServer();
@@ -87,17 +88,24 @@ public final class ClusterEntityUtils {
         for (ClusterUniversalStatePairVO stateVO : list) {
             // Cache the state object to avoid repeated calls within the same iteration.
             ClusterUniversalStateVO state = stateVO.getState();
-            int mode = state.getStateInfo().getMode();
+            Integer mode = state.getStateInfo().getMode();
 
-            if (mode == ClusterStateManager.CLUSTER_CLIENT) {
+            if (Objects.equals(mode, ClusterStateManager.CLUSTER_CLIENT)) {
                 ClusterClientStateVO clientState = state.getClient();
                 if (clientState == null) {
                     continue;
                 }
                 // Cache the client config to avoid repeated calls within the same iteration.
                 ClusterClientInfoVO clientConfig = clientState.getClientConfig();
+                if (clientConfig == null) {
+                    continue;
+                }
                 String serverIp = clientConfig.getServerHost();
-                int serverPort = clientConfig.getServerPort();
+                Integer serverPort = clientConfig.getServerPort();
+                // Skip entries whose foreign token server address is absent or invalid.
+                if (StringUtil.isBlank(serverIp) || serverPort == null || serverPort <= 0) {
+                    continue;
+                }
                 if (tokenServerSet.contains(serverIp + ":" + serverPort)) {
                     continue;
                 }
@@ -127,9 +135,9 @@ public final class ClusterEntityUtils {
         for (ClusterUniversalStatePairVO stateVO : list) {
             // Cache the state object to avoid repeated calls within the same iteration.
             ClusterUniversalStateVO state = stateVO.getState();
-            int mode = state.getStateInfo().getMode();
+            Integer mode = state.getStateInfo().getMode();
 
-            if (mode == ClusterStateManager.CLUSTER_CLIENT) {
+            if (Objects.equals(mode, ClusterStateManager.CLUSTER_CLIENT)) {
                 String ip = stateVO.getIp();
                 // Cache the command port to avoid repeated calls within the same iteration.
                 Integer commandPort = stateVO.getCommandPort();
@@ -160,11 +168,18 @@ public final class ClusterEntityUtils {
         for (ClusterUniversalStatePairVO stateVO : list) {
             // Cache the state object to avoid repeated calls within the same iteration.
             ClusterUniversalStateVO state = stateVO.getState();
-            int mode = state.getStateInfo().getMode();
+            Integer mode = state.getStateInfo().getMode();
             String ip = stateVO.getIp();
-            if (mode == ClusterStateManager.CLUSTER_SERVER) {
+            if (Objects.equals(mode, ClusterStateManager.CLUSTER_SERVER)) {
+                ClusterServerStateVO serverStateVO = state.getServer();
+                if (serverStateVO == null) {
+                    continue;
+                }
+                Integer port = serverStateVO.getPort();
+                if (port == null || port <= 0) {
+                    continue;
+                }
                 String serverAddress = getIp(ip);
-                int port = state.getServer().getPort();
                 String targetAddress = serverAddress + ":" + port;
                 map.computeIfAbsent(targetAddress, v -> {
                     ClusterGroupEntity group = new ClusterGroupEntity();
@@ -179,11 +194,18 @@ public final class ClusterEntityUtils {
         for (ClusterUniversalStatePairVO stateVO : list) {
             // Cache the state object to avoid repeated calls within the same iteration.
             ClusterUniversalStateVO state = stateVO.getState();
-            int mode = state.getStateInfo().getMode();
+            Integer mode = state.getStateInfo().getMode();
             String ip = stateVO.getIp();
-            if (mode == ClusterStateManager.CLUSTER_CLIENT) {
+            if (Objects.equals(mode, ClusterStateManager.CLUSTER_CLIENT)) {
+                ClusterClientStateVO targetClientState = state.getClient();
+                if (targetClientState == null) {
+                    continue;
+                }
                 // Cache the client config to avoid repeated calls within the same iteration.
-                ClusterClientInfoVO targetClientConfig = state.getClient().getClientConfig();
+                ClusterClientInfoVO targetClientConfig = targetClientState.getClientConfig();
+                if (targetClientConfig == null) {
+                    continue;
+                }
                 String targetServer = targetClientConfig.getServerHost();
                 Integer targetPort = targetClientConfig.getServerPort();
                 if (StringUtil.isBlank(targetServer) || targetPort == null || targetPort <= 0) {

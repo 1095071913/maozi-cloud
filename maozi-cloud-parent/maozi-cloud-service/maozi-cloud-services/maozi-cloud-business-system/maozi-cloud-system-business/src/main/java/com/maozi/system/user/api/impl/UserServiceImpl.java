@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2012-2018 the original author or authors.
  *
@@ -80,6 +79,9 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
 
     /** 资源名称后缀：列表，用于异常提示信息 */
     private static final String RESOURCE_SUFFIX_LIST = "列表";
+
+    /** 密码修改校验失败提示语：旧密码不正确 */
+    private static final String OLD_PASSWORD_MISMATCH_MESSAGE = "旧密码不正确";
 
     /** 密码编码器（DelegatingPasswordEncoder，默认 {bcrypt} 算法），用于密码加密与比对校验 */
     protected static final PasswordEncoder PASSWORD_ENCODER =
@@ -306,7 +308,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
 
             // 旧密码与库中密文不匹配时抛出业务异常
             if (!UserServiceImpl.PASSWORD_ENCODER.matches(paramPassword, domain.getPassword())) {
-                throw new BusinessResultException("旧密码不正确");
+                throw new BusinessResultException(OLD_PASSWORD_MISMATCH_MESSAGE);
             }
 
             paramNewPassword = UserServiceImpl.PASSWORD_ENCODER.encode(paramNewPassword);

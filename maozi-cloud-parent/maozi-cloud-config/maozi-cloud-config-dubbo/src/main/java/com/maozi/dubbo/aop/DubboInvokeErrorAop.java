@@ -86,14 +86,14 @@ public class DubboInvokeErrorAop {
 
             // 包路径段数不足（切点调整或类移动后无法按约定解析）时
             // 直接抛出原始异常，避免数组越界
-            if (remoteInvokeClassSplit.length <= RPC_SEGMENT_INDEX){
+            if (remoteInvokeClassSplit.length <= RPC_SEGMENT_INDEX) {
                 throw e;
             }
 
             // 判断是否为接口层调用：按层级段下标取值，对应包路径中 api 下的子包名。
             // 当前切点限定的子包名恒为 "rpc"，下方条件恒不成立；
             // 若未来切点扩展到 api.impl 包，此处可让实现层内部调用的异常继续向上抛出
-            if (IMPL.equals(remoteInvokeClassSplit[RPC_SEGMENT_INDEX])){
+            if (IMPL.equals(remoteInvokeClassSplit[RPC_SEGMENT_INDEX])) {
                 // impl 层的调用直接抛出原始异常（当前切点下不可达，见类注释说明）
                 throw e;
             }

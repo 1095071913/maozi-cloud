@@ -107,7 +107,7 @@ public class SwaggerConfig {
 
         // 合并项目自定义白名单（可能未配置）
         List<String> apiWhitelist = apiWhitelistProperties.getConfigWhitelist();
-        if (CollectionUtil.isNotEmpty(apiWhitelist)){
+        if (CollectionUtil.isNotEmpty(apiWhitelist)) {
             whitelist.addAll(apiWhitelist);
         }
 

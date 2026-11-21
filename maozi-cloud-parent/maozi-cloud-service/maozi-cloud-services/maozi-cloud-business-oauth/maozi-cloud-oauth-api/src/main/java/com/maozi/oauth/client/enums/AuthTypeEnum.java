@@ -83,13 +83,13 @@ public enum AuthTypeEnum implements BaseEnum {
      */
     public static AuthTypeEnum getByAuth(String auth) {
 
-        if (ObjectUtil.isNull(auth)){
+        if (ObjectUtil.isNull(auth)) {
             return null;
         }
 
         AuthTypeEnum[] values = values();
         for (AuthTypeEnum authType : values) {
-            if (Objects.equals(authType.auth, auth)){
+            if (Objects.equals(authType.auth, auth)) {
                 return authType;
             }
         }

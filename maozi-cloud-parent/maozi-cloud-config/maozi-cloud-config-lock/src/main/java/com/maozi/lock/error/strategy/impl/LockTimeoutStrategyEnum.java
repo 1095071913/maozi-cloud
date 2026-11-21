@@ -52,7 +52,7 @@ public enum LockTimeoutStrategyEnum implements LockTimeoutHandler {
          */
         @Override
         @SneakyThrows
-        public void handle(String key, Long waitTime, Long leaseTime, Lock lock){
+        public void handle(String key, Long waitTime, Long leaseTime, Lock lock) {
 
             // 初始重试间隔 100ms
             Long interval = DEFAULT_INTERVAL;

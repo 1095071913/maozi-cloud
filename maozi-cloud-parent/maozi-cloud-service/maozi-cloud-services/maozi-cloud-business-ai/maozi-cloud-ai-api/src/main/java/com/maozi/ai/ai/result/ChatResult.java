@@ -47,7 +47,7 @@ public class ChatResult implements Serializable {
      * @param type    AI对话流状态类型
      * @param message 消息内容
      */
-    public ChatResult(ChatTypeEnum type, String message){
+    public ChatResult(ChatTypeEnum type, String message) {
         this.type = type;
         this.message = message;
     }

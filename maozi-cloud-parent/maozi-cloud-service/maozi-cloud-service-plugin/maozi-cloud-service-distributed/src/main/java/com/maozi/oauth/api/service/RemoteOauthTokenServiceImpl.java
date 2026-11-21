@@ -57,35 +57,35 @@ public class RemoteOauthTokenServiceImpl implements OauthTokenService {
     @Override
     public Map<String, Object> introspect(String token) {
 
-        if (StringUtils.isNotEmpty(mode) && !MODE_RPC.equalsIgnoreCase(mode)){
+        if (StringUtils.isNotEmpty(mode) && !MODE_RPC.equalsIgnoreCase(mode)) {
 
             // REST 返回的时间与用户 ID 为字符串，还原为内省器所需的 Instant/Long 类型
             Map<String, Object> introspectResultData = restOauthTokenService.introspectResult(token)
                     .getResultDataThrowError();
 
             Object iatObj = introspectResultData.get(OAuth2TokenIntrospectionClaimNames.IAT);
-            if (ObjectUtil.isNotNull(iatObj)){
+            if (ObjectUtil.isNotNull(iatObj)) {
                 introspectResultData.put(OAuth2TokenIntrospectionClaimNames.IAT, Instant.parse(iatObj.toString()));
             }
 
             Object expObj = introspectResultData.get(OAuth2TokenIntrospectionClaimNames.EXP);
-            if (ObjectUtil.isNotNull(expObj)){
+            if (ObjectUtil.isNotNull(expObj)) {
                 introspectResultData.put(OAuth2TokenIntrospectionClaimNames.EXP, Instant.parse(expObj.toString()));
             }
 
             Object nbfObj = introspectResultData.get(OAuth2TokenIntrospectionClaimNames.NBF);
-            if (ObjectUtil.isNotNull(nbfObj)){
+            if (ObjectUtil.isNotNull(nbfObj)) {
                 introspectResultData.put(OAuth2TokenIntrospectionClaimNames.NBF, Instant.parse(nbfObj.toString()));
             }
 
             Object userIdObj = introspectResultData.get(OAuth2TokenUserClaimConstants.USER_ID);
-            if (ObjectUtil.isNotNull(userIdObj)){
+            if (ObjectUtil.isNotNull(userIdObj)) {
                 introspectResultData.put(OAuth2TokenUserClaimConstants.USER_ID, Long.parseLong(userIdObj.toString()));
             }
 
             return introspectResultData;
 
-        }else{
+        } else {
             return rpcOauthTokenService.introspectResult(token).getResultDataThrowError();
         }
 

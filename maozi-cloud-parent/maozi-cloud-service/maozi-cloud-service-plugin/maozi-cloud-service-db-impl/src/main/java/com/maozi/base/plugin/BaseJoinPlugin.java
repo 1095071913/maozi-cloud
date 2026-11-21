@@ -52,7 +52,7 @@ public abstract class BaseJoinPlugin {
 
         // 配置了表别名时拼接为 "表名 as 别名"
         String tableAlias = joinPlugin.tableAlias();
-        if (StringUtils.isNotEmpty(tableAlias)){
+        if (StringUtils.isNotEmpty(tableAlias)) {
             tableName += SQL_AS + tableAlias;
         }
 

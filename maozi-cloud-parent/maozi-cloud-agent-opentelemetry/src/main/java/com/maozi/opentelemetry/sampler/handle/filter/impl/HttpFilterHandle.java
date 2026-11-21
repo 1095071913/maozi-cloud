@@ -86,22 +86,22 @@ public class HttpFilterHandle extends BaseFilterHandle {
 
         // 优先取 url.path 属性
         String httpPath = attributes.get(InternalAttributeKeyImpl.create(ATTR_URL_PATH, AttributeType.STRING));
-        if (Objects.isNull(httpPath)){
+        if (Objects.isNull(httpPath)) {
             // url.path 缺失时回退到 url.full
             httpPath = attributes.get(InternalAttributeKeyImpl.create(ATTR_URL_FULL, AttributeType.STRING));
         }
 
         // 无路径信息，不过滤
-        if (Objects.isNull(httpPath)){
+        if (Objects.isNull(httpPath)) {
             return false;
         }
 
         // 完整 URL：剥离协议与域名，仅保留路径部分
-        if (httpPath.contains(PROTOCOL_HTTP) || httpPath.contains(PROTOCOL_HTTPS)){
+        if (httpPath.contains(PROTOCOL_HTTP) || httpPath.contains(PROTOCOL_HTTPS)) {
 
             // split 会剔除尾部空串，属性值恰为 "http://" 时数组长度不足，先做索引越界检查
             String[] urlSegments = PROTOCOL_SEPARATOR_PATTERN.split(httpPath);
-            if (urlSegments.length < 2){
+            if (urlSegments.length < 2) {
                 return false;
             }
             httpPath = urlSegments[1];
@@ -109,7 +109,7 @@ public class HttpFilterHandle extends BaseFilterHandle {
             // 定位域名后的首个 "/"，截取路径部分
             int index = httpPath.indexOf(SymbolConstant.SLASH);
 
-            if (index != -1){
+            if (index != -1) {
 
                 httpPath = httpPath.substring(index);
 
@@ -134,12 +134,12 @@ public class HttpFilterHandle extends BaseFilterHandle {
      * @param path HTTP 请求路径
      * @return {@code true} 命中排除规则；{@code false} 未命中
      */
-    public boolean matchPath(String path){
+    public boolean matchPath(String path) {
 
-        for (Pattern excludedPattern : EXCLUDED_PATH_PATTERNS){
+        for (Pattern excludedPattern : EXCLUDED_PATH_PATTERNS) {
 
             // 使用预编译正则与请求路径整串匹配
-            if (excludedPattern.matcher(path).matches()){
+            if (excludedPattern.matcher(path).matches()) {
                 return true;
             }
 

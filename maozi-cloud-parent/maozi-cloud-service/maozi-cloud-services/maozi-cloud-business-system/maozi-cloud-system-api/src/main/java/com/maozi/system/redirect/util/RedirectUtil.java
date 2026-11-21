@@ -30,7 +30,7 @@ public class RedirectUtil {
      */
     public static void redirect(RedirectTypeEnum redirectType) {
         HttpServletResponse response = WebUtil.getResponse();
-        if (ObjectUtil.isNotNull(response)){
+        if (ObjectUtil.isNotNull(response)) {
             response.setHeader(REDIRECT_KEY, redirectType.getValue().toString());
         }
     }

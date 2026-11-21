@@ -62,7 +62,7 @@ public class MessageSendStream {
      * @param <D> 消息数据类型
      * @return 是否发送成功
      */
-    public <D> Boolean sendMessage(String bindingName, Message<D> message){
+    public <D> Boolean sendMessage(String bindingName, Message<D> message) {
 
         // 基于原消息构建 MessageBuilder，用于追加消息头
         MessageBuilder<D> messageBuilder = MessageBuilder.fromMessage(message);
@@ -89,7 +89,7 @@ public class MessageSendStream {
         // 当前为非默认版本且该版本已无存活实例时，灰度标识回退为默认版本，
         // 保证消息仍可被消费
         if (!VersionContext.APPLICATION_DEFAULT_VERSION.equals(version)
-                && CollectionUtil.isEmpty(applicationClients.get(version))){
+                && CollectionUtil.isEmpty(applicationClients.get(version))) {
             version = VersionContext.APPLICATION_DEFAULT_VERSION;
         }
 
@@ -113,7 +113,7 @@ public class MessageSendStream {
      * @param <D> 数据类型
      * @return 是否发送成功
      */
-    public <D> Boolean sendMessage(String bindingName, D data){
+    public <D> Boolean sendMessage(String bindingName, D data) {
         return sendMessage(bindingName, MessageBuilder.withPayload(data).build());
     }
 
@@ -126,7 +126,7 @@ public class MessageSendStream {
      * @param <D> 数据类型
      * @return 是否发送成功
      */
-    public <D> Boolean sendMessage(String bindingName, D data, String tags){
+    public <D> Boolean sendMessage(String bindingName, D data, String tags) {
 
         MessageBuilder<D> messageBuilder = MessageBuilder.withPayload(data);
 
@@ -146,7 +146,7 @@ public class MessageSendStream {
      * @param <D> 数据类型
      * @return 是否发送成功
      */
-    public <D> Boolean sendMessage(String bindingName, D data, DelayMessageLevelEnum level){
+    public <D> Boolean sendMessage(String bindingName, D data, DelayMessageLevelEnum level) {
 
         MessageBuilder<D> messageBuilder = MessageBuilder.withPayload(data);
 
@@ -167,7 +167,7 @@ public class MessageSendStream {
      * @param <D> 数据类型
      * @return 是否发送成功
      */
-    public <D> Boolean sendMessage(String bindingName, D data, String tags, DelayMessageLevelEnum level){
+    public <D> Boolean sendMessage(String bindingName, D data, String tags, DelayMessageLevelEnum level) {
 
         MessageBuilder<D> messageBuilder = MessageBuilder.withPayload(data);
 

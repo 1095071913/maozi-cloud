@@ -160,7 +160,7 @@ public class AuthorizationServerConfiguration {
      *
      * @param http HttpSecurity对象，用于注册认证处理器并获取共享的令牌生成器
      */
-    private void addCustomOAuth2GrantAuthenticationProvider(HttpSecurity http){
+    private void addCustomOAuth2GrantAuthenticationProvider(HttpSecurity http) {
 
         OAuth2TokenGenerator<?> tokenGenerator = http.getSharedObject(OAuth2TokenGenerator.class);
 

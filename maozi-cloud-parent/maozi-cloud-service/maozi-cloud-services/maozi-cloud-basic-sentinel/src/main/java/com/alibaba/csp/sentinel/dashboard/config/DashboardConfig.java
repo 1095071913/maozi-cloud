@@ -34,6 +34,14 @@ public class DashboardConfig {
 
     /** Default timeout in millisecond to regard a machine as unhealthy. */
     public static final int DEFAULT_MACHINE_HEALTHY_TIMEOUT_MS = 60_000;
+    /** Min period in millisecond to hide an app with no healthy machines in the sidebar. */
+    public static final int MIN_HIDE_APP_NO_MACHINE_MS = 60_000;
+    /** Min period in millisecond to remove an app with no healthy machines. */
+    public static final int MIN_REMOVE_APP_NO_MACHINE_MS = 120_000;
+    /** Min timeout in millisecond to regard a machine as unhealthy. */
+    public static final int MIN_UNHEALTHY_MACHINE_MS = 30_000;
+    /** Disabled marker for period configs (0 means the feature is disabled). */
+    public static final int DISABLED_PERIOD_MS = 0;
 
     /** Config key of the login username. */
     public static final String CONFIG_AUTH_USERNAME = "sentinel.dashboard.auth.username";
@@ -113,17 +121,17 @@ public class DashboardConfig {
 
     /** Gets the hide-app-no-machine period in millisecond (default 0, min 60000). */
     public static int getHideAppNoMachineMillis() {
-        return getConfigInt(CONFIG_HIDE_APP_NO_MACHINE_MILLIS, 0, 60000);
+        return getConfigInt(CONFIG_HIDE_APP_NO_MACHINE_MILLIS, DISABLED_PERIOD_MS, MIN_HIDE_APP_NO_MACHINE_MS);
     }
-    
+
     /** Gets the remove-app-no-machine period in millisecond (default 0, min 120000). */
     public static int getRemoveAppNoMachineMillis() {
-        return getConfigInt(CONFIG_REMOVE_APP_NO_MACHINE_MILLIS, 0, 120000);
+        return getConfigInt(CONFIG_REMOVE_APP_NO_MACHINE_MILLIS, DISABLED_PERIOD_MS, MIN_REMOVE_APP_NO_MACHINE_MS);
     }
 
     /** Gets the unhealthy machine timeout in millisecond (default 60000, min 30000). */
     public static int getUnhealthyMachineMillis() {
-        return getConfigInt(CONFIG_UNHEALTHY_MACHINE_MILLIS, DEFAULT_MACHINE_HEALTHY_TIMEOUT_MS, 30000);
+        return getConfigInt(CONFIG_UNHEALTHY_MACHINE_MILLIS, DEFAULT_MACHINE_HEALTHY_TIMEOUT_MS, MIN_UNHEALTHY_MACHINE_MS);
     }
     
     /** Clears the cache of resolved config values. */

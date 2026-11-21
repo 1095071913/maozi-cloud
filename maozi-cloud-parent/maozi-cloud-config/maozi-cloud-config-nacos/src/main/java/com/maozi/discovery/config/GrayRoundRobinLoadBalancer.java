@@ -79,13 +79,13 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
         Object requestContext = request.getContext();
 
         // 上下文为 DefaultRequestContext 时，从其封装的客户端请求中提取请求头
-        if (requestContext instanceof DefaultRequestContext defaultRequestContext){
+        if (requestContext instanceof DefaultRequestContext defaultRequestContext) {
 
             RequestData clientRequest = (RequestData)defaultRequestContext.getClientRequest();
 
             headers = clientRequest.getHeaders();
 
-        }else{
+        } else {
             // 否则上下文本身即请求头对象，直接强转使用
             headers = (HttpHeaders) requestContext;
         }
@@ -114,7 +114,7 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
     private Response<ServiceInstance> getInstanceResponse(List<ServiceInstance> instances, HttpHeaders headers) {
 
         // 无可用服务实例时直接抛出服务不存在异常
-        if (CollectionUtil.isEmpty(instances)){
+        if (CollectionUtil.isEmpty(instances)) {
             throw new BusinessResultException(SystemErrorCode.SERVICE_NOT_EXIST_ERROR)
                 .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
         }
@@ -135,7 +135,7 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
             String versionMetadata = instance.getMetadata().get(VersionContext.NACOS_VERSION_KEY);
 
             // 元数据缺失 version 时跳过该实例，避免级联调用 NPE
-            if (StringUtils.isBlank(versionMetadata)){
+            if (StringUtils.isBlank(versionMetadata)) {
                 return;
             }
 
@@ -144,12 +144,12 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
             String clientApplicationVersion = clientApplicationVersionSplit[clientApplicationVersionSplit.length - 1];
 
             // 请求携带版本且与实例版本一致时，归入灰度实例分组
-            if (StringUtils.isNotBlank(version) && Objects.equals(version, clientApplicationVersion)){
+            if (StringUtils.isNotBlank(version) && Objects.equals(version, clientApplicationVersion)) {
                 grayApplicationClients.add(instance);
             }
 
             // 实例版本为主版本时，归入主版本实例分组
-            if (VersionContext.APPLICATION_DEFAULT_VERSION.equals(clientApplicationVersion)){
+            if (VersionContext.APPLICATION_DEFAULT_VERSION.equals(clientApplicationVersion)) {
                 mainApplicationClients.add(instance);
             }
 
@@ -162,7 +162,7 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
                 : mainApplicationClients;
 
         // 灰度分组与主版本分组均为空时，抛出服务不存在异常
-        if (CollectionUtil.isEmpty(applicationClients)){
+        if (CollectionUtil.isEmpty(applicationClients)) {
             throw new BusinessResultException(SystemErrorCode.SERVICE_NOT_EXIST_ERROR)
                 .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
         }

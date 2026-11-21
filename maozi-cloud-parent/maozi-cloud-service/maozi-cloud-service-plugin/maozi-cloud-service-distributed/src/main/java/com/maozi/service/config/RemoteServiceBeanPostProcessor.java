@@ -43,6 +43,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RemoteServiceBeanPostProcessor
         implements BeanDefinitionRegistryPostProcessor, SmartInitializingSingleton, ApplicationContextAware {
 
+    /** JDK 包名前缀，用于过滤 {@code java.*} 包下的标记接口（如 {@code Serializable}） */
+    private static final String JDK_PACKAGE_PREFIX = "java.";
+
     /** 已暴露过的实现类型，避免重复导出 */
     private final Set<Class<?>> exportedClasses = ConcurrentHashMap.newKeySet();
 
@@ -118,6 +121,7 @@ public class RemoteServiceBeanPostProcessor
      * @param bean      Spring 容器中的 bean 实例（已含 AOP 代理），作为服务实现引用
      * @param beanClass 去除 CGLIB 增强后的真实实现类
      */
+    // Dubbo ServiceConfig 未提供带泛型的构造方式，原始类型无法避免，此处抑制 unchecked/rawtypes 告警
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void exportService(Object bean, Class<?> beanClass) {
         Class<?> interfaceClass = resolveServiceInterface(beanClass);
@@ -142,7 +146,7 @@ public class RemoteServiceBeanPostProcessor
      */
     private Class<?> resolveServiceInterface(Class<?> beanClass) {
         for (Class<?> iface : beanClass.getInterfaces()) {
-            if (!iface.getName().startsWith("java.")) {
+            if (!iface.getName().startsWith(JDK_PACKAGE_PREFIX)) {
                 return iface;
             }
         }

@@ -81,6 +81,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
     private static final String RESOURCE_SUFFIX_LIST = "列表";
 
     /** 密码修改校验失败提示语：旧密码不正确 */
+    @SuppressWarnings("java:S2068") // 误报：该常量为业务提示语，并非硬编码密码
     private static final String OLD_PASSWORD_MISMATCH_MESSAGE = "旧密码不正确";
 
     /** 密码编码器（DelegatingPasswordEncoder，默认 {bcrypt} 算法），用于密码加密与比对校验 */

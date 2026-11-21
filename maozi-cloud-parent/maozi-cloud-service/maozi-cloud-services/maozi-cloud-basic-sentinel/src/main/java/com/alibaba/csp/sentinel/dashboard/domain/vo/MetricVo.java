@@ -65,7 +65,7 @@ public class MetricVo implements Comparable<MetricVo> {
 
     /** Convert the entities to a list of VOs; a null collection yields an empty list. */
     public static List<MetricVo> fromMetricEntities(Collection<MetricEntity> entities) {
-        List<MetricVo> list = new ArrayList<>();
+        List<MetricVo> list = new ArrayList<>(entities == null ? 0 : entities.size());
         if (entities != null) {
             for (MetricEntity entity : entities) {
                 list.add(fromMetricEntity(entity));
@@ -82,7 +82,7 @@ public class MetricVo implements Comparable<MetricVo> {
      * @return VOs of the matching entities
      */
     public static List<MetricVo> fromMetricEntities(Collection<MetricEntity> entities, String identity) {
-        List<MetricVo> list = new ArrayList<>();
+        List<MetricVo> list = new ArrayList<>(entities == null ? 0 : entities.size());
         if (entities != null) {
             for (MetricEntity entity : entities) {
                 if (entity.getResource().equals(identity)) {

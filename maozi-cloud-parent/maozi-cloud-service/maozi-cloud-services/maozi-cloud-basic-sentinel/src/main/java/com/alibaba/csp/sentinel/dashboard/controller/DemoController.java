@@ -71,8 +71,7 @@ public class DemoController {
     @ResponseBody
     public String loop(String name, int time) throws BlockException {
         for (int i = 0; i < 10; i++) {
-            Thread timer = new Thread(new RunTask(name, time, false));
-            timer.setName("false");
+            Thread timer = new Thread(new RunTask(name, time, false), "demo-loop-" + name + "-" + i);
             timer.start();
         }
         return "successfully create a loop thread";
@@ -83,8 +82,7 @@ public class DemoController {
     @ResponseBody
     public String slow(String name, int time) throws BlockException {
         for (int i = 0; i < 10; i++) {
-            Thread timer = new Thread(new RunTask(name, time, true));
-            timer.setName("false");
+            Thread timer = new Thread(new RunTask(name, time, true), "demo-slow-" + name + "-" + i);
             timer.start();
         }
         return "successfully create a loop thread";
@@ -132,6 +130,8 @@ public class DemoController {
                     Thread.currentThread().interrupt();
                     stop = true;
                 } catch (Exception e) {
+                    // Blocked or system error while entering the demo resource: keep the trace for observation
+                    logger.warn("Demo task entry error, resource: {}", name, e);
                 } finally {
                     if (e1 != null) {
                         e1.exit();

@@ -124,7 +124,7 @@ public class MetricController {
             topResource = resources.subList((pageIndex - 1) * pageSize,
                 Math.min(pageIndex * pageSize, resources.size()));
         }
-        final Map<String, Iterable<MetricVo>> map = new ConcurrentHashMap<>();
+        final Map<String, Iterable<MetricVo>> map = new ConcurrentHashMap<>(topResource.size());
         logger.debug("topResource={}", topResource);
         long time = System.currentTimeMillis();
         for (final String resource : topResource) {

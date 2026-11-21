@@ -81,7 +81,7 @@ public class ResourceVo {
         if (nodeVos == null) {
             return null;
         }
-        List<ResourceVo> list = new ArrayList<>();
+        List<ResourceVo> list = new ArrayList<>(nodeVos.size());
         for (NodeVo nodeVo : nodeVos) {
             ResourceVo vo = new ResourceVo();
             vo.parentTtId = nodeVo.getParentId();

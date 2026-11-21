@@ -58,7 +58,7 @@ public interface RestRoleService {
      */
     @Get(value = PATH + "/dropDownList", description = "下拉列表")
     @PreAuthorize("hasAuthority('system:role:save') or hasAuthority('system:role:update')")
-    AbstractBaseResult<List<? extends DropDownResult>> dropDownListResult();
+    AbstractBaseResult<List<DropDownResult>> dropDownListResult();
 
 
 

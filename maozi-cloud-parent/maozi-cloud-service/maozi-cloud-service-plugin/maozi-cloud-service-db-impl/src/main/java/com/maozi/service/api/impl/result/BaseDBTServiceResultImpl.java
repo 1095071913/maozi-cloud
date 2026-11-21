@@ -422,7 +422,7 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D> extends Base
      * @return 包含下拉选项列表的统一响应结果
      */
     @Override
-    public AbstractBaseResult<List<? extends DropDownResult>> dropDownListResult(Collection<Long> ids){
+    public AbstractBaseResult<List<DropDownResult>> dropDownListResult(Collection<Long> ids){
 
         QueryWrapper<AbstractBaseDomain> wrapper = Wrappers.query();
 
@@ -440,7 +440,7 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D> extends Base
      * @return 包含下拉选项列表的统一响应结果
      */
     @Override
-    public AbstractBaseResult<List<? extends DropDownResult>> dropDownListResult(){
+    public AbstractBaseResult<List<DropDownResult>> dropDownListResult(){
         return ResultUtil.success(service.dropDownList());
     }
 

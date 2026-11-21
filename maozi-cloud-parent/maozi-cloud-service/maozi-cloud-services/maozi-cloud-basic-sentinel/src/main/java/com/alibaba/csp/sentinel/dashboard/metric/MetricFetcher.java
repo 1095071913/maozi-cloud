@@ -95,6 +95,8 @@ public class MetricFetcher {
     private static final int NEAR_SKIP_WINDOW_SECONDS = 2;
     /** Max seconds a single fetch waits for the HTTP client. */
     private static final int MAX_WAIT_SECONDS = 5;
+    /** Task queue capacity of the fetch dispatch thread pool. */
+    private static final int FETCH_QUEUE_SIZE = 2048;
     /** Charset used to decode the response body when it declares none. */
     private static final Charset DEFAULT_CHARSET = Charset.forName(SentinelConfig.charset());
     /** Path of the metric command on the Sentinel client. */
@@ -134,7 +136,7 @@ public class MetricFetcher {
         this.appManagement = appManagement;
         int cores = Runtime.getRuntime().availableProcessors() * CPU_CORE_MULTIPLIER;
         long keepAliveTime = 0;
-        int queueSize = 2048;
+        int queueSize = FETCH_QUEUE_SIZE;
         RejectedExecutionHandler handler = new DiscardPolicy();
         fetchService = new ThreadPoolExecutor(cores, cores,
             keepAliveTime, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(queueSize),
@@ -231,7 +233,6 @@ public class MetricFetcher {
         final AtomicLong success = new AtomicLong();
         final AtomicLong fail = new AtomicLong();
 
-        long start = System.currentTimeMillis();
         // app_resource_timeSecond -> metric
         final Map<String, MetricEntity> metricMap = new ConcurrentHashMap<>(METRIC_MAP_INITIAL_CAPACITY);
         final CountDownLatch latch = new CountDownLatch(machines.size());
@@ -244,48 +245,7 @@ public class MetricFetcher {
                 logger.info("Unhealthy machine removed: {}:{} of {}", machine.getIp(), machine.getPort(), app);
                 continue;
             }
-            final String url = "http://" + machine.getIp() + ":" + machine.getPort() + "/" + METRIC_URL_PATH
-                + "?startTime=" + startTime + "&endTime=" + endTime + "&refetch=" + false;
-            final HttpGet httpGet = new HttpGet(url);
-            httpGet.setHeader(HTTP.CONN_DIRECTIVE, HTTP.CONN_CLOSE);
-            httpclient.execute(httpGet, new FutureCallback<HttpResponse>() {
-                /** Hands the successful response to handleResponse and counts down the latch. */
-                @Override
-                public void completed(final HttpResponse response) {
-                    try {
-                        handleResponse(response, machine, metricMap);
-                        success.incrementAndGet();
-                    } catch (Exception e) {
-                        logger.error("{} metric {} error:", msg, url, e);
-                    } finally {
-                        latch.countDown();
-                    }
-                }
-
-                /** Counts down the latch, aborts the request and logs the failure by exception type. */
-                @Override
-                public void failed(final Exception ex) {
-                    latch.countDown();
-                    fail.incrementAndGet();
-                    httpGet.abort();
-                    if (ex instanceof SocketTimeoutException) {
-                        logger.error("Failed to fetch metric from <{}>: socket timeout", url);
-                    } else if (ex instanceof ConnectException) {
-                        logger.error("Failed to fetch metric from <{}> (ConnectionException: {})",
-                            url, ex.getMessage());
-                    } else {
-                        logger.error("{} metric {} error", msg, url, ex);
-                    }
-                }
-
-                /** Counts down the latch, aborts the request and records it as a failure. */
-                @Override
-                public void cancelled() {
-                    latch.countDown();
-                    fail.incrementAndGet();
-                    httpGet.abort();
-                }
-            });
+            asyncFetchMachineMetric(machine, startTime, endTime, metricMap, latch, msg, success, fail);
         }
         try {
             latch.await(maxWaitSeconds, TimeUnit.SECONDS);
@@ -295,11 +255,58 @@ public class MetricFetcher {
         } catch (Exception e) {
             logger.info("{} metric, wait http client error:", msg, e);
         }
-        //long cost = System.currentTimeMillis() - start;
-        //logger.info("finished " + msg + " metric for " + app + ", time intervalMs [" + startTime + ", " + endTime
-        //    + "], total machines=" + machines.size() + ", dead=" + dead + ", fetch success="
-        //    + success + ", fetch fail=" + fail + ", time cost=" + cost + " ms");
         writeMetric(metricMap);
+    }
+
+    /**
+     * Sends an async metric fetch request to the given machine; the callback parses the
+     * response into the shared metric map and always counts down the latch.
+     */
+    private void asyncFetchMachineMetric(final MachineInfo machine, long startTime, long endTime,
+            final Map<String, MetricEntity> metricMap, final CountDownLatch latch, final String msg,
+            final AtomicLong success, final AtomicLong fail) {
+        final String url = "http://" + machine.getIp() + ":" + machine.getPort() + "/" + METRIC_URL_PATH
+            + "?startTime=" + startTime + "&endTime=" + endTime + "&refetch=" + false;
+        final HttpGet httpGet = new HttpGet(url);
+        httpGet.setHeader(HTTP.CONN_DIRECTIVE, HTTP.CONN_CLOSE);
+        httpclient.execute(httpGet, new FutureCallback<HttpResponse>() {
+            /** Hands the successful response to handleResponse and counts down the latch. */
+            @Override
+            public void completed(final HttpResponse response) {
+                try {
+                    handleResponse(response, machine, metricMap);
+                    success.incrementAndGet();
+                } catch (Exception e) {
+                    logger.error("{} metric {} error:", msg, url, e);
+                } finally {
+                    latch.countDown();
+                }
+            }
+
+            /** Counts down the latch, aborts the request and logs the failure by exception type. */
+            @Override
+            public void failed(final Exception ex) {
+                latch.countDown();
+                fail.incrementAndGet();
+                httpGet.abort();
+                if (ex instanceof SocketTimeoutException) {
+                    logger.error("Failed to fetch metric from <{}>: socket timeout", url);
+                } else if (ex instanceof ConnectException) {
+                    logger.error("Failed to fetch metric from <{}> (ConnectionException: {})",
+                        url, ex.getMessage());
+                } else {
+                    logger.error("{} metric {} error", msg, url, ex);
+                }
+            }
+
+            /** Counts down the latch, aborts the request and records it as a failure. */
+            @Override
+            public void cancelled() {
+                latch.countDown();
+                fail.incrementAndGet();
+                httpGet.abort();
+            }
+        });
     }
 
     /**
@@ -357,7 +364,8 @@ public class MetricFetcher {
                 charset = contentType.getCharset();
             }
         } catch (Exception ignore) {
-            // Ignore Content-Type parse failures and fall back to DEFAULT_CHARSET below.
+            // Content-Type parsing failed: fall back to DEFAULT_CHARSET below; debug trace for troubleshooting
+            logger.debug("Parse Content-Type charset failed, fallback to {}", DEFAULT_CHARSET, ignore);
         }
         String body = EntityUtils.toString(response.getEntity(), charset != null ? charset : DEFAULT_CHARSET);
         if (StringUtil.isEmpty(body) || body.startsWith(NO_METRICS)) {

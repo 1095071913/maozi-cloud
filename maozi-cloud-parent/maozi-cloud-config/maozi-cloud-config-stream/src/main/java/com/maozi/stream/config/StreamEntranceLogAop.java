@@ -91,89 +91,103 @@ public class StreamEntranceLogAop {
         // 执行目标方法取得原始消费者，随后返回包装了日志逻辑的新消费者
         Consumer<Object> resultData = (Consumer<Object>) proceedingJoinPoint.proceed();
 
-        return (message) -> {
+        return (message) -> consumeWithLog(message, resultData, proceedingJoinPoint);
 
-            // 消息头
-            MessageHeaders headers = message.getHeaders();
+    }
 
-            // 日志信息集合
-            Map<String, String> logs = new LinkedHashMap<>(16);
+    /**
+     * 执行消息消费并记录处理日志
+     * <p>
+     * 记录消息头信息、恢复链路上下文后执行消费逻辑，
+     * 按处理结果以对应级别输出日志，并清理线程上下文防止数据泄漏
+     * </p>
+     *
+     * @param message 消息对象
+     * @param resultData 目标消费者
+     * @param proceedingJoinPoint AOP 连接点
+     */
+    private void consumeWithLog(Message<Object> message, Consumer<Object> resultData,
+            ProceedingJoinPoint proceedingJoinPoint) {
 
-            // 记录消息类型、消息 ID、Topic 与消费方法
-            logs.put(LogTag.TYPE, LogCommonTypeEnum.MQ.getDesc());
+        // 消息头
+        MessageHeaders headers = message.getHeaders();
 
-            // 非 RocketMQ 绑定器传输时消息头不存在，判空后按需记录，避免消费前置逻辑 NPE
-            Object messageId = headers.get(HEADER_ROCKET_MQ_MESSAGE_ID);
-            if (messageId != null) {
-                logs.put(LOG_TAG_MESSAGE_ID, messageId.toString());
-            }
+        // 日志信息集合
+        Map<String, String> logs = new LinkedHashMap<>(16);
 
-            Object topic = headers.get(HEADER_ROCKET_MQ_TOPIC);
-            if (topic != null) {
-                logs.put(LOG_TAG_TOPIC, topic.toString());
-            }
+        // 记录消息类型、消息 ID、Topic 与消费方法
+        logs.put(LogTag.TYPE, LogCommonTypeEnum.MQ.getDesc());
 
-            Signature signature = proceedingJoinPoint.getSignature();
+        // 非 RocketMQ 绑定器传输时消息头不存在，判空后按需记录，避免消费前置逻辑 NPE
+        Object messageId = headers.get(HEADER_ROCKET_MQ_MESSAGE_ID);
+        if (messageId != null) {
+            logs.put(LOG_TAG_MESSAGE_ID, messageId.toString());
+        }
 
-            logs.put(LogTag.FUNCTION, signature.getDeclaringTypeName()
-                + SymbolConstant.COLON + signature.getName());
+        Object topic = headers.get(HEADER_ROCKET_MQ_TOPIC);
+        if (topic != null) {
+            logs.put(LOG_TAG_TOPIC, topic.toString());
+        }
 
-            // 从消息头中提取版本号设置到链路上下文
-            Object versionObj = headers.get(VersionContext.KEY);
-            if(ObjectUtil.isNotNull(versionObj)){
-                VersionContext.CONTEXT.set(versionObj.toString());
-            }
+        Signature signature = proceedingJoinPoint.getSignature();
 
-            // 从消息头中提取测试流量标记设置到链路上下文
-            Object testFlowObj = headers.get(TestFlowContext.KEY);
-            if(ObjectUtil.isNotNull(testFlowObj)){
-                TestFlowContext.CONTEXT.set(testFlowObj.toString());
-            }
+        logs.put(LogTag.FUNCTION, signature.getDeclaringTypeName()
+            + SymbolConstant.COLON + signature.getName());
 
-            // 从消息头中提取当前登录用户信息设置到链路上下文
-            Object currentUserInfoObj = headers.get(CurrentUserInfoContext.KEY);
-            if(ObjectUtil.isNotNull(currentUserInfoObj)){
-                CurrentUserInfoContext.CONTEXT.set(currentUserInfoObj.toString());
-            }
+        // 从消息头中提取版本号设置到链路上下文
+        Object versionObj = headers.get(VersionContext.KEY);
+        if(ObjectUtil.isNotNull(versionObj)){
+            VersionContext.CONTEXT.set(versionObj.toString());
+        }
 
-            Exception ex = null;
-            try {
-                
-                // 执行消息消费逻辑
-                resultData.accept(message);
+        // 从消息头中提取测试流量标记设置到链路上下文
+        Object testFlowObj = headers.get(TestFlowContext.KEY);
+        if(ObjectUtil.isNotNull(testFlowObj)){
+            TestFlowContext.CONTEXT.set(testFlowObj.toString());
+        }
 
-                // 非生产环境直接记录消息参数；生产环境为避免参数外泄，仅在异常时补充记录
-                if (EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD)) {
-                    logs.put(LogTag.PARAM, message.getPayload().toString());
-                }
-                
-            } catch (Exception e) {
-                
-                ex = e;
+        // 从消息头中提取当前登录用户信息设置到链路上下文
+        Object currentUserInfoObj = headers.get(CurrentUserInfoContext.KEY);
+        if(ObjectUtil.isNotNull(currentUserInfoObj)){
+            CurrentUserInfoContext.CONTEXT.set(currentUserInfoObj.toString());
+        }
 
-                // 生产环境异常时补充记录消息参数
+        Exception ex = null;
+        try {
+
+            // 执行消息消费逻辑
+            resultData.accept(message);
+
+            // 非生产环境直接记录消息参数；生产环境为避免参数外泄，仅在异常时补充记录
+            if (EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD)) {
                 logs.put(LogTag.PARAM, message.getPayload().toString());
-
-                // 异常原样上抛，交由消息容器按消费失败处理
-                throw e;
-
-            } finally {
-
-                // 记录消息处理过程中的 SQL 日志
-                StringBuilder sqlLog = SqlLogContext.CONTEXT.get();
-                if (ObjectUtil.isNotNull(sqlLog)) {
-                    logs.put(LogTag.SQL, sqlLog.toString());
-                }
-
-                // 按处理结果以 info/error 级别输出日志
-                LogUtil.log(log, ObjectUtil.isNotNull(ex), logs, ex);
-
-                // 清理线程上下文，防止线程池复用导致数据泄漏
-                AbstractRequestContextHolder.clearContext();
-
             }
 
-        };
+        } catch (Exception e) {
+
+            ex = e;
+
+            // 生产环境异常时补充记录消息参数
+            logs.put(LogTag.PARAM, message.getPayload().toString());
+
+            // 异常原样上抛，交由消息容器按消费失败处理
+            throw e;
+
+        } finally {
+
+            // 记录消息处理过程中的 SQL 日志
+            StringBuilder sqlLog = SqlLogContext.CONTEXT.get();
+            if (ObjectUtil.isNotNull(sqlLog)) {
+                logs.put(LogTag.SQL, sqlLog.toString());
+            }
+
+            // 按处理结果以 info/error 级别输出日志
+            LogUtil.log(log, ObjectUtil.isNotNull(ex), logs, ex);
+
+            // 清理线程上下文，防止线程池复用导致数据泄漏
+            AbstractRequestContextHolder.clearContext();
+
+        }
 
     }
 

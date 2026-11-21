@@ -151,55 +151,10 @@ public class ChatServiceImpl implements ChatService {
         // 校验会话是否存在
         chatConversationService.checkExist(conversationId);
 
-        UserMessage.Builder userMessageBuilder = UserMessage.builder().text(param.getMessage());
+        UserMessage userMessage = buildUserMessage(param);
 
-        // 携带图片时构建多模态消息
-        List<String> images = param.getImages();
-        boolean hasImage = CollectionUtil.isNotEmpty(images);
-        if(hasImage){
-            List<Media> medias = CollectionUtil.newArrayList();
-            for(String image : images){
-                // 根据图片后缀解析对应的 MIME 类型
-                MimeType mimeType = IMAGE_MIME_TYPE_MAP.entrySet().stream()
-                        .filter(entry -> image.endsWith(entry.getKey()))
-                        .map(Map.Entry::getValue)
-                        .findFirst()
-                        .orElseThrow(() -> new BusinessResultException("不支持该图片类型"));
-                medias.add(new Media(mimeType, new URI(image)));
-            }
-            userMessageBuilder.media(medias);
-        }
-
-        UserMessage userMessage = userMessageBuilder.build();
-        ChatClient.ChatClientRequestSpec chatClientRequest;
-        if(hasImage){
-
-            userMessage.getMetadata().put(DashScopeApiConstants.MESSAGE_FORMAT, MessageFormat.IMAGE);
-
-            // 有图片时使用图生文（视觉理解）模型，启用多模态与高分辨率图片处理
-            Prompt chatPrompt = new Prompt(userMessage,
-                    DashScopeChatOptions.builder()
-                            .withModel(imageModelName)
-                            .withMultiModel(true)
-                            .withVlHighResolutionImages(true)
-                            .withTemperature(VISION_MODEL_TEMPERATURE)
-                            .build());
-
-            chatClientRequest = chatClient.prompt(chatPrompt);
-
-        }else{
-            // 纯文本对话使用默认模型
-            chatClientRequest = chatClient.prompt(new Prompt(userMessage));
-        }
-
-        // 配置了提示词 key 时，从系统配置服务获取提示词内容作为系统消息
-        String promptConfig = param.getPromptConfig();
-        if(StringUtils.isNotBlank(promptConfig)){
-            promptConfig = rpcConfigService.getResult(promptConfig).getResultDataThrowError();
-            if(StringUtils.isNotBlank(promptConfig)){
-                chatClientRequest.system(promptConfig);
-            }
-        }
+        ChatClient.ChatClientRequestSpec chatClientRequest =
+                buildChatClientRequest(userMessage, CollectionUtil.isNotEmpty(param.getImages()), param);
 
         String chatStopLockKey = AI_CHAT_STOP_KEY + conversationId;
         StringRedisTemplate redisClient = RedisUtil.getRedisClient();
@@ -253,6 +208,86 @@ public class ChatServiceImpl implements ChatService {
                 // 追加完成消息，告知前端对话流已结束，可关闭连接
                 .concatWith(Flux.just(ResultUtil.success(ChatResult.builder().type(ChatTypeEnum.FINISH).build())));
 
+    }
+
+    /**
+     * 构建用户消息
+     * <p>
+     * 携带图片时构建多模态消息，根据图片后缀解析对应的 MIME 类型
+     * </p>
+     *
+     * @param param 对话参数
+     * @return 用户消息
+     * @throws BusinessResultException 图片类型不受支持时抛出
+     */
+    @SneakyThrows
+    private UserMessage buildUserMessage(ChatParam param) {
+        UserMessage.Builder userMessageBuilder = UserMessage.builder().text(param.getMessage());
+
+        // 携带图片时构建多模态消息
+        List<String> images = param.getImages();
+        if(CollectionUtil.isNotEmpty(images)){
+            List<Media> medias = CollectionUtil.newArrayList(images.size());
+            for(String image : images){
+                // 根据图片后缀解析对应的 MIME 类型
+                MimeType mimeType = IMAGE_MIME_TYPE_MAP.entrySet().stream()
+                        .filter(entry -> image.endsWith(entry.getKey()))
+                        .map(Map.Entry::getValue)
+                        .findFirst()
+                        .orElseThrow(() -> new BusinessResultException("不支持该图片类型"));
+                medias.add(new Media(mimeType, new URI(image)));
+            }
+            userMessageBuilder.media(medias);
+        }
+
+        return userMessageBuilder.build();
+    }
+
+    /**
+     * 构建对话客户端请求
+     * <p>
+     * 有图片时切换为图生文（视觉理解）模型并启用多模态与高分辨率图片处理；
+     * 配置了提示词 key 时，从系统配置服务获取提示词内容作为系统消息
+     * </p>
+     *
+     * @param userMessage 用户消息
+     * @param hasImage 是否携带图片
+     * @param param 对话参数
+     * @return 对话客户端请求
+     */
+    private ChatClient.ChatClientRequestSpec buildChatClientRequest(UserMessage userMessage,
+            boolean hasImage, ChatParam param) {
+        ChatClient.ChatClientRequestSpec chatClientRequest;
+        if(hasImage){
+
+            userMessage.getMetadata().put(DashScopeApiConstants.MESSAGE_FORMAT, MessageFormat.IMAGE);
+
+            // 有图片时使用图生文（视觉理解）模型，启用多模态与高分辨率图片处理
+            Prompt chatPrompt = new Prompt(userMessage,
+                    DashScopeChatOptions.builder()
+                            .withModel(imageModelName)
+                            .withMultiModel(true)
+                            .withVlHighResolutionImages(true)
+                            .withTemperature(VISION_MODEL_TEMPERATURE)
+                            .build());
+
+            chatClientRequest = chatClient.prompt(chatPrompt);
+
+        }else{
+            // 纯文本对话使用默认模型
+            chatClientRequest = chatClient.prompt(new Prompt(userMessage));
+        }
+
+        // 配置了提示词 key 时，从系统配置服务获取提示词内容作为系统消息
+        String promptConfig = param.getPromptConfig();
+        if(StringUtils.isNotBlank(promptConfig)){
+            promptConfig = rpcConfigService.getResult(promptConfig).getResultDataThrowError();
+            if(StringUtils.isNotBlank(promptConfig)){
+                chatClientRequest.system(promptConfig);
+            }
+        }
+
+        return chatClientRequest;
     }
 
     /**
@@ -357,7 +392,7 @@ public class ChatServiceImpl implements ChatService {
             Set<String> images = response.getResults().stream()
                     .map(result -> result.getOutput().getUrl()).collect(Collectors.toSet());
 
-            List<Media> medias = CollectionUtil.newArrayList();
+            List<Media> medias = CollectionUtil.newArrayList(images.size());
             for (String image : images) {
                 medias.add(new Media(MimeTypeUtils.IMAGE_PNG, new URI(image)));
             }

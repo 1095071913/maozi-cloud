@@ -130,136 +130,33 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
                 getAuthenticatedClientElseThrowInvalidClient(authenticationToken);
         RegisteredClient registeredClient = clientPrincipal.getRegisteredClient();
         // 确保客户端已配置该授权模式
-        if (registeredClient == null
-                || !registeredClient.getAuthorizationGrantTypes()
-                        .contains(authenticationToken.getAuthorizationGrantType())) {
-            throw new OAuth2AuthenticationException(OAuth2ErrorCodes.UNAUTHORIZED_CLIENT);
-        }
+        validateGrantType(registeredClient, authenticationToken);
 
         // 验证scope
         Set<String> authorizedScopes = getAuthorizedScopes(registeredClient, authenticationToken.getScopes());
 
         // 调用子类认证逻辑构造用户名密码令牌，再由DAO认证提供者完成密码校验
-        Authentication userAuthenticationToken;
-        try {
-            UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-                    subAuthenticate(authenticationToken);
-            userAuthenticationToken = daoAuthenticationProvider.authenticate(usernamePasswordAuthenticationToken);
-        } catch (AuthenticationException e) {
-            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST,
-                    e.getMessage(), ERROR_URI), e);
-        }
+        Authentication userAuthenticationToken = authenticateUser(authenticationToken);
 
         // 以下令牌生成流程参考OAuth2AuthorizationCodeAuthenticationProvider实现
-        AuthorizationGrantType authorizationGrantType = authenticationToken.getAuthorizationGrantType();
-
-        DefaultOAuth2TokenContext.Builder tokenContextBuilder = DefaultOAuth2TokenContext.builder()
-                .registeredClient(registeredClient)
-                .principal(userAuthenticationToken)
-                .authorizationServerContext(AuthorizationServerContextHolder.getContext())
-                .authorizedScopes(authorizedScopes)
-                .authorizationGrantType(authorizationGrantType)
-                .authorizationGrant(authenticationToken);
+        DefaultOAuth2TokenContext.Builder tokenContextBuilder =
+                buildTokenContextBuilder(registeredClient, userAuthenticationToken, authorizedScopes, authenticationToken);
 
         // 初始化OAuth2Authorization构建器
-        OAuth2Authorization.Builder authorizationBuilder = OAuth2Authorization.withRegisteredClient(registeredClient)
-                // 存入授权scope
-                .authorizedScopes(authorizedScopes)
-                // 当前授权用户名称
-                .principalName(userAuthenticationToken.getName())
-                // 设置当前用户认证信息，防止刷新token时因获取不到认证信息而抛出空指针异常
-                .attribute(Principal.class.getName(), userAuthenticationToken)
-                .authorizationGrantType(authorizationGrantType);
+        OAuth2Authorization.Builder authorizationBuilder =
+                buildAuthorizationBuilder(registeredClient, userAuthenticationToken, authorizedScopes,
+                        authenticationToken.getAuthorizationGrantType());
 
         // ----- Access token -----
-        OAuth2TokenContext tokenContext = tokenContextBuilder.tokenType(OAuth2TokenType.ACCESS_TOKEN).build();
-        OAuth2Token generatedAccessToken = this.tokenGenerator.generate(tokenContext);
-        if (generatedAccessToken == null) {
-            OAuth2Error error = new OAuth2Error(OAuth2ErrorCodes.SERVER_ERROR,
-                    "The token generator failed to generate the access token.", ERROR_URI);
-            throw new OAuth2AuthenticationException(error);
-        }
+        OAuth2AccessToken accessToken =
+                generateAccessToken(tokenContextBuilder, authorizationBuilder, userAuthenticationToken);
 
-        if (log.isTraceEnabled()) {
-            log.trace("Generated access token");
-        }
-        OAuth2AccessToken accessToken = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER,
-                generatedAccessToken.getTokenValue(), generatedAccessToken.getIssuedAt(),
-                generatedAccessToken.getExpiresAt(), tokenContext.getAuthorizedScopes());
-        // JWT类型令牌：在生成器产出的claims基础上补充用户权限与用户附加属性
-        if (generatedAccessToken instanceof ClaimAccessor) {
-            Authentication finalUserAuthenticationToken = userAuthenticationToken;
-            authorizationBuilder.token(accessToken, (metadata) -> {
-                Map<String, Object> claims = CollectionUtil.newHashMap(((ClaimAccessor) generatedAccessToken).getClaims());
-                List<String> authorities = finalUserAuthenticationToken.getAuthorities().stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .collect(Collectors.toList());
-                claims.put(OAuth2TokenUserClaimConstants.AUTHORITIES, authorities);
-                if(finalUserAuthenticationToken.getPrincipal() instanceof SecurityUserDetails securityUserDetails){
-                    claims.putAll(securityUserDetails.getAttributes());
-                }
-                metadata.put(OAuth2Authorization.Token.CLAIMS_METADATA_NAME, claims);
-            });
-        } else {
-            // 不透明令牌：直接将用户权限与用户附加属性构建为claims metadata
-            Map<String, Object> claims = CollectionUtil.newHashMap(8);
-            List<String> authorities = userAuthenticationToken.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .collect(Collectors.toList());
-            claims.put(OAuth2TokenUserClaimConstants.AUTHORITIES, authorities);
-            if(userAuthenticationToken.getPrincipal() instanceof SecurityUserDetails securityUserDetails){
-                claims.putAll(securityUserDetails.getAttributes());
-            }
-            authorizationBuilder.token(accessToken, (metadata) ->
-                    metadata.put(OAuth2Authorization.Token.CLAIMS_METADATA_NAME, claims));
-        }
         // ----- Refresh token -----
-        OAuth2RefreshToken refreshToken = null;
-        if (registeredClient.getAuthorizationGrantTypes().contains(AuthorizationGrantType.REFRESH_TOKEN) &&
-                // 不向公共客户端颁发refresh token
-                !ClientAuthenticationMethod.NONE.equals(clientPrincipal.getClientAuthenticationMethod())) {
-
-            tokenContext = tokenContextBuilder.tokenType(OAuth2TokenType.REFRESH_TOKEN).build();
-            OAuth2Token generatedRefreshToken = this.tokenGenerator.generate(tokenContext);
-            if (!(generatedRefreshToken instanceof OAuth2RefreshToken)) {
-                OAuth2Error error = new OAuth2Error(OAuth2ErrorCodes.SERVER_ERROR,
-                        "The token generator failed to generate the refresh token.", ERROR_URI);
-                throw new OAuth2AuthenticationException(error);
-            }
-
-            if (log.isTraceEnabled()) {
-                log.trace("Generated refresh token");
-            }
-            refreshToken = (OAuth2RefreshToken) generatedRefreshToken;
-            authorizationBuilder.refreshToken(refreshToken);
-        }
+        OAuth2RefreshToken refreshToken =
+                generateRefreshToken(tokenContextBuilder, authorizationBuilder, clientPrincipal);
 
         // ----- ID token -----
-        OidcIdToken idToken;
-        if (authorizedScopes.contains(OidcScopes.OPENID)) {
-            tokenContext = tokenContextBuilder
-                    .tokenType(ID_TOKEN_TOKEN_TYPE)
-                    // ID token定制器可能需要访问access token或refresh token
-                    .authorization(authorizationBuilder.build())
-                    .build();
-            OAuth2Token generatedIdToken = this.tokenGenerator.generate(tokenContext);
-            if (!(generatedIdToken instanceof Jwt)) {
-                OAuth2Error error = new OAuth2Error(OAuth2ErrorCodes.SERVER_ERROR,
-                        "The token generator failed to generate the ID token.", ERROR_URI);
-                throw new OAuth2AuthenticationException(error);
-            }
-
-            if (log.isTraceEnabled()) {
-                log.trace("Generated id token");
-            }
-
-            idToken = new OidcIdToken(generatedIdToken.getTokenValue(), generatedIdToken.getIssuedAt(),
-                    generatedIdToken.getExpiresAt(), ((Jwt) generatedIdToken).getClaims());
-            authorizationBuilder.token(idToken, (metadata) ->
-                    metadata.put(OAuth2Authorization.Token.CLAIMS_METADATA_NAME, idToken.getClaims()));
-        } else {
-            idToken = null;
-        }
+        OidcIdToken idToken = generateIdToken(tokenContextBuilder, authorizationBuilder, authorizedScopes);
 
         OAuth2Authorization authorization = authorizationBuilder.build();
 
@@ -274,6 +171,216 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
 
         return new OAuth2AccessTokenAuthenticationToken(registeredClient, clientPrincipal,
                 accessToken, refreshToken, additionalParameters);
+    }
+
+    /**
+     * 校验客户端已配置当前授权模式
+     *
+     * @param registeredClient 已注册客户端
+     * @param authenticationToken 自定义授权令牌
+     * @throws OAuth2AuthenticationException 客户端为空或未配置该授权模式时抛出UNAUTHORIZED_CLIENT
+     */
+    private void validateGrantType(RegisteredClient registeredClient, T authenticationToken) {
+        if (registeredClient == null
+                || !registeredClient.getAuthorizationGrantTypes()
+                        .contains(authenticationToken.getAuthorizationGrantType())) {
+            throw new OAuth2AuthenticationException(OAuth2ErrorCodes.UNAUTHORIZED_CLIENT);
+        }
+    }
+
+    /**
+     * 调用子类认证逻辑构造用户名密码令牌，再由DAO认证提供者完成密码校验
+     *
+     * @param authenticationToken 自定义授权令牌
+     * @return 完成校验的用户认证令牌
+     * @throws OAuth2AuthenticationException 子类认证或密码校验失败时包装为INVALID_REQUEST抛出
+     */
+    private Authentication authenticateUser(T authenticationToken) {
+        try {
+            UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
+                    subAuthenticate(authenticationToken);
+            return daoAuthenticationProvider.authenticate(usernamePasswordAuthenticationToken);
+        } catch (AuthenticationException e) {
+            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST,
+                    e.getMessage(), ERROR_URI), e);
+        }
+    }
+
+    /**
+     * 构建令牌生成上下文构建器
+     *
+     * @param registeredClient 已注册客户端
+     * @param userAuthenticationToken 用户认证令牌
+     * @param authorizedScopes 授权scope集合
+     * @param authenticationToken 自定义授权令牌
+     * @return 令牌生成上下文构建器
+     */
+    private DefaultOAuth2TokenContext.Builder buildTokenContextBuilder(RegisteredClient registeredClient,
+            Authentication userAuthenticationToken, Set<String> authorizedScopes, T authenticationToken) {
+        return DefaultOAuth2TokenContext.builder()
+                .registeredClient(registeredClient)
+                .principal(userAuthenticationToken)
+                .authorizationServerContext(AuthorizationServerContextHolder.getContext())
+                .authorizedScopes(authorizedScopes)
+                .authorizationGrantType(authenticationToken.getAuthorizationGrantType())
+                .authorizationGrant(authenticationToken);
+    }
+
+    /**
+     * 初始化OAuth2Authorization构建器
+     *
+     * @param registeredClient 已注册客户端
+     * @param userAuthenticationToken 用户认证令牌
+     * @param authorizedScopes 授权scope集合
+     * @param authorizationGrantType 授权模式
+     * @return OAuth2Authorization构建器
+     */
+    private OAuth2Authorization.Builder buildAuthorizationBuilder(RegisteredClient registeredClient,
+            Authentication userAuthenticationToken, Set<String> authorizedScopes,
+            AuthorizationGrantType authorizationGrantType) {
+        return OAuth2Authorization.withRegisteredClient(registeredClient)
+                // 存入授权scope
+                .authorizedScopes(authorizedScopes)
+                // 当前授权用户名称
+                .principalName(userAuthenticationToken.getName())
+                // 设置当前用户认证信息，防止刷新token时因获取不到认证信息而抛出空指针异常
+                .attribute(Principal.class.getName(), userAuthenticationToken)
+                .authorizationGrantType(authorizationGrantType);
+    }
+
+    /**
+     * 生成访问令牌并写入授权构建器
+     * <p>
+     * JWT类型令牌在生成器产出的claims基础上补充用户权限与用户附加属性；
+     * 不透明令牌直接将用户权限与用户附加属性构建为claims metadata
+     * </p>
+     *
+     * @param tokenContextBuilder 令牌生成上下文构建器
+     * @param authorizationBuilder 授权构建器，生成的令牌写入其中
+     * @param userAuthenticationToken 用户认证令牌
+     * @return 访问令牌
+     * @throws OAuth2AuthenticationException 令牌生成器未产出访问令牌时抛出SERVER_ERROR
+     */
+    private OAuth2AccessToken generateAccessToken(DefaultOAuth2TokenContext.Builder tokenContextBuilder,
+            OAuth2Authorization.Builder authorizationBuilder, Authentication userAuthenticationToken) {
+        OAuth2TokenContext tokenContext = tokenContextBuilder.tokenType(OAuth2TokenType.ACCESS_TOKEN).build();
+        OAuth2Token generatedAccessToken = this.tokenGenerator.generate(tokenContext);
+        if (generatedAccessToken == null) {
+            OAuth2Error error = new OAuth2Error(OAuth2ErrorCodes.SERVER_ERROR,
+                    "The token generator failed to generate the access token.", ERROR_URI);
+            throw new OAuth2AuthenticationException(error);
+        }
+
+        if (log.isTraceEnabled()) {
+            log.trace("Generated access token");
+        }
+        OAuth2AccessToken accessToken = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER,
+                generatedAccessToken.getTokenValue(), generatedAccessToken.getIssuedAt(),
+                generatedAccessToken.getExpiresAt(), tokenContext.getAuthorizedScopes());
+        if (generatedAccessToken instanceof ClaimAccessor) {
+            Authentication finalUserAuthenticationToken = userAuthenticationToken;
+            authorizationBuilder.token(accessToken, (metadata) -> {
+                Map<String, Object> claims = CollectionUtil.newHashMap(((ClaimAccessor) generatedAccessToken).getClaims());
+                List<String> authorities = finalUserAuthenticationToken.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.toList());
+                claims.put(OAuth2TokenUserClaimConstants.AUTHORITIES, authorities);
+                if(finalUserAuthenticationToken.getPrincipal() instanceof SecurityUserDetails securityUserDetails){
+                    claims.putAll(securityUserDetails.getAttributes());
+                }
+                metadata.put(OAuth2Authorization.Token.CLAIMS_METADATA_NAME, claims);
+            });
+        } else {
+            Map<String, Object> claims = CollectionUtil.newHashMap(8);
+            List<String> authorities = userAuthenticationToken.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .collect(Collectors.toList());
+            claims.put(OAuth2TokenUserClaimConstants.AUTHORITIES, authorities);
+            if(userAuthenticationToken.getPrincipal() instanceof SecurityUserDetails securityUserDetails){
+                claims.putAll(securityUserDetails.getAttributes());
+            }
+            authorizationBuilder.token(accessToken, (metadata) ->
+                    metadata.put(OAuth2Authorization.Token.CLAIMS_METADATA_NAME, claims));
+        }
+        return accessToken;
+    }
+
+    /**
+     * 生成刷新令牌并写入授权构建器
+     * <p>
+     * 客户端未配置REFRESH_TOKEN授权模式或为公共客户端时不颁发，返回null
+     * </p>
+     *
+     * @param tokenContextBuilder 令牌生成上下文构建器
+     * @param authorizationBuilder 授权构建器，生成的令牌写入其中
+     * @param clientPrincipal 客户端认证令牌
+     * @return 刷新令牌，不颁发时返回null
+     * @throws OAuth2AuthenticationException 令牌生成器未产出刷新令牌时抛出SERVER_ERROR
+     */
+    private OAuth2RefreshToken generateRefreshToken(DefaultOAuth2TokenContext.Builder tokenContextBuilder,
+            OAuth2Authorization.Builder authorizationBuilder, OAuth2ClientAuthenticationToken clientPrincipal) {
+        if (!(clientPrincipal.getRegisteredClient().getAuthorizationGrantTypes()
+                .contains(AuthorizationGrantType.REFRESH_TOKEN) &&
+                // 不向公共客户端颁发refresh token
+                !ClientAuthenticationMethod.NONE.equals(clientPrincipal.getClientAuthenticationMethod()))) {
+            return null;
+        }
+
+        OAuth2TokenContext tokenContext = tokenContextBuilder.tokenType(OAuth2TokenType.REFRESH_TOKEN).build();
+        OAuth2Token generatedRefreshToken = this.tokenGenerator.generate(tokenContext);
+        if (!(generatedRefreshToken instanceof OAuth2RefreshToken)) {
+            OAuth2Error error = new OAuth2Error(OAuth2ErrorCodes.SERVER_ERROR,
+                    "The token generator failed to generate the refresh token.", ERROR_URI);
+            throw new OAuth2AuthenticationException(error);
+        }
+
+        if (log.isTraceEnabled()) {
+            log.trace("Generated refresh token");
+        }
+        OAuth2RefreshToken refreshToken = (OAuth2RefreshToken) generatedRefreshToken;
+        authorizationBuilder.refreshToken(refreshToken);
+        return refreshToken;
+    }
+
+    /**
+     * 生成ID令牌并写入授权构建器
+     * <p>
+     * 仅当授权scope包含openid时生成
+     * </p>
+     *
+     * @param tokenContextBuilder 令牌生成上下文构建器
+     * @param authorizationBuilder 授权构建器，生成的令牌写入其中
+     * @param authorizedScopes 授权scope集合
+     * @return ID令牌，scope不含openid时返回null
+     * @throws OAuth2AuthenticationException 令牌生成器未产出ID令牌时抛出SERVER_ERROR
+     */
+    private OidcIdToken generateIdToken(DefaultOAuth2TokenContext.Builder tokenContextBuilder,
+            OAuth2Authorization.Builder authorizationBuilder, Set<String> authorizedScopes) {
+        if (!authorizedScopes.contains(OidcScopes.OPENID)) {
+            return null;
+        }
+
+        OAuth2TokenContext tokenContext = tokenContextBuilder
+                .tokenType(ID_TOKEN_TOKEN_TYPE)
+                // ID token定制器可能需要访问access token或refresh token
+                .authorization(authorizationBuilder.build())
+                .build();
+        OAuth2Token generatedIdToken = this.tokenGenerator.generate(tokenContext);
+        if (!(generatedIdToken instanceof Jwt)) {
+            OAuth2Error error = new OAuth2Error(OAuth2ErrorCodes.SERVER_ERROR,
+                    "The token generator failed to generate the ID token.", ERROR_URI);
+            throw new OAuth2AuthenticationException(error);
+        }
+
+        if (log.isTraceEnabled()) {
+            log.trace("Generated id token");
+        }
+
+        OidcIdToken idToken = new OidcIdToken(generatedIdToken.getTokenValue(), generatedIdToken.getIssuedAt(),
+                generatedIdToken.getExpiresAt(), ((Jwt) generatedIdToken).getClaims());
+        authorizationBuilder.token(idToken, (metadata) ->
+                metadata.put(OAuth2Authorization.Token.CLAIMS_METADATA_NAME, idToken.getClaims()));
+        return idToken;
     }
 
     /**

@@ -43,7 +43,7 @@ public interface RpcClientService {
      * @param id 客户端唯一标识 ID
      * @return 返回客户端的下拉选项结果
      */
-    AbstractBaseResult<? extends DropDownResult> dropDownResult(Long id);
+    AbstractBaseResult<DropDownResult> dropDownResult(Long id);
 
     /**
      * 根据客户端 ID 集合批量获取客户端的下拉选项信息列表
@@ -51,6 +51,6 @@ public interface RpcClientService {
      * @param ids 客户端唯一标识 ID 集合
      * @return 返回客户端下拉选项结果列表
      */
-    AbstractBaseResult<List<? extends DropDownResult>> dropDownListResult(Collection<Long> ids);
+    AbstractBaseResult<List<DropDownResult>> dropDownListResult(Collection<Long> ids);
 
 }

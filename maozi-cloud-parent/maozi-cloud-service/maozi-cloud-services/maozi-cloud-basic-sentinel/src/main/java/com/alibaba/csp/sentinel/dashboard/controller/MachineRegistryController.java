@@ -43,6 +43,13 @@ public class MachineRegistryController {
     /** The app management service that keeps track of registered machines. */
     private final AppManagement appManagement;
 
+    /** Maximum allowed length of the reported app name. */
+    private static final int MAX_APP_NAME_LENGTH = 256;
+    /** Maximum allowed length of the reported IP address string. */
+    private static final int MAX_IP_LENGTH = 128;
+    /** Maximum allowed length of the reported hostname. */
+    private static final int MAX_HOSTNAME_LENGTH = 256;
+
     public MachineRegistryController(AppManagement appManagement) {
         this.appManagement = appManagement;
     }
@@ -58,10 +65,10 @@ public class MachineRegistryController {
                                       @RequestParam(value = "app_type", required = false, defaultValue = "0")
                                           Integer appType, Long version, String v, String hostname, String ip,
                                       Integer port) {
-        if (StringUtil.isBlank(app) || app.length() > 256) {
+        if (StringUtil.isBlank(app) || app.length() > MAX_APP_NAME_LENGTH) {
             return Result.ofFail(-1, "invalid appName");
         }
-        if (StringUtil.isBlank(ip) || ip.length() > 128) {
+        if (StringUtil.isBlank(ip) || ip.length() > MAX_IP_LENGTH) {
             return Result.ofFail(-1, "invalid ip: " + ip);
         }
         if (!InetAddressUtils.isIPv4Address(ip) && !InetAddressUtils.isIPv6Address(ip)) {
@@ -70,7 +77,7 @@ public class MachineRegistryController {
         if (port == null || port < -1) {
             return Result.ofFail(-1, "invalid port");
         }
-        if (hostname != null && hostname.length() > 256) {
+        if (hostname != null && hostname.length() > MAX_HOSTNAME_LENGTH) {
             return Result.ofFail(-1, "hostname too long");
         }
         if (port == -1) {
@@ -91,7 +98,7 @@ public class MachineRegistryController {
             machineInfo.setLastHeartbeat(System.currentTimeMillis());
             machineInfo.setVersion(sentinelVersion);
             appManagement.addMachine(machineInfo);
-            return Result.ofSuccessMsg("success");
+            return Result.ofSuccessMsg(Result.DEFAULT_SUCCESS_MSG);
         } catch (Exception e) {
             logger.error("Receive heartbeat error", e);
             return Result.ofFail(-1, e.getMessage());

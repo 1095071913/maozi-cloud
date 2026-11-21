@@ -53,7 +53,7 @@ public class MachineInfoVo {
 
     /** Convert the given machine info list to the corresponding list of VOs. */
     public static List<MachineInfoVo> fromMachineInfoList(List<MachineInfo> machines) {
-        List<MachineInfoVo> list = new ArrayList<>();
+        List<MachineInfoVo> list = new ArrayList<>(machines.size());
         for (MachineInfo machine : machines) {
             list.add(fromMachineInfo(machine));
         }

@@ -23,6 +23,9 @@ package com.alibaba.csp.sentinel.dashboard.domain;
  */
 public class Result<R> {
 
+    /** Default message carried by a successful result. */
+    public static final String DEFAULT_SUCCESS_MSG = "success";
+
     /** Whether the operation is successful. */
     private boolean success;
     /** The result code. */
@@ -36,7 +39,7 @@ public class Result<R> {
     public static <R> Result<R> ofSuccess(R data) {
         return new Result<R>()
             .setSuccess(true)
-            .setMsg("success")
+            .setMsg(DEFAULT_SUCCESS_MSG)
             .setData(data);
     }
 

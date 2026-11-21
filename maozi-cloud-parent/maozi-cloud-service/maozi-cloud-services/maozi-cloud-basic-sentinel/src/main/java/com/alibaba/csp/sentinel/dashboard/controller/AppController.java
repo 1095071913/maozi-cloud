@@ -89,7 +89,7 @@ public class AppController {
             return Result.ofSuccess(null);
         }
         if (appManagement.removeMachine(app, ip, port)) {
-            return Result.ofSuccessMsg("success");
+            return Result.ofSuccessMsg(Result.DEFAULT_SUCCESS_MSG);
         } else {
             return Result.ofFail(1, "remove failed");
         }

@@ -151,6 +151,15 @@ public class SentinelApiClient {
     /** Rule type name of authority rules. */
     private static final String AUTHORITY_TYPE = "authority";
 
+    /** Lower bound (inclusive) of 2xx HTTP status codes that indicate command success. */
+    private static final int HTTP_STATUS_OK_MIN = 200;
+    /** Upper bound (exclusive) of 2xx HTTP status codes that indicate command success. */
+    private static final int HTTP_STATUS_OK_MAX = 300;
+    /** HTTP status code Bad Request, returned when the command is unknown to the client. */
+    private static final int HTTP_STATUS_BAD_REQUEST = 400;
+    /** Success keyword echoed by the Sentinel client for rule modification commands. */
+    private static final String CLIENT_RESPONSE_SUCCESS = "success";
+
     /** The underlying async HTTP client used to talk to Sentinel clients. */
     private CloseableHttpAsyncClient httpClient;
 
@@ -179,12 +188,12 @@ public class SentinelApiClient {
 
     /** Checks whether the given HTTP status code stands for success (2xx). */
     private boolean isSuccess(int statusCode) {
-        return statusCode >= 200 && statusCode < 300;
+        return statusCode >= HTTP_STATUS_OK_MIN && statusCode < HTTP_STATUS_OK_MAX;
     }
-    
+
     /** Whether the failed response means the command is unknown to the client (status 400 with the unknown-command message). */
     private boolean isCommandNotFound(int statusCode, String body) {
-        return statusCode == 400 && StringUtil.isNotEmpty(body) && body.contains(CommandConstants.MSG_UNKNOWN_COMMAND_PREFIX);
+        return statusCode == HTTP_STATUS_BAD_REQUEST && StringUtil.isNotEmpty(body) && body.contains(CommandConstants.MSG_UNKNOWN_COMMAND_PREFIX);
     }
     
     /** Whether the registered machine's client version supports receiving commands via POST (>= 1.6.0). */
@@ -274,6 +283,8 @@ public class SentinelApiClient {
                 charset = contentType.getCharset();
             }
         } catch (Exception ignore) {
+            // Content-Type parsing failed: fall back to the default charset below; debug trace for troubleshooting
+            logger.debug("Parse Content-Type charset failed, fallback to {}", DEFAULT_CHARSET, ignore);
         }
         return EntityUtils.toString(response.getEntity(), charset != null ? charset : DEFAULT_CHARSET);
     }
@@ -492,7 +503,7 @@ public class SentinelApiClient {
             params.put("data", data);
             return executeCommand(app, ip, port, SET_RULES_PATH, params, true)
                 .thenCompose(r -> {
-                    if ("success".equalsIgnoreCase(r.trim())) {
+                    if (CLIENT_RESPONSE_SUCCESS.equalsIgnoreCase(r.trim())) {
                         return CompletableFuture.completedFuture(null);
                     }
                     return AsyncUtils.newFailedFuture(new CommandFailedException(r));

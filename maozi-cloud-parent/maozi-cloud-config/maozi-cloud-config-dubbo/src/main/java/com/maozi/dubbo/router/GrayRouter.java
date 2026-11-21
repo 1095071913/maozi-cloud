@@ -12,6 +12,7 @@ import org.apache.dubbo.rpc.cluster.router.AbstractRouter;
 import org.apache.dubbo.rpc.cluster.router.RouterResult;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 灰度路由器
@@ -76,7 +77,7 @@ public class GrayRouter extends AbstractRouter {
                 invoker.getUrl().getParameter(ProviderFirstParams.APPLICATION_VERSION_KEY);
 
             // 如果请求版本号非空且与服务实例版本完全匹配，则归为灰度节点
-            if(StringUtils.isNotBlank(version) && version.equals(clientApplicationVersion)){
+            if(StringUtils.isNotBlank(version) && Objects.equals(version, clientApplicationVersion)){
                 grayApplicationClients.add(invoker);
             }
 

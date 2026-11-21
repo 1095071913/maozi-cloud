@@ -96,50 +96,13 @@ public class RetryTaskReportAop {
 
         // 走到这里说明：方法抛出了异常，或非重试流量下结果集校验判定仍需重试
 
-        // 若为非重试流量则执行本地重试与远程上报
+        // 若为非重试流量则执行本地重试与远程上报，本地重试成功时直接返回重试结果
         if (!retryTraffic) {
-
-            RetryType retryStrategy = retryTask.retryStrategy();
-
-            // 本地重试
-            if (retryStrategy == RetryType.ONLY_LOCAL
-                || retryStrategy == RetryType.LOCAL_REMOTE) {
-
-                // 本地重试成功，直接返回重试结果
-                LocalRetryResultDTO localRetryResult =
-                    localRetry(retryTask.localTimes(), retryTask.localInterval(), proceedingJoinPoint, retryTask);
-                if (localRetryResult.success()) {
-                    return localRetryResult.result();
-                }
-
+            LocalRetryResultDTO retryOutcome =
+                    retryAndReport(proceedingJoinPoint, signature, method, retryTask);
+            if (retryOutcome.success()) {
+                return retryOutcome.result();
             }
-
-            // 本地重试未启用或失败后，将方法信息封装为重试任务上报 SnailJob 服务端
-            if (retryStrategy == RetryType.ONLY_REMOTE
-                || retryStrategy == RetryType.LOCAL_REMOTE) {
-
-                RetryTaskParam retryTaskParam = new RetryTaskParam();
-                retryTaskParam.setBeanName(getBeanName(proceedingJoinPoint.getTarget()));
-                retryTaskParam.setMethodName(method.getName());
-                retryTaskParam.setParamTypes(signature.getParameterTypes());
-                retryTaskParam.setData(proceedingJoinPoint.getArgs());
-                retryTaskParam.setVersion(VersionContext.CONTEXT.get());
-                retryTaskParam.setTestFlow(TestFlowContext.CONTEXT.get());
-                retryTaskParam.setRetryIfResultClassName(retryTask.retryIfResult().getName());
-
-                // OpenTelemetry 无有效追踪上下文时 traceId 为全 0 占位值，
-                // 此时回退链路上下文中的 traceId
-                String traceId = Span.current().getSpanContext().getTraceId();
-                retryTaskParam.setTraceId(TraceIdContext.TRACE_ID_VALUE.equals(traceId) ?
-                        TraceIdContext.CONTEXT.get()
-                        :
-                        traceId
-                );
-
-                reportRetryTask(retryTask.scene(), retryTaskParam);
-
-            }
-
         }
 
         if (Objects.nonNull(ex)) {
@@ -147,6 +110,89 @@ public class RetryTaskReportAop {
         }
 
         return null;
+
+    }
+
+    /**
+     * 按注解上报策略执行本地重试与远程上报
+     * <p>
+     * {@link RetryType#ONLY_LOCAL} 与 {@link RetryType#LOCAL_REMOTE} 策略先在本地
+     * 按次数与间隔同步重试；{@link RetryType#ONLY_REMOTE} 策略（以及
+     * {@link RetryType#LOCAL_REMOTE} 本地重试失败后）将方法信息封装为
+     * {@link RetryTaskParam} 上报 SnailJob 服务端
+     * </p>
+     *
+     * @param proceedingJoinPoint AOP 连接点
+     * @param signature 方法签名
+     * @param method 目标方法
+     * @param retryTask RetryTask 注解
+     * @return 本地重试结果（本地重试未启用或重试失败时为失败结果）
+     */
+    private LocalRetryResultDTO retryAndReport(ProceedingJoinPoint proceedingJoinPoint, MethodSignature signature,
+        Method method, RetryTask retryTask) {
+
+        RetryType retryStrategy = retryTask.retryStrategy();
+
+        LocalRetryResultDTO localRetryResult = new LocalRetryResultDTO(false, null);
+
+        // 本地重试
+        if (retryStrategy == RetryType.ONLY_LOCAL
+            || retryStrategy == RetryType.LOCAL_REMOTE) {
+
+            localRetryResult =
+                localRetry(retryTask.localTimes(), retryTask.localInterval(), proceedingJoinPoint, retryTask);
+            if (localRetryResult.success()) {
+                return localRetryResult;
+            }
+
+        }
+
+        // 本地重试未启用或失败后，将方法信息封装为重试任务上报 SnailJob 服务端
+        if (retryStrategy == RetryType.ONLY_REMOTE
+            || retryStrategy == RetryType.LOCAL_REMOTE) {
+            reportRetryTask(retryTask.scene(),
+                buildRetryTaskParam(proceedingJoinPoint, signature, method, retryTask));
+        }
+
+        return localRetryResult;
+
+    }
+
+    /**
+     * 封装重试任务参数
+     * <p>
+     * 携带目标 Bean、方法与入参信息，以及版本、测试流量与链路上下文，
+     * 供统一重试处理器在服务端调度时远程回调执行
+     * </p>
+     *
+     * @param proceedingJoinPoint AOP 连接点
+     * @param signature 方法签名
+     * @param method 目标方法
+     * @param retryTask RetryTask 注解
+     * @return 重试任务参数
+     */
+    private RetryTaskParam buildRetryTaskParam(ProceedingJoinPoint proceedingJoinPoint, MethodSignature signature,
+        Method method, RetryTask retryTask) {
+
+        RetryTaskParam retryTaskParam = new RetryTaskParam();
+        retryTaskParam.setBeanName(getBeanName(proceedingJoinPoint.getTarget()));
+        retryTaskParam.setMethodName(method.getName());
+        retryTaskParam.setParamTypes(signature.getParameterTypes());
+        retryTaskParam.setData(proceedingJoinPoint.getArgs());
+        retryTaskParam.setVersion(VersionContext.CONTEXT.get());
+        retryTaskParam.setTestFlow(TestFlowContext.CONTEXT.get());
+        retryTaskParam.setRetryIfResultClassName(retryTask.retryIfResult().getName());
+
+        // OpenTelemetry 无有效追踪上下文时 traceId 为全 0 占位值，
+        // 此时回退链路上下文中的 traceId
+        String traceId = Span.current().getSpanContext().getTraceId();
+        retryTaskParam.setTraceId(TraceIdContext.TRACE_ID_VALUE.equals(traceId) ?
+                TraceIdContext.CONTEXT.get()
+                :
+                traceId
+        );
+
+        return retryTaskParam;
 
     }
 

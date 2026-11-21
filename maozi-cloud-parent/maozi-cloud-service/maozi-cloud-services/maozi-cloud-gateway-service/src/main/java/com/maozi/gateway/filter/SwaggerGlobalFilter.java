@@ -125,36 +125,8 @@ public class SwaggerGlobalFilter implements GlobalFilter, Ordered {
                         dataBuffer.read(content);
                         DataBufferUtils.release(dataBuffer);
 
-                        String response = new String(content, StandardCharsets.UTF_8);
-
-                        // 解析 JSON，禁用 fastjson 的特殊 key 检测（DisableSpecialKeyDetect），
-                        // 避免特殊 key 被特殊处理
-                        JSONObject jsonObject = JSON.parseObject(response, Feature.DisableSpecialKeyDetect);
-
-                        // 设置网关的 host 地址
-                        jsonObject.put(HOST_KEY, host + SymbolConstant.COLON + port);
-
-                        // 设置 basePath 为微服务路由前缀
-                        jsonObject.put(BASE_PATH_KEY, SymbolConstant.SLASH + basePath);
-
-                        // 获取原始 paths 对象
-                        JSONObject paths = (JSONObject)jsonObject.get(PATHS_KEY);
-                        JSONObject pathJsonObject = new JSONObject();
-                        Set<Entry<String, Object>> entries = paths.entrySet();
-
-                        // 为每个 API 路径添加微服务前缀（循环体内使用 StringBuilder 拼接）
-                        for (Entry<String, Object> entry : entries) {
-                            String key = SymbolConstant.SLASH + basePath + entry.getKey();
-                            pathJsonObject.put(key, entry.getValue());
-                        }
-
-                        // 替换原始 paths 为改写后的 paths
-                        jsonObject.put(PATHS_KEY, pathJsonObject);
-
-                        response = JSON.toJSONString(jsonObject);
-
-                        // 统一按 UTF-8 取字节数组，保证 Content-Length 与响应体字节数一致
-                        byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
+                        // 改写 OpenAPI JSON；统一按 UTF-8 取字节数组，保证 Content-Length 与响应体字节数一致
+                        byte[] responseBytes = rewriteOpenApiDocument(content, host, port, basePath);
                         HttpHeaders headers = originalResponse.getHeaders();
                         headers.setContentLength(responseBytes.length);
 
@@ -172,6 +144,50 @@ public class SwaggerGlobalFilter implements GlobalFilter, Ordered {
         // 使用装饰器替换原始响应，继续执行过滤器链
         return chain.filter(exchange.mutate().response(decoratedResponse).build());
 
+    }
+
+    /**
+     * 改写 OpenAPI 文档 JSON
+     * <p>
+     * 解析原始 JSON 后设置网关 host、微服务 basePath 前缀，
+     * 并为所有 paths 中的路径添加微服务前缀，使前端 Swagger UI 通过网关访问各服务接口
+     * </p>
+     *
+     * @param content 原始响应体字节数据
+     * @param host 网关主机地址
+     * @param port 网关端口
+     * @param basePath 微服务路由前缀
+     * @return 改写后文档的 UTF-8 字节数组
+     */
+    private byte[] rewriteOpenApiDocument(byte[] content, String host, int port, String basePath) {
+        String response = new String(content, StandardCharsets.UTF_8);
+
+        // 解析 JSON，禁用 fastjson 的特殊 key 检测（DisableSpecialKeyDetect），
+        // 避免特殊 key 被特殊处理
+        JSONObject jsonObject = JSON.parseObject(response, Feature.DisableSpecialKeyDetect);
+
+        // 设置网关的 host 地址
+        jsonObject.put(HOST_KEY, host + SymbolConstant.COLON + port);
+
+        // 设置 basePath 为微服务路由前缀
+        jsonObject.put(BASE_PATH_KEY, SymbolConstant.SLASH + basePath);
+
+        // 获取原始 paths 对象
+        JSONObject paths = (JSONObject)jsonObject.get(PATHS_KEY);
+        JSONObject pathJsonObject = new JSONObject();
+        Set<Entry<String, Object>> entries = paths.entrySet();
+
+        // 为每个 API 路径添加微服务前缀（循环体内使用 StringBuilder 拼接）
+        for (Entry<String, Object> entry : entries) {
+            String key = SymbolConstant.SLASH + basePath + entry.getKey();
+            pathJsonObject.put(key, entry.getValue());
+        }
+
+        // 替换原始 paths 为改写后的 paths
+        jsonObject.put(PATHS_KEY, pathJsonObject);
+
+        // 统一按 UTF-8 取字节数组，保证 Content-Length 与响应体字节数一致
+        return JSON.toJSONString(jsonObject).getBytes(StandardCharsets.UTF_8);
     }
 
     /**

@@ -11,6 +11,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -97,26 +98,31 @@ public class InterfaceMethodRequestMappingHandlerMapping extends RequestMappingH
     private Method findMappedInterfaceMethod(Method method, Class<?> handlerType) {
 
         Set<Class<?>> interfaces = ClassUtils.getAllInterfacesForClassAsSet(handlerType);
-        for (Class<?> interfaceClass : interfaces) {
+        return interfaces.stream()
+                .map(interfaceClass -> getDeclaredMethodOrNull(interfaceClass, method))
+                .filter(Objects::nonNull)
+                .filter(candidate -> AnnotatedElementUtils.hasAnnotation(candidate, RequestMapping.class))
+                .findFirst()
+                .orElse(null);
 
-            String methodName = method.getName();
-            try {
+    }
 
-                Method candidate = interfaceClass.getDeclaredMethod(methodName, method.getParameterTypes());
-                if (AnnotatedElementUtils.hasAnnotation(candidate, RequestMapping.class)) {
-                    return candidate;
-                }
-
-            } catch (NoSuchMethodException e) {
-                // 当前接口未声明同签名方法，继续检查下一个接口
-                // （debug 级别留痕，避免异常被静默吞掉）
-                log.debug("Interface {} does not declare method {}", interfaceClass.getName(), methodName, e);
-            }
-
+    /**
+     * 获取接口上与指定方法同签名的方法声明
+     *
+     * @param interfaceClass 接口类型
+     * @param method 处理器方法
+     * @return 接口上同签名的方法；接口未声明时返回 {@code null}
+     */
+    private Method getDeclaredMethodOrNull(Class<?> interfaceClass, Method method) {
+        try {
+            return interfaceClass.getDeclaredMethod(method.getName(), method.getParameterTypes());
+        } catch (NoSuchMethodException e) {
+            // 当前接口未声明同签名方法
+            // （debug 级别留痕，避免异常被静默吞掉）
+            log.debug("Interface {} does not declare method {}", interfaceClass.getName(), method.getName(), e);
+            return null;
         }
-
-        return null;
-
     }
 
 }

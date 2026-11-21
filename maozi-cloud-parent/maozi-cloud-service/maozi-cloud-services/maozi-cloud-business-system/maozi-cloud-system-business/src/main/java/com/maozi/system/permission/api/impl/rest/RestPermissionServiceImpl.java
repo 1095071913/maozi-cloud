@@ -55,8 +55,11 @@ public class RestPermissionServiceImpl extends BaseDBServiceResultImpl<Permissio
      * @return 权限下拉选项列表
      */
     @Override
-    public AbstractBaseResult<List<? extends DropDownResult>> dropDownListResult() {
-        return ResultUtil.success(service.list(PermissionDropDownResult.class));
+    public AbstractBaseResult<List<DropDownResult>> dropDownListResult() {
+        // 返回类型为基类下拉结果，富字段由运行时的 PermissionDropDownResult 实例携带
+        return ResultUtil.success(service.list(PermissionDropDownResult.class).stream()
+                .map(DropDownResult.class::cast)
+                .toList());
     }
 
     /**

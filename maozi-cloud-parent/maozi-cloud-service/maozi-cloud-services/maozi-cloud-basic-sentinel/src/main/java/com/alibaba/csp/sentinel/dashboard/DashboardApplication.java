@@ -35,6 +35,6 @@ public class DashboardApplication {
 
     /** Run Sentinel {@link InitExecutor} init functions in a separate thread so they do not block startup. */
     private static void triggerSentinelInit() {
-        new Thread(() -> InitExecutor.doInit()).start();
+        new Thread(InitExecutor::doInit, "sentinel-dashboard-init").start();
     }
 }

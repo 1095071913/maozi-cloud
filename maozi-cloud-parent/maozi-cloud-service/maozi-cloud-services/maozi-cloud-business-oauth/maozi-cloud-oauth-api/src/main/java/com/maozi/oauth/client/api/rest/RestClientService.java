@@ -62,7 +62,7 @@ public interface RestClientService {
      */
     @Get(value = PATH + "/dropDownList", description = "下拉列表")
     @PreAuthorize("hasAuthority('system:client:list')")
-    AbstractBaseResult<List<? extends DropDownResult>> dropDownListResult();
+    AbstractBaseResult<List<DropDownResult>> dropDownListResult();
 
 
 

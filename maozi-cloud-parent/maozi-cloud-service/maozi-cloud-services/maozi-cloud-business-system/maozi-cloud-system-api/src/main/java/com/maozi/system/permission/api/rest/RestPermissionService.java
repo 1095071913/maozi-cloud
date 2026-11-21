@@ -60,7 +60,7 @@ public interface RestPermissionService {
      */
     @Get(value = PATH + "/dropDownList", description = "下拉列表")
     @PreAuthorize("hasAuthority('system:permission:save') or hasAuthority('system:permission:update')")
-    AbstractBaseResult<List<? extends DropDownResult>> dropDownListResult();
+    AbstractBaseResult<List<DropDownResult>> dropDownListResult();
 
 
 

@@ -153,7 +153,7 @@ public interface BaseDBServiceResult<D> {
      * @param id 主键 ID
      * @return 下拉选择结果
      */
-    AbstractBaseResult<? extends DropDownResult> dropDownResult(Long id);
+    AbstractBaseResult<DropDownResult> dropDownResult(Long id);
 
     /**
      * 根据 ID 集合批量获取下拉选择项
@@ -161,13 +161,13 @@ public interface BaseDBServiceResult<D> {
      * @param ids 主键 ID 集合
      * @return 下拉选择列表
      */
-    AbstractBaseResult<List<? extends DropDownResult>> dropDownListResult(Collection<Long> ids);
+    AbstractBaseResult<List<DropDownResult>> dropDownListResult(Collection<Long> ids);
 
     /**
      * 获取全部启用状态记录的下拉选择项
      *
      * @return 下拉选择列表
      */
-    AbstractBaseResult<List<? extends DropDownResult>> dropDownListResult();
+    AbstractBaseResult<List<DropDownResult>> dropDownListResult();
 
 }

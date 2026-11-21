@@ -20,6 +20,7 @@ import org.springframework.http.HttpHeaders;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -143,7 +144,7 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
             String clientApplicationVersion = clientApplicationVersionSplit[clientApplicationVersionSplit.length - 1];
 
             // 请求携带版本且与实例版本一致时，归入灰度实例分组
-            if(StringUtils.isNotBlank(version) && version.equals(clientApplicationVersion)){
+            if(StringUtils.isNotBlank(version) && Objects.equals(version, clientApplicationVersion)){
                 grayApplicationClients.add(instance);
             }
 

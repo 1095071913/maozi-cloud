@@ -152,8 +152,8 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
                         continue;
                     }
                     MetricEntity newEntity = metrics.getValue();
-                    if (resourceCount.containsKey(resourceMetrics.getKey())) {
-                        MetricEntity oldEntity = resourceCount.get(resourceMetrics.getKey());
+                    MetricEntity oldEntity = resourceCount.get(resourceMetrics.getKey());
+                    if (oldEntity != null) {
                         oldEntity.addPassQps(newEntity.getPassQps());
                         oldEntity.addRtAndSuccessQps(newEntity.getRt(), newEntity.getSuccessQps());
                         oldEntity.addBlockQps(newEntity.getBlockQps());

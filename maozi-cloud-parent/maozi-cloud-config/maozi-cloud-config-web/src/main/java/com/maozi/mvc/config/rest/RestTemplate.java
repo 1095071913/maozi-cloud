@@ -25,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -121,7 +122,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
             // 非生产环境才记录请求参数，避免生产环境敏感信息写入日志
             if (EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD)) {
                 InputStream paramData = parse(request.getBody());
-                String requestParam = new String(readStream(paramData));
+                String requestParam = new String(readStream(paramData), StandardCharsets.UTF_8);
                 logs.put(LogTag.PARAM, requestParam);
             }
 
@@ -145,7 +146,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
                 try {
                     OutputStream body = request.getBody();
                     InputStream paramData = parse(body);
-                    String requestParam = new String(readStream(paramData));
+                    String requestParam = new String(readStream(paramData), StandardCharsets.UTF_8);
                     logs.put(LogTag.PARAM, requestParam);
                 } catch (Exception exc) {
                     // 辅助读取请求参数失败不覆盖原始异常，追加为被抑制异常保留原因链

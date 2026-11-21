@@ -55,6 +55,9 @@ public class SystemController {
     /** The Nacos publisher that pushes system rules to a given app. */
     private final DynamicRulePublisher<List<SystemRuleEntity>> rulePublisher;
 
+    /** Maximum value of a valid TCP/UDP port. */
+    private static final int MAX_PORT = 65535;
+
     public SystemController(RuleRepository<SystemRuleEntity, Long> repository,
                             AppManagement appManagement,
                             @Qualifier("systemRuleNacosProvider") DynamicRuleProvider<List<SystemRuleEntity>> ruleProvider,
@@ -79,7 +82,7 @@ public class SystemController {
         if (!appManagement.isValidMachineOfApp(app, ip)) {
             return Result.ofFail(-1, "given ip does not belong to given app");
         }
-        if (port <= 0 || port > 65535) {
+        if (port <= 0 || port > MAX_PORT) {
             return Result.ofFail(-1, "port should be in (0, 65535)");
         }
         return null;

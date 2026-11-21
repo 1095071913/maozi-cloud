@@ -23,6 +23,7 @@ import reactor.core.publisher.Mono;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -92,80 +93,97 @@ public class ServerHttpResponseAgent extends ServerHttpResponseDecorator {
             // 响应缓冲区工厂，用于将合并后的字节重新包装为 DataBuffer
             DataBufferFactory bufferFactory = super.getDelegate().bufferFactory();
 
-            return super.writeWith(fluxBody.buffer().map(dataBuffers -> {
-
-                // 合并所有数据缓冲区的字节数据
-                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-                dataBuffers.forEach(i -> {
-
-                    byte[] array = new byte[i.readableByteCount()];
-
-                    i.read(array);
-
-                    try {
-                        outputStream.write(array);
-                    } catch (IOException e) {
-                        // 内存字节流写入不会真正发生 IO 异常，防御性捕获并记录
-                        log.warn("write response buffer error", e);
-                    }
-
-                    // 释放 DataBuffer 资源，防止内存泄漏
-                    DataBufferUtils.release(i);
-
-                });
-
-                String responseBody = outputStream.toString();
-
-                // 尝试将响应体解析为 Map，判断是否为自定义响应格式
-                Map<?, ?> result = JacksonUtil.jsonToObject(responseBody, Map.class);
-
-                // 当 OpenTelemetry 未生成有效 traceId 时，从请求头获取或生成 traceId 写入 MDC；
-                // OTel 已有则由其 MDC 集成接管，不覆盖
-                if (TraceIdContext.TRACE_ID_VALUE.equals(Span.current().getSpanContext().getTraceId())) {
-                    String traceId = request.getHeaders().getFirst(TraceIdContext.KEY);
-                    if (StringUtils.isEmpty(traceId)) {
-                        traceId = UUID.randomUUID().toString();
-                    }
-                    MDC.put(TraceIdContext.MDC_TRACE_ID_KEY, traceId);
-                }
-
-                // 根据响应状态和业务码决定日志级别
-                if (Objects.requireNonNull(super.getDelegate().getStatusCode()).value() != HttpStatus.OK.value()) {
-                    // HTTP 状态码非 200，记录错误日志
-                    LogUtil.error(log, logs);
-                } else if (CollectionUtil.isNotEmpty(result) && result.containsKey(RESULT_CODE_KEY)
-                        && !String.valueOf(SuccessResult.RESULT_SUCCESS_DEFAULT_CODE)
-                            .equals(result.get(RESULT_CODE_KEY).toString())) {
-                    // 业务码非 200，记录错误日志
-                    LogUtil.error(log, logs);
-                } else {
-                    // 正常响应，记录信息日志
-                    LogUtil.info(log, logs);
-                }
-
-                // 包装结果字节并返回，同时在 finally 中关闭流和清理 MDC
-                DataBuffer buffer;
-                try {
-                    buffer = bufferFactory.wrap(outputStream.toByteArray());
-                } catch (Exception e) {
-                    log.error("wrap response body error", e);
-                    buffer = null;
-                } finally {
-                    try {
-                        outputStream.close();
-                    } catch (IOException e) {
-                        log.warn("close response buffer error", e);
-                    }
-                    MDC.clear();
-                }
-                return buffer;
-            }));
+            return super.writeWith(fluxBody.buffer()
+                    .map(dataBuffers -> aggregateAndLog(dataBuffers, bufferFactory)));
 
         }
 
         // 非 Flux 类型直接透传
         return super.writeWith(body);
+
+    }
+
+    /**
+     * 合并响应体数据块，记录响应日志并重新包装为 DataBuffer
+     * <p>
+     * 合并所有 DataBuffer 为字节数组后：解析 JSON 响应体判断是否为自定义格式、
+     * 在 OpenTelemetry 未生成有效 traceId 时向 MDC 写入 traceId、
+     * 根据响应状态和业务码记录对应级别的日志；
+     * 最后包装结果字节返回，并关闭流与清理 MDC
+     * </p>
+     *
+     * @param dataBuffers 响应体数据块列表
+     * @param bufferFactory 响应缓冲区工厂
+     * @return 合并后的响应数据缓冲区
+     */
+    private DataBuffer aggregateAndLog(List<? extends DataBuffer> dataBuffers, DataBufferFactory bufferFactory) {
+
+        // 合并所有数据缓冲区的字节数据
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        dataBuffers.forEach(i -> {
+
+            byte[] array = new byte[i.readableByteCount()];
+
+            i.read(array);
+
+            try {
+                outputStream.write(array);
+            } catch (IOException e) {
+                // 内存字节流写入不会真正发生 IO 异常，防御性捕获并记录
+                log.warn("write response buffer error", e);
+            }
+
+            // 释放 DataBuffer 资源，防止内存泄漏
+            DataBufferUtils.release(i);
+
+        });
+
+        String responseBody = outputStream.toString();
+
+        // 尝试将响应体解析为 Map，判断是否为自定义响应格式
+        Map<?, ?> result = JacksonUtil.jsonToObject(responseBody, Map.class);
+
+        // 当 OpenTelemetry 未生成有效 traceId 时，从请求头获取或生成 traceId 写入 MDC；
+        // OTel 已有则由其 MDC 集成接管，不覆盖
+        if (TraceIdContext.TRACE_ID_VALUE.equals(Span.current().getSpanContext().getTraceId())) {
+            String traceId = request.getHeaders().getFirst(TraceIdContext.KEY);
+            if (StringUtils.isEmpty(traceId)) {
+                traceId = UUID.randomUUID().toString();
+            }
+            MDC.put(TraceIdContext.MDC_TRACE_ID_KEY, traceId);
+        }
+
+        // 根据响应状态和业务码决定日志级别
+        if (Objects.requireNonNull(getDelegate().getStatusCode()).value() != HttpStatus.OK.value()) {
+            // HTTP 状态码非 200，记录错误日志
+            LogUtil.error(log, logs);
+        } else if (CollectionUtil.isNotEmpty(result) && result.containsKey(RESULT_CODE_KEY)
+                && !String.valueOf(SuccessResult.RESULT_SUCCESS_DEFAULT_CODE)
+                    .equals(result.get(RESULT_CODE_KEY).toString())) {
+            // 业务码非 200，记录错误日志
+            LogUtil.error(log, logs);
+        } else {
+            // 正常响应，记录信息日志
+            LogUtil.info(log, logs);
+        }
+
+        // 包装结果字节并返回，同时在 finally 中关闭流和清理 MDC
+        DataBuffer buffer;
+        try {
+            buffer = bufferFactory.wrap(outputStream.toByteArray());
+        } catch (Exception e) {
+            log.error("wrap response body error", e);
+            buffer = null;
+        } finally {
+            try {
+                outputStream.close();
+            } catch (IOException e) {
+                log.warn("close response buffer error", e);
+            }
+            MDC.clear();
+        }
+        return buffer;
 
     }
 

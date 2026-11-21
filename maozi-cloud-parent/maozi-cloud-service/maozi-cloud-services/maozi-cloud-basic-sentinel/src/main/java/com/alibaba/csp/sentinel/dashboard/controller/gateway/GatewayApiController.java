@@ -145,7 +145,7 @@ public class GatewayApiController {
             return Result.ofFail(-1, "predicateItems can't empty");
         }
 
-        List<ApiPredicateItemEntity> predicateItemEntities = new ArrayList<>();
+        List<ApiPredicateItemEntity> predicateItemEntities = new ArrayList<>(predicateItems.size());
         for (ApiPredicateItemVo predicateItem : predicateItems) {
             ApiPredicateItemEntity predicateItemEntity = new ApiPredicateItemEntity();
 
@@ -214,7 +214,7 @@ public class GatewayApiController {
             return Result.ofFail(-1, "predicateItems can't empty");
         }
 
-        List<ApiPredicateItemEntity> predicateItemEntities = new ArrayList<>();
+        List<ApiPredicateItemEntity> predicateItemEntities = new ArrayList<>(predicateItems.size());
         for (ApiPredicateItemVo predicateItem : predicateItems) {
             ApiPredicateItemEntity predicateItemEntity = new ApiPredicateItemEntity();
 

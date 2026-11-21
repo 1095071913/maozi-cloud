@@ -86,7 +86,8 @@ public class CodeConfig {
 
             }
 
-        } catch (Throwable e) {
+        } catch (Exception e) {
+            // 仅捕获 Exception，OutOfMemoryError 等 Error 交由 JVM 处理，避免掩盖启动期致命问题
             LogUtil.error(log, "注册错误错误码失败", e);
         }
 

@@ -15,7 +15,10 @@ import java.util.Objects;
  * @author pengjinlong
  * @since 2026/4/29 10:13
  */
-public class ObjectUtil {
+public final class ObjectUtil {
+
+    /** 私有构造器，防止工具类被实例化 */
+    private ObjectUtil() {}
 
     /**
      * 判断两个对象是否相等

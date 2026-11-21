@@ -44,7 +44,7 @@ import java.util.Set;
  * @author maozi
  * @date 2026/11/08
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"rawtypes", "unchecked"})
 @Configuration
 @ConditionalOnProperty(
         name = "springdoc.api-docs.enabled",                 // 配置项名
@@ -113,9 +113,12 @@ public class SwaggerConfig {
 
         return (Operation operation, HandlerMethod handlerMethod) -> {
 
-            // 取方法 @RequestMapping 声明的第一个路径，白名单内的接口不注入认证头
-            String url = Objects.requireNonNull(handlerMethod.getMethodAnnotation(RequestMapping.class)).value()[0];
-            if (whitelist.contains(url)) {
+            // 取方法 @RequestMapping 声明的第一个路径（优先 path 属性，未配置时回退 value），
+            // 未声明路径或白名单内的接口不注入认证头
+            RequestMapping requestMapping = handlerMethod.getMethodAnnotation(RequestMapping.class);
+            String[] paths = Objects.isNull(requestMapping) ? new String[0]
+                    : (requestMapping.path().length > 0 ? requestMapping.path() : requestMapping.value());
+            if (paths.length == 0 || whitelist.contains(paths[0])) {
                 return operation;
             }
 

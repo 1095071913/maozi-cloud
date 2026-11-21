@@ -3,6 +3,7 @@ package com.maozi.system.user.result;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.maozi.base.plugin.mapping.QueryMapping;
 import com.maozi.base.result.DropDownResult;
+import com.maozi.system.constant.SystemServiceConstant;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -45,12 +46,12 @@ public class AiGetUserInfoResult implements Serializable {
 
     /** 所属客户端信息，通过远程客户端服务查询自动填充 */
     @Schema(description = "客户端")
-    @QueryMapping(isService = true, serviceName = "rpcClientService", relationField = "clientId")
+    @QueryMapping(isService = true, serviceName = SystemServiceConstant.RPC_CLIENT_SERVICE, relationField = "clientId")
     private DropDownResult client;
 
     /** 用户拥有的权限列表，通过用户服务查询自动填充 */
     @Schema(description = "权限列表")
-    @QueryMapping(isService = true, serviceName = "userServiceImpl",
+    @QueryMapping(isService = true, serviceName = SystemServiceConstant.USER_SERVICE,
             functionName = "listPermissionByUserId", relationField = "id")
     private List<String> permissions;
 

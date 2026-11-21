@@ -153,13 +153,13 @@ public class SwaggerGlobalFilter implements GlobalFilter, Ordered {
 
                         response = JSON.toJSONString(jsonObject);
 
-                        // 更新响应头中的 Content-Length
-                        int length = response.getBytes().length;
+                        // 统一按 UTF-8 取字节数组，保证 Content-Length 与响应体字节数一致
+                        byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
                         HttpHeaders headers = originalResponse.getHeaders();
-                        headers.setContentLength(length);
+                        headers.setContentLength(responseBytes.length);
 
                         // 将改写后的 JSON 包装为 DataBuffer 返回
-                        DataBuffer buffer = super.bufferFactory().wrap(response.getBytes(StandardCharsets.UTF_8));
+                        DataBuffer buffer = super.bufferFactory().wrap(responseBytes);
                         return super.writeWith(Mono.just(buffer));
 
                     });

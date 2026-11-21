@@ -6,6 +6,7 @@ import com.maozi.common.CollectionUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.service.api.impl.BaseServiceImpl;
+import com.maozi.system.constant.SystemServiceConstant;
 import com.maozi.system.permission.api.RoleService;
 import com.maozi.system.permission.api.UserRoleService;
 import com.maozi.system.permission.domain.UserRoleDO;
@@ -33,7 +34,7 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
     public static final String RESOURCE_NAME = "用户角色关系";
 
     /** 角色服务，用于校验角色是否存在 */
-    @Resource(name = "roleServiceImpl")
+    @Resource(name = SystemServiceConstant.ROLE_SERVICE)
     protected RoleService roleService;
 
     /** 获取资源名称 */

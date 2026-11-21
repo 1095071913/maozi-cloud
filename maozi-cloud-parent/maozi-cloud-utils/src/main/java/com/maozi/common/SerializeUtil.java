@@ -9,7 +9,10 @@ package com.maozi.common;
  * @author pengjinlong
  * @since 2026/4/29 18:48
  */
-public class SerializeUtil {
+public final class SerializeUtil {
+
+    /** 私有构造器，防止工具类被实例化 */
+    private SerializeUtil() {}
 
     /** 序列化版本号字段名 */
     public static final String SERIAL_VERSION_UID_FIELD_NAME = "serialVersionUID";

@@ -23,6 +23,7 @@ import com.maozi.common.CollectionUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.service.api.impl.BaseServiceImpl;
+import com.maozi.system.constant.SystemServiceConstant;
 import com.maozi.system.permission.api.PermissionService;
 import com.maozi.system.permission.api.RolePermissionService;
 import com.maozi.system.permission.domain.RolePermissionDO;
@@ -53,7 +54,7 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
     public static final String RESOURCE_NAME = "角色权限关系";
 
     /** 权限服务，用于校验权限是否存在 */
-    @Resource(name = "permissionServiceImpl")
+    @Resource(name = SystemServiceConstant.PERMISSION_SERVICE)
     protected PermissionService permissionService;
 
     /** 获取资源名称 */

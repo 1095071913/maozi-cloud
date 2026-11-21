@@ -306,7 +306,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         List<String> columns = CollectionUtil.newArrayList(32);
 
-        for( ; !clazz.isAssignableFrom(Object.class); clazz = clazz.getSuperclass()){
+        for( ; Objects.nonNull(clazz) && !clazz.isAssignableFrom(Object.class); clazz = clazz.getSuperclass()){
 
             Field[] fields = clazz.getDeclaredFields();
             for(Field field : fields) {
@@ -322,7 +322,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
                     // 无注解：字段名转下划线，关联模式下追加默认表别名前缀
                     String columnName = StrUtil.toUnderlineCase(fieldName);
-                    columns.add(isJoin
+                    columns.add(Boolean.TRUE.equals(isJoin)
                             ? String.join(SymbolConstant.DOT, QueryEnvironmentContext.defaultOrderKey, columnName)
                             : columnName);
 
@@ -1318,7 +1318,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public void setQueryMappingWrapper(Class<?> clazz, MPJLambdaWrapper<T> wrapper){
 
-        for(;!clazz.isAssignableFrom(Object.class);clazz = clazz.getSuperclass()){
+        for( ; Objects.nonNull(clazz) && !clazz.isAssignableFrom(Object.class); clazz = clazz.getSuperclass()){
 
             Field[] fields = clazz.getDeclaredFields();
             for(Field field : fields) {

@@ -17,15 +17,21 @@ import java.util.Objects;
  * @see EnvironmentTypeEnum 环境类型枚举
  * @see ApplicationEnvironmentContext 应用环境上下文
  */
-public class EnvironmentUtil {
+public final class EnvironmentUtil {
+
+    /** 私有构造器，防止工具类被实例化 */
+    private EnvironmentUtil() {}
 
     /**
      * 判断当前环境是否为指定类型
      *
      * @param type 目标环境类型
-     * @return 一致时返回 true，否则返回 false
+     * @return 一致时返回 true，否则返回 false；type 为 null 时返回 false
      */
     public static boolean isEnvironment(EnvironmentTypeEnum type) {
+        if (Objects.isNull(type)) {
+            return false;
+        }
         // 环境标识由静态上下文运行时注入（可能为 null），使用 Objects.equals 防止 NPE
         return Objects.equals(ApplicationEnvironmentContext.environment, type.getDesc());
     }

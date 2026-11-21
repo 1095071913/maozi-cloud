@@ -123,7 +123,7 @@ public class LockAop {
      * @return 拼接后的锁键名称
      * @throws Exception 反射操作异常
      */
-    public String getKeyName(JoinPoint joinPoint, Lock lock) throws Exception {
+    private String getKeyName(JoinPoint joinPoint, Lock lock) throws Exception {
 
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
 

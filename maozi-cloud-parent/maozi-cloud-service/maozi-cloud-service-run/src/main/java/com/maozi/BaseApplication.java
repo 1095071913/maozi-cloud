@@ -281,7 +281,7 @@ public class BaseApplication {
         // 推导应用名并截取项目简称，服务名读取失败时终止启动
         String applicationName = getApplicationName();
         if(StringUtils.isEmpty(applicationName)){
-            throw new RuntimeException("服务名读取失败");
+            throw new ApplicationBootstrapException("服务名读取失败");
         }
         String applicationProjectAbbreviation = applicationName.replace(PROJECT_PREFIX, SymbolConstant.EMPTY);
         applicationProjectAbbreviation = applicationProjectAbbreviation.substring(0,
@@ -335,9 +335,10 @@ public class BaseApplication {
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException("加载运行时配置初始化器失败：" + CONFIG_LOCATION_PATTERN, e);
+            throw new ApplicationBootstrapException(
+                    "加载运行时配置初始化器失败：" + CONFIG_LOCATION_PATTERN, e);
         } catch (Exception e) {
-            throw new RuntimeException("执行运行时配置初始化器失败", e);
+            throw new ApplicationBootstrapException("执行运行时配置初始化器失败", e);
         }
 
     }
@@ -353,7 +354,7 @@ public class BaseApplication {
             Class<?> clazz = Class.forName(className.trim());
             return (ConfigInitializer) clazz.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
-            throw new RuntimeException("实例化配置初始化器失败：" + className, e);
+            throw new ApplicationBootstrapException("实例化配置初始化器失败：" + className, e);
         }
     }
 

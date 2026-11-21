@@ -32,7 +32,15 @@ import java.util.logging.Logger;
  */
 public class FilterSampler implements Sampler {
 
-    /** JUL 日志器：javaagent 环境下避免引入宿主日志框架造成类冲突 */
+    /**
+     * JUL 日志器
+     * <p>
+     * 【规约豁免说明】阿里巴巴 Java 开发手册要求使用 SLF4J 门面而非日志系统 API，
+     * 但本类运行于 javaagent 独立类加载环境：引入 SLF4J 会与宿主应用的日志框架
+     * 发生类冲突，OpenTelemetry 官方 javaagent 内部同样使用 JUL，
+     * 故此处属于合理豁免，禁止改为 SLF4J。
+     * </p>
+     */
     private static final Logger LOGGER = Logger.getLogger(FilterSampler.class.getName());
 
     /** 主线程名称：启动阶段的 Span 直接丢弃，避免应用启动过程产生噪声 */

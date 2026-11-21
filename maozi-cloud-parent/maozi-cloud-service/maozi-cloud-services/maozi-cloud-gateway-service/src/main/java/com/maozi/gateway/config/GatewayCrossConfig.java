@@ -37,10 +37,9 @@ import reactor.core.publisher.Mono;
 public class GatewayCrossConfig {
 
     /**
-     * CORS 预检请求缓存时间（秒）；注意值带 long 后缀 L，
-     * 浏览器会收到字面 "3600L"，如需修正请改为 "3600"
+     * CORS 预检请求缓存时间（秒）
      */
-    private static final String MAX_AGE = "3600L";
+    private static final String MAX_AGE = "3600";
 
     /** Access-Control-Allow-Credentials 响应头取值：允许携带凭证 */
     private static final String ALLOW_CREDENTIALS_VALUE = "true";

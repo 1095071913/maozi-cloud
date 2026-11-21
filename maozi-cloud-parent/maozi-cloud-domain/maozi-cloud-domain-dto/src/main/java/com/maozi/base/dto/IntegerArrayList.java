@@ -3,6 +3,7 @@ package com.maozi.base.dto;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.io.Serial;
 import java.util.ArrayList;
 
 /**
@@ -19,4 +20,7 @@ import java.util.ArrayList;
 @EqualsAndHashCode(callSuper = true)
 public class IntegerArrayList extends ArrayList<Integer> {
 
+    /** 序列化版本号，父类结构变更时保持本类反序列化兼容 */
+    @Serial
+    private static final long serialVersionUID = 1L;
 }

@@ -1,8 +1,10 @@
 package com.maozi.oauth.token.api.rest.fallback;
 
 import com.maozi.common.JacksonUtil;
+import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.common.result.error.ErrorResult;
+import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.oauth.token.api.rest.RestOauthTokenService;
 import org.springframework.cloud.openfeign.FallbackFactory;
@@ -35,18 +37,26 @@ public class RestOauthTokenServiceFallBackFactory implements FallbackFactory<Res
     public RestOauthTokenService create(Throwable e) {
 
         // 尝试将异常消息按服务端返回的 ErrorResult JSON 解析
-        ErrorResult<?> errorResult = JacksonUtil.jsonToObject(e.getLocalizedMessage(), ErrorResult.class);
+        // 解析结果为空且原异常为业务异常时，回退使用业务异常携带的结果
+        ErrorResult result = JacksonUtil.jsonToObject(e.getLocalizedMessage(), ErrorResult.class);
+        if (Objects.isNull(result) && e instanceof BusinessResultException businessResultException) {
+            result = businessResultException.getErrorResult();
+        }
 
-        // 解析结果为空时，回退使用业务异常（BusinessResultException）携带的结果
-        ErrorResult result = Objects.isNull(errorResult)
-                ? ((BusinessResultException)e).getErrorResult() : errorResult;
+        // 仍无法取得错误结果（如连接超时等非业务异常）时返回统一系统错误
+        // 避免强转 ClassCastException
+        if (Objects.isNull(result)) {
+            result = ResultUtil.error(SystemErrorCode.SYSTEM_ERROR);
+        }
 
+        // 匿名内部类引用需为最终变量
+        final ErrorResult finalResult = result;
         return new RestOauthTokenService() {
 
             /** 降级处理：直接返回解析出的服务端错误结果 */
             @Override
             public AbstractBaseResult<Map<String, Object>> introspectResult(String token) {
-                return result;
+                return finalResult;
             }
 
         };

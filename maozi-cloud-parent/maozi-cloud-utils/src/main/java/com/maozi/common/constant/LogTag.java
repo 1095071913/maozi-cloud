@@ -9,7 +9,10 @@ package com.maozi.common.constant;
  * @author maozi
  * @date 2026/11/08
  */
-public class LogTag {
+public final class LogTag {
+
+    /** 私有构造器，防止常量类被实例化 */
+    private LogTag() {}
 
     /** 初始化耗时 */
     public static final String INIT_TIME = "InitTime";

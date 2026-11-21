@@ -14,7 +14,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author maozi
  * @date 2026/11/08
  */
-public class StoreClass {
+public final class StoreClass {
+
+    /** 私有构造器，防止常量类被实例化 */
+    private StoreClass() {}
 
     /** 存储类型 -> (表名 -> 实体Class对象) 的映射 */
     public static final Map<StoreClassTypeEnum, Map<String, Class<?>>> STORE_CLASS_MAP = new ConcurrentHashMap<>();

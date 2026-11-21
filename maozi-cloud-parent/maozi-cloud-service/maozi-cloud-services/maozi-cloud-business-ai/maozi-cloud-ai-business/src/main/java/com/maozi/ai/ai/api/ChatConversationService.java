@@ -20,6 +20,6 @@ public interface ChatConversationService {
      * @param conversationId 会话 ID
      * @throws BusinessResultException 会话不存在时抛出
      */
-    void has(Long conversationId);
+    void checkExist(Long conversationId);
 
 }

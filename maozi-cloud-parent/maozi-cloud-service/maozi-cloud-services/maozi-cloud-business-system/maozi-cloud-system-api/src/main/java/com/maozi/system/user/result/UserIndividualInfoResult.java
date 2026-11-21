@@ -1,6 +1,7 @@
 package com.maozi.system.user.result;
 
 import com.maozi.base.plugin.mapping.QueryMapping;
+import com.maozi.system.constant.SystemServiceConstant;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -37,7 +38,8 @@ public class UserIndividualInfoResult implements Serializable {
 
     /** 当前登录用户拥有的权限标识列表，通过用户服务查询自动填充 */
     @Schema(description = "权限列表")
-    @QueryMapping(isService = true, serviceName = "userServiceImpl", functionName = "listCurrentPermission")
+    @QueryMapping(isService = true, serviceName = SystemServiceConstant.USER_SERVICE,
+            functionName = "listCurrentPermission")
     private List<String> permissions;
 
 }

@@ -71,16 +71,16 @@ public class EnumConfig {
                 // 仅处理枚举类且实现了 BaseEnum 接口的类
                 if (item.isEnum() && item.getEnumConstants() instanceof BaseEnum[] enumConstants) {
 
-                    // 将类名首字母转为小写作为映射键（如 UserType -> userType）
-                    char[] charArray = item.getSimpleName().toCharArray();
-
-                    charArray[0] += 32; // ASCII 码加 32，即大写字母转小写
+                    // 将类名首字母转为小写作为映射键（如 UserType -> userType），
+                    // 使用 Character.toLowerCase 避免首字符非大写字母时产生错误字符
+                    String simpleName = item.getSimpleName();
+                    String enumKey = Character.toLowerCase(simpleName.charAt(0)) + simpleName.substring(1);
 
                     // 以不可变列表注册，防止外部通过引用修改枚举常量列表
                     List<BaseEnum> constants = Collections.unmodifiableList(CollectionUtil.newArrayList(enumConstants));
 
                     // 将枚举常量列表注册到全局映射表
-                    ENUMS.put(new String(charArray), constants);
+                    ENUMS.put(enumKey, constants);
 
                 }
 

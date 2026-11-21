@@ -12,7 +12,10 @@ import cn.hutool.core.util.StrUtil;
  * @author maozi
  * @date 2026/11/08
  */
-public class ReflectUtil extends cn.hutool.core.util.ReflectUtil {
+public final class ReflectUtil extends cn.hutool.core.util.ReflectUtil {
+
+    /** 私有构造器，防止工具类被实例化 */
+    private ReflectUtil() {}
 
     /** getter 方法前缀 */
     public static final String GET_FUN_PREFIX_NAME = "get";

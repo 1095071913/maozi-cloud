@@ -41,6 +41,9 @@ public class ChatConversationServiceImpl extends BaseServiceImpl<ChatConversatio
     /** 会话标题最大长度 */
     private static final int TITLE_MAX_LENGTH = 20;
 
+    /** 标题超长截断后的省略号后缀 */
+    private static final String TITLE_ELLIPSIS = "...";
+
     /** 对话记忆，用于删除会话时清空该会话的对话记忆 */
     private final ChatMemory chatMemory;
 
@@ -57,7 +60,7 @@ public class ChatConversationServiceImpl extends BaseServiceImpl<ChatConversatio
      * @throws BusinessResultException 会话不存在时抛出
      */
     @Override
-    public void has(Long conversationId) {
+    public void checkExist(Long conversationId) {
         LambdaQueryWrapper<ChatConversationDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ChatConversationDO::getId, conversationId);
         super.checkHas(wrapper);
@@ -110,7 +113,8 @@ public class ChatConversationServiceImpl extends BaseServiceImpl<ChatConversatio
         }
 
         ChatConversationDO domain = new ChatConversationDO();
-        domain.setTitle(title.length() > TITLE_MAX_LENGTH ? StrUtil.subPre(title, TITLE_MAX_LENGTH) + "..." : title);
+        domain.setTitle(title.length() > TITLE_MAX_LENGTH
+                ? StrUtil.subPre(title, TITLE_MAX_LENGTH) + TITLE_ELLIPSIS : title);
         domain.setUserId(CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId));
 
         super.save(domain);

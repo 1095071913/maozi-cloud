@@ -52,10 +52,11 @@ public class JobEntranceLogAop {
      * </p>
      *
      * @param proceedingJoinPoint AOP 连接点
+     * @return 任务方法的返回值，原样透传
      * @throws Throwable 任务执行异常原样上抛
      */
     @Around(POINT)
-    public void around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+    public Object around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 
         // 将当前应用版本写入版本上下文，保证任务内发起的远程调用按版本灰度路由
         VersionContext.CONTEXT.set(ApplicationEnvironmentContext.version);
@@ -72,14 +73,16 @@ public class JobEntranceLogAop {
 
         Exception ex = null;
         try {
-            
-            // 执行任务方法
-            proceedingJoinPoint.proceed();
+
+            // 执行任务方法并原样透传返回值
+            Object result = proceedingJoinPoint.proceed();
 
             // 非生产环境直接记录任务参数；生产环境为避免参数外泄，仅在异常时补充记录
             if (EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD)) {
                 logs.put(LogTag.PARAM, XxlJobHelper.getJobParam());
             }
+
+            return result;
             
         } catch (Exception e) {
             

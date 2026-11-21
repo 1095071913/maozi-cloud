@@ -63,6 +63,12 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
     /** 协议分隔符 */
     private static final String PROTOCOL_SEPARATOR = "://";
 
+    /** 公网访问域名中的地域前缀（如 bucket.oss-cn-hangzhou.aliyuncs.com） */
+    private static final String OSS_REGION_PREFIX = ".oss-";
+
+    /** 阿里云公网访问域名后缀 */
+    private static final String ALIYUN_PUBLIC_DOMAIN_SUFFIX = "aliyuncs.com";
+
     /**
      * 初始化 OSS 客户端
      * <p>
@@ -198,7 +204,9 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
         String fileName = UUID.randomUUID().toString().replace(SymbolConstant.HYPHEN, SymbolConstant.EMPTY);
 
         return directory + SymbolConstant.SLASH + datePath + SymbolConstant.SLASH + fileName
-                + (StringUtils.isNotEmpty(extension) ? SymbolConstant.DOT + extension.toLowerCase() : SymbolConstant.EMPTY);
+                + (StringUtils.isNotEmpty(extension)
+                        ? SymbolConstant.DOT + extension.toLowerCase()
+                        : SymbolConstant.EMPTY);
 
     }
 
@@ -236,7 +244,8 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
 
         }
 
-        return HTTPS_SCHEME_PREFIX + bucket + ".oss-" + aliyun.getRegion() + SymbolConstant.DOT + "aliyuncs.com" + SymbolConstant.SLASH + fileKey;
+        return HTTPS_SCHEME_PREFIX + bucket + OSS_REGION_PREFIX + aliyun.getRegion()
+                + SymbolConstant.DOT + ALIYUN_PUBLIC_DOMAIN_SUFFIX + SymbolConstant.SLASH + fileKey;
 
     }
 

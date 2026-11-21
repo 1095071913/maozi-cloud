@@ -6,6 +6,7 @@ import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.common.result.success.SuccessResult;
 import feign.FeignException;
 import feign.Response;
+import feign.codec.DecodeException;
 import feign.codec.Decoder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +50,7 @@ public class ResultDecoder implements Decoder {
      * <p>
      * 要求目标返回类型为参数化类型（如 {@code Result<T>}），
      * 取其第一个泛型参数作为实际数据类型进行反序列化，
-     * 非参数化类型会导致类型转换异常。
+     * 非参数化类型将抛出解码异常。
      * </p>
      *
      * @param response Feign 响应对象
@@ -62,8 +63,15 @@ public class ResultDecoder implements Decoder {
     @Override
     public Object decode(Response response, Type type) throws IOException, FeignException {
 
+        // 非参数化类型无法定位数据泛型，先做 instanceof 预检查
+        // 抛出明确异常而非 ClassCastException
+        if (!(type instanceof ParameterizedType parameterizedType)) {
+            throw new DecodeException(response.status(),
+                    "Feign 返回类型必须为参数化类型: " + type.getTypeName(), response.request());
+        }
+
         // 取目标返回类型的第一个泛型参数作为实际数据类型（如 Result<User> 中的 User）
-        Type dataType = ((ParameterizedType)type).getActualTypeArguments()[0];
+        Type dataType = parameterizedType.getActualTypeArguments()[0];
 
         // 基于 Spring 消息转换器构建提取器，
         // 借助 FeignResponseAdapter 将 Feign 响应适配为 ClientHttpResponse

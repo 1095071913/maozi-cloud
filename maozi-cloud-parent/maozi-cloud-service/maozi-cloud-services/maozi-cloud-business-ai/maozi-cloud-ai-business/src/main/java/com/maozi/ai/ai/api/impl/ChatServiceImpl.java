@@ -149,7 +149,7 @@ public class ChatServiceImpl implements ChatService {
     public Flux<AbstractBaseResult<ChatResult>> chatResult(Long conversationId, ChatParam param) {
 
         // 校验会话是否存在
-        chatConversationService.has(conversationId);
+        chatConversationService.checkExist(conversationId);
 
         UserMessage.Builder userMessageBuilder = UserMessage.builder().text(param.getMessage());
 

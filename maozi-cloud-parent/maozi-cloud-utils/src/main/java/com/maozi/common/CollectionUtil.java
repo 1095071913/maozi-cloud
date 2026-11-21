@@ -23,7 +23,13 @@ import java.util.Set;
  * @date 2026/11/08
  */
 @SuppressWarnings("unchecked")
-public class CollectionUtil {
+public final class CollectionUtil {
+
+    /** HashMap/HashSet 默认负载因子，用于按预期元素个数换算初始容量 */
+    private static final float DEFAULT_LOAD_FACTOR = 0.75f;
+
+    /** 私有构造器，防止工具类被实例化 */
+    private CollectionUtil() {}
 
     /**
      * 创建空的 ArrayList
@@ -93,7 +99,7 @@ public class CollectionUtil {
      * @return 按预期元素个数定容的 HashMap
      */
     public static <K, V> Map<K, V> newHashMap(int expectedSize) {
-        return new HashMap<>((int) (expectedSize / 0.75f) + 1);
+        return new HashMap<>((int) (expectedSize / DEFAULT_LOAD_FACTOR) + 1);
     }
 
     /**
@@ -106,7 +112,7 @@ public class CollectionUtil {
      * @return 包含指定键值对的 HashMap
      */
     public static <K, V> Map<K, V> newHashMap(K key, V value) {
-        HashMap<K, V> map = new HashMap<>((int) (1 / 0.75f) + 1);
+        HashMap<K, V> map = new HashMap<>((int) (1 / DEFAULT_LOAD_FACTOR) + 1);
         map.put(key, value);
         return map;
     }
@@ -132,7 +138,7 @@ public class CollectionUtil {
      * @return 按预期元素个数定容的 HashSet
      */
     public static <T> Set<T> newHashSet(int expectedSize) {
-        return new HashSet<>((int) (expectedSize / 0.75f) + 1);
+        return new HashSet<>((int) (expectedSize / DEFAULT_LOAD_FACTOR) + 1);
     }
 
     /**

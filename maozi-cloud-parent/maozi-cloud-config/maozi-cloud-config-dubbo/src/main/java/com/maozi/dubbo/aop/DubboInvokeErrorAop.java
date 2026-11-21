@@ -73,6 +73,12 @@ public class DubboInvokeErrorAop {
             String[] remoteInvokeClassSplit = DOT_SPLIT_PATTERN
                     .split(proceedingJoinPoint.getSignature().getDeclaringTypeName());
 
+            // 包路径段数不足（切点调整或类移动后无法按约定解析）时
+            // 直接抛出原始异常，避免数组越界
+            if(remoteInvokeClassSplit.length <= 5){
+                throw e;
+            }
+
             // 判断是否为接口层调用：remoteInvokeClassSplit[5] 对应包路径中 api 下的子包名。
             // 当前切点限定的子包名恒为 "rpc"，下方条件恒不成立；
             // 若未来切点扩展到 api.impl 包，此处可让实现层内部调用的异常继续向上抛出

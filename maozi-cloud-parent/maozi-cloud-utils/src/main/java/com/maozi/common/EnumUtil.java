@@ -31,6 +31,11 @@ public final class EnumUtil {
      */
     public static <T extends BaseEnum> T getEnum(Integer value, Class<T> clazz) {
 
+        // 公共工具方法，无法约束调用方传参，先做判空防御
+        if (Objects.isNull(value) || Objects.isNull(clazz)) {
+            return null;
+        }
+
         T[] values = clazz.getEnumConstants();
 
         for(T iEnum : values) {
@@ -56,6 +61,11 @@ public final class EnumUtil {
      * @throws BusinessResultException 未找到对应枚举时抛出
      */
     public static <T extends BaseEnum> T getEnumNullThrow(Integer value, Class<T> clazz, String resourceName) {
+
+        // 公共工具方法，无法约束调用方传参，先做判空防御
+        if (Objects.isNull(value) || Objects.isNull(clazz)) {
+            throw new BusinessResultException(SystemErrorCode.DATA_NOT_EXIST_ERROR).setResource(resourceName);
+        }
 
         T[] values = clazz.getEnumConstants();
 

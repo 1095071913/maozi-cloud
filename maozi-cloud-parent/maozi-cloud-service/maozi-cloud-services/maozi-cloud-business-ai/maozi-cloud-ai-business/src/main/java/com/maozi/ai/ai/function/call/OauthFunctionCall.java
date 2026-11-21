@@ -2,6 +2,7 @@ package com.maozi.ai.ai.function.call;
 
 import cn.hutool.core.util.RandomUtil;
 import com.maozi.common.CollectionUtil;
+import com.maozi.common.ObjectUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.oauth.client.api.rpc.RpcClientService;
 import com.maozi.oauth.client.dto.ClientDTO;
@@ -60,9 +61,9 @@ public class OauthFunctionCall {
         param.setAccessTokenValiditySeconds(accessTokenValiditySeconds);
         param.setRefreshTokenValiditySeconds(refreshTokenValiditySeconds);
 
-        AbstractBaseResult<ClientDTO> result = rpcClientService.aiSaveResult(param);
-        if(result.isSuccess()){
-            // 保存成功后将生成的明文客户端密钥回填到返回数据，供调用方查看
+        AbstractBaseResult<ClientDTO> result = rpcClientService.saveResult(param);
+        if(result.isSuccess() && ObjectUtil.isNotNull(result.getData())){
+            // 保存成功后将明文客户端密钥回填到返回数据（RPC 结果数据判空防御）
             result.getData().setClientSecret(param.getClientSecret());
         }
         return result;

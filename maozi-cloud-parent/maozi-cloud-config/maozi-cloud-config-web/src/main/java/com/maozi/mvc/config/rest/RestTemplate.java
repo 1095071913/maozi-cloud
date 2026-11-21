@@ -148,7 +148,8 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
                     String requestParam = new String(readStream(paramData));
                     logs.put(LogTag.PARAM, requestParam);
                 } catch (Exception exc) {
-                    ex = exc;
+                    // 辅助读取请求参数失败不覆盖原始异常，追加为被抑制异常保留原因链
+                    ex.addSuppressed(exc);
                 }
             }
             

@@ -4,7 +4,6 @@ import cn.hutool.extra.servlet.JakartaServletUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -119,16 +118,6 @@ public final class WebUtil {
      */
     public static String getRequestHost() {
         return JakartaServletUtil.getClientIP(Objects.requireNonNull(getRequest()));
-    }
-
-    /**
-     * 判断 IP 地址字符串是否为空、空白或 "unknown"
-     *
-     * @param ip 待判断的 IP 字符串
-     * @return 为 null、空白或 "unknown"（不区分大小写）时返回 true
-     */
-    private static boolean isBlankOrUnknown(String ip) {
-        return StringUtils.isBlank(ip) || UNKNOWN.equalsIgnoreCase(ip);
     }
 
 }

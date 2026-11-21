@@ -43,10 +43,16 @@ import java.util.TimeZone;
  * @date 2026/11/08
  */
 @Slf4j
-public class JacksonUtil {
+public final class JacksonUtil {
 
     /** 日期时间序列化/反序列化格式（含毫秒） */
     private static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss.SSS";
+
+    /** 东八区时区 ID */
+    private static final String TIME_ZONE_GMT_8 = "GMT+8";
+
+    /** 私有构造器，防止工具类被实例化 */
+    private JacksonUtil() {}
 
     /** 全局 ObjectMapper 实例 */
     @Getter
@@ -89,7 +95,7 @@ public class JacksonUtil {
 
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
-        objectMapper.setTimeZone(TimeZone.getTimeZone("GMT+8"));
+        objectMapper.setTimeZone(TimeZone.getTimeZone(TIME_ZONE_GMT_8));
         // java.util.Date 的序列化/反序列化日期格式
         objectMapper.setDateFormat(new java.text.SimpleDateFormat(DATE_TIME_PATTERN));
         objectMapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
@@ -158,6 +164,11 @@ public class JacksonUtil {
      * @return Java 对象，异常时返回 null
      */
     public static <T> T jsonToObject(String jsonString, Class<T> type){
+
+        // readValue(null,...) 抛 IllegalArgumentException 而非 JsonProcessingException，前置判空保证契约
+        if (StringUtils.isBlank(jsonString)) {
+            return null;
+        }
 
         try {return OBJECT_MAPPER.readValue(jsonString, type);} catch (JsonProcessingException e) {
             log.error(e.getLocalizedMessage(), e);

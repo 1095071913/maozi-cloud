@@ -52,7 +52,7 @@ public class UserInfoResult implements Serializable {
 
     /** 所属客户端信息，通过远程服务查询获取 */
     @Schema(description = "客户端")
-    @QueryMapping(isService = true, serviceName = "rpcClientService", relationField = "clientId")
+    @QueryMapping(isService = true, serviceName = SystemServiceConstant.RPC_CLIENT_SERVICE, relationField = "clientId")
     private DropDownResult client;
 
     /** 用户头像图标 */

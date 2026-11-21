@@ -22,8 +22,16 @@ public final class SystemServiceConstant {
     /** 权限服务实现类 Bean 名称 */
     public static final String PERMISSION_SERVICE = "permissionServiceImpl";
 
+    /** 用户服务实现类 Bean 名称 */
+    public static final String USER_SERVICE = "userServiceImpl";
+
+    /** 角色服务实现类 Bean 名称 */
+    public static final String ROLE_SERVICE = "roleServiceImpl";
+
+    /** OAuth 客户端 RPC 服务 Bean 名称（oauth 模块提供） */
+    public static final String RPC_CLIENT_SERVICE = "rpcClientService";
+
     /** 工具类屏蔽公共构造器 */
-    private SystemServiceConstant() {
-    }
+    private SystemServiceConstant() {}
 
 }

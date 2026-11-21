@@ -79,7 +79,7 @@ public class RestPermissionServiceImpl extends BaseDBServiceResultImpl<Permissio
      * @return 操作结果
      */
     @Override
-    public AbstractBaseResult<Void> saveUpdateResult(Long id, PermissionSaveUpdateParam param) {
+    public AbstractBaseResult<Void> updateResult(Long id, PermissionSaveUpdateParam param) {
         service.saveUpdate(id, param);
         return ResultUtil.success();
     }

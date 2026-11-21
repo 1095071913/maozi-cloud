@@ -11,6 +11,7 @@ import org.springframework.http.server.reactive.observation.ServerRequestObserva
 import org.springframework.http.server.reactive.observation.ServerRequestObservationConvention;
 
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
  * Micrometer 指标配置
@@ -34,8 +35,11 @@ public class MicrometerConfiguration {
     /** URI 标签未知占位值 */
     private static final String UNKNOWN = "UNKNOWN";
 
+    /** 路径模板通配后缀（如 /a/b/**） */
+    private static final String PATH_WILDCARD_SUFFIX = "/**";
+
     /** URL 路径分隔符切分模式（预编译） */
-    private static final java.util.regex.Pattern PATH_SPLIT_PATTERN = java.util.regex.Pattern.compile(SymbolConstant.SLASH);
+    private static final Pattern PATH_SPLIT_PATTERN = Pattern.compile(SymbolConstant.SLASH);
 
     /**
      * 创建自定义请求观测约定，修复 URI 标签为 UNKNOWN 的问题
@@ -65,7 +69,10 @@ public class MicrometerConfiguration {
 
                     String[] pathSection = PATH_SPLIT_PATTERN.split(path);
 
-                    path = pathSection.length > 2 ? SymbolConstant.SLASH + pathSection[1] + SymbolConstant.SLASH + pathSection[2] + "/**" : UNKNOWN;
+                    path = pathSection.length > 2
+                            ? SymbolConstant.SLASH + pathSection[1]
+                                    + SymbolConstant.SLASH + pathSection[2] + PATH_WILDCARD_SUFFIX
+                            : UNKNOWN;
 
                     return lowCardinalityKeyValues.and(KeyValue.of(KEY_URI, path));
 

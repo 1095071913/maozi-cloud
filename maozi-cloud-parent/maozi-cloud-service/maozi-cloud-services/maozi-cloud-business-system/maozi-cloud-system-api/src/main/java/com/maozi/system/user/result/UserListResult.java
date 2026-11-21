@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.maozi.base.enums.StatusEnum;
 import com.maozi.base.plugin.mapping.QueryMapping;
 import com.maozi.base.result.DropDownResult;
+import com.maozi.system.constant.SystemServiceConstant;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -41,7 +42,7 @@ public class UserListResult implements Serializable {
 
     /** 所属客户端信息，通过远程服务查询获取 */
     @Schema(description = "客户端")
-    @QueryMapping(relationField = "clientId", isService = true, serviceName = "rpcClientService")
+    @QueryMapping(relationField = "clientId", isService = true, serviceName = SystemServiceConstant.RPC_CLIENT_SERVICE)
     private DropDownResult client;
 
     /** 用户状态（启用/禁用） */

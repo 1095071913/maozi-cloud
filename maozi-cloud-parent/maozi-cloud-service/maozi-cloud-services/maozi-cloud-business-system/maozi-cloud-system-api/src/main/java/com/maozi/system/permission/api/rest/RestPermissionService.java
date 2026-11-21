@@ -100,6 +100,6 @@ public interface RestPermissionService {
      */
     @Post(value = CURRENT_PATH + "/update", description = "更新")
     @PreAuthorize("hasAuthority('system:permission:update')")
-    AbstractBaseResult<Void> saveUpdateResult(@PathVariable Long id, @RequestBody PermissionSaveUpdateParam param);
+    AbstractBaseResult<Void> updateResult(@PathVariable Long id, @RequestBody PermissionSaveUpdateParam param);
 
 }

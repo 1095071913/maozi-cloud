@@ -12,7 +12,6 @@ import com.aizuda.snailjob.common.log.SnailJobLog;
 import com.maozi.common.CollectionUtil;
 import com.maozi.snailjob.retry.annotation.RetryTask;
 import com.maozi.snailjob.retry.executor.RetryExecutorTask;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -39,15 +38,14 @@ import java.util.concurrent.TimeUnit;
  * 实现业务方法零配置接入远程重试。
  * </p>
  *
- * @author: opensnail
+ * @author : opensnail
  * @date : 2023-05-10 11:10
  */
 @Component
-@Slf4j
 public class ExecutorMethodScanner implements Scanner, ApplicationContextAware {
 
     /** Spring 应用上下文，用于扫描时获取容器中的 Bean */
-    public ApplicationContext applicationContext;
+    private ApplicationContext applicationContext;
 
     /**
      * 扫描容器中的重试执行器并构建注册信息

@@ -140,6 +140,7 @@ public class ChatConversationServiceImpl extends BaseServiceImpl<ChatConversatio
         ChatConversationDO domain = new ChatConversationDO();
         domain.setId(conversationId);
         domain.setTitle(title);
+        domain.setUserId(CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId));
 
         super.updateById(domain);
 
@@ -152,8 +153,13 @@ public class ChatConversationServiceImpl extends BaseServiceImpl<ChatConversatio
      */
     @Transactional(rollbackFor = Exception.class)
     public void adminRemove(String conversationId){
-        super.removeById(conversationId);
-        chatMemory.clear(conversationId);
+        
+        LambdaQueryWrapper<ChatConversationDO> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(ChatConversationDO::getId, conversationId);
+        wrapper.eq(ChatConversationDO::getUserId, CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId));
+        if(remove(wrapper)){
+            chatMemory.clear(conversationId);
+        }
     }
 
 }

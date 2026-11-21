@@ -61,7 +61,7 @@ public class OauthFunctionCall {
         param.setAccessTokenValiditySeconds(accessTokenValiditySeconds);
         param.setRefreshTokenValiditySeconds(refreshTokenValiditySeconds);
 
-        AbstractBaseResult<ClientDTO> result = rpcClientService.saveResult(param);
+        AbstractBaseResult<ClientDTO> result = rpcClientService.aiSaveResult(param);
         if(result.isSuccess() && ObjectUtil.isNotNull(result.getData())){
             // 保存成功后将明文客户端密钥回填到返回数据（RPC 结果数据判空防御）
             result.getData().setClientSecret(param.getClientSecret());

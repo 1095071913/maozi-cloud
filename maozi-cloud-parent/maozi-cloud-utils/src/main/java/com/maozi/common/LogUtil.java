@@ -40,7 +40,7 @@ public final class LogUtil {
      * @param log Logger 实例
      * @param message 日志内容
      */
-    public static void info(Logger log, String message){
+    public static void info(Logger log, String message) {
         log.info(message);
     }
 
@@ -50,7 +50,7 @@ public final class LogUtil {
      * @param log Logger 实例
      * @param content 日志内容键值对
      */
-    public static void info(Logger log, Map<String, String> content){
+    public static void info(Logger log, Map<String, String> content) {
         log(log, false, content, null);
     }
 
@@ -60,7 +60,7 @@ public final class LogUtil {
      * @param log Logger 实例
      * @param message 日志内容
      */
-    public static void error(Logger log, String message){
+    public static void error(Logger log, String message) {
         log.error(message);
     }
 
@@ -71,7 +71,7 @@ public final class LogUtil {
      * @param message 日志内容
      * @param e 异常对象
      */
-    public static void error(Logger log, String message, Throwable e){
+    public static void error(Logger log, String message, Throwable e) {
         log.error(message, e);
     }
 
@@ -81,7 +81,7 @@ public final class LogUtil {
      * @param log Logger 实例
      * @param content 日志内容键值对
      */
-    public static void error(Logger log, Map<String, String> content){
+    public static void error(Logger log, Map<String, String> content) {
         log.error(LogUtil.convertLog(content));
     }
 
@@ -92,7 +92,7 @@ public final class LogUtil {
      * @param content 日志内容键值对
      * @param e 异常对象
      */
-    public static void error(Logger log, Map<String, String> content, Throwable e){
+    public static void error(Logger log, Map<String, String> content, Throwable e) {
         log.error(LogUtil.convertLog(content), e);
     }
 
@@ -125,7 +125,7 @@ public final class LogUtil {
      */
     public static String convertLog(Map<String, String> content) {
 
-        if (CollectionUtil.isEmpty(content)){
+        if (CollectionUtil.isEmpty(content)) {
             return null;
         }
 

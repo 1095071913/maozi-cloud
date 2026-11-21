@@ -67,7 +67,7 @@ public final class JacksonUtil {
      *
      * @return 初始化配置完成后的全局 ObjectMapper
      */
-    public static ObjectMapper getObjectMapper(){
+    public static ObjectMapper getObjectMapper() {
         return OBJECT_MAPPER;
     }
 
@@ -76,7 +76,7 @@ public final class JacksonUtil {
      *
      * @return 配置好的 ObjectMapper
      */
-    public static ObjectMapper initObjectMapperConfig(){
+    public static ObjectMapper initObjectMapperConfig() {
         return initObjectMapperConfig(new ObjectMapper());
     }
 
@@ -87,9 +87,9 @@ public final class JacksonUtil {
      * @param objectMapper 待配置的 ObjectMapper 实例
      * @return 配置好的 ObjectMapper，传入为空时返回 null
      */
-    public static ObjectMapper initObjectMapperConfig(ObjectMapper objectMapper){
+    public static ObjectMapper initObjectMapperConfig(ObjectMapper objectMapper) {
 
-        if (Objects.isNull(objectMapper)){
+        if (Objects.isNull(objectMapper)) {
             return null;
         }
 
@@ -146,7 +146,7 @@ public final class JacksonUtil {
      * @param data Java 对象
      * @return JSON 字符串，异常时返回 null
      */
-    public static String objectToJson(Object data){
+    public static String objectToJson(Object data) {
 
         try {return OBJECT_MAPPER.writeValueAsString(data);} catch (JsonProcessingException e) {
             log.error(e.getLocalizedMessage(), e);
@@ -163,7 +163,7 @@ public final class JacksonUtil {
      * @param <T> 目标类型泛型
      * @return Java 对象，异常时返回 null
      */
-    public static <T> T jsonToObject(String jsonString, Class<T> type){
+    public static <T> T jsonToObject(String jsonString, Class<T> type) {
 
         // readValue(null,...) 抛 IllegalArgumentException 而非 JsonProcessingException，前置判空保证契约
         if (StringUtils.isBlank(jsonString)) {

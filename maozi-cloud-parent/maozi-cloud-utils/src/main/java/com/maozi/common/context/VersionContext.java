@@ -41,7 +41,7 @@ public class VersionContext extends AbstractRequestContextHolder<String> {
      * @return 版本号，未设置时返回默认版本
      */
     @Override
-    public String get(){
+    public String get() {
         return getVersionOrDefault(super.get());
     }
 
@@ -51,7 +51,7 @@ public class VersionContext extends AbstractRequestContextHolder<String> {
      * @param version 版本号，为空时存入默认版本
      */
     @Override
-    public void set(String version){
+    public void set(String version) {
         super.set(getVersionOrDefault(version));
     }
 

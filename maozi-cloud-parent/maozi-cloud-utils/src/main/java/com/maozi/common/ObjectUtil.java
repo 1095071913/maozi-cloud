@@ -37,7 +37,7 @@ public final class ObjectUtil {
      * @param data 待检查对象
      * @return 不为空返回 true
      */
-    public static boolean isNotNull(Object data){
+    public static boolean isNotNull(Object data) {
         return !isNull(data);
     }
 
@@ -47,7 +47,7 @@ public final class ObjectUtil {
      * @param data 待检查对象
      * @return 为 null 返回 true
      */
-    public static boolean isNull(Object data){
+    public static boolean isNull(Object data) {
         return data == null;
     }
 

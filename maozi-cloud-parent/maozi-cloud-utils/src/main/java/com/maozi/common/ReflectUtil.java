@@ -56,7 +56,7 @@ public final class ReflectUtil extends cn.hutool.core.util.ReflectUtil {
      * @param <R> 返回值类型
      * @return 主键值
      */
-    public static <R> R invokeFunGetId(Object obj){
+    public static <R> R invokeFunGetId(Object obj) {
         return cn.hutool.core.util.ReflectUtil.invoke(obj, GET_ID_FUN_NAME);
     }
 

@@ -20,7 +20,7 @@ import com.alibaba.csp.sentinel.dashboard.domain.cluster.BaseClusterServerMachin
 import java.util.Set;
 
 /**
- * Assignment of one cluster token server: the server machine with the clients, namespaces and max QPS bound to it.
+ * 单个集群 token server 的分配信息：server 机器及其绑定的客户端、namespace 和最大 QPS。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -28,35 +28,35 @@ import java.util.Set;
  */
 public class ClusterAppAssignMap extends BaseClusterServerMachine {
 
-    /** The set of namespaces that this token server serves. */
+    /** 该 token server 服务的 namespace 集合。 */
     private Set<String> namespaceSet;
 
-    /** The max allowed QPS of this token server. */
+    /** 该 token server 的最大允许 QPS。 */
     private Double maxAllowedQps;
 
-    /** Get the set of namespaces. */
+    /** 获取 namespace 集合。 */
     public Set<String> getNamespaceSet() {
         return namespaceSet;
     }
 
-    /** Set the set of namespaces and return this. */
+    /** 设置 namespace 集合并返回当前对象。 */
     public ClusterAppAssignMap setNamespaceSet(Set<String> namespaceSet) {
         this.namespaceSet = namespaceSet;
         return this;
     }
 
-    /** Get the max allowed QPS. */
+    /** 获取最大允许 QPS。 */
     public Double getMaxAllowedQps() {
         return maxAllowedQps;
     }
 
-    /** Set the max allowed QPS and return this. */
+    /** 设置最大允许 QPS 并返回当前对象。 */
     public ClusterAppAssignMap setMaxAllowedQps(Double maxAllowedQps) {
         this.maxAllowedQps = maxAllowedQps;
         return this;
     }
 
-    /** Return a string representation of this assignment map. */
+    /** 返回该分配信息的字符串表示。 */
     @Override
     public String toString() {
         return "ClusterAppAssignMap{" +

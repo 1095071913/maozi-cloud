@@ -18,7 +18,7 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.state;
 import com.alibaba.csp.sentinel.dashboard.domain.cluster.ClusterClientInfoVO;
 
 /**
- * Cluster token client state of a machine.
+ * 机器的集群 token client 状态。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -26,21 +26,21 @@ import com.alibaba.csp.sentinel.dashboard.domain.cluster.ClusterClientInfoVO;
  */
 public class ClusterClientStateVO {
 
-    /** Cluster token client config info (server address, client state and request timeout). */
+    /** 集群 token client 配置信息（server 地址、客户端状态及请求超时时间）。 */
     private ClusterClientInfoVO clientConfig;
 
-    /** Get the cluster client config info. */
+    /** 获取集群客户端配置信息。 */
     public ClusterClientInfoVO getClientConfig() {
         return clientConfig;
     }
 
-    /** Set the cluster client config info and return this. */
+    /** 设置集群客户端配置信息并返回当前对象。 */
     public ClusterClientStateVO setClientConfig(ClusterClientInfoVO clientConfig) {
         this.clientConfig = clientConfig;
         return this;
     }
 
-    /** Return a string representation of this VO. */
+    /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
         return "ClusterClientStateVO{" +

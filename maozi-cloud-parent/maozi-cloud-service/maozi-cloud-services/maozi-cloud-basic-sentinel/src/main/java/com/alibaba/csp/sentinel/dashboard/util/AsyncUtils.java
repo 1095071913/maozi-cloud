@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * Utility class for handling {@link CompletableFuture}s.
+ * 处理 {@link CompletableFuture} 的工具类
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -33,13 +33,13 @@ import java.util.stream.Collectors;
  */
 public final class AsyncUtils {
 
-    /** Logger used when waiting for async results fails. */
+    /** 等待异步结果失败时使用的日志记录器 */
     private static final Logger LOG = LoggerFactory.getLogger(AsyncUtils.class);
 
-    /** Timeout in seconds when waiting for a single async result. */
+    /** 等待单个异步结果的超时时间（秒） */
     private static final long GET_VALUE_TIMEOUT_SECONDS = 10L;
 
-    /** Returns a future already completed exceptionally with the given throwable. */
+    /** 返回一个以给定异常完成的失败 Future */
     public static <R> CompletableFuture<R> newFailedFuture(Throwable ex) {
         CompletableFuture<R> future = new CompletableFuture<>();
         future.completeExceptionally(ex);
@@ -47,9 +47,8 @@ public final class AsyncUtils {
     }
 
     /**
-     * Combines the given futures into one future that completes with the list of all
-     * non-null values once every future has completed successfully; it completes
-     * exceptionally if any of the futures fails.
+     * 将给定 Future 列表合并为一个 Future：全部成功完成时以非空结果列表完成，
+     * 任一 Future 失败时以异常完成
      */
     public static <R> CompletableFuture<List<R>> sequenceFuture(List<CompletableFuture<R>> futures) {
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
@@ -61,9 +60,8 @@ public final class AsyncUtils {
     }
 
     /**
-     * Combines the given futures while ignoring failures: waits for each future in
-     * parallel (up to 10 seconds each) and completes with the list of non-null results
-     * of the futures that succeeded.
+     * 合并给定 Future 列表并忽略失败：并行等待每个 Future（单个最多 10 秒），
+     * 以成功 Future 的非空结果列表完成
      */
     public static <R> CompletableFuture<List<R>> sequenceSuccessFuture(List<CompletableFuture<R>> futures) {
         return CompletableFuture.supplyAsync(() -> futures.parallelStream()
@@ -74,8 +72,8 @@ public final class AsyncUtils {
     }
 
     /**
-     * Waits up to 10 seconds for the result of the given future, returning null and
-     * logging the error when the wait or the future fails.
+     * 最多等待 10 秒获取给定 Future 的结果，等待或 Future 失败时
+     * 返回 null 并记录错误日志
      */
     public static <T> T getValue(CompletableFuture<T> future) {
         try {
@@ -89,11 +87,11 @@ public final class AsyncUtils {
         return null;
     }
 
-    /** Returns whether the future is done and completed normally (not exceptionally and not cancelled). */
+    /** 判断 Future 是否已完成且正常完成（非异常完成、非取消） */
     public static boolean isSuccessFuture(CompletableFuture<?> future) {
         return future.isDone() && !future.isCompletedExceptionally() && !future.isCancelled();
     }
 
-    /** Private constructor to prevent instantiation. */
+    /** 私有构造方法，防止实例化 */
     private AsyncUtils() {}
 }

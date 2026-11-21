@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.domain.cluster.request;
 
 /**
- * Base request for cluster config modification of a machine.
+ * 机器集群配置修改请求基础接口。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -24,15 +24,31 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.request;
  */
 public interface ClusterModifyRequest {
 
-    /** Get the application name of the target machine. */
+    /**
+     * 获取目标机器所属应用名。
+     *
+     * @return 应用名
+     */
     String getApp();
 
-    /** Get the IP of the target machine. */
+    /**
+     * 获取目标机器 IP。
+     *
+     * @return 目标机器 IP
+     */
     String getIp();
 
-    /** Get the command port of the target machine. */
+    /**
+     * 获取目标机器命令端口。
+     *
+     * @return 目标机器命令端口
+     */
     Integer getPort();
 
-    /** Get the target cluster mode of the machine (client or server). */
+    /**
+     * 获取机器的目标集群模式（客户端或服务端）。
+     *
+     * @return 目标集群模式
+     */
     Integer getMode();
 }

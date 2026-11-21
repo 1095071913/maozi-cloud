@@ -56,7 +56,7 @@ public final class ObjectUtil {
      *
      * @param data 待检查对象
      * @param sourceName 资源名称
-     * @throws BusinessResultException 对象为 null 或空时抛出
+     * @throws BusinessResultException 对象为 null 时抛出
      */
     public static void isNullThrowError(Object data, String sourceName) {
         isNullThrowError(data, SystemErrorCode.DATA_NOT_EXIST_ERROR, sourceName);
@@ -79,7 +79,7 @@ public final class ObjectUtil {
      * @param data 待检查对象
      * @param errorCode 错误码
      * @param resourceName 资源名称
-     * @throws BusinessResultException 对象为 null 或空时抛出
+     * @throws BusinessResultException 对象为 null 时抛出
      */
     public static void isNullThrowError(Object data, ErrorCode errorCode, String resourceName) {
         if (isNull(data)) {
@@ -108,7 +108,7 @@ public final class ObjectUtil {
      *
      * @param data 待检查对象
      * @param errorCode 错误码
-     * @throws BusinessResultException 对象为 null 或空时抛出
+     * @throws BusinessResultException 对象为 null 时抛出
      */
     public static void isNullThrowError(Object data, ErrorCode errorCode) {
         if (isNull(data)) {

@@ -72,7 +72,6 @@ public class ReadOnlyMultipartFormDataEndpointConverter extends MappingJackson2H
         }
         // 仅当 @RequestMapping 的 consumes 属性只声明了 multipart/form-data 时才启用此转换器，
         // 避免对所有 multipart 请求都进行 JSON 反序列化
-        // （缓存 consumes 属性值，避免同一方法内重复调用）
         String[] consumes = requestMapping.consumes();
         if (consumes.length != 1
                 || !MediaType.MULTIPART_FORM_DATA_VALUE.equals(consumes[0])) {

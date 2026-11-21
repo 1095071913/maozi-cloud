@@ -28,14 +28,11 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 /**
  * 灰度发布响应式负载均衡客户端过滤器。
  * <p>
- * 继承 Spring Cloud Gateway 的 ReactiveLoadBalancerClientFilter，
- * 替换默认的负载均衡策略为 {@link GrayRoundRobinLoadBalancer}（灰度轮询负载均衡器）。
- * 通过读取请求头中的灰度标识，将请求路由到对应的灰度服务实例。
- * </p>
- * <p>
- * 未重写 getOrder()，沿用父类的过滤器顺序常量
- * {@code ReactiveLoadBalancerClientFilter#LOAD_BALANCER_CLIENT_FILTER_ORDER}（10150），
- * 在路由转发（如 NettyRoutingFilter）之前完成服务实例选择。
+ * 继承 Spring Cloud Gateway 的 ReactiveLoadBalancerClientFilter，将默认负载均衡
+ * 策略替换为 {@link GrayRoundRobinLoadBalancer}（灰度轮询负载均衡器）：读取请求
+ * 头中的灰度标识，将请求路由到对应的灰度服务实例。未重写 getOrder()，沿用
+ * 父类顺序常量 LOAD_BALANCER_CLIENT_FILTER_ORDER（10150），在路由转发之前
+ * 完成服务实例选择。
  * </p>
  *
  * @author maozi

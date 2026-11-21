@@ -101,7 +101,6 @@ public class AsyncConfig {
         // 由调用线程自己执行任务，避免任务丢失
         taskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
 
-        // 初始化线程池
         taskExecutor.initialize();
 
         return taskExecutor;

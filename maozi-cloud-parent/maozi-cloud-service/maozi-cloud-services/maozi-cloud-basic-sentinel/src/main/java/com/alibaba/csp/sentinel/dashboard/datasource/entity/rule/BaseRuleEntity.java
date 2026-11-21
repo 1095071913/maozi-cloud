@@ -18,39 +18,38 @@ package com.alibaba.csp.sentinel.dashboard.datasource.entity.rule;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.BaseEntity;
 
 /**
- * Base entity of rule entities, holding the common fields shared by rule entities
- * (id, app, ip, port, gmtCreate and gmtModified). Subclasses only need to carry
- * their own rule fields and implement {@link #toRule()}.
+ * 规则实体基类，持有各规则实体的公共字段（id、app、ip、port、gmtCreate、gmtModified），
+ * 子类只需携带自身规则字段并实现 {@link #toRule()}。
  *
  * @author leyou
  * @date 2026/11/22
  */
 public abstract class BaseRuleEntity extends BaseEntity implements RuleEntity {
 
-    /** The IP address of the machine. */
+    /** 机器 IP 地址。 */
     protected String ip;
-    /** The port of the machine. */
+    /** 机器端口。 */
     protected Integer port;
 
-    /** Gets the IP address of the machine. */
+    /** 获取机器 IP 地址。 */
     @Override
     public String getIp() {
         return ip;
     }
 
-    /** Sets the IP address of the machine and returns this. */
+    /** 设置机器 IP 地址并返回当前对象。 */
     public BaseRuleEntity setIp(String ip) {
         this.ip = ip;
         return this;
     }
 
-    /** Gets the port of the machine. */
+    /** 获取机器端口。 */
     @Override
     public Integer getPort() {
         return port;
     }
 
-    /** Sets the port of the machine and returns this. */
+    /** 设置机器端口并返回当前对象。 */
     public BaseRuleEntity setPort(Integer port) {
         this.port = port;
         return this;

@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule;
 
 /**
- * Value Object for add gateway flow rule.
+ * 新增网关流控规则请求 VO
  *
  * @author cdfive
  * @date 2026/11/22
@@ -24,59 +24,50 @@ package com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule;
  */
 public class AddFlowRuleReqVO extends BaseFlowRuleReqVO {
 
-    /** IP of the Sentinel client machine that the rule belongs to. */
+    /** 规则所属 Sentinel 客户端机器的 IP */
     private String ip;
 
-    /** Port of the Sentinel client machine that the rule belongs to. */
+    /** 规则所属 Sentinel 客户端机器的端口 */
     private Integer port;
 
-    /** Resource of the rule: route ID or API name, depending on resourceMode. */
+    /** 规则限流的资源：路由 ID 或 API 名称，取决于 resourceMode */
     private String resource;
 
-    /** Resource mode: 0 for route ID, 1 for custom API name (see SentinelGatewayConstants). */
+    /** 资源模式：0 表示路由 ID，1 表示自定义 API 名称（见 SentinelGatewayConstants） */
     private Integer resourceMode;
 
-    /** Returns the IP of the Sentinel client machine. */
     public String getIp() {
         return ip;
     }
 
-    /** Sets the IP of the Sentinel client machine. */
     public void setIp(String ip) {
         this.ip = ip;
     }
 
-    /** Returns the port of the Sentinel client machine. */
     public Integer getPort() {
         return port;
     }
 
-    /** Sets the port of the Sentinel client machine. */
     public void setPort(Integer port) {
         this.port = port;
     }
 
-    /** Returns the resource (route ID or API name). */
     public String getResource() {
         return resource;
     }
 
-    /** Sets the resource (route ID or API name). */
     public void setResource(String resource) {
         this.resource = resource;
     }
 
-    /** Returns the resource mode (0 route ID, 1 custom API name). */
     public Integer getResourceMode() {
         return resourceMode;
     }
 
-    /** Sets the resource mode (0 route ID, 1 custom API name). */
     public void setResourceMode(Integer resourceMode) {
         this.resourceMode = resourceMode;
     }
 
-    /** Return a string representation of this VO. */
     @Override
     public String toString() {
         return "AddFlowRuleReqVO{"

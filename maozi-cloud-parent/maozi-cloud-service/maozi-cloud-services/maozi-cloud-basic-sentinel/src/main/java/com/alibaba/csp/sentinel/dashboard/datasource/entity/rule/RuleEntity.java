@@ -20,43 +20,83 @@ import com.alibaba.csp.sentinel.slots.block.Rule;
 import java.util.Date;
 
 /**
- * Interface of entities that can be converted to a Sentinel {@link Rule}.
+ * 可转换为 Sentinel {@link Rule} 的规则实体接口。
  *
  * @author leyou
  * @date 2026/11/22
  */
 public interface RuleEntity {
 
-    /** Gets the entity id. */
+    /**
+     * 获取实体 id。
+     *
+     * @return 实体 id
+     */
     Long getId();
 
-    /** Sets the entity id. */
+    /**
+     * 设置实体 id。
+     *
+     * @param id 实体 id
+     */
     void setId(Long id);
 
-    /** Gets the application name. */
+    /**
+     * 获取应用名。
+     *
+     * @return 应用名
+     */
     String getApp();
 
-    /** Gets the IP address of the machine. */
+    /**
+     * 获取机器 IP 地址。
+     *
+     * @return 机器 IP 地址
+     */
     String getIp();
 
-    /** Gets the port of the machine. */
+    /**
+     * 获取机器端口。
+     *
+     * @return 机器端口
+     */
     Integer getPort();
 
-    /** Gets the create time. */
+    /**
+     * 获取创建时间。
+     *
+     * @return 创建时间
+     */
     Date getGmtCreate();
 
-    /** Sets the create time. */
+    /**
+     * 设置创建时间。
+     *
+     * @param gmtCreate 创建时间
+     */
     void setGmtCreate(Date gmtCreate);
 
-    /** Sets the last modify time. */
+    /**
+     * 设置最后修改时间。
+     *
+     * @param gmtModified 最后修改时间
+     */
     void setGmtModified(Date gmtModified);
 
-    /** Sets both the create time and the last modify time to the given date. */
+    /**
+     * 同时设置创建时间与最后修改时间为指定时间。
+     *
+     * @param date 创建时间与最后修改时间
+     */
     default void setGmtCreateAndModified(Date date) {
         setGmtCreate(date);
         setGmtModified(date);
     }
 
-    /** Converts this entity to a Sentinel rule. */
+    /**
+     * 将实体转换为 Sentinel 规则。
+     *
+     * @return Sentinel 规则
+     */
     Rule toRule();
 }

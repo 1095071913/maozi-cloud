@@ -43,11 +43,10 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Persist metrics data into MySQL.
+ * 将指标数据持久化到 MySQL
  * <p>
- * The table (with indexes) is auto-created on startup via {@code schema.sql},
- * while the database is auto-created by the {@code createDatabaseIfNotExist=true}
- * JDBC url parameter.
+ * 表（含索引）通过 {@code schema.sql} 在启动时自动创建，
+ * 数据库由 JDBC url 的 {@code createDatabaseIfNotExist=true} 参数自动创建
  *
  * @author maozi
  * @date 2026/11/08
@@ -55,13 +54,13 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
 
-    /** Logger of this class. */
+    /** 日志记录器 */
     private static final Logger logger = LoggerFactory.getLogger(JdbcMetricsRepository.class);
 
-    /** Max rows deleted per statement, to keep each DELETE short. */
+    /** 单条语句最多删除的行数，避免单次 DELETE 执行过久 */
     private static final long MAX_BATCH_DELETE_ROWS = 5000;
 
-    /** Inserts a metric row, or updates the metric columns on duplicate key (app+resource+timestamp). */
+    /** 插入指标行，唯一键（app+resource+timestamp）冲突时更新各指标列 */
     private static final String UPSERT_SQL =
         "INSERT INTO sentinel_metric (gmt_create, gmt_modified, app, `timestamp`, resource, "
             + "pass_qps, success_qps, block_qps, exception_qps, rt, `count`) "
@@ -70,107 +69,102 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
             + "success_qps = VALUES(success_qps), block_qps = VALUES(block_qps), "
             + "exception_qps = VALUES(exception_qps), rt = VALUES(rt), `count` = VALUES(`count`)";
 
-    /** Loads the metrics of one app+resource within a timestamp range, ascending by timestamp. */
+    /** 按时间戳升序加载一个 app+resource 在时间区间内的指标 */
     private static final String QUERY_SQL =
         "SELECT id, gmt_create, gmt_modified, app, `timestamp`, resource, "
             + "pass_qps, success_qps, block_qps, exception_qps, rt, `count` "
             + "FROM sentinel_metric WHERE app = ? AND resource = ? AND `timestamp` BETWEEN ? AND ? "
             + "ORDER BY `timestamp` ASC";
 
-    /** Sums block/pass QPS per resource of one app in a window, most blocked resources first. */
+    /** 按资源汇总一个应用在窗口内的阻塞/通过 QPS，阻塞最多的资源排在前 */
     private static final String LIST_RESOURCES_SQL =
         "SELECT resource, SUM(block_qps) AS block_qps_total, SUM(pass_qps) AS pass_qps_total "
             + "FROM sentinel_metric WHERE app = ? AND `timestamp` >= ? AND `timestamp` <= ? "
             + "GROUP BY resource ORDER BY block_qps_total DESC, pass_qps_total DESC";
 
-    /** Deletes at most {@link #MAX_BATCH_DELETE_ROWS} rows older than a timestamp per execution. */
+    /** 每次执行最多删除 {@link #MAX_BATCH_DELETE_ROWS} 行早于指定时间戳的数据 */
     private static final String DELETE_EXPIRED_SQL =
         "DELETE FROM sentinel_metric WHERE `timestamp` < ? LIMIT " + MAX_BATCH_DELETE_ROWS;
 
-    /** Spring JDBC accessor used for all statements against the metric table. */
+    /** 操作指标表的 Spring JDBC 访问器 */
     private final JdbcTemplate jdbcTemplate;
 
     /**
-     * Days to keep metric data, expired data is cleaned up once a day. Non-positive value disables cleanup.
+     * 指标数据保留天数，过期数据每天清理一次；非正数表示关闭清理
      */
     @Value("${sentinel.metric.retention-days:30}")
     private int retentionDays;
 
     /**
-     * Metric aggregation granularity N in seconds (configurable via
-     * {@code sentinel.metric.aggregate-seconds}). When N &gt; 1, the N seconds of raw
-     * per-second metrics pulled by the fetcher are merged into ONE persisted row whose
-     * timestamp is aligned to the N-second grid, so the storage volume shrinks N times
-     * and the chart displays one point per N seconds. The QPS fields carry the request
-     * TOTALS inside the N-second window (not a per-second average): with N=1000 and 3
-     * requests in the window the row shows pass_qps=3; {@code rt} keeps the "total RT"
-     * semantics of {@link MetricEntity#getRt()}, so the average RT read as
-     * {@code rt / successQps} is the request-weighted mean for any N. Default 1 keeps
-     * the original per-second storage.
+     * 指标聚合粒度 N 秒（通过 {@code sentinel.metric.aggregate-seconds} 配置）。
+     * N &gt; 1 时，拉取到的 N 秒原始秒级指标合并为一条记录，时间戳对齐到
+     * N 秒网格，存储量缩小 N 倍，图表每 N 秒展示一个点。QPS 字段保存的是
+     * N 秒窗口内的请求总量（非秒均值），如 N=1000 且窗口内有 3 个请求则
+     * pass_qps=3；{@code rt} 保持 {@link MetricEntity#getRt()} 的总 RT 语义，
+     * 读取时 {@code rt / successQps} 即为请求加权平均 RT，任意 N 均成立。
+     * 默认值 1 保持原始的秒级存储
      */
     @Value("${sentinel.metric.aggregate-seconds:1}")
     private int aggregateSeconds;
 
     /**
-     * Aggregation buckets older than this are evicted from memory. The fetcher re-pulls
-     * at most 15 seconds after a restart, so 15 minutes is far beyond any late arrival.
+     * 超过该时长的聚合桶从内存淘汰。拉取器重启后最多回拉 15 秒数据，
+     * 15 分钟远大于任何迟到数据
      */
     private static final long BUCKET_EVICT_MS = 1000 * 60 * 15;
 
     /**
-     * Interval of the background flush of buckets with unflushed seconds. Buckets are
-     * already persisted inline on every {@link #saveAll}; this schedule only covers the
-     * tail (the fetcher stops calling {@code saveAll} once traffic stops) and evicts
-     * stale buckets, so a short period keeps the tail visible almost in real time.
+     * 后台刷盘存在未落盘秒数的桶的调度间隔。桶在每次 {@link #saveAll} 时已同步
+     * 落盘，该调度仅兜底尾部数据（流量停止后拉取器不再调用 {@code saveAll}）
+     * 并淘汰过期桶，短周期保证尾部数据近实时可见
      */
     private static final int BUCKET_FLUSH_INTERVAL_SECONDS = 2;
 
-    /** Initial delay in minutes of the daily expired-metric cleanup schedule. */
+    /** 每日过期指标清理任务的初始延迟（分钟） */
     private static final int CLEAN_INITIAL_DELAY_MINUTES = 5;
 
-    /** Period in minutes of the daily expired-metric cleanup schedule (once a day). */
+    /** 每日过期指标清理任务的执行周期（分钟），即一天一次 */
     private static final int CLEAN_PERIOD_MINUTES = 1440;
 
     /**
-     * In-memory accumulator of one N-second bucket: the running totals folded from the
-     * per-second entities, plus the seconds already folded. The fetcher advances its
-     * windows without overlap, so a second arriving again can only come from a re-pull
-     * after a scheduler stall (see {@code MAX_LAST_FETCH_INTERVAL_MS} in
-     * {@code MetricFetcher}); such duplicates are skipped to avoid double counting.
+     * 一个 N 秒桶的内存累加器：按秒实体折叠出的累计值与已折叠的秒数。
+     * 拉取器的窗口不重叠推进，重复到达的秒只能来自调度停顿后的回拉
+     * （见 {@code MetricFetcher} 的 {@code MAX_LAST_FETCH_INTERVAL_MS}），
+     * 跳过这类重复秒避免重复计数
      * <p>
-     * {@code flushedSeconds} records how many seconds of the current totals have already
-     * been persisted; since {@code foldedSeconds} only grows, comparing both sizes gives
-     * a race-free "dirty" test so each batch of new seconds triggers exactly one write.
+     * {@code flushedSeconds} 记录当前累计值中已落盘的秒数；由于
+     * {@code foldedSeconds} 只增不减，比较两者大小即为无竞态的"脏"判定，
+     * 保证每批新秒数只触发一次写入
      */
     private static final class BucketAccumulator {
-        /** Running totals of the bucket, kept in a metric entity whose timestamp is the bucket start. */
+        /** 桶的累计值，保存在一个时间戳为桶起始时间的指标实体中 */
         final MetricEntity entity;
-        /** Seconds (ms, trimmed) already folded into the totals; also guards against duplicates. */
+        /** 已折叠进累计值的秒（毫秒、截断后），同时用于去重 */
         final Set<Long> foldedSeconds = ConcurrentHashMap.newKeySet();
-        /** Number of seconds of the totals that have already been persisted. */
+        /** 累计值中已落盘的秒数 */
         volatile int flushedSeconds;
 
-        /** Creates an accumulator around an initialized (all-zero) bucket entity. */
+        /** 基于一个初始化（全零）的桶实体创建累加器 */
         BucketAccumulator(MetricEntity entity) {
             this.entity = entity;
         }
     }
 
     /**
-     * {@code app__resource__bucketStartMs -> accumulated bucket},
-     * only used when {@code aggregateSeconds > 1}.
+     * {@code app__resource__bucketStartMs -> 累计中的桶}，
+     * 仅在 {@code aggregateSeconds > 1} 时使用
      */
     private final ConcurrentHashMap<String, BucketAccumulator> bucketBuffer = new ConcurrentHashMap<>();
 
-    /** Scheduler of the daily cleanup of expired metric rows; null when retention is disabled. */
+    /** 每日过期指标行清理的调度器；清理关闭时为 null */
     private ScheduledExecutorService cleanerScheduler;
 
-    /** Scheduler of the periodic tail flush of aggregation buckets; null when aggregation is off. */
+    /** 聚合桶尾部刷盘的调度器；聚合关闭时为 null */
     private ScheduledExecutorService bucketFlushScheduler;
 
-    /** Maps one row of the sentinel_metric table to a {@link MetricEntity}. */
+    /** 将 sentinel_metric 表的一行映射为 {@link MetricEntity} */
     private final RowMapper<MetricEntity> metricRowMapper = new RowMapper<MetricEntity>() {
-        /** Maps the current result set row to a metric entity. */
+        /** 将当前结果集行映射为指标实体 */
         @Override
         public MetricEntity mapRow(ResultSet rs, int rowNum) throws SQLException {
             MetricEntity entity = new MetricEntity();
@@ -190,14 +184,14 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         }
     };
 
-    /** Creates the repository with the JDBC accessor for the metric table. */
+    /** 使用操作指标表的 JDBC 访问器创建仓储 */
     public JdbcMetricsRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     /**
-     * Starts the background schedulers: the bucket tail flush when aggregation is enabled,
-     * and the daily expired-metric cleanup when retentionDays is positive.
+     * 启动后台调度器：聚合开启时启动桶尾部刷盘，
+     * retentionDays 为正数时启动每日过期指标清理
      */
     @PostConstruct
     public void init() {
@@ -225,7 +219,7 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
             CLEAN_INITIAL_DELAY_MINUTES, CLEAN_PERIOD_MINUTES, TimeUnit.MINUTES);
     }
 
-    /** Shuts down the schedulers and best-effort flushes the aggregation buckets still in memory. */
+    /** 关闭调度器，并尽力把内存中残留的聚合桶刷盘 */
     @PreDestroy
     public void destroy() {
         if (cleanerScheduler != null) {
@@ -234,7 +228,7 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         if (bucketFlushScheduler != null) {
             bucketFlushScheduler.shutdownNow();
         }
-        // Best-effort flush of the aggregation buckets that are still in memory.
+        // 尽力刷盘内存中残留的聚合桶
         if (aggregateSeconds > 1 && !bucketBuffer.isEmpty()) {
             List<MetricEntity> remaining = new ArrayList<>(bucketBuffer.size());
             for (BucketAccumulator accumulator : bucketBuffer.values()) {
@@ -244,7 +238,7 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         }
     }
 
-    /** Saves a single metric entity via {@link #saveAll}; null or blank-app input is ignored. */
+    /** 通过 {@link #saveAll} 保存单个指标实体；入参为 null 或应用名为空时忽略 */
     @Override
     public void save(MetricEntity metric) {
         if (metric == null || StringUtil.isBlank(metric.getApp())) {
@@ -256,9 +250,8 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
     }
 
     /**
-     * Persists the given metrics: filters out null entities and entities with a blank app
-     * or null timestamp, then either folds them into N-second buckets or upserts them
-     * directly, depending on {@link #aggregateSeconds}.
+     * 持久化给定指标：先过滤 null 实体、应用名为空或时间戳为 null 的实体，
+     * 再依据 {@link #aggregateSeconds} 折叠进 N 秒桶或直接批量写入
      */
     @Override
     public void saveAll(Iterable<MetricEntity> metrics) {
@@ -283,17 +276,14 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
     }
 
     /**
-     * Merge the incoming per-second entities into N-second buckets (in memory) and persist
-     * the buckets right away. The fetcher pulls in ~6s windows, so one bucket is folded
-     * incrementally across several calls; a second pulled again after a window rollback is
-     * folded only once. Every batch of new seconds is persisted immediately as an upsert
-     * snapshot (idempotent full-state replacement), so the data becomes visible in near
-     * real time while the bucket is still collecting.
+     * 将秒级实体合并进 N 秒桶（内存中）并立即持久化。拉取器按约 6 秒窗口拉取，
+     * 一个桶会跨多次调用渐进折叠；窗口回退后重复拉取的秒只折叠一次。
+     * 每批新秒数立即以 upsert 快照（幂等全量替换）落盘，
+     * 桶收集期间数据即可近实时可见
      */
     private void bufferAndPersistBuckets(List<MetricEntity> metrics) {
         long bucketMs = aggregateSeconds * 1000L;
         for (MetricEntity metric : metrics) {
-            // Cache the metric timestamp to avoid repeated calls within the same iteration.
             long metricTime = metric.getTimestamp().getTime();
             long bucketStart = metricTime / bucketMs * bucketMs;
             String key = metric.getApp() + "__" + metric.getResource() + "__" + bucketStart;
@@ -313,15 +303,15 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
                     bucket.setCount(0);
                     accumulator = new BucketAccumulator(bucket);
                 }
-                // A second re-pulled after a window rollback folds only once, so the bucket is never double counted.
+                // 窗口回退后重复拉取的秒只折叠一次，避免桶被重复计数
                 if (!accumulator.foldedSeconds.add(second)) {
                     return accumulator;
                 }
                 MetricEntity bucket = accumulator.entity;
                 bucket.addPassQps(metric.getPassQps());
                 bucket.addBlockQps(metric.getBlockQps());
-                // The entity rt is already the total RT (avgRt * successQps), so buckets just add it up;
-                // addRtAndSuccessQps must not be used here as it would multiply the total RT by successQps again.
+                // 实体的 rt 本身就是总 RT（平均 RT * successQps），桶内直接累加即可；
+                // 不能使用 addRtAndSuccessQps，否则会把总 RT 再乘一次 successQps
                 bucket.setRt(bucket.getRt() + metric.getRt());
                 bucket.setSuccessQps(bucket.getSuccessQps() + metric.getSuccessQps());
                 bucket.addExceptionQps(metric.getExceptionQps());
@@ -333,16 +323,13 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
     }
 
     /**
-     * Persist the buckets that have unflushed seconds (both the still-open one and the
-     * closed ones) and evict the stale ones. Runs inline after every folding and on the
-     * background flush schedule, so tail data still lands in MySQL after traffic stops
-     * and {@link #saveAll} is no longer invoked.
+     * 持久化存在未落盘秒数的桶（含仍在收集与已关闭的桶）并淘汰过期桶。
+     * 每次折叠后同步执行，且由后台刷盘调度兜底，流量停止、{@link #saveAll}
+     * 不再被调用后尾部数据仍能落库
      * <p>
-     * The persisted row of a bucket is the upsert snapshot of what has been folded so far
-     * (QPS fields carrying the request totals of the folded seconds), so the values grow
-     * in near real time while the bucket is still collecting, and each batch of new
-     * seconds triggers exactly one write (races between the inline flush and the schedule
-     * only cost an idempotent extra write, never a lost one).
+     * 桶的落盘行是已折叠内容的 upsert 快照（QPS 字段为已折叠秒数的请求总量），
+     * 桶收集期间数值近实时增长；每批新秒数恰好触发一次写入，
+     * 同步刷盘与调度刷盘的竞争最多造成一次幂等的多余写入，不会丢数据
      */
     private void flushDirtyBuckets() {
         long now = System.currentTimeMillis();
@@ -362,7 +349,6 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         if (dirty.isEmpty()) {
             return;
         }
-        // Cache the dirty bucket count to avoid repeated calls within the same method.
         int dirtyCount = dirty.size();
         List<Integer> snapshots = new ArrayList<>(dirtyCount);
         List<MetricEntity> toPersist = new ArrayList<>(dirtyCount);
@@ -377,26 +363,24 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
     }
 
     /**
-     * {@link #flushDirtyBuckets} wrapper for the flush schedule: swallows and logs
-     * exceptions so the schedule never breaks.
+     * 刷盘调度的 {@link #flushDirtyBuckets} 包装：吞掉并记录异常，
+     * 保证调度永不中断
      */
     private void flushDirtyBucketsQuietly() {
         try {
             flushDirtyBuckets();
         } catch (Exception e) {
-            // Never break the flush schedule on database errors.
+            // 数据库异常也不能中断刷盘调度
             logger.error("Error when flushing aggregation buckets", e);
         }
     }
 
     /**
-     * Build the persisted snapshot of one bucket. The QPS fields carry the request TOTALS
-     * of the seconds folded so far, i.e. "the QPS inside the N-second window" as displayed
-     * on the page: with N=1000 and 3 requests the row shows pass_qps=3 (not a per-second
-     * average). {@code rt} keeps the total-RT semantics (avg RT * successQps), so the
-     * average RT computed on read as {@code rt / successQps} is the request-weighted mean
-     * and stays correct for any N. The in-memory accumulator keeps its running totals for
-     * further folding.
+     * 构建一个桶的落盘快照。QPS 字段为已折叠秒数的请求总量，即页面展示的
+     * "N 秒窗口内的 QPS"：N=1000 且窗口内有 3 个请求时 pass_qps=3（非秒均值）。
+     * {@code rt} 保持总 RT 语义（平均 RT * successQps），读取时
+     * {@code rt / successQps} 即为请求加权平均 RT，任意 N 均成立。
+     * 内存累加器保留累计值以便继续折叠
      */
     private MetricEntity normalizeBucket(BucketAccumulator accumulator) {
         MetricEntity bucket = accumulator.entity;
@@ -406,31 +390,29 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         normalized.setTimestamp(bucket.getTimestamp());
         normalized.setGmtCreate(bucket.getGmtCreate());
         normalized.setGmtModified(new Date());
-        // N-second window totals: no per-second normalization, 3 requests in the window are stored as 3.
+        // N 秒窗口总量：不做秒级折算，窗口内 3 个请求即存 3
         normalized.setPassQps(bucket.getPassQps());
         normalized.setSuccessQps(bucket.getSuccessQps());
         normalized.setBlockQps(bucket.getBlockQps());
         normalized.setExceptionQps(bucket.getExceptionQps());
-        // rt keeps the total-RT semantics (avg RT * successQPS): rt / successQps on read
-        // is the request-weighted mean RT.
+        // rt 保持总 RT 语义（平均 RT * successQps），读取时 rt / successQps 即请求加权平均 RT
         normalized.setRt(bucket.getRt());
         normalized.setCount(bucket.getCount());
         return normalized;
     }
 
     /**
-     * Batch upserts the given entities with {@link #UPSERT_SQL}; database errors are
-     * caught and logged so the metric fetching loop is never broken.
+     * 用 {@link #UPSERT_SQL} 批量写入实体；捕获并记录数据库异常，
+     * 保证指标拉取循环永不中断
      */
     private void doUpsert(List<MetricEntity> validMetrics) {
         try {
             jdbcTemplate.batchUpdate(UPSERT_SQL, new BatchPreparedStatementSetter() {
-                /** Binds the fields of the i-th metric to the upsert statement. */
+                /** 将第 i 个指标的各字段绑定到 upsert 语句 */
                 @Override
                 public void setValues(PreparedStatement ps, int i) throws SQLException {
                     MetricEntity metric = validMetrics.get(i);
                     Timestamp now = new Timestamp(System.currentTimeMillis());
-                    // Cache the nullable field values to avoid repeated calls within the same iteration.
                     Date gmtCreate = metric.getGmtCreate();
                     Long passQps = metric.getPassQps();
                     Long successQps = metric.getSuccessQps();
@@ -449,22 +431,21 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
                     ps.setInt(11, metric.getCount());
                 }
 
-                /** Returns the number of metrics to upsert. */
+                /** 返回待写入的指标数量 */
                 @Override
                 public int getBatchSize() {
                     return validMetrics.size();
                 }
             });
         } catch (Exception e) {
-            // Never break the metric fetching loop on database errors.
+            // 数据库异常也不能中断指标拉取循环
             logger.error("Error when saving metrics to MySQL, size={}", validMetrics.size(), e);
         }
     }
 
     /**
-     * Loads the metrics of one app+resource with timestamp in [startTime, endTime] (both
-     * inclusive), ordered by timestamp ascending; returns an empty list for blank input
-     * or on database error.
+     * 加载一个 app+resource 在 [startTime, endTime] 区间（双边均含）内的指标，
+     * 按时间戳升序排列；入参为空或数据库异常时返回空列表
      */
     @Override
     public List<MetricEntity> queryByAppAndResourceBetween(String app, String resource,
@@ -482,9 +463,8 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
     }
 
     /**
-     * Lists the resources of the app that have metrics within [startTime, endTime], ordered
-     * by summed block QPS then summed pass QPS descending; returns an empty list for a
-     * blank app or on database error.
+     * 列出应用在 [startTime, endTime] 区间内有指标数据的资源，
+     * 按阻塞 QPS 总和、通过 QPS 总和降序排列；应用名为空或数据库异常时返回空列表
      */
     @Override
     public List<String> listResourcesOfApp(String app, long startTime, long endTime) {
@@ -502,8 +482,8 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
     }
 
     /**
-     * Deletes metric rows older than {@link #retentionDays} days in batches of
-     * {@link #MAX_BATCH_DELETE_ROWS} until fewer rows than the batch limit are affected.
+     * 按 {@link #MAX_BATCH_DELETE_ROWS} 分批删除早于 {@link #retentionDays} 天的
+     * 指标行，直到单批影响行数小于批大小为止
      */
     private void cleanExpiredMetrics() {
         try {

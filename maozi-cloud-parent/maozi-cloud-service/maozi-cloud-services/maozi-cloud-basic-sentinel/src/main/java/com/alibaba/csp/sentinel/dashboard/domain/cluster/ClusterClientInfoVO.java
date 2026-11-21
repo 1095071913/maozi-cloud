@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.domain.cluster;
 
 /**
- * Cluster token client info of a machine, i.e. the connected token server and the client state.
+ * 机器的集群 token client 信息，即连接的 token server 及客户端状态。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -24,62 +24,62 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster;
  */
 public class ClusterClientInfoVO {
 
-    /** The host of the connected token server. */
+    /** 已连接 token server 的主机地址。 */
     private String serverHost;
-    /** The port of the connected token server. */
+    /** 已连接 token server 的端口。 */
     private Integer serverPort;
 
-    /** The current state of the cluster client. */
+    /** 集群客户端当前状态。 */
     private Integer clientState;
 
-    /** The request timeout of the cluster client. */
+    /** 集群客户端的请求超时时间。 */
     private Integer requestTimeout;
 
-    /** Gets the host of the connected token server. */
+    /** 获取已连接 token server 的主机地址。 */
     public String getServerHost() {
         return serverHost;
     }
 
-    /** Sets the host of the token server and returns this. */
+    /** 设置 token server 的主机地址并返回当前对象。 */
     public ClusterClientInfoVO setServerHost(String serverHost) {
         this.serverHost = serverHost;
         return this;
     }
 
-    /** Gets the port of the connected token server. */
+    /** 获取已连接 token server 的端口。 */
     public Integer getServerPort() {
         return serverPort;
     }
 
-    /** Sets the port of the token server and returns this. */
+    /** 设置 token server 的端口并返回当前对象。 */
     public ClusterClientInfoVO setServerPort(Integer serverPort) {
         this.serverPort = serverPort;
         return this;
     }
 
-    /** Gets the current state of the cluster client. */
+    /** 获取集群客户端当前状态。 */
     public Integer getClientState() {
         return clientState;
     }
 
-    /** Sets the state of the cluster client and returns this. */
+    /** 设置集群客户端状态并返回当前对象。 */
     public ClusterClientInfoVO setClientState(Integer clientState) {
         this.clientState = clientState;
         return this;
     }
 
-    /** Gets the request timeout of the cluster client. */
+    /** 获取集群客户端的请求超时时间。 */
     public Integer getRequestTimeout() {
         return requestTimeout;
     }
 
-    /** Sets the request timeout of the cluster client and returns this. */
+    /** 设置集群客户端的请求超时时间并返回当前对象。 */
     public ClusterClientInfoVO setRequestTimeout(Integer requestTimeout) {
         this.requestTimeout = requestTimeout;
         return this;
     }
 
-    /** Gets the string representation of this VO. */
+    /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
         return "ClusterClientInfoVO{" +

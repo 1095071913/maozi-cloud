@@ -48,7 +48,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 /**
- * Controller for querying and modifying the cluster state and config of machines.
+ * 查询与修改机器集群状态及配置的控制器。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -58,26 +58,27 @@ import java.util.concurrent.ExecutionException;
 @RequestMapping(value = "/cluster")
 public class ClusterConfigController {
 
-    /** The logger of this controller. */
+    /** 日志记录器。 */
     private final Logger logger = LoggerFactory.getLogger(ClusterConfigController.class);
 
-    /** The minimum Sentinel client version (1.4.0) that supports cluster flow control. */
+    /** 支持集群流控的最低 Sentinel 客户端版本（1.4.0）。 */
     private final SentinelVersion version140 = new SentinelVersion().setMajorVersion(1).setMinorVersion(4);
 
-    /** The app management service used to look up machines of an app. */
+    /** 用于查询应用机器的应用管理服务。 */
     private final AppManagement appManagement;
 
-    /** The service that fetches cluster states and modifies cluster configs. */
+    /** 拉取集群状态与修改集群配置的服务。 */
     private final ClusterConfigService clusterConfigService;
 
+    /** 注入应用管理与集群配置服务。 */
     public ClusterConfigController(AppManagement appManagement, ClusterConfigService clusterConfigService) {
         this.appManagement = appManagement;
         this.clusterConfigService = clusterConfigService;
     }
 
     /**
-     * Modifies the cluster config of a single machine: the raw JSON payload is dispatched
-     * by its "mode" field to a client or server {@link ClusterModifyRequest}, then applied.
+     * 修改单个机器的集群配置：原始 JSON 报文按 "mode" 字段分发为客户端或
+     * 服务端 {@link ClusterModifyRequest} 后应用。
      */
     @PostMapping("/config/modify_single")
     public Result<Boolean> apiModifyClusterConfig(@RequestBody String payload) {
@@ -103,7 +104,7 @@ public class ClusterConfigController {
                         if (r != null) {
                             return r;
                         }
-                        // TODO bad design here, should refactor! by maozi 2026/11/21.
+                        // TODO maozi 2026/11/21 此处设计不佳，待重构
                         clusterConfigService.modifyClusterServerConfig(d).get();
                         return Result.ofSuccess(true);
                     default:
@@ -122,7 +123,7 @@ public class ClusterConfigController {
         }
     }
 
-    /** Converts the ExecutionException into an unsupported-version result or the cause's error result. */
+    /** 将 ExecutionException 转换为版本不支持结果或原因异常对应的错误结果。 */
     private <T> Result<T> errorResponse(ExecutionException ex) {
         if (isNotSupported(ex.getCause())) {
             return unsupportedVersion();
@@ -131,7 +132,7 @@ public class ClusterConfigController {
         }
     }
 
-    /** Fetches the universal cluster state of a single machine of the app. */
+    /** 获取应用指定单台机器的通用集群状态。 */
     @GetMapping("/state_single")
     public Result<ClusterUniversalStateVO> apiGetClusterState(@RequestParam String app,
                                                               @RequestParam String ip,
@@ -163,7 +164,7 @@ public class ClusterConfigController {
         }
     }
 
-    /** Fetches the cluster server states of all machines of the app. */
+    /** 获取应用全部机器的集群 server 状态。 */
     @GetMapping("/server_state/{app}")
     public Result<List<AppClusterServerStateWrapVO>> apiGetClusterServerStateOfApp(@PathVariable String app) {
         if (StringUtil.isEmpty(app)) {
@@ -185,7 +186,7 @@ public class ClusterConfigController {
         }
     }
 
-    /** Fetches the cluster token client states of all machines of the app. */
+    /** 获取应用全部机器的集群 token client 状态。 */
     @GetMapping("/client_state/{app}")
     public Result<List<AppClusterClientStateWrapVO>> apiGetClusterClientStateOfApp(@PathVariable String app) {
         if (StringUtil.isEmpty(app)) {
@@ -207,7 +208,7 @@ public class ClusterConfigController {
         }
     }
 
-    /** Fetches the universal cluster states (server and client) of all machines of the app. */
+    /** 获取应用全部机器的通用集群状态（server 与 client）。 */
     @GetMapping("/state/{app}")
     public Result<List<ClusterUniversalStatePairVO>> apiGetClusterStateOfApp(@PathVariable String app) {
         if (StringUtil.isEmpty(app)) {
@@ -228,14 +229,14 @@ public class ClusterConfigController {
         }
     }
 
-    /** Whether the throwable means the command is not supported by the target Sentinel client. */
+    /** 判断异常是否表示目标 Sentinel 客户端不支持该命令。 */
     private boolean isNotSupported(Throwable ex) {
         return ex instanceof CommandNotFoundException;
     }
 
     /**
-     * Whether the machine's client version supports cluster flow control (>= 1.4.0);
-     * returns true when the machine info is unavailable or an error occurs.
+     * 判断机器的客户端版本是否支持集群流控（>= 1.4.0）；
+     * 机器信息不可用或出错时返回 true。
      */
     private boolean checkIfSupported(String app, String ip, int port) {
         try {
@@ -244,15 +245,14 @@ public class ClusterConfigController {
                 .flatMap(m -> VersionUtils.parseVersion(m.getVersion())
                     .map(v -> v.greaterOrEqual(version140)))
                 .orElse(true);
-            // If error occurred or cannot retrieve machine info, return true.
+            // 出错或无法获取机器信息时返回 true
         } catch (Exception ex) {
             return true;
         }
     }
 
-    /** Validates the modify request (app/ip/port/mode and version support); returns the first error or null. */
+    /** 校验修改请求（app/ip/port/mode 及版本支持）；返回首个错误结果，校验通过返回 null。 */
     private Result<Boolean> checkValidRequest(ClusterModifyRequest request) {
-        // Cache the field values to avoid repeated calls within the same method.
         String app = request.getApp();
         String ip = request.getIp();
         Integer port = request.getPort();
@@ -275,19 +275,19 @@ public class ClusterConfigController {
         return null;
     }
 
-    /** Error code returned when the client version does not support cluster flow control. */
+    /** 客户端版本不支持集群流控时返回的错误码。 */
     private static final int CODE_UNSUPPORTED_CLIENT = 4041;
 
-    /** Builds the error result returned when the client version does not support cluster flow control. */
+    /** 构造客户端版本不支持集群流控时的错误结果。 */
     private <R> Result<R> unsupportedVersion() {
         return Result.ofFail(CODE_UNSUPPORTED_CLIENT, 
             "Sentinel client not supported for cluster flow control (unsupported version or dependency absent)");
     }
 
-    /** The JSON field name of the cluster mode in the modify request payload. */
+    /** 修改请求报文中集群模式字段的 JSON 字段名。 */
     private static final String KEY_MODE = "mode";
 
-    /** Restores the interrupt flag, logs the message with the exception and returns the fail result. */
+    /** 恢复中断标记，记录消息与异常并返回失败结果。 */
     public static <T> Result<T> onInterrupted(Logger logger, String message, InterruptedException ex) {
         Thread.currentThread().interrupt();
         logger.error(message, ex);

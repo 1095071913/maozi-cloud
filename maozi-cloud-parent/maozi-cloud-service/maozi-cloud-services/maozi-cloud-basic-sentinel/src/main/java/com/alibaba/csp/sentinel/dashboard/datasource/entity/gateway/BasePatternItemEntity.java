@@ -16,8 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway;
 
 /**
- * Base entity for gateway items that match requests by a pattern, holding the common
- * pattern and matchStrategy fields.
+ * 按匹配模式匹配请求的网关条目基类，持有公共的 pattern 与 matchStrategy 字段。
  *
  * @author cdfive
  * @date 2026/11/22
@@ -25,27 +24,27 @@ package com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway;
  */
 public abstract class BasePatternItemEntity {
 
-    /** The pattern to match the request. */
+    /** 请求匹配模式。 */
     protected String pattern;
-    /** The strategy to match the pattern. */
+    /** 匹配模式的匹配策略。 */
     protected Integer matchStrategy;
 
-    /** Gets the pattern to match the request. */
+    /** 获取请求匹配模式。 */
     public String getPattern() {
         return pattern;
     }
 
-    /** Sets the pattern to match the request. */
+    /** 设置请求匹配模式。 */
     public void setPattern(String pattern) {
         this.pattern = pattern;
     }
 
-    /** Gets the strategy to match the pattern. */
+    /** 获取匹配模式的匹配策略。 */
     public Integer getMatchStrategy() {
         return matchStrategy;
     }
 
-    /** Sets the strategy to match the pattern. */
+    /** 设置匹配模式的匹配策略。 */
     public void setMatchStrategy(Integer matchStrategy) {
         this.matchStrategy = matchStrategy;
     }

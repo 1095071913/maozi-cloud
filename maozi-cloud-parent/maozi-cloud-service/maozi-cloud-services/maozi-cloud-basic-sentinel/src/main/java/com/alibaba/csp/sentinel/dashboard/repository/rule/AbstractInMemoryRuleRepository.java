@@ -25,29 +25,27 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Abstract in-memory repository of rule entities, indexed by id, machine and app.
+ * 规则实体的内存仓储抽象基类，按 id、机器与应用三个维度索引
  *
  * @author leyou
  * @date 2026/11/22
  */
 public abstract class AbstractInMemoryRuleRepository<T extends RuleEntity> implements RuleRepository<T, Long> {
 
-    /** Rules grouped by machine ({@code <machine, <id, rule>>}). */
+    /** 按机器分组的规则（{@code <machine, <id, rule>>}） */
     private Map<MachineInfo, Map<Long, T>> machineRules = new ConcurrentHashMap<>(16);
-    /** All stored rules keyed by rule id ({@code <id, rule>}). */
+    /** 按规则 id 索引的全部规则（{@code <id, rule>}） */
     private Map<Long, T> allRules = new ConcurrentHashMap<>(16);
 
-    /** Rules grouped by application name ({@code <app, <id, rule>>}). */
+    /** 按应用名分组的规则（{@code <app, <id, rule>>}） */
     private Map<String, Map<Long, T>> appRules = new ConcurrentHashMap<>(16);
 
-    /** Maximum number of rules this repository may hold; not enforced by the current code. */
+    /** 仓储可容纳的最大规则数；当前代码并未实际校验该上限 */
     private static final int MAX_RULES_SIZE = 10000;
 
     /**
-     * Save the given entity, assigning it a generated id when it has none. The entity is
-     * first passed to {@link #preProcess}; when the processed entity is non-null it is put
-     * into all three indexes (by id, by machine and by app), otherwise nothing is stored
-     * and {@code null} is returned.
+     * 保存给定实体，无 id 时为其分配生成的 id。实体先经过 {@link #preProcess} 处理，
+     * 处理结果非 null 时写入 id、机器、应用三个索引，否则不存储并返回 {@code null}
      */
     @Override
     public T save(T entity) {
@@ -56,7 +54,6 @@ public abstract class AbstractInMemoryRuleRepository<T extends RuleEntity> imple
         }
         T processedEntity = preProcess(entity);
         if (processedEntity != null) {
-            // Cache the entity id and app name to avoid repeated calls within the same method.
             Long entityId = processedEntity.getId();
             String app = processedEntity.getApp();
             allRules.put(entityId, processedEntity);
@@ -71,13 +68,12 @@ public abstract class AbstractInMemoryRuleRepository<T extends RuleEntity> imple
     }
 
     /**
-     * Replace all stored rules with the given list: every existing rule in all three
-     * indexes is cleared first, then each rule is saved one by one via {@link #save};
-     * returns an empty list when the given list is {@code null}.
+     * 用给定列表替换全部已存规则：先清空三个索引中的所有既有规则，
+     * 再逐条通过 {@link #save} 保存；入参为 {@code null} 时返回空列表
      */
     @Override
     public List<T> saveAll(List<T> rules) {
-        // TODO check here. by maozi 2026/11/21.
+        // TODO maozi 2026/11/21 检查此处逻辑
         allRules.clear();
         machineRules.clear();
         appRules.clear();
@@ -93,14 +89,13 @@ public abstract class AbstractInMemoryRuleRepository<T extends RuleEntity> imple
     }
 
     /**
-     * Remove the rule with the given id from all three indexes and return it, or
-     * {@code null} if no rule with the id exists.
+     * 从三个索引中移除指定 id 的规则并返回该规则，
+     * id 不存在时返回 {@code null}
      */
     @Override
     public T delete(Long id) {
         T entity = allRules.remove(id);
         if (entity != null) {
-            // Cache the app name and its rule map to avoid repeated calls within the same method.
             String app = entity.getApp();
             Map<Long, T> appRuleMap = appRules.get(app);
             if (appRuleMap != null) {
@@ -111,13 +106,13 @@ public abstract class AbstractInMemoryRuleRepository<T extends RuleEntity> imple
         return entity;
     }
 
-    /** Returns the rule with the given id, or {@code null} if it does not exist. */
+    /** 返回指定 id 的规则，不存在时返回 {@code null} */
     @Override
     public T findById(Long id) {
         return allRules.get(id);
     }
 
-    /** Returns all rules bound to the given machine, or an empty list if none exist. */
+    /** 返回绑定到指定机器的全部规则，无规则时返回空列表 */
     @Override
     public List<T> findAllByMachine(MachineInfo machineInfo) {
         Map<Long, T> entities = machineRules.get(machineInfo);
@@ -128,8 +123,8 @@ public abstract class AbstractInMemoryRuleRepository<T extends RuleEntity> imple
     }
 
     /**
-     * Returns all rules of the given application, or an empty list if the app is unknown;
-     * appName must not be empty.
+     * 返回指定应用的全部规则，应用不存在时返回空列表；
+     * appName 不能为空
      */
     @Override
     public List<T> findAllByApp(String appName) {
@@ -141,7 +136,7 @@ public abstract class AbstractInMemoryRuleRepository<T extends RuleEntity> imple
         return new ArrayList<>(entities.values());
     }
 
-    /** Removes all rules from all three indexes. */
+    /** 清空三个索引中的全部规则 */
     public void clearAll() {
         allRules.clear();
         machineRules.clear();
@@ -149,18 +144,17 @@ public abstract class AbstractInMemoryRuleRepository<T extends RuleEntity> imple
     }
 
     /**
-     * Hook for subclasses to transform or validate an entity before it is stored;
-     * returning {@code null} skips storing it. The default implementation returns the
-     * entity unchanged.
+     * 供子类在实体存储前进行转换或校验的钩子方法；
+     * 返回 {@code null} 表示跳过存储。默认实现原样返回实体
      */
     protected T preProcess(T entity) {
         return entity;
     }
 
     /**
-     * Get next unused id.
+     * 获取下一个未使用的 id
      *
-     * @return next unused id
+     * @return 下一个未使用的 id
      */
     protected abstract long nextId();
 }

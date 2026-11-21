@@ -22,8 +22,7 @@ import java.util.List;
  */
 public class BannerFilterPrintStream extends PrintStream {
 
-    /** banner 过滤特征列表（来自 BaseApplication 的共享字段），
-     * 过滤时实时读取，支持启动过程中动态注册 */
+    /** banner 过滤特征列表（来自 BaseApplication 的共享字段），过滤时实时读取，支持启动过程中动态注册 */
     private final List<String> bannerFilters;
 
     /**

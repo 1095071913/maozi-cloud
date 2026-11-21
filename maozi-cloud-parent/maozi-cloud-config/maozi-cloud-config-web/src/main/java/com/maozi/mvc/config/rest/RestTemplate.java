@@ -33,7 +33,7 @@ import java.util.Map;
  * 自定义 RestTemplate
  * <p>
  * 扩展 Spring 的 {@link org.springframework.web.client.RestTemplate}，
- * 在 {@link #doExecute} 方法中集成请求日志记录、响应时间统计、
+ * 在 {@link #doExecute} 方法中集成请求日志记录、
  * SQL 日志收集和异常处理。所有 HTTP 请求（GET/POST/HEAD/EXCHANGE 等）
  * 最终均经由基类公开方法内部调用的 {@link #doExecute} 统一走增强后的流程。
  * </p>

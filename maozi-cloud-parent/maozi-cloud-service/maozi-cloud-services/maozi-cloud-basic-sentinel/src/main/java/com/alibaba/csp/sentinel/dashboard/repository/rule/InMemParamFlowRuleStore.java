@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * In-memory storage for parameter (hotspot) flow rules.
+ * 热点参数流控规则的内存存储
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -31,19 +31,18 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 public class InMemParamFlowRuleStore extends AbstractInMemoryRuleRepository<ParamFlowRuleEntity> {
 
-    /** Static id generator for stored entities. */
+    /** 存储实体的静态 id 生成器 */
     private static AtomicLong ids = new AtomicLong(0);
 
-    /** Generates the next sequential id with the static counter. */
+    /** 使用静态计数器生成下一个自增 id */
     @Override
     protected long nextId() {
         return ids.incrementAndGet();
     }
 
     /**
-     * Sets the rule id as the cluster flow id on the entity's cluster config when the rule
-     * runs in cluster mode; a config created here because the entity had none is not
-     * attached back to the entity.
+     * 规则处于集群模式时将规则 id 设置为集群配置的集群流控 id；
+     * 注意：实体原本无配置时此处新建的配置不会回写到实体上
      */
     @Override
     protected ParamFlowRuleEntity preProcess(ParamFlowRuleEntity entity) {
@@ -52,7 +51,7 @@ public class InMemParamFlowRuleStore extends AbstractInMemoryRuleRepository<Para
             if (config == null) {
                 config = new ParamFlowClusterConfig();
             }
-            // Set cluster rule id.
+            // 设置集群规则 id
             config.setFlowId(entity.getId());
         }
         return entity;

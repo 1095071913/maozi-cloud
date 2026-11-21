@@ -19,39 +19,45 @@ import com.alibaba.csp.sentinel.slots.block.flow.ClusterFlowConfig;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
 
 /**
- * Entity for a flow (QPS or thread count) rule.
+ * 流控（QPS 或并发线程数）规则实体。
  *
  * @author leyou
  * @date 2026/11/22
  */
 public class FlowRuleEntity extends BaseRuleEntity {
 
-    /** The caller that the rule applies to. */
+    /** 规则针对的调用来源应用。 */
     private String limitApp;
-    /** The resource name. */
+    /** 资源名。 */
     private String resource;
-    /** The threshold type: 0 for thread count and 1 for QPS. */
+    /** 阈值类型：0 并发线程数，1 QPS。 */
     private Integer grade;
-    /** The threshold count of the rule. */
+    /** 阈值。 */
     private Double count;
-    /** The flow control strategy: 0 direct, 1 related and 2 chain. */
+    /** 流控策略：0 直接，1 关联，2 链路。 */
     private Integer strategy;
-    /** The related resource for association and chain strategy. */
+    /** 关联、链路策略对应的关联资源。 */
     private String refResource;
-    /** The control behavior: 0 default, 1 warm up and 2 rate limiter. */
+    /** 流控效果：0 默认（快速失败），1 Warm Up 预热，2 匀速排队。 */
     private Integer controlBehavior;
-    /** The warm up period in seconds for warm up behavior. */
+    /** Warm Up 预热时长，单位秒。 */
     private Integer warmUpPeriodSec;
-    /** The max queueing time in milliseconds for rate limiter behavior. */
+    /** 匀速排队模式下的最大排队时长，单位毫秒。 */
     private Integer maxQueueingTimeMs;
 
-    /** Whether the rule works in cluster mode. */
+    /** 是否集群流控模式。 */
     private boolean clusterMode;
-    /** The flow rule config for cluster mode. */
+    /** 集群流控相关配置。 */
     private ClusterFlowConfig clusterConfig;
 
     /**
-     * Builds an entity from the given {@link FlowRule}, carrying the given app, ip and port.
+     * 根据 {@link FlowRule} 构建携带指定应用名、IP、端口的实体。
+     *
+     * @param app  应用名
+     * @param ip   机器 IP
+     * @param port 机器端口
+     * @param rule 流控规则
+     * @return 由规则字段填充而成的实体
      */
     public static FlowRuleEntity fromFlowRule(String app, String ip, Integer port, FlowRule rule) {
         FlowRuleEntity entity = new FlowRuleEntity();
@@ -72,121 +78,121 @@ public class FlowRuleEntity extends BaseRuleEntity {
         return entity;
     }
 
-    /** Gets the caller that the rule applies to. */
+    /** 获取规则针对的调用来源应用。 */
     public String getLimitApp() {
         return limitApp;
     }
 
-    /** Sets the caller that the rule applies to. */
+    /** 设置规则针对的调用来源应用。 */
     public void setLimitApp(String limitApp) {
         this.limitApp = limitApp;
     }
 
-    /** Gets the resource name. */
+    /** 获取资源名。 */
     public String getResource() {
         return resource;
     }
 
-    /** Sets the resource name. */
+    /** 设置资源名。 */
     public void setResource(String resource) {
         this.resource = resource;
     }
 
-    /** Gets the threshold type: 0 for thread count and 1 for QPS. */
+    /** 获取阈值类型：0 并发线程数，1 QPS。 */
     public Integer getGrade() {
         return grade;
     }
 
-    /** Sets the threshold type: 0 for thread count and 1 for QPS. */
+    /** 设置阈值类型：0 并发线程数，1 QPS。 */
     public void setGrade(Integer grade) {
         this.grade = grade;
     }
 
-    /** Gets the threshold count of the rule. */
+    /** 获取阈值。 */
     public Double getCount() {
         return count;
     }
 
-    /** Sets the threshold count of the rule. */
+    /** 设置阈值。 */
     public void setCount(Double count) {
         this.count = count;
     }
 
-    /** Gets the flow control strategy. */
+    /** 获取流控策略。 */
     public Integer getStrategy() {
         return strategy;
     }
 
-    /** Sets the flow control strategy. */
+    /** 设置流控策略。 */
     public void setStrategy(Integer strategy) {
         this.strategy = strategy;
     }
 
-    /** Gets the related resource for association and chain strategy. */
+    /** 获取关联、链路策略对应的关联资源。 */
     public String getRefResource() {
         return refResource;
     }
 
-    /** Sets the related resource for association and chain strategy. */
+    /** 设置关联、链路策略对应的关联资源。 */
     public void setRefResource(String refResource) {
         this.refResource = refResource;
     }
 
-    /** Gets the control behavior. */
+    /** 获取流控效果。 */
     public Integer getControlBehavior() {
         return controlBehavior;
     }
 
-    /** Sets the control behavior. */
+    /** 设置流控效果。 */
     public void setControlBehavior(Integer controlBehavior) {
         this.controlBehavior = controlBehavior;
     }
 
-    /** Gets the warm up period in seconds. */
+    /** 获取 Warm Up 预热时长，单位秒。 */
     public Integer getWarmUpPeriodSec() {
         return warmUpPeriodSec;
     }
 
-    /** Sets the warm up period in seconds. */
+    /** 设置 Warm Up 预热时长，单位秒。 */
     public void setWarmUpPeriodSec(Integer warmUpPeriodSec) {
         this.warmUpPeriodSec = warmUpPeriodSec;
     }
 
-    /** Gets the max queueing time in milliseconds. */
+    /** 获取最大排队时长，单位毫秒。 */
     public Integer getMaxQueueingTimeMs() {
         return maxQueueingTimeMs;
     }
 
-    /** Sets the max queueing time in milliseconds. */
+    /** 设置最大排队时长，单位毫秒。 */
     public void setMaxQueueingTimeMs(Integer maxQueueingTimeMs) {
         this.maxQueueingTimeMs = maxQueueingTimeMs;
     }
 
-    /** Whether the rule works in cluster mode. */
+    /** 是否集群流控模式。 */
     public boolean isClusterMode() {
         return clusterMode;
     }
 
-    /** Sets whether the rule works in cluster mode and returns this. */
+    /** 设置是否集群流控模式并返回当前对象。 */
     public FlowRuleEntity setClusterMode(boolean clusterMode) {
         this.clusterMode = clusterMode;
         return this;
     }
 
-    /** Gets the flow rule config for cluster mode. */
+    /** 获取集群流控相关配置。 */
     public ClusterFlowConfig getClusterConfig() {
         return clusterConfig;
     }
 
-    /** Sets the flow rule config for cluster mode and returns this. */
+    /** 设置集群流控相关配置并返回当前对象。 */
     public FlowRuleEntity setClusterConfig(ClusterFlowConfig clusterConfig) {
         this.clusterConfig = clusterConfig;
         return this;
     }
 
     /**
-     * Converts to a {@link FlowRule}, only setting controlBehavior, warmUpPeriodSec and
-     * maxQueueingTimeMs when they are not null.
+     * 转换为 {@link FlowRule}，controlBehavior、warmUpPeriodSec、maxQueueingTimeMs
+     * 仅在非空时设置。
      */
     @Override
     public FlowRule toRule() {
@@ -211,7 +217,7 @@ public class FlowRuleEntity extends BaseRuleEntity {
         return flowRule;
     }
 
-    /** Return a string representation of this entity. */
+    /** 返回实体的字符串表示。 */
     @Override
     public String toString() {
         return "FlowRuleEntity{"

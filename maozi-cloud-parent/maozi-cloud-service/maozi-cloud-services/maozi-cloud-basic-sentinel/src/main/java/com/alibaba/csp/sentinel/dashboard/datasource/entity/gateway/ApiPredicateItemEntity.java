@@ -20,7 +20,7 @@ import com.alibaba.csp.sentinel.adapter.gateway.common.api.ApiPredicateItem;
 import java.util.Objects;
 
 /**
- * Entity for {@link ApiPredicateItem}.
+ * {@link ApiPredicateItem} 对应的 API 断言条目实体。
  *
  * @author cdfive
  * @date 2026/11/22
@@ -28,17 +28,17 @@ import java.util.Objects;
  */
 public class ApiPredicateItemEntity extends BasePatternItemEntity {
 
-    /** Creates an empty item. */
+    /** 构造空条目。 */
     public ApiPredicateItemEntity() {
     }
 
-    /** Creates an item with the given pattern and match strategy. */
+    /** 以指定匹配模式与匹配策略构造条目。 */
     public ApiPredicateItemEntity(String pattern, int matchStrategy) {
         this.pattern = pattern;
         this.matchStrategy = matchStrategy;
     }
 
-    /** Whether the given object has the same pattern and match strategy. */
+    /** 判断指定对象是否与本条目的匹配模式和匹配策略相同。 */
     @Override
     public boolean equals(Object o) {
         if (this == o) { return true; }
@@ -48,13 +48,13 @@ public class ApiPredicateItemEntity extends BasePatternItemEntity {
                 Objects.equals(matchStrategy, that.matchStrategy);
     }
 
-    /** Gets the hash code from the pattern and match strategy. */
+    /** 以匹配模式与匹配策略计算哈希码。 */
     @Override
     public int hashCode() {
         return Objects.hash(pattern, matchStrategy);
     }
 
-    /** Builds a string with all fields of this item. */
+    /** 拼接全部字段构建字符串。 */
     @Override
     public String toString() {
         return "ApiPredicateItemEntity{" +

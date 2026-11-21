@@ -18,7 +18,7 @@ package com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.api;
 import java.util.List;
 
 /**
- * Value Object for update gateway api.
+ * 更新网关 API 的请求视图对象。
  *
  * @author cdfive
  * @date 2026/11/22
@@ -26,46 +26,46 @@ import java.util.List;
  */
 public class UpdateApiReqVO {
 
-    /** ID of the gateway API definition to update. */
+    /** 待更新的网关 API 定义 id。 */
     private Long id;
 
-    /** Name of the target application. */
+    /** 目标应用名。 */
     private String app;
 
-    /** New predicate items (URL match conditions) of the gateway API definition. */
+    /** 网关 API 定义的新断言项（URL 匹配条件）列表。 */
     private List<ApiPredicateItemVO> predicateItems;
 
-    /** Returns the ID of the gateway API definition to update. */
+    /** 获取待更新的网关 API 定义 id。 */
     public Long getId() {
         return id;
     }
 
-    /** Sets the ID of the gateway API definition to update. */
+    /** 设置待更新的网关 API 定义 id。 */
     public void setId(Long id) {
         this.id = id;
     }
 
-    /** Returns the name of the target application. */
+    /** 获取目标应用名。 */
     public String getApp() {
         return app;
     }
 
-    /** Sets the name of the target application. */
+    /** 设置目标应用名。 */
     public void setApp(String app) {
         this.app = app;
     }
 
-    /** Returns the new predicate items of the gateway API definition. */
+    /** 获取网关 API 定义的新断言项列表。 */
     public List<ApiPredicateItemVO> getPredicateItems() {
         return predicateItems;
     }
 
-    /** Sets the new predicate items of the gateway API definition. */
+    /** 设置网关 API 定义的新断言项列表。 */
     public void setPredicateItems(List<ApiPredicateItemVO> predicateItems) {
         this.predicateItems = predicateItems;
     }
 
-    /** Return a string representation of this VO. */
+    /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
         return "UpdateApiReqVO{"

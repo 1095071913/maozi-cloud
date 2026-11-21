@@ -73,15 +73,11 @@ public class ServerHttpResponseAgent extends ServerHttpResponseDecorator {
     }
 
     /**
-     * 拦截响应体写入。
+     * 拦截响应体写入
      * <p>
-     * 当响应体类型为 Flux 时，缓冲所有数据块并执行以下操作：
-     * 1. 合并所有 DataBuffer 为字节数组；
-     * 2. 解析 JSON 响应体，判断是否为自定义格式（含 code 字段）；
-     * 3. 在 OpenTelemetry 未生成有效 traceId 时向 MDC 写入 traceId；
-     * 4. 记录响应耗时和响应数据；
-     * 5. 根据响应状态决定日志级别；
-     * 6. 将合并后的字节重新包装为 DataBuffer 返回并写入下游。
+     * 响应体为 Flux 时缓冲全部数据块，合并后交由
+     * {@link #aggregateAndLog(List, DataBufferFactory)} 记录响应日志并重新包装为
+     * DataBuffer 写入下游；非 Flux 类型直接透传。
      * </p>
      *
      * @param body 响应体数据流

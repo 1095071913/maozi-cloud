@@ -21,18 +21,12 @@ import java.util.Set;
 /**
  * 用户信息请求头清除过滤器
  * <p>
- * 聚合服务（maozi-cloud-all-service）直接接收外部请求，而
- * {@code X-CurrentUserInfo}（{@link CurrentUserInfoContext#KEY}）头
- * 仅用于服务间内部传递当前登录用户信息，外部注入可伪造身份绕过认证。
- * 故本过滤器先于 Spring Security 过滤器链（{@code DEFAULT_FILTER_ORDER - 1}）执行，
- * 通过 {@link UserInfoHeaderStrippedRequestWrapper} 移除该请求头，
- * 使下游过滤器链（含令牌内省）与控制器无法读取，用户身份仅来源于内省结果。
- * </p>
- * <p>
- * <b>注：</b>仅移除请求头，不清除上游 {@code ApplicationContextFilter} 以
- * {@code HIGHEST_PRECEDENCE} 写入的 {@link CurrentUserInfoContext#CONTEXT} 线程本地变量；
- * 认证成功后由 {@code ApplicationUserContextFilter} 按内省结果覆盖，
- * 未认证端点仍存在外部注入身份的残留风险。
+ * 聚合服务直接接收外部请求，而 {@code X-CurrentUserInfo}（{@link CurrentUserInfoContext#KEY}）
+ * 头仅用于服务间传递登录用户身份，外部注入可伪造身份绕过认证。故本过滤器先于
+ * Spring Security 过滤链执行，通过 {@link UserInfoHeaderStrippedRequestWrapper}
+ * 移除该请求头，使下游过滤器链与控制器无法读取，身份仅来源于令牌内省结果。
+ * 注：不清除上游更早写入的 {@link CurrentUserInfoContext#CONTEXT} 线程变量
+ * （认证成功后会被按内省结果覆盖），未认证端点仍有注入残留风险。
  * </p>
  *
  * @author maozi

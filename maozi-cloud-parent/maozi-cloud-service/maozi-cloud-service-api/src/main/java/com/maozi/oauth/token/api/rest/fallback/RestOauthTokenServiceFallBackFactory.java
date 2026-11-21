@@ -44,7 +44,6 @@ public class RestOauthTokenServiceFallBackFactory implements FallbackFactory<Res
         }
 
         // 仍无法取得错误结果（如连接超时等非业务异常）时返回统一系统错误
-        // 避免强转 ClassCastException
         if (Objects.isNull(result)) {
             result = ResultUtil.error(SystemErrorCode.SYSTEM_ERROR);
         }

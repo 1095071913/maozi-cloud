@@ -48,9 +48,10 @@ import java.util.List;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnProperty(
-        name = "spring.boot.admin.client.enabled",                 // 配置项名
+        name = "spring.boot.admin.client.enabled",
         havingValue = "true",
-        matchIfMissing = true                 // 没配置时默认生效
+        // 未配置该属性时默认开启
+        matchIfMissing = true
 )
 public class AdminClientConfig {
 

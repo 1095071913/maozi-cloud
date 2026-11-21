@@ -20,64 +20,64 @@ import com.alibaba.csp.sentinel.dashboard.discovery.MachineInfo;
 import java.util.Date;
 
 /**
- * Persistent entity of a machine (application instance) registered to the dashboard.
+ * 注册到控制台的机器（应用实例）持久化实体。
  *
  * @author leyou
  * @date 2026/11/22
  */
 public class MachineEntity extends BaseEntity {
-    /** The IP address of the machine. */
+    /** 机器 IP 地址。 */
     private String ip;
-    /** The hostname of the machine. */
+    /** 机器主机名。 */
     private String hostname;
-    /** The heartbeat timestamp of the machine. */
+    /** 机器心跳时间戳。 */
     private Date timestamp;
-    /** The port of the machine. */
+    /** 机器端口。 */
     private Integer port;
 
-    /** Gets the IP address of the machine. */
+    /** 获取机器 IP 地址。 */
     public String getIp() {
         return ip;
     }
 
-    /** Sets the IP address of the machine. */
+    /** 设置机器 IP 地址。 */
     public void setIp(String ip) {
         this.ip = ip;
     }
 
-    /** Gets the hostname of the machine. */
+    /** 获取机器主机名。 */
     public String getHostname() {
         return hostname;
     }
 
-    /** Sets the hostname of the machine. */
+    /** 设置机器主机名。 */
     public void setHostname(String hostname) {
         this.hostname = hostname;
     }
 
-    /** Gets the heartbeat timestamp of the machine. */
+    /** 获取机器心跳时间戳。 */
     public Date getTimestamp() {
         return timestamp;
     }
 
-    /** Sets the heartbeat timestamp of the machine. */
+    /** 设置机器心跳时间戳。 */
     public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
     }
 
-    /** Gets the port of the machine. */
+    /** 获取机器端口。 */
     public Integer getPort() {
         return port;
     }
 
-    /** Sets the port of the machine. */
+    /** 设置机器端口。 */
     public void setPort(Integer port) {
         this.port = port;
     }
 
     /**
-     * Converts to a {@link MachineInfo}, using the timestamp of this entity as both
-     * lastHeartbeat and heartbeatVersion.
+     * 转换为 {@link MachineInfo}，本实体的时间戳同时作为
+     * lastHeartbeat 与 heartbeatVersion。
      */
     public MachineInfo toMachineInfo() {
         MachineInfo machineInfo = new MachineInfo();
@@ -86,7 +86,6 @@ public class MachineEntity extends BaseEntity {
         machineInfo.setHostname(hostname);
         machineInfo.setIp(ip);
         machineInfo.setPort(port);
-        // Cache the heartbeat timestamp to avoid repeated calls within the same method.
         Long heartbeatTimestamp = timestamp.getTime();
         machineInfo.setLastHeartbeat(heartbeatTimestamp);
         machineInfo.setHeartbeatVersion(heartbeatTimestamp);
@@ -94,7 +93,7 @@ public class MachineEntity extends BaseEntity {
         return machineInfo;
     }
 
-    /** Builds a string with all fields of this entity. */
+    /** 拼接全部字段构建字符串。 */
     @Override
     public String toString() {
         return "MachineEntity{" +

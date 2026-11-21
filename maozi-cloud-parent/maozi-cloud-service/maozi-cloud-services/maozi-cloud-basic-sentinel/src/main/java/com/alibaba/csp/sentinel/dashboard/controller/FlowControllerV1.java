@@ -39,8 +39,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Controller for the v1 flow rule APIs, backed by the in-memory repository and the
- * Nacos provider/publisher.
+ * v1 流控规则 API 控制器，基于内存仓储与 Nacos 提供者/发布者实现。
  *
  * @author leyou
  * @author Eric Zhao
@@ -50,9 +49,10 @@ import java.util.List;
 @RequestMapping(value = "/v1/flow")
 public class FlowControllerV1 extends AbstractFlowRuleController {
 
-    /** The app management service used to validate machine-to-app relationship. */
+    /** 用于校验机器与应用归属关系的应用管理服务。 */
     private final AppManagement appManagement;
 
+    /** 注入规则仓储、应用管理、规则提供者与发布者。 */
     public FlowControllerV1(AbstractInMemoryRuleRepository<FlowRuleEntity> repository,
                             AppManagement appManagement,
                             @Qualifier("flowRuleNacosProvider") DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider,
@@ -62,7 +62,7 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
         this.appManagement = appManagement;
     }
 
-    /** Fetches the app's flow rules from Nacos, stamps each with the machine info, persists them and returns them. */
+    /** 从 Nacos 拉取应用的流控规则，为每条补充机器信息后持久化并返回。 */
     @GetMapping("/rules")
     @AuthAction(PrivilegeType.READ_RULE)
     public Result<List<FlowRuleEntity>> apiQueryMachineRules(@RequestParam String app,
@@ -90,8 +90,8 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
     }
 
     /**
-     * Validates the machine fields (app/ip/port and machine-to-app relationship), then the flow-rule specific fields;
-     * returns the first error or null.
+     * 先校验机器字段（app/ip/port 及机器与应用归属关系），再校验流控规则特有字段；
+     * 返回首个错误结果，校验通过返回 null。
      */
     @Override
     protected <R> Result<R> checkEntityInternal(FlowRuleEntity entity) {
@@ -102,9 +102,7 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
         return RuleEntityValidator.checkFlowRuleFields(entity);
     }
 
-    /**
-     * Adds a new flow rule after validation (id reset so the repository generates one) and publishes the app's rules.
-     */
+    /** 校验通过后新增流控规则（重置 id 以便仓储生成），并推送应用的规则。 */
     @PostMapping("/rule")
     @AuthAction(PrivilegeType.WRITE_RULE)
     public Result<FlowRuleEntity> apiAddFlowRule(@RequestBody FlowRuleEntity entity) {
@@ -112,9 +110,9 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
     }
 
     /**
-     * Updates the rule of the given id by applying only the non-blank/non-null parameters,
-     * then publishes the app's rules to Nacos. refResource is required when strategy != 0,
-     * and warmUpPeriodSec / maxQueueingTimeMs when controlBehavior is 1 / 2.
+     * 更新指定 id 的规则：仅应用非空参数，随后将应用的规则推送至 Nacos。
+     * strategy != 0 时必须提供 refResource；controlBehavior 为 1 / 2 时必须提供
+     * warmUpPeriodSec / maxQueueingTimeMs。
      */
     @PutMapping("/save.json")
     @AuthAction(PrivilegeType.WRITE_RULE)
@@ -186,7 +184,7 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
         return saveAndPublish(entity);
     }
 
-    /** Deletes the rule of the given id and publishes the app's rules; an unknown id returns success with null data. */
+    /** 删除指定 id 的规则并推送应用的规则；id 不存在时直接成功返回（数据为 null）。 */
     @DeleteMapping("/delete.json")
     @AuthAction(PrivilegeType.WRITE_RULE)
     public Result<Long> apiDeleteFlowRule(Long id) {

@@ -51,14 +51,14 @@ public final class EnumUtil {
     }
 
     /**
-     * 根据整型值获取对应的枚举实例，未找到时抛出业务异常
+     * 根据整型值获取对应的枚举实例，未找到或参数为空时抛出业务异常
      *
      * @param value 枚举整型值
      * @param clazz 枚举类型
      * @param resourceName 资源名称（用于异常提示定位）
      * @param <T> 枚举类型泛型
      * @return 匹配的枚举实例
-     * @throws BusinessResultException 未找到对应枚举时抛出
+     * @throws BusinessResultException 未找到对应枚举或参数为空时抛出
      */
     public static <T extends BaseEnum> T getEnumNullThrow(Integer value, Class<T> clazz, String resourceName) {
 

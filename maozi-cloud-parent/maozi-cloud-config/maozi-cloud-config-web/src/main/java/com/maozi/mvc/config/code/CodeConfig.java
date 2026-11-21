@@ -76,7 +76,8 @@ public class CodeConfig {
             // 通过反射遍历 Bean 的所有声明字段
             for (Field field : errorCodeBean.getClass().getDeclaredFields()) {
 
-                field.setAccessible(true); // 设置可访问私有字段
+                // 设置可访问私有字段
+                field.setAccessible(true);
 
                 // 仅提取 ErrorCode 类型的字段值
                 if (field.get(errorCodeBean) instanceof ErrorCode errorCode) {

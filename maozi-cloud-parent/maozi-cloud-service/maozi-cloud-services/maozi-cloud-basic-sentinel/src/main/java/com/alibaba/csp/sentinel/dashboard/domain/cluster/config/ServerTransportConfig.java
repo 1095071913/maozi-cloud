@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.domain.cluster.config;
 
 /**
- * Cluster token server transport config: port and idle time.
+ * 集群 token server 传输配置：端口及空闲时间。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -24,52 +24,52 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.config;
  */
 public class ServerTransportConfig {
 
-    /** The default port of the cluster server transport. */
+    /** 集群 server 传输默认端口。 */
     public static final int DEFAULT_PORT = 18730;
 
-    /** The default idle time in seconds of the cluster server transport. */
+    /** 集群 server 传输默认空闲时间，单位秒。 */
     public static final int DEFAULT_IDLE_SECONDS = 600;
 
-    /** The port of the cluster server transport. */
+    /** 集群 server 传输端口。 */
     private Integer port;
 
-    /** The idle time in seconds of the cluster server transport. */
+    /** 集群 server 传输空闲时间，单位秒。 */
     private Integer idleSeconds;
 
-    /** Create a config with the default port and idle seconds. */
+    /** 创建使用默认端口和空闲时间的配置。 */
     public ServerTransportConfig() {
         this(DEFAULT_PORT, DEFAULT_IDLE_SECONDS);
     }
 
-    /** Create a config with the given port and idle seconds. */
+    /** 创建指定端口和空闲时间的配置。 */
     public ServerTransportConfig(Integer port, Integer idleSeconds) {
         this.port = port;
         this.idleSeconds = idleSeconds;
     }
 
-    /** Get the port. */
+    /** 获取端口。 */
     public Integer getPort() {
         return port;
     }
 
-    /** Set the port and return this. */
+    /** 设置端口并返回当前对象。 */
     public ServerTransportConfig setPort(Integer port) {
         this.port = port;
         return this;
     }
 
-    /** Get the idle seconds. */
+    /** 获取空闲时间，单位秒。 */
     public Integer getIdleSeconds() {
         return idleSeconds;
     }
 
-    /** Set the idle seconds and return this. */
+    /** 设置空闲时间，单位秒，并返回当前对象。 */
     public ServerTransportConfig setIdleSeconds(Integer idleSeconds) {
         this.idleSeconds = idleSeconds;
         return this;
     }
 
-    /** Return a string representation of this config. */
+    /** 返回该配置的字符串表示。 */
     @Override
     public String toString() {
         return "ServerTransportConfig{" +

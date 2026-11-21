@@ -16,25 +16,24 @@
 package com.alibaba.csp.sentinel.dashboard.client;
 
 /**
- * Exception thrown when a command request to the Sentinel client has failed.
+ * 向 Sentinel 客户端发送命令请求失败时抛出的异常。
  *
  * @author Eric Zhao
  * @date 2026/11/22
  */
 public class CommandFailedException extends RuntimeException {
 
-    /** 序列化版本号 */
     private static final long serialVersionUID = 1L;
 
-    /** Creates the exception without a message. */
+    /** 构造无详细消息的异常。 */
     public CommandFailedException() {}
 
-    /** Creates the exception with the given message. */
+    /** 使用指定详细消息构造异常。 */
     public CommandFailedException(String message) {
         super(message);
     }
 
-    /** {@inheritDoc} Returns this exception directly without filling in the stack trace. */
+    /** {@inheritDoc} 直接返回本异常，不填充堆栈以减少开销。 */
     @Override
     public synchronized Throwable fillInStackTrace() {
         return this;

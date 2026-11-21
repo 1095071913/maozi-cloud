@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.domain.cluster.config;
 
 /**
- * Cluster token server flow config: exceed count, statistic interval and max allowed QPS.
+ * 集群 token server 流控配置：超额数量、统计时长及最大允许 QPS。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -24,104 +24,104 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.config;
  */
 public class ServerFlowConfig {
 
-    /** Default value of exceed count. */
+    /** 超额数量默认值。 */
     public static final double DEFAULT_EXCEED_COUNT = 1.0d;
-    /** Default value of max occupy ratio. */
+    /** 最大占用比例默认值。 */
     public static final double DEFAULT_MAX_OCCUPY_RATIO = 1.0d;
 
-    /** Default statistic interval in milliseconds. */
+    /** 默认统计时长，单位毫秒。 */
     public static final int DEFAULT_INTERVAL_MS = 1000;
-    /** Default sample count in the statistic interval. */
+    /** 统计时长内的默认抽样数。 */
     public static final int DEFAULT_SAMPLE_COUNT = 10;
-    /** Default value of max allowed QPS. */
+    /** 最大允许 QPS 默认值。 */
     public static final double DEFAULT_MAX_ALLOWED_QPS = 30000;
 
-    /** The namespace of the server flow config. */
+    /** 流控配置所属 namespace。 */
     private final String namespace;
 
-    /** The exceed count. */
+    /** 超额数量。 */
     private Double exceedCount = DEFAULT_EXCEED_COUNT;
-    /** The max occupy ratio. */
+    /** 最大占用比例。 */
     private Double maxOccupyRatio = DEFAULT_MAX_OCCUPY_RATIO;
-    /** The statistic interval in milliseconds. */
+    /** 统计时长，单位毫秒。 */
     private Integer intervalMs = DEFAULT_INTERVAL_MS;
-    /** The sample count in the statistic interval. */
+    /** 统计时长内的抽样数。 */
     private Integer sampleCount = DEFAULT_SAMPLE_COUNT;
 
-    /** The max allowed QPS. */
+    /** 最大允许 QPS。 */
     private Double maxAllowedQps = DEFAULT_MAX_ALLOWED_QPS;
 
-    /** Create a server flow config with the default namespace ("default"). */
+    /** 创建使用默认 namespace（"default"）的流控配置。 */
     public ServerFlowConfig() {
         this("default");
     }
 
-    /** Create a server flow config with the given namespace. */
+    /** 创建指定 namespace 的流控配置。 */
     public ServerFlowConfig(String namespace) {
         this.namespace = namespace;
     }
 
-    /** Get the namespace of the server flow config. */
+    /** 获取流控配置所属 namespace。 */
     public String getNamespace() {
         return namespace;
     }
 
-    /** Get the exceed count. */
+    /** 获取超额数量。 */
     public Double getExceedCount() {
         return exceedCount;
     }
 
-    /** Set the exceed count and return this. */
+    /** 设置超额数量并返回当前对象。 */
     public ServerFlowConfig setExceedCount(Double exceedCount) {
         this.exceedCount = exceedCount;
         return this;
     }
 
-    /** Get the max occupy ratio. */
+    /** 获取最大占用比例。 */
     public Double getMaxOccupyRatio() {
         return maxOccupyRatio;
     }
 
-    /** Set the max occupy ratio and return this. */
+    /** 设置最大占用比例并返回当前对象。 */
     public ServerFlowConfig setMaxOccupyRatio(Double maxOccupyRatio) {
         this.maxOccupyRatio = maxOccupyRatio;
         return this;
     }
 
-    /** Get the statistic interval in milliseconds. */
+    /** 获取统计时长，单位毫秒。 */
     public Integer getIntervalMs() {
         return intervalMs;
     }
 
-    /** Set the statistic interval in milliseconds and return this. */
+    /** 设置统计时长，单位毫秒，并返回当前对象。 */
     public ServerFlowConfig setIntervalMs(Integer intervalMs) {
         this.intervalMs = intervalMs;
         return this;
     }
 
-    /** Get the sample count in the statistic interval. */
+    /** 获取统计时长内的抽样数。 */
     public Integer getSampleCount() {
         return sampleCount;
     }
 
-    /** Set the sample count and return this. */
+    /** 设置统计时长内的抽样数并返回当前对象。 */
     public ServerFlowConfig setSampleCount(Integer sampleCount) {
         this.sampleCount = sampleCount;
         return this;
     }
 
-    /** Get the max allowed QPS. */
+    /** 获取最大允许 QPS。 */
     public Double getMaxAllowedQps() {
         return maxAllowedQps;
     }
 
-    /** Set the max allowed QPS and return this. */
+    /** 设置最大允许 QPS 并返回当前对象。 */
     public ServerFlowConfig setMaxAllowedQps(Double maxAllowedQps) {
         this.maxAllowedQps = maxAllowedQps;
         return this;
     }
 
-    /** Get the string representation of this config. */
+    /** 返回该配置的字符串表示。 */
     @Override
     public String toString() {
         return "ServerFlowConfig{" +

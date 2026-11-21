@@ -36,8 +36,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Demo controller that provides sample endpoints for testing Sentinel resources,
- * call links and traffic generation.
+ * 演示控制器：提供用于测试 Sentinel 资源、调用链路与流量生产的示例端点。
  * @author maozi
  * @date 2026/11/22
  */
@@ -45,30 +44,30 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping(value = "/demo", produces = MediaType.APPLICATION_JSON_VALUE)
 public class DemoController {
 
-    /** The logger of this controller. */
+    /** 日志记录器。 */
     private static final Logger logger = LoggerFactory.getLogger(DemoController.class);
 
-    /** Milliseconds per second, used to convert the demo duration to the elapsed check. */
+    /** 每秒毫秒数，用于将演示时长换算为流逝时间判断。 */
     private static final long MILLIS_PER_SECOND = 1000L;
 
-    /** Sleep time in milliseconds after each entry in slow-call mode. */
+    /** 慢调用模式下每次 entry 后的休眠时间（毫秒）。 */
     private static final long SLOW_CALL_SLEEP_MS = 3000L;
 
-    /** Number of demo traffic threads started by each loop/slow request. */
+    /** 每次 loop/slow 请求启动的演示流量线程数。 */
     private static final int LOOP_THREAD_COUNT = 10;
 
-    /** Demo traffic thread pool, provided by ThreadPoolExecutor with a meaningful thread name. */
+    /** 演示流量线程池，使用带业务含义名称的 ThreadPoolExecutor。 */
     private static final ExecutorService DEMO_EXECUTOR = new ThreadPoolExecutor(LOOP_THREAD_COUNT, LOOP_THREAD_COUNT,
             60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(100), new NamedThreadFactory("demo-traffic", true),
             new ThreadPoolExecutor.CallerRunsPolicy());
 
-    /** Returns the "index" view name. */
+    /** 返回 "index" 视图名。 */
     @GetMapping("/greeting")
     public String greeting() {
         return "index";
     }
 
-    /** Creates a four-level nested call link (head1 -> head2 -> head3 -> head4) with Sentinel entries. */
+    /** 创建四级嵌套调用链（head1 -> head2 -> head3 -> head4），每级均有 Sentinel entry。 */
     @GetMapping("/link")
     @ResponseBody
     public String link() throws BlockException {
@@ -86,7 +85,7 @@ public class DemoController {
         return "successfully create a call link";
     }
 
-    /** Starts 10 threads that keep entering the given resource for the given seconds. */
+    /** 启动 10 个线程，在指定秒数内持续进入指定资源。 */
     @GetMapping("/loop")
     @ResponseBody
     public String loop(String name, int time) throws BlockException {
@@ -96,7 +95,7 @@ public class DemoController {
         return "successfully create a loop thread";
     }
 
-    /** Starts 10 threads that keep entering the given resource for the given seconds, sleeping 3s per entry. */
+    /** 启动 10 个线程，在指定秒数内持续进入指定资源，每次 entry 后休眠 3 秒模拟慢调用。 */
     @GetMapping("/slow")
     @ResponseBody
     public String slow(String name, int time) throws BlockException {
@@ -106,18 +105,18 @@ public class DemoController {
         return "successfully create a loop thread";
     }
 
-    /** Task that keeps entering a Sentinel resource in a dedicated context until the duration elapses. */
+    /** 在独立 context 中持续进入 Sentinel 资源直至时长耗尽的任务。 */
     static class RunTask implements Runnable {
-        /** Duration in seconds for the task to keep running. */
+        /** 任务持续运行的秒数。 */
         int time;
-        /** Flag that stops the run loop when set to true. */
+        /** 为 true 时停止运行循环。 */
         boolean stop = false;
-        /** Name of the Sentinel resource to enter. */
+        /** 待进入的 Sentinel 资源名。 */
         String name;
-        /** Whether to sleep 3 seconds after each entry to simulate a slow call. */
+        /** 是否在每次 entry 后休眠 3 秒以模拟慢调用。 */
         boolean slow = false;
 
-        /** Creates a task entering the given resource for the given seconds, sleeping 3s per entry in slow mode. */
+        /** 构造在指定秒数内进入指定资源的任务，慢调用模式下每次 entry 休眠 3 秒。 */
         public RunTask(String name, int time, boolean slow) {
             super();
             this.time = time;
@@ -126,8 +125,8 @@ public class DemoController {
         }
 
         /**
-         * Enters a context named by the start timestamp, loops entering the resource
-         * (3s sleep in slow mode, up to 200ms pause between iterations) until the duration elapses.
+         * 进入以起始时间戳命名的 context，循环进入资源（慢调用模式下休眠 3 秒，
+         * 每轮之间最多暂停 200ms）直至时长耗尽。
          */
         @Override
         public void run() {
@@ -151,7 +150,7 @@ public class DemoController {
                     Thread.currentThread().interrupt();
                     stop = true;
                 } catch (Exception e) {
-                    // Blocked or system error while entering the demo resource: keep the trace for observation
+                    // 进入演示资源被限流或系统异常：保留堆栈便于观察
                     logger.warn("Demo task entry error, resource: {}", name, e);
                 } finally {
                     if (e1 != null) {

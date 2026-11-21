@@ -89,11 +89,11 @@ public class ResultDecoder implements Decoder {
 
     }
 
-        /**
-         * Feign 响应到 Spring ClientHttpResponse 的适配器
-         *
-         * @author maozi
-         */
+    /**
+     * Feign 响应到 Spring ClientHttpResponse 的适配器
+     *
+     * @author maozi
+     */
     @Slf4j
     public static final class FeignResponseAdapter implements ClientHttpResponse {
 

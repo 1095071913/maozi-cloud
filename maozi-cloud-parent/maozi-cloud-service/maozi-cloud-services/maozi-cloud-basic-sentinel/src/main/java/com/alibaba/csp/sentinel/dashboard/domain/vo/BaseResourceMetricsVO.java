@@ -16,167 +16,166 @@
 package com.alibaba.csp.sentinel.dashboard.domain.vo;
 
 /**
- * Base value object holding the realtime resource statistics fields shared by
- * resource view objects: resource name, thread count, QPS/RT counters of the
- * recent second and minute, and the visibility flag.
+ * 资源实时统计指标基类，持有各资源视图对象共用的统计字段：资源名、并发线程数、
+ * 秒级与分钟级的 QPS/RT 计数，以及可见标记。
  *
  * @author leyou
  * @date 2026/11/22
  */
 public abstract class BaseResourceMetricsVO {
 
-    /** The name of the resource. */
+    /** 资源名。 */
     protected String resource;
 
-    /** The concurrent thread count of the resource. */
+    /** 资源的并发线程数。 */
     protected Integer threadNum;
 
-    /** The QPS of passed requests. */
+    /** 通过请求的 QPS。 */
     protected Long passQps;
 
-    /** The QPS of blocked requests. */
+    /** 拒绝请求的 QPS。 */
     protected Long blockQps;
 
-    /** The total QPS of the resource. */
+    /** 资源的总 QPS。 */
     protected Long totalQps;
 
-    /** The average response time in ms. */
+    /** 平均响应时间，单位毫秒。 */
     protected Long averageRt;
 
-    /** The QPS of exceptional requests. */
+    /** 异常请求的 QPS。 */
     protected Long exceptionQps;
 
-    /** The passed request count in the recent minute. */
+    /** 最近一分钟通过的请求数。 */
     protected Long oneMinutePass;
 
-    /** The blocked request count in the recent minute. */
+    /** 最近一分钟拒绝的请求数。 */
     protected Long oneMinuteBlock;
 
-    /** The exception count in the recent minute. */
+    /** 最近一分钟的异常请求数。 */
     protected Long oneMinuteException;
 
-    /** The total request count in the recent minute. */
+    /** 最近一分钟的总请求数。 */
     protected Long oneMinuteTotal;
 
-    /** Whether the node is visible. */
+    /** 节点是否可见。 */
     protected boolean visible = true;
 
-    /** Gets the resource name. */
+    /** 获取资源名。 */
     public String getResource() {
         return resource;
     }
 
-    /** Sets the resource name. */
+    /** 设置资源名。 */
     public void setResource(String resource) {
         this.resource = resource;
     }
 
-    /** Gets the concurrent thread count. */
+    /** 获取并发线程数。 */
     public Integer getThreadNum() {
         return threadNum;
     }
 
-    /** Sets the concurrent thread count. */
+    /** 设置并发线程数。 */
     public void setThreadNum(Integer threadNum) {
         this.threadNum = threadNum;
     }
 
-    /** Gets the QPS of passed requests. */
+    /** 获取通过请求的 QPS。 */
     public Long getPassQps() {
         return passQps;
     }
 
-    /** Sets the QPS of passed requests. */
+    /** 设置通过请求的 QPS。 */
     public void setPassQps(Long passQps) {
         this.passQps = passQps;
     }
 
-    /** Gets the QPS of blocked requests. */
+    /** 获取拒绝请求的 QPS。 */
     public Long getBlockQps() {
         return blockQps;
     }
 
-    /** Sets the QPS of blocked requests. */
+    /** 设置拒绝请求的 QPS。 */
     public void setBlockQps(Long blockQps) {
         this.blockQps = blockQps;
     }
 
-    /** Gets the total QPS. */
+    /** 获取总 QPS。 */
     public Long getTotalQps() {
         return totalQps;
     }
 
-    /** Sets the total QPS. */
+    /** 设置总 QPS。 */
     public void setTotalQps(Long totalQps) {
         this.totalQps = totalQps;
     }
 
-    /** Gets the average response time in ms. */
+    /** 获取平均响应时间，单位毫秒。 */
     public Long getAverageRt() {
         return averageRt;
     }
 
-    /** Sets the average response time in ms. */
+    /** 设置平均响应时间，单位毫秒。 */
     public void setAverageRt(Long averageRt) {
         this.averageRt = averageRt;
     }
 
-    /** Gets the QPS of exceptional requests. */
+    /** 获取异常请求的 QPS。 */
     public Long getExceptionQps() {
         return exceptionQps;
     }
 
-    /** Sets the QPS of exceptional requests. */
+    /** 设置异常请求的 QPS。 */
     public void setExceptionQps(Long exceptionQps) {
         this.exceptionQps = exceptionQps;
     }
 
-    /** Gets the passed request count in the recent minute. */
+    /** 获取最近一分钟通过的请求数。 */
     public Long getOneMinutePass() {
         return oneMinutePass;
     }
 
-    /** Sets the passed request count in the recent minute. */
+    /** 设置最近一分钟通过的请求数。 */
     public void setOneMinutePass(Long oneMinutePass) {
         this.oneMinutePass = oneMinutePass;
     }
 
-    /** Gets the blocked request count in the recent minute. */
+    /** 获取最近一分钟拒绝的请求数。 */
     public Long getOneMinuteBlock() {
         return oneMinuteBlock;
     }
 
-    /** Sets the blocked request count in the recent minute. */
+    /** 设置最近一分钟拒绝的请求数。 */
     public void setOneMinuteBlock(Long oneMinuteBlock) {
         this.oneMinuteBlock = oneMinuteBlock;
     }
 
-    /** Gets the exception count in the recent minute. */
+    /** 获取最近一分钟的异常请求数。 */
     public Long getOneMinuteException() {
         return oneMinuteException;
     }
 
-    /** Sets the exception count in the recent minute. */
+    /** 设置最近一分钟的异常请求数。 */
     public void setOneMinuteException(Long oneMinuteException) {
         this.oneMinuteException = oneMinuteException;
     }
 
-    /** Gets the total request count in the recent minute. */
+    /** 获取最近一分钟的总请求数。 */
     public Long getOneMinuteTotal() {
         return oneMinuteTotal;
     }
 
-    /** Sets the total request count in the recent minute. */
+    /** 设置最近一分钟的总请求数。 */
     public void setOneMinuteTotal(Long oneMinuteTotal) {
         this.oneMinuteTotal = oneMinuteTotal;
     }
 
-    /** Whether the node is visible. */
+    /** 节点是否可见。 */
     public boolean isVisible() {
         return visible;
     }
 
-    /** Sets whether the node is visible. */
+    /** 设置节点是否可见。 */
     public void setVisible(boolean visible) {
         this.visible = visible;
     }

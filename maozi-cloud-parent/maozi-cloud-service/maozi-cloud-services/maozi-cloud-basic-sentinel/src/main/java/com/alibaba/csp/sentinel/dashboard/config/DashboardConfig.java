@@ -23,8 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * Dashboard local config support: resolves config values from env first and then
- * from system properties, caching the results.
+ * 控制台本地配置支持：优先从环境变量、其次从系统属性解析配置值，并缓存结果。
  *
  * @author jason
  * @date 2026/11/22
@@ -32,42 +31,47 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class DashboardConfig {
 
-    /** Default timeout in millisecond to regard a machine as unhealthy. */
+    /** 判定机器不健康的默认超时时间（毫秒）。 */
     public static final int DEFAULT_MACHINE_HEALTHY_TIMEOUT_MS = 60_000;
-    /** Min period in millisecond to hide an app with no healthy machines in the sidebar. */
+    /** 在侧边栏隐藏无健康机器应用的最小周期（毫秒）。 */
     public static final int MIN_HIDE_APP_NO_MACHINE_MS = 60_000;
-    /** Min period in millisecond to remove an app with no healthy machines. */
+    /** 移除无健康机器应用的最小周期（毫秒）。 */
     public static final int MIN_REMOVE_APP_NO_MACHINE_MS = 120_000;
-    /** Min timeout in millisecond to regard a machine as unhealthy. */
+    /** 判定机器不健康的最小超时时间（毫秒）。 */
     public static final int MIN_UNHEALTHY_MACHINE_MS = 30_000;
-    /** Disabled marker for period configs (0 means the feature is disabled). */
+    /** 周期类配置的禁用标记（0 表示禁用该功能）。 */
     public static final int DISABLED_PERIOD_MS = 0;
 
-    /** Config key of the login username. */
+    /** 登录用户名的配置键。 */
     public static final String CONFIG_AUTH_USERNAME = "sentinel.dashboard.auth.username";
 
-    /** Config key of the login password. */
+    /** 登录密码的配置键。 */
     public static final String CONFIG_AUTH_PASSWORD = "sentinel.dashboard.auth.password";
 
-    /** Config key of the period in millisecond after which an app with no healthy machines is hidden in the sidebar. */
+    /** 无健康机器应用在侧边栏隐藏周期的配置键（毫秒）。 */
     public static final String CONFIG_HIDE_APP_NO_MACHINE_MILLIS = "sentinel.dashboard.app.hideAppNoMachineMillis";
-    /** Config key of the period in millisecond after which an app with no healthy machines is removed. */
+    /** 无健康机器应用移除周期的配置键（毫秒）。 */
     public static final String CONFIG_REMOVE_APP_NO_MACHINE_MILLIS = "sentinel.dashboard.removeAppNoMachineMillis";
-    /** Config key of the timeout in millisecond to regard a machine as unhealthy. */
+    /** 机器不健康超时时间的配置键（毫秒）。 */
     public static final String CONFIG_UNHEALTHY_MACHINE_MILLIS = "sentinel.dashboard.unhealthyMachineMillis";
 
-    /** Cache of resolved config values, keyed by config name. */
+    /** 已解析配置值的缓存，键为配置名。 */
     private static final ConcurrentMap<String, Object> cacheMap = new ConcurrentHashMap<>();
     
-    /** Returns the raw config value, checking env first and then system properties; empty string if unset. */
+    /**
+     * 获取原始配置值：先查环境变量，再查系统属性，均未设置时返回空字符串。
+     *
+     * @param name 配置键
+     * @return 配置值
+     */
     @NonNull
     private static String getConfig(String name) {
-        // env
+        // 先查环境变量
         String val = System.getenv(name);
         if (StringUtils.isNotEmpty(val)) {
             return val;
         }
-        // properties
+        // 再查系统属性
         val = System.getProperty(name);
         if (StringUtils.isNotEmpty(val)) {
             return val;
@@ -75,7 +79,12 @@ public class DashboardConfig {
         return "";
     }
 
-    /** Returns the cached config string value, or null if unset or blank (blank values are not cached). */
+    /**
+     * 获取带缓存的字符串配置值，未设置或为空白时返回 null（空白值不缓存）。
+     *
+     * @param name 配置键
+     * @return 配置值，未设置时返回 null
+     */
     protected static String getConfigStr(String name) {
         if (cacheMap.containsKey(name)) {
             return (String) cacheMap.get(name);
@@ -92,8 +101,12 @@ public class DashboardConfig {
     }
 
     /**
-     * Returns the cached config int value: an unparsable or zero value falls back to
-     * the default, and values below minVal are raised to minVal.
+     * 获取带缓存的整型配置值：无法解析或为 0 时回退默认值，低于最小值时提升为最小值。
+     *
+     * @param name      配置键
+     * @param defaultVal 默认值
+     * @param minVal    最小值
+     * @return 配置值
      */
     protected static int getConfigInt(String name, int defaultVal, int minVal) {
         if (cacheMap.containsKey(name)) {
@@ -109,32 +122,52 @@ public class DashboardConfig {
         return val;
     }
 
-    /** Gets the configured login username, or null if unset. */
+    /**
+     * 获取配置的登录用户名。
+     *
+     * @return 登录用户名，未设置时返回 null
+     */
     public static String getAuthUsername() {
         return getConfigStr(CONFIG_AUTH_USERNAME);
     }
 
-    /** Gets the configured login password, or null if unset. */
+    /**
+     * 获取配置的登录密码。
+     *
+     * @return 登录密码，未设置时返回 null
+     */
     public static String getAuthPassword() {
         return getConfigStr(CONFIG_AUTH_PASSWORD);
     }
 
-    /** Gets the hide-app-no-machine period in millisecond (default 0, min 60000). */
+    /**
+     * 获取无健康机器应用的侧边栏隐藏周期（毫秒，默认 0 即禁用，最小 60000）。
+     *
+     * @return 隐藏周期（毫秒）
+     */
     public static int getHideAppNoMachineMillis() {
         return getConfigInt(CONFIG_HIDE_APP_NO_MACHINE_MILLIS, DISABLED_PERIOD_MS, MIN_HIDE_APP_NO_MACHINE_MS);
     }
 
-    /** Gets the remove-app-no-machine period in millisecond (default 0, min 120000). */
+    /**
+     * 获取无健康机器应用的移除周期（毫秒，默认 0 即禁用，最小 120000）。
+     *
+     * @return 移除周期（毫秒）
+     */
     public static int getRemoveAppNoMachineMillis() {
         return getConfigInt(CONFIG_REMOVE_APP_NO_MACHINE_MILLIS, DISABLED_PERIOD_MS, MIN_REMOVE_APP_NO_MACHINE_MS);
     }
 
-    /** Gets the unhealthy machine timeout in millisecond (default 60000, min 30000). */
+    /**
+     * 获取机器不健康的判定超时时间（毫秒，默认 60000，最小 30000）。
+     *
+     * @return 超时时间（毫秒）
+     */
     public static int getUnhealthyMachineMillis() {
         return getConfigInt(CONFIG_UNHEALTHY_MACHINE_MILLIS, DEFAULT_MACHINE_HEALTHY_TIMEOUT_MS, MIN_UNHEALTHY_MACHINE_MS);
     }
     
-    /** Clears the cache of resolved config values. */
+    /** 清空已解析配置值的缓存。 */
     public static void clearCache() {
         cacheMap.clear();
     }

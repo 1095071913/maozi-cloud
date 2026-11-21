@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Store {@link FlowRuleEntity} in memory.
+ * 将 {@link FlowRuleEntity} 存储在内存中
  *
  * @author leyou
  * @date 2026/11/22
@@ -30,18 +30,18 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 public class InMemFlowRuleStore extends AbstractInMemoryRuleRepository<FlowRuleEntity> {
 
-    /** Static id generator for stored entities. */
+    /** 存储实体的静态 id 生成器 */
     private static AtomicLong ids = new AtomicLong(0);
 
-    /** Generates the next sequential id with the static counter. */
+    /** 使用静态计数器生成下一个自增 id */
     @Override
     protected long nextId() {
         return ids.incrementAndGet();
     }
 
     /**
-     * Ensures a cluster flow config exists on the entity when it runs in cluster mode,
-     * then sets the rule id into the config as the cluster flow id.
+     * 实体处于集群模式时确保其存在集群流控配置，
+     * 并将规则 id 写入配置作为集群流控 id
      */
     @Override
     protected FlowRuleEntity preProcess(FlowRuleEntity entity) {
@@ -51,7 +51,7 @@ public class InMemFlowRuleStore extends AbstractInMemoryRuleRepository<FlowRuleE
                 config = new ClusterFlowConfig();
                 entity.setClusterConfig(config);
             }
-            // Set cluster rule id.
+            // 设置集群规则 id
             config.setFlowId(entity.getId());
         }
         return entity;

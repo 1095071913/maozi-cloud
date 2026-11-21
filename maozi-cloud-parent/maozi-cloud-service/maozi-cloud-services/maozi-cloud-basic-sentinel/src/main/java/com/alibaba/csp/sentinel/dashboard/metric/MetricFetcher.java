@@ -61,7 +61,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Fetch metric of machines.
+ * 从各机器拉取监控指标数据
  *
  * @author leyou
  * @date 2026/11/22
@@ -69,69 +69,68 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 public class MetricFetcher {
 
-    /** Body prefix returned by the client when no metric exists in the requested window. */
+    /** 客户端在请求时间窗口内无指标数据时返回的响应体前缀 */
     public static final String NO_METRICS = "No metrics";
-    /** HTTP status code that marks a successful fetch. */
+    /** 表示拉取成功的 HTTP 状态码 */
     private static final int HTTP_OK = 200;
-    /** Max look-back window used when no valid last fetch time is recorded for an app. */
+    /** 应用无有效最近拉取时间时最多向前回溯的时间窗口（毫秒） */
     private static final long MAX_LAST_FETCH_INTERVAL_MS = 1000 * 15;
-    /** Length in seconds of each fetch time window. */
+    /** 每次拉取的时间窗口长度（秒） */
     private static final long FETCH_INTERVAL_SECOND = 6;
-    /** Connect timeout in milliseconds for the fetch HTTP requests. */
+    /** 拉取请求的连接超时时间（毫秒） */
     private static final int HTTP_CONNECT_TIMEOUT_MS = 3000;
-    /** Socket read timeout in milliseconds for the fetch HTTP requests. */
+    /** 拉取请求的读超时时间（毫秒） */
     private static final int HTTP_SO_TIMEOUT_MS = 3000;
-    /** Max total connections of the async HTTP client. */
+    /** 异步 HTTP 客户端的最大总连接数 */
     private static final int MAX_CONN_TOTAL = 4000;
-    /** Max connections per route of the async HTTP client. */
+    /** 异步 HTTP 客户端的每路由最大连接数 */
     private static final int MAX_CONN_PER_ROUTE = 1000;
-    /** Initial delay in seconds of the scheduled fetch task. */
+    /** 定时拉取任务的初始延迟（秒） */
     private static final long FETCH_INITIAL_DELAY_SECONDS = 10;
-    /** Initial capacity of the metric aggregation map. */
+    /** 指标聚合 Map 的初始容量 */
     private static final int METRIC_MAP_INITIAL_CAPACITY = 16;
-    /** CPU core multiplier used to size the fetch and IO thread pools. */
+    /** 拉取与 IO 线程池大小的 CPU 核数倍数 */
     private static final int CPU_CORE_MULTIPLIER = 2;
-    /** Milliseconds in one second. */
+    /** 一秒对应的毫秒数 */
     private static final long ONE_SECOND_MS = 1000L;
-    /** Skip the round when the fetch window ends within this many seconds of now. */
+    /** 拉取窗口结束时间距当前时间小于该秒数时跳过本轮 */
     private static final int NEAR_SKIP_WINDOW_SECONDS = 2;
-    /** Max seconds a single fetch waits for the HTTP client. */
+    /** 单次拉取等待 HTTP 客户端的最大秒数 */
     private static final int MAX_WAIT_SECONDS = 5;
-    /** Task queue capacity of the fetch dispatch thread pool. */
+    /** 拉取线程池的任务队列容量 */
     private static final int FETCH_QUEUE_SIZE = 2048;
-    /** Charset used to decode the response body when it declares none. */
+    /** 响应体未声明字符集时使用的默认字符集 */
     private static final Charset DEFAULT_CHARSET = Charset.forName(SentinelConfig.charset());
-    /** Path of the metric command on the Sentinel client. */
+    /** Sentinel 客户端上指标查询命令的路径 */
     private static final String METRIC_URL_PATH = "metric";
-    /** Logger of this class. */
+    /** 日志记录器 */
     private static final Logger logger = LoggerFactory.getLogger(MetricFetcher.class);
-    /** Period in seconds of the scheduled fetch-all task. */
+    /** 定时拉取全部应用任务的执行周期（秒） */
     private final long intervalSecond = 1;
 
-    /** End time (ms) of the latest fetch window per app name, used to compute the next window. */
+    /** 各应用最近一次拉取窗口的结束时间（毫秒），用于计算下一次拉取窗口 */
     private Map<String, AtomicLong> appLastFetchTime = new ConcurrentHashMap<>();
 
-    /** Metric repository used to persist the fetched metric entities. */
+    /** 指标仓储，用于持久化拉取到的指标实体 */
     private final MetricsRepository<MetricEntity> metricStore;
-    /** Registry of applications and machines, used to enumerate the fetch targets. */
+    /** 应用与机器注册信息，用于枚举拉取目标 */
     private final AppManagement appManagement;
 
-    /** Shared async HTTP client used to pull metrics from the Sentinel clients. */
+    /** 共享的异步 HTTP 客户端，用于从 Sentinel 客户端拉取指标 */
     private CloseableHttpAsyncClient httpclient;
 
-    /** Scheduler that periodically triggers metric fetching of all apps. */
+    /** 定时调度器，周期性触发所有应用的指标拉取 */
     @SuppressWarnings("PMD.ThreadPoolCreationRule")
     private ScheduledExecutorService fetchScheduleService = new ScheduledThreadPoolExecutor(1,
             new NamedThreadFactory("sentinel-dashboard-metrics-fetch-task", true),
             new ThreadPoolExecutor.AbortPolicy());
-    /** Executor that runs the per-app metric fetch dispatch tasks. */
+    /** 执行各应用指标拉取分发任务的线程池 */
     private ExecutorService fetchService;
-    /** Executor that runs the actual per-app fetch tasks (HTTP round trips). */
+    /** 执行实际拉取任务（HTTP 往返）的线程池 */
     private ExecutorService fetchWorker;
 
     /**
-     * Creates the fetch executors and the shared async HTTP client,
-     * then starts the periodic fetch-all schedule.
+     * 创建拉取线程池与共享异步 HTTP 客户端，并启动定时拉取调度
      */
     public MetricFetcher(MetricsRepository<MetricEntity> metricStore, AppManagement appManagement) {
         this.metricStore = metricStore;
@@ -149,13 +148,13 @@ public class MetricFetcher {
         IOReactorConfig ioConfig = IOReactorConfig.custom()
             .setConnectTimeout(HTTP_CONNECT_TIMEOUT_MS)
             .setSoTimeout(HTTP_SO_TIMEOUT_MS)
-            // reuse the cached core count to avoid a second runtime query
+            // 复用已计算的核数，避免再次查询运行时
             .setIoThreadCount(cores)
             .build();
 
         httpclient = HttpAsyncClients.custom()
             .setRedirectStrategy(new DefaultRedirectStrategy() {
-                /** Never follow redirects when fetching metrics. */
+                /** 拉取指标时不跟随重定向 */
                 @Override
                 protected boolean isRedirectable(final String method) {
                     return false;
@@ -168,7 +167,7 @@ public class MetricFetcher {
         start();
     }
 
-    /** Schedules {@link #fetchAllApp} every {@link #intervalSecond} seconds after a 10-second initial delay. */
+    /** 延迟 10 秒后按 {@link #intervalSecond} 秒的周期调度 {@link #fetchAllApp} */
     private void start() {
         fetchScheduleService.scheduleAtFixedRate(() -> {
             try {
@@ -179,13 +178,12 @@ public class MetricFetcher {
         }, FETCH_INITIAL_DELAY_SECONDS, intervalSecond, TimeUnit.SECONDS);
     }
 
-    /** Stamps gmtCreate/gmtModified with now and persists the metrics in batch; empty input is ignored. */
+    /** 为指标批量写入创建/更新时间并持久化，空数据直接忽略 */
     private void writeMetric(Map<String, MetricEntity> map) {
         if (map.isEmpty()) {
             return;
         }
         Date date = new Date();
-        // Cache the metric collection to avoid repeated calls within the same method.
         Collection<MetricEntity> metrics = map.values();
         for (MetricEntity entity : metrics) {
             entity.setGmtCreate(date);
@@ -195,7 +193,7 @@ public class MetricFetcher {
     }
 
     /**
-     * Traverse each APP, and then pull the metric of all machines for that APP.
+     * 遍历每个应用，拉取该应用下所有机器的指标数据
      */
     private void fetchAllApp() {
         List<String> apps = appManagement.getAppNames();
@@ -214,21 +212,20 @@ public class MetricFetcher {
     }
 
     /**
-     * fetch metric between [startTime, endTime], both side inclusive
+     * 拉取 [startTime, endTime] 区间（双边均含）的指标数据
      */
     private void fetchOnce(String app, long startTime, long endTime, int maxWaitSeconds) {
         if (maxWaitSeconds <= 0) {
             throw new IllegalArgumentException("maxWaitSeconds must > 0, but " + maxWaitSeconds);
         }
         AppInfo appInfo = appManagement.getDetailApp(app);
-        // auto remove for app
+        // 应用失活时自动移除
         if (appInfo.isDead()) {
             logger.info("Dead app removed: {}", app);
             appManagement.removeApp(app);
             return;
         }
         Set<MachineInfo> machines = appInfo.getMachines();
-        // Cache the machine count to avoid repeated calls within the same method.
         int machineCount = machines.size();
         logger.debug("enter fetchOnce({}), machines.size()={}, time intervalMs [{}, {}]",
             app, machineCount, startTime, endTime);
@@ -240,15 +237,14 @@ public class MetricFetcher {
         final AtomicLong success = new AtomicLong();
         final AtomicLong fail = new AtomicLong();
 
-        // app_resource_timeSecond -> metric
+        // 映射：app_resource_timeSecond -> metric
         final Map<String, MetricEntity> metricMap = new ConcurrentHashMap<>(METRIC_MAP_INITIAL_CAPACITY);
         final CountDownLatch latch = new CountDownLatch(machineCount);
         for (final MachineInfo machine : machines) {
-            // auto remove the machine whose health status is dead (lost)
+            // 健康状态失效（失联）的机器自动移除
             if (!machine.isHealthy()) {
                 latch.countDown();
                 unhealthy.incrementAndGet();
-                // Cache the machine ip and port to avoid repeated calls within the same iteration.
                 String machineIp = machine.getIp();
                 int machinePort = machine.getPort();
                 appManagement.getDetailApp(app).removeMachine(machineIp, machinePort);
@@ -269,8 +265,7 @@ public class MetricFetcher {
     }
 
     /**
-     * Sends an async metric fetch request to the given machine; the callback parses the
-     * response into the shared metric map and always counts down the latch.
+     * 向指定机器异步发送指标拉取请求，回调中解析响应写入共享指标 Map 并保证计数器递减
      */
     private void asyncFetchMachineMetric(final MachineInfo machine, long startTime, long endTime,
             final Map<String, MetricEntity> metricMap, final CountDownLatch latch, final String msg,
@@ -280,7 +275,7 @@ public class MetricFetcher {
         final HttpGet httpGet = new HttpGet(url);
         httpGet.setHeader(HTTP.CONN_DIRECTIVE, HTTP.CONN_CLOSE);
         httpclient.execute(httpGet, new FutureCallback<HttpResponse>() {
-            /** Hands the successful response to handleResponse and counts down the latch. */
+            /** 将成功响应交给 handleResponse 处理并递减计数器 */
             @Override
             public void completed(final HttpResponse response) {
                 try {
@@ -293,7 +288,7 @@ public class MetricFetcher {
                 }
             }
 
-            /** Counts down the latch, aborts the request and logs the failure by exception type. */
+            /** 递减计数器，中止请求并按异常类型记录失败日志 */
             @Override
             public void failed(final Exception ex) {
                 latch.countDown();
@@ -309,7 +304,7 @@ public class MetricFetcher {
                 }
             }
 
-            /** Counts down the latch, aborts the request and records it as a failure. */
+            /** 递减计数器，中止请求并计为失败 */
             @Override
             public void cancelled() {
                 latch.countDown();
@@ -320,9 +315,9 @@ public class MetricFetcher {
     }
 
     /**
-     * Computes the next fetch window from the recorded last fetch time (bounded by
-     * {@link #MAX_LAST_FETCH_INTERVAL_MS}) and submits the fetch to {@link #fetchWorker};
-     * a window ending less than 2 seconds ago is skipped and left to the next round.
+     * 根据记录的最近拉取时间计算下一次拉取窗口（最多回溯
+     * {@link #MAX_LAST_FETCH_INTERVAL_MS}），并提交到 {@link #fetchWorker} 执行；
+     * 窗口结束时间距今不足 2 秒时跳过本轮，留待下次拉取
      */
     private void doFetchAppMetric(final String app) {
         long now = System.currentTimeMillis();
@@ -330,19 +325,19 @@ public class MetricFetcher {
         if (appLastFetchTime.containsKey(app)) {
             lastFetchMs = Math.max(lastFetchMs, appLastFetchTime.get(app).get() + ONE_SECOND_MS);
         }
-        // trim milliseconds
+        // 截断毫秒
         lastFetchMs = lastFetchMs / ONE_SECOND_MS * ONE_SECOND_MS;
         long endTime = lastFetchMs + FETCH_INTERVAL_SECOND * ONE_SECOND_MS;
         if (endTime > now - ONE_SECOND_MS * NEAR_SKIP_WINDOW_SECONDS) {
-            // too near
+            // 距当前时间过近，指标尚未稳定
             return;
         }
-        // update last_fetch in advance.
+        // 提前更新最近拉取时间，避免重复拉取同一窗口
         appLastFetchTime.computeIfAbsent(app, a -> new AtomicLong()).set(endTime);
         final long finalLastFetchMs = lastFetchMs;
         final long finalEndTime = endTime;
         try {
-            // do real fetch async
+            // 异步执行真正的拉取
             fetchWorker.submit(() -> {
                 try {
                     fetchOnce(app, finalLastFetchMs, finalEndTime, MAX_WAIT_SECONDS);
@@ -356,9 +351,9 @@ public class MetricFetcher {
     }
 
     /**
-     * Handles one fetch response: ignores non-200, decodes with the Content-Type charset
-     * (falling back to {@link #DEFAULT_CHARSET}), skips empty or {@link #NO_METRICS}
-     * bodies, and parses the remaining lines via {@link #handleBody}.
+     * 处理一次拉取响应：忽略非 200 响应，按 Content-Type 字符集解码
+     * （未声明时回退到 {@link #DEFAULT_CHARSET}），跳过空响应体或
+     * {@link #NO_METRICS} 前缀响应体，其余行交由 {@link #handleBody} 解析
      */
     private void handleResponse(final HttpResponse response, MachineInfo machine,
                                 Map<String, MetricEntity> metricMap) throws Exception {
@@ -374,7 +369,7 @@ public class MetricFetcher {
                 charset = contentType.getCharset();
             }
         } catch (Exception ignore) {
-            // Content-Type parsing failed: fall back to DEFAULT_CHARSET below; debug trace for troubleshooting
+            // Content-Type 解析失败时下方回退到默认字符集，debug 日志仅用于排查
             logger.debug("Parse Content-Type charset failed, fallback to {}", DEFAULT_CHARSET, ignore);
         }
         String body = EntityUtils.toString(response.getEntity(), charset != null ? charset : DEFAULT_CHARSET);
@@ -386,9 +381,9 @@ public class MetricFetcher {
     }
 
     /**
-     * Parses each metric line into a {@link MetricNode}, skips excluded resources and
-     * aggregates the values into the map keyed by app__resource__timeSecond, merging
-     * the metrics of all machines of the app (ignoring ip and port).
+     * 将每行指标解析为 {@link MetricNode}，跳过排除资源后按
+     * app__resource__timeSecond 为 key 聚合，合并该应用所有机器的
+     * 指标数据（忽略 ip 与端口）
      */
     private void handleBody(String[] lines, MachineInfo machine, Map<String, MetricEntity> map) {
         if (lines.length < 1) {
@@ -398,13 +393,12 @@ public class MetricFetcher {
         for (String line : lines) {
             try {
                 MetricNode node = MetricNode.fromThinString(line);
-                // Cache the resource name to avoid repeated calls within the same iteration.
                 String resource = node.getResource();
                 if (shouldFilterOut(resource)) {
                     continue;
                 }
                 /*
-                 * aggregation metrics by app_resource_timeSecond, ignore ip and port.
+                 * 按 app_resource_timeSecond 聚合指标，忽略 ip 与端口
                  */
                 String key = buildMetricKey(machine.getApp(), resource, node.getTimestamp());
 
@@ -431,17 +425,17 @@ public class MetricFetcher {
         }
     }
 
-    /** Returns the aggregation key in the form {@code app__resource__timestampInSecond}. */
+    /** 生成 {@code app__resource__秒级时间戳} 形式的聚合 key */
     private String buildMetricKey(String app, String resource, long timestamp) {
         return app + "__" + resource + "__" + (timestamp / 1000);
     }
 
-    /** Returns whether the resource is in the exclusion set and should be skipped. */
+    /** 判断资源是否在排除集合中，命中则跳过该指标 */
     private boolean shouldFilterOut(String resource) {
         return RES_EXCLUSION_SET.contains(resource);
     }
 
-    /** Resources excluded from aggregation: total inbound requests, system load and CPU usage. */
+    /** 不参与聚合的排除资源：总入口请求数、系统负载与 CPU 使用率 */
     private static final Set<String> RES_EXCLUSION_SET = new HashSet<String>() {{
        super.add(Constants.TOTAL_IN_RESOURCE_NAME);
        super.add(Constants.SYSTEM_LOAD_RESOURCE_NAME);

@@ -27,8 +27,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Default flow rule provider that fetches rules from the Sentinel transport API
- * of the healthiest machine instead of a remote repository.
+ * 默认流控规则提供者：从最健康机器的 Sentinel 传输 API 拉取规则，
+ * 而非从远端仓库拉取
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -36,22 +36,20 @@ import java.util.stream.Collectors;
 @Component("flowRuleDefaultProvider")
 public class FlowRuleApiProvider implements DynamicRuleProvider<List<FlowRuleEntity>> {
 
-    /** Client for talking to the Sentinel transport endpoints of machines. */
+    /** 与机器 Sentinel 传输端点通信的客户端 */
     private final SentinelApiClient sentinelApiClient;
-    /** Registry that provides machine information per application. */
+    /** 提供各应用机器信息的注册表 */
     private final AppManagement appManagement;
 
-    /** Creates the provider with the Sentinel API client and the app registry. */
+    /** 使用 Sentinel API 客户端与应用注册表创建提供者 */
     public FlowRuleApiProvider(SentinelApiClient sentinelApiClient, AppManagement appManagement) {
         this.sentinelApiClient = sentinelApiClient;
         this.appManagement = appManagement;
     }
 
     /**
-     * Fetch the current flow rules of an application from its Sentinel clients. Healthy
-     * machines are sorted by last heartbeat and the rules are read from the machine with
-     * the most recent heartbeat. Returns an empty list when the app name is blank or the
-     * app has no healthy machine.
+     * 从应用的 Sentinel 客户端拉取当前流控规则。健康机器按最近心跳时间排序，
+     * 从心跳最新的机器读取规则；应用名为空或无健康机器时返回空列表
      */
     @Override
     public List<FlowRuleEntity> getRules(String appName) throws Exception {

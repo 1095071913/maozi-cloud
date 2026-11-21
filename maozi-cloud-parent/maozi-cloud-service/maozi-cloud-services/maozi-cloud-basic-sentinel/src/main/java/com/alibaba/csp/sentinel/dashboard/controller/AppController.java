@@ -34,7 +34,7 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Controller for app and machine queries and machine removal on the dashboard.
+ * 控制台的应用与机器查询、机器移除控制器。
  *
  * @author Carpenter Lee
  * @date 2026/11/22
@@ -43,20 +43,21 @@ import java.util.List;
 @RequestMapping(value = "/app")
 public class AppController {
 
-    /** Registry of apps and machines. */
+    /** 应用与机器注册表。 */
     private final AppManagement appManagement;
 
+    /** 注入应用与机器注册表。 */
     public AppController(AppManagement appManagement) {
         this.appManagement = appManagement;
     }
 
-    /** Gets the names of all registered apps. */
+    /** 获取全部已注册应用的名称列表。 */
     @GetMapping("/names.json")
     public Result<List<String>> queryApps(HttpServletRequest request) {
         return Result.ofSuccess(appManagement.getAppNames());
     }
 
-    /** Gets brief infos of all apps, sorted by app name. */
+    /** 获取全部应用的简要信息，按应用名排序。 */
     @GetMapping("/briefinfos.json")
     public Result<List<AppInfo>> queryAppInfos(HttpServletRequest request) {
         List<AppInfo> list = new ArrayList<>(appManagement.getBriefApps());
@@ -64,7 +65,7 @@ public class AppController {
         return Result.ofSuccess(list);
     }
 
-    /** Gets machines of the given app sorted by app/ip/port; an unknown app returns success with null data. */
+    /** 获取指定应用的机器列表（按 app/ip/port 排序）；应用不存在时成功返回（数据为 null）。 */
     @GetMapping(value = "/{app}/machines.json")
     public Result<List<MachineInfoVO>> getMachinesByApp(@PathVariable("app") String app) {
         AppInfo appInfo = appManagement.getDetailApp(app);
@@ -79,8 +80,8 @@ public class AppController {
     }
     
     /**
-     * Removes the machine identified by app/ip/port from the registry. An unknown app
-     * returns success with null data, while a failed removal returns code 1.
+     * 从注册表移除 app/ip/port 标识的机器；应用不存在时成功返回（数据为 null），
+     * 移除失败返回 code 1。
      */
     @PostMapping(value = "/{app}/machine/remove.json")
     public Result<String> removeMachineById(

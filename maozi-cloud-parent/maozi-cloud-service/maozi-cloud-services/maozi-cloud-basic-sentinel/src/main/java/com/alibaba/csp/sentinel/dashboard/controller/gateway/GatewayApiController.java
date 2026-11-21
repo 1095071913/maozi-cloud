@@ -49,7 +49,7 @@ import static com.alibaba.csp.sentinel.adapter.gateway.common.SentinelGatewayCon
 import static com.alibaba.csp.sentinel.adapter.gateway.common.SentinelGatewayConstants.URL_MATCH_STRATEGY_REGEX;
 
 /**
- * Controller for managing gateway API definitions.
+ * 网关 API 分组管理控制器。
  *
  * @author cdfive
  * @date 2026/11/22
@@ -59,17 +59,18 @@ import static com.alibaba.csp.sentinel.adapter.gateway.common.SentinelGatewayCon
 @RequestMapping(value = "/gateway/api")
 public class GatewayApiController {
 
-    /** The logger of this controller. */
+    /** 日志记录器。 */
     private final Logger logger = LoggerFactory.getLogger(GatewayApiController.class);
 
-    /** The in-memory store that keeps gateway API definitions. */
+    /** 保存网关 API 分组的内存仓储。 */
     private final InMemApiDefinitionStore repository;
 
-    /** The Nacos provider that pulls gateway API definitions for a given app. */
+    /** 从 Nacos 拉取指定应用网关 API 分组的提供者。 */
     private final DynamicRuleProvider<List<ApiDefinitionEntity>> ruleProvider;
-    /** The Nacos publisher that pushes gateway API definitions to a given app. */
+    /** 向指定应用推送网关 API 分组的发布者。 */
     private final DynamicRulePublisher<List<ApiDefinitionEntity>> rulePublisher;
 
+    /** 注入 API 分组仓储、规则提供者与发布者。 */
     public GatewayApiController(InMemApiDefinitionStore repository,
                                 @Qualifier("apiDefinitionNacosProvider") DynamicRuleProvider<List<ApiDefinitionEntity>>
                                     ruleProvider,
@@ -80,7 +81,7 @@ public class GatewayApiController {
         this.rulePublisher = rulePublisher;
     }
 
-    /** Fetches the app's gateway API definitions from Nacos, stamps machine info, persists them and returns them. */
+    /** 从 Nacos 拉取应用的网关 API 分组，为每条补充机器信息后持久化并返回。 */
     @GetMapping("/list.json")
     @AuthAction(AuthService.PrivilegeType.READ_RULE)
     public Result<List<ApiDefinitionEntity>> queryApis(String app, String ip, Integer port) {
@@ -111,8 +112,8 @@ public class GatewayApiController {
     }
 
     /**
-     * Adds a new API definition after validation (duplicate apiName within the app rejected), then publishes the
-     * app's APIs to Nacos.
+     * 校验通过后新增 API 分组（应用内重复 apiName 被拒绝），随后将应用的
+     * API 分组推送至 Nacos。
      */
     @PostMapping("/new.json")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
@@ -122,7 +123,6 @@ public class GatewayApiController {
         if (StringUtil.isBlank(app)) {
             return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
         }
-        // Cache the trimmed app name to avoid repeated calls within the same method.
         String trimmedApp = app.trim();
 
         ApiDefinitionEntity entity = new ApiDefinitionEntity();
@@ -140,16 +140,15 @@ public class GatewayApiController {
         }
         entity.setPort(port);
 
-        // API name.
+        // API 名称
         String apiName = reqVo.getApiName();
         if (StringUtil.isBlank(apiName)) {
             return Result.ofFail(Result.CODE_ERROR, "apiName can't be null or empty");
         }
-        // Cache the trimmed API name to avoid repeated calls within the same method.
         String trimmedApiName = apiName.trim();
         entity.setApiName(trimmedApiName);
 
-        // Predicate items.
+        // 断言条目
         List<ApiPredicateItemVO> predicateItems = reqVo.getPredicateItems();
         if (CollectionUtils.isEmpty(predicateItems)) {
             return Result.ofFail(Result.CODE_ERROR, "predicateItems can't empty");
@@ -159,7 +158,7 @@ public class GatewayApiController {
         for (ApiPredicateItemVO predicateItem : predicateItems) {
             ApiPredicateItemEntity predicateItemEntity = new ApiPredicateItemEntity();
 
-            // Match strategy.
+            // 匹配策略
             Integer matchStrategy = predicateItem.getMatchStrategy();
             if (!Arrays.asList(URL_MATCH_STRATEGY_EXACT, URL_MATCH_STRATEGY_PREFIX, 
                 URL_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
@@ -167,7 +166,7 @@ public class GatewayApiController {
             }
             predicateItemEntity.setMatchStrategy(matchStrategy);
 
-            // Match pattern.
+            // 匹配模式
             String pattern = predicateItem.getPattern();
             if (StringUtil.isBlank(pattern)) {
                 return Result.ofFail(Result.CODE_ERROR, "pattern can't be null or empty");
@@ -178,7 +177,7 @@ public class GatewayApiController {
         }
         entity.setPredicateItems(new LinkedHashSet<>(predicateItemEntities));
 
-        // Reject a duplicate API name within the app.
+        // 应用内 API 名称重复则拒绝
         List<ApiDefinitionEntity> allApis = repository.findAllByApp(trimmedApp);
         if (allApis.stream().map(ApiDefinitionEntity::getApiName).anyMatch(trimmedApiName::equals)) {
             return Result.ofFail(Result.CODE_ERROR, "apiName exists: " + apiName);
@@ -200,7 +199,7 @@ public class GatewayApiController {
         return Result.ofSuccess(entity);
     }
 
-    /** Updates the predicate items of the API definition with the given id, then publishes the app's APIs to Nacos. */
+    /** 更新指定 id 的 API 分组的断言条目，随后将应用的 API 分组推送至 Nacos。 */
     @PostMapping("/save.json")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
     public Result<ApiDefinitionEntity> updateApi(@RequestBody UpdateApiReqVO reqVo) {
@@ -219,7 +218,7 @@ public class GatewayApiController {
             return Result.ofFail(Result.CODE_ERROR, "api does not exist, id=" + id);
         }
 
-        // Predicate items.
+        // 断言条目
         List<ApiPredicateItemVO> predicateItems = reqVo.getPredicateItems();
         if (CollectionUtils.isEmpty(predicateItems)) {
             return Result.ofFail(Result.CODE_ERROR, "predicateItems can't empty");
@@ -229,7 +228,7 @@ public class GatewayApiController {
         for (ApiPredicateItemVO predicateItem : predicateItems) {
             ApiPredicateItemEntity predicateItemEntity = new ApiPredicateItemEntity();
 
-            // Match strategy.
+            // 匹配策略
             Integer matchStrategy = predicateItem.getMatchStrategy();
             if (!Arrays.asList(URL_MATCH_STRATEGY_EXACT, URL_MATCH_STRATEGY_PREFIX,
                 URL_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
@@ -237,7 +236,7 @@ public class GatewayApiController {
             }
             predicateItemEntity.setMatchStrategy(matchStrategy);
 
-            // Match pattern.
+            // 匹配模式
             String pattern = predicateItem.getPattern();
             if (StringUtil.isBlank(pattern)) {
                 return Result.ofFail(Result.CODE_ERROR, "pattern can't be null or empty");
@@ -265,10 +264,7 @@ public class GatewayApiController {
         return Result.ofSuccess(entity);
     }
 
-    /**
-     * Deletes the API definition of the given id and publishes the app's APIs; an unknown id returns success with
-     * null data.
-     */
+    /** 删除指定 id 的 API 分组并推送应用的 API 分组；id 不存在时直接成功返回（数据为 null）。 */
     @PostMapping("/delete.json")
     @AuthAction(AuthService.PrivilegeType.DELETE_RULE)
 
@@ -296,7 +292,7 @@ public class GatewayApiController {
         return Result.ofSuccess(id);
     }
 
-    /** Publishes all local API definitions of the app to Nacos; returns false on error. */
+    /** 将应用在本地的全部 API 分组推送至 Nacos；出错时返回 false。 */
     private boolean publishApis(String app) {
         try {
             List<ApiDefinitionEntity> apis = repository.findAllByApp(app);

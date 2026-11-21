@@ -16,33 +16,33 @@
 package com.alibaba.csp.sentinel.dashboard.datasource.entity;
 
 /**
- * Sentinel version composed of major, minor and fix version numbers plus an optional postfix.
+ * 由主版本号、次版本号、修复版本号及可选后缀组成的 Sentinel 版本。
  *
  * @author Eric Zhao
  * @date 2026/11/22
  * @since 0.2.1
  */
 public class SentinelVersion {
-    /** The major version number. */
+    /** 主版本号。 */
     private int majorVersion;
-    /** The minor version number. */
+    /** 次版本号。 */
     private int minorVersion;
-    /** The fix version number. */
+    /** 修复版本号。 */
     private int fixVersion;
-    /** The postfix of the version, may be null. */
+    /** 版本后缀，可为 null。 */
     private String postfix;
     
-    /** Creates a version of 0.0.0. */
+    /** 构造 0.0.0 版本。 */
     public SentinelVersion() {
         this(0, 0, 0);
     }
     
-    /** Creates a version of the given numbers without postfix. */
+    /** 以指定版本号构造无后缀版本。 */
     public SentinelVersion(int major, int minor, int fix) {
         this(major, minor, fix, null);
     }
     
-    /** Creates a version of the given numbers and postfix. */
+    /** 以指定版本号与后缀构造版本。 */
     public SentinelVersion(int major, int minor, int fix, String postfix) {
         this.majorVersion = major;
         this.minorVersion = minor;
@@ -50,58 +50,57 @@ public class SentinelVersion {
         this.postfix = postfix;
     }
     
-    /** Gets the full version as a single integer in the form major * 1000000 + minor * 1000 + fix. */
+    /** 获取整数形式的完整版本号：major * 1000000 + minor * 1000 + fix。 */
     public int getFullVersion() {
         return majorVersion * 1000000 + minorVersion * 1000 + fixVersion;
     }
 
-    /** Gets the major version number. */
+    /** 获取主版本号。 */
     public int getMajorVersion() {
         return majorVersion;
     }
 
-    /** Sets the major version number and returns this. */
+    /** 设置主版本号并返回当前对象。 */
     public SentinelVersion setMajorVersion(int majorVersion) {
         this.majorVersion = majorVersion;
         return this;
     }
 
-    /** Gets the minor version number. */
+    /** 获取次版本号。 */
     public int getMinorVersion() {
         return minorVersion;
     }
 
-    /** Sets the minor version number and returns this. */
+    /** 设置次版本号并返回当前对象。 */
     public SentinelVersion setMinorVersion(int minorVersion) {
         this.minorVersion = minorVersion;
         return this;
     }
 
-    /** Gets the fix version number. */
+    /** 获取修复版本号。 */
     public int getFixVersion() {
         return fixVersion;
     }
 
-    /** Sets the fix version number and returns this. */
+    /** 设置修复版本号并返回当前对象。 */
     public SentinelVersion setFixVersion(int fixVersion) {
         this.fixVersion = fixVersion;
         return this;
     }
 
-    /** Gets the postfix of the version. */
+    /** 获取版本后缀。 */
     public String getPostfix() {
         return postfix;
     }
 
-    /** Sets the postfix of the version and returns this. */
+    /** 设置版本后缀并返回当前对象。 */
     public SentinelVersion setPostfix(String postfix) {
         this.postfix = postfix;
         return this;
     }
 
     /**
-     * Checks whether this version is greater than the given one; a null version is treated
-     * as the smallest one.
+     * 判断当前版本是否大于指定版本；null 版本视为最小版本。
      */
     public boolean greaterThan(SentinelVersion version) {
         if (version == null) {
@@ -111,8 +110,7 @@ public class SentinelVersion {
     }
 
     /**
-     * Checks whether this version is greater than or equal to the given one; a null version
-     * is treated as the smallest one.
+     * 判断当前版本是否大于等于指定版本；null 版本视为最小版本。
      */
     public boolean greaterOrEqual(SentinelVersion version) {
         if (version == null) {
@@ -121,7 +119,7 @@ public class SentinelVersion {
         return getFullVersion() >= version.getFullVersion();
     }
 
-    /** Whether the given object is a version with the same numbers and postfix. */
+    /** 判断指定对象是否为版本号与后缀均相同的版本。 */
     @Override
     public boolean equals(Object o) {
         if (this == o) { return true; }
@@ -133,7 +131,7 @@ public class SentinelVersion {
         return postfix != null ? postfix.equals(that.postfix) : that.postfix == null;
     }
 
-    /** Gets the hash code from all version numbers and the postfix. */
+    /** 以全部版本号与后缀计算哈希码。 */
     @Override
     public int hashCode() {
         int result = majorVersion;
@@ -143,7 +141,7 @@ public class SentinelVersion {
         return result;
     }
 
-    /** Builds a string with all fields of this version. */
+    /** 拼接全部字段构建字符串。 */
     @Override
     public String toString() {
         return "SentinelVersion{" +

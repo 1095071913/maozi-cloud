@@ -42,8 +42,8 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Controller for authority (black/white list) rule management, fetching rules from
- * and publishing rules to Nacos via the dynamic rule provider/publisher.
+ * 授权（黑白名单）规则管理控制器，通过动态规则提供者/发布者从 Nacos
+ * 拉取与推送规则。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -53,19 +53,20 @@ import java.util.List;
 @RequestMapping(value = "/authority")
 public class AuthorityRuleController {
 
-    /** Logger of this controller. */
+    /** 日志记录器。 */
     private final Logger logger = LoggerFactory.getLogger(AuthorityRuleController.class);
 
-    /** Local storage of authority rule entities. */
+    /** 授权规则实体的本地存储。 */
     private final RuleRepository<AuthorityRuleEntity, Long> repository;
-    /** Registry of apps and machines, used for machine validity check. */
+    /** 应用与机器注册表，用于机器有效性校验。 */
     private final AppManagement appManagement;
 
-    /** Nacos-based dynamic provider of authority rules. */
+    /** 基于 Nacos 的授权规则动态提供者。 */
     private final DynamicRuleProvider<List<AuthorityRuleEntity>> ruleProvider;
-    /** Nacos-based dynamic publisher of authority rules. */
+    /** 基于 Nacos 的授权规则动态发布者。 */
     private final DynamicRulePublisher<List<AuthorityRuleEntity>> rulePublisher;
 
+    /** 注入规则仓储、应用管理、规则提供者与发布者。 */
     public AuthorityRuleController(RuleRepository<AuthorityRuleEntity, Long> repository,
                                    AppManagement appManagement,
                                    @Qualifier("authorityRuleNacosProvider")
@@ -79,8 +80,8 @@ public class AuthorityRuleController {
     }
 
     /**
-     * Queries the app's authority rules from the dynamic provider, stamps each entity
-     * with the given machine info and persists them into the local repository.
+     * 从动态提供者查询应用的授权规则，为每个实体补充指定机器信息后
+     * 持久化到本地仓储。
      */
     @GetMapping("/rules")
     @AuthAction(PrivilegeType.READ_RULE)
@@ -115,8 +116,8 @@ public class AuthorityRuleController {
     }
 
     /**
-     * Validates the base machine fields via the shared validator, then the authority-rule specific fields; returns
-     * the first error or null.
+     * 先通过公共校验器校验基础机器字段，再校验授权规则特有字段；
+     * 返回首个错误结果，校验通过返回 null。
      */
     private <R> Result<R> checkEntityInternal(AuthorityRuleEntity entity) {
         if (entity == null) {
@@ -135,7 +136,6 @@ public class AuthorityRuleController {
         if (StringUtil.isBlank(entity.getLimitApp())) {
             return Result.ofFail(Result.CODE_ERROR, "limitApp should be valid");
         }
-        // Cache the strategy value to avoid repeated calls within the same method.
         Integer strategy = entity.getStrategy();
         if (strategy != RuleConstant.AUTHORITY_WHITE
             && strategy != RuleConstant.AUTHORITY_BLACK) {
@@ -144,7 +144,7 @@ public class AuthorityRuleController {
         return null;
     }
 
-    /** Adds a new rule after validation and publishes the app's rules to Nacos. */
+    /** 校验通过后新增规则，并将应用的规则推送至 Nacos。 */
     @PostMapping("/rule")
     @AuthAction(PrivilegeType.WRITE_RULE)
     public Result<AuthorityRuleEntity> apiAddAuthorityRule(@RequestBody AuthorityRuleEntity entity) {
@@ -166,7 +166,7 @@ public class AuthorityRuleController {
         return Result.ofSuccess(entity);
     }
 
-    /** Updates the rule of the given id (gmtCreate cleared) and publishes the app's rules to Nacos. */
+    /** 更新指定 id 的规则（清空 gmtCreate），并将应用的规则推送至 Nacos。 */
     @PutMapping("/rule/{id}")
     @AuthAction(PrivilegeType.WRITE_RULE)
     public Result<AuthorityRuleEntity> apiUpdateParamFlowRule(@PathVariable("id") Long id,
@@ -197,7 +197,7 @@ public class AuthorityRuleController {
         return Result.ofSuccess(entity);
     }
 
-    /** Deletes the rule of the given id and publishes the app's rules; an unknown id returns success with null data. */
+    /** 删除指定 id 的规则并推送应用的规则；id 不存在时直接成功返回（数据为 null）。 */
     @DeleteMapping("/rule/{id}")
     @AuthAction(PrivilegeType.DELETE_RULE)
     public Result<Long> apiDeleteRule(@PathVariable("id") Long id) {
@@ -219,7 +219,7 @@ public class AuthorityRuleController {
         return Result.ofSuccess(id);
     }
 
-    /** Publishes all local rules of the app to Nacos; returns false on error. */
+    /** 将应用在本地的全部规则推送至 Nacos；出错时返回 false。 */
     private boolean publishRules(String app) {
         try {
             List<AuthorityRuleEntity> rules = repository.findAllByApp(app);

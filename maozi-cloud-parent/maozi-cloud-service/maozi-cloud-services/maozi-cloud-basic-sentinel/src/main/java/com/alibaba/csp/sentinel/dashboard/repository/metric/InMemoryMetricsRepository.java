@@ -30,10 +30,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 /**
- * Caches metrics data in a period of time in memory.
+ * 将一段时间内的指标数据缓存在内存中
  * <p>
- * Replaced by {@link JdbcMetricsRepository} as the default {@code @Component},
- * kept for reference and unit tests.
+ * 默认 {@code @Component} 已由 {@link JdbcMetricsRepository} 取代，
+ * 保留该实现供参考与单元测试使用
  *
  * @author Carpenter Lee
  * @author Eric Zhao
@@ -41,19 +41,19 @@ import java.util.stream.Collectors;
  */
 public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity> {
 
-    /** Max time in ms a metric entity is kept in the in-memory cache. */
+    /** 指标实体在内存缓存中的最长保留时间（毫秒） */
     private static final long MAX_METRIC_LIVE_TIME_MS = 1000 * 60 * 5;
 
-    /** All cached metrics: {@code app -> resource -> timestamp -> metric}. */
+    /** 全部缓存指标，结构为 {@code app -> resource -> timestamp -> metric} */
     private Map<String, Map<String, LinkedHashMap<Long, MetricEntity>>> allMetrics = new ConcurrentHashMap<>();
 
-    /** Read-write lock guarding the access to {@link #allMetrics}. */
+    /** 保护 {@link #allMetrics} 访问的读写锁 */
     private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
 
     /**
-     * Saves one metric entity under its app/resource/timestamp, ignoring null input and
-     * entities with a blank app; the write lock is held while the maps are updated.
+     * 按应用/资源/时间戳保存单个指标实体，入参为 null 或应用名为空时忽略，
+     * 更新 Map 期间持有写锁
      */
     @Override
     public void save(MetricEntity entity) {
@@ -64,10 +64,9 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
         try {
             allMetrics.computeIfAbsent(entity.getApp(), e -> new HashMap<>(16))
                     .computeIfAbsent(entity.getResource(), e -> new LinkedHashMap<Long, MetricEntity>() {
-                        /** Evicts entries older than {@link #MAX_METRIC_LIVE_TIME_MS} on each insertion. */
+                        /** 每次插入时淘汰超过 {@link #MAX_METRIC_LIVE_TIME_MS} 的旧指标 */
                         @Override
                         protected boolean removeEldestEntry(Entry<Long, MetricEntity> eldest) {
-                            // Metric older than {@link #MAX_METRIC_LIVE_TIME_MS} will be removed.
                             return eldest.getKey() < TimeUtil.currentTimeMillis() - MAX_METRIC_LIVE_TIME_MS;
                         }
                     }).put(entity.getTimestamp().getTime(), entity);
@@ -78,8 +77,8 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
     }
 
     /**
-     * Saves all given entities one by one via {@link #save}, holding the write lock
-     * across the whole batch; null input is ignored.
+     * 逐条调用 {@link #save} 保存全部指标实体，整个批处理期间持有写锁，
+     * 入参为 null 时忽略
      */
     @Override
     public void saveAll(Iterable<MetricEntity> metrics) {
@@ -95,9 +94,8 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
     }
 
     /**
-     * Queries the cached metrics of the given app and resource whose timestamp is within
-     * [startTime, endTime] (both inclusive); returns an empty list for a blank app or an
-     * unknown app/resource.
+     * 查询指定应用和资源在 [startTime, endTime] 区间（双边均含）内的缓存指标，
+     * 应用名为空或应用/资源不存在时返回空列表
      */
     @Override
     public List<MetricEntity> queryByAppAndResourceBetween(String app, String resource,
@@ -117,7 +115,6 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
         readWriteLock.readLock().lock();
         try {
             for (Entry<Long, MetricEntity> entry : metricsMap.entrySet()) {
-                // Cache the timestamp key to avoid repeated calls within the same iteration.
                 long timestamp = entry.getKey();
                 if (timestamp >= startTime && timestamp <= endTime) {
                     results.add(entry.getValue());
@@ -130,9 +127,9 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
     }
 
     /**
-     * Lists the resources of the given app that have metrics within [startTime, endTime],
-     * aggregated over the query window and sorted by block QPS descending (pass QPS
-     * descending as the tie-breaker); returns an empty list for a blank or unknown app.
+     * 列出指定应用在 [startTime, endTime] 区间内有指标数据的资源，
+     * 指标按查询窗口聚合后按阻塞 QPS 降序排列（相同时按通过 QPS 降序），
+     * 应用名为空或不存在时返回空列表
      */
     @Override
     public List<String> listResourcesOfApp(String app, long startTime, long endTime) {
@@ -151,7 +148,6 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
         try {
             for (Entry<String, LinkedHashMap<Long, MetricEntity>> resourceMetrics : resourceMap.entrySet()) {
                 for (Entry<Long, MetricEntity> metrics : resourceMetrics.getValue().entrySet()) {
-                    // Cache the timestamp key to avoid repeated calls within the same iteration.
                     long metricTime = metrics.getKey();
                     if (metricTime < startTime || metricTime > endTime) {
                         continue;
@@ -169,7 +165,7 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
                     }
                 }
             }
-            // Order by b_qps DESC within the query window.
+            // 按查询窗口内的阻塞 QPS 降序排列
             return resourceCount.entrySet()
                     .stream()
                     .sorted((o1, o2) -> {

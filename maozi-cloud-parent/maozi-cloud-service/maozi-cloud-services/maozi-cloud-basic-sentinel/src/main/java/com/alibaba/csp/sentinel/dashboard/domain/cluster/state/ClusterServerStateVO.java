@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Cluster token server state of a machine.
+ * 机器的集群 token server 状态。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -31,119 +31,119 @@ import java.util.Set;
  */
 public class ClusterServerStateVO {
 
-    /** The app name that this token server belongs to. */
+    /** 该 token server 所属应用名。 */
     private String appName;
 
-    /** The transport config of the token server. */
+    /** token server 的传输配置。 */
     private ServerTransportConfig transport;
 
-    /** The flow config of the token server. */
+    /** token server 的流控配置。 */
     private ServerFlowConfig flow;
 
-    /** The set of namespaces that this token server serves. */
+    /** 该 token server 服务的 namespace 集合。 */
     private Set<String> namespaceSet;
 
-    /** The port of the token server. */
+    /** token server 的端口。 */
     private Integer port;
 
-    /** The list of connection groups of clients connected to this token server. */
+    /** 连接到该 token server 的客户端连接分组列表。 */
     private List<ConnectionGroupVO> connection;
 
-    /** The request limit data of each namespace. */
+    /** 各 namespace 的请求限流数据。 */
     private List<ClusterRequestLimitVO> requestLimitData;
 
-    /** Whether the token server works in embedded mode. */
+    /** token server 是否以嵌入模式运行。 */
     private Boolean embedded;
 
-    /** Get the app name. */
+    /** 获取应用名。 */
     public String getAppName() {
         return appName;
     }
 
-    /** Set the app name and return this. */
+    /** 设置应用名并返回当前对象。 */
     public ClusterServerStateVO setAppName(String appName) {
         this.appName = appName;
         return this;
     }
 
-    /** Get the transport config. */
+    /** 获取传输配置。 */
     public ServerTransportConfig getTransport() {
         return transport;
     }
 
-    /** Set the transport config and return this. */
+    /** 设置传输配置并返回当前对象。 */
     public ClusterServerStateVO setTransport(ServerTransportConfig transport) {
         this.transport = transport;
         return this;
     }
 
-    /** Get the flow config. */
+    /** 获取流控配置。 */
     public ServerFlowConfig getFlow() {
         return flow;
     }
 
-    /** Set the flow config and return this. */
+    /** 设置流控配置并返回当前对象。 */
     public ClusterServerStateVO setFlow(ServerFlowConfig flow) {
         this.flow = flow;
         return this;
     }
 
-    /** Get the set of namespaces. */
+    /** 获取 namespace 集合。 */
     public Set<String> getNamespaceSet() {
         return namespaceSet;
     }
 
-    /** Set the set of namespaces and return this. */
+    /** 设置 namespace 集合并返回当前对象。 */
     public ClusterServerStateVO setNamespaceSet(Set<String> namespaceSet) {
         this.namespaceSet = namespaceSet;
         return this;
     }
 
-    /** Get the port. */
+    /** 获取端口。 */
     public Integer getPort() {
         return port;
     }
 
-    /** Set the port and return this. */
+    /** 设置端口并返回当前对象。 */
     public ClusterServerStateVO setPort(Integer port) {
         this.port = port;
         return this;
     }
 
-    /** Get the list of connection groups. */
+    /** 获取连接分组列表。 */
     public List<ConnectionGroupVO> getConnection() {
         return connection;
     }
 
-    /** Set the list of connection groups and return this. */
+    /** 设置连接分组列表并返回当前对象。 */
     public ClusterServerStateVO setConnection(List<ConnectionGroupVO> connection) {
         this.connection = connection;
         return this;
     }
 
-    /** Get the request limit data of each namespace. */
+    /** 获取各 namespace 的请求限流数据。 */
     public List<ClusterRequestLimitVO> getRequestLimitData() {
         return requestLimitData;
     }
 
-    /** Set the request limit data of each namespace and return this. */
+    /** 设置各 namespace 的请求限流数据并返回当前对象。 */
     public ClusterServerStateVO setRequestLimitData(List<ClusterRequestLimitVO> requestLimitData) {
         this.requestLimitData = requestLimitData;
         return this;
     }
 
-    /** Get the flag whether the token server works in embedded mode. */
+    /** 获取 token server 是否以嵌入模式运行的标记。 */
     public Boolean getEmbedded() {
         return embedded;
     }
 
-    /** Set the flag whether the token server works in embedded mode and return this. */
+    /** 设置 token server 是否以嵌入模式运行的标记并返回当前对象。 */
     public ClusterServerStateVO setEmbedded(Boolean embedded) {
         this.embedded = embedded;
         return this;
     }
 
-    /** Return a string representation of this VO. */
+    /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
         return "ClusterServerStateVO{" +

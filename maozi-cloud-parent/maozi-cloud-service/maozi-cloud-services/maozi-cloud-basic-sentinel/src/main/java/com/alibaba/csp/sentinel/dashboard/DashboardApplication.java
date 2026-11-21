@@ -26,7 +26,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Sentinel dashboard application.
+ * Sentinel 控制台启动类。
  *
  * @author Carpenter Lee
  * @date 2026/11/22
@@ -34,13 +34,19 @@ import java.util.concurrent.TimeUnit;
 @SpringBootApplication
 public class DashboardApplication {
 
-    /** Entry point: trigger Sentinel init functions asynchronously, then boot the Spring application. */
+    /**
+     * 程序入口：异步触发 Sentinel 初始化后启动 Spring 应用。
+     *
+     * @param args 命令行启动参数
+     */
     public static void main(String[] args) {
         triggerSentinelInit();
         SpringApplication.run(DashboardApplication.class, args);
     }
 
-    /** Run Sentinel {@link InitExecutor} init functions in the pool so they do not block startup. */
+    /**
+     * 在独立线程池中执行 Sentinel {@link InitExecutor} 初始化函数，避免阻塞应用启动。
+     */
     private static void triggerSentinelInit() {
         ExecutorService initExecutor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(), new NamedThreadFactory("sentinel-dashboard-init", true));

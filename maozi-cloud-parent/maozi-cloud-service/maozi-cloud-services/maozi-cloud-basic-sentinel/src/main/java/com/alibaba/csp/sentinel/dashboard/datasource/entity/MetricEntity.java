@@ -18,35 +18,35 @@ package com.alibaba.csp.sentinel.dashboard.datasource.entity;
 import java.util.Date;
 
 /**
- * Entity of one metric record of a resource in a time slot.
+ * 资源在某个时间片内一条监控指标记录的实体。
  *
  * @author leyou
  * @date 2026/11/22
  */
 public class MetricEntity extends BaseEntity {
-    /** The timestamp of the metric. */
+    /** 指标时间戳。 */
     private Date timestamp;
-    /** The resource name. */
+    /** 资源名。 */
     private String resource;
-    /** The passed QPS. */
+    /** 通过 QPS。 */
     private Long passQps;
-    /** The success QPS. */
+    /** 成功 QPS。 */
     private Long successQps;
-    /** The blocked QPS. */
+    /** 阻塞 QPS。 */
     private Long blockQps;
-    /** The exception QPS. */
+    /** 异常 QPS。 */
     private Long exceptionQps;
 
-    /** The summary RT of all success exits. */
+    /** 全部成功请求的总 RT。 */
     private double rt;
 
-    /** The total count of this aggregation. */
+    /** 本次聚合的总条数。 */
     private int count;
 
-    /** The hash code of the resource name, updated when the resource is set. */
+    /** 资源名的哈希码，设置资源名时同步更新。 */
     private int resourceCode;
 
-    /** Creates a copy of the given entity with all fields copied. */
+    /** 复制指定实体的全部字段构造副本。 */
     public static MetricEntity copyOf(MetricEntity oldEntity) {
         MetricEntity entity = new MetricEntity();
         entity.setId(oldEntity.getId());
@@ -64,132 +64,130 @@ public class MetricEntity extends BaseEntity {
         return entity;
     }
 
-    /** Adds the given value to the passed QPS. */
+    /** 累加通过 QPS。 */
     public synchronized void addPassQps(Long passQps) {
         this.passQps += passQps;
     }
 
-    /** Adds the given value to the blocked QPS. */
+    /** 累加阻塞 QPS。 */
     public synchronized void addBlockQps(Long blockQps) {
         this.blockQps += blockQps;
     }
 
-    /** Adds the given value to the exception QPS. */
+    /** 累加异常 QPS。 */
     public synchronized void addExceptionQps(Long exceptionQps) {
         this.exceptionQps += exceptionQps;
     }
 
-    /** Adds the given value to the total count. */
+    /** 累加聚合总条数。 */
     public synchronized void addCount(int count) {
         this.count += count;
     }
 
-    /**
-     * Accumulates the total rt by {@code avgRt * successQps} and adds the given success QPS.
-     */
+    /** 按 {@code avgRt * successQps} 累加总 RT，并累加成功 QPS。 */
     public synchronized void addRtAndSuccessQps(double avgRt, Long successQps) {
         this.rt += avgRt * successQps;
         this.successQps += successQps;
     }
 
     /**
-     * Sets {@link #rt} to {@code avgRt * successQps} and the success QPS to the given value.
+     * 将 {@link #rt} 设置为 {@code avgRt * successQps}，成功 QPS 设置为指定值。
      *
-     * @param avgRt      the average RT of the {@code successQps} requests
-     * @param successQps the success QPS
+     * @param avgRt      successQps 个请求的平均 RT
+     * @param successQps 成功 QPS
      */
     public synchronized void setRtAndSuccessQps(double avgRt, Long successQps) {
         this.rt = avgRt * successQps;
         this.successQps = successQps;
     }
 
-    /** Gets the timestamp of the metric. */
+    /** 获取指标时间戳。 */
     public Date getTimestamp() {
         return timestamp;
     }
 
-    /** Sets the timestamp of the metric. */
+    /** 设置指标时间戳。 */
     public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
     }
 
-    /** Gets the resource name. */
+    /** 获取资源名。 */
     public String getResource() {
         return resource;
     }
 
-    /** Sets the resource name and updates resourceCode to its hash code. */
+    /** 设置资源名，并将其哈希码同步更新到 resourceCode。 */
     public void setResource(String resource) {
         this.resource = resource;
         this.resourceCode = resource.hashCode();
     }
 
-    /** Gets the passed QPS. */
+    /** 获取通过 QPS。 */
     public Long getPassQps() {
         return passQps;
     }
 
-    /** Sets the passed QPS. */
+    /** 设置通过 QPS。 */
     public void setPassQps(Long passQps) {
         this.passQps = passQps;
     }
 
-    /** Gets the blocked QPS. */
+    /** 获取阻塞 QPS。 */
     public Long getBlockQps() {
         return blockQps;
     }
 
-    /** Sets the blocked QPS. */
+    /** 设置阻塞 QPS。 */
     public void setBlockQps(Long blockQps) {
         this.blockQps = blockQps;
     }
 
-    /** Gets the exception QPS. */
+    /** 获取异常 QPS。 */
     public Long getExceptionQps() {
         return exceptionQps;
     }
 
-    /** Sets the exception QPS. */
+    /** 设置异常 QPS。 */
     public void setExceptionQps(Long exceptionQps) {
         this.exceptionQps = exceptionQps;
     }
 
-    /** Gets the summary RT of all success exits. */
+    /** 获取全部成功请求的总 RT。 */
     public double getRt() {
         return rt;
     }
 
-    /** Sets the summary RT of all success exits. */
+    /** 设置全部成功请求的总 RT。 */
     public void setRt(double rt) {
         this.rt = rt;
     }
 
-    /** Gets the total count of this aggregation. */
+    /** 获取本次聚合的总条数。 */
     public int getCount() {
         return count;
     }
 
-    /** Sets the total count of this aggregation. */
+    /** 设置本次聚合的总条数。 */
     public void setCount(int count) {
         this.count = count;
     }
 
-    /** Gets the hash code of the resource name. */
+    /** 获取资源名的哈希码。 */
     public int getResourceCode() {
         return resourceCode;
     }
 
-    /** Gets the success QPS. */
+    /** 获取成功 QPS。 */
     public Long getSuccessQps() {
         return successQps;
     }
 
-    /** Sets the success QPS. */
+    /** 设置成功 QPS。 */
     public void setSuccessQps(Long successQps) {
         this.successQps = successQps;
     }
 
-    /** Builds a string with all fields of this entity. */
+    /** 拼接全部字段构建字符串。 */
     @Override
     public String toString() {
         return "MetricEntity{" +

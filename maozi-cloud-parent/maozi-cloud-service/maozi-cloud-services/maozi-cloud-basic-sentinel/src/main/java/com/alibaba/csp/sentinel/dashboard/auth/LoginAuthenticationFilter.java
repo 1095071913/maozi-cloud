@@ -18,17 +18,17 @@ package com.alibaba.csp.sentinel.dashboard.auth;
 import javax.servlet.Filter;
 
 /**
- * <p>The Servlet filter for authentication.</p>
+ * <p>用于登录认证的 Servlet 过滤器接口。</p>
  *
- * <p>Note: some urls are excluded as they needn't auth, such as:</p>
+ * <p>注意：部分 URL 无需认证，直接放行，包括：</p>
  * <ul>
- * <li>index url: {@code /}</li>
- * <li>authentication request url: {@code /login}, {@code /logout}</li>
- * <li>machine registry: {@code /registry/machine}</li>
- * <li>static resources</li>
+ * <li>首页地址：{@code /}</li>
+ * <li>认证请求地址：{@code /login}、{@code /logout}</li>
+ * <li>机器注册地址：{@code /registry/machine}</li>
+ * <li>静态资源</li>
  * </ul>
  * <p>
- * The excluded urls and urlSuffixes could be configured in {@code application.properties} file.
+ * 排除的 URL 与后缀均可在 {@code application.properties} 中配置。
  *
  * @author cdfive
  * @author wxq

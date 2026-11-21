@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Store {@link ApiDefinitionEntity} in memory.
+ * 将 {@link ApiDefinitionEntity} 存储在内存中
  *
  * @author cdfive
  * @date 2026/11/22
@@ -31,10 +31,10 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 public class InMemApiDefinitionStore extends AbstractInMemoryRuleRepository<ApiDefinitionEntity> {
 
-    /** Static id generator for stored entities. */
+    /** 存储实体的静态 id 生成器 */
     private static AtomicLong ids = new AtomicLong(0);
 
-    /** Generates the next sequential id with the static counter. */
+    /** 使用静态计数器生成下一个自增 id */
     @Override
     protected long nextId() {
         return ids.incrementAndGet();

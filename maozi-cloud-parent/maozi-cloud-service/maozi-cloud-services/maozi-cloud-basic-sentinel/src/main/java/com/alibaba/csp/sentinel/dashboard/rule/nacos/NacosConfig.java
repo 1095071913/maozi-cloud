@@ -25,7 +25,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Properties;
 
 /**
- * Nacos config service for rule persistence.
+ * 用于规则持久化的 Nacos 配置服务
  *
  * @author maozi
  * @date 2026/11/08
@@ -34,9 +34,9 @@ import java.util.Properties;
 public class NacosConfig {
 
     /**
-     * Create the shared Nacos {@link ConfigService} from the configured connection
-     * properties. The server address is always set; namespace is only set when
-     * non-blank, and username/password are only set when the username is non-blank.
+     * 根据配置的连接属性创建共享的 Nacos {@link ConfigService}。
+     * 服务器地址总是设置；命名空间仅在非空时设置，
+     * 用户名/密码仅在用户名非空时设置
      */
     @Bean
     public ConfigService nacosConfigService(NacosProperties nacosProperties) throws Exception {

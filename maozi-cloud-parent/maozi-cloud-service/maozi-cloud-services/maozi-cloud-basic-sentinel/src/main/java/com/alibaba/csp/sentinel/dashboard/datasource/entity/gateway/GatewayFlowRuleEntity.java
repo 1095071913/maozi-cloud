@@ -23,7 +23,7 @@ import com.alibaba.csp.sentinel.slots.block.Rule;
 import java.util.Objects;
 
 /**
- * Entity for {@link GatewayFlowRule}.
+ * {@link GatewayFlowRule} 对应的网关流控规则实体。
  *
  * @author cdfive
  * @date 2026/11/22
@@ -31,50 +31,50 @@ import java.util.Objects;
  */
 public class GatewayFlowRuleEntity extends BaseRuleEntity {
 
-    /** Interval unit: second. */
+    /** 统计窗口单位：秒。 */
     public static final int INTERVAL_UNIT_SECOND = 0;
-    /** Interval unit: minute. */
+    /** 统计窗口单位：分。 */
     public static final int INTERVAL_UNIT_MINUTE = 1;
-    /** Interval unit: hour. */
+    /** 统计窗口单位：时。 */
     public static final int INTERVAL_UNIT_HOUR = 2;
-    /** Interval unit: day. */
+    /** 统计窗口单位：天。 */
     public static final int INTERVAL_UNIT_DAY = 3;
 
-    /** Seconds per minute, used to convert an interval between units. */
+    /** 每分钟秒数，用于统计窗口单位换算。 */
     private static final long SECONDS_PER_MINUTE = 60;
-    /** Seconds per hour, used to convert an interval between units. */
+    /** 每小时秒数，用于统计窗口单位换算。 */
     private static final long SECONDS_PER_HOUR = 60 * 60;
-    /** Seconds per day, used to convert an interval between units. */
+    /** 每天秒数，用于统计窗口单位换算。 */
     private static final long SECONDS_PER_DAY = 60 * 60 * 24;
 
-    /** The resource name the rule applies to (route ID or API name depending on resourceMode). */
+    /** 规则作用的资源名（依 resourceMode 为 Route ID 或 API 名称）。 */
     private String resource;
-    /** Whether the resource is a route ID (0) or a custom API name (1). */
+    /** 资源模式：0-Route ID、1-自定义 API 名称。 */
     private Integer resourceMode;
 
-    /** The threshold type: 0 for thread count and 1 for QPS. */
+    /** 阈值类型：0-线程数、1-QPS。 */
     private Integer grade;
-    /** The threshold count. */
+    /** 阈值数量。 */
     private Double count;
-    /** The statistic interval, in the unit of intervalUnit. */
+    /** 统计窗口时长，单位由 intervalUnit 决定。 */
     private Long interval;
-    /** The unit of the statistic interval: 0-second, 1-minute, 2-hour, 3-day. */
+    /** 统计窗口时长单位：0-秒、1-分、2-时、3-天。 */
     private Integer intervalUnit;
 
-    /** The control behavior: 0 default and 2 rate limiter. */
+    /** 流控效果：0-默认、2-匀速排队。 */
     private Integer controlBehavior;
-    /** The burst count allowed when the threshold is exceeded. */
+    /** 超出阈值时允许的突发增量。 */
     private Integer burst;
 
-    /** The max queueing timeout in milliseconds for rate limiter behavior. */
+    /** 匀速排队模式下的最大排队超时时间（毫秒）。 */
     private Integer maxQueueingTimeoutMs;
 
-    /** The parameter flow item for parameter-based control, null if not parameter-based. */
+    /** 参数限流条目，非参数限流时为 null。 */
     private GatewayParamFlowItemEntity paramItem;
 
     /**
-     * Converts the given interval and unit (0-second, 1-minute, 2-hour, 3-day) to the
-     * interval in seconds, throwing IllegalArgumentException for an unknown unit.
+     * 将指定窗口时长及单位（0-秒、1-分、2-时、3-天）换算为秒数，
+     * 未知单位抛出 IllegalArgumentException。
      */
     public static Long calIntervalSec(Long interval, Integer intervalUnit) {
         switch (intervalUnit) {
@@ -94,8 +94,8 @@ public class GatewayFlowRuleEntity extends BaseRuleEntity {
     }
 
     /**
-     * Parses the interval in seconds into an array of [interval, intervalUnit], preferring
-     * the largest unit that divides it evenly (day, then hour, minute and second).
+     * 将秒数解析为 [interval, intervalUnit] 数组，优先取能整除的最大单位
+     * （依次为天、时、分、秒）。
      */
     public static Object[] parseIntervalSec(Long intervalSec) {
         if (intervalSec % SECONDS_PER_DAY == 0) {
@@ -114,9 +114,8 @@ public class GatewayFlowRuleEntity extends BaseRuleEntity {
     }
 
     /**
-     * Converts to a {@link GatewayFlowRule}, deriving intervalSec from interval and
-     * intervalUnit, and only setting burst, maxQueueingTimeoutMs and the matchStrategy of
-     * paramItem when they are not null.
+     * 转换为 {@link GatewayFlowRule}：intervalSec 由 interval 与 intervalUnit 换算得出，
+     * burst、maxQueueingTimeoutMs 及 paramItem 的 matchStrategy 仅在非空时设置。
      */
     public GatewayFlowRule toGatewayFlowRule() {
         GatewayFlowRule rule = new GatewayFlowRule();
@@ -153,8 +152,7 @@ public class GatewayFlowRuleEntity extends BaseRuleEntity {
     }
 
     /**
-     * Builds an entity from the given GatewayFlowRule, parsing intervalSec into interval
-     * and intervalUnit.
+     * 由指定 GatewayFlowRule 构建实体，将 intervalSec 解析为 interval 与 intervalUnit。
      */
     public static GatewayFlowRuleEntity fromGatewayFlowRule(String app, String ip, Integer port, GatewayFlowRule rule) {
         GatewayFlowRuleEntity entity = new GatewayFlowRuleEntity();
@@ -188,113 +186,113 @@ public class GatewayFlowRuleEntity extends BaseRuleEntity {
         return entity;
     }
 
-    /** Always returns null, as a gateway flow rule is not a common Sentinel rule. */
+    /** 始终返回 null，因为网关流控规则不是通用 Sentinel 规则。 */
     @Override
     public Rule toRule() {
         return null;
     }
 
-    /** Gets the parameter flow item, null if the rule is not parameter-based. */
+    /** 获取参数限流条目，非参数限流时为 null。 */
     public GatewayParamFlowItemEntity getParamItem() {
         return paramItem;
     }
 
-    /** Sets the parameter flow item for parameter-based control. */
+    /** 设置参数限流条目。 */
     public void setParamItem(GatewayParamFlowItemEntity paramItem) {
         this.paramItem = paramItem;
     }
 
-    /** Gets the resource name the rule applies to. */
+    /** 获取规则作用的资源名。 */
     public String getResource() {
         return resource;
     }
 
-    /** Sets the resource name the rule applies to. */
+    /** 设置规则作用的资源名。 */
     public void setResource(String resource) {
         this.resource = resource;
     }
 
-    /** Gets the resource mode: route ID (0) or custom API name (1). */
+    /** 获取资源模式：0-Route ID、1-自定义 API 名称。 */
     public Integer getResourceMode() {
         return resourceMode;
     }
 
-    /** Sets the resource mode: route ID (0) or custom API name (1). */
+    /** 设置资源模式：0-Route ID、1-自定义 API 名称。 */
     public void setResourceMode(Integer resourceMode) {
         this.resourceMode = resourceMode;
     }
 
-    /** Gets the threshold type: 0 for thread count and 1 for QPS. */
+    /** 获取阈值类型：0-线程数、1-QPS。 */
     public Integer getGrade() {
         return grade;
     }
 
-    /** Sets the threshold type: 0 for thread count and 1 for QPS. */
+    /** 设置阈值类型：0-线程数、1-QPS。 */
     public void setGrade(Integer grade) {
         this.grade = grade;
     }
 
-    /** Gets the threshold count. */
+    /** 获取阈值数量。 */
     public Double getCount() {
         return count;
     }
 
-    /** Sets the threshold count. */
+    /** 设置阈值数量。 */
     public void setCount(Double count) {
         this.count = count;
     }
 
-    /** Gets the statistic interval, in the unit of intervalUnit. */
+    /** 获取统计窗口时长，单位由 intervalUnit 决定。 */
     public Long getInterval() {
         return interval;
     }
 
-    /** Sets the statistic interval, in the unit of intervalUnit. */
+    /** 设置统计窗口时长，单位由 intervalUnit 决定。 */
     public void setInterval(Long interval) {
         this.interval = interval;
     }
 
-    /** Gets the unit of the statistic interval. */
+    /** 获取统计窗口时长单位。 */
     public Integer getIntervalUnit() {
         return intervalUnit;
     }
 
-    /** Sets the unit of the statistic interval. */
+    /** 设置统计窗口时长单位。 */
     public void setIntervalUnit(Integer intervalUnit) {
         this.intervalUnit = intervalUnit;
     }
 
-    /** Gets the control behavior. */
+    /** 获取流控效果。 */
     public Integer getControlBehavior() {
         return controlBehavior;
     }
 
-    /** Sets the control behavior. */
+    /** 设置流控效果。 */
     public void setControlBehavior(Integer controlBehavior) {
         this.controlBehavior = controlBehavior;
     }
 
-    /** Gets the burst count allowed when the threshold is exceeded. */
+    /** 获取超出阈值时允许的突发增量。 */
     public Integer getBurst() {
         return burst;
     }
 
-    /** Sets the burst count allowed when the threshold is exceeded. */
+    /** 设置超出阈值时允许的突发增量。 */
     public void setBurst(Integer burst) {
         this.burst = burst;
     }
 
-    /** Gets the max queueing timeout in milliseconds. */
+    /** 获取最大排队超时时间（毫秒）。 */
     public Integer getMaxQueueingTimeoutMs() {
         return maxQueueingTimeoutMs;
     }
 
-    /** Sets the max queueing timeout in milliseconds. */
+    /** 设置最大排队超时时间（毫秒）。 */
     public void setMaxQueueingTimeoutMs(Integer maxQueueingTimeoutMs) {
         this.maxQueueingTimeoutMs = maxQueueingTimeoutMs;
     }
 
-    /** Whether the given object has the same fields as this entity. */
+    /** 判断指定对象是否与本实体全部字段相同。 */
     @Override
     public boolean equals(Object o) {
         if (this == o) { return true; }
@@ -318,14 +316,14 @@ public class GatewayFlowRuleEntity extends BaseRuleEntity {
                 Objects.equals(paramItem, that.paramItem);
     }
 
-    /** Gets the hash code from all fields of this entity. */
+    /** 以全部字段计算哈希码。 */
     @Override
     public int hashCode() {
         return Objects.hash(id, app, ip, port, gmtCreate, gmtModified, resource, resourceMode, grade, count, interval, 
             intervalUnit, controlBehavior, burst, maxQueueingTimeoutMs, paramItem);
     }
 
-    /** Builds a string with all fields of this entity. */
+    /** 拼接全部字段构建字符串。 */
     @Override
     public String toString() {
         return "GatewayFlowRuleEntity{" +

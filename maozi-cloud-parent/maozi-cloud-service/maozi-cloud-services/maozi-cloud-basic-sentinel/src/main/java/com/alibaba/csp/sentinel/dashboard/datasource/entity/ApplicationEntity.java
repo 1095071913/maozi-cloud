@@ -20,56 +20,56 @@ import com.alibaba.csp.sentinel.dashboard.discovery.AppInfo;
 import java.util.Date;
 
 /**
- * Persistent entity of an application registered to the dashboard.
+ * 注册到控制台的应用持久化实体。
  *
  * @author leyou
  * @date 2026/11/22
  */
 public class ApplicationEntity extends BaseEntity {
 
-    /** The type of the application. */
+    /** 应用类型。 */
     private Integer appType;
-    /** The active console address of the application. */
+    /** 应用当前生效的控制台地址。 */
     private String activeConsole;
-    /** The last fetch time. */
+    /** 最近一次拉取时间。 */
     private Date lastFetch;
 
-    /** Gets the type of the application. */
+    /** 获取应用类型。 */
     public Integer getAppType() {
         return appType;
     }
 
-    /** Sets the type of the application. */
+    /** 设置应用类型。 */
     public void setAppType(Integer appType) {
         this.appType = appType;
     }
 
-    /** Gets the active console address of the application. */
+    /** 获取应用当前生效的控制台地址。 */
     public String getActiveConsole() {
         return activeConsole;
     }
 
-    /** Gets the last fetch time. */
+    /** 获取最近一次拉取时间。 */
     public Date getLastFetch() {
         return lastFetch;
     }
 
-    /** Sets the last fetch time. */
+    /** 设置最近一次拉取时间。 */
     public void setLastFetch(Date lastFetch) {
         this.lastFetch = lastFetch;
     }
 
-    /** Sets the active console address of the application. */
+    /** 设置应用当前生效的控制台地址。 */
     public void setActiveConsole(String activeConsole) {
         this.activeConsole = activeConsole;
     }
 
-    /** Converts to an {@link AppInfo} with the app name and app type of this entity. */
+    /** 转换为携带本实体应用名与应用类型的 {@link AppInfo}。 */
     public AppInfo toAppInfo() {
         return new AppInfo(app, appType);
     }
 
-    /** Builds a string with the fields of this entity except appType. */
+    /** 拼接除 appType 之外的字段构建字符串。 */
     @Override
     public String toString() {
         return "ApplicationEntity{" +

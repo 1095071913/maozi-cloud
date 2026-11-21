@@ -19,47 +19,62 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Registry of discovered applications and their machines.
+ * 已发现应用及其机器的注册表接口。
  * @author maozi
  * @date 2026/11/22
  */
 public interface MachineDiscovery {
 
     /**
-     * App name placeholder for machines whose application has not been registered (cluster not started).
+     * 应用尚未注册（集群未启动）时机器使用的应用名占位符。
      */
     String UNKNOWN_APP_NAME = "CLUSTER_NOT_STARTED";
 
-    /** Lists the names of all discovered applications. */
+    /**
+     * 获取所有已发现应用的名称列表。
+     *
+     * @return 应用名称列表
+     */
     List<String> getAppNames();
 
-    /** Gets brief information of all discovered applications. */
+    /**
+     * 获取所有已发现应用的简要信息。
+     *
+     * @return 应用简要信息集合
+     */
     Set<AppInfo> getBriefApps();
 
-    /** Gets detailed information of the given application. */
+    /**
+     * 获取指定应用的详细信息。
+     *
+     * @param app 应用名
+     * @return 应用信息，不存在时返回 null
+     */
     AppInfo getDetailApp(String app);
 
     /**
-     * Removes the given app from the application registry.
+     * 从应用注册表中移除指定应用。
      *
-     * @param app application name
+     * @param app 应用名
      * @since 1.5.0
      */
     void removeApp(String app);
 
     /**
-     * Registers a machine to the application registry. The default in-memory
-     * implementation always returns 1.
+     * 向应用注册表注册机器。默认内存实现固定返回 1。
+     *
+     * @param machineInfo 机器信息
+     * @return 注册结果，默认实现固定返回 1
      */
     long addMachine(MachineInfo machineInfo);
 
     /**
-     * Removes the given machine instance from the application registry.
+     * 从应用注册表中移除指定机器。
      *
-     * @param app the application name of the machine
-     * @param ip machine IP
-     * @param port machine port
-     * @return true if removed, otherwise false
+     * @param app  机器所属应用名
+     * @param ip   机器 IP
+     * @param port 机器端口
+     * @return 移除成功返回 true，否则返回 false
      * @since 1.5.0
      */
     boolean removeMachine(String app, String ip, int port);

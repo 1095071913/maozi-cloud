@@ -21,7 +21,7 @@ import com.alibaba.csp.sentinel.dashboard.domain.cluster.config.ServerTransportC
 import java.util.Set;
 
 /**
- * Request to modify the cluster token server config of a machine.
+ * 修改机器集群 token server 配置的请求。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -29,51 +29,51 @@ import java.util.Set;
  */
 public class ClusterServerModifyRequest extends AbstractClusterModifyRequest {
 
-    /** The new flow config of the cluster server. */
+    /** 集群 server 的新流控配置。 */
     private ServerFlowConfig flowConfig;
 
-    /** The new transport config of the cluster server. */
+    /** 集群 server 的新传输配置。 */
     private ServerTransportConfig transportConfig;
 
-    /** The new set of namespaces served by the cluster server. */
+    /** 集群 server 服务的新 namespace 集合。 */
     private Set<String> namespaceSet;
 
-    /** Get the flow config. */
+    /** 获取流控配置。 */
     public ServerFlowConfig getFlowConfig() {
         return flowConfig;
     }
 
-    /** Set the flow config and return this. */
+    /** 设置流控配置并返回当前对象。 */
     public ClusterServerModifyRequest setFlowConfig(
         ServerFlowConfig flowConfig) {
         this.flowConfig = flowConfig;
         return this;
     }
 
-    /** Get the transport config. */
+    /** 获取传输配置。 */
     public ServerTransportConfig getTransportConfig() {
         return transportConfig;
     }
 
-    /** Set the transport config and return this. */
+    /** 设置传输配置并返回当前对象。 */
     public ClusterServerModifyRequest setTransportConfig(
         ServerTransportConfig transportConfig) {
         this.transportConfig = transportConfig;
         return this;
     }
 
-    /** Get the set of namespaces. */
+    /** 获取 namespace 集合。 */
     public Set<String> getNamespaceSet() {
         return namespaceSet;
     }
 
-    /** Set the set of namespaces and return this. */
+    /** 设置 namespace 集合并返回当前对象。 */
     public ClusterServerModifyRequest setNamespaceSet(Set<String> namespaceSet) {
         this.namespaceSet = namespaceSet;
         return this;
     }
 
-    /** Return a string representation of this request. */
+    /** 返回该请求的字符串表示。 */
     @Override
     public String toString() {
         return "ClusterServerModifyRequest{" +

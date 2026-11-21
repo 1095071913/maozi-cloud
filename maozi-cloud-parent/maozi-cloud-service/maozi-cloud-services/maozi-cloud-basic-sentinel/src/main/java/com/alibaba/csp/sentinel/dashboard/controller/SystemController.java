@@ -35,7 +35,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Controller for system adaptive protection rules.
+ * 系统自适应保护规则控制器。
  *
  * @author leyou(lihao)
  * @date 2026/11/22
@@ -44,21 +44,22 @@ import java.util.List;
 @RequestMapping("/system")
 public class SystemController {
 
-    /** The logger of this controller. */
+    /** 日志记录器。 */
     private final Logger logger = LoggerFactory.getLogger(SystemController.class);
 
-    /** The repository that stores system rule entities in memory. */
+    /** 存储系统规则实体的内存仓储。 */
     private final RuleRepository<SystemRuleEntity, Long> repository;
-    /** The app management service used to validate machine-to-app relationship. */
+    /** 用于校验机器与应用归属关系的应用管理服务。 */
     private final AppManagement appManagement;
-    /** The Nacos provider that pulls system rules for a given app. */
+    /** 从 Nacos 拉取指定应用系统规则的提供者。 */
     private final DynamicRuleProvider<List<SystemRuleEntity>> ruleProvider;
-    /** The Nacos publisher that pushes system rules to a given app. */
+    /** 向指定应用推送系统规则的发布者。 */
     private final DynamicRulePublisher<List<SystemRuleEntity>> rulePublisher;
 
-    /** Maximum value of a valid TCP/UDP port. */
+    /** 合法 TCP/UDP 端口的最大值。 */
     private static final int MAX_PORT = 65535;
 
+    /** 注入规则仓储、应用管理、规则提供者与发布者。 */
     public SystemController(RuleRepository<SystemRuleEntity, Long> repository,
                             AppManagement appManagement,
                             @Qualifier("systemRuleNacosProvider") DynamicRuleProvider<List<SystemRuleEntity>>
@@ -71,7 +72,7 @@ public class SystemController {
         this.rulePublisher = rulePublisher;
     }
 
-    /** Validates app/ip/port and that the ip belongs to the given app; returns the first error or null. */
+    /** 校验 app/ip/port 及 ip 是否属于指定应用；返回首个错误结果，校验通过返回 null。 */
     private <R> Result<R> checkBasicParams(String app, String ip, Integer port) {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
@@ -91,7 +92,7 @@ public class SystemController {
         return null;
     }
 
-    /** Fetches the app's system rules from Nacos, stamps each with the machine info, persists them and returns them. */
+    /** 从 Nacos 拉取应用的系统规则，为每条补充机器信息后持久化并返回。 */
     @GetMapping("/rules.json")
     @AuthAction(PrivilegeType.READ_RULE)
     public Result<List<SystemRuleEntity>> apiQueryMachineRules(String app, String ip,
@@ -115,7 +116,7 @@ public class SystemController {
         }
     }
 
-    /** Counts how many of the given values are non-null and not negative. */
+    /** 统计指定数值中非空且非负的个数。 */
     private int countNotNullAndNotNegative(Number... values) {
         int notNullCount = 0;
         for (int i = 0; i < values.length; i++) {
@@ -127,8 +128,8 @@ public class SystemController {
     }
 
     /**
-     * Adds a system rule requiring exactly one threshold; unset thresholds are persisted
-     * as -1 (fake value meaning "not enabled"), then the app's rules are published to Nacos.
+     * 新增系统规则：要求恰好设置一个阈值；未设置的阈值以 -1 持久化
+     * （占位值表示“未启用”），随后将应用的规则推送至 Nacos。
      */
     @GetMapping("/new.json")
     @AuthAction(PrivilegeType.WRITE_RULE)
@@ -154,7 +155,7 @@ public class SystemController {
         entity.setApp(app.trim());
         entity.setIp(ip.trim());
         entity.setPort(port);
-        // -1 is a fake value
+        // -1 为占位值，表示该阈值未启用
         if (null != highestSystemLoad) {
             entity.setHighestSystemLoad(highestSystemLoad);
         } else {
@@ -196,8 +197,7 @@ public class SystemController {
     }
 
     /**
-     * Updates the rule of the given id by applying only non-null params (negative thresholds rejected) and publishes
-     * the app's rules.
+     * 更新指定 id 的规则：仅应用非空参数（负阈值被拒绝），并推送应用的规则。
      */
     @GetMapping("/save.json")
     @AuthAction(PrivilegeType.WRITE_RULE)
@@ -261,7 +261,7 @@ public class SystemController {
         return Result.ofSuccess(entity);
     }
 
-    /** Deletes the rule of the given id and publishes the app's rules; an unknown id returns success with null data. */
+    /** 删除指定 id 的规则并推送应用的规则；id 不存在时直接成功返回（数据为 null）。 */
     @GetMapping("/delete.json")
     @AuthAction(PrivilegeType.DELETE_RULE)
     public Result<?> delete(Long id) {
@@ -284,7 +284,7 @@ public class SystemController {
         return Result.ofSuccess(id);
     }
 
-    /** Publishes all local rules of the app to Nacos; returns false on error. */
+    /** 将应用在本地的全部规则推送至 Nacos；出错时返回 false。 */
     private boolean publishRules(String app) {
         try {
             List<SystemRuleEntity> rules = repository.findAllByApp(app);

@@ -25,68 +25,67 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Application management of the dashboard, which delegates machine discovery
- * operations to the underlying {@link MachineDiscovery} implementation.
+ * 控制台的应用管理，将机器发现操作委托给底层的 {@link MachineDiscovery} 实现。
  * @author maozi
  * @date 2026/11/22
  */
 @Component
 public class AppManagement implements MachineDiscovery {
 
-    /** Spring application context used to resolve the underlying discovery bean. */
+    /** Spring 应用上下文，用于获取底层机器发现实现。 */
     private final ApplicationContext context;
 
-    /** The underlying machine discovery implementation. */
+    /** 底层机器发现实现。 */
     private MachineDiscovery machineDiscovery;
 
-    /** Injects the Spring application context used to resolve the discovery implementation. */
+    /** 注入 Spring 应用上下文，用于解析机器发现实现。 */
     public AppManagement(ApplicationContext context) {
         this.context = context;
     }
 
-    /** Resolve the underlying {@link SimpleMachineDiscovery} bean as the discovery implementation. */
+    /** 初始化时从容器获取 {@link SimpleMachineDiscovery} 作为底层机器发现实现。 */
     @PostConstruct
     public void init() {
         machineDiscovery = context.getBean(SimpleMachineDiscovery.class);
     }
 
-    /** Gets brief info of all applications. */
+    /** 获取所有应用的简要信息。 */
     @Override
     public Set<AppInfo> getBriefApps() {
         return machineDiscovery.getBriefApps();
     }
 
-    /** Adds the machine to its application. */
+    /** 将机器注册到其所属应用。 */
     @Override
     public long addMachine(MachineInfo machineInfo) {
         return machineDiscovery.addMachine(machineInfo);
     }
     
-    /** Removes the machine with the given ip and port from the application. */
+    /** 从应用中移除指定 ip 和 port 的机器。 */
     @Override
     public boolean removeMachine(String app, String ip, int port) {
         return machineDiscovery.removeMachine(app, ip, port);
     }
 
-    /** Gets the names of all applications. */
+    /** 获取所有应用的名称列表。 */
     @Override
     public List<String> getAppNames() {
         return machineDiscovery.getAppNames();
     }
 
-    /** Gets detail info of the application with the given name. */
+    /** 获取指定名称的应用详细信息。 */
     @Override
     public AppInfo getDetailApp(String app) {
         return machineDiscovery.getDetailApp(app);
     }
     
-    /** Removes the application with the given name. */
+    /** 移除指定名称的应用。 */
     @Override
     public void removeApp(String app) {
         machineDiscovery.removeApp(app);
     }
 
-    /** Checks whether the machine with the given ip belongs to the application. */
+    /** 判断指定 ip 的机器是否属于该应用。 */
     public boolean isValidMachineOfApp(String app, String ip) {
         if (StringUtil.isEmpty(app)) {
             return false;

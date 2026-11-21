@@ -20,7 +20,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
- * Entity for an authority (black/white list) rule, wrapping an {@link AuthorityRule}.
+ * 授权（黑白名单）规则实体，内部包装 {@link AuthorityRule}。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -28,29 +28,35 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  */
 public class AuthorityRuleEntity extends AbstractRuleEntity<AuthorityRule> {
 
-    /** Creates an entity with no wrapped rule. */
+    /** 创建一个不携带规则的实体。 */
     public AuthorityRuleEntity() {
         super();
     }
 
-    /** Creates an entity wrapping the given rule, which must not be null. */
+    /** 创建包装指定规则的实体，规则不能为空。 */
     public AuthorityRuleEntity(AuthorityRule authorityRule) {
         super(authorityRule);
     }
 
-    /** Creates an entity wrapping the given rule and carrying the given app, ip and port. */
+    /** 创建包装指定规则并携带应用名、IP、端口的实体。 */
     public AuthorityRuleEntity(String app, String ip, Integer port, AuthorityRule rule) {
         super(app, ip, port, rule);
     }
 
     /**
-     * Builds an entity wrapping the given {@link AuthorityRule}, carrying the given app, ip and port.
+     * 根据授权规则构建实体。
+     *
+     * @param app  应用名
+     * @param ip   机器 IP
+     * @param port 机器端口
+     * @param rule 授权规则
+     * @return 携带应用名、IP、端口并包装该规则的实体
      */
     public static AuthorityRuleEntity fromAuthorityRule(String app, String ip, Integer port, AuthorityRule rule) {
         return new AuthorityRuleEntity(app, ip, port, rule);
     }
 
-    /** Gets the strategy (white/black list) of the wrapped rule (excluded from JSON). */
+    /** 获取规则的控制策略（白名单 0 / 黑名单 1），该字段不参与 JSON 序列化。 */
     @JsonIgnore
     @JSONField(serialize = false)
     public int getStrategy() {

@@ -18,7 +18,7 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.request;
 import com.alibaba.csp.sentinel.dashboard.domain.cluster.config.ClusterClientConfig;
 
 /**
- * Request to modify the cluster token client config of a machine.
+ * 修改机器集群 token client 配置的请求。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -26,22 +26,22 @@ import com.alibaba.csp.sentinel.dashboard.domain.cluster.config.ClusterClientCon
  */
 public class ClusterClientModifyRequest extends AbstractClusterModifyRequest {
 
-    /** The new config of the cluster client. */
+    /** 集群客户端的新配置。 */
     private ClusterClientConfig clientConfig;
 
-    /** Get the cluster client config. */
+    /** 获取集群客户端配置。 */
     public ClusterClientConfig getClientConfig() {
         return clientConfig;
     }
 
-    /** Set the cluster client config and return this. */
+    /** 设置集群客户端配置并返回当前对象。 */
     public ClusterClientModifyRequest setClientConfig(
         ClusterClientConfig clientConfig) {
         this.clientConfig = clientConfig;
         return this;
     }
 
-    /** Return a string representation of this request. */
+    /** 返回该请求的字符串表示。 */
     @Override
     public String toString() {
         return "ClusterClientModifyRequest{"

@@ -165,15 +165,10 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
     }
 
     /**
-     * 处理网关异常的核心方法。
+     * 处理网关异常的核心方法
      * <p>
-     * 根据异常类型返回不同的错误响应：
-     * - 客户端断连异常（AbortedException）：不记录错误日志，直接透传异常；
-     * - NotFoundException：服务不存在，返回对应的错误码和 HTTP 状态码；
-     * - BlockException（Sentinel 限流）：返回限流错误码和 HTTP 状态码；
-     * - 其他异常：返回系统内部错误码和 HTTP 状态码。
-     * 同时在 OpenTelemetry 未生成有效 traceId 时向 MDC 写入 traceId，
-     * 并记录完整的请求信息和错误详情。
+     * 按异常类型构建对应的错误响应（分类详见类注释），同时在 OpenTelemetry
+     * 未生成有效 traceId 时向 MDC 写入 traceId，并记录完整的请求信息与错误详情。
      * </p>
      *
      * @param exchange 服务端 Web 交换上下文

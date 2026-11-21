@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation marking a controller method as requiring the given auth privilege.
+ * 标记控制器方法需要指定权限才可访问的注解。
  *
  * @author lkxiaolou
  * @since 1.7.1
@@ -33,17 +33,17 @@ import java.lang.annotation.Target;
 public @interface AuthAction {
 
     /**
-     * @return the privilege type
+     * @return 所需的权限类型
      */
     AuthService.PrivilegeType value();
 
     /**
-     * @return the target name to control
+     * @return 携带授权目标（应用名）的请求参数名，默认 "app"
      */
     String targetName() default "app";
 
     /**
-     * @return the message when permission is denied
+     * @return 权限不足时的提示消息
      */
     String message() default "Permission denied";
 }

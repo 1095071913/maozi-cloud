@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Service for assigning and unbinding cluster token servers and clients of an application.
+ * 应用集群 Token 服务端与客户端的分配及解绑服务
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -31,30 +31,30 @@ import java.util.Set;
 public interface ClusterAssignService {
 
     /**
-     * Unbind a specific cluster server and its clients.
+     * 解绑指定的集群服务端及其客户端
      *
-     * @param app app name
-     * @param machineId valid machine ID ({@code host@commandPort})
-     * @return assign result
+     * @param app 应用名
+     * @param machineId 有效的机器 ID（{@code host@commandPort}）
+     * @return 分配结果
      */
     ClusterAppAssignResultVO unbindClusterServer(String app, String machineId);
 
     /**
-     * Unbind a set of cluster servers and their clients.
+     * 解绑一组集群服务端及其客户端
      *
-     * @param app app name
-     * @param machineIdSet set of valid machine ID ({@code host@commandPort})
-     * @return assign result
+     * @param app 应用名
+     * @param machineIdSet 有效机器 ID（{@code host@commandPort}）集合
+     * @return 分配结果
      */
     ClusterAppAssignResultVO unbindClusterServers(String app, Set<String> machineIdSet);
 
     /**
-     * Apply cluster server and client assignment for provided app.
+     * 为指定应用执行集群服务端与客户端的分配
      *
-     * @param app app name
-     * @param clusterMap cluster assign map (server -> clients)
-     * @param remainingSet unassigned set of machine ID
-     * @return assign result
+     * @param app 应用名
+     * @param clusterMap 集群分配映射（服务端 -> 客户端）
+     * @param remainingSet 未分配的机器 ID 集合
+     * @return 分配结果
      */
     ClusterAppAssignResultVO applyAssignToApp(String app, List<ClusterAppAssignMap> clusterMap,
                                               Set<String> remainingSet);

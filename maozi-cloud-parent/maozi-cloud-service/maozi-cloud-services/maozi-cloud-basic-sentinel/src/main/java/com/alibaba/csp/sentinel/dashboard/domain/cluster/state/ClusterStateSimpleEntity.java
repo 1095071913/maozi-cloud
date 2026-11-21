@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.domain.cluster.state;
 
 /**
- * Simple cluster state of a machine: mode, client/server availability and last modified time.
+ * 机器的简要集群状态：模式、客户端/服务端可用性及最后修改时间。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -24,63 +24,63 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.state;
  */
 public class ClusterStateSimpleEntity {
 
-    /** The current cluster mode of the machine. */
+    /** 机器当前集群模式。 */
     private Integer mode;
 
-    /** The timestamp of the last modification of the cluster state. */
+    /** 集群状态最近一次修改的时间戳。 */
     private Long lastModified;
 
-    /** Whether the cluster client is available. */
+    /** 集群客户端是否可用。 */
     private Boolean clientAvailable;
 
-    /** Whether the cluster server is available. */
+    /** 集群服务端是否可用。 */
     private Boolean serverAvailable;
 
-    /** Get the cluster mode. */
+    /** 获取集群模式。 */
     public Integer getMode() {
         return mode;
     }
 
-    /** Set the cluster mode and return this. */
+    /** 设置集群模式并返回当前对象。 */
     public ClusterStateSimpleEntity setMode(Integer mode) {
         this.mode = mode;
         return this;
     }
 
-    /** Get the last modified timestamp. */
+    /** 获取最近一次修改的时间戳。 */
     public Long getLastModified() {
         return lastModified;
     }
 
-    /** Set the last modified timestamp and return this. */
+    /** 设置最近一次修改的时间戳并返回当前对象。 */
     public ClusterStateSimpleEntity setLastModified(Long lastModified) {
         this.lastModified = lastModified;
         return this;
     }
 
-    /** Get the flag whether the cluster client is available. */
+    /** 获取集群客户端是否可用的标记。 */
     public Boolean getClientAvailable() {
         return clientAvailable;
     }
 
-    /** Set the flag whether the cluster client is available and return this. */
+    /** 设置集群客户端是否可用的标记并返回当前对象。 */
     public ClusterStateSimpleEntity setClientAvailable(Boolean clientAvailable) {
         this.clientAvailable = clientAvailable;
         return this;
     }
 
-    /** Get the flag whether the cluster server is available. */
+    /** 获取集群服务端是否可用的标记。 */
     public Boolean getServerAvailable() {
         return serverAvailable;
     }
 
-    /** Set the flag whether the cluster server is available and return this. */
+    /** 设置集群服务端是否可用的标记并返回当前对象。 */
     public ClusterStateSimpleEntity setServerAvailable(Boolean serverAvailable) {
         this.serverAvailable = serverAvailable;
         return this;
     }
 
-    /** Return a string representation of this entity. */
+    /** 返回该实体的字符串表示。 */
     @Override
     public String toString() {
         return "ClusterStateSimpleEntity{" +

@@ -30,9 +30,8 @@ import org.springframework.context.annotation.Configuration;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Spring configuration that registers the auth-related beans: an {@link AuthService},
- * a login authentication filter and an authorization interceptor, each overridable
- * by the user's own bean definition.
+ * 注册认证相关 Bean 的 Spring 配置：{@link AuthService}、登录认证过滤器和授权拦截器，
+ * 各 Bean 均可被用户自定义的同名 Bean 覆盖。
  * @author maozi
  * @date 2026/11/22
  */
@@ -40,15 +39,15 @@ import javax.servlet.http.HttpServletRequest;
 @EnableConfigurationProperties(AuthProperties.class)
 public class AuthConfiguration {
 
-    /** The auth configuration properties. */
+    /** 认证配置属性。 */
     private final AuthProperties authProperties;
 
-    /** Creates the configuration with the bound auth properties. */
+    /** 使用绑定的认证配置属性构建配置类。 */
     public AuthConfiguration(AuthProperties authProperties) {
         this.authProperties = authProperties;
     }
 
-    /** Provides the auth service: session-based when auth is enabled, otherwise a fake one that passes all checking. */
+    /** 提供认证服务：开启认证时为基于 session 的实现，否则为跳过全部校验的伪实现。 */
     @Bean
     @ConditionalOnMissingBean
     public AuthService<HttpServletRequest> httpServletRequestAuthService() {
@@ -58,7 +57,7 @@ public class AuthConfiguration {
         return new FakeAuthServiceImpl();
     }
 
-    /** Provides the default login authentication filter backed by the given auth service. */
+    /** 提供基于指定认证服务的默认登录认证过滤器。 */
     @Bean
     @ConditionalOnMissingBean
     public LoginAuthenticationFilter loginAuthenticationFilter(AuthService<HttpServletRequest>
@@ -66,7 +65,7 @@ public class AuthConfiguration {
         return new DefaultLoginAuthenticationFilter(httpServletRequestAuthService);
     }
 
-    /** Provides the default privilege-based authorization interceptor backed by the given auth service. */
+    /** 提供基于指定认证服务的默认权限校验拦截器。 */
     @Bean
     @ConditionalOnMissingBean
     public AuthorizationInterceptor authorizationInterceptor(AuthService<HttpServletRequest>

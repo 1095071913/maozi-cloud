@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule;
 
 /**
- * Value Object for update gateway flow rule.
+ * 修改网关流控规则请求 VO
  *
  * @author cdfive
  * @date 2026/11/22
@@ -24,20 +24,17 @@ package com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule;
  */
 public class UpdateFlowRuleReqVO extends BaseFlowRuleReqVO {
 
-    /** ID of the gateway flow rule to update. */
+    /** 待修改的网关流控规则 ID */
     private Long id;
 
-    /** Returns the ID of the gateway flow rule to update. */
     public Long getId() {
         return id;
     }
 
-    /** Sets the ID of the gateway flow rule to update. */
     public void setId(Long id) {
         this.id = id;
     }
 
-    /** Return a string representation of this VO. */
     @Override
     public String toString() {
         return "UpdateFlowRuleReqVO{"

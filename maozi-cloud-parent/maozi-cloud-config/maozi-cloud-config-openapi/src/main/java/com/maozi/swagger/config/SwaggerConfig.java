@@ -47,9 +47,10 @@ import java.util.Set;
 @SuppressWarnings({"rawtypes", "unchecked"})
 @Configuration
 @ConditionalOnProperty(
-        name = "springdoc.api-docs.enabled",                 // 配置项名
+        name = "springdoc.api-docs.enabled",
         havingValue = "true",
-        matchIfMissing = true                 // 没配置时默认生效
+        // 未配置该属性时默认开启
+        matchIfMissing = true
 )
 public class SwaggerConfig {
 

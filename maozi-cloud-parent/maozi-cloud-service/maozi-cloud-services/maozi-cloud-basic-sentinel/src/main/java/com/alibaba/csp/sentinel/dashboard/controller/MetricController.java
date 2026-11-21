@@ -39,7 +39,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Controller providing metric queries for the monitoring pages.
+ * 为监控页面提供监控指标查询的控制器。
  *
  * @author leyou
  * @date 2026/11/22
@@ -48,36 +48,36 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequestMapping(value = "/metric", produces = MediaType.APPLICATION_JSON_VALUE)
 public class MetricController {
 
-    /** The logger of this controller. */
+    /** 日志记录器。 */
     private static final Logger logger = LoggerFactory.getLogger(MetricController.class);
 
-    /** Default query window in ms when the caller provides no start time: the last 5 minutes. */
+    /** 调用方未提供起始时间时的默认查询窗口（毫秒）：最近 5 分钟。 */
     private static final long DEFAULT_QUERY_INTERVAL_MS = 1000 * 60 * 5;
 
-    /** Default page size of the top-resource metric query. */
+    /** 热点资源指标查询的默认每页数量。 */
     private static final int DEFAULT_PAGE_SIZE = 6;
 
-    /** Max page size of the top-resource metric query. */
+    /** 热点资源指标查询的最大每页数量。 */
     private static final int MAX_PAGE_SIZE = 20;
 
-    /** The repository that stores and queries metric entities. */
+    /** 存储与查询指标实体的仓储。 */
     private final MetricsRepository<MetricEntity> metricStore;
 
     /**
-     * Metric aggregation granularity N in seconds (same config as {@code JdbcMetricsRepository}), used to align query
-     * boundaries.
+     * 指标聚合粒度 N（秒），与 {@code JdbcMetricsRepository} 使用同一配置，
+     * 用于对齐查询边界。
      */
     @Value("${sentinel.metric.aggregate-seconds:1}")
     private int aggregateSeconds;
 
+    /** 注入指标仓储。 */
     public MetricController(MetricsRepository<MetricEntity> metricStore) {
         this.metricStore = metricStore;
     }
 
     /**
-     * Queries the top resources of the app within the time range (only those with data points
-     * in range), optionally filtered by searchKey and paginated; each resource on the current
-     * page is returned with its sorted, de-duplicated metric data.
+     * 查询应用在时间范围内的热点资源（仅返回在范围内有数据点的资源），
+     * 可按 searchKey 过滤并分页；当前页每个资源附带其排序去重后的指标数据。
      */
     @ResponseBody
     @GetMapping("/queryTopResourceMetric.json")
@@ -109,7 +109,7 @@ public class MetricController {
         }
         startTime = alignToBucket(startTime);
         endTime = alignToBucketEnd(endTime);
-        // List resources strictly by the query window: resources without data points in it are not shown.
+        // 严格按查询窗口列出资源：窗口内无数据点的资源不展示
         List<String> resources = metricStore.listResourcesOfApp(app, startTime, endTime);
         logger.debug("queryTopResourceMetric(), resources.size()={}", resources.size());
 
@@ -128,7 +128,6 @@ public class MetricController {
             }
             resources = searched;
         }
-        // Cache the resource count to avoid repeated calls within the same method.
         int totalCount = resources.size();
         int totalPage = (totalCount + pageSize - 1) / pageSize;
         List<String> topResource = new ArrayList<>();
@@ -149,8 +148,7 @@ public class MetricController {
         }
         logger.debug("queryTopResourceMetric() total query time={} ms", System.currentTimeMillis() - time);
         Map<String, Object> resultMap = new HashMap<>(16);
-        // Send the aggregation granularity N to the frontend: the leading/trailing zero padding of the chart depends on
-            // it (N seconds before/after a point).
+        // 将聚合粒度 N 下发给前端：图表首尾补零依赖该值（数据点前后各补 N 秒）
         resultMap.put("aggregateSeconds", Math.max(1, aggregateSeconds));
         resultMap.put("totalCount", totalCount);
         resultMap.put("totalPage", totalPage);
@@ -158,7 +156,7 @@ public class MetricController {
         resultMap.put("pageSize", pageSize);
 
         Map<String, Iterable<MetricVO>> map2 = new LinkedHashMap<>();
-        // order matters.
+        // 顺序有意义，需保持资源排列顺序
         for (String identity : topResource) {
             map2.put(identity, map.get(identity));
         }
@@ -167,8 +165,7 @@ public class MetricController {
     }
 
     /**
-     * Queries the metric data of the given resource of the app in the time range, sorted and de-duplicated by
-     * timestamp.
+     * 查询应用指定资源在时间范围内的指标数据，按时间戳排序并去重。
      */
     @ResponseBody
     @GetMapping("/queryByAppAndResource.json")
@@ -192,9 +189,8 @@ public class MetricController {
     }
 
     /**
-     * Aligns the query start time down to the N-second bucket grid: a persisted row carries
-     * its bucket START timestamp, so aligning down makes the bucket that is currently
-     * collecting visible without pulling in older buckets.
+     * 将查询起始时间向下对齐到 N 秒桶边界：持久化行记录的是桶的起始时间戳，
+     * 向下对齐既能看到正在采集中的桶，又不会引入更早的桶。
      */
     private long alignToBucket(long startTime) {
         long bucketMs = Math.max(1, aggregateSeconds) * 1000L;
@@ -202,9 +198,8 @@ public class MetricController {
     }
 
     /**
-     * Aligns the query end time up to the N-second bucket grid, symmetric to
-     * {@link #alignToBucket(long)}, so a window ending mid-bucket also sees the next
-     * bucket and both edges resolve to complete buckets.
+     * 将查询结束时间向上对齐到 N 秒桶边界，与 {@link #alignToBucket(long)} 对称：
+     * 窗口结束于桶中间时也能看到下一个桶，使两端均落在完整桶上。
      */
     private long alignToBucketEnd(long endTime) {
         long bucketMs = Math.max(1, aggregateSeconds) * 1000L;
@@ -214,7 +209,7 @@ public class MetricController {
         return (endTime / bucketMs + 1) * bucketMs;
     }
 
-    /** Sorts the VOs by timestamp ascending, keeping only the most recently created VO per duplicated timestamp. */
+    /** 按时间戳升序排序 VO，重复时间戳仅保留创建时间最近的一条。 */
     private Iterable<MetricVO> sortMetricVOAndDistinct(List<MetricVO> vos) {
         if (vos == null) {
             return null;

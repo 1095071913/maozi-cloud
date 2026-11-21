@@ -23,53 +23,53 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * View object of one metric record sent to the frontend.
+ * 发送给前端的单条监控指标记录视图对象。
  *
  * @author leyou
  * @date 2026/11/22
  */
 public class MetricVO implements Comparable<MetricVO> {
 
-    /** Precompiled pattern of the metric line separator. */
+    /** 预编译的指标行分隔符正则。 */
     private static final Pattern METRIC_LINE_PATTERN = Pattern.compile("\\|");
 
-    /** The ID of the metric record. */
+    /** 监控指标记录 id。 */
     private Long id;
 
-    /** The app name of the metric record. */
+    /** 监控指标记录所属应用名。 */
     private String app;
 
-    /** The timestamp of the metric record in milliseconds. */
+    /** 监控指标记录的时间戳，单位毫秒。 */
     private Long timestamp;
 
-    /** The create time in milliseconds. */
+    /** 创建时间，单位毫秒。 */
     private Long gmtCreate;
 
-    /** The resource name. */
+    /** 资源名。 */
     private String resource;
 
-    /** The QPS of passed requests. */
+    /** 通过请求的 QPS。 */
     private Long passQps;
 
-    /** The QPS of blocked requests. */
+    /** 拒绝请求的 QPS。 */
     private Long blockQps;
 
-    /** The QPS of successful requests. */
+    /** 成功请求的 QPS。 */
     private Long successQps;
 
-    /** The QPS of exceptions. */
+    /** 异常请求的 QPS。 */
     private Long exceptionQps;
-    /** The average response time. */
+    /** 平均响应时间。 */
     private Double rt;
 
-    /** The total number of aggregated entries in this record. */
+    /** 该记录聚合的条目总数。 */
     private Integer count;
 
-    /** Create an empty vo. */
+    /** 创建空的 VO。 */
     public MetricVO() {
     }
 
-    /** Convert the entities to a list of VOs; a null collection yields an empty list. */
+    /** 将实体集合转换为 VO 列表，集合为 null 时返回空列表。 */
     public static List<MetricVO> fromMetricEntities(Collection<MetricEntity> entities) {
         List<MetricVO> list = new ArrayList<>(entities == null ? 0 : entities.size());
         if (entities != null) {
@@ -81,11 +81,11 @@ public class MetricVO implements Comparable<MetricVO> {
     }
 
     /**
-     * Convert only the entities whose resource name equals the given identity.
+     * 仅转换资源名与指定标识完全相等的实体。
      *
-     * @param entities metric entities found by resource hash code
-     * @param identity the exact resource name to match
-     * @return VOs of the matching entities
+     * @param entities 按资源哈希查找到的监控实体集合
+     * @param identity 需精确匹配的资源名
+     * @return 匹配实体对应的 VO 列表
      */
     public static List<MetricVO> fromMetricEntities(Collection<MetricEntity> entities, String identity) {
         List<MetricVO> list = new ArrayList<>(entities == null ? 0 : entities.size());
@@ -100,8 +100,7 @@ public class MetricVO implements Comparable<MetricVO> {
     }
 
     /**
-     * Convert the given entity to a VO. The rt of the VO is the entity rt divided
-     * by the success QPS, or 0 if the success QPS is 0.
+     * 将指定实体转换为 VO：VO 的 rt 为实体 rt 除以成功 QPS，成功 QPS 为 0 时取 0。
      */
     public static MetricVO fromMetricEntity(MetricEntity entity) {
         MetricVO vo = new MetricVO();
@@ -112,7 +111,7 @@ public class MetricVO implements Comparable<MetricVO> {
         vo.resource = entity.getResource();
         vo.passQps = entity.getPassQps();
         vo.blockQps = entity.getBlockQps();
-        // Cache the success QPS to avoid repeated calls within the same method.
+        // 缓存成功 QPS，避免同一方法内重复获取
         Long successQps = entity.getSuccessQps();
         vo.successQps = successQps;
         vo.exceptionQps = entity.getExceptionQps();
@@ -126,9 +125,9 @@ public class MetricVO implements Comparable<MetricVO> {
     }
 
     /**
-     * Parse a metric line in the format
+     * 将格式为
      * {@code timestamp|resource|passQps|blockQps|exceptionQps|rt|successQps}
-     * into a VO, with the count set to 1.
+     * 的指标行解析为 VO，count 固定为 1。
      */
     public static MetricVO parse(String line) {
         String[] strs = METRIC_LINE_PATTERN.split(line);
@@ -151,123 +150,123 @@ public class MetricVO implements Comparable<MetricVO> {
         return vo;
     }
 
-    /** Get the ID of the metric record. */
+    /** 获取监控指标记录 id。 */
     public Long getId() {
         return id;
     }
 
-    /** Set the ID of the metric record. */
+    /** 设置监控指标记录 id。 */
     public void setId(Long id) {
         this.id = id;
     }
 
-    /** Get the app name. */
+    /** 获取应用名。 */
     public String getApp() {
         return app;
     }
 
-    /** Set the app name. */
+    /** 设置应用名。 */
     public void setApp(String app) {
         this.app = app;
     }
 
-    /** Get the timestamp in milliseconds. */
+    /** 获取时间戳，单位毫秒。 */
     public Long getTimestamp() {
         return timestamp;
     }
 
-    /** Set the timestamp in milliseconds. */
+    /** 设置时间戳，单位毫秒。 */
     public void setTimestamp(Long timestamp) {
         this.timestamp = timestamp;
     }
 
-    /** Get the create time in milliseconds. */
+    /** 获取创建时间，单位毫秒。 */
     public Long getGmtCreate() {
         return gmtCreate;
     }
 
-    /** Set the create time in milliseconds. */
+    /** 设置创建时间，单位毫秒。 */
     public void setGmtCreate(Long gmtCreate) {
         this.gmtCreate = gmtCreate;
     }
 
-    /** Get the resource name. */
+    /** 获取资源名。 */
     public String getResource() {
         return resource;
     }
 
-    /** Set the resource name. */
+    /** 设置资源名。 */
     public void setResource(String resource) {
         this.resource = resource;
     }
 
-    /** Get the QPS of passed requests. */
+    /** 获取通过请求的 QPS。 */
     public Long getPassQps() {
         return passQps;
     }
 
-    /** Set the QPS of passed requests. */
+    /** 设置通过请求的 QPS。 */
     public void setPassQps(Long passQps) {
         this.passQps = passQps;
     }
 
-    /** Get the QPS of blocked requests. */
+    /** 获取拒绝请求的 QPS。 */
     public Long getBlockQps() {
         return blockQps;
     }
 
-    /** Set the QPS of blocked requests. */
+    /** 设置拒绝请求的 QPS。 */
     public void setBlockQps(Long blockQps) {
         this.blockQps = blockQps;
     }
 
-    /** Get the QPS of successful requests. */
+    /** 获取成功请求的 QPS。 */
     public Long getSuccessQps() {
         return successQps;
     }
 
-    /** Set the QPS of successful requests. */
+    /** 设置成功请求的 QPS。 */
     public void setSuccessQps(Long successQps) {
         this.successQps = successQps;
     }
 
-    /** Get the QPS of exceptions. */
+    /** 获取异常请求的 QPS。 */
     public Long getExceptionQps() {
         return exceptionQps;
     }
 
-    /** Set the QPS of exceptions. */
+    /** 设置异常请求的 QPS。 */
     public void setExceptionQps(Long exceptionQps) {
         this.exceptionQps = exceptionQps;
     }
 
-    /** Get the average response time. */
+    /** 获取平均响应时间。 */
     public Double getRt() {
         return rt;
     }
 
-    /** Set the average response time. */
+    /** 设置平均响应时间。 */
     public void setRt(Double rt) {
         this.rt = rt;
     }
 
-    /** Get the total number of aggregated entries. */
+    /** 获取聚合的条目总数。 */
     public Integer getCount() {
         return count;
     }
 
-    /** Set the total number of aggregated entries. */
+    /** 设置聚合的条目总数。 */
     public void setCount(Integer count) {
         this.count = count;
     }
 
-    /** Compare VOs by timestamp in ascending order. */
+    /** 按时间戳升序比较。 */
     @Override
     public int compareTo(MetricVO o) {
         return Long.compare(this.timestamp, o.timestamp);
     }
 
-    /** Return a string representation of this VO. */
+    /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
         return "MetricVO{"

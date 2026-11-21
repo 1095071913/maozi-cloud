@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.domain.cluster.state;
 
 /**
- * Universal cluster state of a machine: simple state plus optional client and server states.
+ * 机器的通用集群状态：简要状态及可选的客户端、服务端状态。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -24,50 +24,50 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.state;
  */
 public class ClusterUniversalStateVO {
 
-    /** The simple cluster state info of the machine. */
+    /** 机器的简要集群状态信息。 */
     private ClusterStateSimpleEntity stateInfo;
 
-    /** The cluster client state of the machine. */
+    /** 机器的集群客户端状态。 */
     private ClusterClientStateVO client;
 
-    /** The cluster server state of the machine. */
+    /** 机器的集群服务端状态。 */
     private ClusterServerStateVO server;
 
-    /** Get the cluster client state. */
+    /** 获取集群客户端状态。 */
     public ClusterClientStateVO getClient() {
         return client;
     }
 
-    /** Set the cluster client state and return this. */
+    /** 设置集群客户端状态并返回当前对象。 */
     public ClusterUniversalStateVO setClient(ClusterClientStateVO client) {
         this.client = client;
         return this;
     }
 
-    /** Get the cluster server state. */
+    /** 获取集群服务端状态。 */
     public ClusterServerStateVO getServer() {
         return server;
     }
 
-    /** Set the cluster server state and return this. */
+    /** 设置集群服务端状态并返回当前对象。 */
     public ClusterUniversalStateVO setServer(ClusterServerStateVO server) {
         this.server = server;
         return this;
     }
 
-    /** Get the simple cluster state info. */
+    /** 获取简要集群状态信息。 */
     public ClusterStateSimpleEntity getStateInfo() {
         return stateInfo;
     }
 
-    /** Set the simple cluster state info and return this. */
+    /** 设置简要集群状态信息并返回当前对象。 */
     public ClusterUniversalStateVO setStateInfo(
         ClusterStateSimpleEntity stateInfo) {
         this.stateInfo = stateInfo;
         return this;
     }
 
-    /** Return a string representation of this VO. */
+    /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
         return "ClusterUniversalStateVO{" +

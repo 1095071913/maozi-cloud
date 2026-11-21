@@ -11,7 +11,7 @@ import java.io.IOException;
  * RestTemplate 构建器
  * <p>
  * 通过 {@link org.springframework.boot.web.client.RestTemplateBuilder} 构建全局共用的
- * 自定义 {@link RestTemplate} 实例（doExecute 中集成请求链路日志与耗时统计，
+ * 自定义 {@link RestTemplate} 实例（doExecute 中集成请求链路日志，
  * 详见其类注释），并自定义错误处理器：当响应状态码为 400 时不抛出异常，
  * 交由调用方自行处理响应内容，其余错误状态码仍按 Spring 默认行为处理。
  * </p>

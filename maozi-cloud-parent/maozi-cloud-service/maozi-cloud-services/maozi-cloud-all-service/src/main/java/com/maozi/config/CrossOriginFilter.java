@@ -19,21 +19,11 @@ import java.io.IOException;
 /**
  * 跨域请求处理过滤器
  * <p>
- * 聚合服务（maozi-cloud-all-service）作为对外入口，直接接收浏览器前端请求，
- * 需要处理跨域资源共享（CORS），与网关服务（{@code GatewayCrossConfig}）的
- * 响应式跨域过滤器语义保持一致。
- * </p>
- * <p>
- * 本过滤器（{@code SecurityProperties.DEFAULT_FILTER_ORDER - 2}）优先级高于
- * Spring Security 过滤器链与 {@link StripUserInfoHeaderFilter}
- * （{@code SecurityProperties.DEFAULT_FILTER_ORDER - 1}）：
- * OPTIONS 预检请求不携带访问令牌，若进入认证过滤器链会被直接拒绝（401），
- * 因此预检请求在本过滤器内补充跨域响应头后直接返回 200，不再向下转发。
- * </p>
- * <p>
- * 由于允许携带凭证（{@code Access-Control-Allow-Credentials: true}）时
- * {@code Access-Control-Allow-Origin} 不允许取值为 {@code *}，
- * 故采用回显请求 {@code Origin} 的方式放行来源域。
+ * 聚合服务作为对外入口直接接收浏览器前端请求，需处理跨域资源共享（CORS），
+ * 与网关服务（{@code GatewayCrossConfig}）语义保持一致。本过滤器先于
+ * Spring Security 过滤链执行：OPTIONS 预检请求不携带访问令牌，进入认证链
+ * 会被拒（401），故补齐跨域响应头后直接返回 200；允许携带凭证时
+ * {@code Access-Control-Allow-Origin} 不可为 {@code *}，故回显请求 Origin 放行来源域。
  * </p>
  *
  * @author maozi

@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.domain.cluster;
 
 /**
- * Cluster state of a single machine (address, mode and target).
+ * 单台机器的集群状态（地址、模式及目标地址）。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -24,47 +24,47 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster;
  */
 public class ClusterStateSingleVO {
 
-    /** The address of the machine. */
+    /** 机器地址。 */
     private String address;
-    /** The cluster mode of the machine. */
+    /** 机器的集群模式。 */
     private Integer mode;
-    /** The target address. */
+    /** 目标地址。 */
     private String target;
 
-    /** Gets the address of the machine. */
+    /** 获取机器地址。 */
     public String getAddress() {
         return address;
     }
 
-    /** Sets the address of the machine and returns this. */
+    /** 设置机器地址并返回当前对象。 */
     public ClusterStateSingleVO setAddress(String address) {
         this.address = address;
         return this;
     }
 
-    /** Gets the cluster mode of the machine. */
+    /** 获取机器的集群模式。 */
     public Integer getMode() {
         return mode;
     }
 
-    /** Sets the cluster mode of the machine and returns this. */
+    /** 设置机器的集群模式并返回当前对象。 */
     public ClusterStateSingleVO setMode(Integer mode) {
         this.mode = mode;
         return this;
     }
 
-    /** Gets the target address. */
+    /** 获取目标地址。 */
     public String getTarget() {
         return target;
     }
 
-    /** Sets the target address and returns this. */
+    /** 设置目标地址并返回当前对象。 */
     public ClusterStateSingleVO setTarget(String target) {
         this.target = target;
         return this;
     }
 
-    /** Gets the string representation of this VO. */
+    /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
         return "ClusterStateSingleVO{" +

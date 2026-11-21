@@ -21,31 +21,31 @@ import com.alibaba.csp.sentinel.util.StringUtil;
 import java.util.Objects;
 
 /**
- * Information of a machine, i.e. a Sentinel client instance of an application.
+ * 机器信息，即应用的一个 Sentinel 客户端实例。
  * @author maozi
  * @date 2026/11/22
  */
 public class MachineInfo implements Comparable<MachineInfo> {
 
-    /** The application name. */
+    /** 应用名。 */
     private String app = "";
-    /** The type of the application. */
+    /** 应用类型。 */
     private Integer appType = 0;
-    /** The hostname of the machine. */
+    /** 机器主机名。 */
     private String hostname = "";
-    /** The IP address of the machine. */
+    /** 机器 IP 地址。 */
     private String ip = "";
-    /** The command port of the machine. */
+    /** 机器命令端口。 */
     private Integer port = -1;
-    /** The timestamp of the last heartbeat. */
+    /** 最近一次心跳时间戳。 */
     private long lastHeartbeat;
-    /** The version carried by the last heartbeat message. */
+    /** 最近一次心跳消息携带的版本号。 */
     private long heartbeatVersion;
 
-    /** The version of the Sentinel client (since 0.2.0). */
+    /** Sentinel 客户端版本（0.2.0 起支持）。 */
     private String version;
 
-    /** Creates a machine info with the given app name, ip and port. */
+    /** 根据应用名、IP、端口构建机器信息。 */
     public static MachineInfo of(String app, String ip, Integer port) {
         MachineInfo machineInfo = new MachineInfo();
         machineInfo.setApp(app);
@@ -54,99 +54,99 @@ public class MachineInfo implements Comparable<MachineInfo> {
         return machineInfo;
     }
 
-    /** Gets the machine address in "ip:port" form. */
+    /** 获取 "ip:port" 形式的机器地址。 */
     public String toHostPort() {
         return ip + ":" + port;
     }
 
-    /** Gets the command port of the machine. */
+    /** 获取机器命令端口。 */
     public Integer getPort() {
         return port;
     }
 
-    /** Sets the command port of the machine. */
+    /** 设置机器命令端口。 */
     public void setPort(Integer port) {
         this.port = port;
     }
 
-    /** Gets the app name. */
+    /** 获取应用名。 */
     public String getApp() {
         return app;
     }
 
-    /** Sets the app name. */
+    /** 设置应用名。 */
     public void setApp(String app) {
         this.app = app;
     }
 
-    /** Gets the app type. */
+    /** 获取应用类型。 */
     public Integer getAppType() {
         return appType;
     }
 
-    /** Sets the app type. */
+    /** 设置应用类型。 */
     public void setAppType(Integer appType) {
         this.appType = appType;
     }
 
-    /** Gets the hostname. */
+    /** 获取机器主机名。 */
     public String getHostname() {
         return hostname;
     }
 
-    /** Sets the hostname. */
+    /** 设置机器主机名。 */
     public void setHostname(String hostname) {
         this.hostname = hostname;
     }
 
-    /** Gets the ip address. */
+    /** 获取机器 IP 地址。 */
     public String getIp() {
         return ip;
     }
 
-    /** Sets the ip address. */
+    /** 设置机器 IP 地址。 */
     public void setIp(String ip) {
         this.ip = ip;
     }
 
-    /** Gets the heartbeat version. */
+    /** 获取心跳版本号。 */
     public long getHeartbeatVersion() {
         return heartbeatVersion;
     }
     
-    /** Sets the heartbeat version. */
+    /** 设置心跳版本号。 */
     public void setHeartbeatVersion(long heartbeatVersion) {
         this.heartbeatVersion = heartbeatVersion;
     }
 
-    /** Gets the version of the Sentinel client. */
+    /** 获取 Sentinel 客户端版本。 */
     public String getVersion() {
         return version;
     }
 
-    /** Sets the version of the Sentinel client and returns this. */
+    /** 设置 Sentinel 客户端版本并返回当前对象。 */
     public MachineInfo setVersion(String version) {
         this.version = version;
         return this;
     }
     
-    /** Whether the machine is healthy (the last heartbeat is within the unhealthy threshold). */
+    /** 机器是否健康（最近一次心跳距当前时间小于不健康阈值）。 */
     public boolean isHealthy() {
         long delta = System.currentTimeMillis() - lastHeartbeat;
         return delta < DashboardConfig.getUnhealthyMachineMillis();
     }
 
-    /** Gets the timestamp of the last heartbeat. */
+    /** 获取最近一次心跳时间戳。 */
     public long getLastHeartbeat() {
         return lastHeartbeat;
     }
     
-    /** Sets the timestamp of the last heartbeat. */
+    /** 设置最近一次心跳时间戳。 */
     public void setLastHeartbeat(long lastHeartbeat) {
         this.lastHeartbeat = lastHeartbeat;
     }
 
-    /** Compares by port, then app name (case-insensitive), then ip (case-insensitive). */
+    /** 先按端口比较，再按应用名（忽略大小写）、IP（忽略大小写）比较。 */
     @Override
     public int compareTo(MachineInfo o) {
         if (this == o) {
@@ -161,7 +161,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
         return ip.compareToIgnoreCase(o.getIp());
     }
 
-    /** Gets the string representation containing all fields of the machine. */
+    /** 返回包含机器全部字段的字符串表示。 */
     @Override
     public String toString() {
         return new StringBuilder("MachineInfo {")
@@ -177,7 +177,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
             .append('}').toString();
     }
 
-    /** Whether the two machines have the same app, ip and port. */
+    /** 两台机器的 app、ip、port 均相同则视为相等。 */
     @Override
     public boolean equals(Object o) {
         if (this == o) { return true; }
@@ -188,16 +188,16 @@ public class MachineInfo implements Comparable<MachineInfo> {
             Objects.equals(port, that.port);
     }
 
-    /** Gets the hash code computed from app, ip and port. */
+    /** 由 app、ip、port 计算哈希值。 */
     @Override
     public int hashCode() {
         return Objects.hash(app, ip, port);
     }
 
     /**
-     * Information for log.
+     * 用于日志输出的机器信息。
      *
-     * @return the compact log string of the machine ("app|ip|port|version")
+     * @return "app|ip|port|version" 格式的紧凑日志字符串
      */
     public String toLogString() {
         return app + "|" + ip + "|" + port + "|" + version;

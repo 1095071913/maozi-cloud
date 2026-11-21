@@ -18,7 +18,7 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster;
 import java.util.Set;
 
 /**
- * Result of a cluster assignment operation, carrying the failed server/client sets and the total machine count.
+ * 集群分配操作结果，携带分配失败的 server/client 集合及参与分配的机器总数。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -26,48 +26,48 @@ import java.util.Set;
  */
 public class ClusterAppAssignResultVO {
 
-    /** The set of servers that failed in the assignment. */
+    /** 分配失败的 server 集合。 */
     private Set<String> failedServerSet;
-    /** The set of clients that failed in the assignment. */
+    /** 分配失败的 client 集合。 */
     private Set<String> failedClientSet;
 
-    /** The total count of machines in the assignment. */
+    /** 参与分配的机器总数。 */
     private Integer totalCount;
 
-    /** Gets the set of servers that failed in the assignment. */
+    /** 获取分配失败的 server 集合。 */
     public Set<String> getFailedServerSet() {
         return failedServerSet;
     }
 
-    /** Sets the set of failed servers and returns this. */
+    /** 设置分配失败的 server 集合并返回当前对象。 */
     public ClusterAppAssignResultVO setFailedServerSet(Set<String> failedServerSet) {
         this.failedServerSet = failedServerSet;
         return this;
     }
 
-    /** Gets the set of clients that failed in the assignment. */
+    /** 获取分配失败的 client 集合。 */
     public Set<String> getFailedClientSet() {
         return failedClientSet;
     }
 
-    /** Sets the set of failed clients and returns this. */
+    /** 设置分配失败的 client 集合并返回当前对象。 */
     public ClusterAppAssignResultVO setFailedClientSet(Set<String> failedClientSet) {
         this.failedClientSet = failedClientSet;
         return this;
     }
 
-    /** Gets the total count of machines in the assignment. */
+    /** 获取参与分配的机器总数。 */
     public Integer getTotalCount() {
         return totalCount;
     }
 
-    /** Sets the total count of machines and returns this. */
+    /** 设置参与分配的机器总数并返回当前对象。 */
     public ClusterAppAssignResultVO setTotalCount(Integer totalCount) {
         this.totalCount = totalCount;
         return this;
     }
 
-    /** Gets the string representation of this VO. */
+    /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
         return "ClusterAppAssignResultVO{" +

@@ -38,9 +38,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Web MVC configuration: registers the authorization interceptor, the login
- * authentication filter and the Sentinel {@link CommonFilter}, and maps static
- * resources and the index view.
+ * Web MVC 配置：注册授权拦截器、登录认证过滤器和 Sentinel {@link CommonFilter}，
+ * 并映射静态资源与首页视图。
  *
  * @author leyou
  * @date 2026/11/22
@@ -48,48 +47,50 @@ import java.util.Set;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    /** Logger of this configuration. */
+    /** 日志记录器。 */
     private final Logger logger = LoggerFactory.getLogger(WebConfig.class);
 
-    /** The login authentication filter to register. */
+    /** 待注册的登录认证过滤器。 */
     private final LoginAuthenticationFilter loginAuthenticationFilter;
 
-    /** The authorization interceptor to register. */
+    /** 待注册的授权拦截器。 */
     private final AuthorizationInterceptor authorizationInterceptor;
 
-    /** Injects the login authentication filter and the authorization interceptor. */
+    /** 注入登录认证过滤器与授权拦截器。 */
     public WebConfig(LoginAuthenticationFilter loginAuthenticationFilter,
                      AuthorizationInterceptor authorizationInterceptor) {
         this.loginAuthenticationFilter = loginAuthenticationFilter;
         this.authorizationInterceptor = authorizationInterceptor;
     }
 
-    /** Registers the authorization interceptor for all paths. */
+    /** 为所有路径注册授权拦截器。 */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authorizationInterceptor).addPathPatterns("/**");
     }
 
-    /** Serves static resources under classpath:/resources/, forcing revalidation (no-cache) on each request. */
+    /** 映射 classpath:/resources/ 下的静态资源，每次请求强制重新校验新鲜度（no-cache）。 */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // The frontend is a lazy-loaded SPA (views and controller scripts are fetched via XHR):
-        // if cached by the browser, pages would keep using the old JS/HTML after a redeploy,
-        // so caching is disabled and freshness is revalidated via 304 negotiation on each request.
+        // 前端为懒加载 SPA（视图与控制器脚本通过 XHR 拉取）：
+        // 若被浏览器缓存，重新发布后页面会继续使用旧的 JS/HTML，
+        // 因此禁用缓存并通过每次请求的 304 协商重新校验新鲜度。
         registry.addResourceHandler("/**")
             .addResourceLocations("classpath:/resources/")
             .setCacheControl(CacheControl.noCache());
     }
 
-    /** Maps the root path "/" to forward to /index.htm. */
+    /** 将根路径 "/" 转发到 /index.htm。 */
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         registry.addViewController("/").setViewName("forward:/index.htm");
     }
 
     /**
-     * Registers the Sentinel {@link CommonFilter} for all urls, the simplest way to
-     * apply Sentinel to a web application.
+     * 为全部 URL 注册 Sentinel {@link CommonFilter}，这是将 Sentinel
+     * 接入 Web 应用的最简方式。
+     *
+     * @return 过滤器注册 Bean
      */
     @Bean
     public FilterRegistrationBean sentinelFilterRegistration() {
@@ -98,8 +99,8 @@ public class WebConfig implements WebMvcConfigurer {
         registration.addUrlPatterns("/*");
         registration.setName("sentinelFilter");
         registration.setOrder(1);
-        // If this is enabled, the entrance of all Web URL resources will be unified as a single context name.
-        // In most scenarios that's enough, and it could reduce the memory footprint.
+        // 开启后所有 Web URL 资源的入口将统一为同一个 context 名，
+        // 绝大多数场景已足够，且可降低内存占用。
         registration.addInitParameter(CommonFilter.WEB_CONTEXT_UNIFY, "true");
 
         logger.info("Sentinel servlet CommonFilter registered");
@@ -107,7 +108,7 @@ public class WebConfig implements WebMvcConfigurer {
         return registration;
     }
 
-    /** Registers a UrlCleaner that excludes common static resource urls (by suffix) from Sentinel web statistics. */
+    /** 注册 UrlCleaner，按后缀将常见静态资源 URL 排除出 Sentinel Web 统计。 */
     @PostConstruct
     public void doInit() {
         Set<String> suffixSet = new HashSet<>(Arrays.asList(".js", ".css", ".html", ".ico", ".txt",
@@ -123,7 +124,7 @@ public class WebConfig implements WebMvcConfigurer {
         });
     }
 
-    /** Registers the login authentication filter for all urls at order 0, ahead of the Sentinel CommonFilter. */
+    /** 为全部 URL 注册登录认证过滤器，order 为 0，先于 Sentinel CommonFilter 执行。 */
     @Bean
     public FilterRegistrationBean authenticationFilterRegistration() {
         FilterRegistrationBean<Filter> registration = new FilterRegistrationBean<>();

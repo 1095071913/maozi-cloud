@@ -63,14 +63,11 @@ public class SwaggerGlobalFilter implements GlobalFilter, Ordered {
     private static final Pattern PATH_SPLIT_PATTERN = Pattern.compile(SymbolConstant.SLASH);
 
     /**
-     * 过滤器核心逻辑。
+     * 过滤器核心逻辑
      * <p>
-     * 仅对路径以 /v3/api-docs 结尾的请求进行处理，其他请求直接放行。
-     * 处理流程：
-     * 1. 从请求路径中提取微服务标识（basePath）；
-     * 2. 创建响应装饰器，拦截响应体；
-     * 3. 解析原始 OpenAPI JSON，改写 host、basePath 和 paths；
-     * 4. 返回改写后的 JSON 响应。
+     * 仅处理路径以 /v3/api-docs 结尾的请求，其他请求直接放行：从请求路径提取
+     * 微服务标识（basePath），创建响应装饰器拦截响应体，解析原始 OpenAPI JSON
+     * 并改写 host、basePath 与 paths 后返回。
      * </p>
      *
      * @param exchange 服务端 Web 交换上下文

@@ -18,7 +18,7 @@ package com.alibaba.csp.sentinel.dashboard.auth;
 import java.io.Serializable;
 
 /**
- * Interface for authentication and authorization.
+ * 认证与授权服务接口。
  *
  * @author Carpenter Lee
  * @date 2026/11/22
@@ -27,84 +27,82 @@ import java.io.Serializable;
 public interface AuthService<R> {
 
     /**
-     * Get the authenticated user of the given request.
+     * 获取指定请求对应的已认证用户。
      *
-     * @param request the request that carries the user information
-     * @return the auth user representing the current user, or null if the user is illegal
+     * @param request 携带用户信息的请求
+     * @return 当前用户对应的认证用户对象，用户非法时返回 null
      */
     AuthUser getAuthUser(R request);
 
     /**
-     * Privilege type.
+     * 权限类型。
      */
     enum PrivilegeType {
         /**
-         * Read rule
+         * 查看规则
          */
         READ_RULE,
         /**
-         * Create or modify rule
+         * 新增或修改规则
          */
         WRITE_RULE,
         /**
-         * Delete rule
+         * 删除规则
          */
         DELETE_RULE,
         /**
-         * Read metrics
+         * 查看监控数据
          */
         READ_METRIC,
         /**
-         * Add machine
+         * 新增机器
          */
         ADD_MACHINE,
         /**
-         * All privileges above are granted.
+         * 拥有以上全部权限
          */
         ALL
     }
 
     /**
-     * Represents the current user. Serializable so that implementations can be
-     * stored in the HTTP session, which may be persisted by the servlet container.
+     * 当前用户抽象。实现 Serializable 以便存入可能被容器持久化的 HTTP session。
      */
     interface AuthUser extends Serializable {
 
         /**
-         * Check whether the current user has the given privilege on the target, which may
-         * be an app name, an ip address or other destination.
+         * 判断当前用户是否对目标（应用名、IP 地址等）拥有指定权限。
          *
-         * @param target        the target to check
-         * @param privilegeType the privilege type to check
-         * @return true if the user has the privilege on the target, false otherwise
+         * @param target        授权目标
+         * @param privilegeType 权限类型
+         * @return 拥有权限返回 true，否则返回 false
          */
         boolean authTarget(String target, PrivilegeType privilegeType);
 
         /**
-         * Check whether current user is a super-user.
+         * 判断当前用户是否为超级用户。
          *
-         * @return true if the current user is a super user, false otherwise
+         * @return 是超级用户返回 true，否则返回 false
          */
         boolean isSuperUser();
 
         /**
-         * Get current user's nick name.
+         * 获取当前用户昵称。
          *
-         * @return current user's nick name.
+         * @return 当前用户昵称
          */
         String getNickName();
 
         /**
-         * Get current user's login name.
+         * 获取当前用户登录名。
          *
-         * @return current user's login name.
+         * @return 当前用户登录名
          */
         String getLoginName();
 
         /**
-         * Get current user's ID.
+         * 获取当前用户 ID。
          *
-         * @return ID of current user
+         * @return 当前用户 ID
          */
         String getId();
     }

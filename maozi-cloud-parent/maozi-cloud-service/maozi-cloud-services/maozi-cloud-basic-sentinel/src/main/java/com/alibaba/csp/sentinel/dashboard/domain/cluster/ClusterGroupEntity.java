@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.domain.cluster;
 
 /**
- * Entity of one cluster group: a token server and the clients bound to it.
+ * 集群分组实体：一个 token server 及绑定到它的客户端。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -24,7 +24,7 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster;
  */
 public class ClusterGroupEntity extends BaseClusterServerMachine {
 
-    /** Gets the string representation of this entity. */
+    /** 返回该实体的字符串表示。 */
     @Override
     public String toString() {
         return "ClusterGroupEntity{" +

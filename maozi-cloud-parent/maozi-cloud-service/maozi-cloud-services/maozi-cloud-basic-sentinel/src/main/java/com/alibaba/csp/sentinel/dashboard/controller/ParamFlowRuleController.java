@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Controller for hot parameter (hotspot) flow control rules.
+ * 热点参数限流规则控制器。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -56,19 +56,20 @@ import java.util.Optional;
 @RequestMapping(value = "/paramFlow")
 public class ParamFlowRuleController {
 
-    /** The logger of this controller. */
+    /** 日志记录器。 */
     private final Logger logger = LoggerFactory.getLogger(ParamFlowRuleController.class);
 
-    /** The app management service used to validate machine-to-app relationship. */
+    /** 用于校验机器与应用归属关系的应用管理服务。 */
     private final AppManagement appManagement;
-    /** The repository that stores parameter flow rule entities in memory. */
+    /** 存储热点参数规则实体的内存仓储。 */
     private final RuleRepository<ParamFlowRuleEntity, Long> repository;
 
-    /** The Nacos provider that pulls parameter flow rules for a given app. */
+    /** 从 Nacos 拉取指定应用热点参数规则的提供者。 */
     private final DynamicRuleProvider<List<ParamFlowRuleEntity>> ruleProvider;
-    /** The Nacos publisher that pushes parameter flow rules to a given app. */
+    /** 向指定应用推送热点参数规则的发布者。 */
     private final DynamicRulePublisher<List<ParamFlowRuleEntity>> rulePublisher;
 
+    /** 注入应用管理、规则仓储、规则提供者与发布者。 */
     public ParamFlowRuleController(AppManagement appManagement,
                                    RuleRepository<ParamFlowRuleEntity, Long> repository,
                                    @Qualifier("paramFlowRuleNacosProvider")
@@ -82,8 +83,8 @@ public class ParamFlowRuleController {
     }
 
     /**
-     * Whether the machine's client version supports parameter flow control (>= 0.2.0);
-     * returns true when the machine info is unavailable or an error occurs.
+     * 判断机器的客户端版本是否支持热点参数限流（>= 0.2.0）；
+     * 机器信息不可用或出错时返回 true。
      */
     private boolean checkIfSupported(String app, String ip, int port) {
         try {
@@ -92,13 +93,13 @@ public class ParamFlowRuleController {
                 .flatMap(m -> VersionUtils.parseVersion(m.getVersion())
                     .map(v -> v.greaterOrEqual(version020)))
                 .orElse(true);
-            // If error occurred or cannot retrieve machine info, return true.
+            // 出错或无法获取机器信息时返回 true
         } catch (Exception ex) {
             return true;
         }
     }
 
-    /** Fetches the app's parameter flow rules from Nacos, stamps machine info, persists them and returns them. */
+    /** 从 Nacos 拉取应用的热点参数规则，补充机器信息后持久化并返回。 */
     @GetMapping("/rules")
     @AuthAction(PrivilegeType.READ_RULE)
     public Result<List<ParamFlowRuleEntity>> apiQueryAllRulesForMachine(@RequestParam String app,
@@ -134,7 +135,7 @@ public class ParamFlowRuleController {
         }
     }
 
-    /** Adds a new rule after validation and publishes the app's rules to Nacos. */
+    /** 校验通过后新增规则，并将应用的规则推送至 Nacos。 */
     @PostMapping("/rule")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
     public Result<ParamFlowRuleEntity> apiAddParamFlowRule(@RequestBody ParamFlowRuleEntity entity) {
@@ -159,8 +160,8 @@ public class ParamFlowRuleController {
     }
 
     /**
-     * Validates the base machine fields via the shared validator, then the param-flow-rule specific fields; returns
-     * the first error or null.
+     * 先通过公共校验器校验基础机器字段，再校验热点参数规则特有字段；
+     * 返回首个错误结果，校验通过返回 null。
      */
     private <R> Result<R> checkEntityInternal(ParamFlowRuleEntity entity) {
         if (entity == null) {
@@ -182,7 +183,6 @@ public class ParamFlowRuleController {
         if (entity.getGrade() != RuleConstant.FLOW_GRADE_QPS) {
             return Result.ofFail(Result.CODE_ERROR, "Unknown mode (blockGrade) for parameter flow control");
         }
-        // Cache the param index to avoid repeated calls within the same method.
         Integer paramIdx = entity.getParamIdx();
         if (paramIdx == null || paramIdx < 0) {
             return Result.ofFail(Result.CODE_ERROR, "paramIdx should be valid");
@@ -196,7 +196,7 @@ public class ParamFlowRuleController {
         return null;
     }
 
-    /** Updates the rule of the given id (gmtCreate inherited from the old entity) and publishes the app's rules. */
+    /** 更新指定 id 的规则（gmtCreate 沿用旧实体），并推送应用的规则。 */
     @PutMapping("/rule/{id}")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
     public Result<ParamFlowRuleEntity> apiUpdateParamFlowRule(@PathVariable("id") Long id,
@@ -230,7 +230,7 @@ public class ParamFlowRuleController {
         }
     }
 
-    /** Deletes the rule of the given id and publishes the app's rules; an unknown id returns success with null data. */
+    /** 删除指定 id 的规则并推送应用的规则；id 不存在时直接成功返回（数据为 null）。 */
     @DeleteMapping("/rule/{id}")
     @AuthAction(PrivilegeType.DELETE_RULE)
     public Result<Long> apiDeleteRule(@PathVariable("id") Long id) {
@@ -252,21 +252,21 @@ public class ParamFlowRuleController {
         }
     }
 
-    /** Publishes all local rules of the app to Nacos. */
+    /** 将应用在本地的全部规则推送至 Nacos。 */
     private void publishRules(String app) throws Exception {
         List<ParamFlowRuleEntity> rules = repository.findAllByApp(app);
         rulePublisher.publish(app, rules);
     }
 
-    /** Error code returned when the client version does not support parameter flow control. */
+    /** 客户端版本不支持热点参数限流时返回的错误码。 */
     private static final int CODE_UNSUPPORTED_CLIENT = 4041;
 
-    /** Builds the error result returned when the client version does not support parameter flow control. */
+    /** 构造客户端版本不支持热点参数限流时的错误结果。 */
     private <R> Result<R> unsupportedVersion() {
         return Result.ofFail(CODE_UNSUPPORTED_CLIENT,
             "Sentinel client not supported for parameter flow control (unsupported version or dependency absent)");
     }
 
-    /** The minimum Sentinel client version (0.2.x) that supports parameter flow control. */
+    /** 支持热点参数限流的最低 Sentinel 客户端版本（0.2.x）。 */
     private final SentinelVersion version020 = new SentinelVersion().setMinorVersion(2);
 }

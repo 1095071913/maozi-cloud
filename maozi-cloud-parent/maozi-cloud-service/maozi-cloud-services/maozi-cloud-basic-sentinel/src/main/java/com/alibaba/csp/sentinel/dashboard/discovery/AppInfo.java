@@ -26,73 +26,75 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Information of an application, including its name, type and the machines registered to it.
+ * 应用信息，包含应用名、应用类型及注册到该应用的机器集合。
  * @author maozi
  * @date 2026/11/22
  */
 public class AppInfo {
 
-    /** The name of the application. */
+    /** 应用名。 */
     private String app = "";
 
-    /** The type of the application. */
+    /** 应用类型。 */
     private Integer appType = 0;
 
-    /** The machines registered to this application. */
+    /** 注册到该应用的机器集合。 */
     private Set<MachineInfo> machines = ConcurrentHashMap.newKeySet();
 
-    /** Default constructor. */
+    /** 默认构造方法。 */
     public AppInfo() {}
 
-    /** Creates an AppInfo with the given app name. */
+    /** 创建指定应用名的应用信息。 */
     public AppInfo(String app) {
         this.app = app;
     }
 
-    /** Creates an AppInfo with the given app name and app type. */
+    /** 创建指定应用名和应用类型的应用信息。 */
     public AppInfo(String app, Integer appType) {
         this.app = app;
         this.appType = appType;
     }
 
-    /** Gets the name of the application. */
+    /** 获取应用名。 */
     public String getApp() {
         return app;
     }
 
-    /** Sets the name of the application. */
+    /** 设置应用名。 */
     public void setApp(String app) {
         this.app = app;
     }
 
-    /** Gets the type of the application. */
+    /** 获取应用类型。 */
     public Integer getAppType() {
         return appType;
     }
 
-    /** Sets the type of the application. */
+    /** 设置应用类型。 */
     public void setAppType(Integer appType) {
         this.appType = appType;
     }
 
     /**
-     * Gets the current machines.
+     * 获取当前机器集合。
      *
-     * @return a new copy of the current machines.
+     * @return 当前机器集合的副本
      */
     public Set<MachineInfo> getMachines() {
         return new HashSet<>(machines);
     }
 
-    /** Contains the app name and the machine set. */
+    /** 返回包含应用名和机器集合的字符串表示。 */
     @Override
     public String toString() {
         return "AppInfo{" + "app='" + app + ", machines=" + machines + '}';
     }
 
     /**
-     * Adds the machine to this application, removing the existing equal machine
-     * (matched by app, ip and port) first.
+     * 将机器加入本应用，先移除已存在的相同机器（按 app、ip、port 匹配）再添加。
+     *
+     * @param machineInfo 机器信息
+     * @return 添加成功返回 true
      */
     public boolean addMachine(MachineInfo machineInfo) {
         machines.remove(machineInfo);
@@ -100,8 +102,11 @@ public class AppInfo {
     }
 
     /**
-     * Removes the machine with the given ip and port from this application,
-     * returning true only if a matching machine was found and removed.
+     * 移除本应用中指定 ip 和 port 的机器。
+     *
+     * @param ip   机器 IP
+     * @param port 机器端口
+     * @return 找到并移除返回 true，否则返回 false
      */
     public synchronized boolean removeMachine(String ip, int port) {
         Iterator<MachineInfo> it = machines.iterator();
@@ -115,14 +120,25 @@ public class AppInfo {
         return false;
     }
 
-    /** Gets the machine with the given ip and port, if present. */
+    /**
+     * 获取指定 ip 和 port 的机器。
+     *
+     * @param ip   机器 IP
+     * @param port 机器端口
+     * @return 匹配的机器，不存在时返回 Optional.empty()
+     */
     public Optional<MachineInfo> getMachine(String ip, int port) {
         return machines.stream()
             .filter(e -> Objects.equals(e.getIp(), ip) && e.getPort().equals(port))
             .findFirst();
     }
 
-    /** Gets the first machine matching the given ip, if present. */
+    /**
+     * 获取指定 ip 的第一台机器。
+     *
+     * @param ip 机器 IP
+     * @return 匹配的机器，不存在时返回 Optional.empty()
+     */
     public Optional<MachineInfo> getMachine(String ip) {
         return machines.stream()
             .filter(e -> Objects.equals(e.getIp(), ip))
@@ -130,10 +146,9 @@ public class AppInfo {
     }
 
     /**
-     * Checks whether the application still has a heartbeat within the given threshold (ms).
-     * An app with no machine is dead; when the threshold is positive, an app with any
-     * healthy machine is alive, while an app with no healthy machine is alive only if
-     * the latest heartbeat among all machines is within the threshold.
+     * 判断应用在指定心跳超时阈值（毫秒）内是否仍有存活机器。
+     * <p>无机器视为失活；阈值大于 0 时，存在任一健康机器即存活，
+     * 无健康机器时仅当全部机器中最新的心跳距当前时间在阈值内才视为存活。
      */
     private boolean heartbeatJudge(final int threshold) {
         if (machines.isEmpty()) {
@@ -144,7 +159,7 @@ public class AppInfo {
                 .filter(MachineInfo::isHealthy)
                 .count();
             if (healthyCount == 0) {
-                // No healthy machines.
+                // 无健康机器时，退化为按最新心跳时间判断
                 return machines.stream()
                     .max(Comparator.comparingLong(MachineInfo::getLastHeartbeat))
                     .map(e -> System.currentTimeMillis() - e.getLastHeartbeat() < threshold)
@@ -155,18 +170,18 @@ public class AppInfo {
     }
 
     /**
-     * Checks whether current application should be displayed in the sidebar.
+     * 判断当前应用是否在侧边栏展示。
      *
-     * @return true if the application should be displayed in the sidebar, otherwise false
+     * @return 展示返回 true，否则返回 false
      */
     public boolean isShown() {
         return heartbeatJudge(DashboardConfig.getHideAppNoMachineMillis());
     }
 
     /**
-     * Checks whether current application has no healthy machines and should be removed.
+     * 判断当前应用是否已无健康机器、需要移除。
      *
-     * @return true if the application is dead and should be removed, otherwise false
+     * @return 已失活需移除返回 true，否则返回 false
      */
     public boolean isDead() {
         return !heartbeatJudge(DashboardConfig.getRemoveAppNoMachineMillis());

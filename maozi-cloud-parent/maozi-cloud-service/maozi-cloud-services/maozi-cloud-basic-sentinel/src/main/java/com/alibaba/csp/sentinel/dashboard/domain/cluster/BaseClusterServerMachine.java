@@ -19,8 +19,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Base entity of a cluster token server machine, holding the server machine
- * identity (machineId, ip, port), the bound client set and the belongToApp flag.
+ * 集群 token server 机器基础实体，持有 server 机器标识（machineId、ip、port）、
+ * 绑定的客户端集合及是否属于当前应用的标记。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -28,71 +28,71 @@ import java.util.Set;
  */
 public abstract class BaseClusterServerMachine {
 
-    /** The machine id of the token server. */
+    /** token server 的机器 id。 */
     protected String machineId;
 
-    /** The ip of the token server. */
+    /** token server 的 IP。 */
     protected String ip;
 
-    /** The port of the token server. */
+    /** token server 的端口。 */
     protected Integer port;
 
-    /** The set of machine ids of the clients bound to the token server. */
+    /** 绑定到该 token server 的客户端机器 id 集合。 */
     protected Set<String> clientSet = new HashSet<>();
 
-    /** Whether the token server belongs to the current application. */
+    /** token server 是否属于当前应用。 */
     protected Boolean belongToApp;
 
-    /** Gets the machine id of the token server. */
+    /** 获取 token server 的机器 id。 */
     public String getMachineId() {
         return machineId;
     }
 
-    /** Sets the machine id of the token server and return this. */
+    /** 设置 token server 的机器 id 并返回当前对象。 */
     public BaseClusterServerMachine setMachineId(String machineId) {
         this.machineId = machineId;
         return this;
     }
 
-    /** Gets the ip of the token server. */
+    /** 获取 token server 的 IP。 */
     public String getIp() {
         return ip;
     }
 
-    /** Sets the ip of the token server and return this. */
+    /** 设置 token server 的 IP 并返回当前对象。 */
     public BaseClusterServerMachine setIp(String ip) {
         this.ip = ip;
         return this;
     }
 
-    /** Gets the port of the token server. */
+    /** 获取 token server 的端口。 */
     public Integer getPort() {
         return port;
     }
 
-    /** Sets the port of the token server and return this. */
+    /** 设置 token server 的端口并返回当前对象。 */
     public BaseClusterServerMachine setPort(Integer port) {
         this.port = port;
         return this;
     }
 
-    /** Gets the set of machine ids of the bound clients. */
+    /** 获取绑定的客户端机器 id 集合。 */
     public Set<String> getClientSet() {
         return clientSet;
     }
 
-    /** Sets the set of bound clients and return this. */
+    /** 设置绑定的客户端机器 id 集合并返回当前对象。 */
     public BaseClusterServerMachine setClientSet(Set<String> clientSet) {
         this.clientSet = clientSet;
         return this;
     }
 
-    /** Whether the token server belongs to the current application. */
+    /** token server 是否属于当前应用。 */
     public Boolean getBelongToApp() {
         return belongToApp;
     }
 
-    /** Sets whether the token server belongs to the application and returns this. */
+    /** 设置 token server 是否属于当前应用并返回当前对象。 */
     public BaseClusterServerMachine setBelongToApp(Boolean belongToApp) {
         this.belongToApp = belongToApp;
         return this;

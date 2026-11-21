@@ -21,38 +21,38 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * View object of a machine shown on the machines page.
+ * 机器管理页面展示的机器信息视图对象。
  *
  * @author leyou
  * @date 2026/11/22
  */
 public class MachineInfoVO {
 
-    /** The app name of the machine. */
+    /** 机器所属应用名。 */
     private String app;
 
-    /** The hostname of the machine. */
+    /** 机器主机名。 */
     private String hostname;
 
-    /** The IP address of the machine. */
+    /** 机器 IP 地址。 */
     private String ip;
 
-    /** The command port of the machine. */
+    /** 机器命令端口。 */
     private Integer port;
 
-    /** The version of the heartbeat. */
+    /** 心跳版本号。 */
     private Long heartbeatVersion;
 
-    /** The timestamp of the last heartbeat. */
+    /** 最近一次心跳时间戳。 */
     private Long lastHeartbeat;
 
-    /** Whether the machine is healthy. */
+    /** 机器是否健康。 */
     private Boolean healthy;
 
-    /** The version of the Sentinel client of the machine. */
+    /** 机器的 Sentinel 客户端版本。 */
     private String version;
 
-    /** Convert the given machine info list to the corresponding list of VOs. */
+    /** 将机器信息列表转换为对应的 VO 列表。 */
     public static List<MachineInfoVO> fromMachineInfoList(List<MachineInfo> machines) {
         List<MachineInfoVO> list = new ArrayList<>(machines.size());
         for (MachineInfo machine : machines) {
@@ -61,7 +61,7 @@ public class MachineInfoVO {
         return list;
     }
 
-    /** Copy the fields of the given machine info into a new VO. */
+    /** 将指定机器信息的各字段复制到新的 VO。 */
     public static MachineInfoVO fromMachineInfo(MachineInfo machine) {
         MachineInfoVO vo = new MachineInfoVO();
         vo.setApp(machine.getApp());
@@ -75,88 +75,88 @@ public class MachineInfoVO {
         return vo;
     }
 
-    /** Get the app name. */
+    /** 获取应用名。 */
     public String getApp() {
         return app;
     }
 
-    /** Set the app name. */
+    /** 设置应用名。 */
     public void setApp(String app) {
         this.app = app;
     }
 
-    /** Get the hostname. */
+    /** 获取机器主机名。 */
     public String getHostname() {
         return hostname;
     }
 
-    /** Set the hostname. */
+    /** 设置机器主机名。 */
     public void setHostname(String hostname) {
         this.hostname = hostname;
     }
 
-    /** Get the IP address. */
+    /** 获取 IP 地址。 */
     public String getIp() {
         return ip;
     }
 
-    /** Set the IP address. */
+    /** 设置 IP 地址。 */
     public void setIp(String ip) {
         this.ip = ip;
     }
 
-    /** Get the command port. */
+    /** 获取命令端口。 */
     public Integer getPort() {
         return port;
     }
 
-    /** Set the command port. */
+    /** 设置命令端口。 */
     public void setPort(Integer port) {
         this.port = port;
     }
 
-    /** Get the timestamp of the last heartbeat. */
+    /** 获取最近一次心跳时间戳。 */
     public Long getLastHeartbeat() {
         return lastHeartbeat;
     }
 
-    /** Set the timestamp of the last heartbeat. */
+    /** 设置最近一次心跳时间戳。 */
     public void setLastHeartbeat(Long lastHeartbeat) {
         this.lastHeartbeat = lastHeartbeat;
     }
 
-    /** Set the version of the heartbeat. */
+    /** 设置心跳版本号。 */
     public void setHeartbeatVersion(Long heartbeatVersion) {
         this.heartbeatVersion = heartbeatVersion;
     }
 
-    /** Get the version of the heartbeat. */
+    /** 获取心跳版本号。 */
     public Long getHeartbeatVersion() {
         return heartbeatVersion;
     }
 
-    /** Get the version of the Sentinel client. */
+    /** 获取 Sentinel 客户端版本。 */
     public String getVersion() {
         return version;
     }
 
-    /** Set the version of the Sentinel client and return this. */
+    /** 设置 Sentinel 客户端版本并返回当前对象。 */
     public MachineInfoVO setVersion(String version) {
         this.version = version;
         return this;
     }
 
-    /** Whether the machine is healthy. */
+    /** 机器是否健康。 */
     public Boolean getHealthy() {
         return healthy;
     }
 
-    /** Set whether the machine is healthy. */
+    /** 设置机器是否健康。 */
     public void setHealthy(Boolean healthy) {
         this.healthy = healthy;
     }
 
-    /** Return a string representation of this VO. */
+    /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
         return "MachineInfoVO{"

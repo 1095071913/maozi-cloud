@@ -26,8 +26,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Default flow rule publisher that pushes rules to every healthy machine of the
- * application through the Sentinel transport API.
+ * 默认流控规则发布者：通过 Sentinel 传输 API 将规则推送到应用的每台健康机器
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -36,21 +35,20 @@ import java.util.Set;
 @Component("flowRuleDefaultPublisher")
 public class FlowRuleApiPublisher implements DynamicRulePublisher<List<FlowRuleEntity>> {
 
-    /** Client for talking to the Sentinel transport endpoints of machines. */
+    /** 与机器 Sentinel 传输端点通信的客户端 */
     private final SentinelApiClient sentinelApiClient;
-    /** Registry that provides machine information per application. */
+    /** 提供各应用机器信息的注册表 */
     private final AppManagement appManagement;
 
-    /** Creates the publisher with the Sentinel API client and the app registry. */
+    /** 使用 Sentinel API 客户端与应用注册表创建发布者 */
     public FlowRuleApiPublisher(SentinelApiClient sentinelApiClient, AppManagement appManagement) {
         this.sentinelApiClient = sentinelApiClient;
         this.appManagement = appManagement;
     }
 
     /**
-     * Push the given flow rules to every healthy machine of the application through the
-     * Sentinel transport API. Does nothing when the app name is blank or rules is
-     * {@code null}.
+     * 通过 Sentinel 传输 API 将给定流控规则推送到应用的每台健康机器。
+     * 应用名为空或 rules 为 {@code null} 时不做任何操作
      */
     @Override
     public void publish(String app, List<FlowRuleEntity> rules) throws Exception {
@@ -66,7 +64,7 @@ public class FlowRuleApiPublisher implements DynamicRulePublisher<List<FlowRuleE
             if (!machine.isHealthy()) {
                 continue;
             }
-            // TODO parse the results. by maozi 2026/11/21.
+            // TODO maozi 2026/11/21 解析推送结果
             sentinelApiClient.setFlowRuleOfMachine(app, machine.getIp(), machine.getPort(), rules);
         }
     }

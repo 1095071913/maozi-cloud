@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Controller for dashboard login, logout and login-state checking.
+ * 控制台的登录、登出与登录状态校验控制器。
  *
  * @author cdfive
  * @date 2026/11/22
@@ -40,27 +40,28 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping("/auth")
 public class AuthController {
 
-    /** Logger of this controller. */
+    /** 日志记录器。 */
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
 
-    /** Login username from the auth.username property, default "sentinel". */
+    /** 登录用户名，来自 auth.username 属性，默认 "sentinel"。 */
     @Value("${auth.username:sentinel}")
     private String authUsername;
 
-    /** Login password from the auth.password property, default "sentinel". */
+    /** 登录密码，来自 auth.password 属性，默认 "sentinel"。 */
     @Value("${auth.password:sentinel}")
     private String authPassword;
 
-    /** The auth service used to check the login state. */
+    /** 用于校验登录状态的认证服务。 */
     private final AuthService<HttpServletRequest> authService;
 
+    /** 注入认证服务。 */
     public AuthController(AuthService<HttpServletRequest> authService) {
         this.authService = authService;
     }
 
     /**
-     * Logs the user in, preferring sentinel.dashboard.auth.* (env or system property) over the
-     * auth.username/auth.password properties, and stores the auth user in the web session.
+     * 用户登录：sentinel.dashboard.auth.*（环境变量或系统属性）优先于
+     * auth.username/auth.password 属性，登录成功后将认证用户存入 Web session。
      */
     @PostMapping("/login")
     public Result<AuthService.AuthUser> login(HttpServletRequest request, String username, String password) {
@@ -73,9 +74,8 @@ public class AuthController {
         }
 
         /*
-         * If auth.username or auth.password is blank(set in application.properties or VM arguments),
-         * auth will pass, as the front side validate the input which can't be blank,
-         * so user can input any username or password(both are not blank) to login in that case.
+         * 若 auth.username 或 auth.password 为空（在 application.properties 或 VM 参数中设置），
+         * 则校验直接通过：前端已保证输入非空，此时用户可用任意非空的用户名和密码登录。
          */
         if (StringUtils.isNotBlank(authUsername) && !authUsername.equals(username)
                 || StringUtils.isNotBlank(authPassword) && !authPassword.equals(password)) {
@@ -88,14 +88,14 @@ public class AuthController {
         return Result.ofSuccess(authUser);
     }
 
-    /** Invalidates the current session to log out. */
+    /** 使当前 session 失效以完成登出。 */
     @PostMapping(value = "/logout")
     public Result<?> logout(HttpServletRequest request) {
         request.getSession().invalidate();
         return Result.ofSuccess(null);
     }
 
-    /** Returns the logged-in user of the current session, or a fail result if not logged in. */
+    /** 返回当前 session 的已登录用户，未登录时返回失败结果。 */
     @PostMapping(value = "/check")
     public Result<?> check(HttpServletRequest request) {
         AuthService.AuthUser authUser = authService.getAuthUser(request);

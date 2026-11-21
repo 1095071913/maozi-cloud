@@ -20,7 +20,7 @@ import com.alibaba.csp.sentinel.dashboard.domain.cluster.request.ClusterAppAssig
 import java.util.Set;
 
 /**
- * Request for binding a set of clients to one cluster token server.
+ * 将一组客户端绑定到单个集群 token server 的分配请求。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -28,34 +28,34 @@ import java.util.Set;
  */
 public class ClusterAppSingleServerAssignRequest {
 
-    /** The assignment of the single token server with its bound clients. */
+    /** 单个 token server 的分配信息，含其绑定的客户端。 */
     private ClusterAppAssignMap clusterMap;
-    /** The set of machines that remain unassigned to the server. */
+    /** 未分配到该 server 的机器 id 集合。 */
     private Set<String> remainingList;
 
-    /** Gets the assignment of the single token server. */
+    /** 获取单个 token server 的分配信息。 */
     public ClusterAppAssignMap getClusterMap() {
         return clusterMap;
     }
 
-    /** Sets the assignment of the token server and returns this. */
+    /** 设置 token server 的分配信息并返回当前对象。 */
     public ClusterAppSingleServerAssignRequest setClusterMap(ClusterAppAssignMap clusterMap) {
         this.clusterMap = clusterMap;
         return this;
     }
 
-    /** Gets the set of machines that remain unassigned. */
+    /** 获取仍未分配的机器 id 集合。 */
     public Set<String> getRemainingList() {
         return remainingList;
     }
 
-    /** Sets the set of unassigned machines and returns this. */
+    /** 设置仍未分配的机器 id 集合并返回当前对象。 */
     public ClusterAppSingleServerAssignRequest setRemainingList(Set<String> remainingList) {
         this.remainingList = remainingList;
         return this;
     }
 
-    /** Gets the string representation of this request. */
+    /** 返回该请求的字符串表示。 */
     @Override
     public String toString() {
         return "ClusterAppSingleServerAssignRequest{" +

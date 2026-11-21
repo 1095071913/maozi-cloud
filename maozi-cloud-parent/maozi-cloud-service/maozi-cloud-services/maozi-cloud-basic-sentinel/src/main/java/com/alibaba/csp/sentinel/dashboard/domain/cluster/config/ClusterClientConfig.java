@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.domain.cluster.config;
 
 /**
- * Cluster token client config: the target server address and the request/connect timeouts.
+ * 集群 token client 配置：目标 server 地址及请求、连接超时时间。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -24,61 +24,61 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.config;
  */
 public class ClusterClientConfig {
 
-    /** The host of the token server that the client connects to. */
+    /** 客户端连接的 token server 主机地址。 */
     private String serverHost;
-    /** The port of the token server that the client connects to. */
+    /** 客户端连接的 token server 端口。 */
     private Integer serverPort;
 
-    /** The request timeout of the cluster client. */
+    /** 集群客户端的请求超时时间。 */
     private Integer requestTimeout;
-    /** The connect timeout of the cluster client. */
+    /** 集群客户端的连接超时时间。 */
     private Integer connectTimeout;
 
-    /** Gets the host of the token server that the client connects to. */
+    /** 获取客户端连接的 token server 主机地址。 */
     public String getServerHost() {
         return serverHost;
     }
 
-    /** Sets the host of the token server and returns this. */
+    /** 设置 token server 主机地址并返回当前对象。 */
     public ClusterClientConfig setServerHost(String serverHost) {
         this.serverHost = serverHost;
         return this;
     }
 
-    /** Gets the port of the token server that the client connects to. */
+    /** 获取客户端连接的 token server 端口。 */
     public Integer getServerPort() {
         return serverPort;
     }
 
-    /** Sets the port of the token server and returns this. */
+    /** 设置 token server 端口并返回当前对象。 */
     public ClusterClientConfig setServerPort(Integer serverPort) {
         this.serverPort = serverPort;
         return this;
     }
 
-    /** Gets the request timeout of the cluster client. */
+    /** 获取集群客户端的请求超时时间。 */
     public Integer getRequestTimeout() {
         return requestTimeout;
     }
 
-    /** Sets the request timeout of the cluster client and returns this. */
+    /** 设置集群客户端的请求超时时间并返回当前对象。 */
     public ClusterClientConfig setRequestTimeout(Integer requestTimeout) {
         this.requestTimeout = requestTimeout;
         return this;
     }
 
-    /** Gets the connect timeout of the cluster client. */
+    /** 获取集群客户端的连接超时时间。 */
     public Integer getConnectTimeout() {
         return connectTimeout;
     }
 
-    /** Sets the connect timeout of the cluster client and returns this. */
+    /** 设置集群客户端的连接超时时间并返回当前对象。 */
     public ClusterClientConfig setConnectTimeout(Integer connectTimeout) {
         this.connectTimeout = connectTimeout;
         return this;
     }
 
-    /** Gets the string representation of this config. */
+    /** 返回该配置的字符串表示。 */
     @Override
     public String toString() {
         return "ClusterClientConfig{" +

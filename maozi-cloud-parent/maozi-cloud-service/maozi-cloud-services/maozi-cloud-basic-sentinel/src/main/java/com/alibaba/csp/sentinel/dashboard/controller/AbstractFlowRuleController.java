@@ -28,24 +28,24 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Base class shared by the flow rule controllers (v1 and v2): holds the common
- * repository/provider/publisher wiring and the common query, add, save/publish
- * and delete/publish logic, so subclasses only keep their API-specific behavior.
+ * 流控规则控制器（v1 与 v2）的公共基类：持有仓储/拉取/推送的公共装配，
+ * 并封装查询、新增、保存推送、删除推送的通用逻辑，子类只保留各自的 API 差异。
  * @author maozi
  * @date 2026/11/22
  */
 public abstract class AbstractFlowRuleController {
 
-    /** The logger, named after the concrete controller class. */
+    /** 日志记录器，以具体控制器类命名。 */
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-    /** The in-memory repository that stores flow rule entities. */
+    /** 存储流控规则实体的内存仓储。 */
     protected final AbstractInMemoryRuleRepository<FlowRuleEntity> repository;
-    /** The Nacos provider that pulls flow rules for a given app. */
+    /** 从 Nacos 拉取指定应用流控规则的提供者。 */
     protected final DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider;
-    /** The Nacos publisher that pushes flow rules to a given app. */
+    /** 向指定应用推送流控规则的发布者。 */
     protected final DynamicRulePublisher<List<FlowRuleEntity>> rulePublisher;
 
+    /** 注入流控规则仓储、规则提供者与规则发布者。 */
     protected AbstractFlowRuleController(AbstractInMemoryRuleRepository<FlowRuleEntity> repository,
                                          DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider,
                                          DynamicRulePublisher<List<FlowRuleEntity>> rulePublisher) {
@@ -54,12 +54,22 @@ public abstract class AbstractFlowRuleController {
         this.rulePublisher = rulePublisher;
     }
 
-    /** Validates the given rule entity; returns the first error result or null when valid. */
+    /**
+     * 校验指定规则实体；返回首个错误结果，校验通过返回 null。
+     *
+     * @param entity 待校验的规则实体
+     * @param <R>    结果数据类型
+     * @return 错误结果，校验通过返回 null
+     */
     protected abstract <R> Result<R> checkEntityInternal(FlowRuleEntity entity);
 
     /**
-     * Fetches the app's flow rules from Nacos, applies the given stamper to the fetched
-     * rules, persists them and returns them.
+     * 从 Nacos 拉取应用的流控规则，对拉取结果应用指定的附加处理，
+     * 持久化后返回。
+     *
+     * @param app     应用名
+     * @param stamper 对规则列表的附加处理（如补充时间戳）
+     * @return 拉取并保存后的规则列表结果
      */
     protected Result<List<FlowRuleEntity>> fetchAndSaveRules(String app, Consumer<List<FlowRuleEntity>> stamper) {
         try {
@@ -76,8 +86,10 @@ public abstract class AbstractFlowRuleController {
     }
 
     /**
-     * Adds a new flow rule after validation (id reset so the repository generates one)
-     * and publishes the app's rules.
+     * 校验通过后新增流控规则（重置 id 以便仓储生成），并推送应用的规则。
+     *
+     * @param entity 待新增的规则实体
+     * @return 新增结果
      */
     protected Result<FlowRuleEntity> addFlowRule(FlowRuleEntity entity) {
         Result<FlowRuleEntity> checkResult = checkEntityInternal(entity);
@@ -91,7 +103,12 @@ public abstract class AbstractFlowRuleController {
         return saveAndPublish(entity);
     }
 
-    /** Saves the entity and publishes the app's rules; returns success with the saved entity or a failure result. */
+    /**
+     * 保存实体并推送应用的规则；成功返回保存后的实体，失败返回错误结果。
+     *
+     * @param entity 待保存的规则实体
+     * @return 保存并推送后的结果
+     */
     protected Result<FlowRuleEntity> saveAndPublish(FlowRuleEntity entity) {
         try {
             FlowRuleEntity saved = repository.save(entity);
@@ -106,7 +123,12 @@ public abstract class AbstractFlowRuleController {
         }
     }
 
-    /** Deletes the rule of the given id and publishes the app's rules; an unknown id returns success with null data. */
+    /**
+     * 删除指定 id 的规则并推送应用的规则；id 不存在时直接成功返回（数据为 null）。
+     *
+     * @param id 规则 id
+     * @return 删除结果
+     */
     protected Result<Long> deleteAndPublish(Long id) {
         FlowRuleEntity oldEntity = repository.findById(id);
         if (oldEntity == null) {
@@ -122,7 +144,12 @@ public abstract class AbstractFlowRuleController {
         return Result.ofSuccess(id);
     }
 
-    /** Publishes all local rules of the app to Nacos. */
+    /**
+     * 将应用在本地的全部规则推送至 Nacos。
+     *
+     * @param app 应用名
+     * @throws Exception 推送失败时抛出
+     */
     private void publishRules(String app) throws Exception {
         List<FlowRuleEntity> rules = repository.findAllByApp(app);
         rulePublisher.publish(app, rules);

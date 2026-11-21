@@ -18,7 +18,7 @@ package com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.api;
 import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.BasePatternItemVO;
 
 /**
- * Predicate item (URL match condition) of a gateway API definition, used by add and update requests.
+ * 网关 API 定义的断言项（URL 匹配条件），供新增和更新请求使用。
  *
  * @author cdfive
  * @date 2026/11/22
@@ -26,7 +26,7 @@ import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.BasePatternItemVO;
  */
 public class ApiPredicateItemVO extends BasePatternItemVO {
 
-    /** Return a string representation of this VO. */
+    /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
         return "ApiPredicateItemVO{"

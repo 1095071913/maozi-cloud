@@ -20,7 +20,7 @@ import com.alibaba.csp.sentinel.adapter.gateway.common.rule.GatewayParamFlowItem
 import java.util.Objects;
 
 /**
- * Entity for {@link GatewayParamFlowItem}.
+ * {@link GatewayParamFlowItem} 对应的网关参数限流条目实体。
  *
  * @author cdfive
  * @date 2026/11/22
@@ -28,33 +28,33 @@ import java.util.Objects;
  */
 public class GatewayParamFlowItemEntity extends BasePatternItemEntity {
 
-    /** The strategy of parsing the parameter value from the request. */
+    /** 从请求中解析参数值的策略。 */
     private Integer parseStrategy;
 
-    /** The name of the header or parameter to parse, depending on parseStrategy. */
+    /** 待解析的 Header 或参数名，由 parseStrategy 决定。 */
     private String fieldName;
 
-    /** Gets the strategy of parsing the parameter value from the request. */
+    /** 获取从请求中解析参数值的策略。 */
     public Integer getParseStrategy() {
         return parseStrategy;
     }
 
-    /** Sets the strategy of parsing the parameter value from the request. */
+    /** 设置从请求中解析参数值的策略。 */
     public void setParseStrategy(Integer parseStrategy) {
         this.parseStrategy = parseStrategy;
     }
 
-    /** Gets the name of the header or parameter to parse. */
+    /** 获取待解析的 Header 或参数名。 */
     public String getFieldName() {
         return fieldName;
     }
 
-    /** Sets the name of the header or parameter to parse. */
+    /** 设置待解析的 Header 或参数名。 */
     public void setFieldName(String fieldName) {
         this.fieldName = fieldName;
     }
 
-    /** Whether the given object has the same fields as this item. */
+    /** 判断指定对象是否与本条目全部字段相同。 */
     @Override
     public boolean equals(Object o) {
         if (this == o) { return true; }
@@ -66,13 +66,13 @@ public class GatewayParamFlowItemEntity extends BasePatternItemEntity {
                 Objects.equals(matchStrategy, that.matchStrategy);
     }
 
-    /** Gets the hash code from all fields of this item. */
+    /** 以全部字段计算哈希码。 */
     @Override
     public int hashCode() {
         return Objects.hash(parseStrategy, fieldName, pattern, matchStrategy);
     }
 
-    /** Builds a string with all fields of this item. */
+    /** 拼接全部字段构建字符串。 */
     @Override
     public String toString() {
         return "GatewayParamFlowItemEntity{" +

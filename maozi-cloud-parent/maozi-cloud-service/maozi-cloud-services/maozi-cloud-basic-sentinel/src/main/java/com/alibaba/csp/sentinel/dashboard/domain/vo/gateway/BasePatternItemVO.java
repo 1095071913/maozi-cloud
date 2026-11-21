@@ -16,8 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.domain.vo.gateway;
 
 /**
- * Base value object for gateway items that match by a pattern, holding the common
- * pattern and matchStrategy fields.
+ * 网关中按模式匹配的条目基类，持有公共的 pattern 与 matchStrategy 字段。
  *
  * @author cdfive
  * @date 2026/11/22
@@ -25,36 +24,36 @@ package com.alibaba.csp.sentinel.dashboard.domain.vo.gateway;
  */
 public abstract class BasePatternItemVO {
 
-    /** The pattern for matching. */
+    /** 匹配模式串。 */
     protected String pattern;
 
     /**
-     * The matching strategy. Constants are defined in class SentinelGatewayConstants.
+     * 匹配策略，常量定义在 SentinelGatewayConstants 类中。
      *
      * <ul>
-     *     <li>0(URL_MATCH_STRATEGY_EXACT): exact match mode</li>
-     *     <li>1(URL_MATCH_STRATEGY_PREFIX): prefix match mode</li>
-     *     <li>2(URL_MATCH_STRATEGY_REGEX): regex match mode</li>
+     *     <li>0(URL_MATCH_STRATEGY_EXACT)：精确匹配</li>
+     *     <li>1(URL_MATCH_STRATEGY_PREFIX)：前缀匹配</li>
+     *     <li>2(URL_MATCH_STRATEGY_REGEX)：正则匹配</li>
      * </ul>
      */
     protected Integer matchStrategy;
 
-    /** Returns the pattern for matching. */
+    /** 获取匹配模式串。 */
     public String getPattern() {
         return pattern;
     }
 
-    /** Sets the pattern for matching. */
+    /** 设置匹配模式串。 */
     public void setPattern(String pattern) {
         this.pattern = pattern;
     }
 
-    /** Returns the matching strategy. */
+    /** 获取匹配策略。 */
     public Integer getMatchStrategy() {
         return matchStrategy;
     }
 
-    /** Sets the matching strategy. */
+    /** 设置匹配策略。 */
     public void setMatchStrategy(Integer matchStrategy) {
         this.matchStrategy = matchStrategy;
     }

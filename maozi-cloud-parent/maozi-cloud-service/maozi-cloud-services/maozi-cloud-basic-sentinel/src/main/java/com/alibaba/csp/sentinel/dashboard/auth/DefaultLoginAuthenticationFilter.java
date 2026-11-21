@@ -31,17 +31,17 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * <p>The Servlet filter for authentication.</p>
+ * <p>用于登录认证的 Servlet 过滤器。</p>
  *
- * <p>Note: some urls are excluded as they needn't auth, such as:</p>
+ * <p>注意：部分 URL 无需认证，直接放行，包括：</p>
  * <ul>
- * <li>index url: {@code /}</li>
- * <li>authentication request url: {@code /login}, {@code /logout}</li>
- * <li>machine registry: {@code /registry/machine}</li>
- * <li>static resources</li>
+ * <li>首页地址：{@code /}</li>
+ * <li>认证请求地址：{@code /login}、{@code /logout}</li>
+ * <li>机器注册地址：{@code /registry/machine}</li>
+ * <li>静态资源</li>
  * </ul>
  * <p>
- * The excluded urls and urlSuffixes could be configured in {@code application.properties} file.
+ * 排除的 URL 与后缀均可在 {@code application.properties} 中配置。
  *
  * @author cdfive
  * @date 2026/11/22
@@ -49,38 +49,43 @@ import java.util.List;
  */
 public class DefaultLoginAuthenticationFilter implements LoginAuthenticationFilter {
 
-    /** Matcher used to test servlet paths against the configured exclude-url patterns. */
+    /** 用于匹配 Servlet 路径与排除 URL 模式的 Ant 风格路径匹配器。 */
     private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
 
-    /** Dot prefix prepended to a configured url suffix so the property value needn't include it. */
+    /** URL 后缀的点号前缀，配置值中无需再带点号。 */
     private static final String URL_SUFFIX_DOT = ".";
 
-    /** Url patterns that need no auth, such as /auth/login and /registry/machine. */
+    /** 无需认证的 URL 模式列表，如 /auth/login、/registry/machine。 */
     @Value("#{'${auth.filter.exclude-urls}'.split(',')}")
     private List<String> authFilterExcludeUrls;
 
-    /** Url suffixes that need no auth, such as htm, html and js. */
+    /** 无需认证的 URL 后缀列表，如 htm、html、js。 */
     @Value("#{'${auth.filter.exclude-url-suffixes}'.split(',')}")
     private List<String> authFilterExcludeUrlSuffixes;
 
-    /** The authentication service used to check login requests. */
+    /** 用于校验登录请求的认证服务。 */
     private final AuthService<HttpServletRequest> authService;
 
-    /** Creates the filter with the given authentication service. */
+    /** 使用指定的认证服务构建过滤器。 */
     public DefaultLoginAuthenticationFilter(AuthService<HttpServletRequest> authService) {
         this.authService = authService;
     }
 
-    /** {@inheritDoc} No-op: nothing to initialize. */
+    /** {@inheritDoc} 空实现：无需初始化。 */
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
 
     }
 
     /**
-     * Let requests matching the configured exclude-url patterns or suffixes pass without auth;
-     * for the rest, resolve the user via {@link AuthService} and continue the chain, or reply
-     * with 401 when authentication fails.
+     * 匹配排除 URL 模式或后缀的请求直接放行；其余请求经 {@link AuthService} 认证，
+     * 认证失败时响应 401 状态码。
+     *
+     * @param request  当前请求
+     * @param response 当前响应
+     * @param chain    过滤器链
+     * @throws IOException      IO 异常
+     * @throws ServletException Servlet 异常
      */
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -89,7 +94,7 @@ public class DefaultLoginAuthenticationFilter implements LoginAuthenticationFilt
 
         String servletPath = httpRequest.getServletPath();
 
-        // Exclude the urls which needn't auth
+        // 命中无需认证的 URL 模式时直接放行
         boolean authFilterExcludeMatch = authFilterExcludeUrls.stream()
                 .anyMatch(authFilterExcludeUrl -> PATH_MATCHER.match(authFilterExcludeUrl, servletPath));
         if (authFilterExcludeMatch) {
@@ -97,13 +102,13 @@ public class DefaultLoginAuthenticationFilter implements LoginAuthenticationFilt
             return;
         }
 
-        // Exclude the urls with suffixes which needn't auth
+        // 命中无需认证的 URL 后缀时直接放行
         for (String authFilterExcludeUrlSuffix : authFilterExcludeUrlSuffixes) {
             if (StringUtils.isBlank(authFilterExcludeUrlSuffix)) {
                 continue;
             }
 
-            // Add . for url suffix so that we needn't add . in property file
+            // 自动补全后缀前的点号，配置文件中无需书写
             if (!authFilterExcludeUrlSuffix.startsWith(URL_SUFFIX_DOT)) {
                 authFilterExcludeUrlSuffix = URL_SUFFIX_DOT + authFilterExcludeUrlSuffix;
             }
@@ -118,14 +123,14 @@ public class DefaultLoginAuthenticationFilter implements LoginAuthenticationFilt
 
         HttpServletResponse httpResponse = (HttpServletResponse) response;
         if (authUser == null) {
-            // If auth fail, set response status code to 401
+            // 认证失败，响应 401 状态码
             httpResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
         } else {
             chain.doFilter(request, response);
         }
     }
 
-    /** {@inheritDoc} No-op: no resources to release. */
+    /** {@inheritDoc} 空实现：无需释放资源。 */
     @Override
     public void destroy() {
 

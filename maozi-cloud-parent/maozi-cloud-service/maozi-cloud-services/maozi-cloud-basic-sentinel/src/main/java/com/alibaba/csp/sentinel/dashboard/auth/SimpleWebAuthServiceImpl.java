@@ -19,8 +19,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 /**
- * A simple {@link AuthService} implementation for web requests, which resolves the
- * logged-in user from the HTTP session attribute {@link #WEB_SESSION_KEY}.
+ * 面向 Web 请求的简单 {@link AuthService} 实现，从 HTTP session 属性
+ * {@link #WEB_SESSION_KEY} 中解析已登录用户。
  *
  * @author cdfive
  * @date 2026/11/22
@@ -28,10 +28,10 @@ import javax.servlet.http.HttpSession;
  */
 public class SimpleWebAuthServiceImpl implements AuthService<HttpServletRequest> {
 
-    /** Session attribute key that stores the logged-in Sentinel admin user. */
+    /** 存储已登录 Sentinel 管理员的 session 属性键。 */
     public static final String WEB_SESSION_KEY = "session_sentinel_admin";
 
-    /** Returns the {@link AuthUser} stored in the session, or null if absent or not an AuthUser. */
+    /** {@inheritDoc} 返回 session 中存储的 {@link AuthUser}，不存在或类型不符时返回 null。 */
     @Override
     public AuthUser getAuthUser(HttpServletRequest request) {
         HttpSession session = request.getSession();
@@ -43,45 +43,44 @@ public class SimpleWebAuthServiceImpl implements AuthService<HttpServletRequest>
         return null;
     }
 
-    /** Auth user identified only by username and treated as a super user that passes all checks. */
+    /** 仅以用户名标识的认证用户，视为超级用户，所有权限校验均通过。 */
     public static final class SimpleWebAuthUserImpl implements AuthUser {
 
-        /** Serializable version uid, required by session persistence. */
         private static final long serialVersionUID = 1L;
 
-        /** The username of the logged-in user. */
+        /** 登录用户名。 */
         private String username;
 
-        /** Creates the auth user with the given username. */
+        /** 使用指定用户名构建认证用户。 */
         public SimpleWebAuthUserImpl(String username) {
             this.username = username;
         }
 
-        /** {@inheritDoc} Always returns true. */
+        /** {@inheritDoc} 始终返回 true。 */
         @Override
         public boolean authTarget(String target, PrivilegeType privilegeType) {
             return true;
         }
 
-        /** {@inheritDoc} Always returns true. */
+        /** {@inheritDoc} 始终返回 true。 */
         @Override
         public boolean isSuperUser() {
             return true;
         }
 
-        /** Gets the username as nick name. */
+        /** {@inheritDoc} 返回用户名作为昵称。 */
         @Override
         public String getNickName() {
             return username;
         }
 
-        /** Gets the username as login name. */
+        /** {@inheritDoc} 返回用户名作为登录名。 */
         @Override
         public String getLoginName() {
             return username;
         }
 
-        /** Gets the username as user id. */
+        /** {@inheritDoc} 返回用户名作为用户 ID。 */
         @Override
         public String getId() {
             return username;

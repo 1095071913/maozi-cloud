@@ -19,44 +19,18 @@ import java.util.List;
 /**
  * 请求首段路径裁剪过滤器
  * <p>
- * 聚合服务（maozi-cloud-all-service）将 oauth、system 等多个子模块聚合在同一进程内，
- * 各子模块控制器并不携带模块前缀
- * （声明的路径是 {@code /user/list} 而不是 {@code /system/user/list}）。
- * 外部网关若按 {@code /<module>/<path>} 形式路由进入本服务，则需要在 Spring MVC
- * 控制器匹配前裁剪掉第一段路径，将 {@code /oauth/user/info} 改写为 {@code /user/info}，
- * 否则无法命中控制器。
+ * 聚合服务（maozi-cloud-all-service）内各子模块控制器不携带模块前缀，
+ * 外部网关按 {@code /<module>/<path>} 路由进入时，需将 {@code /oauth/user/info}
+ * 改写为 {@code /user/info} 才能命中控制器。因 {@code HandlerInterceptor}
+ * 在控制器解析后才执行、无法改变匹配路径，故以 Servlet Filter 实现，
+ * 通过 {@link HttpServletRequestWrapper} 重写 URI 相关方法完成路径改写；
+ * 过滤器 order 先于 Spring Security 过滤器链（{@code DEFAULT_FILTER_ORDER - 1}），
+ * 保证安全匹配与 MVC 匹配均使用裁剪后的路径。
+ * 框架端点默认不裁剪（见 {@code DEFAULT_EXCLUDED_PREFIXES} 常量），
+ * 可经 {@code application.path-strip.excluded-prefixes} 覆盖
+ * （{@code /userinfo} 端点不在默认排除列表，依赖时需显式补充）；
+ * 设置 {@code application.path-strip.enabled=false} 可完全关闭裁剪。
  * </p>
- *
- * <p><b>实现方式：</b>因为 Spring MVC 的 {@code HandlerInterceptor} 在控制器已被解析后
- * 才执行，无法改变用于匹配的路径，所以本组件以 Servlet Filter 形式实现，并通过
- * {@link HttpServletRequestWrapper} 重写 {@code getRequestURI()}、{@code getServletPath()}
- * 与 {@code getRequestURL()}，使 Spring 6 的 {@code ServletRequestPathUtils.parseAndCache}
- * 解析到裁剪后的路径，再由 {@code RequestMappingHandlerMapping} 用新路径匹配控制器。</p>
- *
- * <p><b>执行顺序：</b>过滤器 order 设为 {@code SecurityProperties.DEFAULT_FILTER_ORDER - 1}（-101），
- * 早于 Spring Security 过滤器链（{@code SecurityProperties.DEFAULT_FILTER_ORDER = -100}），确保：
- * <ul>
- *   <li>带模块前缀的请求（如 {@code /oauth/oauth2/token}、{@code /oauth/user/info}）
- *       在进入安全过滤器链之前被裁剪掉首段模块前缀，
- *       使 Spring Security 的授权服务器过滤器链能正确匹配 {@code /oauth2/token}
- *       等框架端点，模块控制器的安全校验与 MVC 匹配也能使用裁剪后的路径；</li>
- *   <li>OAuth2/OIDC 框架端点（{@code /oauth2}、{@code /.well-known}）及
- *       Spring Boot 框架端点（{@code /actuator}、{@code /webjars} 等）通过排除列表保留原始路径，
- *       安全白名单匹配仍基于这些原始路径。</li>
- * </ul>
- * </p>
- *
- * <p><b>路径排除：</b>默认对以下框架端点不做裁剪：
- * Spring Boot 框架端点（{@code /actuator}、{@code /webjars}、{@code /v3}、{@code /application}、
- * {@code /error}、{@code /favicon.ico}），以及 OAuth2/OIDC 框架端点（{@code /oauth2}、
- * {@code /.well-known}），避免破坏 Actuator 监控、Swagger 静态资源、OpenAPI 文档、
- * OAuth2 授权服务器端点等。可通过配置
- * {@code application.path-strip.excluded-prefixes} 覆盖默认排除列表；
- * 如需完全关闭裁剪，可设置 {@code application.path-strip.enabled=false}。</p>
- *
- * <p><b>注：</b>{@code /userinfo} 端点（OIDC UserInfo Endpoint）当前并未包含在
- * 默认排除列表中，若依赖该端点请通过
- * {@code application.path-strip.excluded-prefixes} 显式补充。</p>
  *
  * @author maozi
  * @date 2026/11/08

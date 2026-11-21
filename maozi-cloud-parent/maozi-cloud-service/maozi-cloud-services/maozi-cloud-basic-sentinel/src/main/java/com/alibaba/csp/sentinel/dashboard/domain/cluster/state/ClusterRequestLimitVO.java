@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.domain.cluster.state;
 
 /**
- * Request limit stats of one namespace on a cluster token server.
+ * 集群 token server 上单个 namespace 的请求限流统计。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -24,49 +24,49 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.state;
  */
 public class ClusterRequestLimitVO {
 
-    /** The namespace of the cluster request limit. */
+    /** 限流统计所属 namespace。 */
     private String namespace;
 
-    /** The current QPS of cluster requests in the namespace. */
+    /** 该 namespace 集群请求的当前 QPS。 */
     private Double currentQps;
 
-    /** The max allowed QPS of cluster requests in the namespace. */
+    /** 该 namespace 集群请求的最大允许 QPS。 */
     private Double maxAllowedQps;
 
-    /** Get the namespace. */
+    /** 获取 namespace。 */
     public String getNamespace() {
         return namespace;
     }
 
-    /** Set the namespace and return this. */
+    /** 设置 namespace 并返回当前对象。 */
     public ClusterRequestLimitVO setNamespace(String namespace) {
         this.namespace = namespace;
         return this;
     }
 
-    /** Get the current QPS. */
+    /** 获取当前 QPS。 */
     public Double getCurrentQps() {
         return currentQps;
     }
 
-    /** Set the current QPS and return this. */
+    /** 设置当前 QPS 并返回当前对象。 */
     public ClusterRequestLimitVO setCurrentQps(Double currentQps) {
         this.currentQps = currentQps;
         return this;
     }
 
-    /** Get the max allowed QPS. */
+    /** 获取最大允许 QPS。 */
     public Double getMaxAllowedQps() {
         return maxAllowedQps;
     }
 
-    /** Set the max allowed QPS and return this. */
+    /** 设置最大允许 QPS 并返回当前对象。 */
     public ClusterRequestLimitVO setMaxAllowedQps(Double maxAllowedQps) {
         this.maxAllowedQps = maxAllowedQps;
         return this;
     }
 
-    /** Return a string representation of this VO. */
+    /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
         return "ClusterRequestLimitVO{" +

@@ -23,19 +23,20 @@ import com.alibaba.csp.sentinel.slots.block.RuleConstant;
 import com.alibaba.csp.sentinel.util.StringUtil;
 
 /**
- * Shared validation helpers for rule entities, extracted from the rule controllers'
- * {@code checkEntityInternal} methods so the common checks are written only once.
+ * 规则实体的公共校验工具类，从各规则控制器的 {@code checkEntityInternal}
+ * 方法中抽取，使公共校验只编写一次。
  * @author maozi
  * @date 2026/11/22
  */
 public final class RuleEntityValidator {
 
+    /** 工具类禁止实例化。 */
     private RuleEntityValidator() {
     }
 
     /**
-     * Validates the base machine fields (app, ip, port) shared by all rule entities;
-     * returns the first error result, or null when the fields are valid.
+     * 校验全部规则实体共有的基础机器字段（app、ip、port）；
+     * 返回首个错误结果，校验通过返回 null。
      */
     public static <R> Result<R> checkBaseFields(RuleEntity entity) {
         if (StringUtil.isBlank(entity.getApp())) {
@@ -44,7 +45,6 @@ public final class RuleEntityValidator {
         if (StringUtil.isBlank(entity.getIp())) {
             return Result.ofFail(Result.CODE_ERROR, "ip can't be null or empty");
         }
-        // Cache the port to avoid repeated calls within the same method.
         Integer port = entity.getPort();
         if (port == null || port <= 0) {
             return Result.ofFail(Result.CODE_ERROR, "port can't be null");
@@ -53,8 +53,8 @@ public final class RuleEntityValidator {
     }
 
     /**
-     * Validates the base machine fields (app, ip, port) and additionally that the ip
-     * belongs to the given app; returns the first error result, or null when valid.
+     * 在 {@link #checkBaseFields(RuleEntity)} 基础上追加校验 ip 是否属于指定应用；
+     * 返回首个错误结果，校验通过返回 null。
      */
     public static <R> Result<R> checkBaseFields(RuleEntity entity, AppManagement appManagement) {
         Result<R> result = checkBaseFields(entity);
@@ -68,9 +68,9 @@ public final class RuleEntityValidator {
     }
 
     /**
-     * Validates the flow-rule specific fields shared by the v1 and v2 flow controllers
-     * (limitApp, resource, grade, count, strategy/refResource, controlBehavior and the
-     * cluster config); returns the first error result, or null when valid.
+     * 校验 v1 与 v2 流控控制器共有的流控规则特有字段（limitApp、resource、grade、
+     * count、strategy/refResource、controlBehavior 及集群配置）；
+     * 返回首个错误结果，校验通过返回 null。
      */
     public static <R> Result<R> checkFlowRuleFields(FlowRuleEntity entity) {
         if (StringUtil.isBlank(entity.getLimitApp())) {
@@ -79,7 +79,6 @@ public final class RuleEntityValidator {
         if (StringUtil.isBlank(entity.getResource())) {
             return Result.ofFail(Result.CODE_ERROR, "resource can't be null or empty");
         }
-        // Cache the field values to avoid repeated calls within the same method.
         Integer grade = entity.getGrade();
         if (grade == null) {
             return Result.ofFail(Result.CODE_ERROR, "grade can't be null");

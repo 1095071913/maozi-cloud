@@ -18,26 +18,32 @@ package com.alibaba.csp.sentinel.dashboard.datasource.entity.rule;
 import com.alibaba.csp.sentinel.slots.system.SystemRule;
 
 /**
- * Entity for a system adaptive protection rule.
+ * 系统自适应保护规则实体。
  *
  * @author leyou
  * @date 2026/11/22
  */
 public class SystemRuleEntity extends BaseRuleEntity {
 
-    /** The highest system load threshold. */
+    /** 系统 Load 最高阈值。 */
     private Double highestSystemLoad;
-    /** The average RT (ms) threshold for all inbound requests. */
+    /** 所有入口流量的平均 RT 阈值，单位毫秒。 */
     private Long avgRt;
-    /** The max concurrent thread count threshold. */
+    /** 并发线程数上限阈值。 */
     private Long maxThread;
-    /** The max total QPS of all inbound requests. */
+    /** 所有入口流量的总 QPS 上限阈值。 */
     private Double qps;
-    /** The highest CPU usage threshold. */
+    /** CPU 使用率最高阈值。 */
     private Double highestCpuUsage;
 
     /**
-     * Builds an entity from the given {@link SystemRule}, carrying the given app, ip and port.
+     * 根据 {@link SystemRule} 构建携带指定应用名、IP、端口的实体。
+     *
+     * @param app  应用名
+     * @param ip   机器 IP
+     * @param port 机器端口
+     * @param rule 系统自适应保护规则
+     * @return 由规则字段填充而成的实体
      */
     public static SystemRuleEntity fromSystemRule(String app, String ip, Integer port, SystemRule rule) {
         SystemRuleEntity entity = new SystemRuleEntity();
@@ -52,57 +58,57 @@ public class SystemRuleEntity extends BaseRuleEntity {
         return entity;
     }
 
-    /** Gets the highest system load threshold. */
+    /** 获取系统 Load 最高阈值。 */
     public Double getHighestSystemLoad() {
         return highestSystemLoad;
     }
 
-    /** Sets the highest system load threshold. */
+    /** 设置系统 Load 最高阈值。 */
     public void setHighestSystemLoad(Double highestSystemLoad) {
         this.highestSystemLoad = highestSystemLoad;
     }
 
-    /** Gets the average RT (ms) threshold for all inbound requests. */
+    /** 获取所有入口流量的平均 RT 阈值，单位毫秒。 */
     public Long getAvgRt() {
         return avgRt;
     }
 
-    /** Sets the average RT (ms) threshold for all inbound requests. */
+    /** 设置所有入口流量的平均 RT 阈值，单位毫秒。 */
     public void setAvgRt(Long avgRt) {
         this.avgRt = avgRt;
     }
 
-    /** Gets the max concurrent thread count threshold. */
+    /** 获取并发线程数上限阈值。 */
     public Long getMaxThread() {
         return maxThread;
     }
 
-    /** Sets the max concurrent thread count threshold. */
+    /** 设置并发线程数上限阈值。 */
     public void setMaxThread(Long maxThread) {
         this.maxThread = maxThread;
     }
 
-    /** Gets the max total QPS of all inbound requests. */
+    /** 获取所有入口流量的总 QPS 上限阈值。 */
     public Double getQps() {
         return qps;
     }
 
-    /** Sets the max total QPS of all inbound requests. */
+    /** 设置所有入口流量的总 QPS 上限阈值。 */
     public void setQps(Double qps) {
         this.qps = qps;
     }
 
-    /** Gets the highest CPU usage threshold. */
+    /** 获取 CPU 使用率最高阈值。 */
     public Double getHighestCpuUsage() {
         return highestCpuUsage;
     }
 
-    /** Sets the highest CPU usage threshold. */
+    /** 设置 CPU 使用率最高阈值。 */
     public void setHighestCpuUsage(Double highestCpuUsage) {
         this.highestCpuUsage = highestCpuUsage;
     }
 
-    /** Converts to a {@link SystemRule} with all threshold fields copied. */
+    /** 转换为 {@link SystemRule}，复制全部阈值字段。 */
     @Override
     public SystemRule toRule() {
         SystemRule rule = new SystemRule();
@@ -114,7 +120,7 @@ public class SystemRuleEntity extends BaseRuleEntity {
         return rule;
     }
 
-    /** Return a string representation of this entity. */
+    /** 返回实体的字符串表示。 */
     @Override
     public String toString() {
         return "SystemRuleEntity{"

@@ -26,7 +26,7 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Entity for {@link ApiDefinition}.
+ * {@link ApiDefinition} 对应的网关 API 分组实体。
  *
  * @author cdfive
  * @date 2026/11/22
@@ -34,14 +34,14 @@ import java.util.Set;
  */
 public class ApiDefinitionEntity extends BaseRuleEntity {
 
-    /** The name of the API. */
+    /** API 名称。 */
     private String apiName;
-    /** The predicate items of the API. */
+    /** API 的断言条目集合。 */
     private Set<ApiPredicateItemEntity> predicateItems;
 
     /**
-     * Builds an entity from the given {@link ApiDefinition}, taking the pattern and
-     * matchStrategy of each {@link ApiPathPredicateItem} as predicate items.
+     * 由指定 {@link ApiDefinition} 构建实体，取每个 {@link ApiPathPredicateItem}
+     * 的 pattern 与 matchStrategy 作为断言条目。
      */
     public static ApiDefinitionEntity fromApiDefinition(String app, String ip, Integer port, 
         ApiDefinition apiDefinition) {
@@ -69,8 +69,8 @@ public class ApiDefinitionEntity extends BaseRuleEntity {
     }
 
     /**
-     * Converts to an {@link ApiDefinition}, with each predicate item converted to an
-     * {@link ApiPathPredicateItem}.
+     * 转换为 {@link ApiDefinition}，每个断言条目转换为
+     * {@link ApiPathPredicateItem}。
      */
     public ApiDefinition toApiDefinition() {
         ApiDefinition apiDefinition = new ApiDefinition();
@@ -91,44 +91,44 @@ public class ApiDefinitionEntity extends BaseRuleEntity {
         return apiDefinition;
     }
 
-    /** Creates an empty entity. */
+    /** 构造空实体。 */
     public ApiDefinitionEntity() {
 
     }
 
-    /** Creates an entity with the given API name and predicate items. */
+    /** 以指定 API 名称与断言条目构造实体。 */
     public ApiDefinitionEntity(String apiName, Set<ApiPredicateItemEntity> predicateItems) {
         this.apiName = apiName;
         this.predicateItems = predicateItems;
     }
 
-    /** Gets the name of the API. */
+    /** 获取 API 名称。 */
     public String getApiName() {
         return apiName;
     }
 
-    /** Sets the name of the API. */
+    /** 设置 API 名称。 */
     public void setApiName(String apiName) {
         this.apiName = apiName;
     }
 
-    /** Gets the predicate items of the API. */
+    /** 获取 API 的断言条目集合。 */
     public Set<ApiPredicateItemEntity> getPredicateItems() {
         return predicateItems;
     }
 
-    /** Sets the predicate items of the API. */
+    /** 设置 API 的断言条目集合。 */
     public void setPredicateItems(Set<ApiPredicateItemEntity> predicateItems) {
         this.predicateItems = predicateItems;
     }
 
-    /** Always returns null, as an API definition is not a common Sentinel rule. */
+    /** 始终返回 null，因为 API 分组不是通用 Sentinel 规则。 */
     @Override
     public Rule toRule() {
         return null;
     }
 
-    /** Whether the given object has the same fields as this entity. */
+    /** 判断指定对象是否与本实体全部字段相同。 */
     @Override
     public boolean equals(Object o) {
         if (this == o) { return true; }
@@ -144,13 +144,13 @@ public class ApiDefinitionEntity extends BaseRuleEntity {
                 Objects.equals(predicateItems, entity.predicateItems);
     }
 
-    /** Gets the hash code from all fields of this entity. */
+    /** 以全部字段计算哈希码。 */
     @Override
     public int hashCode() {
         return Objects.hash(id, app, ip, port, gmtCreate, gmtModified, apiName, predicateItems);
     }
 
-    /** Builds a string with all fields of this entity. */
+    /** 拼接全部字段构建字符串。 */
     @Override
     public String toString() {
         return "ApiDefinitionEntity{" +

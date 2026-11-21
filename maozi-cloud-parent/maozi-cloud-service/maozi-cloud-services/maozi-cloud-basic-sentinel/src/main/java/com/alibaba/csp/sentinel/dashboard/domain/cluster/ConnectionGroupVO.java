@@ -18,7 +18,7 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster;
 import java.util.List;
 
 /**
- * Connections to a cluster token server, grouped by namespace.
+ * 到集群 token server 的连接分组，按 namespace 归组。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -26,48 +26,48 @@ import java.util.List;
  */
 public class ConnectionGroupVO {
 
-    /** The namespace of the connection group. */
+    /** 连接分组的 namespace。 */
     private String namespace;
-    /** The list of connections in the group. */
+    /** 分组内的连接列表。 */
     private List<ConnectionDescriptorVO> connectionSet;
-    /** The count of connected clients. */
+    /** 已连接的客户端数量。 */
     private Integer connectedCount;
 
-    /** Gets the namespace of the connection group. */
+    /** 获取连接分组的 namespace。 */
     public String getNamespace() {
         return namespace;
     }
 
-    /** Sets the namespace of the connection group and returns this. */
+    /** 设置连接分组的 namespace 并返回当前对象。 */
     public ConnectionGroupVO setNamespace(String namespace) {
         this.namespace = namespace;
         return this;
     }
 
-    /** Gets the list of connections in the group. */
+    /** 获取分组内的连接列表。 */
     public List<ConnectionDescriptorVO> getConnectionSet() {
         return connectionSet;
     }
 
-    /** Sets the list of connections and returns this. */
+    /** 设置分组内的连接列表并返回当前对象。 */
     public ConnectionGroupVO setConnectionSet(
         List<ConnectionDescriptorVO> connectionSet) {
         this.connectionSet = connectionSet;
         return this;
     }
 
-    /** Gets the count of connected clients. */
+    /** 获取已连接的客户端数量。 */
     public Integer getConnectedCount() {
         return connectedCount;
     }
 
-    /** Sets the count of connected clients and returns this. */
+    /** 设置已连接的客户端数量并返回当前对象。 */
     public ConnectionGroupVO setConnectedCount(Integer connectedCount) {
         this.connectedCount = connectedCount;
         return this;
     }
 
-    /** Gets the string representation of this VO. */
+    /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
         return "ConnectionGroupVO{" +

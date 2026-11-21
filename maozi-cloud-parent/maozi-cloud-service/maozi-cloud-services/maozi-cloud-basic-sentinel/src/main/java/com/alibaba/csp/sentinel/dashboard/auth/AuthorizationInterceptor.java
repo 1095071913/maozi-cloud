@@ -18,7 +18,7 @@ package com.alibaba.csp.sentinel.dashboard.auth;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
- * The web interceptor for privilege-based authorization.
+ * 基于权限校验的 Web 授权拦截器接口。
  *
  * @author lkxiaolou
  * @author wxq

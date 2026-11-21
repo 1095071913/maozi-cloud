@@ -44,9 +44,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * Default implementation of {@link ClusterAssignService} that assigns token servers
- * and token clients for an application and unbinds cluster machines via the
- * Sentinel command API.
+ * {@link ClusterAssignService} 的默认实现：通过 Sentinel 命令 API
+ * 为应用分配 Token 服务端与 Token 客户端，并解绑集群机器
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -55,27 +54,27 @@ import java.util.stream.Collectors;
 @Service
 public class ClusterAssignServiceImpl implements ClusterAssignService {
 
-    /** Logger of this class. */
+    /** 日志记录器 */
     private static final Logger LOGGER = LoggerFactory.getLogger(ClusterAssignServiceImpl.class);
 
-    /** Timeout in seconds of a single cluster assign/read operation against the command API. */
+    /** 对命令 API 的单次集群分配/读取操作的超时时间（秒） */
     private static final long CLUSTER_OP_TIMEOUT_SECONDS = 10L;
 
-    /** Request timeout in milliseconds applied to the cluster client config. */
+    /** 集群客户端配置使用的请求超时时间（毫秒） */
     private static final int CLIENT_REQUEST_TIMEOUT_MS = 20;
 
-    /** Idle time in seconds applied to the cluster server transport config. */
+    /** 集群服务端传输配置使用的空闲时间（秒） */
     private static final int SERVER_IDLE_SECONDS = 600;
 
-    /** Upper bound (exclusive) of the max allowed QPS of the cluster server. */
+    /** 集群服务端最大允许 QPS 的上限（不含） */
     private static final double MAX_ALLOWED_QPS_LIMIT = 200_000D;
 
-    /** Client for sending cluster mode/config modifications to machines. */
+    /** 向机器发送集群模式/配置修改请求的客户端 */
     private final SentinelApiClient sentinelApiClient;
-    /** Service for querying the cluster state of app machines. */
+    /** 查询应用机器集群状态的服务 */
     private final ClusterConfigService clusterConfigService;
 
-    /** Injects the Sentinel API client and the cluster config service. */
+    /** 注入 Sentinel API 客户端与集群配置服务 */
     public ClusterAssignServiceImpl(SentinelApiClient sentinelApiClient,
                                     ClusterConfigService clusterConfigService) {
         this.sentinelApiClient = sentinelApiClient;
@@ -83,21 +82,19 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
     }
 
     /**
-     * Whether the machineId is an {@code ip:port} address, which refers to a token
-     * server not registered as a machine of this app (in-app machine IDs use the
-     * {@code ip@commandPort} form). Note that despite the method name, {@code true}
-     * here actually means "not in app".
+     * 判断 machineId 是否为 {@code ip:port} 形式地址，该形式指未注册为
+     * 本应用机器的 Token 服务端（应用内机器 ID 为 {@code ip@commandPort} 形式）。
+     * 注意：尽管方法名为 isMachineInApp，返回 {@code true} 实际表示"不在应用内"
      */
     private boolean isMachineInApp(/*@NonEmpty*/ String machineId) {
         return machineId.contains(":");
     }
 
     /**
-     * Unbinds a token server that is not a machine of this app (the dashboard cannot
-     * reach it directly): finds all token clients of the app whose client config points
-     * at the given {@code ip:port} server and resets them to NOT-STARTED mode. Failures
-     * are collected in the failed client set of the result (the server address itself
-     * when the state query fails).
+     * 解绑不属于本应用机器的 Token 服务端（控制台无法直接访问它）：
+     * 找出应用内客户端配置指向该 {@code ip:port} 服务端的全部 Token 客户端，
+     * 将其重置为 NOT-STARTED 模式。失败项记入结果的失败客户端集合
+     * （状态查询失败时记入服务端地址本身）
      */
     private ClusterAppAssignResultVO handleUnbindClusterServerNotInApp(String app, String machineId) {
         Set<String> failedSet = new HashSet<>();
@@ -106,18 +103,16 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
                 .get(CLUSTER_OP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             Set<String> toModifySet = list.stream()
                 .filter(e -> {
-                    // Cache the state object to avoid repeated calls within the same element.
                     ClusterUniversalStateVO state = e.getState();
                     if (state.getStateInfo().getMode() != ClusterStateManager.CLUSTER_CLIENT) {
                         return false;
                     }
-                    // Cache the client config to avoid repeated calls within the same element.
                     ClusterClientInfoVO clientConfig = state.getClient().getClientConfig();
                     return machineId.equals(clientConfig.getServerHost() + ':' + clientConfig.getServerPort());
                 })
                 .map(e -> e.getIp() + '@' + e.getCommandPort())
                 .collect(Collectors.toSet());
-            // Modify mode to NOT-STARTED for all associated token clients.
+            // 将所有关联的 Token 客户端重置为 NOT-STARTED 模式
             modifyToNonStarted(toModifySet, failedSet);
         } catch (InterruptedException ex) {
             onInterrupted(machineId, "Failed to unbind machine <{}>", ex, failedSet);
@@ -132,8 +127,8 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
     }
 
     /**
-     * Resets every machine in {@code toModifySet} (IDs in {@code ip@commandPort} form)
-     * to NOT-STARTED cluster mode in parallel, recording failures in {@code failedSet}.
+     * 将 {@code toModifySet} 中的每台机器（ID 为 {@code ip@commandPort} 形式）
+     * 并行重置为 NOT-STARTED 集群模式，失败项记入 {@code failedSet}
      */
     private void modifyToNonStarted(Set<String> toModifySet, Set<String> failedSet) {
         toModifySet.parallelStream()
@@ -148,10 +143,9 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
     }
 
     /**
-     * Unbinds the given machine from the cluster by resetting it and all token clients
-     * assigned to it to NOT-STARTED mode. When the machineId is an {@code ip:port}
-     * address of a foreign token server, only its in-app token clients are reset.
-     * Failed machine IDs are collected in the failed client set of the result.
+     * 将指定机器及其名下全部 Token 客户端重置为 NOT-STARTED 模式以解绑该机器。
+     * machineId 为外部 Token 服务端的 {@code ip:port} 地址时，仅重置其应用内的
+     * Token 客户端。失败的机器 ID 记入结果的失败客户端集合
      */
     @Override
     public ClusterAppAssignResultVO unbindClusterServer(String app, String machineId) {
@@ -170,7 +164,7 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
             if (entity.getClientSet() != null) {
                 toModifySet.addAll(entity.getClientSet());
             }
-            // Modify mode to NOT-STARTED for all chosen token servers and associated token clients.
+            // 将选中的 Token 服务端及其关联的 Token 客户端重置为 NOT-STARTED 模式
             modifyToNonStarted(toModifySet, failedSet);
         } catch (InterruptedException ex) {
             onInterrupted(machineId, "Failed to unbind machine <{}>", ex, failedSet);
@@ -185,8 +179,7 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
     }
 
     /**
-     * Unbinds each machine in the set one by one and merges the failed sets of all
-     * individual unbind operations into one result.
+     * 逐个解绑集合中的每台机器，并将各次解绑操作的失败集合合并为一个结果
      */
     @Override
     public ClusterAppAssignResultVO unbindClusterServers(String app, Set<String> machineIdSet) {
@@ -204,11 +197,10 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
     }
 
     /**
-     * Applies the cluster assignment map to the app in three steps: entries belonging
-     * to the app are switched to token-server mode and receive transport/flow/namespace
-     * config; the client set of every entry is switched to token-client mode pointing
-     * at that entry's server; the remaining unassigned machines are reset to NOT-STARTED.
-     * Failed server IDs and client IDs are collected in the result.
+     * 分三步将集群分配映射应用到该应用：属于本应用的条目切换为 Token 服务端模式
+     * 并下发传输/流控/命名空间配置；每个条目的客户端集合切换为指向该条目服务端的
+     * Token 客户端模式；剩余未分配的机器重置为 NOT-STARTED。
+     * 失败的服务端 ID 与客户端 ID 记入结果
      */
     @Override
     public ClusterAppAssignResultVO applyAssignToApp(String app, List<ClusterAppAssignMap> clusterMap,
@@ -218,7 +210,7 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
         Set<String> failedServerSet = new HashSet<>();
         Set<String> failedClientSet = new HashSet<>();
 
-        // Assign server and apply config.
+        // 分配服务端并下发配置
         clusterMap.stream()
             .filter(Objects::nonNull)
             // belongToApp 为 Boolean 包装类型，请求体缺省时为 null，需判空避免拆箱 NPE
@@ -232,12 +224,12 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
             })
             .forEach(t -> handleFutureSync(t, failedServerSet));
 
-        // Assign client of servers and apply config.
+        // 分配各服务端的客户端并下发配置
         clusterMap.parallelStream()
             .filter(Objects::nonNull)
             .forEach(e -> applyAllClientConfigChange(app, e, failedClientSet));
 
-        // Unbind remaining (unassigned) machines.
+        // 解绑剩余（未分配的）机器
         applyAllRemainingMachineSet(app, remainingSet, failedClientSet);
 
         return new ClusterAppAssignResultVO()
@@ -246,9 +238,8 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
     }
 
     /**
-     * Resets all remaining (unassigned) machines in {@code remainingSet} to NOT-STARTED
-     * mode in parallel, recording failures in {@code failedSet}; does nothing when the
-     * set is null or empty.
+     * 将 {@code remainingSet} 中剩余（未分配的）机器并行重置为 NOT-STARTED 模式，
+     * 失败项记入 {@code failedSet}；集合为 null 或空时不做任何操作
      */
     private void applyAllRemainingMachineSet(String app, Set<String> remainingSet, Set<String> failedSet) {
         if (remainingSet == null || remainingSet.isEmpty()) {
@@ -269,9 +260,8 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
     }
 
     /**
-     * Switches every machine in the assign map's client set to token-client mode and
-     * points it at the assign map's server (with a fixed 20ms request timeout),
-     * recording failures in {@code failedSet}.
+     * 将分配映射客户端集合中的每台机器切换为 Token 客户端模式并指向
+     * 该映射的服务端（固定 20ms 请求超时），失败项记入 {@code failedSet}
      */
     private void applyAllClientConfigChange(String app, ClusterAppAssignMap assignMap,
                                             Set<String> failedSet) {
@@ -299,8 +289,8 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
     }
 
     /**
-     * Waits up to 10 seconds for the given future to complete; on failure logs the
-     * error and records the machine ID in {@code failedSet}.
+     * 最多等待 10 秒直到给定 Future 完成；失败时记录错误日志
+     * 并将机器 ID 记入 {@code failedSet}
      */
     private void handleFutureSync(Tuple2<String, CompletableFuture<Void>> t, Set<String> failedSet) {
         try {
@@ -318,8 +308,8 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
     }
 
     /**
-     * Restores the current thread's interrupt flag, logs the failure of the given
-     * machine with the given message and records the machine id in the failed set.
+     * 恢复当前线程的中断标记，按给定消息记录指定机器的失败日志，
+     * 并将机器 ID 记入失败集合
      */
     private void onInterrupted(String machineId, String message, InterruptedException ex, Set<String> failedSet) {
         Thread.currentThread().interrupt();
@@ -328,8 +318,8 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
     }
 
     /**
-     * Applies the token server config of an assigned server in sequence: transport
-     * config (with a fixed 600s idle time), then flow config, then namespace set.
+     * 依次为已分配的服务端下发 Token 服务端配置：传输配置
+     * （固定 600 秒空闲时间）、流控配置、命名空间集合
      */
     private CompletableFuture<Void> applyServerConfigChange(String app, String ip, int commandPort,
                                                             ClusterAppAssignMap assignMap) {
@@ -342,8 +332,8 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
     }
 
     /**
-     * Applies the max allowed QPS flow config to the token server, skipped when the
-     * value is absent, non-positive or greater than 200000.
+     * 向 Token 服务端下发最大允许 QPS 流控配置，
+     * 值缺失、非正数或大于 200000 时跳过
      */
     private CompletableFuture<Void> applyServerFlowConfigChange(String app, String ip, int commandPort,
                                                                 ClusterAppAssignMap assignMap) {
@@ -356,7 +346,7 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
     }
 
     /**
-     * Applies the namespace set to the token server, skipped when it is null or empty.
+     * 向 Token 服务端下发命名空间集合，集合为 null 或空时跳过
      */
     private CompletableFuture<Void> applyServerNamespaceSetConfig(String app, String ip, int commandPort,
                                                                   ClusterAppAssignMap assignMap) {
@@ -367,14 +357,14 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
         return sentinelApiClient.modifyClusterServerNamespaceSet(app, ip, commandPort, namespaceSet);
     }
 
-    /** Modifies the cluster mode of the machine reachable at the given command port. */
+    /** 修改指定命令端口机器的集群模式 */
     private CompletableFuture<Void> modifyMode(String ip, int port, int mode) {
         return sentinelApiClient.modifyClusterMode(ip, port, mode);
     }
 
     /**
-     * Parses the command port from the assign map's machine ID, falling back to
-     * {@link ServerTransportConfig#DEFAULT_PORT} when it cannot be parsed.
+     * 从分配映射的机器 ID 解析命令端口，解析失败时
+     * 回退为 {@link ServerTransportConfig#DEFAULT_PORT}
      */
     private int parsePort(ClusterAppAssignMap assignMap) {
         return MachineUtils.parseCommandPort(assignMap.getMachineId())

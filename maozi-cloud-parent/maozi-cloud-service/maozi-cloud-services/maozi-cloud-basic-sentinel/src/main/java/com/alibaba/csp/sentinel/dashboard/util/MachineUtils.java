@@ -21,7 +21,7 @@ import com.alibaba.csp.sentinel.util.function.Tuple2;
 import java.util.Optional;
 
 /**
- * Utility class for parsing machine IDs in the {@code ip@commandPort} form.
+ * 解析 {@code ip@commandPort} 形式机器 ID 的工具类
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -29,8 +29,8 @@ import java.util.Optional;
 public final class MachineUtils {
 
     /**
-     * Parses the command port from a machine ID in {@code ip@commandPort} form,
-     * returning empty when the ID has no port or cannot be parsed.
+     * 从 {@code ip@commandPort} 形式的机器 ID 解析命令端口，
+     * ID 无端口或无法解析时返回 empty
      */
     public static Optional<Integer> parseCommandPort(String machineIp) {
         try {
@@ -48,8 +48,8 @@ public final class MachineUtils {
     }
 
     /**
-     * Parses the ip and command port from a machine ID in {@code ip@commandPort} form,
-     * returning empty when the ID is blank, has no port or cannot be parsed.
+     * 从 {@code ip@commandPort} 形式的机器 ID 解析 ip 与命令端口，
+     * ID 为空、无端口或无法解析时返回 empty
      */
     public static Optional<Tuple2<String, Integer>> parseCommandIpAndPort(String machineIp) {
         try {
@@ -66,6 +66,6 @@ public final class MachineUtils {
         }
     }
 
-    /** Private constructor to prevent instantiation. */
+    /** 私有构造方法，防止实例化 */
     private MachineUtils() {}
 }

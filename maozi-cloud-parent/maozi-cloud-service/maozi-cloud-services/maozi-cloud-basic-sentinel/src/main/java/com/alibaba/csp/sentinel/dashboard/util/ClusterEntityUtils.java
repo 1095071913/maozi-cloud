@@ -36,8 +36,7 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Utility class for wrapping cluster universal state VOs into app-level server/client
- * state and cluster group entities.
+ * 将集群通用状态 VO 封装为应用级服务端/客户端状态与集群分组的工具类
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -46,10 +45,9 @@ import java.util.Set;
 public final class ClusterEntityUtils {
 
     /**
-     * Wraps the machine states into app-level token server states: first the token
-     * servers running on machines of the current app (with their connection counts),
-     * then foreign token servers inferred from client configs (marked as not belonging
-     * to the app).
+     * 将机器状态封装为应用级 Token 服务端状态：先处理运行在本应用机器上的
+     * Token 服务端（含连接数），再处理从客户端配置推断出的外部 Token 服务端
+     * （标记为不属于本应用）
      */
     public static List<AppClusterServerStateWrapVO> wrapToAppClusterServerState(
         List<ClusterUniversalStatePairVO> list) {
@@ -58,9 +56,8 @@ public final class ClusterEntityUtils {
         }
         Map<String, AppClusterServerStateWrapVO> map = new HashMap<>();
         Set<String> tokenServerSet = new HashSet<>();
-        // Handle token servers that belong to current app.
+        // 处理属于本应用的 Token 服务端
         for (ClusterUniversalStatePairVO stateVO : list) {
-            // Cache the state object to avoid repeated calls within the same iteration.
             ClusterUniversalStateVO state = stateVO.getState();
             Integer mode = state.getStateInfo().getMode();
 
@@ -68,7 +65,6 @@ public final class ClusterEntityUtils {
                 String ip = stateVO.getIp();
                 String serverId = ip + '@' + stateVO.getCommandPort();
                 ClusterServerStateVO serverStateVO = state.getServer();
-                // Cache the server port to avoid repeated calls within the same iteration.
                 Integer serverStatePort = serverStateVO.getPort();
                 map.computeIfAbsent(serverId, v -> new AppClusterServerStateWrapVO()
                     .setId(serverId)
@@ -84,9 +80,8 @@ public final class ClusterEntityUtils {
                 tokenServerSet.add(ip + ":" + serverStatePort);
             }
         }
-        // Handle token servers from other app.
+        // 处理来自其他应用的 Token 服务端
         for (ClusterUniversalStatePairVO stateVO : list) {
-            // Cache the state object to avoid repeated calls within the same iteration.
             ClusterUniversalStateVO state = stateVO.getState();
             Integer mode = state.getStateInfo().getMode();
 
@@ -95,21 +90,20 @@ public final class ClusterEntityUtils {
                 if (clientState == null) {
                     continue;
                 }
-                // Cache the client config to avoid repeated calls within the same iteration.
                 ClusterClientInfoVO clientConfig = clientState.getClientConfig();
                 if (clientConfig == null) {
                     continue;
                 }
                 String serverIp = clientConfig.getServerHost();
                 Integer serverPort = clientConfig.getServerPort();
-                // Skip entries whose foreign token server address is absent or invalid.
+                // 外部 Token 服务端地址缺失或非法时跳过
                 if (StringUtil.isBlank(serverIp) || serverPort == null || serverPort <= 0) {
                     continue;
                 }
                 if (tokenServerSet.contains(serverIp + ":" + serverPort)) {
                     continue;
                 }
-                // We are not able to get the commandPort of foreign token server directly.
+                // 无法直接获取外部 Token 服务端的命令端口
                 String serverId = String.format("%s:%d", serverIp, serverPort);
                 map.computeIfAbsent(serverId, v -> new AppClusterServerStateWrapVO()
                     .setId(serverId)
@@ -123,8 +117,8 @@ public final class ClusterEntityUtils {
     }
 
     /**
-     * Wraps the machine states into app-level token client states, one entry per
-     * machine running in token client mode.
+     * 将机器状态封装为应用级 Token 客户端状态，
+     * 每台运行在 Token 客户端模式的机器生成一个条目
      */
     public static List<AppClusterClientStateWrapVO> wrapToAppClusterClientState(
         List<ClusterUniversalStatePairVO> list) {
@@ -133,13 +127,11 @@ public final class ClusterEntityUtils {
         }
         Map<String, AppClusterClientStateWrapVO> map = new HashMap<>();
         for (ClusterUniversalStatePairVO stateVO : list) {
-            // Cache the state object to avoid repeated calls within the same iteration.
             ClusterUniversalStateVO state = stateVO.getState();
             Integer mode = state.getStateInfo().getMode();
 
             if (Objects.equals(mode, ClusterStateManager.CLUSTER_CLIENT)) {
                 String ip = stateVO.getIp();
-                // Cache the command port to avoid repeated calls within the same iteration.
                 Integer commandPort = stateVO.getCommandPort();
                 String clientId = ip + '@' + commandPort;
                 ClusterClientStateVO clientStateVO = state.getClient();
@@ -155,10 +147,9 @@ public final class ClusterEntityUtils {
     }
 
     /**
-     * Groups the machine states into cluster groups keyed by token server address:
-     * each server machine creates a group, then every token client is added to the
-     * group of the server it points to (implicitly creating a group for servers that
-     * are absent from the machine list).
+     * 将机器状态按 Token 服务端地址分组为集群分组：每台服务端机器创建一个分组，
+     * 随后把每个 Token 客户端加入其指向服务端的分组（服务端不在机器列表中时
+     * 隐式创建分组）
      */
     public static List<ClusterGroupEntity> wrapToClusterGroup(List<ClusterUniversalStatePairVO> list) {
         if (list == null || list.isEmpty()) {
@@ -166,7 +157,6 @@ public final class ClusterEntityUtils {
         }
         Map<String, ClusterGroupEntity> map = new HashMap<>();
         for (ClusterUniversalStatePairVO stateVO : list) {
-            // Cache the state object to avoid repeated calls within the same iteration.
             ClusterUniversalStateVO state = stateVO.getState();
             Integer mode = state.getStateInfo().getMode();
             String ip = stateVO.getIp();
@@ -192,7 +182,6 @@ public final class ClusterEntityUtils {
             }
         }
         for (ClusterUniversalStatePairVO stateVO : list) {
-            // Cache the state object to avoid repeated calls within the same iteration.
             ClusterUniversalStateVO state = stateVO.getState();
             Integer mode = state.getStateInfo().getMode();
             String ip = stateVO.getIp();
@@ -201,7 +190,6 @@ public final class ClusterEntityUtils {
                 if (targetClientState == null) {
                     continue;
                 }
-                // Cache the client config to avoid repeated calls within the same iteration.
                 ClusterClientInfoVO targetClientConfig = targetClientState.getClientConfig();
                 if (targetClientConfig == null) {
                     continue;
@@ -226,7 +214,7 @@ public final class ClusterEntityUtils {
         return new ArrayList<>(map.values());
     }
 
-    /** Returns the ip part of an {@code ip:port} string, or the whole string when it has no colon. */
+    /** 返回 {@code ip:port} 字符串的 ip 部分，不含冒号时返回整个字符串 */
     private static String getIp(String str) {
         if (str.contains(":")) {
             return str.split(":")[0];
@@ -234,6 +222,6 @@ public final class ClusterEntityUtils {
         return str;
     }
 
-    /** Private constructor to prevent instantiation. */
+    /** 私有构造方法，防止实例化 */
     private ClusterEntityUtils() {}
 }

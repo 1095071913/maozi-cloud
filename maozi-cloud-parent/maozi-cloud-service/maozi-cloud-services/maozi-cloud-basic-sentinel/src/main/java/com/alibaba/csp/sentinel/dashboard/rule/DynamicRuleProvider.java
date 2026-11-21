@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.rule;
 
 /**
- * Interface for pulling rules of an application from a remote rule repository.
+ * 从远端规则仓库拉取应用规则的接口
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -24,6 +24,12 @@ package com.alibaba.csp.sentinel.dashboard.rule;
  */
 public interface DynamicRuleProvider<T> {
 
-    /** Get the rules of the given application from the remote rule repository. */
+    /**
+     * 从远端规则仓库获取指定应用的规则
+     *
+     * @param appName 应用名
+     * @return 指定应用的规则
+     * @throws Exception 拉取规则出现错误时抛出
+     */
     T getRules(String appName) throws Exception;
 }

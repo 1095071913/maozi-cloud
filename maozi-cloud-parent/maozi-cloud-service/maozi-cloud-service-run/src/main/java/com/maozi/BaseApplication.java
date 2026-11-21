@@ -57,17 +57,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * 应用启动基类
  * <p>
- * 微服务应用的统一启动基类，各服务启动入口直接继承此类，
- * 或继承 {@code BaseApplicationDB}（其内部委托本类执行启动，而非继承本类）。
- * 负责统一初始化运行环境、应用名称、日志等基础启动参数，
- * 并在启动前扫描 classpath 下 {@code META-INF/run/config/*.properties}
- * 登记的配置初始化器（{@link ConfigInitializer}），
- * 由各初始化器写入 Nacos 配置中心/服务发现、缓存、定时任务等组件所需的系统属性。
- * </p>
- * <p>
- * 同时在启动最初阶段安装 {@link BannerFilterPrintStream} 包装标准输出，
- * 各组件模块（如 Dubbo、SnailJob 配置模块）通过 {@link #addBannerFilter(String)}
- * 注册第三方框架启动 banner 的过滤特征，由该包装器统一丢弃对应输出。
+ * 微服务应用的统一启动基类，各服务启动入口直接继承此类
+ * （或继承 {@code BaseApplicationDB}，其内部委托本类执行启动）。
+ * 负责统一初始化运行环境、应用名称、日志等启动参数，并在启动前扫描
+ * classpath 下 {@code META-INF/run/config/*.properties} 登记的
+ * {@link ConfigInitializer}，由各初始化器写入 Nacos、缓存、定时任务等
+ * 组件所需的系统属性；同时在启动最初阶段安装 {@link BannerFilterPrintStream}
+ * 包装标准输出，各组件模块通过 {@link #addBannerFilter(String)} 注册
+ * 第三方框架启动 banner 过滤特征，由该包装器统一丢弃对应输出。
  * </p>
  *
  * @author maozi
@@ -79,16 +76,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @DependsOn({ApplicationEnvironmentContext.CLASS_NAME})
 public class BaseApplication {
 
-    /** 运行时配置初始化器扫描模式，匹配 classpath（含 JAR 内）下
-     * META-INF/run/config 目录中的所有 .properties 文件，每行以实现类全路径作为 key 登记 */
+    /** 运行时配置初始化器扫描模式：classpath（含 JAR 内）META-INF/run/config 下所有 .properties 文件，每行以实现类全路径为 key 登记 */
     private static final String CONFIG_LOCATION_PATTERN = "classpath*:META-INF/run/config/*.properties";
 
     /** 构建产物目录名集合，目录运行时往上跳过这些目录以推导项目根目录名 */
     private static final Set<String> BUILD_DIR_NAMES = Set.of(
         "target", "build", "classes", "bin", "java", "main", "test");
 
-    /** banner 过滤特征列表，由各组件模块在配置初始化阶段注册，
-     * {@link BannerFilterPrintStream} 过滤时实时读取 */
+    /** banner 过滤特征列表，由各组件模块在配置初始化阶段注册，{@link BannerFilterPrintStream} 过滤时实时读取 */
     private static final List<String> BANNER_FILTERS = new CopyOnWriteArrayList<>();
 
     /** 属性键：运行环境 */
@@ -316,8 +311,9 @@ public class BaseApplication {
      * 加载并执行运行时配置初始化器
      * <p>
      * 扫描 classpath 下 {@code META-INF/run/config/*.properties} 文件，
-     * 反射实例化文件中登记的 {@link ConfigInitializer} 实现类并依次执行其 initialize
-     * 方法写入系统属性，最终返回初始化器列表供启动日志输出使用。
+     * 反射实例化文件中登记的 {@link ConfigInitializer} 实现类并依次执行其
+     * initialize 方法写入系统属性；加载或执行失败时抛出
+     * {@link ApplicationBootstrapException} 终止启动。
      * </p>
      */
     private static void initFileProperties() {
@@ -454,7 +450,6 @@ public class BaseApplication {
             return null;
         }
 
-        // 缓存代码来源地址，避免同一方法内重复调用
         URL location = codeSource.getLocation();
 
         String urlStr = location.toString();

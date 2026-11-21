@@ -41,8 +41,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
- * Service for querying the cluster state of app machines and modifying cluster
- * client/server configuration via the Sentinel command API.
+ * 查询应用机器集群状态并通过 Sentinel 命令 API 修改集群客户端/服务端配置的服务
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -51,21 +50,20 @@ import java.util.stream.Collectors;
 @Service
 public class ClusterConfigService {
 
-    /** Client for sending cluster state/config requests to machines. */
+    /** 向机器发送集群状态/配置请求的客户端 */
     private final SentinelApiClient sentinelApiClient;
-    /** Registry providing the applications and their machines. */
+    /** 提供应用及其机器信息的注册表 */
     private final AppManagement appManagement;
 
-    /** Injects the Sentinel API client and the app registry. */
+    /** 注入 Sentinel API 客户端与应用注册表 */
     public ClusterConfigService(SentinelApiClient sentinelApiClient, AppManagement appManagement) {
         this.sentinelApiClient = sentinelApiClient;
         this.appManagement = appManagement;
     }
 
     /**
-     * Modifies the cluster client config of the requesting machine and then switches
-     * the machine to token-client mode. Throws {@link IllegalArgumentException} when
-     * the request is invalid.
+     * 修改请求机器的集群客户端配置，随后将机器切换为 Token 客户端模式。
+     * 请求不合法时抛出 {@link IllegalArgumentException}
      */
     public CompletableFuture<Void> modifyClusterClientConfig(ClusterClientModifyRequest request) {
         if (notClientRequestValid(request)) {
@@ -79,16 +77,14 @@ public class ClusterConfigService {
     }
 
     /**
-     * Returns whether the client request is invalid, i.e. the client config is null,
-     * its serverHost is blank, or its serverPort or requestTimeout is missing or
-     * non-positive.
+     * 判断客户端请求是否不合法：客户端配置为 null、serverHost 为空，
+     * 或 serverPort/requestTimeout 缺失及非正数
      */
     private boolean notClientRequestValid(/*@NonNull */ ClusterClientModifyRequest request) {
         ClusterClientConfig config = request.getClientConfig();
         if (config == null) {
             return true;
         }
-        // Cache the field values to avoid repeated calls within the same method.
         Integer serverPort = config.getServerPort();
         Integer requestTimeout = config.getRequestTimeout();
         return StringUtil.isEmpty(config.getServerHost())
@@ -97,10 +93,9 @@ public class ClusterConfigService {
     }
 
     /**
-     * Modifies the cluster server config of the requesting machine: namespace set,
-     * transport config and flow config are pushed in sequence, then the machine is
-     * switched to token-server mode. Throws {@link IllegalArgumentException} when any
-     * config is invalid or the namespace set is null.
+     * 修改请求机器的集群服务端配置：依次推送命名空间集合、传输配置与流控配置，
+     * 随后将机器切换为 Token 服务端模式。任一配置不合法或命名空间集合为
+     * null 时抛出 {@link IllegalArgumentException}
      */
     public CompletableFuture<Void> modifyClusterServerConfig(ClusterServerModifyRequest request) {
         ServerTransportConfig transportConfig = request.getTransportConfig();
@@ -125,10 +120,10 @@ public class ClusterConfigService {
     }
 
     /**
-     * Get cluster state list of all available machines of provided application.
+     * 获取指定应用全部可用机器的集群状态列表
      *
-     * @param app application name
-     * @return cluster state list of all available machines of the application
+     * @param app 应用名
+     * @return 该应用全部可用机器的集群状态列表
      * @since 1.4.1
      */
     public CompletableFuture<List<ClusterUniversalStatePairVO>> getClusterUniversalState(String app) {
@@ -139,7 +134,6 @@ public class ClusterConfigService {
         if (appInfo == null) {
             return CompletableFuture.completedFuture(new ArrayList<>());
         }
-        // Cache the machine set to avoid repeated calls within the same method.
         Set<MachineInfo> machines = appInfo.getMachines();
         if (machines == null) {
             return CompletableFuture.completedFuture(new ArrayList<>());
@@ -148,7 +142,6 @@ public class ClusterConfigService {
         List<CompletableFuture<ClusterUniversalStatePairVO>> futures = machines.stream()
             .filter(e -> e.isHealthy())
             .map(machine -> {
-                // Cache the machine ip and port to avoid repeated calls within the same element.
                 String machineIp = machine.getIp();
                 int machinePort = machine.getPort();
                 return getClusterUniversalState(app, machineIp, machinePort)
@@ -160,10 +153,9 @@ public class ClusterConfigService {
     }
 
     /**
-     * Gets the cluster group that the given machine (machineId in {@code ip@commandPort}
-     * form) belongs to as a token server of the app, derived from the cluster state of
-     * the app's healthy machines. The future fails when the machine does not exist, is
-     * disconnected, or is not a token server.
+     * 根据应用健康机器的集群状态，获取指定机器（machineId 为
+     * {@code ip@commandPort} 形式）作为该应用 Token 服务端所属的集群分组。
+     * 机器不存在、已失联或不是 Token 服务端时返回失败的 Future
      */
     public CompletableFuture<ClusterGroupEntity> getClusterUniversalStateForAppMachine(String app, String machineId) {
         if (StringUtil.isBlank(app)) {
@@ -173,7 +165,6 @@ public class ClusterConfigService {
         if (appInfo == null) {
             return AsyncUtils.newFailedFuture(new IllegalArgumentException("app does not have machines"));
         }
-        // Cache the machine set to avoid repeated calls within the same method.
         Set<MachineInfo> machines = appInfo.getMachines();
         if (machines == null) {
             return AsyncUtils.newFailedFuture(new IllegalArgumentException("app does not have machines"));
@@ -198,9 +189,8 @@ public class ClusterConfigService {
     }
 
     /**
-     * Fetches the cluster mode of a single machine and enriches the state VO with the
-     * client config (when the token client is available) and the server state (when
-     * the token server is available).
+     * 拉取单台机器的集群模式，并在 Token 客户端可用时补充客户端配置、
+     * Token 服务端可用时补充服务端状态到状态 VO
      */
     public CompletableFuture<ClusterUniversalStateVO> getClusterUniversalState(String app, String ip, int port) {
         return sentinelApiClient.fetchClusterMode(ip, port)
@@ -223,14 +213,12 @@ public class ClusterConfigService {
     }
 
     /**
-     * Returns whether the transport config is null or its port/idleSeconds is missing
-     * or non-positive.
+     * 判断传输配置是否为 null，或其 port/idleSeconds 缺失及非正数
      */
     private boolean invalidTransportConfig(ServerTransportConfig transportConfig) {
         if (transportConfig == null) {
             return true;
         }
-        // Cache the field values to avoid repeated calls within the same method.
         Integer port = transportConfig.getPort();
         Integer idleSeconds = transportConfig.getIdleSeconds();
         return port == null || port <= 0
@@ -238,15 +226,13 @@ public class ClusterConfigService {
     }
 
     /**
-     * Returns whether the flow config is null, its sampleCount or intervalMs is missing
-     * or non-positive, its intervalMs is not divisible by sampleCount, or its
-     * maxAllowedQps is missing or negative.
+     * 判断流控配置是否为 null、sampleCount 或 intervalMs 缺失及非正数、
+     * intervalMs 不能被 sampleCount 整除，或 maxAllowedQps 缺失及为负数
      */
     private boolean invalidFlowConfig(ServerFlowConfig flowConfig) {
         if (flowConfig == null) {
             return true;
         }
-        // Cache the field values to avoid repeated calls within the same method.
         Integer sampleCount = flowConfig.getSampleCount();
         Integer intervalMs = flowConfig.getIntervalMs();
         Double maxAllowedQps = flowConfig.getMaxAllowedQps();

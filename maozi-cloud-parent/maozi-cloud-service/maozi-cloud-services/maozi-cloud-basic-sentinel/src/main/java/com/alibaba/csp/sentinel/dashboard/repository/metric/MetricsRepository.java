@@ -18,47 +18,46 @@ package com.alibaba.csp.sentinel.dashboard.repository.metric;
 import java.util.List;
 
 /**
- * Repository interface for aggregated metrics data.
+ * 聚合指标数据的仓储接口
  *
- * @param <T> type of metrics
+ * @param <T> 指标数据类型
  * @author Eric Zhao
  * @date 2026/11/22
  */
 public interface MetricsRepository<T> {
 
     /**
-     * Save the metric to the storage repository.
+     * 保存单条指标数据到仓储
      *
-     * @param metric metric data to save
+     * @param metric 待保存的指标数据
      */
     void save(T metric);
 
     /**
-     * Save all metrics to the storage repository.
+     * 批量保存指标数据到仓储
      *
-     * @param metrics metrics to save
+     * @param metrics 待保存的指标数据集合
      */
     void saveAll(Iterable<T> metrics);
 
     /**
-     * Get all metrics by {@code appName} and {@code resourceName} between a period of time.
+     * 查询指定应用和资源在一段时间内的全部指标数据
      *
-     * @param app       application name for Sentinel
-     * @param resource  resource name
-     * @param startTime start timestamp
-     * @param endTime   end timestamp
-     * @return all metrics in query conditions
+     * @param app       Sentinel 应用名
+     * @param resource  资源名
+     * @param startTime 开始时间戳
+     * @param endTime   结束时间戳
+     * @return 满足查询条件的全部指标数据
      */
     List<T> queryByAppAndResourceBetween(String app, String resource, long startTime, long endTime);
 
     /**
-     * List resource names of provided application name that have metrics within
-     * {@code [startTime, endTime]}.
+     * 列出指定应用在 {@code [startTime, endTime]} 区间内有指标数据的资源名
      *
-     * @param app       application name
-     * @param startTime start timestamp
-     * @param endTime   end timestamp
-     * @return list of resources
+     * @param app       应用名
+     * @param startTime 开始时间戳
+     * @param endTime   结束时间戳
+     * @return 资源名列表
      */
     List<String> listResourcesOfApp(String app, long startTime, long endTime);
 }

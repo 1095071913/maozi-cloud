@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * System rules provider backed by Nacos.
+ * 基于 Nacos 的系统规则提供者
  *
  * @author maozi
  * @date 2026/11/08
@@ -36,22 +36,21 @@ import java.util.stream.Collectors;
 @Component("systemRuleNacosProvider")
 public class SystemRuleNacosProvider implements DynamicRuleProvider<List<SystemRuleEntity>> {
 
-    /** Nacos config service used to read rule configs. */
+    /** 用于读取规则配置的 Nacos 配置服务 */
     private final ConfigService configService;
-    /** Nacos connection properties, supplies the rule config group. */
+    /** Nacos 连接配置，提供规则配置所在分组 */
     private final NacosProperties nacosProperties;
 
-    /** Creates the provider with the given config service and Nacos properties. */
+    /** 使用给定的配置服务与 Nacos 配置创建提供者 */
     public SystemRuleNacosProvider(ConfigService configService, NacosProperties nacosProperties) {
         this.configService = configService;
         this.nacosProperties = nacosProperties;
     }
 
     /**
-     * Load the system rules of an app from the Nacos config
-     * {@code appName + SYSTEM_DATA_ID_POSTFIX} in the configured group, parse the JSON
-     * content and convert it to entities (ip and port left {@code null}). Returns an
-     * empty list when the config is empty or absent.
+     * 从配置分组中的 Nacos 配置 {@code appName + SYSTEM_DATA_ID_POSTFIX}
+     * 加载应用的系统规则，解析 JSON 内容并转换为实体（ip 与端口留空）。
+     * 配置为空或不存在时返回空列表
      */
     @Override
     public List<SystemRuleEntity> getRules(String appName) throws Exception {

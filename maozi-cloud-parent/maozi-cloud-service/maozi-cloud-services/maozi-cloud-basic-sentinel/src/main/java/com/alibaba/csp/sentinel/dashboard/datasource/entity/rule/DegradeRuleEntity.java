@@ -18,32 +18,38 @@ package com.alibaba.csp.sentinel.dashboard.datasource.entity.rule;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
 
 /**
- * Entity for a circuit breaking (degrade) rule.
+ * 熔断降级规则实体。
  *
  * @author leyou
  * @date 2026/11/22
  */
 public class DegradeRuleEntity extends BaseRuleEntity {
 
-    /** The resource name. */
+    /** 资源名。 */
     private String resource;
-    /** The caller that the rule applies to. */
+    /** 规则针对的调用来源应用。 */
     private String limitApp;
-    /** The threshold, whose meaning depends on grade (RT in ms, exception ratio or exception count). */
+    /** 阈值，含义随熔断策略不同（平均 RT 毫秒数、异常比例或异常数）。 */
     private Double count;
-    /** The degrade time window in seconds. */
+    /** 降级时间窗口，单位秒。 */
     private Integer timeWindow;
-    /** The circuit breaking strategy: 0 RT, 1 exception ratio and 2 exception count. */
+    /** 熔断策略：0 平均响应时间（RT），1 异常比例，2 异常数。 */
     private Integer grade;
-    /** The min request amount that triggers degrading. */
+    /** 触发熔断的最小请求数。 */
     private Integer minRequestAmount;
-    /** The slow call ratio threshold of the rule. */
+    /** 慢调用比例阈值。 */
     private Double slowRatioThreshold;
-    /** The statistic interval in milliseconds. */
+    /** 统计时长，单位毫秒。 */
     private Integer statIntervalMs;
 
     /**
-     * Builds an entity from the given {@link DegradeRule}, carrying the given app, ip and port.
+     * 根据 {@link DegradeRule} 构建携带指定应用名、IP、端口的实体。
+     *
+     * @param app  应用名
+     * @param ip   机器 IP
+     * @param port 机器端口
+     * @param rule 熔断降级规则
+     * @return 由规则字段填充而成的实体
      */
     public static DegradeRuleEntity fromDegradeRule(String app, String ip, Integer port, DegradeRule rule) {
         DegradeRuleEntity entity = new DegradeRuleEntity();
@@ -61,92 +67,92 @@ public class DegradeRuleEntity extends BaseRuleEntity {
         return entity;
     }
 
-    /** Gets the resource name. */
+    /** 获取资源名。 */
     public String getResource() {
         return resource;
     }
 
-    /** Sets the resource name. */
+    /** 设置资源名。 */
     public void setResource(String resource) {
         this.resource = resource;
     }
 
-    /** Gets the caller that the rule applies to. */
+    /** 获取规则针对的调用来源应用。 */
     public String getLimitApp() {
         return limitApp;
     }
 
-    /** Sets the caller that the rule applies to. */
+    /** 设置规则针对的调用来源应用。 */
     public void setLimitApp(String limitApp) {
         this.limitApp = limitApp;
     }
 
-    /** Gets the threshold count. */
+    /** 获取阈值。 */
     public Double getCount() {
         return count;
     }
 
-    /** Sets the threshold count. */
+    /** 设置阈值。 */
     public void setCount(Double count) {
         this.count = count;
     }
 
-    /** Gets the degrade time window in seconds. */
+    /** 获取降级时间窗口，单位秒。 */
     public Integer getTimeWindow() {
         return timeWindow;
     }
 
-    /** Sets the degrade time window in seconds. */
+    /** 设置降级时间窗口，单位秒。 */
     public void setTimeWindow(Integer timeWindow) {
         this.timeWindow = timeWindow;
     }
 
-    /** Gets the circuit breaking strategy. */
+    /** 获取熔断策略。 */
     public Integer getGrade() {
         return grade;
     }
 
-    /** Sets the circuit breaking strategy. */
+    /** 设置熔断策略。 */
     public void setGrade(Integer grade) {
         this.grade = grade;
     }
 
-    /** Gets the min request amount that triggers degrading. */
+    /** 获取触发熔断的最小请求数。 */
     public Integer getMinRequestAmount() {
         return minRequestAmount;
     }
 
-    /** Sets the min request amount that triggers degrading and returns this. */
+    /** 设置触发熔断的最小请求数并返回当前对象。 */
     public DegradeRuleEntity setMinRequestAmount(Integer minRequestAmount) {
         this.minRequestAmount = minRequestAmount;
         return this;
     }
 
-    /** Gets the slow call ratio threshold of the rule. */
+    /** 获取慢调用比例阈值。 */
     public Double getSlowRatioThreshold() {
         return slowRatioThreshold;
     }
 
-    /** Sets the slow call ratio threshold of the rule and returns this. */
+    /** 设置慢调用比例阈值并返回当前对象。 */
     public DegradeRuleEntity setSlowRatioThreshold(Double slowRatioThreshold) {
         this.slowRatioThreshold = slowRatioThreshold;
         return this;
     }
 
-    /** Gets the statistic interval in milliseconds. */
+    /** 获取统计时长，单位毫秒。 */
     public Integer getStatIntervalMs() {
         return statIntervalMs;
     }
 
-    /** Sets the statistic interval in milliseconds and returns this. */
+    /** 设置统计时长，单位毫秒，并返回当前对象。 */
     public DegradeRuleEntity setStatIntervalMs(Integer statIntervalMs) {
         this.statIntervalMs = statIntervalMs;
         return this;
     }
 
     /**
-     * Converts to a {@link DegradeRule}, only setting minRequestAmount, slowRatioThreshold
-     * and statIntervalMs when they are not null.
+     * 转换为 {@link DegradeRule}，minRequestAmount、slowRatioThreshold、statIntervalMs
+     * 仅在非空时设置。
      */
     @Override
     public DegradeRule toRule() {
@@ -169,7 +175,7 @@ public class DegradeRuleEntity extends BaseRuleEntity {
         return rule;
     }
 
-    /** Return a string representation of this entity. */
+    /** 返回实体的字符串表示。 */
     @Override
     public String toString() {
         return "DegradeRuleEntity{"

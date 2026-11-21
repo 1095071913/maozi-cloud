@@ -18,7 +18,7 @@ package com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule;
 import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.BasePatternItemVO;
 
 /**
- * Hotspot parameter item of a gateway flow rule, used by add and update requests.
+ * 网关流控规则的热点参数项，供新增/修改规则请求使用
  *
  * @author cdfive
  * @date 2026/11/22
@@ -26,33 +26,28 @@ import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.BasePatternItemVO;
  */
 public class GatewayParamFlowItemVO extends BasePatternItemVO {
 
-    /** Strategy to parse the parameter from the gateway request (URL param, host, header or cookie). */
+    /** 从网关请求中提取参数的策略（URL 参数、Host、Header 或 Cookie） */
     private Integer parseStrategy;
 
-    /** Name of the parsed field, e.g. header name or parameter name, depending on parseStrategy. */
+    /** 提取字段名称，如 Header 名或参数名，取决于 parseStrategy */
     private String fieldName;
 
-    /** Returns the parameter parse strategy. */
     public Integer getParseStrategy() {
         return parseStrategy;
     }
 
-    /** Sets the parameter parse strategy. */
     public void setParseStrategy(Integer parseStrategy) {
         this.parseStrategy = parseStrategy;
     }
 
-    /** Returns the name of the parsed field. */
     public String getFieldName() {
         return fieldName;
     }
 
-    /** Sets the name of the parsed field. */
     public void setFieldName(String fieldName) {
         this.fieldName = fieldName;
     }
 
-    /** Return a string representation of this VO. */
     @Override
     public String toString() {
         return "GatewayParamFlowItemVO{"

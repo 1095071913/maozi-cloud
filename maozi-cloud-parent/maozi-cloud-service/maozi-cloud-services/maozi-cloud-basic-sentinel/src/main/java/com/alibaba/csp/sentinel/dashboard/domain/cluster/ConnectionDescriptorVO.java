@@ -17,7 +17,7 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster;
 
 
 /**
- * Descriptor of one connection to a cluster token server.
+ * 到集群 token server 的一条连接描述。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -25,34 +25,34 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster;
  */
 public class ConnectionDescriptorVO {
 
-    /** The remote address of the connection. */
+    /** 连接的对端地址。 */
     private String address;
-    /** The remote host of the connection. */
+    /** 连接的对端主机名。 */
     private String host;
 
-    /** Gets the remote address of the connection. */
+    /** 获取连接的对端地址。 */
     public String getAddress() {
         return address;
     }
 
-    /** Sets the remote address of the connection and returns this. */
+    /** 设置连接的对端地址并返回当前对象。 */
     public ConnectionDescriptorVO setAddress(String address) {
         this.address = address;
         return this;
     }
 
-    /** Gets the remote host of the connection. */
+    /** 获取连接的对端主机名。 */
     public String getHost() {
         return host;
     }
 
-    /** Sets the remote host of the connection and returns this. */
+    /** 设置连接的对端主机名并返回当前对象。 */
     public ConnectionDescriptorVO setHost(String host) {
         this.host = host;
         return this;
     }
 
-    /** Gets the string representation of this VO. */
+    /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
         return "ConnectionDescriptorVO{" +

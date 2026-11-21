@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.domain.cluster.state;
 
 /**
- * Pair of a machine (ip and command port) and its universal cluster state.
+ * 机器（IP 与命令端口）及其通用集群状态的配对。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -24,59 +24,59 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.state;
  */
 public class ClusterUniversalStatePairVO {
 
-    /** The IP address of the machine. */
+    /** 机器 IP 地址。 */
     private String ip;
 
-    /** The command port of the machine. */
+    /** 机器命令端口。 */
     private Integer commandPort;
 
-    /** The universal cluster state of the machine. */
+    /** 机器的通用集群状态。 */
     private ClusterUniversalStateVO state;
 
-    /** Create an empty pair. */
+    /** 创建空的配对。 */
     public ClusterUniversalStatePairVO() {}
 
-    /** Create a pair with the machine IP, command port and its universal cluster state. */
+    /** 创建携带机器 IP、命令端口及其通用集群状态的配对。 */
     public ClusterUniversalStatePairVO(String ip, Integer commandPort, ClusterUniversalStateVO state) {
         this.ip = ip;
         this.commandPort = commandPort;
         this.state = state;
     }
 
-    /** Get the IP address. */
+    /** 获取 IP 地址。 */
     public String getIp() {
         return ip;
     }
 
-    /** Set the IP address and return this. */
+    /** 设置 IP 地址并返回当前对象。 */
     public ClusterUniversalStatePairVO setIp(String ip) {
         this.ip = ip;
         return this;
     }
 
-    /** Get the command port. */
+    /** 获取命令端口。 */
     public Integer getCommandPort() {
         return commandPort;
     }
 
-    /** Set the command port and return this. */
+    /** 设置命令端口并返回当前对象。 */
     public ClusterUniversalStatePairVO setCommandPort(Integer commandPort) {
         this.commandPort = commandPort;
         return this;
     }
 
-    /** Get the universal cluster state. */
+    /** 获取通用集群状态。 */
     public ClusterUniversalStateVO getState() {
         return state;
     }
 
-    /** Set the universal cluster state and return this. */
+    /** 设置通用集群状态并返回当前对象。 */
     public ClusterUniversalStatePairVO setState(ClusterUniversalStateVO state) {
         this.state = state;
         return this;
     }
 
-    /** Return a string representation of this VO. */
+    /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
         return "ClusterUniversalStatePairVO{" +

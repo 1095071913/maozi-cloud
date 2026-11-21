@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * In-memory storage for degrade rules.
+ * 熔断规则的内存存储
  *
  * @author leyou
  * @date 2026/11/22
@@ -29,10 +29,10 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 public class InMemDegradeRuleStore extends AbstractInMemoryRuleRepository<DegradeRuleEntity> {
 
-    /** Static id generator for stored entities. */
+    /** 存储实体的静态 id 生成器 */
     private static AtomicLong ids = new AtomicLong(0);
 
-    /** Generates the next sequential id with the static counter. */
+    /** 使用静态计数器生成下一个自增 id */
     @Override
     protected long nextId() {
         return ids.incrementAndGet();

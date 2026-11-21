@@ -18,64 +18,64 @@ package com.alibaba.csp.sentinel.dashboard.datasource.entity;
 import java.util.Date;
 
 /**
- * Persistent entity recording the last metric fetch position of a machine.
+ * 记录机器监控指标最近拉取位置的持久化实体。
  *
  * @author leyou
  * @date 2026/11/22
  */
 public class MetricPositionEntity extends BaseEntity {
-    /** The IP address of the machine. */
+    /** 机器 IP 地址。 */
     private String ip;
-    /** The port Sentinel listens on in the application. */
+    /** 应用中 Sentinel 监听的端口。 */
     private Integer port;
 
-    /** The hostname of the machine, a redundant field. */
+    /** 机器主机名，冗余字段。 */
     private String hostname;
 
-    /** The latest timestamp fetched last time. */
+    /** 上次拉取到的最新时间戳。 */
     private Date lastFetch;
 
-    /** Gets the IP address of the machine. */
+    /** 获取机器 IP 地址。 */
     public String getIp() {
         return ip;
     }
 
-    /** Sets the IP address of the machine. */
+    /** 设置机器 IP 地址。 */
     public void setIp(String ip) {
         this.ip = ip;
     }
 
-    /** Gets the port Sentinel listens on in the application. */
+    /** 获取应用中 Sentinel 监听的端口。 */
     public Integer getPort() {
         return port;
     }
 
-    /** Sets the port Sentinel listens on in the application. */
+    /** 设置应用中 Sentinel 监听的端口。 */
     public void setPort(Integer port) {
         this.port = port;
     }
 
-    /** Gets the hostname of the machine. */
+    /** 获取机器主机名。 */
     public String getHostname() {
         return hostname;
     }
 
-    /** Sets the hostname of the machine. */
+    /** 设置机器主机名。 */
     public void setHostname(String hostname) {
         this.hostname = hostname;
     }
 
-    /** Gets the latest timestamp fetched last time. */
+    /** 获取上次拉取到的最新时间戳。 */
     public Date getLastFetch() {
         return lastFetch;
     }
 
-    /** Sets the latest timestamp fetched last time. */
+    /** 设置上次拉取到的最新时间戳。 */
     public void setLastFetch(Date lastFetch) {
         this.lastFetch = lastFetch;
     }
 
-    /** Builds a string with all fields of this entity. */
+    /** 拼接全部字段构建字符串。 */
     @Override
     public String toString() {
         return "MetricPositionEntity{" +

@@ -24,30 +24,29 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Node of the resource tree shown on the realtime monitoring page.
+ * 实时监控页面展示的资源树节点。
  *
  * @author leyou
  * @date 2026/11/22
  */
 public class ResourceTreeNode extends BaseResourceMetricsVO {
-    /** The id of the node. */
+    /** 节点 id。 */
     private String id;
-    /** The id of the parent node, null or empty for the root node. */
+    /** 父节点 id，根节点为 null 或空。 */
     private String parentId;
 
-    /** The QPS of successful requests. */
+    /** 成功请求的 QPS。 */
     private Long successQps;
 
-    /** The child nodes of this node. */
+    /** 子节点列表。 */
     private List<ResourceTreeNode> children = new ArrayList<>();
 
     /**
-     * Builds a resource tree from the list of node VOs. Each node is attached to
-     * its parent node that appeared earlier in the list, and the node without a
-     * parent id is treated as the root.
+     * 根据节点 VO 列表构建资源树：每个节点挂载到列表中先出现的父节点上，
+     * 无父节点 id 的节点视为根节点。
      *
-     * @param nodeVos the node list reported by the client
-     * @return the root node of the tree, or null if the list is null or empty
+     * @param nodeVos 客户端上报的节点列表
+     * @return 树的根节点，列表为 null 或空时返回 null
      */
     public static ResourceTreeNode fromNodeVoList(List<NodeVo> nodeVos) {
         if (nodeVos == null || nodeVos.isEmpty()) {
@@ -58,19 +57,19 @@ public class ResourceTreeNode extends BaseResourceMetricsVO {
         for (NodeVo vo : nodeVos) {
             ResourceTreeNode node = fromNodeVo(vo);
             map.put(node.id, node);
-            // real root
+            // 无父节点 id 的为真正的根节点
             if (node.parentId == null || node.parentId.isEmpty()) {
                 root = node;
             } else if (map.containsKey(node.parentId)) {
                 map.get(node.parentId).children.add(node);
             } else {
-                // impossible
+                // 父节点不在列表中，理论上不可能出现
             }
         }
         return root;
     }
 
-    /** Creates a tree node carrying the statistics of the given node VO. */
+    /** 创建携带指定节点 VO 统计数据的树节点。 */
     public static ResourceTreeNode fromNodeVo(NodeVo vo) {
         ResourceTreeNode node = new ResourceTreeNode();
         node.id = vo.getId();
@@ -91,20 +90,20 @@ public class ResourceTreeNode extends BaseResourceMetricsVO {
     }
 
     /**
-     * Searches the whole tree with the given key (case-insensitive) and updates the
-     * visible flag of every node accordingly: a node is visible when it or any
-     * of its descendants matches, and a null or empty key matches all resources.
+     * 以指定关键字（忽略大小写）搜索整棵树并更新每个节点的可见标记：
+     * 节点自身或任一后代资源名命中即可见，关键字为 null 或空时全部可见。
+     *
+     * @param searchKey 搜索关键字
      */
     public void searchIgnoreCase(String searchKey) {
         search(this, searchKey);
     }
 
     /**
-     * Recursively computes visibility: the node is visible when the search key
-     * matches its resource or at least one child is visible.
+     * 递归计算节点可见性：搜索关键字命中节点资源名或任一子节点可见时，该节点可见。
      */
     private boolean search(ResourceTreeNode node, String searchKey) {
-        // empty matches all
+        // 空关键字匹配全部资源
         if (searchKey == null || searchKey.isEmpty() ||
             node.resource.toLowerCase().contains(searchKey.toLowerCase())) {
             node.visible = true;
@@ -120,42 +119,42 @@ public class ResourceTreeNode extends BaseResourceMetricsVO {
         return node.visible;
     }
 
-    /** Gets the id of the node. */
+    /** 获取节点 id。 */
     public String getId() {
         return id;
     }
 
-    /** Sets the id of the node. */
+    /** 设置节点 id。 */
     public void setId(String id) {
         this.id = id;
     }
 
-    /** Gets the id of the parent node. */
+    /** 获取父节点 id。 */
     public String getParentId() {
         return parentId;
     }
 
-    /** Sets the id of the parent node. */
+    /** 设置父节点 id。 */
     public void setParentId(String parentId) {
         this.parentId = parentId;
     }
 
-    /** Gets the QPS of successful requests. */
+    /** 获取成功请求的 QPS。 */
     public Long getSuccessQps() {
         return successQps;
     }
 
-    /** Sets the QPS of successful requests. */
+    /** 设置成功请求的 QPS。 */
     public void setSuccessQps(Long successQps) {
         this.successQps = successQps;
     }
 
-    /** Gets the child nodes. */
+    /** 获取子节点列表。 */
     public List<ResourceTreeNode> getChildren() {
         return children;
     }
 
-    /** Sets the child nodes. */
+    /** 设置子节点列表。 */
     public void setChildren(List<ResourceTreeNode> children) {
         this.children = children;
     }

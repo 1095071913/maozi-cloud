@@ -136,13 +136,12 @@ public class LockAop {
 
         Method method = signature.getMethod();
 
-        // 如果方法声明在接口上，直接使用接口方法；
-        // 否则从目标类获取实际方法，确保获取到正确的参数注解
         Object target = joinPoint.getTarget();
 
         Object[] args = joinPoint.getArgs();
 
-        // method 已缓存 signature.getMethod() 的结果，直接复用避免重复调用
+        // 如果方法声明在接口上，直接使用接口方法（method 变量即 signature.getMethod() 的结果，直接复用）；
+        // 否则从目标类获取实际方法，确保获取到正确的参数注解
         method = method.getDeclaringClass().isInterface()
                 ? method
                 : target.getClass().getDeclaredMethod(signature.getName(),

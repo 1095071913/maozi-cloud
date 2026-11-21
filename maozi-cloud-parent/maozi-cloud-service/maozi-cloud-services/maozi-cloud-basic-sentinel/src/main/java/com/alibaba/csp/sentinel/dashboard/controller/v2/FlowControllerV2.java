@@ -42,7 +42,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Flow rule controller (v2).
+ * 流控规则控制器（v2）。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -52,6 +52,7 @@ import java.util.List;
 @RequestMapping(value = "/v2/flow")
 public class FlowControllerV2 extends AbstractFlowRuleController {
 
+    /** 注入规则仓储、规则提供者与发布者。 */
     public FlowControllerV2(AbstractInMemoryRuleRepository<FlowRuleEntity> repository,
                             @Qualifier("flowRuleNacosProvider") DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider,
                             @Qualifier("flowRuleNacosPublisher") DynamicRulePublisher<List<FlowRuleEntity>>
@@ -60,8 +61,7 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
     }
 
     /**
-     * Fetches the app's flow rules from Nacos, restoring the entity id from the cluster flow id, persists them and
-     * returns them.
+     * 从 Nacos 拉取应用的流控规则，用集群流控 id 还原实体 id 后持久化并返回。
      */
     @GetMapping("/rules")
     @AuthAction(PrivilegeType.READ_RULE)
@@ -72,7 +72,6 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
         return fetchAndSaveRules(app, rules -> {
             for (FlowRuleEntity entity : rules) {
                 entity.setApp(app);
-                // Cache the cluster config and flow id to avoid repeated calls within the same loop iteration.
                 ClusterFlowConfig clusterConfig = entity.getClusterConfig();
                 if (clusterConfig != null) {
                     Long flowId = clusterConfig.getFlowId();
@@ -85,8 +84,8 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
     }
 
     /**
-     * Validates the body and app inline (v2 rules carry no machine info), then the flow-rule specific fields via the
-     * shared validator; returns the first error or null.
+     * 内联校验请求体与应用名（v2 规则不携带机器信息），再通过公共校验器校验
+     * 流控规则特有字段；返回首个错误结果，校验通过返回 null。
      */
     @Override
     protected <R> Result<R> checkEntityInternal(FlowRuleEntity entity) {
@@ -99,7 +98,7 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
         return RuleEntityValidator.checkFlowRuleFields(entity);
     }
 
-    /** Adds a new flow rule after validation (id reset for generation) and publishes the app's rules. */
+    /** 校验通过后新增流控规则（重置 id 以便生成），并推送应用的规则。 */
     @PostMapping("/rule")
     @AuthAction(value = AuthService.PrivilegeType.WRITE_RULE)
     public Result<FlowRuleEntity> apiAddFlowRule(@RequestBody FlowRuleEntity entity) {
@@ -107,8 +106,7 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
     }
 
     /**
-     * Updates the rule of the given id (app/ip/port/gmtCreate inherited from the old entity) and publishes the app's
-     * rules.
+     * 更新指定 id 的规则（app/ip/port/gmtCreate 沿用旧实体），并推送应用的规则。
      */
     @PutMapping("/rule/{id}")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
@@ -139,7 +137,7 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
         return saveAndPublish(entity);
     }
 
-    /** Deletes the rule of the given id and publishes the app's rules; an unknown id returns success with null data. */
+    /** 删除指定 id 的规则并推送应用的规则；id 不存在时直接成功返回（数据为 null）。 */
     @DeleteMapping("/rule/{id}")
     @AuthAction(PrivilegeType.DELETE_RULE)
     public Result<Long> apiDeleteRule(@PathVariable("id") Long id) {

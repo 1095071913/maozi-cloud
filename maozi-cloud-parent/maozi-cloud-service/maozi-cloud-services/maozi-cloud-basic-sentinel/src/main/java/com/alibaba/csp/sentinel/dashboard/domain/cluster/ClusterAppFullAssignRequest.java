@@ -21,8 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Request for a full cluster assignment of an app, 
-     carrying the whole server-client map plus the remaining unassigned machines.
+ * 应用整体集群分配请求，携带完整的 server-client 映射及剩余未分配的机器。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -30,35 +29,35 @@ import java.util.Set;
  */
 public class ClusterAppFullAssignRequest {
 
-    /** The list of token server assignments with their bound clients. */
+    /** token server 分配列表，含各 server 绑定的客户端。 */
     private List<ClusterAppAssignMap> clusterMap;
-    /** The set of machines that remain unassigned in the cluster map. */
+    /** 集群映射中仍未分配的机器 id 集合。 */
     private Set<String> remainingList;
 
-    /** Gets the list of token server assignments. */
+    /** 获取 token server 分配列表。 */
     public List<ClusterAppAssignMap> getClusterMap() {
         return clusterMap;
     }
 
-    /** Sets the list of token server assignments and returns this. */
+    /** 设置 token server 分配列表并返回当前对象。 */
     public ClusterAppFullAssignRequest setClusterMap(
         List<ClusterAppAssignMap> clusterMap) {
         this.clusterMap = clusterMap;
         return this;
     }
 
-    /** Gets the set of machines that remain unassigned. */
+    /** 获取仍未分配的机器 id 集合。 */
     public Set<String> getRemainingList() {
         return remainingList;
     }
 
-    /** Sets the set of unassigned machines and returns this. */
+    /** 设置仍未分配的机器 id 集合并返回当前对象。 */
     public ClusterAppFullAssignRequest setRemainingList(Set<String> remainingList) {
         this.remainingList = remainingList;
         return this;
     }
 
-    /** Gets the string representation of this request. */
+    /** 返回该请求的字符串表示。 */
     @Override
     public String toString() {
         return "ClusterAppFullAssignRequest{" +

@@ -18,22 +18,22 @@ package com.alibaba.csp.sentinel.dashboard.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * Configuration properties for dashboard authentication, bound to the "auth" prefix.
+ * 控制台认证配置属性，绑定 "auth" 前缀。
  * @author maozi
  * @date 2026/11/22
  */
 @ConfigurationProperties(prefix = "auth")
 public class AuthProperties {
 
-    /** Whether login authentication is enabled, default true. */
+    /** 是否开启登录认证，默认 true。 */
     private boolean enabled = true;
 
-    /** Checks whether login authentication is enabled. */
+    /** 是否开启登录认证。 */
     public boolean isEnabled() {
         return enabled;
     }
 
-    /** Enable or disable login authentication. */
+    /** 设置是否开启登录认证。 */
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }

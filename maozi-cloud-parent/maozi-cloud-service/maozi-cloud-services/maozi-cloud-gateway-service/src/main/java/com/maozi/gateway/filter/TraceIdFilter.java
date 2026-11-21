@@ -17,13 +17,10 @@ import java.util.UUID;
 /**
  * 链路追踪 ID 全局过滤器。
  * <p>
- * 在网关入口处生成或继承请求头 {@link TraceIdContext#KEY} 中的链路追踪 ID，
- * 并将其注入到下游路由请求头中，实现网关到微服务的全链路追踪。
- * </p>
- * <p>
- * 当 OpenTelemetry 当前未生成有效 Span（traceId 为占位值 {@link TraceIdContext#TRACE_ID_VALUE}）时，
- * 采用自定义追踪 ID 策略：优先复用请求头中已有的 traceId，缺失时生成 UUID。
- * 将 traceId 写入 MDC 以关联网关日志，请求结束后清理 MDC 防止线程复用导致的数据泄漏。
+ * 在网关入口处生成或继承请求头 {@link TraceIdContext#KEY} 中的链路追踪 ID 并
+ * 注入下游路由请求头，实现网关到微服务的全链路追踪。当 OpenTelemetry 未生成
+ * 有效 Span（traceId 为占位值）时采用自定义策略：优先复用请求头已有的 traceId，
+ * 缺失时生成 UUID；写入 MDC 以关联网关日志，请求结束后清理防止线程复用数据泄漏。
  * </p>
  *
  * @author maozi

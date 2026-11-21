@@ -26,11 +26,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Utility class for Nacos rule persistence.
+ * Nacos 规则持久化工具类
  * <p>
- * DataId of each rule type is {@code appName + DATA_ID_POSTFIX} with a {@code .json}
- * suffix, e.g. {@code foo-app-flow-rules.json}. Config content is pretty-printed
- * JSON and is published with config type {@code json}.
+ * 各规则类型的 DataId 为 {@code appName + DATA_ID_POSTFIX} 加 {@code .json}
+ * 后缀，如 {@code foo-app-flow-rules.json}。配置内容为格式化的 JSON，
+ * 并以 {@code json} 配置类型发布
  *
  * @author maozi
  * @date 2026/11/08
@@ -38,70 +38,68 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class NacosConfigUtil {
 
     /**
-     * TTL of the publish snapshot: {@link ConfigService#getConfig} serves the local
-     * client cache which is refreshed by a server push, so reading immediately after
-     * publishing may return the stale previous content (the frontend reloads the rule
-     * list right after saving, which made changes look "not applied" until a manual
-     * refresh). Within this short window after a successful publish, the snapshot of
-     * the just-published content is served instead.
+     * 发布快照的存活时间：{@link ConfigService#getConfig} 读取的是本地客户端
+     * 缓存，该缓存依赖服务端推送刷新，发布后立即读取可能返回旧的缓存内容
+     * （前端保存后会立刻刷新规则列表，曾导致修改"看似未生效"需手动刷新）。
+     * 发布成功后的这段短时间内改读刚发布内容的快照
      */
     private static final long SNAPSHOT_TTL_MS = 5000;
 
     /**
-     * Recently published config contents keyed by {@code dataId@group}, served by
-     * {@link #readFreshConfig} within {@link #SNAPSHOT_TTL_MS} after a publish.
+     * 最近发布的配置内容，key 为 {@code dataId@group}，
+     * 由 {@link #readFreshConfig} 在发布后 {@link #SNAPSHOT_TTL_MS} 内使用
      */
     private static final Map<String, PublishSnapshot> PUBLISH_SNAPSHOTS = new ConcurrentHashMap<>();
 
-    /** Immutable record of a config content that has just been published. */
+    /** 刚发布的配置内容的不可变记录 */
     private static final class PublishSnapshot {
-        /** The published config content. */
+        /** 发布的配置内容 */
         private final String content;
-        /** Wall-clock timestamp (in ms) of the publish. */
+        /** 发布时刻的毫秒时间戳 */
         private final long publishTime;
 
-        /** Records the published content and its publish timestamp. */
+        /** 记录发布内容与发布时间戳 */
         private PublishSnapshot(String content, long publishTime) {
             this.content = content;
             this.publishTime = publishTime;
         }
     }
 
-    /** Default Nacos config group for all Sentinel rule configs. */
+    /** 全部 Sentinel 规则配置的默认 Nacos 分组 */
     public static final String GROUP_ID = "SENTINEL_GROUP";
 
-    /** Timeout in milliseconds of a single fresh config read from Nacos, shared by all rule providers. */
+    /** 从 Nacos 单次读取最新配置的超时时间（毫秒），所有规则提供者共用 */
     public static final long READ_TIMEOUT_MS = 3000L;
 
-    /** DataId postfix of flow rules. */
+    /** 流控规则的 DataId 后缀 */
     public static final String FLOW_DATA_ID_POSTFIX = "-flow-rules.json";
-    /** DataId postfix of degrade rules. */
+    /** 熔断规则的 DataId 后缀 */
     public static final String DEGRADE_DATA_ID_POSTFIX = "-degrade-rules.json";
-    /** DataId postfix of parameter flow control rules. */
+    /** 热点参数流控规则的 DataId 后缀 */
     public static final String PARAM_FLOW_DATA_ID_POSTFIX = "-param-rules.json";
-    /** DataId postfix of system rules. */
+    /** 系统规则的 DataId 后缀 */
     public static final String SYSTEM_DATA_ID_POSTFIX = "-system-rules.json";
-    /** DataId postfix of authority rules. */
+    /** 授权规则的 DataId 后缀 */
     public static final String AUTHORITY_DATA_ID_POSTFIX = "-authority-rules.json";
-    /** DataId postfix of gateway flow rules. */
+    /** 网关流控规则的 DataId 后缀 */
     public static final String GATEWAY_FLOW_DATA_ID_POSTFIX = "-gw-flow-rules.json";
-    /** DataId postfix of gateway API definitions. */
+    /** 网关 API 定义的 DataId 后缀 */
     public static final String GATEWAY_API_DATA_ID_POSTFIX = "-gw-api-rules.json";
-    /** DataId postfix of the cluster assignment map (no {@code .json} suffix). */
+    /** 集群分配映射的 DataId 后缀（无 {@code .json} 后缀） */
     public static final String CLUSTER_MAP_DATA_ID_POSTFIX = "-cluster-map";
 
-    /** DataId postfix of the cluster-client config ({@code cc} for cluster-client). */
+    /** 集群客户端配置的 DataId 后缀（{@code cc} 即 cluster-client） */
     public static final String CLIENT_CONFIG_DATA_ID_POSTFIX = "-cc-config";
-    /** DataId postfix of the cluster-server transport config ({@code cs} for cluster-server). */
+    /** 集群服务端传输配置的 DataId 后缀（{@code cs} 即 cluster-server） */
     public static final String SERVER_TRANSPORT_CONFIG_DATA_ID_POSTFIX = "-cs-transport-config";
-    /** DataId postfix of the cluster-server flow config. */
+    /** 集群服务端流控配置的 DataId 后缀 */
     public static final String SERVER_FLOW_CONFIG_DATA_ID_POSTFIX = "-cs-flow-config";
-    /** DataId postfix of the cluster-server namespace set. */
+    /** 集群服务端命名空间集合的 DataId 后缀 */
     public static final String SERVER_NAMESPACE_SET_DATA_ID_POSTFIX = "-cs-namespace-set";
 
     /**
-     * Publish rules to {@code appName + dataIdPostfix} as pretty-printed JSON,
-     * with the Nacos config type marked as {@code json}.
+     * 将规则以格式化 JSON 发布到 {@code appName + dataIdPostfix}，
+     * Nacos 配置类型标记为 {@code json}
      */
     public static void publishJsonConfig(ConfigService configService, String appName,
                                          String dataIdPostfix, String group, Object rules) throws NacosException {
@@ -113,9 +111,8 @@ public final class NacosConfigUtil {
     }
 
     /**
-     * Read config content: serve the snapshot of the just-published content while it
-     * is fresh (see {@link #SNAPSHOT_TTL_MS}), otherwise fall back to
-     * {@link ConfigService#getConfig}.
+     * 读取配置内容：刚发布内容的快照仍有效时（见 {@link #SNAPSHOT_TTL_MS}）
+     * 直接返回快照，否则回退到 {@link ConfigService#getConfig}
      */
     public static String readFreshConfig(ConfigService configService, String appName,
                                          String dataIdPostfix, String group, long timeoutMs) throws NacosException {
@@ -128,11 +125,11 @@ public final class NacosConfigUtil {
         return configService.getConfig(dataId, group, timeoutMs);
     }
 
-    /** Builds the snapshot cache key in the form {@code dataId@group}. */
+    /** 生成 {@code dataId@group} 形式的快照缓存 key */
     private static String snapshotKey(String dataId, String group) {
         return dataId + "@" + group;
     }
 
-    /** Private constructor to prevent instantiation. */
+    /** 私有构造方法，防止实例化 */
     private NacosConfigUtil() {}
 }

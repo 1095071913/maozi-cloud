@@ -18,7 +18,7 @@ package com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.api;
 import java.util.List;
 
 /**
- * Value Object for add gateway api.
+ * 新增网关 API 的请求视图对象。
  *
  * @author cdfive
  * @date 2026/11/22
@@ -26,72 +26,72 @@ import java.util.List;
  */
 public class AddApiReqVO {
 
-    /** Name of the target application. */
+    /** 目标应用名。 */
     private String app;
 
-    /** IP of the Sentinel client machine that the API definition belongs to. */
+    /** API 定义所属 Sentinel 客户端机器的 IP。 */
     private String ip;
 
-    /** Port of the Sentinel client machine that the API definition belongs to. */
+    /** API 定义所属 Sentinel 客户端机器的端口。 */
     private Integer port;
 
-    /** Name of the gateway API definition. */
+    /** 网关 API 定义名称。 */
     private String apiName;
 
-    /** Predicate items (URL match conditions) of the gateway API definition. */
+    /** 网关 API 定义的断言项（URL 匹配条件）列表。 */
     private List<ApiPredicateItemVO> predicateItems;
 
-    /** Returns the name of the target application. */
+    /** 获取目标应用名。 */
     public String getApp() {
         return app;
     }
 
-    /** Sets the name of the target application. */
+    /** 设置目标应用名。 */
     public void setApp(String app) {
         this.app = app;
     }
 
-    /** Returns the IP of the Sentinel client machine. */
+    /** 获取 Sentinel 客户端机器 IP。 */
     public String getIp() {
         return ip;
     }
 
-    /** Sets the IP of the Sentinel client machine. */
+    /** 设置 Sentinel 客户端机器 IP。 */
     public void setIp(String ip) {
         this.ip = ip;
     }
 
-    /** Returns the port of the Sentinel client machine. */
+    /** 获取 Sentinel 客户端机器端口。 */
     public Integer getPort() {
         return port;
     }
 
-    /** Sets the port of the Sentinel client machine. */
+    /** 设置 Sentinel 客户端机器端口。 */
     public void setPort(Integer port) {
         this.port = port;
     }
 
-    /** Returns the name of the gateway API definition. */
+    /** 获取网关 API 定义名称。 */
     public String getApiName() {
         return apiName;
     }
 
-    /** Sets the name of the gateway API definition. */
+    /** 设置网关 API 定义名称。 */
     public void setApiName(String apiName) {
         this.apiName = apiName;
     }
 
-    /** Returns the predicate items of the gateway API definition. */
+    /** 获取网关 API 定义的断言项列表。 */
     public List<ApiPredicateItemVO> getPredicateItems() {
         return predicateItems;
     }
 
-    /** Sets the predicate items of the gateway API definition. */
+    /** 设置网关 API 定义的断言项列表。 */
     public void setPredicateItems(List<ApiPredicateItemVO> predicateItems) {
         this.predicateItems = predicateItems;
     }
 
-    /** Return a string representation of this VO. */
+    /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
         return "AddApiReqVO{"

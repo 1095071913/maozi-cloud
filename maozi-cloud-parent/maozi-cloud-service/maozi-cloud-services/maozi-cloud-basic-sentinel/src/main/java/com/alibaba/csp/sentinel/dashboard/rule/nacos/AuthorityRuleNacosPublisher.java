@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Authority rules publisher backed by Nacos.
+ * 基于 Nacos 的授权规则发布者
  *
  * @author maozi
  * @date 2026/11/08
@@ -33,22 +33,21 @@ import java.util.stream.Collectors;
 @Component("authorityRuleNacosPublisher")
 public class AuthorityRuleNacosPublisher implements DynamicRulePublisher<List<AuthorityRuleEntity>> {
 
-    /** Nacos config service used to write rule configs. */
+    /** 用于写入规则配置的 Nacos 配置服务 */
     private final ConfigService configService;
-    /** Nacos connection properties, supplies the rule config group. */
+    /** Nacos 连接配置，提供规则配置所在分组 */
     private final NacosProperties nacosProperties;
 
-    /** Creates the publisher with the given config service and Nacos properties. */
+    /** 使用给定的配置服务与 Nacos 配置创建发布者 */
     public AuthorityRuleNacosPublisher(ConfigService configService, NacosProperties nacosProperties) {
         this.configService = configService;
         this.nacosProperties = nacosProperties;
     }
 
     /**
-     * Push the authority rules of an app to the Nacos config
-     * {@code appName + AUTHORITY_DATA_ID_POSTFIX} in the configured group, after
-     * converting the entities to {@link AuthorityRule} objects. Does nothing when rules
-     * is {@code null}.
+     * 将实体转换为 {@link AuthorityRule} 后，把应用的授权规则推送到
+     * 配置分组中的 Nacos 配置 {@code appName + AUTHORITY_DATA_ID_POSTFIX}。
+     * rules 为 {@code null} 时不做任何操作
      */
     @Override
     public void publish(String app, List<AuthorityRuleEntity> rules) throws Exception {

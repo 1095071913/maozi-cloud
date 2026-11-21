@@ -12,14 +12,10 @@ import reactor.core.publisher.Mono;
 /**
  * 请求头安全过滤全局过滤器。
  * <p>
- * 网关作为系统对外的唯一入口，必须保证内部服务间传递的信任请求头
- * 不被外部客户端伪造。{@link CurrentUserInfoContext#KEY}
- * （X-CurrentUserInfo）用于内部服务（Feign/Dubbo）之间传递登录用户身份，
- * 若允许外部请求直接携带该请求头，将造成用户身份伪造风险。
- * </p>
- * <p>
- * 本过滤器在请求进入网关的第一时间移除该请求头，
- * 确保下游服务只能通过网关鉴权后获取真实的用户身份信息。
+ * 网关是系统对外的唯一入口，{@link CurrentUserInfoContext#KEY}（X-CurrentUserInfo）
+ * 头仅用于内部服务（Feign/Dubbo）之间传递登录用户身份，外部请求携带该头将造成
+ * 身份伪造风险。故本过滤器在请求进入网关的第一时间移除该请求头，确保下游服务
+ * 只能通过网关鉴权后获取真实的用户身份信息。
  * </p>
  *
  * @author maozi

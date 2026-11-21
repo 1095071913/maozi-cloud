@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * Controller for cluster token server assignment and unbinding operations.
+ * 集群 token server 分配与解绑操作控制器。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -43,17 +43,18 @@ import java.util.Set;
 @RequestMapping("/cluster/assign")
 public class ClusterAssignController {
 
-    /** The logger of this controller. */
+    /** 日志记录器。 */
     private final Logger logger = LoggerFactory.getLogger(ClusterAssignController.class);
 
-    /** The service that applies or unbinds cluster role assignments for machines. */
+    /** 为机器应用或解绑集群角色分配的服务。 */
     private final ClusterAssignService clusterAssignService;
 
+    /** 注入集群分配服务。 */
     public ClusterAssignController(ClusterAssignService clusterAssignService) {
         this.clusterAssignService = clusterAssignService;
     }
 
-    /** Applies a full cluster assignment (server map plus remaining client list) to all machines of the app. */
+    /** 将全量集群分配（server 映射及剩余 client 列表）应用到应用的全部机器。 */
     @PostMapping("/all_server/{app}")
     public Result<ClusterAppAssignResultVO> apiAssignAllClusterServersOfApp(@PathVariable String app,
                                                                             @RequestBody
@@ -75,7 +76,7 @@ public class ClusterAssignController {
         }
     }
 
-    /** Applies the assignment for a single cluster server, wrapping its clusterMap entry into a list. */
+    /** 应用单个集群 server 的分配，将其 clusterMap 条目包装为列表处理。 */
     @PostMapping("/single_server/{app}")
     public Result<ClusterAppAssignResultVO> apiAssignSingleClusterServersOfApp(@PathVariable String app,
                                                                                @RequestBody
@@ -97,7 +98,7 @@ public class ClusterAssignController {
         }
     }
 
-    /** Unbinds the cluster servers of the app identified by the given machine ids. */
+    /** 按指定机器 id 解绑应用对应的集群 server。 */
     @PostMapping("/unbind_server/{app}")
     public Result<ClusterAppAssignResultVO> apiUnbindClusterServersOfApp(@PathVariable String app,
                                                                          @RequestBody Set<String> machineIds) {

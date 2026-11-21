@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.domain.cluster.state;
 
 /**
- * App-level cluster token client state of one machine, keyed by machine id.
+ * 应用级单台机器的集群 token client 状态包装，按机器 id 标识。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -24,63 +24,63 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.state;
  */
 public class AppClusterClientStateWrapVO {
 
-    /** Machine ID in "{ip}@{transport_command_port}" form. */
+    /** 机器 id，格式为 "{ip}@{transport_command_port}"。 */
     private String id;
 
-    /** The command port of the machine. */
+    /** 机器命令端口。 */
     private Integer commandPort;
 
-    /** The IP address of the machine. */
+    /** 机器 IP 地址。 */
     private String ip;
 
-    /** The cluster client state of the machine. */
+    /** 机器的集群客户端状态。 */
     private ClusterClientStateVO state;
 
-    /** Get the machine ID. */
+    /** 获取机器 id。 */
     public String getId() {
         return id;
     }
 
-    /** Set the machine ID and return this. */
+    /** 设置机器 id 并返回当前对象。 */
     public AppClusterClientStateWrapVO setId(String id) {
         this.id = id;
         return this;
     }
 
-    /** Get the IP address. */
+    /** 获取 IP 地址。 */
     public String getIp() {
         return ip;
     }
 
-    /** Set the IP address and return this. */
+    /** 设置 IP 地址并返回当前对象。 */
     public AppClusterClientStateWrapVO setIp(String ip) {
         this.ip = ip;
         return this;
     }
 
-    /** Get the cluster client state. */
+    /** 获取集群客户端状态。 */
     public ClusterClientStateVO getState() {
         return state;
     }
 
-    /** Set the cluster client state and return this. */
+    /** 设置集群客户端状态并返回当前对象。 */
     public AppClusterClientStateWrapVO setState(ClusterClientStateVO state) {
         this.state = state;
         return this;
     }
 
-    /** Get the command port. */
+    /** 获取命令端口。 */
     public Integer getCommandPort() {
         return commandPort;
     }
 
-    /** Set the command port and return this. */
+    /** 设置命令端口并返回当前对象。 */
     public AppClusterClientStateWrapVO setCommandPort(Integer commandPort) {
         this.commandPort = commandPort;
         return this;
     }
 
-    /** Return a string representation of this VO. */
+    /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
         return "AppClusterClientStateWrapVO{" +

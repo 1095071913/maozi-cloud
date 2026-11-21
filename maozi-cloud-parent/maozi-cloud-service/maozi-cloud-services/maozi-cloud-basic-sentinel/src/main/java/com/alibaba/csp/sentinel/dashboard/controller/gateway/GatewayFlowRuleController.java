@@ -62,7 +62,7 @@ import static com.alibaba.csp.sentinel.slots.block.RuleConstant.FLOW_GRADE_QPS;
 import static com.alibaba.csp.sentinel.slots.block.RuleConstant.FLOW_GRADE_THREAD;
 
 /**
- * Controller for managing gateway flow rules.
+ * 网关流控规则管理控制器。
  *
  * @author cdfive
  * @date 2026/11/22
@@ -72,17 +72,18 @@ import static com.alibaba.csp.sentinel.slots.block.RuleConstant.FLOW_GRADE_THREA
 @RequestMapping(value = "/gateway/flow")
 public class GatewayFlowRuleController {
 
-    /** The logger of this controller. */
+    /** 日志记录器。 */
     private final Logger logger = LoggerFactory.getLogger(GatewayFlowRuleController.class);
 
-    /** The in-memory store that keeps gateway flow rules. */
+    /** 保存网关流控规则的内存仓储。 */
     private final InMemGatewayFlowRuleStore repository;
 
-    /** The Nacos provider that pulls gateway flow rules for a given app. */
+    /** 从 Nacos 拉取指定应用网关流控规则的提供者。 */
     private final DynamicRuleProvider<List<GatewayFlowRuleEntity>> ruleProvider;
-    /** The Nacos publisher that pushes gateway flow rules to a given app. */
+    /** 向指定应用推送网关流控规则的发布者。 */
     private final DynamicRulePublisher<List<GatewayFlowRuleEntity>> rulePublisher;
 
+    /** 注入网关流控规则仓储、规则提供者与发布者。 */
     public GatewayFlowRuleController(InMemGatewayFlowRuleStore repository,
                                      @Qualifier("gatewayFlowRuleNacosProvider")
                                          DynamicRuleProvider<List<GatewayFlowRuleEntity>> ruleProvider,
@@ -93,7 +94,7 @@ public class GatewayFlowRuleController {
         this.rulePublisher = rulePublisher;
     }
 
-    /** Fetches the app's gateway flow rules from Nacos, stamps machine info, persists them and returns them. */
+    /** 从 Nacos 拉取应用的网关流控规则，为每条补充机器信息后持久化并返回。 */
     @GetMapping("/list.json")
     @AuthAction(AuthService.PrivilegeType.READ_RULE)
     public Result<List<GatewayFlowRuleEntity>> queryFlowRules(String app, String ip, Integer port) {
@@ -123,7 +124,7 @@ public class GatewayFlowRuleController {
         }
     }
 
-    /** Adds a new gateway flow rule after full field validation, then publishes the app's rules to Nacos. */
+    /** 全字段校验通过后新增网关流控规则，并将应用的规则推送至 Nacos。 */
     @PostMapping("/new.json")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
     public Result<GatewayFlowRuleEntity> addFlowRule(@RequestBody AddFlowRuleReqVO reqVo) {
@@ -139,7 +140,7 @@ public class GatewayFlowRuleController {
         entity.setApp(entity.getApp().trim());
         entity.setIp(entity.getIp().trim());
 
-        // Resource type: Route ID or API group name.
+        // 资源类型：Route ID 或 API 分组名
         Integer resourceMode = reqVo.getResourceMode();
         if (resourceMode == null) {
             return Result.ofFail(Result.CODE_ERROR, "resourceMode can't be null");
@@ -149,7 +150,7 @@ public class GatewayFlowRuleController {
         }
         entity.setResourceMode(resourceMode);
 
-        // API name.
+        // API 名称
         String resource = reqVo.getResource();
         if (StringUtil.isBlank(resource)) {
             return Result.ofFail(Result.CODE_ERROR, "resource can't be null or empty");
@@ -172,8 +173,7 @@ public class GatewayFlowRuleController {
     }
 
     /**
-     * Updates the rule of the given id (param item replaced, or cleared when absent) after validation, then publishes
-     * the app's rules.
+     * 更新指定 id 的规则（参数条目被替换，请求未携带时清空），校验通过后推送应用的规则。
      */
     @PostMapping("/save.json")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
@@ -209,7 +209,7 @@ public class GatewayFlowRuleController {
     }
 
 
-    /** Deletes the rule of the given id and publishes the app's rules; an unknown id returns success with null data. */
+    /** 删除指定 id 的规则并推送应用的规则；id 不存在时直接成功返回（数据为 null）。 */
     @PostMapping("/delete.json")
     @AuthAction(AuthService.PrivilegeType.DELETE_RULE)
     public Result<Long> deleteFlowRule(Long id) {
@@ -238,10 +238,9 @@ public class GatewayFlowRuleController {
     }
 
     /**
-     * Validates the request parameter item (parse strategy, field name for the header/URL
-     * parameter/cookie strategies, and pattern with its match strategy) and fills it on the
-     * entity, or clears the entity's item when the request carries none; returns the first
-     * error result or null when valid.
+     * 校验请求中的参数条目（解析策略、Header/URL 参数/Cookie 策略所需的字段名、
+     * 匹配模式及其匹配策略）并填充到实体；请求未携带时清空实体的参数条目；
+     * 返回首个错误结果，校验通过返回 null。
      */
     private <R> Result<R> checkAndFillParamItem(GatewayParamFlowItemVO paramItem, GatewayFlowRuleEntity entity) {
         if (paramItem == null) {
@@ -252,7 +251,7 @@ public class GatewayFlowRuleController {
         GatewayParamFlowItemEntity itemEntity = new GatewayParamFlowItemEntity();
         entity.setParamItem(itemEntity);
 
-        // Parse strategy: 0-ClientIP, 1-Remote Host, 2-Header, 3-URL parameter, 4-Cookie.
+        // 解析策略：0-ClientIP、1-Remote Host、2-Header、3-URL 参数、4-Cookie
         Integer parseStrategy = paramItem.getParseStrategy();
         if (!Arrays.asList(PARAM_PARSE_STRATEGY_CLIENT_IP, PARAM_PARSE_STRATEGY_HOST, PARAM_PARSE_STRATEGY_HEADER
                 , PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
@@ -260,10 +259,10 @@ public class GatewayFlowRuleController {
         }
         itemEntity.setParseStrategy(parseStrategy);
 
-        // Field name is required for parse strategies 2-Header, 3-URL parameter and 4-Cookie.
+        // 解析策略 2-Header、3-URL 参数、4-Cookie 必须提供字段名
         if (Arrays.asList(PARAM_PARSE_STRATEGY_HEADER, PARAM_PARSE_STRATEGY_URL_PARAM, 
             PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
-            // Field name.
+            // 字段名
             String fieldName = paramItem.getFieldName();
             if (StringUtil.isBlank(fieldName)) {
                 return Result.ofFail(Result.CODE_ERROR, "fieldName can't be null or empty");
@@ -272,7 +271,7 @@ public class GatewayFlowRuleController {
         }
 
         String pattern = paramItem.getPattern();
-        // Validate the match strategy only when the pattern is not empty.
+        // 匹配模式非空时才校验匹配策略
         if (StringUtil.isNotEmpty(pattern)) {
             itemEntity.setPattern(pattern);
             Integer matchStrategy = paramItem.getMatchStrategy();
@@ -286,14 +285,14 @@ public class GatewayFlowRuleController {
     }
 
     /**
-     * Validates the rule fields shared by add and update (grade, count, interval with its
-     * unit, and controlBehavior with the burst / maxQueueingTimeoutMs it requires) and
-     * fills them on the entity; returns the first error result or null when valid.
+     * 校验新增与更新共有的规则字段（grade、count、interval 及其单位、controlBehavior
+     * 及其要求的 burst / maxQueueingTimeoutMs）并填充到实体；
+     * 返回首个错误结果，校验通过返回 null。
      */
     private <R> Result<R> checkAndFillRuleFields(Integer grade, Double count, Long interval, Integer intervalUnit,
                                                  Integer controlBehavior, Integer burst, Integer maxQueueingTimeoutMs,
                                                  GatewayFlowRuleEntity entity) {
-        // Threshold type: 0-thread count, 1-QPS.
+        // 阈值类型：0-线程数、1-QPS
         if (grade == null) {
             return Result.ofFail(Result.CODE_ERROR, "grade can't be null");
         }
@@ -302,7 +301,7 @@ public class GatewayFlowRuleController {
         }
         entity.setGrade(grade);
 
-        // QPS threshold.
+        // QPS 阈值
         if (count == null) {
             return Result.ofFail(Result.CODE_ERROR, "count can't be null");
         }
@@ -311,7 +310,7 @@ public class GatewayFlowRuleController {
         }
         entity.setCount(count);
 
-        // Interval.
+        // 统计窗口时长
         if (interval == null) {
             return Result.ofFail(Result.CODE_ERROR, "interval can't be null");
         }
@@ -320,7 +319,7 @@ public class GatewayFlowRuleController {
         }
         entity.setInterval(interval);
 
-        // Interval unit.
+        // 统计窗口时长单位
         if (intervalUnit == null) {
             return Result.ofFail(Result.CODE_ERROR, "intervalUnit can't be null");
         }
@@ -330,7 +329,7 @@ public class GatewayFlowRuleController {
         }
         entity.setIntervalUnit(intervalUnit);
 
-        // Control behavior: 0-fast fail, 2-uniform rate limiter.
+        // 流控效果：0-快速失败、2-匀速排队
         if (controlBehavior == null) {
             return Result.ofFail(Result.CODE_ERROR, "controlBehavior can't be null");
         }
@@ -340,7 +339,7 @@ public class GatewayFlowRuleController {
         entity.setControlBehavior(controlBehavior);
 
         if (CONTROL_BEHAVIOR_DEFAULT == controlBehavior) {
-            // Burst size is required for control behavior 0 (fast fail).
+            // 流控效果 0（快速失败）必须提供突发增量
             if (burst == null) {
                 return Result.ofFail(Result.CODE_ERROR, "burst can't be null");
             }
@@ -349,7 +348,7 @@ public class GatewayFlowRuleController {
             }
             entity.setBurst(burst);
         } else if (CONTROL_BEHAVIOR_RATE_LIMITER == controlBehavior) {
-            // Timeout is required for control behavior 2 (uniform rate limiter).
+            // 流控效果 2（匀速排队）必须提供排队超时时间
             if (maxQueueingTimeoutMs == null) {
                 return Result.ofFail(Result.CODE_ERROR, "maxQueueingTimeoutMs can't be null");
             }
@@ -362,8 +361,7 @@ public class GatewayFlowRuleController {
     }
 
     /**
-     * Saves the entity and publishes the app's rules (logging the given action on failure); returns the saved entity
-     * or a failure result.
+     * 保存实体并推送应用的规则（失败时记录指定动作的日志）；返回保存后的实体或失败结果。
      */
     private Result<GatewayFlowRuleEntity> saveAndPublish(GatewayFlowRuleEntity entity, String action) {
         try {
@@ -380,7 +378,7 @@ public class GatewayFlowRuleController {
         return Result.ofSuccess(entity);
     }
 
-    /** Publishes all local rules of the app to Nacos; returns false on error. */
+    /** 将应用在本地的全部规则推送至 Nacos；出错时返回 false。 */
     private boolean publishRules(String app) {
         try {
             List<GatewayFlowRuleEntity> rules = repository.findAllByApp(app);

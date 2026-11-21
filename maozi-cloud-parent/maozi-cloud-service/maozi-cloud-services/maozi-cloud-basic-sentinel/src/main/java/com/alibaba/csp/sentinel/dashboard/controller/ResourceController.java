@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Controller for fetching realtime statistics of a machine.
+ * 获取机器实时统计信息的控制器。
  *
  * @author Carpenter Lee
  * @date 2026/11/22
@@ -40,25 +40,26 @@ import java.util.stream.Collectors;
 @RequestMapping(value = "/resource")
 public class ResourceController {
 
-    /** The logger of this controller. */
+    /** 日志记录器。 */
     private static final Logger logger = LoggerFactory.getLogger(ResourceController.class);
 
-    /** The client used to fetch resource node info from Sentinel clients via HTTP. */
+    /** 通过 HTTP 从 Sentinel 客户端拉取资源节点信息的客户端。 */
     private final SentinelApiClient httpFetcher;
 
+    /** 注入 Sentinel API 客户端。 */
     public ResourceController(SentinelApiClient httpFetcher) {
         this.httpFetcher = httpFetcher;
     }
 
     /**
-     * Fetches real time statistics info of the machine.
+     * 获取机器的实时统计信息。
      *
-     * @param ip        ip to fetch
-     * @param port      port of the ip
-     * @param type      one of [root, default, cluster], 'root' means fetching from tree root node, 'default' means
-     *                  fetching from tree default node, 'cluster' means fetching from cluster node.
-     * @param searchKey key to search
-     * @return node statistics info.
+     * @param ip        待查询的机器 IP
+     * @param port      机器端口
+     * @param type      节点类型，取值 [root, default, cluster]：root 从树根节点获取，
+     *                  default 从树默认节点获取，cluster 从集群节点获取
+     * @param searchKey 搜索关键字
+     * @return 节点统计信息
      */
     @GetMapping("/machineResource.json")
     public Result<List<ResourceVO>> fetchResourceChainListOfMachine(String ip, Integer port, String type,
@@ -66,7 +67,7 @@ public class ResourceController {
         if (StringUtil.isEmpty(ip) || port == null) {
             return Result.ofFail(Result.CODE_ERROR, "invalid param, give ip, port");
         }
-        // Local constants for the supported node types, lower camelCase as local variables.
+        // 支持的节点类型局部常量，以小驼峰命名作为局部变量
         final String typeRoot = "root";
         final String typeDefault = "default";
         if (StringUtil.isEmpty(type)) {
@@ -81,7 +82,7 @@ public class ResourceController {
             treeNode.searchIgnoreCase(searchKey);
             return Result.ofSuccess(ResourceVO.fromResourceTreeNode(treeNode));
         } else {
-            // Normal (cluster node).
+            // 其余类型按集群节点处理
             List<NodeVo> nodeVos = httpFetcher.fetchClusterNodeOfMachine(ip, port, true);
             if (StringUtil.isNotEmpty(searchKey)) {
                 nodeVos = nodeVos.stream().filter(node -> node.getResource()

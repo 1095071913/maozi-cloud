@@ -44,10 +44,7 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
     /** 初始轮询位置随机上界 */
     private static final int INITIAL_POSITION_BOUND = 1000;
 
-    /**
-     * 轮询位置计数器（初始位置随机打散，多实例错峰；
-     * 并发场景使用 ThreadLocalRandom 避免共享竞争）
-     */
+    /** 轮询位置计数器（初始位置随机打散，多实例错峰） */
     private final AtomicInteger position =
         new AtomicInteger(ThreadLocalRandom.current().nextInt(INITIAL_POSITION_BOUND));
 

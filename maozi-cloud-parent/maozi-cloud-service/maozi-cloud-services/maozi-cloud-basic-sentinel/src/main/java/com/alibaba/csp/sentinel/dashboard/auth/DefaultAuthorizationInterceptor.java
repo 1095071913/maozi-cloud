@@ -25,9 +25,9 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 
 /**
- * The web interceptor for privilege-based authorization.
+ * 基于权限校验的 Web 授权拦截器默认实现。
  * <p>
- * move from old {@link AuthorizationInterceptor}.
+ * 由旧的 {@link AuthorizationInterceptor} 迁移而来。
  *
  * @author lkxiaolou
  * @author wxq
@@ -36,25 +36,29 @@ import java.lang.reflect.Method;
  */
 public class DefaultAuthorizationInterceptor implements AuthorizationInterceptor {
 
-    /** Name of the HTTP Content-Type header. */
+    /** HTTP Content-Type 请求头名称。 */
     private static final String HTTP_HEADER_CONTENT_TYPE = "Content-Type";
 
-    /** JSON content type with UTF-8 charset, used for the privilege-denied response body. */
+    /** 带 UTF-8 编码的 JSON 内容类型，用于权限校验失败时的响应体。 */
     private static final String CONTENT_TYPE_JSON_UTF8 = "application/json;charset=UTF-8";
 
-    /** The authentication service used to resolve the current user from the request. */
+    /** 用于从请求中解析当前用户的认证服务。 */
     private final AuthService<HttpServletRequest> authService;
 
-    /** Creates the interceptor with the given authentication service. */
+    /** 使用指定的认证服务构建拦截器。 */
     public DefaultAuthorizationInterceptor(AuthService<HttpServletRequest> authService) {
         this.authService = authService;
     }
 
     /**
-     * Authorize handler methods annotated with {@link AuthAction}: resolve the current user
-     * from the request and check the target parameter named by the annotation; requests
-     * without an annotation pass through, unauthenticated or unauthorized ones are rejected
-     * with a JSON error message.
+     * 对标注了 {@link AuthAction} 的处理器方法做权限校验：从请求解析当前用户，
+     * 并校验注解指定名称的目标参数；未标注的方法直接放行，未认证或无权限的请求
+     * 以 JSON 错误消息拒绝。
+     *
+     * @param request  当前请求
+     * @param response 当前响应
+     * @param handler  处理器对象
+     * @return 校验通过返回 true，否则返回 false
      */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
@@ -81,7 +85,13 @@ public class DefaultAuthorizationInterceptor implements AuthorizationInterceptor
         return true;
     }
 
-    /** Writes the given failure message to the response as a JSON body. */
+    /**
+     * 将权限校验失败消息以 JSON 形式写入响应。
+     *
+     * @param response 当前响应
+     * @param message  失败提示消息
+     * @throws IOException 写入响应流出错时抛出
+     */
     private void responseNoPrivilegeMsg(HttpServletResponse response, String message) throws IOException {
         Result result = Result.ofFail(Result.CODE_ERROR, message);
         response.addHeader(HTTP_HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON_UTF8);

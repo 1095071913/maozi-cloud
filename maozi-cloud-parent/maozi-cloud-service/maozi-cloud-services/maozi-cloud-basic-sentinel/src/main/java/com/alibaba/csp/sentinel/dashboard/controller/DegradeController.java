@@ -42,8 +42,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Controller for degrade rule management, fetching rules from and publishing rules
- * to Nacos via the dynamic rule provider/publisher.
+ * 降级规则管理控制器，通过动态规则提供者/发布者从 Nacos 拉取与推送规则。
  *
  * @author Carpenter Lee
  * @author Eric Zhao
@@ -53,18 +52,19 @@ import java.util.List;
 @RequestMapping("/degrade")
 public class DegradeController {
 
-    /** The logger of this controller. */
+    /** 日志记录器。 */
     private final Logger logger = LoggerFactory.getLogger(DegradeController.class);
 
-    /** The repository that stores degrade rule entities in memory. */
+    /** 存储降级规则实体的内存仓储。 */
     private final RuleRepository<DegradeRuleEntity, Long> repository;
-    /** The app management service used to validate machine-to-app relationship. */
+    /** 用于校验机器与应用归属关系的应用管理服务。 */
     private final AppManagement appManagement;
-    /** The Nacos provider that pulls degrade rules for a given app. */
+    /** 从 Nacos 拉取指定应用降级规则的提供者。 */
     private final DynamicRuleProvider<List<DegradeRuleEntity>> ruleProvider;
-    /** The Nacos publisher that pushes degrade rules to a given app. */
+    /** 向指定应用推送降级规则的发布者。 */
     private final DynamicRulePublisher<List<DegradeRuleEntity>> rulePublisher;
 
+    /** 注入规则仓储、应用管理、规则提供者与发布者。 */
     public DegradeController(RuleRepository<DegradeRuleEntity, Long> repository,
                              AppManagement appManagement,
                              @Qualifier("degradeRuleNacosProvider") DynamicRuleProvider<List<DegradeRuleEntity>>
@@ -78,8 +78,7 @@ public class DegradeController {
     }
 
     /**
-     * Fetches the app's degrade rules from Nacos, stamps each rule with the given machine
-     * info, persists them into the repository and returns them.
+     * 从 Nacos 拉取应用的降级规则，为每条规则补充指定机器信息后持久化到仓储并返回。
      */
     @GetMapping("/rules.json")
     @AuthAction(PrivilegeType.READ_RULE)
@@ -111,7 +110,7 @@ public class DegradeController {
         }
     }
 
-    /** Adds a new degrade rule after validation and publishes the app's rules to Nacos. */
+    /** 校验通过后新增降级规则，并将应用的规则推送至 Nacos。 */
     @PostMapping("/rule")
     @AuthAction(PrivilegeType.WRITE_RULE)
     public Result<DegradeRuleEntity> apiAddRule(@RequestBody DegradeRuleEntity entity) {
@@ -132,10 +131,7 @@ public class DegradeController {
         return Result.ofSuccess(entity);
     }
 
-    /**
-     * Updates the rule of the given id (app/ip/port/id/gmtCreate inherited from the old entity) and publishes the
-     * app's rules.
-     */
+    /** 更新指定 id 的规则（app/ip/port/id/gmtCreate 沿用旧实体），并推送应用的规则。 */
     @PutMapping("/rule/{id}")
     @AuthAction(PrivilegeType.WRITE_RULE)
     public Result<DegradeRuleEntity> apiUpdateRule(@PathVariable("id") Long id,
@@ -170,7 +166,7 @@ public class DegradeController {
         return Result.ofSuccess(entity);
     }
 
-    /** Deletes the rule of the given id and publishes the app's rules; an unknown id returns success with null data. */
+    /** 删除指定 id 的规则并推送应用的规则；id 不存在时直接成功返回（数据为 null）。 */
     @DeleteMapping("/rule/{id}")
     @AuthAction(PrivilegeType.DELETE_RULE)
     public Result<Long> delete(@PathVariable("id") Long id) {
@@ -195,7 +191,7 @@ public class DegradeController {
         return Result.ofSuccess(id);
     }
 
-    /** Publishes all local rules of the app to Nacos; returns false on error. */
+    /** 将应用在本地的全部规则推送至 Nacos；出错时返回 false。 */
     private boolean publishRules(String app) {
         try {
             List<DegradeRuleEntity> rules = repository.findAllByApp(app);
@@ -208,8 +204,7 @@ public class DegradeController {
     }
 
     /**
-     * Validates the machine fields via the shared validator, then the degrade-rule specific fields; returns the first
-     * error or null.
+     * 先通过公共校验器校验机器字段，再校验降级规则特有字段；返回首个错误结果，校验通过返回 null。
      */
     private <R> Result<R> checkEntityInternal(DegradeRuleEntity entity) {
         Result<R> baseResult = RuleEntityValidator.checkBaseFields(entity, appManagement);
@@ -238,7 +233,6 @@ public class DegradeController {
             || strategy > RuleConstant.DEGRADE_GRADE_EXCEPTION_COUNT) {
             return Result.ofFail(Result.CODE_ERROR, "Invalid circuit breaker strategy: " + strategy);
         }
-        // Cache the field values to avoid repeated calls within the same method.
         Integer minRequestAmount = entity.getMinRequestAmount();
         if (minRequestAmount == null || minRequestAmount <= 0) {
             return Result.ofFail(Result.CODE_ERROR, "Invalid minRequestAmount");

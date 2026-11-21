@@ -87,12 +87,12 @@ public class FilterSampler implements Sampler {
                 return SamplingResult.create(SamplingDecision.DROP);
             }
 
-            // 通过SpanName过滤
+            // Span 名称命中排除名单（如 Nacos 心跳），直接丢弃
             if (EXCLUDED_TARGETS.contains(name)) {
                 return SamplingResult.create(SamplingDecision.DROP);
             }
 
-            // 通过属性过滤
+            // 按 Span 属性逐类型过滤噪声请求
             if (!attributes.isEmpty()) {
                 for (FilterTypeEnum type : FilterTypeEnum.values()) {
 

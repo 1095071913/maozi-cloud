@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * A fake AuthService implementation, which will pass all user auth checking.
+ * 伪认证服务实现，所有用户权限校验均直接通过。
  *
  * @author Carpenter Lee
  * @date 2026/11/22
@@ -29,53 +29,50 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class FakeAuthServiceImpl implements AuthService<HttpServletRequest> {
 
-    /** Logger that warns about the missing real auth implementation. */
+    /** 用于警告未配置真实认证实现的日志记录器。 */
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    /** Logs a warning that this fake implementation bypasses all auth checking. */
+    /** 构造时记录警告日志，提示当前使用伪实现跳过了全部权限校验。 */
     public FakeAuthServiceImpl() {
         this.logger.warn("there is no auth, use {} by implementation {}", AuthService.class, this.getClass());
     }
 
-    /** {@inheritDoc} Always returns a fake user that passes all auth checking. */
+    /** {@inheritDoc} 始终返回一个通过全部权限校验的伪用户。 */
     @Override
     public AuthUser getAuthUser(HttpServletRequest request) {
         return new AuthUserImpl();
     }
 
-    /** Fake auth user that passes all privilege checking with fixed fake identity values. */
+    /** 伪认证用户，所有权限校验均返回 true，身份信息为固定伪值。 */
     static final class AuthUserImpl implements AuthUser {
 
-        /** Serializable version uid, required by the AuthUser contract. */
         private static final long serialVersionUID = 1L;
 
-        /** {@inheritDoc} Always returns true, ignoring the target and privilege. */
+        /** {@inheritDoc} 始终返回 true，不校验目标与权限。 */
         @Override
         public boolean authTarget(String target, PrivilegeType privilegeType) {
-            // fake implementation, always return true
             return true;
         }
 
-        /** {@inheritDoc} Always returns true. */
+        /** {@inheritDoc} 始终返回 true。 */
         @Override
         public boolean isSuperUser() {
-            // fake implementation, always return true
             return true;
         }
 
-        /** Gets the fixed fake nick name. */
+        /** {@inheritDoc} 返回固定的伪昵称。 */
         @Override
         public String getNickName() {
             return "FAKE_NICK_NAME";
         }
 
-        /** Gets the fixed fake login name. */
+        /** {@inheritDoc} 返回固定的伪登录名。 */
         @Override
         public String getLoginName() {
             return "FAKE_LOGIN_NAME";
         }
 
-        /** Gets the fixed fake user id. */
+        /** {@inheritDoc} 返回固定的伪用户 ID。 */
         @Override
         public String getId() {
             return "FAKE_EMP_ID";

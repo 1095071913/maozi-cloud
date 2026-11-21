@@ -14,7 +14,6 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.authorization.method.AuthorizationInterceptorsOrder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -30,17 +29,11 @@ import java.util.stream.Collectors;
 /**
  * AI 工具调用权限校验切面
  * <p>
- * 拦截所有标注 {@link Tool} 注解的 AI 函数调用方法，若方法同时标注了
- * {@link PreAuthorize} 注解，则在执行前基于链路上下文当前用户补齐 SecurityContext 认证信息，
- * 交由内层原生拦截器完成权限校验，未标注则不校验直接执行。
- * </p>
- * <p>
- * 背景：AI 流式对话（SSE）中工具方法在 Reactor 线程上执行，SecurityContext
- * 不会随线程传递，导致原生 {@code @PreAuthorize} 方法级拦截器因获取不到认证信息而失败。
- * 本切面先于原生拦截器（Order 小于 {@link AuthorizationInterceptorsOrder#PRE_AUTHORIZE}）执行，
- * 无论当前线程是否已有认证信息均覆盖写入构建的认证信息（基于 TransmittableThreadLocal
- * 链路上下文获取当前登录用户，不发起用户服务 RPC 查询），执行完毕清空 SecurityContext，
- * 避免认证信息残留到线程池线程。
+ * 拦截标注 {@link Tool} 注解的 AI 函数调用方法：若同时标注 {@link PreAuthorize}，
+ * 先基于链路上下文当前用户补齐 SecurityContext 认证信息交由内层原生拦截器
+ * 完成权限校验，未标注则直接执行。背景：SSE 流式对话中工具方法运行在
+ * Reactor 线程，SecurityContext 不随线程传递导致原生拦截器校验失败，
+ * 故本切面先于其执行并覆盖写入认证信息，执行完毕清空防止残留到线程池线程。
  * </p>
  *
  * @author pengjinlong

@@ -26,8 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * Default in-memory implementation of {@link MachineDiscovery}, keeping discovered
- * applications and their machines in a concurrent map.
+ * {@link MachineDiscovery} 的默认内存实现，使用并发 Map 保存已发现的应用及其机器。
  *
  * @author leyou
  * @date 2026/11/22
@@ -35,17 +34,16 @@ import java.util.concurrent.ConcurrentMap;
 @Component
 public class SimpleMachineDiscovery implements MachineDiscovery {
 
-    /** Discovered applications, keyed by app name. */
+    /** 已发现的应用，key 为应用名。 */
     private final ConcurrentMap<String, AppInfo> apps = new ConcurrentHashMap<>();
 
     /**
-     * Adds the machine to its application, creating the application entry if absent.
-     * Always returns 1.
+     * 将机器加入其所属应用，应用不存在时先创建，固定返回 1。
      */
     @Override
     public long addMachine(MachineInfo machineInfo) {
         AssertUtil.notNull(machineInfo, "machineInfo cannot be null");
-        // Cache the app name to avoid repeated calls within the same method.
+        // 缓存应用名，避免同一方法内重复获取
         String appName = machineInfo.getApp();
         AppInfo appInfo = apps.computeIfAbsent(appName, o -> new AppInfo(appName, machineInfo.getAppType()));
         appInfo.addMachine(machineInfo);
@@ -53,8 +51,7 @@ public class SimpleMachineDiscovery implements MachineDiscovery {
     }
 
     /**
-     * Removes the machine with the given ip and port from the application,
-     * returning false when the app or the machine is absent.
+     * 从应用中移除指定 ip 和 port 的机器，应用或机器不存在时返回 false。
      */
     @Override
     public boolean removeMachine(String app, String ip, int port) {
@@ -66,26 +63,26 @@ public class SimpleMachineDiscovery implements MachineDiscovery {
         return false;
     }
 
-    /** Gets the names of all discovered applications. */
+    /** 获取所有已发现应用的名称列表。 */
     @Override
     public List<String> getAppNames() {
         return new ArrayList<>(apps.keySet());
     }
 
-    /** Gets the app info of the given app name, or null if the app is absent. */
+    /** 获取指定名称的应用信息，应用不存在时返回 null。 */
     @Override
     public AppInfo getDetailApp(String app) {
         AssertUtil.assertNotBlank(app, "app name cannot be blank");
         return apps.get(app);
     }
 
-    /** Gets brief info of all discovered applications. */
+    /** 获取所有已发现应用的简要信息。 */
     @Override
     public Set<AppInfo> getBriefApps() {
         return new HashSet<>(apps.values());
     }
 
-    /** Removes the application with the given name. */
+    /** 移除指定名称的应用。 */
     @Override
     public void removeApp(String app) {
         AssertUtil.assertNotBlank(app, "app name cannot be blank");

@@ -20,7 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Nacos connection properties for rule persistence.
+ * 用于规则持久化的 Nacos 连接配置
  *
  * @author maozi
  * @date 2026/11/08
@@ -28,53 +28,52 @@ import org.springframework.stereotype.Component;
 @Component
 public class NacosProperties {
 
-    /** Nacos server address, defaults to {@code localhost:8848}. */
+    /** Nacos 服务器地址，默认 {@code localhost:8848} */
     @Value("${nacos.server-addr:localhost:8848}")
     private String serverAddr;
 
-    /** Nacos namespace, empty string means the default namespace. */
+    /** Nacos 命名空间，空字符串表示默认命名空间 */
     @Value("${nacos.namespace:}")
     private String namespace;
 
-    /** Nacos username for authentication, empty when auth is disabled. */
+    /** 认证用的 Nacos 用户名，关闭认证时为空 */
     @Value("${nacos.username:}")
     private String username;
 
-    /** Nacos password for authentication, empty when auth is disabled. */
+    /** 认证用的 Nacos 密码，关闭认证时为空 */
     @Value("${nacos.password:}")
     private String password;
 
     /**
-     * Group of all sentinel rule configs, always {@link NacosConfigUtil#GROUP_ID}
-     * (SENTINEL_GROUP) unless overridden with a non-blank value.
+     * 全部 Sentinel 规则配置所在分组，未用非空值覆盖时
+     * 恒为 {@link NacosConfigUtil#GROUP_ID}（SENTINEL_GROUP）
      */
     @Value("${nacos.group:SENTINEL_GROUP}")
     private String group;
 
-    /** Returns the Nacos server address. */
+    /** 返回 Nacos 服务器地址 */
     public String getServerAddr() {
         return serverAddr;
     }
 
-    /** Returns the Nacos namespace, empty string for the default namespace. */
+    /** 返回 Nacos 命名空间，空字符串表示默认命名空间 */
     public String getNamespace() {
         return namespace;
     }
 
-    /** Returns the Nacos username, empty when auth is disabled. */
+    /** 返回 Nacos 用户名，关闭认证时为空 */
     public String getUsername() {
         return username;
     }
 
-    /** Returns the Nacos password, empty when auth is disabled. */
+    /** 返回 Nacos 密码，关闭认证时为空 */
     public String getPassword() {
         return password;
     }
 
-    /** Returns the configured group, or {@link NacosConfigUtil#GROUP_ID} when it is blank. */
+    /** 返回配置的分组，为空时返回 {@link NacosConfigUtil#GROUP_ID} */
     public String getGroup() {
-        // Fall back to SENTINEL_GROUP when the property is absent or blank,
-        // so rules are never published to an empty/default group by accident.
+        // 配置缺失或为空时回退到 SENTINEL_GROUP，避免规则被意外发布到空分组/默认分组
         return StringUtil.isBlank(group) ? NacosConfigUtil.GROUP_ID : group;
     }
 }

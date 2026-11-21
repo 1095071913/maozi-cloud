@@ -18,60 +18,59 @@ package com.alibaba.csp.sentinel.dashboard.datasource.entity;
 import java.util.Date;
 
 /**
- * Base entity holding the common fields shared by dashboard entities: id, app,
- * gmtCreate and gmtModified.
+ * 控制台实体的公共基类，持有公共字段：id、app、gmtCreate 与 gmtModified。
  *
  * @author leyou
  * @date 2026/11/22
  */
 public abstract class BaseEntity {
 
-    /** The entity id. */
+    /** 实体 id。 */
     protected Long id;
-    /** The application name. */
+    /** 应用名。 */
     protected String app;
-    /** The create time. */
+    /** 创建时间。 */
     protected Date gmtCreate;
-    /** The last modify time. */
+    /** 最近修改时间。 */
     protected Date gmtModified;
 
-    /** Gets the entity id. */
+    /** 获取实体 id。 */
     public Long getId() {
         return id;
     }
 
-    /** Sets the entity id. */
+    /** 设置实体 id。 */
     public void setId(Long id) {
         this.id = id;
     }
 
-    /** Gets the application name. */
+    /** 获取应用名。 */
     public String getApp() {
         return app;
     }
 
-    /** Sets the application name and returns this. */
+    /** 设置应用名并返回当前对象。 */
     public BaseEntity setApp(String app) {
         this.app = app;
         return this;
     }
 
-    /** Gets the create time. */
+    /** 获取创建时间。 */
     public Date getGmtCreate() {
         return gmtCreate;
     }
 
-    /** Sets the create time. */
+    /** 设置创建时间。 */
     public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
     }
 
-    /** Gets the last modify time. */
+    /** 获取最近修改时间。 */
     public Date getGmtModified() {
         return gmtModified;
     }
 
-    /** Sets the last modify time. */
+    /** 设置最近修改时间。 */
     public void setGmtModified(Date gmtModified) {
         this.gmtModified = gmtModified;
     }

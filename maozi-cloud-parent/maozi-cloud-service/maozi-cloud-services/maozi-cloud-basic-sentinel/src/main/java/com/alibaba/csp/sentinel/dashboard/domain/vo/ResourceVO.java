@@ -22,26 +22,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * View object of one resource node on the realtime monitoring page.
+ * 实时监控页面展示的单个资源节点视图对象。
  *
  * @author leyou
  * @date 2026/11/22
  */
 public class ResourceVO extends BaseResourceMetricsVO {
-    /** The parent tree node ID. */
+    /** 父树节点 id。 */
     private String parentTtId;
 
-    /** The tree node ID. */
+    /** 树节点 id。 */
     private String ttId;
 
-    /** The pass request QPS of the resource. */
+    /** 资源通过请求的 QPS。 */
     private Long passRequestQps;
 
-    /** Create an empty vo. */
+    /** 创建空的 VO。 */
     public ResourceVO() {
     }
 
-    /** Convert a list of node VOs to a list of resource VOs, or null if the given list is null. */
+    /** 将节点 VO 列表转换为资源 VO 列表，列表为 null 时返回 null。 */
     public static List<ResourceVO> fromNodeVoList(List<NodeVo> nodeVos) {
         if (nodeVos == null) {
             return null;
@@ -68,9 +68,8 @@ public class ResourceVO extends BaseResourceMetricsVO {
     }
 
     /**
-     * Visit the resource tree from the given root node and collect the visible
-     * nodes into a list of VOs, or null if the given root is null. The root node
-     * itself is never collected.
+     * 从指定根节点遍历资源树，将可见节点收集为 VO 列表，根节点为 null 时返回 null，
+     * 根节点本身不会被收集。
      */
     public static List<ResourceVO> fromResourceTreeNode(ResourceTreeNode root) {
         if (root == null) {
@@ -82,8 +81,7 @@ public class ResourceVO extends BaseResourceMetricsVO {
     }
 
     /**
-     * Recursively collects VOs of the visible nodes into the list. A node is visible
-     * when itself or one of its parents is visible; the root node is never visible.
+     * 递归收集可见节点的 VO：节点自身或任一父节点可见即视为可见，根节点本身不收集。
      */
     private static void visit(ResourceTreeNode node, List<ResourceVO> list, boolean parentVisible, boolean isRoot) {
         boolean visible = !isRoot && (node.isVisible() || parentVisible);
@@ -110,37 +108,37 @@ public class ResourceVO extends BaseResourceMetricsVO {
         }
     }
 
-    /** Get the parent tree node ID. */
+    /** 获取父树节点 id。 */
     public String getParentTtId() {
         return parentTtId;
     }
 
-    /** Set the parent tree node ID. */
+    /** 设置父树节点 id。 */
     public void setParentTtId(String parentTtId) {
         this.parentTtId = parentTtId;
     }
 
-    /** Get the tree node ID. */
+    /** 获取树节点 id。 */
     public String getTtId() {
         return ttId;
     }
 
-    /** Set the tree node ID. */
+    /** 设置树节点 id。 */
     public void setTtId(String ttId) {
         this.ttId = ttId;
     }
 
-    /** Get the pass request QPS. */
+    /** 获取通过请求的 QPS。 */
     public Long getPassRequestQps() {
         return passRequestQps;
     }
 
-    /** Set the pass request QPS. */
+    /** 设置通过请求的 QPS。 */
     public void setPassRequestQps(Long passRequestQps) {
         this.passRequestQps = passRequestQps;
     }
 
-    /** Return a string representation of this VO. */
+    /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
         return "ResourceVO{"

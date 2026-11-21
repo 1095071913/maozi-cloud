@@ -20,7 +20,7 @@ import com.alibaba.csp.sentinel.dashboard.discovery.MachineInfo;
 import java.util.List;
 
 /**
- * Interface to store and find rules.
+ * 规则的存储与查询接口
  *
  * @author leyou
  * @date 2026/11/22
@@ -28,50 +28,50 @@ import java.util.List;
 public interface RuleRepository<T, ID> {
 
     /**
-     * Save the given rule entity.
+     * 保存给定的规则实体
      *
-     * @param entity the entity to save
-     * @return the saved entity
+     * @param entity 待保存的实体
+     * @return 保存后的实体
      */
     T save(T entity);
 
     /**
-     * Save all the given rules.
+     * 批量保存给定的规则
      *
-     * @param rules the rules to save
-     * @return the saved rules
+     * @param rules 待保存的规则列表
+     * @return 保存后的规则列表
      */
     List<T> saveAll(List<T> rules);
 
     /**
-     * Delete the rule with the given id.
+     * 删除指定 id 的规则
      *
-     * @param id the id of the entity to delete
-     * @return the deleted entity, or {@code null} if no rule with the id exists
+     * @param id 待删除实体的 id
+     * @return 被删除的实体，id 不存在时返回 {@code null}
      */
     T delete(ID id);
 
     /**
-     * Find the rule with the given id.
+     * 查询指定 id 的规则
      *
-     * @param id the id of the entity
-     * @return the entity with the given id, or {@code null} if it does not exist
+     * @param id 实体 id
+     * @return 对应 id 的实体，不存在时返回 {@code null}
      */
     T findById(ID id);
 
     /**
-     * Find all rules bound to the given machine.
+     * 查询绑定到指定机器的全部规则
      *
-     * @param machineInfo the machine to find rules for
-     * @return rules bound to the given machine
+     * @param machineInfo 待查询规则的机器
+     * @return 绑定到该机器的规则
      */
     List<T> findAllByMachine(MachineInfo machineInfo);
 
     /**
-     * Find all rules of the given application.
+     * 查询指定应用的全部规则
      *
-     * @param appName application name, must not be empty
-     * @return all rules of the application
+     * @param appName 应用名，不能为空
+     * @return 该应用的全部规则
      * @since 1.4.0
      */
     List<T> findAllByApp(String appName);

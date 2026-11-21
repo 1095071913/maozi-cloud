@@ -11,8 +11,9 @@ import java.util.Properties;
 /**
  * 网关运行时配置初始化器
  * <p>
- * 通过 SPI 机制被 {@link com.maozi.BaseApplication} 加载，开启同名单
- * Bean 定义覆盖，并将网关所需的 Nacos 共享配置文件清单写入系统属性。
+ * 通过 SPI 机制被 {@link com.maozi.BaseApplication} 加载，开启同名
+ * Bean 定义覆盖，设置 Sentinel 应用类型为网关，并将网关所需的
+ * Nacos 共享配置文件清单写入系统属性。
  * </p>
  *
  * @author maozi
@@ -27,9 +28,10 @@ public class GatewayConfigInitializer implements ConfigInitializer {
     /**
      * 初始化网关运行时配置
      * <p>
-     * 开启同名单 Bean 定义覆盖，并将网关所需的 Nacos 共享配置文件
-     * 追加到系统属性 {@code spring.config.import}（前插合并，保证应用自身
-     * 配置文件始终位于列表末尾、优先级最高）。
+     * 开启同名 Bean 定义覆盖，设置 Sentinel 应用类型为网关，
+     * 并将网关所需的 Nacos 共享配置文件追加到系统属性
+     * {@code spring.config.import}（前插合并，保证应用自身配置文件
+     * 始终位于列表末尾、优先级最高）。
      * </p>
      *
      * @param properties 系统属性容器

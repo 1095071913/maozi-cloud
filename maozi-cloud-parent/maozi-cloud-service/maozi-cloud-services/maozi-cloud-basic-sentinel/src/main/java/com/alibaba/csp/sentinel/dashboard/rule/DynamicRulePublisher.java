@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.rule;
 
 /**
- * Interface for publishing rules of an application to a remote rule repository.
+ * 将应用规则发布到远端规则仓库的接口
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -25,11 +25,11 @@ package com.alibaba.csp.sentinel.dashboard.rule;
 public interface DynamicRulePublisher<T> {
 
     /**
-     * Publish rules to remote rule configuration center for given application name.
+     * 将规则发布到指定应用的远端规则配置中心
      *
-     * @param app app name
-     * @param rules list of rules to push
-     * @throws Exception if some error occurs
+     * @param app 应用名
+     * @param rules 待推送的规则列表
+     * @throws Exception 出现错误时抛出
      */
     void publish(String app, T rules) throws Exception;
 }

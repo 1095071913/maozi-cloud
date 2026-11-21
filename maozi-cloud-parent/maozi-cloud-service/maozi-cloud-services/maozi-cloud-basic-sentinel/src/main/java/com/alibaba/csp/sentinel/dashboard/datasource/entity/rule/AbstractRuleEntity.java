@@ -21,7 +21,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
- * Base entity holding a wrapped {@link AbstractRule} plus common fields shared by rule entities.
+ * 持有被包装 {@link AbstractRule} 及规则实体公共字段的基类。
  *
  * @author Eric Zhao
  * @date 2026/11/22
@@ -29,20 +29,20 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  */
 public abstract class AbstractRuleEntity<T extends AbstractRule> extends BaseRuleEntity {
 
-    /** The wrapped rule object. */
+    /** 被包装的规则对象。 */
     protected T rule;
 
-    /** Creates an entity with no wrapped rule. */
+    /** 构造不包装规则的实体。 */
     protected AbstractRuleEntity() {
     }
 
-    /** Creates an entity wrapping the given rule, which must not be null. */
+    /** 构造包装指定规则的实体，规则不能为 null。 */
     protected AbstractRuleEntity(T rule) {
         AssertUtil.notNull(rule, "rule should not be null");
         this.rule = rule;
     }
 
-    /** Creates an entity wrapping the given rule and carrying the given app, ip and port. */
+    /** 构造包装指定规则并携带 app、ip、port 的实体。 */
     protected AbstractRuleEntity(String app, String ip, Integer port, T rule) {
         this(rule);
         setApp(app);
@@ -50,59 +50,59 @@ public abstract class AbstractRuleEntity<T extends AbstractRule> extends BaseRul
         setPort(port);
     }
 
-    /** Sets the application name and returns this. */
+    /** 设置应用名并返回当前对象。 */
     @Override
     public AbstractRuleEntity<T> setApp(String app) {
         this.app = app;
         return this;
     }
 
-    /** Sets the IP address of the machine and returns this. */
+    /** 设置机器 IP 地址并返回当前对象。 */
     @Override
     public AbstractRuleEntity<T> setIp(String ip) {
         this.ip = ip;
         return this;
     }
 
-    /** Sets the port of the machine and returns this. */
+    /** 设置机器端口并返回当前对象。 */
     @Override
     public AbstractRuleEntity<T> setPort(Integer port) {
         this.port = port;
         return this;
     }
 
-    /** Gets the wrapped rule object. */
+    /** 获取被包装的规则对象。 */
     public T getRule() {
         return rule;
     }
 
-    /** Sets the wrapped rule object and returns this. */
+    /** 设置被包装的规则对象并返回当前对象。 */
     public AbstractRuleEntity<T> setRule(T rule) {
         this.rule = rule;
         return this;
     }
 
-    /** Gets the resource name of the wrapped rule (excluded from JSON). */
+    /** 获取被包装规则的资源名（不参与 JSON 序列化）。 */
     @JsonIgnore
     @JSONField(serialize = false)
     public String getResource() {
         return rule.getResource();
     }
 
-    /** Gets the limitApp of the wrapped rule (excluded from JSON). */
+    /** 获取被包装规则的 limitApp（不参与 JSON 序列化）。 */
     @JsonIgnore
     @JSONField(serialize = false)
     public String getLimitApp() {
         return rule.getLimitApp();
     }
 
-    /** Returns the wrapped rule object directly. */
+    /** 直接返回被包装的规则对象。 */
     @Override
     public T toRule() {
         return rule;
     }
 
-    /** Return a string representation of this entity. */
+    /** 返回实体的字符串表示。 */
     @Override
     public String toString() {
         return "AbstractRuleEntity{"

@@ -16,6 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.domain;
 
 import com.alibaba.csp.sentinel.command.vo.NodeVo;
+import com.alibaba.csp.sentinel.dashboard.domain.vo.BaseResourceMetricsVo;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,39 +28,14 @@ import java.util.Map;
  *
  * @author leyou
  */
-public class ResourceTreeNode {
+public class ResourceTreeNode extends BaseResourceMetricsVo {
     /** The id of the node. */
     private String id;
     /** The id of the parent node, null or empty for the root node. */
     private String parentId;
-    /** The name of the resource. */
-    private String resource;
 
-    /** The concurrent thread count of the resource. */
-    private Integer threadNum;
-    /** The QPS of passed requests. */
-    private Long passQps;
-    /** The QPS of blocked requests. */
-    private Long blockQps;
-    /** The total QPS of the resource. */
-    private Long totalQps;
-    /** The average response time in ms. */
-    private Long averageRt;
     /** The QPS of successful requests. */
     private Long successQps;
-    /** The QPS of exceptional requests. */
-    private Long exceptionQps;
-    /** The passed request count in the recent minute. */
-    private Long oneMinutePass;
-    /** The blocked request count in the recent minute. */
-    private Long oneMinuteBlock;
-    /** The exception count in the recent minute. */
-    private Long oneMinuteException;
-    /** The total request count in the recent minute. */
-    private Long oneMinuteTotal;
-
-    /** Whether the node is visible after search. */
-    private boolean visible = true;
 
     /** The child nodes of this node. */
     private List<ResourceTreeNode> children = new ArrayList<>();
@@ -163,66 +139,6 @@ public class ResourceTreeNode {
         this.parentId = parentId;
     }
 
-    /** Gets the resource name. */
-    public String getResource() {
-        return resource;
-    }
-
-    /** Sets the resource name. */
-    public void setResource(String resource) {
-        this.resource = resource;
-    }
-
-    /** Gets the concurrent thread count. */
-    public Integer getThreadNum() {
-        return threadNum;
-    }
-
-    /** Sets the concurrent thread count. */
-    public void setThreadNum(Integer threadNum) {
-        this.threadNum = threadNum;
-    }
-
-    /** Gets the QPS of passed requests. */
-    public Long getPassQps() {
-        return passQps;
-    }
-
-    /** Sets the QPS of passed requests. */
-    public void setPassQps(Long passQps) {
-        this.passQps = passQps;
-    }
-
-    /** Gets the QPS of blocked requests. */
-    public Long getBlockQps() {
-        return blockQps;
-    }
-
-    /** Sets the QPS of blocked requests. */
-    public void setBlockQps(Long blockQps) {
-        this.blockQps = blockQps;
-    }
-
-    /** Gets the total QPS. */
-    public Long getTotalQps() {
-        return totalQps;
-    }
-
-    /** Sets the total QPS. */
-    public void setTotalQps(Long totalQps) {
-        this.totalQps = totalQps;
-    }
-
-    /** Gets the average response time in ms. */
-    public Long getAverageRt() {
-        return averageRt;
-    }
-
-    /** Sets the average response time in ms. */
-    public void setAverageRt(Long averageRt) {
-        this.averageRt = averageRt;
-    }
-
     /** Gets the QPS of successful requests. */
     public Long getSuccessQps() {
         return successQps;
@@ -231,66 +147,6 @@ public class ResourceTreeNode {
     /** Sets the QPS of successful requests. */
     public void setSuccessQps(Long successQps) {
         this.successQps = successQps;
-    }
-
-    /** Gets the QPS of exceptional requests. */
-    public Long getExceptionQps() {
-        return exceptionQps;
-    }
-
-    /** Sets the QPS of exceptional requests. */
-    public void setExceptionQps(Long exceptionQps) {
-        this.exceptionQps = exceptionQps;
-    }
-
-    /** Gets the passed request count in the recent minute. */
-    public Long getOneMinutePass() {
-        return oneMinutePass;
-    }
-
-    /** Sets the passed request count in the recent minute. */
-    public void setOneMinutePass(Long oneMinutePass) {
-        this.oneMinutePass = oneMinutePass;
-    }
-
-    /** Gets the blocked request count in the recent minute. */
-    public Long getOneMinuteBlock() {
-        return oneMinuteBlock;
-    }
-
-    /** Sets the blocked request count in the recent minute. */
-    public void setOneMinuteBlock(Long oneMinuteBlock) {
-        this.oneMinuteBlock = oneMinuteBlock;
-    }
-
-    /** Gets the exception count in the recent minute. */
-    public Long getOneMinuteException() {
-        return oneMinuteException;
-    }
-
-    /** Sets the exception count in the recent minute. */
-    public void setOneMinuteException(Long oneMinuteException) {
-        this.oneMinuteException = oneMinuteException;
-    }
-
-    /** Gets the total request count in the recent minute. */
-    public Long getOneMinuteTotal() {
-        return oneMinuteTotal;
-    }
-
-    /** Sets the total request count in the recent minute. */
-    public void setOneMinuteTotal(Long oneMinuteTotal) {
-        this.oneMinuteTotal = oneMinuteTotal;
-    }
-
-    /** Whether the node is visible. */
-    public boolean isVisible() {
-        return visible;
-    }
-
-    /** Sets whether the node is visible. */
-    public void setVisible(boolean visible) {
-        this.visible = visible;
     }
 
     /** Gets the child nodes. */

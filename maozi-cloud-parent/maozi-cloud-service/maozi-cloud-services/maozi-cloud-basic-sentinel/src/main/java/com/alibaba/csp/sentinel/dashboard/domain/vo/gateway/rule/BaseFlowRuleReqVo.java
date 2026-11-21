@@ -1,0 +1,143 @@
+/*
+ * Copyright 1999-2018 Alibaba Group Holding Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule;
+
+/**
+ * Base value object for add and update gateway flow rule requests, holding the
+ * common fields shared by both requests.
+ *
+ * @author cdfive
+ * @since 1.7.0
+ */
+public abstract class BaseFlowRuleReqVo {
+
+    /** Name of the target application. */
+    protected String app;
+
+    /** Metric grade of the rule, 0 means QPS (see RuleConstant). */
+    protected Integer grade;
+
+    /** Threshold of the flow rule. */
+    protected Double count;
+
+    /** Stat interval of the flow rule, in the unit given by intervalUnit. */
+    protected Long interval;
+
+    /** Time unit of the stat interval (second, minute, hour or day). */
+    protected Integer intervalUnit;
+
+    /** Control behavior when the threshold is exceeded, e.g. reject or uniform queueing. */
+    protected Integer controlBehavior;
+
+    /** Number of extra requests allowed to pass in a burst when the threshold is exceeded. */
+    protected Integer burst;
+
+    /** Max queueing timeout in milliseconds when control behavior is uniform queueing. */
+    protected Integer maxQueueingTimeoutMs;
+
+    /** Hotspot parameter item of the rule, null for a plain gateway flow rule. */
+    protected GatewayParamFlowItemVo paramItem;
+
+    /** Returns the name of the target application. */
+    public String getApp() {
+        return app;
+    }
+
+    /** Sets the name of the target application. */
+    public void setApp(String app) {
+        this.app = app;
+    }
+
+    /** Returns the metric grade of the rule. */
+    public Integer getGrade() {
+        return grade;
+    }
+
+    /** Sets the metric grade of the rule. */
+    public void setGrade(Integer grade) {
+        this.grade = grade;
+    }
+
+    /** Returns the threshold of the flow rule. */
+    public Double getCount() {
+        return count;
+    }
+
+    /** Sets the threshold of the flow rule. */
+    public void setCount(Double count) {
+        this.count = count;
+    }
+
+    /** Returns the stat interval of the flow rule. */
+    public Long getInterval() {
+        return interval;
+    }
+
+    /** Sets the stat interval of the flow rule. */
+    public void setInterval(Long interval) {
+        this.interval = interval;
+    }
+
+    /** Returns the time unit of the stat interval. */
+    public Integer getIntervalUnit() {
+        return intervalUnit;
+    }
+
+    /** Sets the time unit of the stat interval. */
+    public void setIntervalUnit(Integer intervalUnit) {
+        this.intervalUnit = intervalUnit;
+    }
+
+    /** Returns the control behavior of the flow rule. */
+    public Integer getControlBehavior() {
+        return controlBehavior;
+    }
+
+    /** Sets the control behavior of the flow rule. */
+    public void setControlBehavior(Integer controlBehavior) {
+        this.controlBehavior = controlBehavior;
+    }
+
+    /** Returns the allowed burst size above the threshold. */
+    public Integer getBurst() {
+        return burst;
+    }
+
+    /** Sets the allowed burst size above the threshold. */
+    public void setBurst(Integer burst) {
+        this.burst = burst;
+    }
+
+    /** Returns the max queueing timeout in milliseconds. */
+    public Integer getMaxQueueingTimeoutMs() {
+        return maxQueueingTimeoutMs;
+    }
+
+    /** Sets the max queueing timeout in milliseconds. */
+    public void setMaxQueueingTimeoutMs(Integer maxQueueingTimeoutMs) {
+        this.maxQueueingTimeoutMs = maxQueueingTimeoutMs;
+    }
+
+    /** Returns the hotspot parameter item of the rule. */
+    public GatewayParamFlowItemVo getParamItem() {
+        return paramItem;
+    }
+
+    /** Sets the hotspot parameter item of the rule. */
+    public void setParamItem(GatewayParamFlowItemVo paramItem) {
+        this.paramItem = paramItem;
+    }
+}

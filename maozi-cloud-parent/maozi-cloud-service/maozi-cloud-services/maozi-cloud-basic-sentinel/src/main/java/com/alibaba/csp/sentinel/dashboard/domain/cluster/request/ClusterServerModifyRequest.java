@@ -26,19 +26,7 @@ import java.util.Set;
  * @author Eric Zhao
  * @since 1.4.0
  */
-public class ClusterServerModifyRequest implements ClusterModifyRequest {
-
-    /** The app name of the target machine. */
-    private String app;
-
-    /** The IP address of the target machine. */
-    private String ip;
-
-    /** The command port of the target machine. */
-    private Integer port;
-
-    /** The target cluster mode of the machine. */
-    private Integer mode;
+public class ClusterServerModifyRequest extends AbstractClusterModifyRequest {
 
     /** The new flow config of the cluster server. */
     private ServerFlowConfig flowConfig;
@@ -48,54 +36,6 @@ public class ClusterServerModifyRequest implements ClusterModifyRequest {
 
     /** The new set of namespaces served by the cluster server. */
     private Set<String> namespaceSet;
-
-    /** Get the app name. */
-    @Override
-    public String getApp() {
-        return app;
-    }
-
-    /** Set the app name and return this. */
-    public ClusterServerModifyRequest setApp(String app) {
-        this.app = app;
-        return this;
-    }
-
-    /** Get the IP address. */
-    @Override
-    public String getIp() {
-        return ip;
-    }
-
-    /** Set the IP address and return this. */
-    public ClusterServerModifyRequest setIp(String ip) {
-        this.ip = ip;
-        return this;
-    }
-
-    /** Get the command port. */
-    @Override
-    public Integer getPort() {
-        return port;
-    }
-
-    /** Set the command port and return this. */
-    public ClusterServerModifyRequest setPort(Integer port) {
-        this.port = port;
-        return this;
-    }
-
-    /** Get the cluster mode. */
-    @Override
-    public Integer getMode() {
-        return mode;
-    }
-
-    /** Set the cluster mode and return this. */
-    public ClusterServerModifyRequest setMode(Integer mode) {
-        this.mode = mode;
-        return this;
-    }
 
     /** Get the flow config. */
     public ServerFlowConfig getFlowConfig() {

@@ -22,15 +22,7 @@ import java.util.Date;
  *
  * @author leyou
  */
-public class MetricEntity {
-    /** The entity id. */
-    private Long id;
-    /** The create time. */
-    private Date gmtCreate;
-    /** The last modify time. */
-    private Date gmtModified;
-    /** The application name. */
-    private String app;
+public class MetricEntity extends BaseEntity {
     /** The timestamp of the metric. */
     private Date timestamp;
     /** The resource name. */
@@ -108,46 +100,6 @@ public class MetricEntity {
     public synchronized void setRtAndSuccessQps(double avgRt, Long successQps) {
         this.rt = avgRt * successQps;
         this.successQps = successQps;
-    }
-
-    /** Gets the entity id. */
-    public Long getId() {
-        return id;
-    }
-
-    /** Sets the entity id. */
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    /** Gets the create time. */
-    public Date getGmtCreate() {
-        return gmtCreate;
-    }
-
-    /** Sets the create time. */
-    public void setGmtCreate(Date gmtCreate) {
-        this.gmtCreate = gmtCreate;
-    }
-
-    /** Gets the last modify time. */
-    public Date getGmtModified() {
-        return gmtModified;
-    }
-
-    /** Sets the last modify time. */
-    public void setGmtModified(Date gmtModified) {
-        this.gmtModified = gmtModified;
-    }
-
-    /** Gets the application name. */
-    public String getApp() {
-        return app;
-    }
-
-    /** Sets the application name. */
-    public void setApp(String app) {
-        this.app = app;
     }
 
     /** Gets the timestamp of the metric. */

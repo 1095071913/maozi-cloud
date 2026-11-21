@@ -16,7 +16,6 @@
 package com.alibaba.csp.sentinel.dashboard.datasource.entity.rule;
 
 import com.alibaba.csp.sentinel.slots.block.authority.AuthorityRule;
-import com.alibaba.csp.sentinel.util.AssertUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -30,37 +29,24 @@ public class AuthorityRuleEntity extends AbstractRuleEntity<AuthorityRule> {
 
     /** Creates an entity with no wrapped rule. */
     public AuthorityRuleEntity() {
+        super();
     }
 
     /** Creates an entity wrapping the given rule, which must not be null. */
     public AuthorityRuleEntity(AuthorityRule authorityRule) {
-        AssertUtil.notNull(authorityRule, "Authority rule should not be null");
-        this.rule = authorityRule;
+        super(authorityRule);
+    }
+
+    /** Creates an entity wrapping the given rule and carrying the given app, ip and port. */
+    public AuthorityRuleEntity(String app, String ip, Integer port, AuthorityRule rule) {
+        super(app, ip, port, rule);
     }
 
     /**
      * Builds an entity wrapping the given {@link AuthorityRule}, carrying the given app, ip and port.
      */
     public static AuthorityRuleEntity fromAuthorityRule(String app, String ip, Integer port, AuthorityRule rule) {
-        AuthorityRuleEntity entity = new AuthorityRuleEntity(rule);
-        entity.setApp(app);
-        entity.setIp(ip);
-        entity.setPort(port);
-        return entity;
-    }
-
-    /** Gets the limitApp of the wrapped rule (excluded from JSON). */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public String getLimitApp() {
-        return rule.getLimitApp();
-    }
-
-    /** Gets the resource name of the wrapped rule (excluded from JSON). */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public String getResource() {
-        return rule.getResource();
+        return new AuthorityRuleEntity(app, ip, port, rule);
     }
 
     /** Gets the strategy (white/black list) of the wrapped rule (excluded from JSON). */

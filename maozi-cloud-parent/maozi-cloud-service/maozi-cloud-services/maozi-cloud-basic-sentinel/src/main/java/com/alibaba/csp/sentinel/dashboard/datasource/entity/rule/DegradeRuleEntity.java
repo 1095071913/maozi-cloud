@@ -17,24 +17,12 @@ package com.alibaba.csp.sentinel.dashboard.datasource.entity.rule;
 
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
 
-import java.util.Date;
-
 /**
  * Entity for a circuit breaking (degrade) rule.
  *
  * @author leyou
  */
-public class DegradeRuleEntity implements RuleEntity {
-
-    /** The entity id. */
-    private Long id;
-    /** The application name. */
-    private String app;
-
-    /** The IP address of the machine. */
-    private String ip;
-    /** The port of the machine. */
-    private Integer port;
+public class DegradeRuleEntity extends BaseRuleEntity {
 
     /** The resource name. */
     private String resource;
@@ -53,11 +41,6 @@ public class DegradeRuleEntity implements RuleEntity {
     /** The statistic interval in milliseconds. */
     private Integer statIntervalMs;
 
-    /** The create time. */
-    private Date gmtCreate;
-    /** The last modify time. */
-    private Date gmtModified;
-
     /**
      * Builds an entity from the given {@link DegradeRule}, carrying the given app, ip and port.
      */
@@ -75,51 +58,6 @@ public class DegradeRuleEntity implements RuleEntity {
         entity.setSlowRatioThreshold(rule.getSlowRatioThreshold());
         entity.setStatIntervalMs(rule.getStatIntervalMs());
         return entity;
-    }
-
-    /** Gets the IP address of the machine. */
-    @Override
-    public String getIp() {
-        return ip;
-    }
-
-    /** Sets the IP address of the machine. */
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
-    /** Gets the port of the machine. */
-    @Override
-    public Integer getPort() {
-        return port;
-    }
-
-    /** Sets the port of the machine. */
-    public void setPort(Integer port) {
-        this.port = port;
-    }
-
-    /** Gets the entity id. */
-    @Override
-    public Long getId() {
-        return id;
-    }
-
-    /** Sets the entity id. */
-    @Override
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    /** Gets the application name. */
-    @Override
-    public String getApp() {
-        return app;
-    }
-
-    /** Sets the application name. */
-    public void setApp(String app) {
-        this.app = app;
     }
 
     /** Gets the resource name. */
@@ -203,29 +141,6 @@ public class DegradeRuleEntity implements RuleEntity {
     public DegradeRuleEntity setStatIntervalMs(Integer statIntervalMs) {
         this.statIntervalMs = statIntervalMs;
         return this;
-    }
-
-    /** Gets the create time. */
-    @Override
-    public Date getGmtCreate() {
-        return gmtCreate;
-    }
-
-    /** Sets the create time. */
-    @Override
-    public void setGmtCreate(Date gmtCreate) {
-        this.gmtCreate = gmtCreate;
-    }
-
-    /** Gets the last modify time. */
-    public Date getGmtModified() {
-        return gmtModified;
-    }
-
-    /** Sets the last modify time. */
-    @Override
-    public void setGmtModified(Date gmtModified) {
-        this.gmtModified = gmtModified;
     }
 
     /**

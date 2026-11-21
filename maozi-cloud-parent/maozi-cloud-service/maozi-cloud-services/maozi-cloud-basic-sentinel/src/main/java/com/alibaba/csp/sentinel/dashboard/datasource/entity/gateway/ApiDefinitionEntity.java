@@ -18,10 +18,9 @@ package com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway;
 import com.alibaba.csp.sentinel.adapter.gateway.common.api.ApiDefinition;
 import com.alibaba.csp.sentinel.adapter.gateway.common.api.ApiPathPredicateItem;
 import com.alibaba.csp.sentinel.adapter.gateway.common.api.ApiPredicateItem;
-import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.RuleEntity;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.BaseRuleEntity;
 import com.alibaba.csp.sentinel.slots.block.Rule;
 
-import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -32,21 +31,7 @@ import java.util.Set;
  * @author cdfive
  * @since 1.7.0
  */
-public class ApiDefinitionEntity implements RuleEntity {
-
-    /** The entity id. */
-    private Long id;
-    /** The application name. */
-    private String app;
-    /** The IP address of the machine. */
-    private String ip;
-    /** The port of the machine. */
-    private Integer port;
-
-    /** The create time. */
-    private Date gmtCreate;
-    /** The last modify time. */
-    private Date gmtModified;
+public class ApiDefinitionEntity extends BaseRuleEntity {
 
     /** The name of the API. */
     private String apiName;
@@ -134,74 +119,6 @@ public class ApiDefinitionEntity implements RuleEntity {
     /** Sets the predicate items of the API. */
     public void setPredicateItems(Set<ApiPredicateItemEntity> predicateItems) {
         this.predicateItems = predicateItems;
-    }
-
-    /** Gets the entity id. */
-    @Override
-    public Long getId() {
-        return id;
-    }
-
-    /** Sets the entity id. */
-    @Override
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    /** Gets the application name. */
-    @Override
-    public String getApp() {
-        return app;
-    }
-
-    /** Sets the application name. */
-    public void setApp(String app) {
-        this.app = app;
-    }
-
-    /** Gets the IP address of the machine. */
-    @Override
-    public String getIp() {
-        return ip;
-    }
-
-    /** Sets the IP address of the machine. */
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
-    /** Gets the port of the machine. */
-    @Override
-    public Integer getPort() {
-        return port;
-    }
-
-    /** Sets the port of the machine. */
-    public void setPort(Integer port) {
-        this.port = port;
-    }
-
-    /** Gets the create time. */
-    @Override
-    public Date getGmtCreate() {
-        return gmtCreate;
-    }
-
-    /** Sets the create time. */
-    @Override
-    public void setGmtCreate(Date gmtCreate) {
-        this.gmtCreate = gmtCreate;
-    }
-
-    /** Gets the last modify time. */
-    public Date getGmtModified() {
-        return gmtModified;
-    }
-
-    /** Sets the last modify time. */
-    @Override
-    public void setGmtModified(Date gmtModified) {
-        this.gmtModified = gmtModified;
     }
 
     /** Always returns null, as an API definition is not a common Sentinel rule. */

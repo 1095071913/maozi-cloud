@@ -24,62 +24,14 @@ import java.util.Date;
  *
  * @author leyou
  */
-public class ApplicationEntity {
+public class ApplicationEntity extends BaseEntity {
 
-    /** The primary key id. */
-    private Long id;
-    /** The create time. */
-    private Date gmtCreate;
-    /** The last modified time. */
-    private Date gmtModified;
-    /** The app name. */
-    private String app;
     /** The type of the application. */
     private Integer appType;
     /** The active console address of the application. */
     private String activeConsole;
     /** The last fetch time. */
     private Date lastFetch;
-
-    /** Gets the entity id. */
-    public long getId() {
-        return id;
-    }
-
-    /** Sets the entity id. */
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    /** Gets the create time. */
-    public Date getGmtCreate() {
-        return gmtCreate;
-    }
-
-    /** Sets the create time. */
-    public void setGmtCreate(Date gmtCreate) {
-        this.gmtCreate = gmtCreate;
-    }
-
-    /** Gets the last modified time. */
-    public Date getGmtModified() {
-        return gmtModified;
-    }
-
-    /** Sets the last modified time. */
-    public void setGmtModified(Date gmtModified) {
-        this.gmtModified = gmtModified;
-    }
-
-    /** Gets the app name. */
-    public String getApp() {
-        return app;
-    }
-
-    /** Sets the app name. */
-    public void setApp(String app) {
-        this.app = app;
-    }
 
     /** Gets the type of the application. */
     public Integer getAppType() {

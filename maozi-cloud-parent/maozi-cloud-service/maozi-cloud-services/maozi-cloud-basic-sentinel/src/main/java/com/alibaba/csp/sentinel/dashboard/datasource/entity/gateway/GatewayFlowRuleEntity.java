@@ -17,10 +17,9 @@ package com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway;
 
 import com.alibaba.csp.sentinel.adapter.gateway.common.rule.GatewayFlowRule;
 import com.alibaba.csp.sentinel.adapter.gateway.common.rule.GatewayParamFlowItem;
-import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.RuleEntity;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.BaseRuleEntity;
 import com.alibaba.csp.sentinel.slots.block.Rule;
 
-import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -29,7 +28,7 @@ import java.util.Objects;
  * @author cdfive
  * @since 1.7.0
  */
-public class GatewayFlowRuleEntity implements RuleEntity {
+public class GatewayFlowRuleEntity extends BaseRuleEntity {
 
     /** Interval unit: second. */
     public static final int INTERVAL_UNIT_SECOND = 0;
@@ -39,20 +38,6 @@ public class GatewayFlowRuleEntity implements RuleEntity {
     public static final int INTERVAL_UNIT_HOUR = 2;
     /** Interval unit: day. */
     public static final int INTERVAL_UNIT_DAY = 3;
-
-    /** The entity id. */
-    private Long id;
-    /** The application name. */
-    private String app;
-    /** The IP address of the machine. */
-    private String ip;
-    /** The port of the machine. */
-    private Integer port;
-
-    /** The create time. */
-    private Date gmtCreate;
-    /** The last modify time. */
-    private Date gmtModified;
 
     /** The resource name the rule applies to (route ID or API name depending on resourceMode). */
     private String resource;
@@ -195,78 +180,10 @@ public class GatewayFlowRuleEntity implements RuleEntity {
         return entity;
     }
 
-    /** Gets the entity id. */
-    @Override
-    public Long getId() {
-        return id;
-    }
-
-    /** Sets the entity id. */
-    @Override
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    /** Gets the application name. */
-    @Override
-    public String getApp() {
-        return app;
-    }
-
-    /** Sets the application name. */
-    public void setApp(String app) {
-        this.app = app;
-    }
-
-    /** Gets the IP address of the machine. */
-    @Override
-    public String getIp() {
-        return ip;
-    }
-
-    /** Sets the IP address of the machine. */
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
-    /** Gets the port of the machine. */
-    @Override
-    public Integer getPort() {
-        return port;
-    }
-
-    /** Sets the port of the machine. */
-    public void setPort(Integer port) {
-        this.port = port;
-    }
-
-    /** Gets the create time. */
-    @Override
-    public Date getGmtCreate() {
-        return gmtCreate;
-    }
-
-    /** Sets the create time. */
-    @Override
-    public void setGmtCreate(Date gmtCreate) {
-        this.gmtCreate = gmtCreate;
-    }
-
     /** Always returns null, as a gateway flow rule is not a common Sentinel rule. */
     @Override
     public Rule toRule() {
         return null;
-    }
-
-    /** Gets the last modify time. */
-    public Date getGmtModified() {
-        return gmtModified;
-    }
-
-    /** Sets the last modify time. */
-    @Override
-    public void setGmtModified(Date gmtModified) {
-        this.gmtModified = gmtModified;
     }
 
     /** Gets the parameter flow item, null if the rule is not parameter-based. */

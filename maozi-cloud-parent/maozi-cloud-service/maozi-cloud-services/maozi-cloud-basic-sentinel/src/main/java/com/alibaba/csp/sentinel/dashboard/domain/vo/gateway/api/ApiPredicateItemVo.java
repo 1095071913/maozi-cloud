@@ -15,49 +15,15 @@
  */
 package com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.api;
 
+import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.BasePatternItemVo;
+
 /**
  * Predicate item (URL match condition) of a gateway API definition, used by add and update requests.
  *
  * @author cdfive
  * @since 1.7.0
  */
-public class ApiPredicateItemVo {
-
-    /**
-     * The pattern for matching url.
-     */
-    private String pattern;
-
-    /**
-     * The matching Strategy in url. Constants are defined in class SentinelGatewayConstants.
-     *
-     * <ul>
-     *     <li>0(URL_MATCH_STRATEGY_EXACT): exact match mode</li>
-     *     <li>1(URL_MATCH_STRATEGY_PREFIX): prefix match mode</li>
-     *     <li>2(URL_MATCH_STRATEGY_REGEX): regex match mode</li>
-     * </ul>
-     */
-    private Integer matchStrategy;
-
-    /** Returns the pattern for matching url. */
-    public String getPattern() {
-        return pattern;
-    }
-
-    /** Sets the pattern for matching url. */
-    public void setPattern(String pattern) {
-        this.pattern = pattern;
-    }
-
-    /** Returns the url matching strategy. */
-    public Integer getMatchStrategy() {
-        return matchStrategy;
-    }
-
-    /** Sets the url matching strategy. */
-    public void setMatchStrategy(Integer matchStrategy) {
-        this.matchStrategy = matchStrategy;
-    }
+public class ApiPredicateItemVo extends BasePatternItemVo {
 
     @Override
     public String toString() {

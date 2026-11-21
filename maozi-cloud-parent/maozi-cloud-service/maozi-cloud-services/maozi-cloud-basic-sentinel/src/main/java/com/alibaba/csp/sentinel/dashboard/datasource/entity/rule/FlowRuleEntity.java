@@ -18,23 +18,13 @@ package com.alibaba.csp.sentinel.dashboard.datasource.entity.rule;
 import com.alibaba.csp.sentinel.slots.block.flow.ClusterFlowConfig;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
 
-import java.util.Date;
-
 /**
  * Entity for a flow (QPS or thread count) rule.
  *
  * @author leyou
  */
-public class FlowRuleEntity implements RuleEntity {
+public class FlowRuleEntity extends BaseRuleEntity {
 
-    /** The entity id. */
-    private Long id;
-    /** The application name. */
-    private String app;
-    /** The IP address of the machine. */
-    private String ip;
-    /** The port of the machine. */
-    private Integer port;
     /** The caller that the rule applies to. */
     private String limitApp;
     /** The resource name. */
@@ -59,11 +49,6 @@ public class FlowRuleEntity implements RuleEntity {
     /** The flow rule config for cluster mode. */
     private ClusterFlowConfig clusterConfig;
 
-    /** The create time. */
-    private Date gmtCreate;
-    /** The last modify time. */
-    private Date gmtModified;
-
     /**
      * Builds an entity from the given {@link FlowRule}, carrying the given app, ip and port.
      */
@@ -84,51 +69,6 @@ public class FlowRuleEntity implements RuleEntity {
         entity.setClusterMode(rule.isClusterMode());
         entity.setClusterConfig(rule.getClusterConfig());
         return entity;
-    }
-
-    /** Gets the IP address of the machine. */
-    @Override
-    public String getIp() {
-        return ip;
-    }
-
-    /** Sets the IP address of the machine. */
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
-    /** Gets the port of the machine. */
-    @Override
-    public Integer getPort() {
-        return port;
-    }
-
-    /** Sets the port of the machine. */
-    public void setPort(Integer port) {
-        this.port = port;
-    }
-
-    /** Gets the application name. */
-    @Override
-    public String getApp() {
-        return app;
-    }
-
-    /** Sets the application name. */
-    public void setApp(String app) {
-        this.app = app;
-    }
-
-    /** Gets the entity id. */
-    @Override
-    public Long getId() {
-        return id;
-    }
-
-    /** Sets the entity id. */
-    @Override
-    public void setId(Long id) {
-        this.id = id;
     }
 
     /** Gets the caller that the rule applies to. */
@@ -241,29 +181,6 @@ public class FlowRuleEntity implements RuleEntity {
     public FlowRuleEntity setClusterConfig(ClusterFlowConfig clusterConfig) {
         this.clusterConfig = clusterConfig;
         return this;
-    }
-
-    /** Gets the create time. */
-    @Override
-    public Date getGmtCreate() {
-        return gmtCreate;
-    }
-
-    /** Sets the create time. */
-    @Override
-    public void setGmtCreate(Date gmtCreate) {
-        this.gmtCreate = gmtCreate;
-    }
-
-    /** Gets the last modify time. */
-    public Date getGmtModified() {
-        return gmtModified;
-    }
-
-    /** Sets the last modify time. */
-    @Override
-    public void setGmtModified(Date gmtModified) {
-        this.gmtModified = gmtModified;
     }
 
     /**

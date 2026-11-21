@@ -15,85 +15,13 @@
  */
 package com.alibaba.csp.sentinel.dashboard.domain.cluster;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * Entity of one cluster group: a token server and the clients bound to it.
  *
  * @author Eric Zhao
  * @since 1.4.1
  */
-public class ClusterGroupEntity {
-
-    /** The machine id of the token server. */
-    private String machineId;
-
-    /** The ip of the token server. */
-    private String ip;
-    /** The port of the token server. */
-    private Integer port;
-
-    /** The set of machine ids of the clients bound to the token server. */
-    private Set<String> clientSet = new HashSet<>();
-
-    /** Whether the token server belongs to the current application. */
-    private Boolean belongToApp;
-
-    /** Gets the machine id of the token server. */
-    public String getMachineId() {
-        return machineId;
-    }
-
-    /** Sets the machine id of the token server and return this. */
-    public ClusterGroupEntity setMachineId(String machineId) {
-        this.machineId = machineId;
-        return this;
-    }
-
-    /** Gets the ip of the token server. */
-    public String getIp() {
-        return ip;
-    }
-
-    /** Sets the ip of the token server and return this. */
-    public ClusterGroupEntity setIp(String ip) {
-        this.ip = ip;
-        return this;
-    }
-
-    /** Gets the port of the token server. */
-    public Integer getPort() {
-        return port;
-    }
-
-    /** Sets the port of the token server and return this. */
-    public ClusterGroupEntity setPort(Integer port) {
-        this.port = port;
-        return this;
-    }
-
-    /** Gets the set of machine ids of the bound clients. */
-    public Set<String> getClientSet() {
-        return clientSet;
-    }
-
-    /** Sets the set of bound clients and return this. */
-    public ClusterGroupEntity setClientSet(Set<String> clientSet) {
-        this.clientSet = clientSet;
-        return this;
-    }
-
-    /** Whether the token server belongs to the current application. */
-    public Boolean getBelongToApp() {
-        return belongToApp;
-    }
-
-    /** Sets whether the token server belongs to the application and returns this. */
-    public ClusterGroupEntity setBelongToApp(Boolean belongToApp) {
-        this.belongToApp = belongToApp;
-        return this;
-    }
+public class ClusterGroupEntity extends BaseClusterServerMachine {
 
     /** Gets the string representation of this entity. */
     @Override

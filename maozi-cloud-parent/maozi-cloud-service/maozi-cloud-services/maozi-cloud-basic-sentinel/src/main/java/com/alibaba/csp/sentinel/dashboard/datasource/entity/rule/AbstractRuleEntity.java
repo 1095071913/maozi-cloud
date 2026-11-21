@@ -16,8 +16,9 @@
 package com.alibaba.csp.sentinel.dashboard.datasource.entity.rule;
 
 import com.alibaba.csp.sentinel.slots.block.AbstractRule;
-
-import java.util.Date;
+import com.alibaba.csp.sentinel.util.AssertUtil;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Base entity holding a wrapped {@link AbstractRule} plus common fields shared by rule entities.
@@ -25,69 +26,45 @@ import java.util.Date;
  * @author Eric Zhao
  * @since 0.2.1
  */
-public abstract class AbstractRuleEntity<T extends AbstractRule> implements RuleEntity {
-
-    /** The entity id. */
-    protected Long id;
-
-    /** The application name. */
-    protected String app;
-    /** The IP address of the machine. */
-    protected String ip;
-    /** The port of the machine. */
-    protected Integer port;
+public abstract class AbstractRuleEntity<T extends AbstractRule> extends BaseRuleEntity {
 
     /** The wrapped rule object. */
     protected T rule;
 
-    /** The create time. */
-    private Date gmtCreate;
-    /** The last modify time. */
-    private Date gmtModified;
-
-    /** Gets the entity id. */
-    @Override
-    public Long getId() {
-        return id;
+    /** Creates an entity with no wrapped rule. */
+    protected AbstractRuleEntity() {
     }
 
-    /** Sets the entity id. */
-    @Override
-    public void setId(Long id) {
-        this.id = id;
+    /** Creates an entity wrapping the given rule, which must not be null. */
+    protected AbstractRuleEntity(T rule) {
+        AssertUtil.notNull(rule, "rule should not be null");
+        this.rule = rule;
     }
 
-    /** Gets the application name. */
-    @Override
-    public String getApp() {
-        return app;
+    /** Creates an entity wrapping the given rule and carrying the given app, ip and port. */
+    protected AbstractRuleEntity(String app, String ip, Integer port, T rule) {
+        this(rule);
+        setApp(app);
+        setIp(ip);
+        setPort(port);
     }
 
     /** Sets the application name and returns this. */
+    @Override
     public AbstractRuleEntity<T> setApp(String app) {
         this.app = app;
         return this;
     }
 
-    /** Gets the IP address of the machine. */
-    @Override
-    public String getIp() {
-        return ip;
-    }
-
     /** Sets the IP address of the machine and returns this. */
+    @Override
     public AbstractRuleEntity<T> setIp(String ip) {
         this.ip = ip;
         return this;
     }
 
-    /** Gets the port of the machine. */
-    @Override
-    public Integer getPort() {
-        return port;
-    }
-
     /** Sets the port of the machine and returns this. */
+    @Override
     public AbstractRuleEntity<T> setPort(Integer port) {
         this.port = port;
         return this;
@@ -104,27 +81,18 @@ public abstract class AbstractRuleEntity<T extends AbstractRule> implements Rule
         return this;
     }
 
-    /** Gets the create time. */
-    @Override
-    public Date getGmtCreate() {
-        return gmtCreate;
+    /** Gets the resource name of the wrapped rule (excluded from JSON). */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public String getResource() {
+        return rule.getResource();
     }
 
-    /** Sets the create time. */
-    @Override
-    public void setGmtCreate(Date gmtCreate) {
-        this.gmtCreate = gmtCreate;
-    }
-
-    /** Gets the last modify time. */
-    public Date getGmtModified() {
-        return gmtModified;
-    }
-
-    /** Sets the last modify time. */
-    @Override
-    public void setGmtModified(Date gmtModified) {
-        this.gmtModified = gmtModified;
+    /** Gets the limitApp of the wrapped rule (excluded from JSON). */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public String getLimitApp() {
+        return rule.getLimitApp();
     }
 
     /** Returns the wrapped rule object directly. */

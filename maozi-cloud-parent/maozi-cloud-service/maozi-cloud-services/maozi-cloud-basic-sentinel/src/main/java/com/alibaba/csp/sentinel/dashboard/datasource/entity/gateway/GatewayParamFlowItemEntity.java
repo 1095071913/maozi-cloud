@@ -25,19 +25,13 @@ import java.util.Objects;
  * @author cdfive
  * @since 1.7.0
  */
-public class GatewayParamFlowItemEntity {
+public class GatewayParamFlowItemEntity extends BasePatternItemEntity {
 
     /** The strategy of parsing the parameter value from the request. */
     private Integer parseStrategy;
 
     /** The name of the header or parameter to parse, depending on parseStrategy. */
     private String fieldName;
-
-    /** The pattern to match the parsed value. */
-    private String pattern;
-
-    /** The strategy to match the pattern. */
-    private Integer matchStrategy;
 
     /** Gets the strategy of parsing the parameter value from the request. */
     public Integer getParseStrategy() {
@@ -57,26 +51,6 @@ public class GatewayParamFlowItemEntity {
     /** Sets the name of the header or parameter to parse. */
     public void setFieldName(String fieldName) {
         this.fieldName = fieldName;
-    }
-
-    /** Gets the pattern to match the parsed value. */
-    public String getPattern() {
-        return pattern;
-    }
-
-    /** Sets the pattern to match the parsed value. */
-    public void setPattern(String pattern) {
-        this.pattern = pattern;
-    }
-
-    /** Gets the strategy to match the pattern. */
-    public Integer getMatchStrategy() {
-        return matchStrategy;
-    }
-
-    /** Sets the strategy to match the pattern. */
-    public void setMatchStrategy(Integer matchStrategy) {
-        this.matchStrategy = matchStrategy;
     }
 
     /** Whether the given object has the same fields as this item. */

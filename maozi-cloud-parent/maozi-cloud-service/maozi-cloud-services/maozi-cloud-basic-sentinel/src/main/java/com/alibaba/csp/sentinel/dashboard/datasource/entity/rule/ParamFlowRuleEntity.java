@@ -18,7 +18,6 @@ package com.alibaba.csp.sentinel.dashboard.datasource.entity.rule;
 import com.alibaba.csp.sentinel.slots.block.flow.param.ParamFlowClusterConfig;
 import com.alibaba.csp.sentinel.slots.block.flow.param.ParamFlowItem;
 import com.alibaba.csp.sentinel.slots.block.flow.param.ParamFlowRule;
-import com.alibaba.csp.sentinel.util.AssertUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -34,37 +33,24 @@ public class ParamFlowRuleEntity extends AbstractRuleEntity<ParamFlowRule> {
 
     /** Creates an entity with no wrapped rule. */
     public ParamFlowRuleEntity() {
+        super();
     }
 
     /** Creates an entity wrapping the given rule, which must not be null. */
     public ParamFlowRuleEntity(ParamFlowRule rule) {
-        AssertUtil.notNull(rule, "Authority rule should not be null");
-        this.rule = rule;
+        super(rule);
+    }
+
+    /** Creates an entity wrapping the given rule and carrying the given app, ip and port. */
+    public ParamFlowRuleEntity(String app, String ip, Integer port, ParamFlowRule rule) {
+        super(app, ip, port, rule);
     }
 
     /**
      * Builds an entity wrapping the given {@link ParamFlowRule}, carrying the given app, ip and port.
      */
     public static ParamFlowRuleEntity fromParamFlowRule(String app, String ip, Integer port, ParamFlowRule rule) {
-        ParamFlowRuleEntity entity = new ParamFlowRuleEntity(rule);
-        entity.setApp(app);
-        entity.setIp(ip);
-        entity.setPort(port);
-        return entity;
-    }
-
-    /** Gets the limitApp of the wrapped rule (excluded from JSON). */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public String getLimitApp() {
-        return rule.getLimitApp();
-    }
-
-    /** Gets the resource name of the wrapped rule (excluded from JSON). */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public String getResource() {
-        return rule.getResource();
+        return new ParamFlowRuleEntity(app, ip, port, rule);
     }
 
     /** Gets the threshold type of the wrapped rule (excluded from JSON). */

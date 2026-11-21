@@ -25,13 +25,7 @@ import java.util.Objects;
  * @author cdfive
  * @since 1.7.0
  */
-public class ApiPredicateItemEntity {
-
-    /** The pattern to match the request path. */
-    private String pattern;
-
-    /** The strategy to match the pattern. */
-    private Integer matchStrategy;
+public class ApiPredicateItemEntity extends BasePatternItemEntity {
 
     /** Creates an empty item. */
     public ApiPredicateItemEntity() {
@@ -40,26 +34,6 @@ public class ApiPredicateItemEntity {
     /** Creates an item with the given pattern and match strategy. */
     public ApiPredicateItemEntity(String pattern, int matchStrategy) {
         this.pattern = pattern;
-        this.matchStrategy = matchStrategy;
-    }
-
-    /** Gets the pattern to match the request path. */
-    public String getPattern() {
-        return pattern;
-    }
-
-    /** Sets the pattern to match the request path. */
-    public void setPattern(String pattern) {
-        this.pattern = pattern;
-    }
-
-    /** Gets the strategy to match the pattern. */
-    public Integer getMatchStrategy() {
-        return matchStrategy;
-    }
-
-    /** Sets the strategy to match the pattern. */
-    public void setMatchStrategy(Integer matchStrategy) {
         this.matchStrategy = matchStrategy;
     }
 

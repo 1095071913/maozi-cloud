@@ -66,6 +66,10 @@ maozi-cloud-system-service-build-docker.sh
 !opentelemetry-javaagent.jar
 !maozi-cloud-agent-opentelemetry.jar
 
+# SonarQube
+.sonar
+
+
 # 前端项目
 release
 node_modules

@@ -22,15 +22,7 @@ import java.util.Date;
  *
  * @author leyou
  */
-public class MetricPositionEntity {
-    /** The entity id. */
-    private long id;
-    /** The create time. */
-    private Date gmtCreate;
-    /** The last modify time. */
-    private Date gmtModified;
-    /** The application name. */
-    private String app;
+public class MetricPositionEntity extends BaseEntity {
     /** The IP address of the machine. */
     private String ip;
     /** The port Sentinel listens on in the application. */
@@ -41,46 +33,6 @@ public class MetricPositionEntity {
 
     /** The latest timestamp fetched last time. */
     private Date lastFetch;
-
-    /** Gets the entity id. */
-    public long getId() {
-        return id;
-    }
-
-    /** Sets the entity id. */
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    /** Gets the create time. */
-    public Date getGmtCreate() {
-        return gmtCreate;
-    }
-
-    /** Sets the create time. */
-    public void setGmtCreate(Date gmtCreate) {
-        this.gmtCreate = gmtCreate;
-    }
-
-    /** Gets the last modify time. */
-    public Date getGmtModified() {
-        return gmtModified;
-    }
-
-    /** Sets the last modify time. */
-    public void setGmtModified(Date gmtModified) {
-        this.gmtModified = gmtModified;
-    }
-
-    /** Gets the application name. */
-    public String getApp() {
-        return app;
-    }
-
-    /** Sets the application name. */
-    public void setApp(String app) {
-        this.app = app;
-    }
 
     /** Gets the IP address of the machine. */
     public String getIp() {

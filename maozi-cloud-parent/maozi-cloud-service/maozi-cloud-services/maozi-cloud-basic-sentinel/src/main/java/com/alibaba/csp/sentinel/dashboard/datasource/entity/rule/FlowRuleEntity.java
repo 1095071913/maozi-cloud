@@ -22,6 +22,7 @@ import com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
  * Entity for a flow (QPS or thread count) rule.
  *
  * @author leyou
+ * @date 2026/11/22
  */
 public class FlowRuleEntity extends BaseRuleEntity {
 

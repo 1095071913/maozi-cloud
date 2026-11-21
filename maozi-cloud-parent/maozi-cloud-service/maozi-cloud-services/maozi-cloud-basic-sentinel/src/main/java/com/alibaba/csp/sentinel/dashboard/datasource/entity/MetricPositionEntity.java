@@ -21,6 +21,7 @@ import java.util.Date;
  * Persistent entity recording the last metric fetch position of a machine.
  *
  * @author leyou
+ * @date 2026/11/22
  */
 public class MetricPositionEntity extends BaseEntity {
     /** The IP address of the machine. */

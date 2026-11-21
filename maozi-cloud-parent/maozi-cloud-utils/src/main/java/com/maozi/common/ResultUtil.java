@@ -11,7 +11,7 @@ import com.maozi.common.result.success.SuccessResult;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/4/26 08:18
+ * @date 2026/4/26
  */
 public final class ResultUtil {
 

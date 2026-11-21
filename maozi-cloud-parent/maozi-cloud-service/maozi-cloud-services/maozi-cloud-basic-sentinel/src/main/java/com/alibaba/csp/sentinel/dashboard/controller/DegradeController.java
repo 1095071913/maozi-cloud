@@ -47,6 +47,7 @@ import java.util.List;
  *
  * @author Carpenter Lee
  * @author Eric Zhao
+ * @date 2026/11/22
  */
 @RestController
 @RequestMapping("/degrade")
@@ -84,16 +85,16 @@ public class DegradeController {
     @AuthAction(PrivilegeType.READ_RULE)
     public Result<List<DegradeRuleEntity>> apiQueryMachineRules(String app, String ip, Integer port) {
         if (StringUtil.isEmpty(app)) {
-            return Result.ofFail(-1, "app can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
         }
         if (StringUtil.isEmpty(ip)) {
-            return Result.ofFail(-1, "ip can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "ip can't be null or empty");
         }
         if (port == null) {
-            return Result.ofFail(-1, "port can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "port can't be null");
         }
         if (!appManagement.isValidMachineOfApp(app, ip)) {
-            return Result.ofFail(-1, "given ip does not belong to given app");
+            return Result.ofFail(Result.CODE_ERROR, "given ip does not belong to given app");
         }
         try {
             List<DegradeRuleEntity> rules = ruleProvider.getRules(app);
@@ -106,7 +107,7 @@ public class DegradeController {
             return Result.ofSuccess(rules);
         } catch (Throwable throwable) {
             logger.error("queryApps error:", throwable);
-            return Result.ofThrowable(-1, throwable);
+            return Result.ofThrowable(Result.CODE_ERROR, throwable);
         }
     }
 
@@ -123,7 +124,7 @@ public class DegradeController {
             entity = repository.save(entity);
         } catch (Throwable t) {
             logger.error("Failed to add new degrade rule, app={}, ip={}", entity.getApp(), entity.getIp(), t);
-            return Result.ofThrowable(-1, t);
+            return Result.ofThrowable(Result.CODE_ERROR, t);
         }
         if (!publishRules(entity.getApp())) {
             logger.warn("Publish degrade rules failed, app={}", entity.getApp());
@@ -140,11 +141,11 @@ public class DegradeController {
     public Result<DegradeRuleEntity> apiUpdateRule(@PathVariable("id") Long id,
                                                      @RequestBody DegradeRuleEntity entity) {
         if (id == null || id <= 0) {
-            return Result.ofFail(-1, "id can't be null or negative");
+            return Result.ofFail(Result.CODE_ERROR, "id can't be null or negative");
         }
         DegradeRuleEntity oldEntity = repository.findById(id);
         if (oldEntity == null) {
-            return Result.ofFail(-1, "Degrade rule does not exist, id=" + id);
+            return Result.ofFail(Result.CODE_ERROR, "Degrade rule does not exist, id=" + id);
         }
         entity.setApp(oldEntity.getApp());
         entity.setIp(oldEntity.getIp());
@@ -161,7 +162,7 @@ public class DegradeController {
             entity = repository.save(entity);
         } catch (Throwable t) {
             logger.error("Failed to save degrade rule, id={}, rule={}", id, entity, t);
-            return Result.ofThrowable(-1, t);
+            return Result.ofThrowable(Result.CODE_ERROR, t);
         }
         if (!publishRules(entity.getApp())) {
             logger.warn("Publish degrade rules failed, app={}", entity.getApp());
@@ -174,7 +175,7 @@ public class DegradeController {
     @AuthAction(PrivilegeType.DELETE_RULE)
     public Result<Long> delete(@PathVariable("id") Long id) {
         if (id == null) {
-            return Result.ofFail(-1, "id can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "id can't be null");
         }
 
         DegradeRuleEntity oldEntity = repository.findById(id);
@@ -186,7 +187,7 @@ public class DegradeController {
             repository.delete(id);
         } catch (Throwable throwable) {
             logger.error("Failed to delete degrade rule, id={}", id, throwable);
-            return Result.ofThrowable(-1, throwable);
+            return Result.ofThrowable(Result.CODE_ERROR, throwable);
         }
         if (!publishRules(oldEntity.getApp())) {
             logger.warn("Publish degrade rules failed, app={}", oldEntity.getApp());
@@ -216,46 +217,46 @@ public class DegradeController {
             return baseResult;
         }
         if (StringUtil.isBlank(entity.getLimitApp())) {
-            return Result.ofFail(-1, "limitApp can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "limitApp can't be null or empty");
         }
         if (StringUtil.isBlank(entity.getResource())) {
-            return Result.ofFail(-1, "resource can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "resource can't be null or empty");
         }
         Double threshold = entity.getCount();
         if (threshold == null || threshold < 0) {
-            return Result.ofFail(-1, "invalid threshold: " + threshold);
+            return Result.ofFail(Result.CODE_ERROR, "invalid threshold: " + threshold);
         }
         Integer recoveryTimeoutSec = entity.getTimeWindow();
         if (recoveryTimeoutSec == null || recoveryTimeoutSec <= 0) {
-            return Result.ofFail(-1, "recoveryTimeout should be positive");
+            return Result.ofFail(Result.CODE_ERROR, "recoveryTimeout should be positive");
         }
         Integer strategy = entity.getGrade();
         if (strategy == null) {
-            return Result.ofFail(-1, "circuit breaker strategy cannot be null");
+            return Result.ofFail(Result.CODE_ERROR, "circuit breaker strategy cannot be null");
         }
         if (strategy < CircuitBreakerStrategy.SLOW_REQUEST_RATIO.getType()
             || strategy > RuleConstant.DEGRADE_GRADE_EXCEPTION_COUNT) {
-            return Result.ofFail(-1, "Invalid circuit breaker strategy: " + strategy);
+            return Result.ofFail(Result.CODE_ERROR, "Invalid circuit breaker strategy: " + strategy);
         }
         // Cache the field values to avoid repeated calls within the same method.
         Integer minRequestAmount = entity.getMinRequestAmount();
         if (minRequestAmount == null || minRequestAmount <= 0) {
-            return Result.ofFail(-1, "Invalid minRequestAmount");
+            return Result.ofFail(Result.CODE_ERROR, "Invalid minRequestAmount");
         }
         Integer statIntervalMs = entity.getStatIntervalMs();
         if (statIntervalMs == null || statIntervalMs <= 0) {
-            return Result.ofFail(-1, "Invalid statInterval");
+            return Result.ofFail(Result.CODE_ERROR, "Invalid statInterval");
         }
         if (strategy == RuleConstant.DEGRADE_GRADE_RT) {
             Double slowRatio = entity.getSlowRatioThreshold();
             if (slowRatio == null) {
-                return Result.ofFail(-1, "SlowRatioThreshold is required for slow request ratio strategy");
+                return Result.ofFail(Result.CODE_ERROR, "SlowRatioThreshold is required for slow request ratio strategy");
             } else if (slowRatio < 0 || slowRatio > 1) {
-                return Result.ofFail(-1, "SlowRatioThreshold should be in range: [0.0, 1.0]");
+                return Result.ofFail(Result.CODE_ERROR, "SlowRatioThreshold should be in range: [0.0, 1.0]");
             }
         } else if (strategy == RuleConstant.DEGRADE_GRADE_EXCEPTION_RATIO) {
             if (threshold > 1) {
-                return Result.ofFail(-1, "Ratio threshold should be in range: [0.0, 1.0]");
+                return Result.ofFail(Result.CODE_ERROR, "Ratio threshold should be in range: [0.0, 1.0]");
             }
         }
         return null;

@@ -34,6 +34,9 @@ package org.springframework.security.access;
  */
 public class AccessDeniedException extends RuntimeException {
 
+    /** 序列化标识 */
+    private static final long serialVersionUID = 1L;
+
     /**
      * 使用指定的详细消息构造 <code>AccessDeniedException</code>
      * @param msg 详细消息

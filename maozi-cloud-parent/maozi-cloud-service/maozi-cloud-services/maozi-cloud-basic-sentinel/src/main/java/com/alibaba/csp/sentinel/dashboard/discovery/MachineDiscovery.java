@@ -20,6 +20,8 @@ import java.util.Set;
 
 /**
  * Registry of discovered applications and their machines.
+ * @author maozi
+ * @date 2026/11/22
  */
 public interface MachineDiscovery {
 

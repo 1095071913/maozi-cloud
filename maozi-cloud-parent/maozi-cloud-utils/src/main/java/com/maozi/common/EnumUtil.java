@@ -14,7 +14,7 @@ import java.util.Objects;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/4/26 09:04
+ * @date 2026/4/26
  */
 public final class EnumUtil {
 

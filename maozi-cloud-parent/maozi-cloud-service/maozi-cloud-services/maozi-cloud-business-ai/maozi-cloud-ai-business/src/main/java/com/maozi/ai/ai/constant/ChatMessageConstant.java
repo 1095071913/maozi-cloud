@@ -10,7 +10,7 @@ import java.io.Serializable;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/8/23 19:07
+ * @date 2026/8/23
  */
 public class ChatMessageConstant implements Serializable {
     /** 序列化标识 */

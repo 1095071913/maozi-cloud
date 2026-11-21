@@ -28,12 +28,16 @@ import java.util.stream.Collectors;
  * Utility class for handling {@link CompletableFuture}s.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.1
  */
 public final class AsyncUtils {
 
     /** Logger used when waiting for async results fails. */
     private static final Logger LOG = LoggerFactory.getLogger(AsyncUtils.class);
+
+    /** Timeout in seconds when waiting for a single async result. */
+    private static final long GET_VALUE_TIMEOUT_SECONDS = 10L;
 
     /** Returns a future already completed exceptionally with the given throwable. */
     public static <R> CompletableFuture<R> newFailedFuture(Throwable ex) {
@@ -75,7 +79,7 @@ public final class AsyncUtils {
      */
     public static <T> T getValue(CompletableFuture<T> future) {
         try {
-            return future.get(10, TimeUnit.SECONDS);
+            return future.get(GET_VALUE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             LOG.error("getValue for async result failed", ex);

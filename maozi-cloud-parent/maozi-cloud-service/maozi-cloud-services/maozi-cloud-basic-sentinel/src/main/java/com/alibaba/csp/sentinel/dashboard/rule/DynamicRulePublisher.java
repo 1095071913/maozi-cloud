@@ -19,6 +19,7 @@ package com.alibaba.csp.sentinel.dashboard.rule;
  * Interface for publishing rules of an application to a remote rule repository.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.0
  */
 public interface DynamicRulePublisher<T> {

@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
  * client/server configuration via the Sentinel command API.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.0
  */
 @Service
@@ -205,14 +206,14 @@ public class ClusterConfigService {
         return sentinelApiClient.fetchClusterMode(ip, port)
             .thenApply(e -> new ClusterUniversalStateVO().setStateInfo(e))
             .thenCompose(vo -> {
-                if (vo.getStateInfo().getClientAvailable()) {
+                if (Boolean.TRUE.equals(vo.getStateInfo().getClientAvailable())) {
                     return sentinelApiClient.fetchClusterClientInfoAndConfig(ip, port)
                         .thenApply(cc -> vo.setClient(new ClusterClientStateVO().setClientConfig(cc)));
                 } else {
                     return CompletableFuture.completedFuture(vo);
                 }
             }).thenCompose(vo -> {
-                if (vo.getStateInfo().getServerAvailable()) {
+                if (Boolean.TRUE.equals(vo.getStateInfo().getServerAvailable())) {
                     return sentinelApiClient.fetchClusterServerBasicInfo(ip, port)
                         .thenApply(vo::setServer);
                 } else {

@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * Entity for an authority (black/white list) rule, wrapping an {@link AuthorityRule}.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 0.2.1
  */
 public class AuthorityRuleEntity extends AbstractRuleEntity<AuthorityRule> {

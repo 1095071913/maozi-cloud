@@ -17,7 +17,7 @@ import java.io.Serializable;
  */
 @Data
 @NoArgsConstructor
-public class AbstractBaseErrorCode implements Serializable {
+public class BaseErrorCode implements Serializable {
 
     /** 序列化标识 */
     @Serial

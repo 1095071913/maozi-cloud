@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.domain;
 
 import com.alibaba.csp.sentinel.command.vo.NodeVo;
-import com.alibaba.csp.sentinel.dashboard.domain.vo.BaseResourceMetricsVo;
+import com.alibaba.csp.sentinel.dashboard.domain.vo.BaseResourceMetricsVO;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,8 +27,9 @@ import java.util.Map;
  * Node of the resource tree shown on the realtime monitoring page.
  *
  * @author leyou
+ * @date 2026/11/22
  */
-public class ResourceTreeNode extends BaseResourceMetricsVo {
+public class ResourceTreeNode extends BaseResourceMetricsVO {
     /** The id of the node. */
     private String id;
     /** The id of the parent node, null or empty for the root node. */

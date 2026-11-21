@@ -40,6 +40,7 @@ public class ImageStorageProperties implements Serializable {
      * </p>
      *
      * @author maozi
+     * @date 2026/11/08
      */
     @Data
     public static class Aliyun implements Serializable {

@@ -23,6 +23,7 @@ import java.util.List;
  * Interface to store and find rules.
  *
  * @author leyou
+ * @date 2026/11/22
  */
 public interface RuleRepository<T, ID> {
 

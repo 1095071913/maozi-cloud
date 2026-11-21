@@ -26,8 +26,8 @@ import org.springframework.stereotype.Component;
 @RefreshScope(proxyMode = ScopedProxyMode.NO)
 public class QueryEnvironmentContext {
 
-    /** 默认排序表别名（排序字段拼接前缀），由配置项 mybatis-plus-join.table-alias 注入 */
-    public static String defaultOrderKey;
+    /** 默认排序表别名（排序字段拼接前缀），由配置项 mybatis-plus-join.table-alias 注入（volatile 保证配置刷新后对读线程可见） */
+    public static volatile String defaultOrderKey;
 
     /**
      * 将配置注入的默认表别名写入静态变量，供全局静态读取

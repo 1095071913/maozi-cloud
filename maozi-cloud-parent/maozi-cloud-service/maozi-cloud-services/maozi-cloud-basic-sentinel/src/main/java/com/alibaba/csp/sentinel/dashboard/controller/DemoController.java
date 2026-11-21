@@ -18,6 +18,7 @@ package com.alibaba.csp.sentinel.dashboard.controller;
 import com.alibaba.csp.sentinel.Entry;
 import com.alibaba.csp.sentinel.EntryType;
 import com.alibaba.csp.sentinel.SphU;
+import com.alibaba.csp.sentinel.concurrent.NamedThreadFactory;
 import com.alibaba.csp.sentinel.context.ContextUtil;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 import org.slf4j.Logger;
@@ -28,12 +29,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Demo controller that provides sample endpoints for testing Sentinel resources,
  * call links and traffic generation.
+ * @author maozi
+ * @date 2026/11/22
  */
 @Controller
 @RequestMapping(value = "/demo", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -47,6 +53,14 @@ public class DemoController {
 
     /** Sleep time in milliseconds after each entry in slow-call mode. */
     private static final long SLOW_CALL_SLEEP_MS = 3000L;
+
+    /** Number of demo traffic threads started by each loop/slow request. */
+    private static final int LOOP_THREAD_COUNT = 10;
+
+    /** Demo traffic thread pool, provided by ThreadPoolExecutor with a meaningful thread name. */
+    private static final ExecutorService DEMO_EXECUTOR = new ThreadPoolExecutor(LOOP_THREAD_COUNT, LOOP_THREAD_COUNT,
+            60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(100), new NamedThreadFactory("demo-traffic", true),
+            new ThreadPoolExecutor.CallerRunsPolicy());
 
     /** Returns the "index" view name. */
     @GetMapping("/greeting")
@@ -76,9 +90,8 @@ public class DemoController {
     @GetMapping("/loop")
     @ResponseBody
     public String loop(String name, int time) throws BlockException {
-        for (int i = 0; i < 10; i++) {
-            Thread timer = new Thread(new RunTask(name, time, false), "demo-loop-" + name + "-" + i);
-            timer.start();
+        for (int i = 0; i < LOOP_THREAD_COUNT; i++) {
+            DEMO_EXECUTOR.execute(new RunTask(name, time, false));
         }
         return "successfully create a loop thread";
     }
@@ -87,9 +100,8 @@ public class DemoController {
     @GetMapping("/slow")
     @ResponseBody
     public String slow(String name, int time) throws BlockException {
-        for (int i = 0; i < 10; i++) {
-            Thread timer = new Thread(new RunTask(name, time, true), "demo-slow-" + name + "-" + i);
-            timer.start();
+        for (int i = 0; i < LOOP_THREAD_COUNT; i++) {
+            DEMO_EXECUTOR.execute(new RunTask(name, time, true));
         }
         return "successfully create a loop thread";
     }

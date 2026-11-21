@@ -11,7 +11,7 @@ package com.maozi.common.result.error.code;
  * @author maozi
  * @date 2026/11/08
  */
-public class SystemErrorCode extends AbstractBaseErrorCode{
+public class SystemErrorCode extends BaseErrorCode{
 
     /** 私有构造器，防止常量类被实例化（错误码以静态常量形式提供，无需实例） */
     private SystemErrorCode() {}

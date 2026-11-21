@@ -8,7 +8,7 @@ package com.maozi.common.constant;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/7/8 20:04
+ * @date 2026/7/8
  */
 public final class ApplicationNameConstant {
 

@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/10/12 20:06
+ * @date 2026/10/12
  */
 @Configuration
 public class RestTemplateConfig {

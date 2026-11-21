@@ -19,6 +19,7 @@ package com.alibaba.csp.sentinel.dashboard.client;
  * Exception thrown when a command request to the Sentinel client has failed.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  */
 public class CommandFailedException extends RuntimeException {
 

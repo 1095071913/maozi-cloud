@@ -21,6 +21,7 @@ import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
  * Entity for a circuit breaking (degrade) rule.
  *
  * @author leyou
+ * @date 2026/11/22
  */
 public class DegradeRuleEntity extends BaseRuleEntity {
 

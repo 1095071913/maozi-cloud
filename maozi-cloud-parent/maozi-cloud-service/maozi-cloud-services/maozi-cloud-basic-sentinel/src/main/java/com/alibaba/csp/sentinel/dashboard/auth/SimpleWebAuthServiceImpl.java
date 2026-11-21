@@ -23,6 +23,7 @@ import javax.servlet.http.HttpSession;
  * logged-in user from the HTTP session attribute {@link #WEB_SESSION_KEY}.
  *
  * @author cdfive
+ * @date 2026/11/22
  * @since 1.6.0
  */
 public class SimpleWebAuthServiceImpl implements AuthService<HttpServletRequest> {

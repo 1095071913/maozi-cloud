@@ -23,6 +23,7 @@ import com.alibaba.csp.sentinel.dashboard.datasource.entity.BaseEntity;
  * their own rule fields and implement {@link #toRule()}.
  *
  * @author leyou
+ * @date 2026/11/22
  */
 public abstract class BaseRuleEntity extends BaseEntity implements RuleEntity {
 

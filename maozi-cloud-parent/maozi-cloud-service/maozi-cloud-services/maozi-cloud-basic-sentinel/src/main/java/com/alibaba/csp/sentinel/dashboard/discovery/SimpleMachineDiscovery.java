@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentMap;
  * applications and their machines in a concurrent map.
  *
  * @author leyou
+ * @date 2026/11/22
  */
 @Component
 public class SimpleMachineDiscovery implements MachineDiscovery {

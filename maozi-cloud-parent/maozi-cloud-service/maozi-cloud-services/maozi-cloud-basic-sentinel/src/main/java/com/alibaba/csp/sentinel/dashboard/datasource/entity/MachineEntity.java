@@ -23,6 +23,7 @@ import java.util.Date;
  * Persistent entity of a machine (application instance) registered to the dashboard.
  *
  * @author leyou
+ * @date 2026/11/22
  */
 public class MachineEntity extends BaseEntity {
     /** The IP address of the machine. */

@@ -17,7 +17,7 @@ import java.util.Set;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/8/29 21:30
+ * @date 2026/8/29
  */
 @Data
 public class ClientDTO implements Serializable {

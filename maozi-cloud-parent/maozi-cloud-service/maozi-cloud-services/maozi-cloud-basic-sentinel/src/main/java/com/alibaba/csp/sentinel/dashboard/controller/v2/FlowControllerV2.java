@@ -45,6 +45,7 @@ import java.util.List;
  * Flow rule controller (v2).
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.0
  */
 @RestController
@@ -66,7 +67,7 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
     @AuthAction(PrivilegeType.READ_RULE)
     public Result<List<FlowRuleEntity>> apiQueryMachineRules(@RequestParam String app) {
         if (StringUtil.isEmpty(app)) {
-            return Result.ofFail(-1, "app can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
         }
         return fetchAndSaveRules(app, rules -> {
             for (FlowRuleEntity entity : rules) {
@@ -90,10 +91,10 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
     @Override
     protected <R> Result<R> checkEntityInternal(FlowRuleEntity entity) {
         if (entity == null) {
-            return Result.ofFail(-1, "invalid body");
+            return Result.ofFail(Result.CODE_ERROR, "invalid body");
         }
         if (StringUtil.isBlank(entity.getApp())) {
-            return Result.ofFail(-1, "app can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
         }
         return RuleEntityValidator.checkFlowRuleFields(entity);
     }
@@ -114,14 +115,14 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
     public Result<FlowRuleEntity> apiUpdateFlowRule(@PathVariable("id") Long id,
                                                     @RequestBody FlowRuleEntity entity) {
         if (id == null || id <= 0) {
-            return Result.ofFail(-1, "Invalid id");
+            return Result.ofFail(Result.CODE_ERROR, "Invalid id");
         }
         FlowRuleEntity oldEntity = repository.findById(id);
         if (oldEntity == null) {
-            return Result.ofFail(-1, "id " + id + " does not exist");
+            return Result.ofFail(Result.CODE_ERROR, "id " + id + " does not exist");
         }
         if (entity == null) {
-            return Result.ofFail(-1, "invalid body");
+            return Result.ofFail(Result.CODE_ERROR, "invalid body");
         }
 
         entity.setApp(oldEntity.getApp());
@@ -143,7 +144,7 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
     @AuthAction(PrivilegeType.DELETE_RULE)
     public Result<Long> apiDeleteRule(@PathVariable("id") Long id) {
         if (id == null || id <= 0) {
-            return Result.ofFail(-1, "Invalid id");
+            return Result.ofFail(Result.CODE_ERROR, "Invalid id");
         }
         return deleteAndPublish(id);
     }

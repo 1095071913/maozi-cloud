@@ -19,6 +19,7 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.state;
  * Request limit stats of one namespace on a cluster token server.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.1
  */
 public class ClusterRequestLimitVO {

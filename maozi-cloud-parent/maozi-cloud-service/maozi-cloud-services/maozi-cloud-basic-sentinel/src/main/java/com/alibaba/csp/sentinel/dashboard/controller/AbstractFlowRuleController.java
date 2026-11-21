@@ -31,6 +31,8 @@ import java.util.function.Consumer;
  * Base class shared by the flow rule controllers (v1 and v2): holds the common
  * repository/provider/publisher wiring and the common query, add, save/publish
  * and delete/publish logic, so subclasses only keep their API-specific behavior.
+ * @author maozi
+ * @date 2026/11/22
  */
 public abstract class AbstractFlowRuleController {
 
@@ -69,7 +71,7 @@ public abstract class AbstractFlowRuleController {
             return Result.ofSuccess(rules);
         } catch (Throwable throwable) {
             logger.error("Error when querying flow rules", throwable);
-            return Result.ofThrowable(-1, throwable);
+            return Result.ofThrowable(Result.CODE_ERROR, throwable);
         }
     }
 
@@ -94,13 +96,13 @@ public abstract class AbstractFlowRuleController {
         try {
             FlowRuleEntity saved = repository.save(entity);
             if (saved == null) {
-                return Result.ofFail(-1, "save entity fail: null");
+                return Result.ofFail(Result.CODE_ERROR, "save entity fail: null");
             }
             publishRules(saved.getApp());
             return Result.ofSuccess(saved);
         } catch (Throwable t) {
             logger.error("Failed to save flow rule, app={}", entity.getApp(), t);
-            return Result.ofFail(-1, t.getMessage());
+            return Result.ofFail(Result.CODE_ERROR, t.getMessage());
         }
     }
 
@@ -115,7 +117,7 @@ public abstract class AbstractFlowRuleController {
             publishRules(oldEntity.getApp());
         } catch (Throwable t) {
             logger.error("Error when deleting flow rule, app={}, id={}", oldEntity.getApp(), id, t);
-            return Result.ofFail(-1, t.getMessage());
+            return Result.ofFail(Result.CODE_ERROR, t.getMessage());
         }
         return Result.ofSuccess(id);
     }

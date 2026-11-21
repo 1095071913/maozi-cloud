@@ -33,6 +33,8 @@ import javax.servlet.http.HttpServletRequest;
  * Spring configuration that registers the auth-related beans: an {@link AuthService},
  * a login authentication filter and an authorization interceptor, each overridable
  * by the user's own bean definition.
+ * @author maozi
+ * @date 2026/11/22
  */
 @Configuration
 @EnableConfigurationProperties(AuthProperties.class)

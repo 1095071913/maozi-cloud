@@ -20,9 +20,9 @@ import com.alibaba.csp.sentinel.dashboard.auth.AuthService;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.ApiDefinitionEntity;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.ApiPredicateItemEntity;
 import com.alibaba.csp.sentinel.dashboard.domain.Result;
-import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.api.AddApiReqVo;
-import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.api.ApiPredicateItemVo;
-import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.api.UpdateApiReqVo;
+import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.api.AddApiReqVO;
+import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.api.ApiPredicateItemVO;
+import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.api.UpdateApiReqVO;
 import com.alibaba.csp.sentinel.dashboard.repository.gateway.InMemApiDefinitionStore;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRuleProvider;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
@@ -52,6 +52,7 @@ import static com.alibaba.csp.sentinel.adapter.gateway.common.SentinelGatewayCon
  * Controller for managing gateway API definitions.
  *
  * @author cdfive
+ * @date 2026/11/22
  * @since 1.7.0
  */
 @RestController
@@ -85,13 +86,13 @@ public class GatewayApiController {
     public Result<List<ApiDefinitionEntity>> queryApis(String app, String ip, Integer port) {
 
         if (StringUtil.isEmpty(app)) {
-            return Result.ofFail(-1, "app can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
         }
         if (StringUtil.isEmpty(ip)) {
-            return Result.ofFail(-1, "ip can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "ip can't be null or empty");
         }
         if (port == null) {
-            return Result.ofFail(-1, "port can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "port can't be null");
         }
 
         try {
@@ -105,7 +106,7 @@ public class GatewayApiController {
             return Result.ofSuccess(apis);
         } catch (Throwable throwable) {
             logger.error("queryApis error:", throwable);
-            return Result.ofThrowable(-1, throwable);
+            return Result.ofThrowable(Result.CODE_ERROR, throwable);
         }
     }
 
@@ -115,11 +116,11 @@ public class GatewayApiController {
      */
     @PostMapping("/new.json")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
-    public Result<ApiDefinitionEntity> addApi(HttpServletRequest request, @RequestBody AddApiReqVo reqVo) {
+    public Result<ApiDefinitionEntity> addApi(HttpServletRequest request, @RequestBody AddApiReqVO reqVo) {
 
         String app = reqVo.getApp();
         if (StringUtil.isBlank(app)) {
-            return Result.ofFail(-1, "app can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
         }
         // Cache the trimmed app name to avoid repeated calls within the same method.
         String trimmedApp = app.trim();
@@ -129,47 +130,47 @@ public class GatewayApiController {
 
         String ip = reqVo.getIp();
         if (StringUtil.isBlank(ip)) {
-            return Result.ofFail(-1, "ip can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "ip can't be null or empty");
         }
         entity.setIp(ip.trim());
 
         Integer port = reqVo.getPort();
         if (port == null) {
-            return Result.ofFail(-1, "port can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "port can't be null");
         }
         entity.setPort(port);
 
         // API name.
         String apiName = reqVo.getApiName();
         if (StringUtil.isBlank(apiName)) {
-            return Result.ofFail(-1, "apiName can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "apiName can't be null or empty");
         }
         // Cache the trimmed API name to avoid repeated calls within the same method.
         String trimmedApiName = apiName.trim();
         entity.setApiName(trimmedApiName);
 
         // Predicate items.
-        List<ApiPredicateItemVo> predicateItems = reqVo.getPredicateItems();
+        List<ApiPredicateItemVO> predicateItems = reqVo.getPredicateItems();
         if (CollectionUtils.isEmpty(predicateItems)) {
-            return Result.ofFail(-1, "predicateItems can't empty");
+            return Result.ofFail(Result.CODE_ERROR, "predicateItems can't empty");
         }
 
         List<ApiPredicateItemEntity> predicateItemEntities = new ArrayList<>(predicateItems.size());
-        for (ApiPredicateItemVo predicateItem : predicateItems) {
+        for (ApiPredicateItemVO predicateItem : predicateItems) {
             ApiPredicateItemEntity predicateItemEntity = new ApiPredicateItemEntity();
 
             // Match strategy.
             Integer matchStrategy = predicateItem.getMatchStrategy();
             if (!Arrays.asList(URL_MATCH_STRATEGY_EXACT, URL_MATCH_STRATEGY_PREFIX, 
                 URL_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
-                return Result.ofFail(-1, "invalid matchStrategy: " + matchStrategy);
+                return Result.ofFail(Result.CODE_ERROR, "invalid matchStrategy: " + matchStrategy);
             }
             predicateItemEntity.setMatchStrategy(matchStrategy);
 
             // Match pattern.
             String pattern = predicateItem.getPattern();
             if (StringUtil.isBlank(pattern)) {
-                return Result.ofFail(-1, "pattern can't be null or empty");
+                return Result.ofFail(Result.CODE_ERROR, "pattern can't be null or empty");
             }
             predicateItemEntity.setPattern(pattern);
 
@@ -180,7 +181,7 @@ public class GatewayApiController {
         // Reject a duplicate API name within the app.
         List<ApiDefinitionEntity> allApis = repository.findAllByApp(trimmedApp);
         if (allApis.stream().map(ApiDefinitionEntity::getApiName).anyMatch(trimmedApiName::equals)) {
-            return Result.ofFail(-1, "apiName exists: " + apiName);
+            return Result.ofFail(Result.CODE_ERROR, "apiName exists: " + apiName);
         }
 
         entity.setGmtCreateAndModified(new Date());
@@ -189,7 +190,7 @@ public class GatewayApiController {
             entity = repository.save(entity);
         } catch (Throwable throwable) {
             logger.error("add gateway api error:", throwable);
-            return Result.ofThrowable(-1, throwable);
+            return Result.ofThrowable(Result.CODE_ERROR, throwable);
         }
 
         if (!publishApis(app)) {
@@ -202,44 +203,44 @@ public class GatewayApiController {
     /** Updates the predicate items of the API definition with the given id, then publishes the app's APIs to Nacos. */
     @PostMapping("/save.json")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
-    public Result<ApiDefinitionEntity> updateApi(@RequestBody UpdateApiReqVo reqVo) {
+    public Result<ApiDefinitionEntity> updateApi(@RequestBody UpdateApiReqVO reqVo) {
         String app = reqVo.getApp();
         if (StringUtil.isBlank(app)) {
-            return Result.ofFail(-1, "app can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
         }
 
         Long id = reqVo.getId();
         if (id == null) {
-            return Result.ofFail(-1, "id can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "id can't be null");
         }
 
         ApiDefinitionEntity entity = repository.findById(id);
         if (entity == null) {
-            return Result.ofFail(-1, "api does not exist, id=" + id);
+            return Result.ofFail(Result.CODE_ERROR, "api does not exist, id=" + id);
         }
 
         // Predicate items.
-        List<ApiPredicateItemVo> predicateItems = reqVo.getPredicateItems();
+        List<ApiPredicateItemVO> predicateItems = reqVo.getPredicateItems();
         if (CollectionUtils.isEmpty(predicateItems)) {
-            return Result.ofFail(-1, "predicateItems can't empty");
+            return Result.ofFail(Result.CODE_ERROR, "predicateItems can't empty");
         }
 
         List<ApiPredicateItemEntity> predicateItemEntities = new ArrayList<>(predicateItems.size());
-        for (ApiPredicateItemVo predicateItem : predicateItems) {
+        for (ApiPredicateItemVO predicateItem : predicateItems) {
             ApiPredicateItemEntity predicateItemEntity = new ApiPredicateItemEntity();
 
             // Match strategy.
-            int matchStrategy = predicateItem.getMatchStrategy();
-            if (!Arrays.asList(URL_MATCH_STRATEGY_EXACT, URL_MATCH_STRATEGY_PREFIX, 
+            Integer matchStrategy = predicateItem.getMatchStrategy();
+            if (!Arrays.asList(URL_MATCH_STRATEGY_EXACT, URL_MATCH_STRATEGY_PREFIX,
                 URL_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
-                return Result.ofFail(-1, "Invalid matchStrategy: " + matchStrategy);
+                return Result.ofFail(Result.CODE_ERROR, "Invalid matchStrategy: " + matchStrategy);
             }
             predicateItemEntity.setMatchStrategy(matchStrategy);
 
             // Match pattern.
             String pattern = predicateItem.getPattern();
             if (StringUtil.isBlank(pattern)) {
-                return Result.ofFail(-1, "pattern can't be null or empty");
+                return Result.ofFail(Result.CODE_ERROR, "pattern can't be null or empty");
             }
             predicateItemEntity.setPattern(pattern);
 
@@ -254,7 +255,7 @@ public class GatewayApiController {
             entity = repository.save(entity);
         } catch (Throwable throwable) {
             logger.error("update gateway api error:", throwable);
-            return Result.ofThrowable(-1, throwable);
+            return Result.ofThrowable(Result.CODE_ERROR, throwable);
         }
 
         if (!publishApis(app)) {
@@ -273,7 +274,7 @@ public class GatewayApiController {
 
     public Result<Long> deleteApi(Long id) {
         if (id == null) {
-            return Result.ofFail(-1, "id can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "id can't be null");
         }
 
         ApiDefinitionEntity oldEntity = repository.findById(id);
@@ -285,7 +286,7 @@ public class GatewayApiController {
             repository.delete(id);
         } catch (Throwable throwable) {
             logger.error("delete gateway api error:", throwable);
-            return Result.ofThrowable(-1, throwable);
+            return Result.ofThrowable(Result.CODE_ERROR, throwable);
         }
 
         if (!publishApis(oldEntity.getApp())) {

@@ -23,6 +23,7 @@ import java.util.Set;
  * identity (machineId, ip, port), the bound client set and the belongToApp flag.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.1
  */
 public abstract class BaseClusterServerMachine {

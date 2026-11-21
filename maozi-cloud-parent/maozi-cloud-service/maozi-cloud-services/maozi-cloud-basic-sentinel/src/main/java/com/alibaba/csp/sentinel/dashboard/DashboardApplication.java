@@ -15,14 +15,21 @@
  */
 package com.alibaba.csp.sentinel.dashboard;
 
+import com.alibaba.csp.sentinel.concurrent.NamedThreadFactory;
 import com.alibaba.csp.sentinel.init.InitExecutor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Sentinel dashboard application.
  *
  * @author Carpenter Lee
+ * @date 2026/11/22
  */
 @SpringBootApplication
 public class DashboardApplication {
@@ -33,8 +40,11 @@ public class DashboardApplication {
         SpringApplication.run(DashboardApplication.class, args);
     }
 
-    /** Run Sentinel {@link InitExecutor} init functions in a separate thread so they do not block startup. */
+    /** Run Sentinel {@link InitExecutor} init functions in the pool so they do not block startup. */
     private static void triggerSentinelInit() {
-        new Thread(InitExecutor::doInit, "sentinel-dashboard-init").start();
+        ExecutorService initExecutor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>(), new NamedThreadFactory("sentinel-dashboard-init", true));
+        initExecutor.execute(InitExecutor::doInit);
+        initExecutor.shutdown();
     }
 }

@@ -12,7 +12,7 @@ import java.util.Map;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/6/24 23:55
+ * @date 2026/6/24
  */
 public interface OauthTokenService {
 

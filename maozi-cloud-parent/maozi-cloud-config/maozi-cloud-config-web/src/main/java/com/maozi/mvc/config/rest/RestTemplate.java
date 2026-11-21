@@ -6,7 +6,7 @@ import com.maozi.common.ObjectUtil;
 import com.maozi.common.constant.LogTag;
 import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.context.SqlLogContext;
-import com.maozi.common.dto.CurrentUserInfo;
+import com.maozi.common.dto.CurrentUserInfoDTO;
 import com.maozi.common.enums.EnvironmentTypeEnum;
 import com.maozi.common.enums.LogCommonTypeEnum;
 import jakarta.annotation.Nonnull;
@@ -208,7 +208,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
     private void fillErrorLog(ClientHttpRequest request, Map<String, String> logs, Throwable ex) {
 
         // 记录异常相关的用户标识
-        Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
+        Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfoDTO::getUserId);
         if (ObjectUtil.isNotNull(userId)) {
             logs.put(LogTag.ERROR_USER, userId.toString());
         }

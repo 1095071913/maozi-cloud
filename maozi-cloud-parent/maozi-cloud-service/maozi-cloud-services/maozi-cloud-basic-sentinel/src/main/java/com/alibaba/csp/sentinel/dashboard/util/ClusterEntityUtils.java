@@ -39,6 +39,7 @@ import java.util.Set;
  * state and cluster group entities.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.1
  */
 public final class ClusterEntityUtils {

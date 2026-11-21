@@ -22,6 +22,7 @@ import java.util.List;
  *
  * @param <T> type of metrics
  * @author Eric Zhao
+ * @date 2026/11/22
  */
 public interface MetricsRepository<T> {
 

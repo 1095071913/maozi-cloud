@@ -98,7 +98,7 @@ public class RetryTaskReportAop {
 
         // 若为非重试流量则执行本地重试与远程上报，本地重试成功时直接返回重试结果
         if (!retryTraffic) {
-            LocalRetryResultDTO retryOutcome =
+            LocalRetryResult retryOutcome =
                     retryAndReport(proceedingJoinPoint, signature, method, retryTask);
             if (retryOutcome.success()) {
                 return retryOutcome.result();
@@ -128,12 +128,12 @@ public class RetryTaskReportAop {
      * @param retryTask RetryTask 注解
      * @return 本地重试结果（本地重试未启用或重试失败时为失败结果）
      */
-    private LocalRetryResultDTO retryAndReport(ProceedingJoinPoint proceedingJoinPoint, MethodSignature signature,
+    private LocalRetryResult retryAndReport(ProceedingJoinPoint proceedingJoinPoint, MethodSignature signature,
         Method method, RetryTask retryTask) {
 
         RetryType retryStrategy = retryTask.retryStrategy();
 
-        LocalRetryResultDTO localRetryResult = new LocalRetryResultDTO(false, null);
+        LocalRetryResult localRetryResult = new LocalRetryResult(false, null);
 
         // 本地重试
         if (retryStrategy == RetryType.ONLY_LOCAL
@@ -265,7 +265,7 @@ public class RetryTaskReportAop {
      * @param retryTask RetryTask 注解
      * @return 本地重试结果
      */
-    private LocalRetryResultDTO localRetry(int localTimes, int localInterval, ProceedingJoinPoint proceedingJoinPoint,
+    private LocalRetryResult localRetry(int localTimes, int localInterval, ProceedingJoinPoint proceedingJoinPoint,
         RetryTask retryTask) {
 
         int currentLocalTimes = 0;
@@ -273,7 +273,7 @@ public class RetryTaskReportAop {
         do {
 
             // 执行单次重试，执行异常或结果校验不通过时继续下一轮
-            LocalRetryResultDTO retryResult = doSingleRetry(localInterval, proceedingJoinPoint, retryTask);
+            LocalRetryResult retryResult = doSingleRetry(localInterval, proceedingJoinPoint, retryTask);
             if (retryResult.success()) {
                 return retryResult;
             }
@@ -282,7 +282,7 @@ public class RetryTaskReportAop {
 
         } while (currentLocalTimes < localTimes);
 
-        return new LocalRetryResultDTO(false, null);
+        return new LocalRetryResult(false, null);
 
     }
 
@@ -299,7 +299,7 @@ public class RetryTaskReportAop {
      * @param retryTask RetryTask 注解
      * @return 本次重试结果
      */
-    private LocalRetryResultDTO doSingleRetry(int localInterval, ProceedingJoinPoint proceedingJoinPoint,
+    private LocalRetryResult doSingleRetry(int localInterval, ProceedingJoinPoint proceedingJoinPoint,
         RetryTask retryTask) {
 
         try {
@@ -311,7 +311,7 @@ public class RetryTaskReportAop {
 
             Object result = proceedingJoinPoint.proceed();
             if (retryCondition(retryTask, result)) {
-                return new LocalRetryResultDTO(true, result);
+                return new LocalRetryResult(true, result);
             }
 
         } catch (InterruptedException e) {
@@ -320,11 +320,15 @@ public class RetryTaskReportAop {
             Thread.currentThread().interrupt();
             log.warn("local retry interrupted", e);
 
+        } catch (Error e) {
+            // Error 类严重故障不吞掉，原样抛出
+            throw e;
         } catch (Throwable e) {
+            // proceed() 属动态代理调用，按规约以 Throwable 拦截，记录后由本地重试结果承载失败
             log.warn("local retry invoke error", e);
         }
 
-        return new LocalRetryResultDTO(false, null);
+        return new LocalRetryResult(false, null);
 
     }
 
@@ -339,6 +343,6 @@ public class RetryTaskReportAop {
      * @param result  重试成功的结果集
      * @author maozi
      */
-     private record LocalRetryResultDTO(boolean success, Object result) {}
+     private record LocalRetryResult(boolean success, Object result) {}
 
 }

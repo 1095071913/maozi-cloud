@@ -23,6 +23,7 @@ import java.util.Objects;
  * Entity for {@link ApiPredicateItem}.
  *
  * @author cdfive
+ * @date 2026/11/22
  * @since 1.7.0
  */
 public class ApiPredicateItemEntity extends BasePatternItemEntity {

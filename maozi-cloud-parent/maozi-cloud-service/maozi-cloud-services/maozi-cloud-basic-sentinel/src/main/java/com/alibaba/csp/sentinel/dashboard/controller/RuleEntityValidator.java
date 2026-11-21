@@ -25,6 +25,8 @@ import com.alibaba.csp.sentinel.util.StringUtil;
 /**
  * Shared validation helpers for rule entities, extracted from the rule controllers'
  * {@code checkEntityInternal} methods so the common checks are written only once.
+ * @author maozi
+ * @date 2026/11/22
  */
 public final class RuleEntityValidator {
 
@@ -37,15 +39,15 @@ public final class RuleEntityValidator {
      */
     public static <R> Result<R> checkBaseFields(RuleEntity entity) {
         if (StringUtil.isBlank(entity.getApp())) {
-            return Result.ofFail(-1, "app can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
         }
         if (StringUtil.isBlank(entity.getIp())) {
-            return Result.ofFail(-1, "ip can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "ip can't be null or empty");
         }
         // Cache the port to avoid repeated calls within the same method.
         Integer port = entity.getPort();
         if (port == null || port <= 0) {
-            return Result.ofFail(-1, "port can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "port can't be null");
         }
         return null;
     }
@@ -60,7 +62,7 @@ public final class RuleEntityValidator {
             return result;
         }
         if (!appManagement.isValidMachineOfApp(entity.getApp(), entity.getIp())) {
-            return Result.ofFail(-1, "given ip does not belong to given app");
+            return Result.ofFail(Result.CODE_ERROR, "given ip does not belong to given app");
         }
         return null;
     }
@@ -72,43 +74,43 @@ public final class RuleEntityValidator {
      */
     public static <R> Result<R> checkFlowRuleFields(FlowRuleEntity entity) {
         if (StringUtil.isBlank(entity.getLimitApp())) {
-            return Result.ofFail(-1, "limitApp can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "limitApp can't be null or empty");
         }
         if (StringUtil.isBlank(entity.getResource())) {
-            return Result.ofFail(-1, "resource can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "resource can't be null or empty");
         }
         // Cache the field values to avoid repeated calls within the same method.
         Integer grade = entity.getGrade();
         if (grade == null) {
-            return Result.ofFail(-1, "grade can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "grade can't be null");
         }
         if (grade != RuleConstant.FLOW_GRADE_THREAD && grade != RuleConstant.FLOW_GRADE_QPS) {
-            return Result.ofFail(-1, "grade must be 0 or 1, but " + grade + " got");
+            return Result.ofFail(Result.CODE_ERROR, "grade must be 0 or 1, but " + grade + " got");
         }
         Double count = entity.getCount();
         if (count == null || count < 0) {
-            return Result.ofFail(-1, "count should be at lease zero");
+            return Result.ofFail(Result.CODE_ERROR, "count should be at lease zero");
         }
         Integer strategy = entity.getStrategy();
         if (strategy == null) {
-            return Result.ofFail(-1, "strategy can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "strategy can't be null");
         }
         if (strategy != RuleConstant.STRATEGY_DIRECT && StringUtil.isBlank(entity.getRefResource())) {
-            return Result.ofFail(-1, "refResource can't be null or empty when strategy!=0");
+            return Result.ofFail(Result.CODE_ERROR, "refResource can't be null or empty when strategy!=0");
         }
         Integer controlBehaviorValue = entity.getControlBehavior();
         if (controlBehaviorValue == null) {
-            return Result.ofFail(-1, "controlBehavior can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "controlBehavior can't be null");
         }
         int controlBehavior = controlBehaviorValue;
         if (controlBehavior == RuleConstant.CONTROL_BEHAVIOR_WARM_UP && entity.getWarmUpPeriodSec() == null) {
-            return Result.ofFail(-1, "warmUpPeriodSec can't be null when controlBehavior==1");
+            return Result.ofFail(Result.CODE_ERROR, "warmUpPeriodSec can't be null when controlBehavior==1");
         }
         if (controlBehavior == RuleConstant.CONTROL_BEHAVIOR_RATE_LIMITER && entity.getMaxQueueingTimeMs() == null) {
-            return Result.ofFail(-1, "maxQueueingTimeMs can't be null when controlBehavior==2");
+            return Result.ofFail(Result.CODE_ERROR, "maxQueueingTimeMs can't be null when controlBehavior==2");
         }
         if (entity.isClusterMode() && entity.getClusterConfig() == null) {
-            return Result.ofFail(-1, "cluster config should be valid");
+            return Result.ofFail(Result.CODE_ERROR, "cluster config should be valid");
         }
         return null;
     }

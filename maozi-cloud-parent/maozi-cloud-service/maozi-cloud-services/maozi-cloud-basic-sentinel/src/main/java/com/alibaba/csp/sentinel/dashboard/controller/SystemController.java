@@ -38,6 +38,7 @@ import java.util.List;
  * Controller for system adaptive protection rules.
  *
  * @author leyou(lihao)
+ * @date 2026/11/22
  */
 @RestController
 @RequestMapping("/system")
@@ -73,19 +74,19 @@ public class SystemController {
     /** Validates app/ip/port and that the ip belongs to the given app; returns the first error or null. */
     private <R> Result<R> checkBasicParams(String app, String ip, Integer port) {
         if (StringUtil.isEmpty(app)) {
-            return Result.ofFail(-1, "app can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
         }
         if (StringUtil.isEmpty(ip)) {
-            return Result.ofFail(-1, "ip can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "ip can't be null or empty");
         }
         if (port == null) {
-            return Result.ofFail(-1, "port can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "port can't be null");
         }
         if (!appManagement.isValidMachineOfApp(app, ip)) {
-            return Result.ofFail(-1, "given ip does not belong to given app");
+            return Result.ofFail(Result.CODE_ERROR, "given ip does not belong to given app");
         }
         if (port <= 0 || port > MAX_PORT) {
-            return Result.ofFail(-1, "port should be in (0, 65535)");
+            return Result.ofFail(Result.CODE_ERROR, "port should be in (0, 65535)");
         }
         return null;
     }
@@ -110,7 +111,7 @@ public class SystemController {
             return Result.ofSuccess(rules);
         } catch (Throwable throwable) {
             logger.error("Query machine system rules error", throwable);
-            return Result.ofThrowable(-1, throwable);
+            return Result.ofThrowable(Result.CODE_ERROR, throwable);
         }
     }
 
@@ -142,11 +143,11 @@ public class SystemController {
 
         int notNullCount = countNotNullAndNotNegative(highestSystemLoad, avgRt, maxThread, qps, highestCpuUsage);
         if (notNullCount != 1) {
-            return Result.ofFail(-1, "only one of [highestSystemLoad, avgRt, maxThread, qps,highestCpuUsage] "
+            return Result.ofFail(Result.CODE_ERROR, "only one of [highestSystemLoad, avgRt, maxThread, qps,highestCpuUsage] "
                 + "value must be set > 0, but " + notNullCount + " values get");
         }
         if (null != highestCpuUsage && highestCpuUsage > 1) {
-            return Result.ofFail(-1, "highestCpuUsage must between [0.0, 1.0]");
+            return Result.ofFail(Result.CODE_ERROR, "highestCpuUsage must between [0.0, 1.0]");
         }
         SystemRuleEntity entity = new SystemRuleEntity();
         entity.setApp(app.trim());
@@ -185,7 +186,7 @@ public class SystemController {
             entity = repository.save(entity);
         } catch (Throwable throwable) {
             logger.error("Add SystemRule error", throwable);
-            return Result.ofThrowable(-1, throwable);
+            return Result.ofThrowable(Result.CODE_ERROR, throwable);
         }
         if (!publishRules(app)) {
             logger.warn("Publish system rules fail after rule add");
@@ -202,11 +203,11 @@ public class SystemController {
     public Result<SystemRuleEntity> apiUpdateIfNotNull(Long id, String app, Double highestSystemLoad,
             Double highestCpuUsage, Long avgRt, Long maxThread, Double qps) {
         if (id == null) {
-            return Result.ofFail(-1, "id can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "id can't be null");
         }
         SystemRuleEntity entity = repository.findById(id);
         if (entity == null) {
-            return Result.ofFail(-1, "id " + id + " dose not exist");
+            return Result.ofFail(Result.CODE_ERROR, "id " + id + " dose not exist");
         }
 
         if (StringUtil.isNotBlank(app)) {
@@ -214,34 +215,34 @@ public class SystemController {
         }
         if (highestSystemLoad != null) {
             if (highestSystemLoad < 0) {
-                return Result.ofFail(-1, "highestSystemLoad must >= 0");
+                return Result.ofFail(Result.CODE_ERROR, "highestSystemLoad must >= 0");
             }
             entity.setHighestSystemLoad(highestSystemLoad);
         }
         if (highestCpuUsage != null) {
             if (highestCpuUsage < 0) {
-                return Result.ofFail(-1, "highestCpuUsage must >= 0");
+                return Result.ofFail(Result.CODE_ERROR, "highestCpuUsage must >= 0");
             }
             if (highestCpuUsage > 1) {
-                return Result.ofFail(-1, "highestCpuUsage must <= 1");
+                return Result.ofFail(Result.CODE_ERROR, "highestCpuUsage must <= 1");
             }
             entity.setHighestCpuUsage(highestCpuUsage);
         }
         if (avgRt != null) {
             if (avgRt < 0) {
-                return Result.ofFail(-1, "avgRt must >= 0");
+                return Result.ofFail(Result.CODE_ERROR, "avgRt must >= 0");
             }
             entity.setAvgRt(avgRt);
         }
         if (maxThread != null) {
             if (maxThread < 0) {
-                return Result.ofFail(-1, "maxThread must >= 0");
+                return Result.ofFail(Result.CODE_ERROR, "maxThread must >= 0");
             }
             entity.setMaxThread(maxThread);
         }
         if (qps != null) {
             if (qps < 0) {
-                return Result.ofFail(-1, "qps must >= 0");
+                return Result.ofFail(Result.CODE_ERROR, "qps must >= 0");
             }
             entity.setQps(qps);
         }
@@ -251,7 +252,7 @@ public class SystemController {
             entity = repository.save(entity);
         } catch (Throwable throwable) {
             logger.error("save error:", throwable);
-            return Result.ofThrowable(-1, throwable);
+            return Result.ofThrowable(Result.CODE_ERROR, throwable);
         }
         if (!publishRules(entity.getApp())) {
             logger.info("publish system rules fail after rule update");
@@ -264,7 +265,7 @@ public class SystemController {
     @AuthAction(PrivilegeType.DELETE_RULE)
     public Result<?> delete(Long id) {
         if (id == null) {
-            return Result.ofFail(-1, "id can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "id can't be null");
         }
         SystemRuleEntity oldEntity = repository.findById(id);
         if (oldEntity == null) {
@@ -274,7 +275,7 @@ public class SystemController {
             repository.delete(id);
         } catch (Throwable throwable) {
             logger.error("delete error:", throwable);
-            return Result.ofThrowable(-1, throwable);
+            return Result.ofThrowable(Result.CODE_ERROR, throwable);
         }
         if (!publishRules(oldEntity.getApp())) {
             logger.info("publish system rules fail after rule delete");

@@ -27,6 +27,7 @@ import java.util.List;
  * Entity for a hot parameter flow control rule, wrapping a {@link ParamFlowRule}.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 0.2.1
  */
 public class ParamFlowRuleEntity extends AbstractRuleEntity<ParamFlowRule> {

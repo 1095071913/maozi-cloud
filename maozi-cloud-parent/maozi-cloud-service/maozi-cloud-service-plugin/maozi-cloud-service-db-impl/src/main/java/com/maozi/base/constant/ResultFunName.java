@@ -8,9 +8,13 @@ package com.maozi.base.constant;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/5/6 10:39
+ * @date 2026/5/6
  */
 public class ResultFunName {
+
+    /** 常量类私有构造，禁止实例化 */
+    private ResultFunName() {
+    }
 
     /** getByIdResult 方法名 */
     public static final String GET_BY_ID_RESULT = "getByIdResult";

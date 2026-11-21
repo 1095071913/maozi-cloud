@@ -12,7 +12,7 @@ import java.util.Map;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/4/25 01:37
+ * @date 2026/4/25
  */
 public final class LogUtil {
 

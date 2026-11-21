@@ -20,6 +20,7 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster;
  * Descriptor of one connection to a cluster token server.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.0
  */
 public class ConnectionDescriptorVO {

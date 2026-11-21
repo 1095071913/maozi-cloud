@@ -19,6 +19,7 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.config;
  * Cluster token server transport config: port and idle time.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.0
  */
 public class ServerTransportConfig {

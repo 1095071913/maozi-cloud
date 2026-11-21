@@ -17,7 +17,7 @@ package com.alibaba.csp.sentinel.dashboard.controller;
 
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.MetricEntity;
 import com.alibaba.csp.sentinel.dashboard.domain.Result;
-import com.alibaba.csp.sentinel.dashboard.domain.vo.MetricVo;
+import com.alibaba.csp.sentinel.dashboard.domain.vo.MetricVO;
 import com.alibaba.csp.sentinel.dashboard.repository.metric.MetricsRepository;
 import com.alibaba.csp.sentinel.util.StringUtil;
 import org.slf4j.Logger;
@@ -42,6 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Controller providing metric queries for the monitoring pages.
  *
  * @author leyou
+ * @date 2026/11/22
  */
 @Controller
 @RequestMapping(value = "/metric", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -86,7 +87,7 @@ public class MetricController {
                                             Boolean desc,
                                             Long startTime, Long endTime, String searchKey) {
         if (StringUtil.isEmpty(app)) {
-            return Result.ofFail(-1, "app can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
         }
         if (pageIndex == null || pageIndex <= 0) {
             pageIndex = 1;
@@ -135,15 +136,15 @@ public class MetricController {
             topResource = resources.subList((pageIndex - 1) * pageSize,
                 Math.min(pageIndex * pageSize, resources.size()));
         }
-        final Map<String, Iterable<MetricVo>> map = new ConcurrentHashMap<>(topResource.size());
+        final Map<String, Iterable<MetricVO>> map = new ConcurrentHashMap<>(topResource.size());
         logger.debug("topResource={}", topResource);
         long time = System.currentTimeMillis();
         for (final String resource : topResource) {
             List<MetricEntity> entities = metricStore.queryByAppAndResourceBetween(
                 app, resource, startTime, endTime);
             logger.debug("resource={}, entities.size()={}", resource, entities == null ? "null" : entities.size());
-            List<MetricVo> vos = MetricVo.fromMetricEntities(entities, resource);
-            Iterable<MetricVo> vosSorted = sortMetricVoAndDistinct(vos);
+            List<MetricVO> vos = MetricVO.fromMetricEntities(entities, resource);
+            Iterable<MetricVO> vosSorted = sortMetricVOAndDistinct(vos);
             map.put(resource, vosSorted);
         }
         logger.debug("queryTopResourceMetric() total query time={} ms", System.currentTimeMillis() - time);
@@ -156,7 +157,7 @@ public class MetricController {
         resultMap.put("pageIndex", pageIndex);
         resultMap.put("pageSize", pageSize);
 
-        Map<String, Iterable<MetricVo>> map2 = new LinkedHashMap<>();
+        Map<String, Iterable<MetricVO>> map2 = new LinkedHashMap<>();
         // order matters.
         for (String identity : topResource) {
             map2.put(identity, map.get(identity));
@@ -173,10 +174,10 @@ public class MetricController {
     @GetMapping("/queryByAppAndResource.json")
     public Result<?> queryByAppAndResource(String app, String identity, Long startTime, Long endTime) {
         if (StringUtil.isEmpty(app)) {
-            return Result.ofFail(-1, "app can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
         }
         if (StringUtil.isEmpty(identity)) {
-            return Result.ofFail(-1, "identity can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "identity can't be null or empty");
         }
         if (endTime == null) {
             endTime = System.currentTimeMillis();
@@ -186,8 +187,8 @@ public class MetricController {
         }
         List<MetricEntity> entities = metricStore.queryByAppAndResourceBetween(
             app, identity, alignToBucket(startTime), alignToBucketEnd(endTime));
-        List<MetricVo> vos = MetricVo.fromMetricEntities(entities, identity);
-        return Result.ofSuccess(sortMetricVoAndDistinct(vos));
+        List<MetricVO> vos = MetricVO.fromMetricEntities(entities, identity);
+        return Result.ofSuccess(sortMetricVOAndDistinct(vos));
     }
 
     /**
@@ -214,13 +215,13 @@ public class MetricController {
     }
 
     /** Sorts the VOs by timestamp ascending, keeping only the most recently created VO per duplicated timestamp. */
-    private Iterable<MetricVo> sortMetricVoAndDistinct(List<MetricVo> vos) {
+    private Iterable<MetricVO> sortMetricVOAndDistinct(List<MetricVO> vos) {
         if (vos == null) {
             return null;
         }
-        Map<Long, MetricVo> map = new TreeMap<>();
-        for (MetricVo vo : vos) {
-            MetricVo oldVo = map.get(vo.getTimestamp());
+        Map<Long, MetricVO> map = new TreeMap<>();
+        for (MetricVO vo : vos) {
+            MetricVO oldVo = map.get(vo.getTimestamp());
             if (oldVo == null || vo.getGmtCreate() > oldVo.getGmtCreate()) {
                 map.put(vo.getTimestamp(), vo);
             }

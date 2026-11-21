@@ -44,6 +44,7 @@ import java.util.List;
  *
  * @author leyou
  * @author Eric Zhao
+ * @date 2026/11/22
  */
 @RestController
 @RequestMapping(value = "/v1/flow")
@@ -68,16 +69,16 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
                                                              @RequestParam String ip,
                                                              @RequestParam Integer port) {
         if (StringUtil.isEmpty(app)) {
-            return Result.ofFail(-1, "app can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
         }
         if (StringUtil.isEmpty(ip)) {
-            return Result.ofFail(-1, "ip can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "ip can't be null or empty");
         }
         if (port == null) {
-            return Result.ofFail(-1, "port can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "port can't be null");
         }
         if (!appManagement.isValidMachineOfApp(app, ip)) {
-            return Result.ofFail(-1, "given ip does not belong to given app");
+            return Result.ofFail(Result.CODE_ERROR, "given ip does not belong to given app");
         }
         return fetchAndSaveRules(app, rules -> {
             for (FlowRuleEntity entity : rules) {
@@ -123,11 +124,11 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
                                                   Integer controlBehavior, Integer warmUpPeriodSec,
                                                   Integer maxQueueingTimeMs) {
         if (id == null) {
-            return Result.ofFail(-1, "id can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "id can't be null");
         }
         FlowRuleEntity entity = repository.findById(id);
         if (entity == null) {
-            return Result.ofFail(-1, "id " + id + " dose not exist");
+            return Result.ofFail(Result.CODE_ERROR, "id " + id + " dose not exist");
         }
         if (StringUtil.isNotBlank(app)) {
             entity.setApp(app.trim());
@@ -140,7 +141,7 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
         }
         if (grade != null) {
             if (grade != RuleConstant.FLOW_GRADE_THREAD && grade != RuleConstant.FLOW_GRADE_QPS) {
-                return Result.ofFail(-1, "grade must be 0 or 1, but " + grade + " got");
+                return Result.ofFail(Result.CODE_ERROR, "grade must be 0 or 1, but " + grade + " got");
             }
             entity.setGrade(grade);
         }
@@ -150,12 +151,12 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
         if (strategy != null) {
             if (strategy != RuleConstant.STRATEGY_DIRECT && strategy != RuleConstant.STRATEGY_RELATE
                 && strategy != RuleConstant.STRATEGY_CHAIN) {
-                return Result.ofFail(-1, "strategy must be in [0, 1, 2], but " + strategy + " got");
+                return Result.ofFail(Result.CODE_ERROR, "strategy must be in [0, 1, 2], but " + strategy + " got");
             }
             entity.setStrategy(strategy);
             if (strategy != RuleConstant.STRATEGY_DIRECT) {
                 if (StringUtil.isBlank(refResource)) {
-                    return Result.ofFail(-1, "refResource can't be null or empty when strategy!=0");
+                    return Result.ofFail(Result.CODE_ERROR, "refResource can't be null or empty when strategy!=0");
                 }
                 entity.setRefResource(refResource.trim());
             }
@@ -164,13 +165,13 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
             if (controlBehavior != RuleConstant.CONTROL_BEHAVIOR_DEFAULT
                 && controlBehavior != RuleConstant.CONTROL_BEHAVIOR_WARM_UP
                 && controlBehavior != RuleConstant.CONTROL_BEHAVIOR_RATE_LIMITER) {
-                return Result.ofFail(-1, "controlBehavior must be in [0, 1, 2], but " + controlBehavior + " got");
+                return Result.ofFail(Result.CODE_ERROR, "controlBehavior must be in [0, 1, 2], but " + controlBehavior + " got");
             }
             if (controlBehavior == RuleConstant.CONTROL_BEHAVIOR_WARM_UP && warmUpPeriodSec == null) {
-                return Result.ofFail(-1, "warmUpPeriodSec can't be null when controlBehavior==1");
+                return Result.ofFail(Result.CODE_ERROR, "warmUpPeriodSec can't be null when controlBehavior==1");
             }
             if (controlBehavior == RuleConstant.CONTROL_BEHAVIOR_RATE_LIMITER && maxQueueingTimeMs == null) {
-                return Result.ofFail(-1, "maxQueueingTimeMs can't be null when controlBehavior==2");
+                return Result.ofFail(Result.CODE_ERROR, "maxQueueingTimeMs can't be null when controlBehavior==2");
             }
             entity.setControlBehavior(controlBehavior);
             if (warmUpPeriodSec != null) {
@@ -189,7 +190,7 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
     @AuthAction(PrivilegeType.WRITE_RULE)
     public Result<Long> apiDeleteFlowRule(Long id) {
         if (id == null) {
-            return Result.ofFail(-1, "id can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "id can't be null");
         }
         return deleteAndPublish(id);
     }

@@ -5,7 +5,7 @@ import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.context.TestFlowContext;
 import com.maozi.common.context.TraceIdContext;
 import com.maozi.common.context.VersionContext;
-import com.maozi.common.dto.CurrentUserInfo;
+import com.maozi.common.dto.CurrentUserInfoDTO;
 import io.opentelemetry.api.trace.Span;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
@@ -65,7 +65,7 @@ public class ApplicationContextFilter extends OncePerRequestFilter {
 
         // 上下文中尚无当前用户信息时，从请求头解析并补齐
         // （供网关/上游透传用户信息的场景）
-        CurrentUserInfo currentUserInfo = CurrentUserInfoContext.CONTEXT.get();
+        CurrentUserInfoDTO currentUserInfo = CurrentUserInfoContext.CONTEXT.get();
         if (Objects.isNull(currentUserInfo)){
             CurrentUserInfoContext.CONTEXT.set(request.getHeader(CurrentUserInfoContext.KEY));
         }

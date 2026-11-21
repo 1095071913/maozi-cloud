@@ -31,6 +31,7 @@ import java.lang.reflect.Method;
  *
  * @author lkxiaolou
  * @author wxq
+ * @date 2026/11/22
  * @since 1.7.1
  */
 public class DefaultAuthorizationInterceptor implements AuthorizationInterceptor {
@@ -82,7 +83,7 @@ public class DefaultAuthorizationInterceptor implements AuthorizationInterceptor
 
     /** Writes the given failure message to the response as a JSON body. */
     private void responseNoPrivilegeMsg(HttpServletResponse response, String message) throws IOException {
-        Result result = Result.ofFail(-1, message);
+        Result result = Result.ofFail(Result.CODE_ERROR, message);
         response.addHeader(HTTP_HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON_UTF8);
         response.getOutputStream().write(JSON.toJSONBytes(result));
     }

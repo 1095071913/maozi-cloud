@@ -34,7 +34,7 @@ import java.util.concurrent.ConcurrentMap;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/6/25
+ * @date 2026/6/25
  */
 @Component
 public class RemoteResourceBeanPostProcessor implements InstantiationAwareBeanPostProcessor, BeanFactoryAware {

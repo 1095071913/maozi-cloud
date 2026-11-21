@@ -29,6 +29,7 @@ import java.util.Set;
  * Entity for {@link ApiDefinition}.
  *
  * @author cdfive
+ * @date 2026/11/22
  * @since 1.7.0
  */
 public class ApiDefinitionEntity extends BaseRuleEntity {

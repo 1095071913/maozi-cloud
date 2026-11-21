@@ -22,9 +22,9 @@ import com.alibaba.csp.sentinel.dashboard.controller.RuleEntityValidator;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.GatewayFlowRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.GatewayParamFlowItemEntity;
 import com.alibaba.csp.sentinel.dashboard.domain.Result;
-import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule.AddFlowRuleReqVo;
-import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule.GatewayParamFlowItemVo;
-import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule.UpdateFlowRuleReqVo;
+import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule.AddFlowRuleReqVO;
+import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule.GatewayParamFlowItemVO;
+import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule.UpdateFlowRuleReqVO;
 import com.alibaba.csp.sentinel.dashboard.repository.gateway.InMemGatewayFlowRuleStore;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRuleProvider;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
@@ -65,6 +65,7 @@ import static com.alibaba.csp.sentinel.slots.block.RuleConstant.FLOW_GRADE_THREA
  * Controller for managing gateway flow rules.
  *
  * @author cdfive
+ * @date 2026/11/22
  * @since 1.7.0
  */
 @RestController
@@ -98,13 +99,13 @@ public class GatewayFlowRuleController {
     public Result<List<GatewayFlowRuleEntity>> queryFlowRules(String app, String ip, Integer port) {
 
         if (StringUtil.isEmpty(app)) {
-            return Result.ofFail(-1, "app can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
         }
         if (StringUtil.isEmpty(ip)) {
-            return Result.ofFail(-1, "ip can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "ip can't be null or empty");
         }
         if (port == null) {
-            return Result.ofFail(-1, "port can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "port can't be null");
         }
 
         try {
@@ -118,14 +119,14 @@ public class GatewayFlowRuleController {
             return Result.ofSuccess(rules);
         } catch (Throwable throwable) {
             logger.error("query gateway flow rules error:", throwable);
-            return Result.ofThrowable(-1, throwable);
+            return Result.ofThrowable(Result.CODE_ERROR, throwable);
         }
     }
 
     /** Adds a new gateway flow rule after full field validation, then publishes the app's rules to Nacos. */
     @PostMapping("/new.json")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
-    public Result<GatewayFlowRuleEntity> addFlowRule(@RequestBody AddFlowRuleReqVo reqVo) {
+    public Result<GatewayFlowRuleEntity> addFlowRule(@RequestBody AddFlowRuleReqVO reqVo) {
 
         GatewayFlowRuleEntity entity = new GatewayFlowRuleEntity();
         entity.setApp(reqVo.getApp());
@@ -141,17 +142,17 @@ public class GatewayFlowRuleController {
         // Resource type: Route ID or API group name.
         Integer resourceMode = reqVo.getResourceMode();
         if (resourceMode == null) {
-            return Result.ofFail(-1, "resourceMode can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "resourceMode can't be null");
         }
         if (!Arrays.asList(RESOURCE_MODE_ROUTE_ID, RESOURCE_MODE_CUSTOM_API_NAME).contains(resourceMode)) {
-            return Result.ofFail(-1, "invalid resourceMode: " + resourceMode);
+            return Result.ofFail(Result.CODE_ERROR, "invalid resourceMode: " + resourceMode);
         }
         entity.setResourceMode(resourceMode);
 
         // API name.
         String resource = reqVo.getResource();
         if (StringUtil.isBlank(resource)) {
-            return Result.ofFail(-1, "resource can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "resource can't be null or empty");
         }
         entity.setResource(resource.trim());
 
@@ -176,20 +177,20 @@ public class GatewayFlowRuleController {
      */
     @PostMapping("/save.json")
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
-    public Result<GatewayFlowRuleEntity> updateFlowRule(@RequestBody UpdateFlowRuleReqVo reqVo) {
+    public Result<GatewayFlowRuleEntity> updateFlowRule(@RequestBody UpdateFlowRuleReqVO reqVo) {
 
         if (StringUtil.isBlank(reqVo.getApp())) {
-            return Result.ofFail(-1, "app can't be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
         }
 
         Long id = reqVo.getId();
         if (id == null) {
-            return Result.ofFail(-1, "id can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "id can't be null");
         }
 
         GatewayFlowRuleEntity entity = repository.findById(id);
         if (entity == null) {
-            return Result.ofFail(-1, "gateway flow rule does not exist, id=" + id);
+            return Result.ofFail(Result.CODE_ERROR, "gateway flow rule does not exist, id=" + id);
         }
 
         Result<GatewayFlowRuleEntity> checkResult = checkAndFillParamItem(reqVo.getParamItem(), entity);
@@ -214,7 +215,7 @@ public class GatewayFlowRuleController {
     public Result<Long> deleteFlowRule(Long id) {
 
         if (id == null) {
-            return Result.ofFail(-1, "id can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "id can't be null");
         }
 
         GatewayFlowRuleEntity oldEntity = repository.findById(id);
@@ -226,7 +227,7 @@ public class GatewayFlowRuleController {
             repository.delete(id);
         } catch (Throwable throwable) {
             logger.error("delete gateway flow rule error:", throwable);
-            return Result.ofThrowable(-1, throwable);
+            return Result.ofThrowable(Result.CODE_ERROR, throwable);
         }
 
         if (!publishRules(oldEntity.getApp())) {
@@ -242,7 +243,7 @@ public class GatewayFlowRuleController {
      * entity, or clears the entity's item when the request carries none; returns the first
      * error result or null when valid.
      */
-    private <R> Result<R> checkAndFillParamItem(GatewayParamFlowItemVo paramItem, GatewayFlowRuleEntity entity) {
+    private <R> Result<R> checkAndFillParamItem(GatewayParamFlowItemVO paramItem, GatewayFlowRuleEntity entity) {
         if (paramItem == null) {
             entity.setParamItem(null);
             return null;
@@ -255,7 +256,7 @@ public class GatewayFlowRuleController {
         Integer parseStrategy = paramItem.getParseStrategy();
         if (!Arrays.asList(PARAM_PARSE_STRATEGY_CLIENT_IP, PARAM_PARSE_STRATEGY_HOST, PARAM_PARSE_STRATEGY_HEADER
                 , PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
-            return Result.ofFail(-1, "invalid parseStrategy: " + parseStrategy);
+            return Result.ofFail(Result.CODE_ERROR, "invalid parseStrategy: " + parseStrategy);
         }
         itemEntity.setParseStrategy(parseStrategy);
 
@@ -265,7 +266,7 @@ public class GatewayFlowRuleController {
             // Field name.
             String fieldName = paramItem.getFieldName();
             if (StringUtil.isBlank(fieldName)) {
-                return Result.ofFail(-1, "fieldName can't be null or empty");
+                return Result.ofFail(Result.CODE_ERROR, "fieldName can't be null or empty");
             }
             itemEntity.setFieldName(fieldName);
         }
@@ -277,7 +278,7 @@ public class GatewayFlowRuleController {
             Integer matchStrategy = paramItem.getMatchStrategy();
             if (!Arrays.asList(PARAM_MATCH_STRATEGY_EXACT, PARAM_MATCH_STRATEGY_CONTAINS, 
                 PARAM_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
-                return Result.ofFail(-1, "invalid matchStrategy: " + matchStrategy);
+                return Result.ofFail(Result.CODE_ERROR, "invalid matchStrategy: " + matchStrategy);
             }
             itemEntity.setMatchStrategy(matchStrategy);
         }
@@ -294,66 +295,66 @@ public class GatewayFlowRuleController {
                                                  GatewayFlowRuleEntity entity) {
         // Threshold type: 0-thread count, 1-QPS.
         if (grade == null) {
-            return Result.ofFail(-1, "grade can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "grade can't be null");
         }
         if (!Arrays.asList(FLOW_GRADE_THREAD, FLOW_GRADE_QPS).contains(grade)) {
-            return Result.ofFail(-1, "invalid grade: " + grade);
+            return Result.ofFail(Result.CODE_ERROR, "invalid grade: " + grade);
         }
         entity.setGrade(grade);
 
         // QPS threshold.
         if (count == null) {
-            return Result.ofFail(-1, "count can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "count can't be null");
         }
         if (count < 0) {
-            return Result.ofFail(-1, "count should be at lease zero");
+            return Result.ofFail(Result.CODE_ERROR, "count should be at lease zero");
         }
         entity.setCount(count);
 
         // Interval.
         if (interval == null) {
-            return Result.ofFail(-1, "interval can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "interval can't be null");
         }
         if (interval <= 0) {
-            return Result.ofFail(-1, "interval should be greater than zero");
+            return Result.ofFail(Result.CODE_ERROR, "interval should be greater than zero");
         }
         entity.setInterval(interval);
 
         // Interval unit.
         if (intervalUnit == null) {
-            return Result.ofFail(-1, "intervalUnit can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "intervalUnit can't be null");
         }
         if (!Arrays.asList(INTERVAL_UNIT_SECOND, INTERVAL_UNIT_MINUTE, INTERVAL_UNIT_HOUR, 
             INTERVAL_UNIT_DAY).contains(intervalUnit)) {
-            return Result.ofFail(-1, "Invalid intervalUnit: " + intervalUnit);
+            return Result.ofFail(Result.CODE_ERROR, "Invalid intervalUnit: " + intervalUnit);
         }
         entity.setIntervalUnit(intervalUnit);
 
         // Control behavior: 0-fast fail, 2-uniform rate limiter.
         if (controlBehavior == null) {
-            return Result.ofFail(-1, "controlBehavior can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "controlBehavior can't be null");
         }
         if (!Arrays.asList(CONTROL_BEHAVIOR_DEFAULT, CONTROL_BEHAVIOR_RATE_LIMITER).contains(controlBehavior)) {
-            return Result.ofFail(-1, "invalid controlBehavior: " + controlBehavior);
+            return Result.ofFail(Result.CODE_ERROR, "invalid controlBehavior: " + controlBehavior);
         }
         entity.setControlBehavior(controlBehavior);
 
         if (CONTROL_BEHAVIOR_DEFAULT == controlBehavior) {
             // Burst size is required for control behavior 0 (fast fail).
             if (burst == null) {
-                return Result.ofFail(-1, "burst can't be null");
+                return Result.ofFail(Result.CODE_ERROR, "burst can't be null");
             }
             if (burst < 0) {
-                return Result.ofFail(-1, "invalid burst: " + burst);
+                return Result.ofFail(Result.CODE_ERROR, "invalid burst: " + burst);
             }
             entity.setBurst(burst);
         } else if (CONTROL_BEHAVIOR_RATE_LIMITER == controlBehavior) {
             // Timeout is required for control behavior 2 (uniform rate limiter).
             if (maxQueueingTimeoutMs == null) {
-                return Result.ofFail(-1, "maxQueueingTimeoutMs can't be null");
+                return Result.ofFail(Result.CODE_ERROR, "maxQueueingTimeoutMs can't be null");
             }
             if (maxQueueingTimeoutMs < 0) {
-                return Result.ofFail(-1, "invalid maxQueueingTimeoutMs: " + maxQueueingTimeoutMs);
+                return Result.ofFail(Result.CODE_ERROR, "invalid maxQueueingTimeoutMs: " + maxQueueingTimeoutMs);
             }
             entity.setMaxQueueingTimeoutMs(maxQueueingTimeoutMs);
         }
@@ -369,7 +370,7 @@ public class GatewayFlowRuleController {
             entity = repository.save(entity);
         } catch (Throwable throwable) {
             logger.error(action + " gateway flow rule error:", throwable);
-            return Result.ofThrowable(-1, throwable);
+            return Result.ofThrowable(Result.CODE_ERROR, throwable);
         }
 
         if (!publishRules(entity.getApp())) {

@@ -27,6 +27,11 @@ public class TraceIdContext extends AbstractRequestContextHolder<String> {
     /** 单例实例 */
     public static final TraceIdContext CONTEXT = new TraceIdContext();
 
+    static {
+        // 单例创建完成后显式注册到持有器注册表
+        CONTEXT.register();
+    }
+
     /** 私有构造器，防止外部实例化 */
     private TraceIdContext() {}
 

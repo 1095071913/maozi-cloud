@@ -15,7 +15,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/6/16 17:59
+ * @date 2026/6/16
  */
 @Configuration
 public class WebSecurityConfig implements WebMvcConfigurer {

@@ -22,6 +22,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
  *
  * @author lkxiaolou
  * @author wxq
+ * @date 2026/11/22
  * @since 1.7.1
  */
 public interface AuthorizationInterceptor extends HandlerInterceptor {

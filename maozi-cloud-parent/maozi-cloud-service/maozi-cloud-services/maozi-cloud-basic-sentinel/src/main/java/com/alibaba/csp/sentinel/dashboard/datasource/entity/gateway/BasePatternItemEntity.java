@@ -20,6 +20,7 @@ package com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway;
  * pattern and matchStrategy fields.
  *
  * @author cdfive
+ * @date 2026/11/22
  * @since 1.7.0
  */
 public abstract class BasePatternItemEntity {

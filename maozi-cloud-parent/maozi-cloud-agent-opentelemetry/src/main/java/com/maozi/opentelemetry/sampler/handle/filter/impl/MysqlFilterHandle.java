@@ -9,6 +9,7 @@ import lombok.EqualsAndHashCode;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * MySQL Span 过滤器
@@ -28,8 +29,8 @@ public class MysqlFilterHandle extends BaseFilterHandle {
     /** 来源标识，匹配 Span 属性 {@code db.system} */
     private List<String> names = List.of("mysql");
 
-    /** 需要排除的 SQL 语句列表（连接探活、版本查询、锁检测等框架内部维护 SQL） */
-    private static final List<String> EXCLUDED_STATEMENT = List.of(
+    /** 需要排除的 SQL 语句集合（连接探活、版本查询、锁检测等框架内部维护 SQL；Set 类型保证热路径 O(1) 查找） */
+    private static final Set<String> EXCLUDED_STATEMENT = Set.of(
 
             "SELECT ?",
             "SELECT version()",

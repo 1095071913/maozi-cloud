@@ -49,6 +49,7 @@ import java.util.Optional;
  * Controller for hot parameter (hotspot) flow control rules.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 0.2.1
  */
 @RestController
@@ -104,16 +105,16 @@ public class ParamFlowRuleController {
                                                                         @RequestParam String ip,
                                                                         @RequestParam Integer port) {
         if (StringUtil.isEmpty(app)) {
-            return Result.ofFail(-1, "app cannot be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app cannot be null or empty");
         }
         if (StringUtil.isEmpty(ip)) {
-            return Result.ofFail(-1, "ip cannot be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "ip cannot be null or empty");
         }
         if (port == null || port <= 0) {
-            return Result.ofFail(-1, "Invalid parameter: port");
+            return Result.ofFail(Result.CODE_ERROR, "Invalid parameter: port");
         }
         if (!appManagement.isValidMachineOfApp(app, ip)) {
-            return Result.ofFail(-1, "given ip does not belong to given app");
+            return Result.ofFail(Result.CODE_ERROR, "given ip does not belong to given app");
         }
         if (!checkIfSupported(app, ip, port)) {
             return unsupportedVersion();
@@ -129,7 +130,7 @@ public class ParamFlowRuleController {
             return Result.ofSuccess(rules);
         } catch (Throwable throwable) {
             logger.error("Error when querying parameter flow rules", throwable);
-            return Result.ofFail(-1, throwable.getMessage());
+            return Result.ofFail(Result.CODE_ERROR, throwable.getMessage());
         }
     }
 
@@ -153,7 +154,7 @@ public class ParamFlowRuleController {
             return Result.ofSuccess(entity);
         } catch (Throwable throwable) {
             logger.error("Error when adding new parameter flow rules", throwable);
-            return Result.ofFail(-1, throwable.getMessage());
+            return Result.ofFail(Result.CODE_ERROR, throwable.getMessage());
         }
     }
 
@@ -163,34 +164,34 @@ public class ParamFlowRuleController {
      */
     private <R> Result<R> checkEntityInternal(ParamFlowRuleEntity entity) {
         if (entity == null) {
-            return Result.ofFail(-1, "bad rule body");
+            return Result.ofFail(Result.CODE_ERROR, "bad rule body");
         }
         Result<R> baseResult = RuleEntityValidator.checkBaseFields(entity);
         if (baseResult != null) {
             return baseResult;
         }
         if (entity.getRule() == null) {
-            return Result.ofFail(-1, "rule can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "rule can't be null");
         }
         if (StringUtil.isBlank(entity.getResource())) {
-            return Result.ofFail(-1, "resource name cannot be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "resource name cannot be null or empty");
         }
         if (entity.getCount() < 0) {
-            return Result.ofFail(-1, "count should be valid");
+            return Result.ofFail(Result.CODE_ERROR, "count should be valid");
         }
         if (entity.getGrade() != RuleConstant.FLOW_GRADE_QPS) {
-            return Result.ofFail(-1, "Unknown mode (blockGrade) for parameter flow control");
+            return Result.ofFail(Result.CODE_ERROR, "Unknown mode (blockGrade) for parameter flow control");
         }
         // Cache the param index to avoid repeated calls within the same method.
         Integer paramIdx = entity.getParamIdx();
         if (paramIdx == null || paramIdx < 0) {
-            return Result.ofFail(-1, "paramIdx should be valid");
+            return Result.ofFail(Result.CODE_ERROR, "paramIdx should be valid");
         }
         if (entity.getDurationInSec() <= 0) {
-            return Result.ofFail(-1, "durationInSec should be valid");
+            return Result.ofFail(Result.CODE_ERROR, "durationInSec should be valid");
         }
         if (entity.getControlBehavior() < 0) {
-            return Result.ofFail(-1, "controlBehavior should be valid");
+            return Result.ofFail(Result.CODE_ERROR, "controlBehavior should be valid");
         }
         return null;
     }
@@ -201,11 +202,11 @@ public class ParamFlowRuleController {
     public Result<ParamFlowRuleEntity> apiUpdateParamFlowRule(@PathVariable("id") Long id,
                                                               @RequestBody ParamFlowRuleEntity entity) {
         if (id == null || id <= 0) {
-            return Result.ofFail(-1, "Invalid id");
+            return Result.ofFail(Result.CODE_ERROR, "Invalid id");
         }
         ParamFlowRuleEntity oldEntity = repository.findById(id);
         if (oldEntity == null) {
-            return Result.ofFail(-1, "id " + id + " does not exist");
+            return Result.ofFail(Result.CODE_ERROR, "id " + id + " does not exist");
         }
 
         Result<ParamFlowRuleEntity> checkResult = checkEntityInternal(entity);
@@ -225,7 +226,7 @@ public class ParamFlowRuleController {
             return Result.ofSuccess(entity);
         } catch (Throwable throwable) {
             logger.error("Error when updating parameter flow rules, id={}", id, throwable);
-            return Result.ofFail(-1, throwable.getMessage());
+            return Result.ofFail(Result.CODE_ERROR, throwable.getMessage());
         }
     }
 
@@ -234,7 +235,7 @@ public class ParamFlowRuleController {
     @AuthAction(PrivilegeType.DELETE_RULE)
     public Result<Long> apiDeleteRule(@PathVariable("id") Long id) {
         if (id == null) {
-            return Result.ofFail(-1, "id cannot be null");
+            return Result.ofFail(Result.CODE_ERROR, "id cannot be null");
         }
         ParamFlowRuleEntity oldEntity = repository.findById(id);
         if (oldEntity == null) {
@@ -247,7 +248,7 @@ public class ParamFlowRuleController {
             return Result.ofSuccess(id);
         } catch (Throwable throwable) {
             logger.error("Error when deleting parameter flow rules", throwable);
-            return Result.ofFail(-1, throwable.getMessage());
+            return Result.ofFail(Result.CODE_ERROR, throwable.getMessage());
         }
     }
 

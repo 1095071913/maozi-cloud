@@ -19,6 +19,7 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.state;
  * App-level cluster token client state of one machine, keyed by machine id.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.1
  */
 public class AppClusterClientStateWrapVO {

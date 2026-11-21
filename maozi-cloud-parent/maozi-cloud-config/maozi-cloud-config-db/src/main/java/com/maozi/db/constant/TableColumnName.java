@@ -7,7 +7,7 @@ package com.maozi.db.constant;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/6/16 18:33
+ * @date 2026/6/16
  */
 public final class TableColumnName {
 

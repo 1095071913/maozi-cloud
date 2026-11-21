@@ -21,6 +21,7 @@ import java.util.Set;
  * Result of a cluster assignment operation, carrying the failed server/client sets and the total machine count.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.1
  */
 public class ClusterAppAssignResultVO {

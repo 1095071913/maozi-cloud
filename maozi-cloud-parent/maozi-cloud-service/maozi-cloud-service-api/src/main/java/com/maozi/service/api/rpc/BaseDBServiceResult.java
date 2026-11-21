@@ -70,7 +70,7 @@ public interface BaseDBServiceResult<D> {
      * @param dto 查询条件
      * @return 记录总数
      */
-    AbstractBaseResult<Long> getCountByParamResult(D dto);
+    AbstractBaseResult<Long> countByParamResult(D dto);
 
     /**
      * 新增或更新记录

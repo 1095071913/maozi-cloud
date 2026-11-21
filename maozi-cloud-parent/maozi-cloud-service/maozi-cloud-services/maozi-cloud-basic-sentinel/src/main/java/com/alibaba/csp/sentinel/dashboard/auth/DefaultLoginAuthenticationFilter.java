@@ -44,6 +44,7 @@ import java.util.List;
  * The excluded urls and urlSuffixes could be configured in {@code application.properties} file.
  *
  * @author cdfive
+ * @date 2026/11/22
  * @since 1.6.0
  */
 public class DefaultLoginAuthenticationFilter implements LoginAuthenticationFilter {

@@ -14,7 +14,7 @@ import com.maozi.base.param.PageParam;
 import com.maozi.base.param.RequestParam;
 import com.maozi.base.result.PageResult;
 import com.maozi.common.context.CurrentUserInfoContext;
-import com.maozi.common.dto.CurrentUserInfo;
+import com.maozi.common.dto.CurrentUserInfoDTO;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.service.api.impl.BaseServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -75,7 +75,7 @@ public class ChatConversationServiceImpl extends BaseServiceImpl<ChatConversatio
     public PageResult<ChatConversationListResult> adminList(
             PageParam<ChatConversationListParam> pageParam) {
 
-        Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
+        Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfoDTO::getUserId);
 
         MPJLambdaWrapper<ChatConversationDO> wrapper =
                 super.buildQueryWrapper(pageParam, ChatConversationListResult.class);
@@ -115,7 +115,7 @@ public class ChatConversationServiceImpl extends BaseServiceImpl<ChatConversatio
         ChatConversationDO domain = new ChatConversationDO();
         domain.setTitle(title.length() > TITLE_MAX_LENGTH
                 ? StrUtil.subPre(title, TITLE_MAX_LENGTH) + TITLE_ELLIPSIS : title);
-        domain.setUserId(CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId));
+        domain.setUserId(CurrentUserInfoContext.CONTEXT.get(CurrentUserInfoDTO::getUserId));
 
         super.save(domain);
 
@@ -144,7 +144,7 @@ public class ChatConversationServiceImpl extends BaseServiceImpl<ChatConversatio
         ChatConversationDO domain = new ChatConversationDO();
         domain.setId(conversationId);
         domain.setTitle(title);
-        domain.setUserId(CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId));
+        domain.setUserId(CurrentUserInfoContext.CONTEXT.get(CurrentUserInfoDTO::getUserId));
 
         super.updateById(domain);
 
@@ -160,7 +160,7 @@ public class ChatConversationServiceImpl extends BaseServiceImpl<ChatConversatio
         
         LambdaQueryWrapper<ChatConversationDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ChatConversationDO::getId, conversationId);
-        wrapper.eq(ChatConversationDO::getUserId, CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId));
+        wrapper.eq(ChatConversationDO::getUserId, CurrentUserInfoContext.CONTEXT.get(CurrentUserInfoDTO::getUserId));
         if (remove(wrapper)){
             chatMemory.clear(conversationId);
         }

@@ -267,8 +267,8 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
      * @return 包含记录数的统一响应结果
      */
     @Override
-    public AbstractBaseResult<Long> getCountByParamResult(D dto){
-        return ResultUtil.success(service.getCountByParam(dto));
+    public AbstractBaseResult<Long> countByParamResult(D dto){
+        return ResultUtil.success(service.countByParam(dto));
     }
 
     /**

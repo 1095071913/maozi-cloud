@@ -22,6 +22,8 @@ import java.util.Objects;
 
 /**
  * Information of a machine, i.e. a Sentinel client instance of an application.
+ * @author maozi
+ * @date 2026/11/22
  */
 public class MachineInfo implements Comparable<MachineInfo> {
 

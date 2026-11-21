@@ -36,6 +36,7 @@ import java.util.Set;
  * Controller for cluster token server assignment and unbinding operations.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.1
  */
 @RestController
@@ -59,18 +60,18 @@ public class ClusterAssignController {
                                                                                 ClusterAppFullAssignRequest
                                                                                     assignRequest) {
         if (StringUtil.isEmpty(app)) {
-            return Result.ofFail(-1, "app cannot be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app cannot be null or empty");
         }
         if (assignRequest == null || assignRequest.getClusterMap() == null
             || assignRequest.getRemainingList() == null) {
-            return Result.ofFail(-1, "bad request body");
+            return Result.ofFail(Result.CODE_ERROR, "bad request body");
         }
         try {
             return Result.ofSuccess(clusterAssignService.applyAssignToApp(app, assignRequest.getClusterMap(),
                 assignRequest.getRemainingList()));
         } catch (Throwable throwable) {
             logger.error("Error when assigning full cluster servers for app: {}", app, throwable);
-            return Result.ofFail(-1, throwable.getMessage());
+            return Result.ofFail(Result.CODE_ERROR, throwable.getMessage());
         }
     }
 
@@ -81,10 +82,10 @@ public class ClusterAssignController {
                                                                                    ClusterAppSingleServerAssignRequest
                                                                                    assignRequest) {
         if (StringUtil.isEmpty(app)) {
-            return Result.ofFail(-1, "app cannot be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app cannot be null or empty");
         }
         if (assignRequest == null || assignRequest.getClusterMap() == null) {
-            return Result.ofFail(-1, "bad request body");
+            return Result.ofFail(Result.CODE_ERROR, "bad request body");
         }
         try {
             return Result.ofSuccess(clusterAssignService.applyAssignToApp(app, 
@@ -92,7 +93,7 @@ public class ClusterAssignController {
                 assignRequest.getRemainingList()));
         } catch (Throwable throwable) {
             logger.error("Error when assigning single cluster servers for app: {}", app, throwable);
-            return Result.ofFail(-1, throwable.getMessage());
+            return Result.ofFail(Result.CODE_ERROR, throwable.getMessage());
         }
     }
 
@@ -101,16 +102,16 @@ public class ClusterAssignController {
     public Result<ClusterAppAssignResultVO> apiUnbindClusterServersOfApp(@PathVariable String app,
                                                                          @RequestBody Set<String> machineIds) {
         if (StringUtil.isEmpty(app)) {
-            return Result.ofFail(-1, "app cannot be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app cannot be null or empty");
         }
         if (machineIds == null || machineIds.isEmpty()) {
-            return Result.ofFail(-1, "bad request body");
+            return Result.ofFail(Result.CODE_ERROR, "bad request body");
         }
         try {
             return Result.ofSuccess(clusterAssignService.unbindClusterServers(app, machineIds));
         } catch (Throwable throwable) {
             logger.error("Error when unbinding cluster server {} for app <{}>", machineIds, app, throwable);
-            return Result.ofFail(-1, throwable.getMessage());
+            return Result.ofFail(Result.CODE_ERROR, throwable.getMessage());
         }
     }
 }

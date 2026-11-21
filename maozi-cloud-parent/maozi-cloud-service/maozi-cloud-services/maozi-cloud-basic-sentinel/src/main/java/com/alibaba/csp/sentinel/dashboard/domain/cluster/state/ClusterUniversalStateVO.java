@@ -19,6 +19,7 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.state;
  * Universal cluster state of a machine: simple state plus optional client and server states.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.0
  */
 public class ClusterUniversalStateVO {

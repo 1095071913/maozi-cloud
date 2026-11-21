@@ -32,6 +32,7 @@ import javax.servlet.Filter;
  *
  * @author cdfive
  * @author wxq
+ * @date 2026/11/22
  * @since 1.6.0
  */
 public interface LoginAuthenticationFilter extends Filter {

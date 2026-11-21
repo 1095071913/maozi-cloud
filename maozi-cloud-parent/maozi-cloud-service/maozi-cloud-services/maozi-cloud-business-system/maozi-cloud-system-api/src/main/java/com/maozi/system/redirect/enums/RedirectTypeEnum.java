@@ -13,7 +13,7 @@ import lombok.Getter;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/8/14 13:06
+ * @date 2026/8/14
  */
 @Schema(description = "重定向类型", type = "integer")
 public enum RedirectTypeEnum implements BaseEnum {

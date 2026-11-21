@@ -31,7 +31,8 @@ public class ApplicationEnvironmentContext {
     public static final String PACKAGE_PREFIX = "com.maozi";
 
     /** 项目缩写 */
-    public static String applicationProjectAbbreviation;
+    // Spring 初始化线程写入、业务线程读取，volatile 保证可见性
+    public static volatile String applicationProjectAbbreviation;
 
     /** 注入项目缩写配置项 {@code application-project-abbreviation} */
     @Value("${application-project-abbreviation}")
@@ -40,7 +41,7 @@ public class ApplicationEnvironmentContext {
     }
 
     /** 服务名称 */
-    public static String serviceName;
+    public static volatile String serviceName;
 
     /** 注入服务名称配置项 {@code spring.application.name} */
     @Value("${spring.application.name}")
@@ -49,7 +50,7 @@ public class ApplicationEnvironmentContext {
     }
 
     /** Nacos 配置中心地址 */
-    public static String configAddr;
+    public static volatile String configAddr;
 
     /** 注入 Nacos 配置中心地址，未配置时默认 {@code 127.0.0.1:8848} */
     @Value("${spring.cloud.nacos.config.server-addr:127.0.0.1:8848}")
@@ -58,7 +59,7 @@ public class ApplicationEnvironmentContext {
     }
 
     /** 当前运行环境 */
-    public static String environment;
+    public static volatile String environment;
 
     /** 注入当前运行环境，未配置时默认 {@code local} */
     @Value("${application.environment:local}")
@@ -67,7 +68,7 @@ public class ApplicationEnvironmentContext {
     }
 
     /** 项目标题 */
-    public static String title;
+    public static volatile String title;
 
     /** 注入项目标题，未配置时默认空字符串 */
     @Value("${application.title:}")
@@ -76,7 +77,7 @@ public class ApplicationEnvironmentContext {
     }
 
     /** 项目版本 */
-    public static String version;
+    public static volatile String version;
 
     /** 注入项目版本，未配置时默认 {@code main} */
     @Value("${application.version:main}")
@@ -85,7 +86,7 @@ public class ApplicationEnvironmentContext {
     }
 
     /** 项目描述 */
-    public static String details;
+    public static volatile String details;
 
     /** 注入项目描述，未配置时默认空字符串 */
     @Value("${application.details:}")
@@ -94,7 +95,8 @@ public class ApplicationEnvironmentContext {
     }
 
     /** Spring Environment 实例 */
-    public static Environment config;
+    // Spring 初始化线程写入、业务线程读取，volatile 保证可见性
+    public static volatile Environment config;
 
     /** 注入 Spring {@link Environment} 实例 */
     @Resource

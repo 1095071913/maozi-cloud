@@ -15,15 +15,16 @@
  */
 package com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule;
 
-import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.BasePatternItemVo;
+import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.BasePatternItemVO;
 
 /**
  * Hotspot parameter item of a gateway flow rule, used by add and update requests.
  *
  * @author cdfive
+ * @date 2026/11/22
  * @since 1.7.0
  */
-public class GatewayParamFlowItemVo extends BasePatternItemVo {
+public class GatewayParamFlowItemVO extends BasePatternItemVO {
 
     /** Strategy to parse the parameter from the gateway request (URL param, host, header or cookie). */
     private Integer parseStrategy;
@@ -53,7 +54,7 @@ public class GatewayParamFlowItemVo extends BasePatternItemVo {
 
     @Override
     public String toString() {
-        return "GatewayParamFlowItemVo{"
+        return "GatewayParamFlowItemVO{"
                 + "parseStrategy=" + parseStrategy
                 + ", fieldName='" + fieldName + '\''
                 + ", pattern='" + pattern + '\''

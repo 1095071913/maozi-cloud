@@ -15,19 +15,20 @@
  */
 package com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.api;
 
-import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.BasePatternItemVo;
+import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.BasePatternItemVO;
 
 /**
  * Predicate item (URL match condition) of a gateway API definition, used by add and update requests.
  *
  * @author cdfive
+ * @date 2026/11/22
  * @since 1.7.0
  */
-public class ApiPredicateItemVo extends BasePatternItemVo {
+public class ApiPredicateItemVO extends BasePatternItemVO {
 
     @Override
     public String toString() {
-        return "ApiPredicateItemVo{"
+        return "ApiPredicateItemVO{"
                 + "pattern='" + pattern + '\''
                 + ", matchStrategy=" + matchStrategy
                 + '}';

@@ -2,7 +2,7 @@ package com.maozi.ai.ai.config;
 
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.context.CurrentUserInfoContext;
-import com.maozi.common.dto.CurrentUserInfo;
+import com.maozi.common.dto.CurrentUserInfoDTO;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/8/30 15:30
+ * @date 2026/8/30
  */
 @Aspect
 @Component
@@ -110,7 +110,7 @@ public class FunctionCallSecurityAop {
 
         // 获取链路上下文中的当前登录用户，未登录时抛出权限不足异常
         // （收紧校验，不默认放行）
-        CurrentUserInfo currentUserInfo = CurrentUserInfoContext.CONTEXT.get();
+        CurrentUserInfoDTO currentUserInfo = CurrentUserInfoContext.CONTEXT.get();
         if (Objects.isNull(currentUserInfo)) {
             throw new BusinessResultException(SystemErrorCode.PERMISSION_ERROR);
         }

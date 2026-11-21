@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Controller that exposes the Sentinel dashboard version.
  *
  * @author hisenyuan
+ * @date 2026/11/22
  * @since 1.7.0
  */
 @RestController
@@ -47,7 +48,7 @@ public class VersionController {
             }
             return Result.ofSuccess(res);
         } else {
-            return Result.ofFail(1, "getVersion failed: empty version");
+            return Result.ofFail(Result.CODE_FAIL, "getVersion failed: empty version");
         }
     }
 }

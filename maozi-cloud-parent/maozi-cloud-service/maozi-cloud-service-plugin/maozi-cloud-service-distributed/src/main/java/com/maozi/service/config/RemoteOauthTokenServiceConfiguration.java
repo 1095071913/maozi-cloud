@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/6/26
+ * @date 2026/6/26
  */
 @Configuration
 public class RemoteOauthTokenServiceConfiguration {

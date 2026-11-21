@@ -12,7 +12,7 @@ import lombok.Getter;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/8/16 18:45
+ * @date 2026/8/16
  */
 @Schema(description = "AI对话类型", type = "integer")
 public enum ChatTypeEnum {

@@ -23,6 +23,7 @@ import java.util.Set;
  * Request for binding a set of clients to one cluster token server.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.1
  */
 public class ClusterAppSingleServerAssignRequest {

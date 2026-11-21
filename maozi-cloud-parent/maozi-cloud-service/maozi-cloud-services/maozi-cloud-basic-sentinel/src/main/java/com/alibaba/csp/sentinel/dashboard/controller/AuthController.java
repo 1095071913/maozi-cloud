@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
  * Controller for dashboard login, logout and login-state checking.
  *
  * @author cdfive
+ * @date 2026/11/22
  * @since 1.6.0
  */
 @RestController
@@ -79,7 +80,7 @@ public class AuthController {
         if (StringUtils.isNotBlank(authUsername) && !authUsername.equals(username)
                 || StringUtils.isNotBlank(authPassword) && !authPassword.equals(password)) {
             LOGGER.error("Login failed: Invalid username or password, username={}", username);
-            return Result.ofFail(-1, "Invalid username or password");
+            return Result.ofFail(Result.CODE_ERROR, "Invalid username or password");
         }
 
         AuthService.AuthUser authUser = new SimpleWebAuthServiceImpl.SimpleWebAuthUserImpl(username);
@@ -99,7 +100,7 @@ public class AuthController {
     public Result<?> check(HttpServletRequest request) {
         AuthService.AuthUser authUser = authService.getAuthUser(request);
         if (authUser == null) {
-            return Result.ofFail(-1, "Not logged in");
+            return Result.ofFail(Result.CODE_ERROR, "Not logged in");
         }
         return Result.ofSuccess(authUser);
     }

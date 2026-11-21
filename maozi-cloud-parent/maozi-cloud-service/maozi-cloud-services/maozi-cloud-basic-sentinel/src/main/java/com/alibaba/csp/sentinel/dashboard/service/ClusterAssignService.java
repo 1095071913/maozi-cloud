@@ -25,6 +25,7 @@ import java.util.Set;
  * Service for assigning and unbinding cluster token servers and clients of an application.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.1
  */
 public interface ClusterAssignService {

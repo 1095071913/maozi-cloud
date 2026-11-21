@@ -986,7 +986,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @param param 查询参数
      * @return 符合条件的记录数
      */
-    public <P> Long getCountByParam(P param){
+    public <P> Long countByParam(P param){
 
         ObjectUtil.isNullThrowError(param, getResourceName());
 
@@ -1629,7 +1629,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         if (StringUtils.isNotEmpty(functionName)) {
             setBatchRelationFieldByFunction(responses, field, service, functionName, relationFieldName);
-        } else if (type.equals(List.class)) {
+        } else if (List.class.equals(type)) {
             setBatchListRelationField(responses, field, service, relationFieldName);
         } else if (DropDownResult.class.equals(type)) {
             setBatchDropDownRelationField(responses, field, service, relationFieldName);
@@ -1808,9 +1808,9 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         if (StringUtils.isNotEmpty(functionName)) {
             setSingleRelationFieldByFunction(data, field, service, functionName, relationFieldName);
-        } else if (type.equals(List.class)) {
+        } else if (List.class.equals(type)) {
             setSingleListRelationField(data, field, service, relationFieldName);
-        } else if (type.equals(DropDownResult.class)) {
+        } else if (DropDownResult.class.equals(type)) {
             setSingleDropDownRelationField(data, field, service, relationFieldName);
         } else {
             setSingleOneToOneRelationField(data, field, service, relationFieldName);

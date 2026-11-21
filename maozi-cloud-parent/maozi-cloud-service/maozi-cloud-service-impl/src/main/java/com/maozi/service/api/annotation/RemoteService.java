@@ -20,7 +20,7 @@ import java.lang.annotation.Target;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/6/25 15:12
+ * @date 2026/6/25
  * @see RemoteResource
  */
 @Documented

@@ -26,6 +26,7 @@ import java.util.Objects;
  * Entity for {@link GatewayFlowRule}.
  *
  * @author cdfive
+ * @date 2026/11/22
  * @since 1.7.0
  */
 public class GatewayFlowRuleEntity extends BaseRuleEntity {

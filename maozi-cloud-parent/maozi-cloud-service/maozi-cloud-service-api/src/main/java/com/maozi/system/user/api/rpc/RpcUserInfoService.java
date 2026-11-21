@@ -1,7 +1,7 @@
 package com.maozi.system.user.api.rpc;
 
 import com.maozi.common.result.AbstractBaseResult;
-import com.maozi.system.user.dto.SystemUser;
+import com.maozi.system.user.dto.SystemUserDTO;
 
 /**
  * 系统用户 RPC 服务接口
@@ -17,7 +17,7 @@ public interface RpcUserInfoService {
     /**
      * 根据用户 ID 查询系统用户信息
      * <p>
-     * 查询用户及其关联数据并转换为 {@link SystemUser}，用户不存在时抛出业务异常。
+     * 查询用户及其关联数据并转换为 {@link SystemUserDTO}，用户不存在时抛出业务异常。
      * </p>
      *
      * @param id 用户 ID
@@ -25,6 +25,6 @@ public interface RpcUserInfoService {
      * @return 系统用户信息封装的统一结果
      * @throws com.maozi.common.result.error.exception.BusinessResultException 用户不存在时抛出
      */
-    AbstractBaseResult<SystemUser> getResult(Long id, String ... columns);
+    AbstractBaseResult<SystemUserDTO> getResult(Long id, String ... columns);
 
 }

@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/6/2 15:19
+ * @date 2026/6/2
  */
 public class Oauth2AuthTypeHandler extends JacksonTypeHandler {
 
@@ -55,8 +55,9 @@ public class Oauth2AuthTypeHandler extends JacksonTypeHandler {
      */
     @Override
     public Object parse(String json) {
+        // 按逗号分割并去除空格（容错），转换为枚举后过滤无效值
         return Arrays.stream(json.split(SymbolConstant.COMMA))
-                .map(String::trim) // 去除空格（容错）
+                .map(String::trim)
                 .map(AuthTypeEnum::getByAuth)
                 .filter(ObjectUtil::isNotNull)
                 .collect(Collectors.toSet());
@@ -80,12 +81,14 @@ public class Oauth2AuthTypeHandler extends JacksonTypeHandler {
             return null;
         }
 
+        // 只保留 AuthTypeEnum 类型元素，安全强转后提取 auth 值，
+        // 过滤 null 值（避免出现",,,"），最后以逗号拼接
         return authTypes.stream()
-                .filter(AuthTypeEnum.class::isInstance)       // 只保留AuthTypeEnum类型
-                .map(AuthTypeEnum.class::cast)                // 安全强转
-                .map(AuthTypeEnum::getAuth)                   // 提取getAuth()
-                .filter(Objects::nonNull)                 // 过滤null值，避免出现",,,"
-                .collect(Collectors.joining(SymbolConstant.COMMA));        // 逗号拼接
+                .filter(AuthTypeEnum.class::isInstance)
+                .map(AuthTypeEnum.class::cast)
+                .map(AuthTypeEnum::getAuth)
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining(SymbolConstant.COMMA));
 
     }
 

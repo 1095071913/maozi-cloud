@@ -21,6 +21,7 @@ import com.alibaba.csp.sentinel.slots.system.SystemRule;
  * Entity for a system adaptive protection rule.
  *
  * @author leyou
+ * @date 2026/11/22
  */
 public class SystemRuleEntity extends BaseRuleEntity {
 

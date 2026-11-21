@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * In-memory storage for degrade rules.
  *
  * @author leyou
+ * @date 2026/11/22
  */
 @Component
 public class InMemDegradeRuleStore extends AbstractInMemoryRuleRepository<DegradeRuleEntity> {

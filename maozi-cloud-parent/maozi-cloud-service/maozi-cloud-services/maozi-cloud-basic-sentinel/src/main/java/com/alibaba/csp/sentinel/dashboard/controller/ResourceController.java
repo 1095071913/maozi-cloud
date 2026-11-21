@@ -19,7 +19,7 @@ import com.alibaba.csp.sentinel.command.vo.NodeVo;
 import com.alibaba.csp.sentinel.dashboard.client.SentinelApiClient;
 import com.alibaba.csp.sentinel.dashboard.domain.ResourceTreeNode;
 import com.alibaba.csp.sentinel.dashboard.domain.Result;
-import com.alibaba.csp.sentinel.dashboard.domain.vo.ResourceVo;
+import com.alibaba.csp.sentinel.dashboard.domain.vo.ResourceVO;
 import com.alibaba.csp.sentinel.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
  * Controller for fetching realtime statistics of a machine.
  *
  * @author Carpenter Lee
+ * @date 2026/11/22
  */
 @RestController
 @RequestMapping(value = "/resource")
@@ -60,10 +61,10 @@ public class ResourceController {
      * @return node statistics info.
      */
     @GetMapping("/machineResource.json")
-    public Result<List<ResourceVo>> fetchResourceChainListOfMachine(String ip, Integer port, String type,
+    public Result<List<ResourceVO>> fetchResourceChainListOfMachine(String ip, Integer port, String type,
                                                                     String searchKey) {
         if (StringUtil.isEmpty(ip) || port == null) {
-            return Result.ofFail(-1, "invalid param, give ip, port");
+            return Result.ofFail(Result.CODE_ERROR, "invalid param, give ip, port");
         }
         final String ROOT = "root";
         final String DEFAULT = "default";
@@ -72,24 +73,21 @@ public class ResourceController {
         }
         if (ROOT.equalsIgnoreCase(type) || DEFAULT.equalsIgnoreCase(type)) {
             List<NodeVo> nodeVos = httpFetcher.fetchResourceOfMachine(ip, port, type);
-            if (nodeVos == null) {
+            ResourceTreeNode treeNode = ResourceTreeNode.fromNodeVoList(nodeVos);
+            if (treeNode == null) {
                 return Result.ofSuccess(null);
             }
-            ResourceTreeNode treeNode = ResourceTreeNode.fromNodeVoList(nodeVos);
             treeNode.searchIgnoreCase(searchKey);
-            return Result.ofSuccess(ResourceVo.fromResourceTreeNode(treeNode));
+            return Result.ofSuccess(ResourceVO.fromResourceTreeNode(treeNode));
         } else {
             // Normal (cluster node).
             List<NodeVo> nodeVos = httpFetcher.fetchClusterNodeOfMachine(ip, port, true);
-            if (nodeVos == null) {
-                return Result.ofSuccess(null);
-            }
             if (StringUtil.isNotEmpty(searchKey)) {
                 nodeVos = nodeVos.stream().filter(node -> node.getResource()
                     .toLowerCase().contains(searchKey.toLowerCase()))
                     .collect(Collectors.toList());
             }
-            return Result.ofSuccess(ResourceVo.fromNodeVoList(nodeVos));
+            return Result.ofSuccess(ResourceVO.fromNodeVoList(nodeVos));
         }
     }
 }

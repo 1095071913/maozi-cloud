@@ -21,8 +21,9 @@ package com.alibaba.csp.sentinel.dashboard.domain.vo;
  * recent second and minute, and the visibility flag.
  *
  * @author leyou
+ * @date 2026/11/22
  */
-public abstract class BaseResourceMetricsVo {
+public abstract class BaseResourceMetricsVO {
 
     /** The name of the resource. */
     protected String resource;

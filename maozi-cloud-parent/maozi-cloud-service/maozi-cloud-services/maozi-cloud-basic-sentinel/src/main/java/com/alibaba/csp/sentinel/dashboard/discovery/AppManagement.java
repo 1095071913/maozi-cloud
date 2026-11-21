@@ -27,6 +27,8 @@ import java.util.Set;
 /**
  * Application management of the dashboard, which delegates machine discovery
  * operations to the underlying {@link MachineDiscovery} implementation.
+ * @author maozi
+ * @date 2026/11/22
  */
 @Component
 public class AppManagement implements MachineDiscovery {

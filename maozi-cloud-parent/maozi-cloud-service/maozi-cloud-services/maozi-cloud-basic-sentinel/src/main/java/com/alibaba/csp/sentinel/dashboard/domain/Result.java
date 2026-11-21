@@ -20,11 +20,18 @@ package com.alibaba.csp.sentinel.dashboard.domain;
  *
  * @author leyou
  * @author Eric Zhao
+ * @date 2026/11/22
  */
 public class Result<R> {
 
     /** Default message carried by a successful result. */
     public static final String DEFAULT_SUCCESS_MSG = "success";
+
+    /** Error code for invalid request parameters or execution errors. */
+    public static final int CODE_ERROR = -1;
+
+    /** Error code for failed operations, such as remove or version query failures. */
+    public static final int CODE_FAIL = 1;
 
     /** Whether the operation is successful. */
     private boolean success;

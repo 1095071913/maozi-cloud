@@ -25,8 +25,9 @@ import java.util.List;
  * View object of one resource node on the realtime monitoring page.
  *
  * @author leyou
+ * @date 2026/11/22
  */
-public class ResourceVo extends BaseResourceMetricsVo {
+public class ResourceVO extends BaseResourceMetricsVO {
     /** The parent tree node ID. */
     private String parentTtId;
 
@@ -37,17 +38,17 @@ public class ResourceVo extends BaseResourceMetricsVo {
     private Long passRequestQps;
 
     /** Create an empty vo. */
-    public ResourceVo() {
+    public ResourceVO() {
     }
 
     /** Convert a list of node VOs to a list of resource VOs, or null if the given list is null. */
-    public static List<ResourceVo> fromNodeVoList(List<NodeVo> nodeVos) {
+    public static List<ResourceVO> fromNodeVoList(List<NodeVo> nodeVos) {
         if (nodeVos == null) {
             return null;
         }
-        List<ResourceVo> list = new ArrayList<>(nodeVos.size());
+        List<ResourceVO> list = new ArrayList<>(nodeVos.size());
         for (NodeVo nodeVo : nodeVos) {
-            ResourceVo vo = new ResourceVo();
+            ResourceVO vo = new ResourceVO();
             vo.parentTtId = nodeVo.getParentId();
             vo.ttId = nodeVo.getId();
             vo.resource = nodeVo.getResource();
@@ -71,11 +72,11 @@ public class ResourceVo extends BaseResourceMetricsVo {
      * nodes into a list of VOs, or null if the given root is null. The root node
      * itself is never collected.
      */
-    public static List<ResourceVo> fromResourceTreeNode(ResourceTreeNode root) {
+    public static List<ResourceVO> fromResourceTreeNode(ResourceTreeNode root) {
         if (root == null) {
             return null;
         }
-        List<ResourceVo> list = new ArrayList<>();
+        List<ResourceVO> list = new ArrayList<>();
         visit(root, list, false, true);
         return list;
     }
@@ -84,10 +85,10 @@ public class ResourceVo extends BaseResourceMetricsVo {
      * Recursively collects VOs of the visible nodes into the list. A node is visible
      * when itself or one of its parents is visible; the root node is never visible.
      */
-    private static void visit(ResourceTreeNode node, List<ResourceVo> list, boolean parentVisible, boolean isRoot) {
+    private static void visit(ResourceTreeNode node, List<ResourceVO> list, boolean parentVisible, boolean isRoot) {
         boolean visible = !isRoot && (node.isVisible() || parentVisible);
         if (visible) {
-            ResourceVo vo = new ResourceVo();
+            ResourceVO vo = new ResourceVO();
             vo.parentTtId = node.getParentId();
             vo.ttId = node.getId();
             vo.resource = node.getResource();
@@ -141,7 +142,7 @@ public class ResourceVo extends BaseResourceMetricsVo {
 
     @Override
     public String toString() {
-        return "ResourceVo{"
+        return "ResourceVO{"
                 + "parentTtId='" + parentTtId + '\''
                 + ", ttId='" + ttId + '\''
                 + ", resource='" + resource + '\''

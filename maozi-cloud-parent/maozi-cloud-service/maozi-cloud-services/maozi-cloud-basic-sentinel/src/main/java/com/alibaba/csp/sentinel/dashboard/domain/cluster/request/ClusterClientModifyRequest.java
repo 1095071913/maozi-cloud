@@ -21,6 +21,7 @@ import com.alibaba.csp.sentinel.dashboard.domain.cluster.config.ClusterClientCon
  * Request to modify the cluster token client config of a machine.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.0
  */
 public class ClusterClientModifyRequest extends AbstractClusterModifyRequest {

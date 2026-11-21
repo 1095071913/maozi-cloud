@@ -7,7 +7,7 @@ package com.maozi.common.constant;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/6/15 11:38
+ * @date 2026/6/15
  */
 public final class AuthorizationConstant {
 

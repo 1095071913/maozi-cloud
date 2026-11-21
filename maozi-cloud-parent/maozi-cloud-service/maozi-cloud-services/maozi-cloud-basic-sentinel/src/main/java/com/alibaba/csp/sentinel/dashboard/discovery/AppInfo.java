@@ -20,12 +20,15 @@ import com.alibaba.csp.sentinel.dashboard.config.DashboardConfig;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Information of an application, including its name, type and the machines registered to it.
+ * @author maozi
+ * @date 2026/11/22
  */
 public class AppInfo {
 
@@ -104,7 +107,7 @@ public class AppInfo {
         Iterator<MachineInfo> it = machines.iterator();
         while (it.hasNext()) {
             MachineInfo machine = it.next();
-            if (machine.getIp().equals(ip) && machine.getPort() == port) {
+            if (Objects.equals(machine.getIp(), ip) && machine.getPort() == port) {
                 it.remove();
                 return true;
             }
@@ -115,14 +118,14 @@ public class AppInfo {
     /** Gets the machine with the given ip and port, if present. */
     public Optional<MachineInfo> getMachine(String ip, int port) {
         return machines.stream()
-            .filter(e -> e.getIp().equals(ip) && e.getPort().equals(port))
+            .filter(e -> Objects.equals(e.getIp(), ip) && e.getPort().equals(port))
             .findFirst();
     }
 
     /** Gets the first machine matching the given ip, if present. */
     public Optional<MachineInfo> getMachine(String ip) {
         return machines.stream()
-            .filter(e -> e.getIp().equals(ip))
+            .filter(e -> Objects.equals(e.getIp(), ip))
             .findFirst();
     }
 

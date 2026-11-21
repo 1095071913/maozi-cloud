@@ -29,7 +29,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * MyBatis-Plus 配置类
@@ -45,9 +45,9 @@ import java.util.List;
 @Configuration
 public class MybatisPlusConfig {
 
-    /** 需要启用多租户的表名列表 */
+    /** 需要启用多租户的表名列表（Set 类型，ignoreTable 高频调用时 O(1) 查找） */
     @Value("${mybatis-plus.configuration.tenantTables:}")
-    private List<String> tenantTables;
+    private Set<String> tenantTables;
 
     /**
      * 创建 MyBatis-Plus 拦截器

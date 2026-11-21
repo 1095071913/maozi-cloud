@@ -19,7 +19,7 @@ import com.alibaba.csp.sentinel.dashboard.discovery.AppInfo;
 import com.alibaba.csp.sentinel.dashboard.discovery.AppManagement;
 import com.alibaba.csp.sentinel.dashboard.discovery.MachineInfo;
 import com.alibaba.csp.sentinel.dashboard.domain.Result;
-import com.alibaba.csp.sentinel.dashboard.domain.vo.MachineInfoVo;
+import com.alibaba.csp.sentinel.dashboard.domain.vo.MachineInfoVO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,6 +37,7 @@ import java.util.List;
  * Controller for app and machine queries and machine removal on the dashboard.
  *
  * @author Carpenter Lee
+ * @date 2026/11/22
  */
 @RestController
 @RequestMapping(value = "/app")
@@ -65,7 +66,7 @@ public class AppController {
 
     /** Gets machines of the given app sorted by app/ip/port; an unknown app returns success with null data. */
     @GetMapping(value = "/{app}/machines.json")
-    public Result<List<MachineInfoVo>> getMachinesByApp(@PathVariable("app") String app) {
+    public Result<List<MachineInfoVO>> getMachinesByApp(@PathVariable("app") String app) {
         AppInfo appInfo = appManagement.getDetailApp(app);
         if (appInfo == null) {
             return Result.ofSuccess(null);
@@ -74,7 +75,7 @@ public class AppController {
         Collections.sort(list,
             Comparator.comparing(MachineInfo::getApp).thenComparing(MachineInfo::getIp)
                 .thenComparingInt(MachineInfo::getPort));
-        return Result.ofSuccess(MachineInfoVo.fromMachineInfoList(list));
+        return Result.ofSuccess(MachineInfoVO.fromMachineInfoList(list));
     }
     
     /**
@@ -93,7 +94,7 @@ public class AppController {
         if (appManagement.removeMachine(app, ip, port)) {
             return Result.ofSuccessMsg(Result.DEFAULT_SUCCESS_MSG);
         } else {
-            return Result.ofFail(1, "remove failed");
+            return Result.ofFail(Result.CODE_FAIL, "remove failed");
         }
     }
 }

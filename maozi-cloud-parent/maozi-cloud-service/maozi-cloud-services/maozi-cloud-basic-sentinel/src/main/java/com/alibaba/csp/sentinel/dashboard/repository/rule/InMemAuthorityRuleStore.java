@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * In-memory storage for authority rules.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 0.2.1
  */
 @Component

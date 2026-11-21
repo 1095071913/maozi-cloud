@@ -8,7 +8,7 @@ package com.maozi.common.constant;
  * </p>
  *
  * @author maozi
- * @since 2026/11/9 15:30
+ * @date 2026/11/9
  */
 public final class SpringPropertyConstant {
 

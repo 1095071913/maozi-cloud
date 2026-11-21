@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Abstract in-memory repository of rule entities, indexed by id, machine and app.
  *
  * @author leyou
+ * @date 2026/11/22
  */
 public abstract class AbstractInMemoryRuleRepository<T extends RuleEntity> implements RuleRepository<T, Long> {
 
@@ -72,7 +73,7 @@ public abstract class AbstractInMemoryRuleRepository<T extends RuleEntity> imple
     /**
      * Replace all stored rules with the given list: every existing rule in all three
      * indexes is cleared first, then each rule is saved one by one via {@link #save};
-     * returns {@code null} when the given list is {@code null}.
+     * returns an empty list when the given list is {@code null}.
      */
     @Override
     public List<T> saveAll(List<T> rules) {
@@ -82,7 +83,7 @@ public abstract class AbstractInMemoryRuleRepository<T extends RuleEntity> imple
         appRules.clear();
 
         if (rules == null) {
-            return null;
+            return new ArrayList<>();
         }
         List<T> savedRules = new ArrayList<>(rules.size());
         for (T rule : rules) {

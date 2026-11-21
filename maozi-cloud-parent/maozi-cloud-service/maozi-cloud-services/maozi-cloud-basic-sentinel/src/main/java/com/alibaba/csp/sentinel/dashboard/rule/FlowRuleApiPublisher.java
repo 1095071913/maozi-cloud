@@ -30,6 +30,7 @@ import java.util.Set;
  * application through the Sentinel transport API.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.0
  */
 @Component("flowRuleDefaultPublisher")

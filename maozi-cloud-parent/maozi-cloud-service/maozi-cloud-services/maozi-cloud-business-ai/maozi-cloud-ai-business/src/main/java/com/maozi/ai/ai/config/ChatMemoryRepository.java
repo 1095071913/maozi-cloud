@@ -12,7 +12,7 @@ import java.util.List;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/8/23 04:16
+ * @date 2026/8/23
  */
 public interface ChatMemoryRepository extends org.springframework.ai.chat.memory.ChatMemoryRepository {
 

@@ -6,7 +6,7 @@ import com.maozi.service.api.annotation.RemoteService;
 import com.maozi.service.api.impl.result.BaseDBServiceResultImpl;
 import com.maozi.system.user.api.impl.UserServiceImpl;
 import com.maozi.system.user.api.rpc.RpcUserInfoService;
-import com.maozi.system.user.dto.SystemUser;
+import com.maozi.system.user.dto.SystemUserDTO;
 
 /**
  * 用户信息RPC服务实现类
@@ -31,8 +31,8 @@ public class RpcUserInfoServiceImpl extends BaseDBServiceResultImpl<UserServiceI
      * @throws com.maozi.common.result.error.exception.BusinessResultException 用户不存在时抛出
      */
     @Override
-    public AbstractBaseResult<SystemUser> getResult(Long id, String... columns) {
-        return ResultUtil.success(service.getByIdThrowErrorRelation(id, SystemUser.class));
+    public AbstractBaseResult<SystemUserDTO> getResult(Long id, String... columns) {
+        return ResultUtil.success(service.getByIdThrowErrorRelation(id, SystemUserDTO.class));
     }
 
 }

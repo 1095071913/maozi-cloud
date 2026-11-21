@@ -21,6 +21,7 @@ import java.util.Date;
  * Entity of one metric record of a resource in a time slot.
  *
  * @author leyou
+ * @date 2026/11/22
  */
 public class MetricEntity extends BaseEntity {
     /** The timestamp of the metric. */

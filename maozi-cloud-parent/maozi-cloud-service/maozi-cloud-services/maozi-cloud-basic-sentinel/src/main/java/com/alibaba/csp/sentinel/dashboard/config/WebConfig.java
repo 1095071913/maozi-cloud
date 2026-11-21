@@ -43,6 +43,7 @@ import java.util.Set;
  * resources and the index view.
  *
  * @author leyou
+ * @date 2026/11/22
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {

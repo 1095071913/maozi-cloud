@@ -20,9 +20,10 @@ package com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule;
  * common fields shared by both requests.
  *
  * @author cdfive
+ * @date 2026/11/22
  * @since 1.7.0
  */
-public abstract class BaseFlowRuleReqVo {
+public abstract class BaseFlowRuleReqVO {
 
     /** Name of the target application. */
     protected String app;
@@ -49,7 +50,7 @@ public abstract class BaseFlowRuleReqVo {
     protected Integer maxQueueingTimeoutMs;
 
     /** Hotspot parameter item of the rule, null for a plain gateway flow rule. */
-    protected GatewayParamFlowItemVo paramItem;
+    protected GatewayParamFlowItemVO paramItem;
 
     /** Returns the name of the target application. */
     public String getApp() {
@@ -132,12 +133,12 @@ public abstract class BaseFlowRuleReqVo {
     }
 
     /** Returns the hotspot parameter item of the rule. */
-    public GatewayParamFlowItemVo getParamItem() {
+    public GatewayParamFlowItemVO getParamItem() {
         return paramItem;
     }
 
     /** Sets the hotspot parameter item of the rule. */
-    public void setParamItem(GatewayParamFlowItemVo paramItem) {
+    public void setParamItem(GatewayParamFlowItemVO paramItem) {
         this.paramItem = paramItem;
     }
 }

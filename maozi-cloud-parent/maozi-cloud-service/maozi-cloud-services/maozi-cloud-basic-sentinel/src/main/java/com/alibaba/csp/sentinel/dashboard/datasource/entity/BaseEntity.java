@@ -22,6 +22,7 @@ import java.util.Date;
  * gmtCreate and gmtModified.
  *
  * @author leyou
+ * @date 2026/11/22
  */
 public abstract class BaseEntity {
 

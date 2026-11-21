@@ -23,6 +23,7 @@ import java.util.Set;
  * Assignment of one cluster token server: the server machine with the clients, namespaces and max QPS bound to it.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.1
  */
 public class ClusterAppAssignMap extends BaseClusterServerMachine {

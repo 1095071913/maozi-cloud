@@ -19,9 +19,10 @@ package com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule;
  * Value Object for update gateway flow rule.
  *
  * @author cdfive
+ * @date 2026/11/22
  * @since 1.7.0
  */
-public class UpdateFlowRuleReqVo extends BaseFlowRuleReqVo {
+public class UpdateFlowRuleReqVO extends BaseFlowRuleReqVO {
 
     /** ID of the gateway flow rule to update. */
     private Long id;
@@ -38,7 +39,7 @@ public class UpdateFlowRuleReqVo extends BaseFlowRuleReqVo {
 
     @Override
     public String toString() {
-        return "UpdateFlowRuleReqVo{"
+        return "UpdateFlowRuleReqVO{"
                 + "id=" + id
                 + ", app='" + app + '\''
                 + ", grade=" + grade

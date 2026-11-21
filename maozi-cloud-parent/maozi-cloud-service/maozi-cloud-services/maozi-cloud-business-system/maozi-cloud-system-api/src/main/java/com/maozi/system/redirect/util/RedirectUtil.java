@@ -13,7 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/8/14 13:01
+ * @date 2026/8/14
  */
 public class RedirectUtil {
 

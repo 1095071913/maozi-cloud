@@ -19,9 +19,10 @@ package com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule;
  * Value Object for add gateway flow rule.
  *
  * @author cdfive
+ * @date 2026/11/22
  * @since 1.7.0
  */
-public class AddFlowRuleReqVo extends BaseFlowRuleReqVo {
+public class AddFlowRuleReqVO extends BaseFlowRuleReqVO {
 
     /** IP of the Sentinel client machine that the rule belongs to. */
     private String ip;
@@ -77,7 +78,7 @@ public class AddFlowRuleReqVo extends BaseFlowRuleReqVo {
 
     @Override
     public String toString() {
-        return "AddFlowRuleReqVo{"
+        return "AddFlowRuleReqVO{"
                 + "app='" + app + '\''
                 + ", ip='" + ip + '\''
                 + ", port=" + port

@@ -17,12 +17,12 @@ import java.util.List;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/6/16 16:51
+ * @date 2026/6/16
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CurrentUserInfo implements Serializable {
+public class CurrentUserInfoDTO implements Serializable {
 
     /** 序列化标识 */
     @Serial

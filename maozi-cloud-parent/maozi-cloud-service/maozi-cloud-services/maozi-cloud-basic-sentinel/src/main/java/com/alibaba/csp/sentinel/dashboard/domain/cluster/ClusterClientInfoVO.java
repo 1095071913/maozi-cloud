@@ -19,6 +19,7 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster;
  * Cluster token client info of a machine, i.e. the connected token server and the client state.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.1
  */
 public class ClusterClientInfoVO {

@@ -24,6 +24,7 @@ import java.util.Optional;
  * Utility class for parsing Sentinel version strings.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 0.2.1
  */
 public final class VersionUtils {

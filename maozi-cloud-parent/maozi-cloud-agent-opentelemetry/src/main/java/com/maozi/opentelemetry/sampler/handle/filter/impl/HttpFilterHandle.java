@@ -58,6 +58,9 @@ public class HttpFilterHandle extends BaseFilterHandle {
     /** 协议分隔符 */
     private static final String PROTOCOL_SEPARATOR = "://";
 
+    /** 协议分隔符切分模式（剥离协议前缀用，预编译，避免热路径重复编译） */
+    private static final Pattern PROTOCOL_SEPARATOR_PATTERN = Pattern.compile(PROTOCOL_SEPARATOR);
+
     /**
      * 返回需要排除的 URL 路径模式列表
      *
@@ -97,7 +100,7 @@ public class HttpFilterHandle extends BaseFilterHandle {
         if (httpPath.contains(PROTOCOL_HTTP) || httpPath.contains(PROTOCOL_HTTPS)){
 
             // split 会剔除尾部空串，属性值恰为 "http://" 时数组长度不足，先做索引越界检查
-            String[] urlSegments = httpPath.split(PROTOCOL_SEPARATOR);
+            String[] urlSegments = PROTOCOL_SEPARATOR_PATTERN.split(httpPath);
             if (urlSegments.length < 2){
                 return false;
             }

@@ -17,7 +17,7 @@ import org.apache.dubbo.rpc.RpcException;
  * Dubbo 消费端链路上下文传递过滤器
  * <p>
  * 在 Dubbo 服务消费者端发起 RPC 调用时，将当前线程中的版本号、测试流量标记、
- * 当前登录用户信息（{@link com.maozi.common.dto.CurrentUserInfo}）和链路追踪 ID
+ * 当前登录用户信息（{@link com.maozi.common.dto.CurrentUserInfoDTO}）和链路追踪 ID
  * 写入 RPC 附件（Attachment）中，传递到服务提供者端，实现跨服务的链路上下文传播。
  * </p>
  * <p>

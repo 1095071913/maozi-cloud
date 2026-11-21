@@ -20,6 +20,7 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster.request;
  * target machine fields (app, ip, port and mode).
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.0
  */
 public abstract class AbstractClusterModifyRequest implements ClusterModifyRequest {

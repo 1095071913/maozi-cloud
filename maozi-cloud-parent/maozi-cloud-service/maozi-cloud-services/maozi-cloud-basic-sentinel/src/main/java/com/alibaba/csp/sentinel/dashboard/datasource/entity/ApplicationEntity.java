@@ -23,6 +23,7 @@ import java.util.Date;
  * Persistent entity of an application registered to the dashboard.
  *
  * @author leyou
+ * @date 2026/11/22
  */
 public class ApplicationEntity extends BaseEntity {
 

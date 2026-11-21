@@ -19,6 +19,7 @@ package com.alibaba.csp.sentinel.dashboard.domain.cluster;
  * Entity of one cluster group: a token server and the clients bound to it.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.1
  */
 public class ClusterGroupEntity extends BaseClusterServerMachine {

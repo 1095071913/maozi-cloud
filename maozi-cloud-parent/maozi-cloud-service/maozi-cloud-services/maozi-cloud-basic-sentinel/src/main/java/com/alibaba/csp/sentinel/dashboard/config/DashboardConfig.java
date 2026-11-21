@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentMap;
  * from system properties, caching the results.
  *
  * @author jason
+ * @date 2026/11/22
  * @since 1.5.0
  */
 public class DashboardConfig {

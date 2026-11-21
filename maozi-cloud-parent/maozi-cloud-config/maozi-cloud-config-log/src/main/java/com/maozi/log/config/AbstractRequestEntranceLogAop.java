@@ -26,7 +26,7 @@ import com.maozi.common.constant.LogTag;
 import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.context.SqlLogContext;
-import com.maozi.common.dto.CurrentUserInfo;
+import com.maozi.common.dto.CurrentUserInfoDTO;
 import com.maozi.common.enums.EnvironmentTypeEnum;
 import com.maozi.common.enums.LogCommonTypeEnum;
 import com.maozi.common.result.AbstractBaseResult;
@@ -112,7 +112,7 @@ public abstract class AbstractRequestEntranceLogAop {
             resultData = businessResultException.getErrorResult();
             
         // 未预期的系统异常：封装为统一的系统错误结果，并记录详细的错误日志
-        } catch (Throwable e) {
+        } catch (Exception e) {
 
             // 记录异常堆栈日志，便于排查问题
             ex = e;
@@ -124,7 +124,7 @@ public abstract class AbstractRequestEntranceLogAop {
             logs.put(LogTag.PARAM, Arrays.toString(proceedingJoinPoint.getArgs()));
 
             // 获取当前登录用户 ID
-            Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
+            Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfoDTO::getUserId);
             if (ObjectUtil.isNotNull(userId)) {
                 // 记录当前操作用户
                 logs.put(LogTag.ERROR_USER, userId.toString());

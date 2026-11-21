@@ -20,13 +20,19 @@ import com.alibaba.csp.sentinel.dashboard.datasource.entity.MetricEntity;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * View object of one metric record sent to the frontend.
  *
  * @author leyou
+ * @date 2026/11/22
  */
-public class MetricVo implements Comparable<MetricVo> {
+public class MetricVO implements Comparable<MetricVO> {
+
+    /** Precompiled pattern of the metric line separator. */
+    private static final Pattern METRIC_LINE_PATTERN = Pattern.compile("\\|");
+
     /** The ID of the metric record. */
     private Long id;
 
@@ -36,8 +42,8 @@ public class MetricVo implements Comparable<MetricVo> {
     /** The timestamp of the metric record in milliseconds. */
     private Long timestamp;
 
-    /** The create time in milliseconds, initialized to the current time. */
-    private Long gmtCreate = System.currentTimeMillis();
+    /** The create time in milliseconds. */
+    private Long gmtCreate;
 
     /** The resource name. */
     private String resource;
@@ -60,12 +66,12 @@ public class MetricVo implements Comparable<MetricVo> {
     private Integer count;
 
     /** Create an empty vo. */
-    public MetricVo() {
+    public MetricVO() {
     }
 
     /** Convert the entities to a list of VOs; a null collection yields an empty list. */
-    public static List<MetricVo> fromMetricEntities(Collection<MetricEntity> entities) {
-        List<MetricVo> list = new ArrayList<>(entities == null ? 0 : entities.size());
+    public static List<MetricVO> fromMetricEntities(Collection<MetricEntity> entities) {
+        List<MetricVO> list = new ArrayList<>(entities == null ? 0 : entities.size());
         if (entities != null) {
             for (MetricEntity entity : entities) {
                 list.add(fromMetricEntity(entity));
@@ -81,11 +87,11 @@ public class MetricVo implements Comparable<MetricVo> {
      * @param identity the exact resource name to match
      * @return VOs of the matching entities
      */
-    public static List<MetricVo> fromMetricEntities(Collection<MetricEntity> entities, String identity) {
-        List<MetricVo> list = new ArrayList<>(entities == null ? 0 : entities.size());
+    public static List<MetricVO> fromMetricEntities(Collection<MetricEntity> entities, String identity) {
+        List<MetricVO> list = new ArrayList<>(entities == null ? 0 : entities.size());
         if (entities != null) {
             for (MetricEntity entity : entities) {
-                if (entity.getResource().equals(identity)) {
+                if (identity.equals(entity.getResource())) {
                     list.add(fromMetricEntity(entity));
                 }
             }
@@ -97,8 +103,8 @@ public class MetricVo implements Comparable<MetricVo> {
      * Convert the given entity to a VO. The rt of the VO is the entity rt divided
      * by the success QPS, or 0 if the success QPS is 0.
      */
-    public static MetricVo fromMetricEntity(MetricEntity entity) {
-        MetricVo vo = new MetricVo();
+    public static MetricVO fromMetricEntity(MetricEntity entity) {
+        MetricVO vo = new MetricVO();
         vo.id = entity.getId();
         vo.app = entity.getApp();
         vo.timestamp = entity.getTimestamp().getTime();
@@ -110,7 +116,7 @@ public class MetricVo implements Comparable<MetricVo> {
         Long successQps = entity.getSuccessQps();
         vo.successQps = successQps;
         vo.exceptionQps = entity.getExceptionQps();
-        if (successQps != 0) {
+        if (successQps != null && successQps != 0) {
             vo.rt = entity.getRt() / successQps;
         } else {
             vo.rt = 0D;
@@ -124,8 +130,8 @@ public class MetricVo implements Comparable<MetricVo> {
      * {@code timestamp|resource|passQps|blockQps|exceptionQps|rt|successQps}
      * into a VO, with the count set to 1.
      */
-    public static MetricVo parse(String line) {
-        String[] strs = line.split("\\|");
+    public static MetricVO parse(String line) {
+        String[] strs = METRIC_LINE_PATTERN.split(line);
         long timestamp = Long.parseLong(strs[0]);
         String identity = strs[1];
         long passQps = Long.parseLong(strs[2]);
@@ -133,7 +139,7 @@ public class MetricVo implements Comparable<MetricVo> {
         long exception = Long.parseLong(strs[4]);
         double rt = Double.parseDouble(strs[5]);
         long successQps = Long.parseLong(strs[6]);
-        MetricVo vo = new MetricVo();
+        MetricVO vo = new MetricVO();
         vo.timestamp = timestamp;
         vo.resource = identity;
         vo.passQps = passQps;
@@ -257,13 +263,13 @@ public class MetricVo implements Comparable<MetricVo> {
 
     /** Compare VOs by timestamp in ascending order. */
     @Override
-    public int compareTo(MetricVo o) {
+    public int compareTo(MetricVO o) {
         return Long.compare(this.timestamp, o.timestamp);
     }
 
     @Override
     public String toString() {
-        return "MetricVo{"
+        return "MetricVO{"
                 + "id=" + id
                 + ", app='" + app + '\''
                 + ", timestamp=" + timestamp

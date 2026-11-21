@@ -9,7 +9,7 @@ package com.maozi.ai.ai.api;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/8/16 10:04
+ * @date 2026/8/16
  */
 public interface ChatService {
 }

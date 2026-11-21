@@ -11,7 +11,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * <p>
  * 内部持有 {@link TransmittableThreadLocal}，封装上下文值的获取、设置与清理，
  * 支持线程池和异步场景下的上下文传递。
- * 子类在构造时自动注册到持有器注册表，
+ * 子类在单例初始化后通过 {@link #register()} 注册到持有器注册表，
  * 供 {@link #removeAll()} 循环清理所有继承了本类的上下文。
  * </p>
  *
@@ -21,16 +21,25 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public abstract class AbstractRequestContextHolder<T> {
 
-    /** 所有继承了本类的上下文持有器（构造时自动注册） */
+    /** 所有继承了本类的上下文持有器（由子类单例初始化后注册） */
     private static final List<AbstractRequestContextHolder<?>> HOLDERS = new CopyOnWriteArrayList<>();
 
     /** 当前线程的上下文值 */
     private final TransmittableThreadLocal<T> context = new TransmittableThreadLocal<>();
 
     /**
-     * 构造时自动注册到持有器注册表
+     * 构造方法，不包含任何业务逻辑
      */
     protected AbstractRequestContextHolder() {
+    }
+
+    /**
+     * 将当前持有器注册到持有器注册表
+     * <p>
+     * 由子类单例初始化完成后显式调用，避免在构造方法中加入业务逻辑。
+     * </p>
+     */
+    protected void register() {
         HOLDERS.add(this);
     }
 

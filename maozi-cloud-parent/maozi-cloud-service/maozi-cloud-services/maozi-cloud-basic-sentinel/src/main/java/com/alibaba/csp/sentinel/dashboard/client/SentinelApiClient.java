@@ -87,6 +87,7 @@ import java.util.stream.Collectors;
  * Communicate with Sentinel client.
  *
  * @author leyou
+ * @date 2026/11/22
  */
 @Component
 public class SentinelApiClient {
@@ -179,9 +180,9 @@ public class SentinelApiClient {
     private CloseableHttpAsyncClient httpClient;
 
     /** Sentinel version 1.6.0, from which command POST is supported. */
-    private static final SentinelVersion version160 = new SentinelVersion(1, 6, 0);
+    private static final SentinelVersion VERSION_1_6_0 = new SentinelVersion(1, 6, 0);
     /** Sentinel version 1.7.1, from which the enhanced Content-Type form is supported. */
-    private static final SentinelVersion version171 = new SentinelVersion(1, 7, 1);
+    private static final SentinelVersion VERSION_1_7_1 = new SentinelVersion(1, 7, 1);
     
     /** Registry of apps and machines, used for machine validity and version checks. */
     private final AppManagement appManagement;
@@ -222,7 +223,7 @@ public class SentinelApiClient {
         return StringUtil.isNotEmpty(app) && Optional.ofNullable(appManagement.getDetailApp(app))
                 .flatMap(e -> e.getMachine(ip, port))
                 .flatMap(m -> VersionUtils.parseVersion(m.getVersion())
-                    .map(v -> v.greaterOrEqual(version160)))
+                    .map(v -> v.greaterOrEqual(VERSION_1_6_0)))
                 .orElse(false);
     }
     
@@ -238,7 +239,7 @@ public class SentinelApiClient {
         return StringUtil.isNotEmpty(app) && Optional.ofNullable(appManagement.getDetailApp(app))
                 .flatMap(e -> e.getMachine(ip, port))
                 .flatMap(m -> VersionUtils.parseVersion(m.getVersion())
-                    .map(v -> v.greaterOrEqual(version171)))
+                    .map(v -> v.greaterOrEqual(VERSION_1_7_1)))
                 .orElse(false);
     }
     
@@ -476,13 +477,13 @@ public class SentinelApiClient {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             logger.error("Error when fetching items from api: {} -> {}", api, type, e);
-            return null;
+            return Collections.emptyList();
         } catch (ExecutionException e) {
             logger.error("Error when fetching items from api: {} -> {}", api, type, e);
-            return null;
+            return Collections.emptyList();
         } catch (Exception e) {
             logger.error("Error when fetching items: {} -> {}", api, type, e);
-            return null;
+            return Collections.emptyList();
         }
     }
     
@@ -565,36 +566,36 @@ public class SentinelApiClient {
         return fetchItems(ip, port, CLUSTER_NODE_PATH, type, NodeVo.class);
     }
 
-    /** Fetches all flow rules of the machine and converts them to entities, or null if fetching fails. */
+    /** Fetches all flow rules of the machine and converts them to entities, or an empty list if fetching fails. */
     public List<FlowRuleEntity> fetchFlowRuleOfMachine(String app, String ip, int port) {
         List<FlowRule> rules = fetchRules(ip, port, FLOW_RULE_TYPE, FlowRule.class);
         if (rules != null) {
             return rules.stream().map(rule -> FlowRuleEntity.fromFlowRule(app, ip, port, rule))
                 .collect(Collectors.toList());
         } else {
-            return null;
+            return Collections.emptyList();
         }
     }
 
-    /** Fetches all degrade rules of the machine and converts them to entities, or null if fetching fails. */
+    /** Fetches all degrade rules of the machine and converts them to entities, or an empty list if fetching fails. */
     public List<DegradeRuleEntity> fetchDegradeRuleOfMachine(String app, String ip, int port) {
         List<DegradeRule> rules = fetchRules(ip, port, DEGRADE_RULE_TYPE, DegradeRule.class);
         if (rules != null) {
             return rules.stream().map(rule -> DegradeRuleEntity.fromDegradeRule(app, ip, port, rule))
                 .collect(Collectors.toList());
         } else {
-            return null;
+            return Collections.emptyList();
         }
     }
 
-    /** Fetches all system rules of the machine and converts them to entities, or null if fetching fails. */
+    /** Fetches all system rules of the machine and converts them to entities, or an empty list if fetching fails. */
     public List<SystemRuleEntity> fetchSystemRuleOfMachine(String app, String ip, int port) {
         List<SystemRule> rules = fetchRules(ip, port, SYSTEM_RULE_TYPE, SystemRule.class);
         if (rules != null) {
             return rules.stream().map(rule -> SystemRuleEntity.fromSystemRule(app, ip, port, rule))
                 .collect(Collectors.toList());
         } else {
-            return null;
+            return Collections.emptyList();
         }
     }
 
@@ -642,7 +643,7 @@ public class SentinelApiClient {
         return Optional.ofNullable(rules).map(r -> r.stream()
                     .map(e -> AuthorityRuleEntity.fromAuthorityRule(app, ip, port, e))
                     .collect(Collectors.toList())
-                ).orElse(null);
+                ).orElse(Collections.emptyList());
     }
 
     /**

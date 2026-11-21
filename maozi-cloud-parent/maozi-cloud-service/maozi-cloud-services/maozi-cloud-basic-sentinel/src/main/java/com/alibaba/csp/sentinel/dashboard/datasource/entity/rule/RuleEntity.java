@@ -23,6 +23,7 @@ import java.util.Date;
  * Interface of entities that can be converted to a Sentinel {@link Rule}.
  *
  * @author leyou
+ * @date 2026/11/22
  */
 public interface RuleEntity {
 

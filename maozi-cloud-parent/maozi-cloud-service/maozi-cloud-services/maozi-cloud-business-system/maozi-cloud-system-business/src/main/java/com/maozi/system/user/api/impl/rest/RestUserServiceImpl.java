@@ -23,7 +23,7 @@ import com.maozi.base.param.RequestParam;
 import com.maozi.base.result.PageResult;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.context.CurrentUserInfoContext;
-import com.maozi.common.dto.CurrentUserInfo;
+import com.maozi.common.dto.CurrentUserInfoDTO;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.service.api.annotation.RestService;
 import com.maozi.service.api.impl.result.BaseDBServiceResultImpl;
@@ -136,7 +136,7 @@ public class RestUserServiceImpl extends BaseDBServiceResultImpl<UserServiceImpl
      */
     @Override
     public AbstractBaseResult<UserIndividualInfoResult> individualGetResult() {
-        Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
+        Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfoDTO::getUserId);
         return ResultUtil.success(service.getByIdThrowErrorRelation(userId, UserIndividualInfoResult.class));
     }
 

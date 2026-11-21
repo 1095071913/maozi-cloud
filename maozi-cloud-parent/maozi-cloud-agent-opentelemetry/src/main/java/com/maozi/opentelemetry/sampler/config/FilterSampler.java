@@ -109,7 +109,7 @@ public class FilterSampler implements Sampler {
 
         // 边界兜底：javaagent 采样热路径不允许异常逃逸到 OTel SDK 中断采样链路，
         // 捕获后完整记录异常（含堆栈）并放行采样，非以异常做流程控制
-        }catch (RuntimeException e){
+        }catch (Exception e){
 
             // 使用 Supplier 延迟构造日志消息，避免无谓的字符串拼接开销
             // （JUL 惰性重载签名：Level, Throwable, Supplier）

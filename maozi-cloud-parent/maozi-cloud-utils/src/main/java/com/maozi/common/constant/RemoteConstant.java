@@ -8,7 +8,7 @@ package com.maozi.common.constant;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/7/9 10:12
+ * @date 2026/7/9
  */
 public final class RemoteConstant {
 

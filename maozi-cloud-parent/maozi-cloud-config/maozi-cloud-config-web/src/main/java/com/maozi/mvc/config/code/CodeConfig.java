@@ -2,7 +2,7 @@ package com.maozi.mvc.config.code;
 
 import cn.hutool.extra.spring.SpringUtil;
 import com.maozi.common.LogUtil;
-import com.maozi.common.result.error.code.AbstractBaseErrorCode;
+import com.maozi.common.result.error.code.BaseErrorCode;
 import com.maozi.common.result.error.code.ErrorCode;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import jakarta.annotation.PostConstruct;
@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 错误码配置
  * <p>
- * 启动时扫描 Spring 容器中所有 {@link AbstractBaseErrorCode} 的实现类，
+ * 启动时扫描 Spring 容器中所有 {@link BaseErrorCode} 的实现类，
  * 通过反射提取其中的 {@link ErrorCode} 字段，汇总到全局错误码映射表中。
  * 提供根据错误码值查找错误信息的统一入口。
  * </p>
@@ -43,17 +43,17 @@ public class CodeConfig {
     /**
      * 初始化错误码
      * <p>
-     * 从 Spring 容器中获取所有 {@link AbstractBaseErrorCode} 类型的 Bean，
+     * 从 Spring 容器中获取所有 {@link BaseErrorCode} 类型的 Bean，
      * 通过反射遍历其字段，提取 {@link ErrorCode} 类型的字段值并注册到全局映射表。
      * </p>
      */
     @PostConstruct
     private void initErrorCode(){
 
-        // 从 Spring 容器中获取所有 AbstractBaseErrorCode 类型的 Bean
-        Map<String, AbstractBaseErrorCode> codeBeans = SpringUtil.getBeansOfType(AbstractBaseErrorCode.class);
+        // 从 Spring 容器中获取所有 BaseErrorCode 类型的 Bean
+        Map<String, BaseErrorCode> codeBeans = SpringUtil.getBeansOfType(BaseErrorCode.class);
 
-        for (AbstractBaseErrorCode errorCodeBean : codeBeans.values()){
+        for (BaseErrorCode errorCodeBean : codeBeans.values()){
             registerErrorCode(errorCodeBean);
         }
 
@@ -69,7 +69,7 @@ public class CodeConfig {
      *
      * @param errorCodeBean 错误码 Bean
      */
-    private void registerErrorCode(AbstractBaseErrorCode errorCodeBean) {
+    private void registerErrorCode(BaseErrorCode errorCodeBean) {
 
         try {
 

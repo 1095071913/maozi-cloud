@@ -21,6 +21,7 @@ import java.io.Serializable;
  * Interface for authentication and authorization.
  *
  * @author Carpenter Lee
+ * @date 2026/11/22
  * @since 1.5.0
  */
 public interface AuthService<R> {

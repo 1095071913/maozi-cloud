@@ -19,6 +19,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * Configuration properties for dashboard authentication, bound to the "auth" prefix.
+ * @author maozi
+ * @date 2026/11/22
  */
 @ConfigurationProperties(prefix = "auth")
 public class AuthProperties {

@@ -46,6 +46,7 @@ import java.util.List;
  * and publishing rules to Nacos via the dynamic rule provider/publisher.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 0.2.1
  */
 @RestController
@@ -87,16 +88,16 @@ public class AuthorityRuleController {
                                                                         @RequestParam String ip,
                                                                         @RequestParam Integer port) {
         if (StringUtil.isEmpty(app)) {
-            return Result.ofFail(-1, "app cannot be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app cannot be null or empty");
         }
         if (StringUtil.isEmpty(ip)) {
-            return Result.ofFail(-1, "ip cannot be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "ip cannot be null or empty");
         }
         if (port == null || port <= 0) {
-            return Result.ofFail(-1, "Invalid parameter: port");
+            return Result.ofFail(Result.CODE_ERROR, "Invalid parameter: port");
         }
         if (!appManagement.isValidMachineOfApp(app, ip)) {
-            return Result.ofFail(-1, "given ip does not belong to given app");
+            return Result.ofFail(Result.CODE_ERROR, "given ip does not belong to given app");
         }
         try {
             List<AuthorityRuleEntity> rules = ruleProvider.getRules(app);
@@ -109,7 +110,7 @@ public class AuthorityRuleController {
             return Result.ofSuccess(rules);
         } catch (Throwable throwable) {
             logger.error("Error when querying authority rules", throwable);
-            return Result.ofFail(-1, throwable.getMessage());
+            return Result.ofFail(Result.CODE_ERROR, throwable.getMessage());
         }
     }
 
@@ -119,26 +120,26 @@ public class AuthorityRuleController {
      */
     private <R> Result<R> checkEntityInternal(AuthorityRuleEntity entity) {
         if (entity == null) {
-            return Result.ofFail(-1, "bad rule body");
+            return Result.ofFail(Result.CODE_ERROR, "bad rule body");
         }
         Result<R> baseResult = RuleEntityValidator.checkBaseFields(entity);
         if (baseResult != null) {
             return baseResult;
         }
         if (entity.getRule() == null) {
-            return Result.ofFail(-1, "rule can't be null");
+            return Result.ofFail(Result.CODE_ERROR, "rule can't be null");
         }
         if (StringUtil.isBlank(entity.getResource())) {
-            return Result.ofFail(-1, "resource name cannot be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "resource name cannot be null or empty");
         }
         if (StringUtil.isBlank(entity.getLimitApp())) {
-            return Result.ofFail(-1, "limitApp should be valid");
+            return Result.ofFail(Result.CODE_ERROR, "limitApp should be valid");
         }
         // Cache the strategy value to avoid repeated calls within the same method.
         Integer strategy = entity.getStrategy();
         if (strategy != RuleConstant.AUTHORITY_WHITE
             && strategy != RuleConstant.AUTHORITY_BLACK) {
-            return Result.ofFail(-1, "Unknown strategy (must be blacklist or whitelist)");
+            return Result.ofFail(Result.CODE_ERROR, "Unknown strategy (must be blacklist or whitelist)");
         }
         return null;
     }
@@ -157,7 +158,7 @@ public class AuthorityRuleController {
             entity = repository.save(entity);
         } catch (Throwable throwable) {
             logger.error("Failed to add authority rule", throwable);
-            return Result.ofThrowable(-1, throwable);
+            return Result.ofThrowable(Result.CODE_ERROR, throwable);
         }
         if (!publishRules(entity.getApp())) {
             logger.info("Publish authority rules failed after rule add");
@@ -171,7 +172,7 @@ public class AuthorityRuleController {
     public Result<AuthorityRuleEntity> apiUpdateParamFlowRule(@PathVariable("id") Long id,
                                                               @RequestBody AuthorityRuleEntity entity) {
         if (id == null || id <= 0) {
-            return Result.ofFail(-1, "Invalid id");
+            return Result.ofFail(Result.CODE_ERROR, "Invalid id");
         }
         Result<AuthorityRuleEntity> checkResult = checkEntityInternal(entity);
         if (checkResult != null) {
@@ -184,11 +185,11 @@ public class AuthorityRuleController {
         try {
             entity = repository.save(entity);
             if (entity == null) {
-                return Result.ofFail(-1, "Failed to save authority rule");
+                return Result.ofFail(Result.CODE_ERROR, "Failed to save authority rule");
             }
         } catch (Throwable throwable) {
             logger.error("Failed to save authority rule", throwable);
-            return Result.ofThrowable(-1, throwable);
+            return Result.ofThrowable(Result.CODE_ERROR, throwable);
         }
         if (!publishRules(entity.getApp())) {
             logger.info("Publish authority rules failed after rule update");
@@ -201,7 +202,7 @@ public class AuthorityRuleController {
     @AuthAction(PrivilegeType.DELETE_RULE)
     public Result<Long> apiDeleteRule(@PathVariable("id") Long id) {
         if (id == null) {
-            return Result.ofFail(-1, "id cannot be null");
+            return Result.ofFail(Result.CODE_ERROR, "id cannot be null");
         }
         AuthorityRuleEntity oldEntity = repository.findById(id);
         if (oldEntity == null) {
@@ -210,7 +211,7 @@ public class AuthorityRuleController {
         try {
             repository.delete(id);
         } catch (Exception e) {
-            return Result.ofFail(-1, e.getMessage());
+            return Result.ofFail(Result.CODE_ERROR, e.getMessage());
         }
         if (!publishRules(oldEntity.getApp())) {
             logger.error("Publish authority rules failed after rule delete");

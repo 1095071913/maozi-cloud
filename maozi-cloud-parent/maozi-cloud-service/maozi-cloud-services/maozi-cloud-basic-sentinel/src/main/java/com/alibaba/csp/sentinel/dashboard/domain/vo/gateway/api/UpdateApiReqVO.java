@@ -21,9 +21,10 @@ import java.util.List;
  * Value Object for update gateway api.
  *
  * @author cdfive
+ * @date 2026/11/22
  * @since 1.7.0
  */
-public class UpdateApiReqVo {
+public class UpdateApiReqVO {
 
     /** ID of the gateway API definition to update. */
     private Long id;
@@ -32,7 +33,7 @@ public class UpdateApiReqVo {
     private String app;
 
     /** New predicate items (URL match conditions) of the gateway API definition. */
-    private List<ApiPredicateItemVo> predicateItems;
+    private List<ApiPredicateItemVO> predicateItems;
 
     /** Returns the ID of the gateway API definition to update. */
     public Long getId() {
@@ -55,18 +56,18 @@ public class UpdateApiReqVo {
     }
 
     /** Returns the new predicate items of the gateway API definition. */
-    public List<ApiPredicateItemVo> getPredicateItems() {
+    public List<ApiPredicateItemVO> getPredicateItems() {
         return predicateItems;
     }
 
     /** Sets the new predicate items of the gateway API definition. */
-    public void setPredicateItems(List<ApiPredicateItemVo> predicateItems) {
+    public void setPredicateItems(List<ApiPredicateItemVO> predicateItems) {
         this.predicateItems = predicateItems;
     }
 
     @Override
     public String toString() {
-        return "UpdateApiReqVo{"
+        return "UpdateApiReqVO{"
                 + "id=" + id
                 + ", app='" + app + '\''
                 + ", predicateItems=" + predicateItems

@@ -24,6 +24,7 @@ import java.util.Set;
  * Request to modify the cluster token server config of a machine.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.0
  */
 public class ClusterServerModifyRequest extends AbstractClusterModifyRequest {

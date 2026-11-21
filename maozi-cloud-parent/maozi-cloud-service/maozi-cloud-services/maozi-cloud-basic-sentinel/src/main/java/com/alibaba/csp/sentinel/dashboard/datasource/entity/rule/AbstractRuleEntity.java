@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * Base entity holding a wrapped {@link AbstractRule} plus common fields shared by rule entities.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 0.2.1
  */
 public abstract class AbstractRuleEntity<T extends AbstractRule> extends BaseRuleEntity {

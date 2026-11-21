@@ -71,6 +71,7 @@ public class StripUserInfoHeaderFilter extends OncePerRequestFilter {
      * </p>
      *
      * @author maozi
+     * @date 2026/11/08
      */
     private static class UserInfoHeaderStrippedRequestWrapper extends HttpServletRequestWrapper {
 

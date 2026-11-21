@@ -19,6 +19,7 @@ package com.alibaba.csp.sentinel.dashboard.client;
  * Exception thrown when the command is not supported (not found) by the Sentinel client.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 0.2.1
  */
 public class CommandNotFoundException extends Exception {

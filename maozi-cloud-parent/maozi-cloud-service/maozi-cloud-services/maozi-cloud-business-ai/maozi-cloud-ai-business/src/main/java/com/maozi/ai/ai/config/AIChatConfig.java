@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Configuration;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/8/15 20:12
+ * @date 2026/8/15
  */
 @Configuration
 public class AIChatConfig {

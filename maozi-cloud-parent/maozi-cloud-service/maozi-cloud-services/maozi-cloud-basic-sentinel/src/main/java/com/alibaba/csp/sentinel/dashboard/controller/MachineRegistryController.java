@@ -32,6 +32,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * Controller that receives heartbeat requests from Sentinel clients and
  * registers or updates the corresponding machines.
+ * @author maozi
+ * @date 2026/11/22
  */
 @Controller
 @RequestMapping(value = "/registry", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -66,23 +68,23 @@ public class MachineRegistryController {
                                           Integer appType, Long version, String v, String hostname, String ip,
                                       Integer port) {
         if (StringUtil.isBlank(app) || app.length() > MAX_APP_NAME_LENGTH) {
-            return Result.ofFail(-1, "invalid appName");
+            return Result.ofFail(Result.CODE_ERROR, "invalid appName");
         }
         if (StringUtil.isBlank(ip) || ip.length() > MAX_IP_LENGTH) {
-            return Result.ofFail(-1, "invalid ip: " + ip);
+            return Result.ofFail(Result.CODE_ERROR, "invalid ip: " + ip);
         }
         if (!InetAddressUtils.isIPv4Address(ip) && !InetAddressUtils.isIPv6Address(ip)) {
-            return Result.ofFail(-1, "invalid ip: " + ip);
+            return Result.ofFail(Result.CODE_ERROR, "invalid ip: " + ip);
         }
         if (port == null || port < -1) {
-            return Result.ofFail(-1, "invalid port");
+            return Result.ofFail(Result.CODE_ERROR, "invalid port");
         }
         if (hostname != null && hostname.length() > MAX_HOSTNAME_LENGTH) {
-            return Result.ofFail(-1, "hostname too long");
+            return Result.ofFail(Result.CODE_ERROR, "hostname too long");
         }
         if (port == -1) {
             logger.warn("Receive heartbeat from {} but port not set yet", ip);
-            return Result.ofFail(-1, "your port not set yet");
+            return Result.ofFail(Result.CODE_ERROR, "your port not set yet");
         }
         String sentinelVersion = StringUtil.isBlank(v) ? "unknown" : v;
 
@@ -101,7 +103,7 @@ public class MachineRegistryController {
             return Result.ofSuccessMsg(Result.DEFAULT_SUCCESS_MSG);
         } catch (Exception e) {
             logger.error("Receive heartbeat error", e);
-            return Result.ofFail(-1, e.getMessage());
+            return Result.ofFail(Result.CODE_ERROR, e.getMessage());
         }
     }
 }

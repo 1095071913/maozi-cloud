@@ -21,9 +21,10 @@ import java.util.List;
  * Value Object for add gateway api.
  *
  * @author cdfive
+ * @date 2026/11/22
  * @since 1.7.0
  */
-public class AddApiReqVo {
+public class AddApiReqVO {
 
     /** Name of the target application. */
     private String app;
@@ -38,7 +39,7 @@ public class AddApiReqVo {
     private String apiName;
 
     /** Predicate items (URL match conditions) of the gateway API definition. */
-    private List<ApiPredicateItemVo> predicateItems;
+    private List<ApiPredicateItemVO> predicateItems;
 
     /** Returns the name of the target application. */
     public String getApp() {
@@ -81,18 +82,18 @@ public class AddApiReqVo {
     }
 
     /** Returns the predicate items of the gateway API definition. */
-    public List<ApiPredicateItemVo> getPredicateItems() {
+    public List<ApiPredicateItemVO> getPredicateItems() {
         return predicateItems;
     }
 
     /** Sets the predicate items of the gateway API definition. */
-    public void setPredicateItems(List<ApiPredicateItemVo> predicateItems) {
+    public void setPredicateItems(List<ApiPredicateItemVO> predicateItems) {
         this.predicateItems = predicateItems;
     }
 
     @Override
     public String toString() {
-        return "AddApiReqVo{"
+        return "AddApiReqVO{"
                 + "app='" + app + '\''
                 + ", ip='" + ip + '\''
                 + ", port=" + port

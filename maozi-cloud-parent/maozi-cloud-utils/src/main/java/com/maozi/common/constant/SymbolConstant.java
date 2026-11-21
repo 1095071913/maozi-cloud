@@ -7,7 +7,7 @@ package com.maozi.common.constant;
  * </p>
  *
  * @author maozi
- * @since 2026/11/19
+ * @date 2026/11/19
  */
 public final class SymbolConstant {
 

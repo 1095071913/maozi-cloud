@@ -27,7 +27,7 @@ import com.maozi.base.param.RequestParam;
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.context.CurrentUserInfoContext;
-import com.maozi.common.dto.CurrentUserInfo;
+import com.maozi.common.dto.CurrentUserInfoDTO;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.oauth.client.api.rpc.RpcClientService;
 import com.maozi.oauth.token.api.rpc.RpcOauthTokenService;
@@ -295,7 +295,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
     @Transactional(rollbackFor = Exception.class)
     public void adminIndividualUpdate(UserIndividualUpdateParam param){
 
-        Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
+        Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfoDTO::getUserId);
 
         String paramPassword = param.getPassword();
         String paramNewPassword = param.getNewPassword();
@@ -320,8 +320,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
 
         // 更新成功后销毁当前用户在该客户端下的全部OAuth2令牌，
         // 并指示前端跳转登录页，强制重新登录
-        Long clientId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getClientId);
-        String username = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUsername);
+        Long clientId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfoDTO::getClientId);
+        String username = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfoDTO::getUsername);
         rpcOauthTokenService.destroyByPrincipalResult(clientId, username).getResultDataThrowError();
         RedirectUtil.redirect(RedirectTypeEnum.LOGIN);
 

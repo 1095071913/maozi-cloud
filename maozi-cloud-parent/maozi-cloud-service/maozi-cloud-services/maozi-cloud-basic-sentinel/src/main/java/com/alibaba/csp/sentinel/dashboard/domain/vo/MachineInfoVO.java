@@ -24,8 +24,9 @@ import java.util.List;
  * View object of a machine shown on the machines page.
  *
  * @author leyou
+ * @date 2026/11/22
  */
-public class MachineInfoVo {
+public class MachineInfoVO {
 
     /** The app name of the machine. */
     private String app;
@@ -52,8 +53,8 @@ public class MachineInfoVo {
     private String version;
 
     /** Convert the given machine info list to the corresponding list of VOs. */
-    public static List<MachineInfoVo> fromMachineInfoList(List<MachineInfo> machines) {
-        List<MachineInfoVo> list = new ArrayList<>(machines.size());
+    public static List<MachineInfoVO> fromMachineInfoList(List<MachineInfo> machines) {
+        List<MachineInfoVO> list = new ArrayList<>(machines.size());
         for (MachineInfo machine : machines) {
             list.add(fromMachineInfo(machine));
         }
@@ -61,8 +62,8 @@ public class MachineInfoVo {
     }
 
     /** Copy the fields of the given machine info into a new VO. */
-    public static MachineInfoVo fromMachineInfo(MachineInfo machine) {
-        MachineInfoVo vo = new MachineInfoVo();
+    public static MachineInfoVO fromMachineInfo(MachineInfo machine) {
+        MachineInfoVO vo = new MachineInfoVO();
         vo.setApp(machine.getApp());
         vo.setHostname(machine.getHostname());
         vo.setIp(machine.getIp());
@@ -140,7 +141,7 @@ public class MachineInfoVo {
     }
 
     /** Set the version of the Sentinel client and return this. */
-    public MachineInfoVo setVersion(String version) {
+    public MachineInfoVO setVersion(String version) {
         this.version = version;
         return this;
     }
@@ -157,7 +158,7 @@ public class MachineInfoVo {
 
     @Override
     public String toString() {
-        return "MachineInfoVo{"
+        return "MachineInfoVO{"
                 + "app='" + app + '\''
                 + ", hostname='" + hostname + '\''
                 + ", ip='" + ip + '\''

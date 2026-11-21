@@ -7,7 +7,7 @@ package com.maozi.common;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/4/29 18:48
+ * @date 2026/4/29
  */
 public final class SerializeUtil {
 

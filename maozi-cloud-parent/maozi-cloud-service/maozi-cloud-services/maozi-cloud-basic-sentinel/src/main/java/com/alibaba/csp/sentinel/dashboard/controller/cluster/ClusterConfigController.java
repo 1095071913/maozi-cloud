@@ -51,6 +51,7 @@ import java.util.concurrent.ExecutionException;
  * Controller for querying and modifying the cluster state and config of machines.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 1.4.0
  */
 @RestController
@@ -81,7 +82,7 @@ public class ClusterConfigController {
     @PostMapping("/config/modify_single")
     public Result<Boolean> apiModifyClusterConfig(@RequestBody String payload) {
         if (StringUtil.isBlank(payload)) {
-            return Result.ofFail(-1, "empty request body");
+            return Result.ofFail(Result.CODE_ERROR, "empty request body");
         }
         try {
             JSONObject body = JSON.parseObject(payload);
@@ -106,10 +107,10 @@ public class ClusterConfigController {
                         clusterConfigService.modifyClusterServerConfig(d).get();
                         return Result.ofSuccess(true);
                     default:
-                        return Result.ofFail(-1, "invalid mode");
+                        return Result.ofFail(Result.CODE_ERROR, "invalid mode");
                 }
             }
-            return Result.ofFail(-1, "invalid parameter");
+            return Result.ofFail(Result.CODE_ERROR, "invalid parameter");
         } catch (ExecutionException ex) {
             logger.error("Error when modifying cluster config", ex.getCause());
             return errorResponse(ex);
@@ -117,7 +118,7 @@ public class ClusterConfigController {
             return onInterrupted(logger, "Error when modifying cluster config", ex);
         } catch (Throwable ex) {
             logger.error("Error when modifying cluster config", ex);
-            return Result.ofFail(-1, ex.getMessage());
+            return Result.ofFail(Result.CODE_ERROR, ex.getMessage());
         }
     }
 
@@ -126,7 +127,7 @@ public class ClusterConfigController {
         if (isNotSupported(ex.getCause())) {
             return unsupportedVersion();
         } else {
-            return Result.ofThrowable(-1, ex.getCause());
+            return Result.ofThrowable(Result.CODE_ERROR, ex.getCause());
         }
     }
 
@@ -136,13 +137,13 @@ public class ClusterConfigController {
                                                               @RequestParam String ip,
                                                               @RequestParam Integer port) {
         if (StringUtil.isEmpty(app)) {
-            return Result.ofFail(-1, "app cannot be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app cannot be null or empty");
         }
         if (StringUtil.isEmpty(ip)) {
-            return Result.ofFail(-1, "ip cannot be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "ip cannot be null or empty");
         }
         if (port == null || port <= 0) {
-            return Result.ofFail(-1, "Invalid parameter: port");
+            return Result.ofFail(Result.CODE_ERROR, "Invalid parameter: port");
         }
         if (!checkIfSupported(app, ip, port)) {
             return unsupportedVersion();
@@ -158,7 +159,7 @@ public class ClusterConfigController {
             return onInterrupted(logger, "Error when fetching cluster state", ex);
         } catch (Throwable throwable) {
             logger.error("Error when fetching cluster state", throwable);
-            return Result.ofFail(-1, throwable.getMessage());
+            return Result.ofFail(Result.CODE_ERROR, throwable.getMessage());
         }
     }
 
@@ -166,7 +167,7 @@ public class ClusterConfigController {
     @GetMapping("/server_state/{app}")
     public Result<List<AppClusterServerStateWrapVO>> apiGetClusterServerStateOfApp(@PathVariable String app) {
         if (StringUtil.isEmpty(app)) {
-            return Result.ofFail(-1, "app cannot be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app cannot be null or empty");
         }
         try {
             return clusterConfigService.getClusterUniversalState(app)
@@ -180,7 +181,7 @@ public class ClusterConfigController {
             return onInterrupted(logger, "Error when fetching cluster server state of app: " + app, ex);
         } catch (Throwable throwable) {
             logger.error("Error when fetching cluster server state of app: {}", app, throwable);
-            return Result.ofFail(-1, throwable.getMessage());
+            return Result.ofFail(Result.CODE_ERROR, throwable.getMessage());
         }
     }
 
@@ -188,7 +189,7 @@ public class ClusterConfigController {
     @GetMapping("/client_state/{app}")
     public Result<List<AppClusterClientStateWrapVO>> apiGetClusterClientStateOfApp(@PathVariable String app) {
         if (StringUtil.isEmpty(app)) {
-            return Result.ofFail(-1, "app cannot be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app cannot be null or empty");
         }
         try {
             return clusterConfigService.getClusterUniversalState(app)
@@ -202,7 +203,7 @@ public class ClusterConfigController {
             return onInterrupted(logger, "Error when fetching cluster token client state of app: " + app, ex);
         } catch (Throwable throwable) {
             logger.error("Error when fetching cluster token client state of app: {}", app, throwable);
-            return Result.ofFail(-1, throwable.getMessage());
+            return Result.ofFail(Result.CODE_ERROR, throwable.getMessage());
         }
     }
 
@@ -210,7 +211,7 @@ public class ClusterConfigController {
     @GetMapping("/state/{app}")
     public Result<List<ClusterUniversalStatePairVO>> apiGetClusterStateOfApp(@PathVariable String app) {
         if (StringUtil.isEmpty(app)) {
-            return Result.ofFail(-1, "app cannot be null or empty");
+            return Result.ofFail(Result.CODE_ERROR, "app cannot be null or empty");
         }
         try {
             return clusterConfigService.getClusterUniversalState(app)
@@ -223,7 +224,7 @@ public class ClusterConfigController {
             return onInterrupted(logger, "Error when fetching cluster state of app: " + app, ex);
         } catch (Throwable throwable) {
             logger.error("Error when fetching cluster state of app: {}", app, throwable);
-            return Result.ofFail(-1, throwable.getMessage());
+            return Result.ofFail(Result.CODE_ERROR, throwable.getMessage());
         }
     }
 
@@ -257,16 +258,16 @@ public class ClusterConfigController {
         Integer port = request.getPort();
         Integer mode = request.getMode();
         if (StringUtil.isEmpty(app)) {
-            return Result.ofFail(-1, "app cannot be empty");
+            return Result.ofFail(Result.CODE_ERROR, "app cannot be empty");
         }
         if (StringUtil.isEmpty(ip)) {
-            return Result.ofFail(-1, "ip cannot be empty");
+            return Result.ofFail(Result.CODE_ERROR, "ip cannot be empty");
         }
         if (port == null || port < 0) {
-            return Result.ofFail(-1, "invalid port");
+            return Result.ofFail(Result.CODE_ERROR, "invalid port");
         }
         if (mode == null || mode < 0) {
-            return Result.ofFail(-1, "invalid mode");
+            return Result.ofFail(Result.CODE_ERROR, "invalid mode");
         }
         if (!checkIfSupported(app, ip, port)) {
             return unsupportedVersion();
@@ -290,7 +291,7 @@ public class ClusterConfigController {
     public static <T> Result<T> onInterrupted(Logger logger, String message, InterruptedException ex) {
         Thread.currentThread().interrupt();
         logger.error(message, ex);
-        return Result.ofFail(-1, ex.getMessage());
+        return Result.ofFail(Result.CODE_ERROR, ex.getMessage());
     }
     
 }

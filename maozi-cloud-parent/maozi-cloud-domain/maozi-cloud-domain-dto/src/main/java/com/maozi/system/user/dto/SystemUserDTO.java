@@ -20,7 +20,7 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SystemUser implements Serializable {
+public class SystemUserDTO implements Serializable {
 
     /** 序列化标识 */
     @Serial

@@ -14,7 +14,7 @@ import java.io.Serializable;
  * </p>
  *
  * @author pengjinlong
- * @since 2026/8/22 15:21
+ * @date 2026/8/22
  */
 @Data
 @EqualsAndHashCode(callSuper = true)

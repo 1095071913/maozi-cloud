@@ -19,6 +19,7 @@ package com.alibaba.csp.sentinel.dashboard.datasource.entity;
  * Sentinel version composed of major, minor and fix version numbers plus an optional postfix.
  *
  * @author Eric Zhao
+ * @date 2026/11/22
  * @since 0.2.1
  */
 public class SentinelVersion {

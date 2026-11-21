@@ -20,9 +20,10 @@ package com.alibaba.csp.sentinel.dashboard.domain.vo.gateway;
  * pattern and matchStrategy fields.
  *
  * @author cdfive
+ * @date 2026/11/22
  * @since 1.7.0
  */
-public abstract class BasePatternItemVo {
+public abstract class BasePatternItemVO {
 
     /** The pattern for matching. */
     protected String pattern;

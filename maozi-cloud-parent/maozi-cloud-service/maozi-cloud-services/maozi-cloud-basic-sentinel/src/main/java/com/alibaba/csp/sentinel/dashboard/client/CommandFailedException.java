@@ -23,6 +23,9 @@ package com.alibaba.csp.sentinel.dashboard.client;
  */
 public class CommandFailedException extends RuntimeException {
 
+    /** 序列化版本号 */
+    private static final long serialVersionUID = 1L;
+
     /** Creates the exception without a message. */
     public CommandFailedException() {}
 

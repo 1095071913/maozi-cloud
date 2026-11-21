@@ -41,6 +41,7 @@ public class ClusterClientModifyRequest extends AbstractClusterModifyRequest {
         return this;
     }
 
+    /** Return a string representation of this request. */
     @Override
     public String toString() {
         return "ClusterClientModifyRequest{"

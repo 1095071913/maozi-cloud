@@ -102,6 +102,7 @@ public abstract class AbstractRuleEntity<T extends AbstractRule> extends BaseRul
         return rule;
     }
 
+    /** Return a string representation of this entity. */
     @Override
     public String toString() {
         return "AbstractRuleEntity{"

@@ -26,6 +26,7 @@ import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.BasePatternItemVO;
  */
 public class ApiPredicateItemVO extends BasePatternItemVO {
 
+    /** Return a string representation of this VO. */
     @Override
     public String toString() {
         return "ApiPredicateItemVO{"

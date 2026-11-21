@@ -65,6 +65,7 @@ public class UpdateApiReqVO {
         this.predicateItems = predicateItems;
     }
 
+    /** Return a string representation of this VO. */
     @Override
     public String toString() {
         return "UpdateApiReqVO{"

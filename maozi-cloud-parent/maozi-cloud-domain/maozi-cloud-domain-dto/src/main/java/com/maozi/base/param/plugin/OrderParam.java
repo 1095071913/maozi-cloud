@@ -136,7 +136,7 @@ public interface OrderParam {
 
                     if (orderMainFieldValue) {
                         orderDescFields.add(field);
-                    }else {
+                    } else {
                         orderAscFields.add(field);
                     }
 

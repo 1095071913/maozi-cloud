@@ -90,7 +90,7 @@ public final class AsyncUtils {
     }
 
     /** Returns whether the future is done and completed normally (not exceptionally and not cancelled). */
-    public static boolean isSuccessFuture(CompletableFuture future) {
+    public static boolean isSuccessFuture(CompletableFuture<?> future) {
         return future.isDone() && !future.isCompletedExceptionally() && !future.isCancelled();
     }
 

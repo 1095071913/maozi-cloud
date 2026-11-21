@@ -50,9 +50,8 @@ public final class VersionUtils {
                 // Start with "-"
                 return Optional.empty();
             }
-            if (index == versionFull.length() - 1) {
-                // End with "-"
-            } else if (index > 0) {
+            if (index > 0 && index != versionFull.length() - 1) {
+                // "-" is in the middle: the rest is the postfix; a trailing "-" means no postfix.
                 version.setPostfix(versionFull.substring(index + 1));
             }
             
@@ -73,7 +72,7 @@ public final class VersionUtils {
                 }
                 ver[segment] = Integer.valueOf(versionFull.substring(0, index));
                 versionFull = versionFull.substring(index + 1);
-                segment ++;
+                segment++;
             }
             
             if (ver[0] < 1) {

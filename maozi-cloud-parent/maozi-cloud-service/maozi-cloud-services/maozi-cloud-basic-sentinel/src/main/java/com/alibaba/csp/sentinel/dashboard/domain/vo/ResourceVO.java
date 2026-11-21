@@ -140,6 +140,7 @@ public class ResourceVO extends BaseResourceMetricsVO {
         this.passRequestQps = passRequestQps;
     }
 
+    /** Return a string representation of this VO. */
     @Override
     public String toString() {
         return "ResourceVO{"

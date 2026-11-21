@@ -50,8 +50,8 @@ import java.util.stream.Collectors;
 public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
         extends BaseServiceResultImpl<S> implements BaseDBServiceResult<D> {
 
-    /** 数据传输对象（DTO）Class 对象 */
-    protected Class<D> resultClass;
+    /** 数据传输对象（DTO）Class 对象（懒加载缓存，volatile 保证多线程可见性） */
+    protected volatile Class<D> resultClass;
 
     /** 资源名称后缀：列表 */
     private static final String RESOURCE_SUFFIX_LIST = "列表";

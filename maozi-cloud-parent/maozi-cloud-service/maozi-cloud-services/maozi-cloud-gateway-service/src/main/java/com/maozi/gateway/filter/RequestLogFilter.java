@@ -93,6 +93,8 @@ public class RequestLogFilter implements GlobalFilter, Ordered {
      * @return 过滤器顺序值
      */
     @Override
-    public int getOrder() {return Ordered.HIGHEST_PRECEDENCE+1;}
+    public int getOrder() {
+        return Ordered.HIGHEST_PRECEDENCE + 1;
+    }
 
 }

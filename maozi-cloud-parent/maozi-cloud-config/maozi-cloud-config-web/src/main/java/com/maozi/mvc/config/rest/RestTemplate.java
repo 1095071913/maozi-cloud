@@ -126,7 +126,8 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
 
         } catch (Exception e) {
 
-            // 标记为异常状态，并暂存异常引用（堆栈在 finally 中随结构化日志合并输出，避免重复打印）
+            // 标记为异常状态，并暂存异常引用
+            // （堆栈在 finally 中随结构化日志合并输出，避免重复打印）
             error = true;
             ex = e;
 

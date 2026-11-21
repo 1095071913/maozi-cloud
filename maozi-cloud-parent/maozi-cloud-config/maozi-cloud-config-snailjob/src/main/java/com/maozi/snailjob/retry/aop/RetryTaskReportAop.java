@@ -324,7 +324,8 @@ public class RetryTaskReportAop {
             // Error 类严重故障不吞掉，原样抛出
             throw e;
         } catch (Throwable e) {
-            // proceed() 属动态代理调用，按规约以 Throwable 拦截，记录后由本地重试结果承载失败
+            // proceed() 属动态代理调用，按规约以 Throwable 拦截，
+            // 记录后由本地重试结果承载失败
             log.warn("local retry invoke error", e);
         }
 

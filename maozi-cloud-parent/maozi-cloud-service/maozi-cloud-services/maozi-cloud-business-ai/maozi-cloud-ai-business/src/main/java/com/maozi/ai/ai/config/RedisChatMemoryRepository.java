@@ -68,7 +68,8 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
     /** SCAN 遍历的批量提示值：每次向 Redis 提示扫描的 key 数量 */
     private static final long SCAN_BATCH_COUNT = 1000L;
 
-    /** ZSET score 边界偏移量：将"不含等于该时间戳"的开区间转换为 ZRANGEBYSCORE 的闭区间起点 */
+    /** ZSET score 边界偏移量：将"不含等于该时间戳"的开区间
+     * 转换为 ZRANGEBYSCORE 的闭区间起点 */
     private static final long SCORE_EXCLUSIVE_OFFSET = 1L;
 
     /**

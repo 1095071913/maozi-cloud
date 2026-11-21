@@ -41,6 +41,7 @@ public class AuthorityRuleNacosProvider implements DynamicRuleProvider<List<Auth
     /** Nacos connection properties, supplies the rule config group. */
     private final NacosProperties nacosProperties;
 
+    /** Creates the provider with the given config service and Nacos properties. */
     public AuthorityRuleNacosProvider(ConfigService configService, NacosProperties nacosProperties) {
         this.configService = configService;
         this.nacosProperties = nacosProperties;

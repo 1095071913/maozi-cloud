@@ -162,5 +162,5 @@ public abstract class AbstractInMemoryRuleRepository<T extends RuleEntity> imple
      *
      * @return next unused id
      */
-    abstract protected long nextId();
+    protected abstract long nextId();
 }

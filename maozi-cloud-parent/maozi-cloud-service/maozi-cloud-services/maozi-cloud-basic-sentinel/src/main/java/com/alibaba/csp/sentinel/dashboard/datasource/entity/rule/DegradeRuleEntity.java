@@ -169,6 +169,7 @@ public class DegradeRuleEntity extends BaseRuleEntity {
         return rule;
     }
 
+    /** Return a string representation of this entity. */
     @Override
     public String toString() {
         return "DegradeRuleEntity{"

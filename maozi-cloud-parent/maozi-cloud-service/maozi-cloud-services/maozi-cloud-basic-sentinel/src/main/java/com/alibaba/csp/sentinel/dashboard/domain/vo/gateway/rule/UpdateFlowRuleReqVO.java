@@ -37,6 +37,7 @@ public class UpdateFlowRuleReqVO extends BaseFlowRuleReqVO {
         this.id = id;
     }
 
+    /** Return a string representation of this VO. */
     @Override
     public String toString() {
         return "UpdateFlowRuleReqVO{"

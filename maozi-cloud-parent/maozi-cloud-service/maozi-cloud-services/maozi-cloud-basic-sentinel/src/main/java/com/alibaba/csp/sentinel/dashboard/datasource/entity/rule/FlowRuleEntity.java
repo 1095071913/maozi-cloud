@@ -211,6 +211,7 @@ public class FlowRuleEntity extends BaseRuleEntity {
         return flowRule;
     }
 
+    /** Return a string representation of this entity. */
     @Override
     public String toString() {
         return "FlowRuleEntity{"

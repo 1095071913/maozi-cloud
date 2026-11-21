@@ -41,6 +41,7 @@ public class FlowRuleApiProvider implements DynamicRuleProvider<List<FlowRuleEnt
     /** Registry that provides machine information per application. */
     private final AppManagement appManagement;
 
+    /** Creates the provider with the Sentinel API client and the app registry. */
     public FlowRuleApiProvider(SentinelApiClient sentinelApiClient, AppManagement appManagement) {
         this.sentinelApiClient = sentinelApiClient;
         this.appManagement = appManagement;

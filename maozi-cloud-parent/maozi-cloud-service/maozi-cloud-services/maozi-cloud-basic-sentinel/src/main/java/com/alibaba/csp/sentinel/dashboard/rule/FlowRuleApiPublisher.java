@@ -41,6 +41,7 @@ public class FlowRuleApiPublisher implements DynamicRulePublisher<List<FlowRuleE
     /** Registry that provides machine information per application. */
     private final AppManagement appManagement;
 
+    /** Creates the publisher with the Sentinel API client and the app registry. */
     public FlowRuleApiPublisher(SentinelApiClient sentinelApiClient, AppManagement appManagement) {
         this.sentinelApiClient = sentinelApiClient;
         this.appManagement = appManagement;

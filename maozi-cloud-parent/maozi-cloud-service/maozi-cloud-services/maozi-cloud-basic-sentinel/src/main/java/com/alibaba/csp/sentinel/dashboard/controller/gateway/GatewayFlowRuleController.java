@@ -369,7 +369,7 @@ public class GatewayFlowRuleController {
         try {
             entity = repository.save(entity);
         } catch (Throwable throwable) {
-            logger.error(action + " gateway flow rule error:", throwable);
+            logger.error("{} gateway flow rule error:", action, throwable);
             return Result.ofThrowable(Result.CODE_ERROR, throwable);
         }
 

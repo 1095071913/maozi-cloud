@@ -41,6 +41,7 @@ public class DegradeRuleNacosProvider implements DynamicRuleProvider<List<Degrad
     /** Nacos connection properties, supplies the rule config group. */
     private final NacosProperties nacosProperties;
 
+    /** Creates the provider with the given config service and Nacos properties. */
     public DegradeRuleNacosProvider(ConfigService configService, NacosProperties nacosProperties) {
         this.configService = configService;
         this.nacosProperties = nacosProperties;

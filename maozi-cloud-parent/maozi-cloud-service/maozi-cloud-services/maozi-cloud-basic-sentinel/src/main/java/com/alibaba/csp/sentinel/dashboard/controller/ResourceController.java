@@ -66,12 +66,13 @@ public class ResourceController {
         if (StringUtil.isEmpty(ip) || port == null) {
             return Result.ofFail(Result.CODE_ERROR, "invalid param, give ip, port");
         }
-        final String ROOT = "root";
-        final String DEFAULT = "default";
+        // Local constants for the supported node types, lower camelCase as local variables.
+        final String typeRoot = "root";
+        final String typeDefault = "default";
         if (StringUtil.isEmpty(type)) {
-            type = ROOT;
+            type = typeRoot;
         }
-        if (ROOT.equalsIgnoreCase(type) || DEFAULT.equalsIgnoreCase(type)) {
+        if (typeRoot.equalsIgnoreCase(type) || typeDefault.equalsIgnoreCase(type)) {
             List<NodeVo> nodeVos = httpFetcher.fetchResourceOfMachine(ip, port, type);
             ResourceTreeNode treeNode = ResourceTreeNode.fromNodeVoList(nodeVos);
             if (treeNode == null) {

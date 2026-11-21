@@ -36,7 +36,10 @@ public class MessageSendStream {
     /** Gray 灰度版本消息头键（写入用于灰度路由的版本号） */
     private static final String HEADER_GRAY = "Gray";
 
-    /** RocketMQ 延迟级别偏移量：延迟级别从 1 开始计数，而枚举值从 0 开始，发送时需加该偏移 */
+    /**
+     * RocketMQ 延迟级别偏移量：延迟级别从 1 开始计数，
+     * 而枚举值从 0 开始，发送时需加该偏移
+     */
     private static final int DELAY_LEVEL_OFFSET = 1;
 
     /** Stream 桥接器，用于动态发送消息 */

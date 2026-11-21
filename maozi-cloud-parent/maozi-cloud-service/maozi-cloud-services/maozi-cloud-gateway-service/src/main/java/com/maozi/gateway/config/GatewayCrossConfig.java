@@ -117,8 +117,8 @@ public class GatewayCrossConfig {
             // 预检请求缓存时间
             headers.add(HttpHeaders.ACCESS_CONTROL_MAX_AGE, MAX_AGE);
 
-            // OPTIONS 预检请求直接返回 200，不转发到下游服务
-            if (request.getMethod() == HttpMethod.OPTIONS) {
+            // OPTIONS 预检请求直接返回 200，不转发到下游服务（常量置于 equals 左侧防 NPE）
+            if (HttpMethod.OPTIONS.equals(request.getMethod())) {
                 response.setStatusCode(HttpStatus.OK);
                 return Mono.empty();
             }

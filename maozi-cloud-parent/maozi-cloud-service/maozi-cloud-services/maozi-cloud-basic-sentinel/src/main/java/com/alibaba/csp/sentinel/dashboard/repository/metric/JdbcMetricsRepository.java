@@ -125,6 +125,12 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
      */
     private static final int BUCKET_FLUSH_INTERVAL_SECONDS = 2;
 
+    /** Initial delay in minutes of the daily expired-metric cleanup schedule. */
+    private static final int CLEAN_INITIAL_DELAY_MINUTES = 5;
+
+    /** Period in minutes of the daily expired-metric cleanup schedule (once a day). */
+    private static final int CLEAN_PERIOD_MINUTES = 1440;
+
     /**
      * In-memory accumulator of one N-second bucket: the running totals folded from the
      * per-second entities, plus the seconds already folded. The fetcher advances its
@@ -215,8 +221,8 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
             thread.setDaemon(true);
             return thread;
         });
-        // Initial delay 5 minutes, then run once a day (1440 minutes).
-        cleanerScheduler.scheduleAtFixedRate(this::cleanExpiredMetrics, 5, 1440, TimeUnit.MINUTES);
+        cleanerScheduler.scheduleAtFixedRate(this::cleanExpiredMetrics,
+            CLEAN_INITIAL_DELAY_MINUTES, CLEAN_PERIOD_MINUTES, TimeUnit.MINUTES);
     }
 
     /** Shuts down the schedulers and best-effort flushes the aggregation buckets still in memory. */
@@ -405,8 +411,8 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         normalized.setSuccessQps(bucket.getSuccessQps());
         normalized.setBlockQps(bucket.getBlockQps());
         normalized.setExceptionQps(bucket.getExceptionQps());
-        // rt keeps the total-RT semantics (avg RT * successQPS): rt / successQps on read is the request-weighted mean
-            // RT.
+        // rt keeps the total-RT semantics (avg RT * successQPS): rt / successQps on read
+        // is the request-weighted mean RT.
         normalized.setRt(bucket.getRt());
         normalized.setCount(bucket.getCount());
         return normalized;

@@ -5,6 +5,7 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 
+import java.io.Serial;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -22,6 +23,10 @@ import java.util.Set;
  */
 @Getter
 public class BaseGrantAuthenticationToken extends AbstractAuthenticationToken {
+
+    /** 序列化标识 */
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     /** 本次登录申请的scope（授权范围） */
     private final Set<String> scopes;

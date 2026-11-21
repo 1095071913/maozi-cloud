@@ -28,7 +28,7 @@ public class RedirectUtil {
      *
      * @param redirectType 重定向类型
      */
-    public static void redirect(RedirectTypeEnum redirectType){
+    public static void redirect(RedirectTypeEnum redirectType) {
         HttpServletResponse response = WebUtil.getResponse();
         if (ObjectUtil.isNotNull(response)){
             response.setHeader(REDIRECT_KEY, redirectType.getValue().toString());

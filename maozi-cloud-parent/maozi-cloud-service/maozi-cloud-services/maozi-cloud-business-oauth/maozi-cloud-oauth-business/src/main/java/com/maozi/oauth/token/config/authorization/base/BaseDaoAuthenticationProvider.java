@@ -55,7 +55,9 @@ public class BaseDaoAuthenticationProvider extends DaoAuthenticationProvider {
             return;
         }
 
-        try{super.additionalAuthenticationChecks(userDetails, authentication);}catch (BadCredentialsException e){
+        try {
+            super.additionalAuthenticationChecks(userDetails, authentication);
+        } catch (BadCredentialsException e) {
             // 保留原始异常堆栈便于排查，对外提示文案不变
             throw new BadCredentialsException("用户认证授权失败", e);
         }

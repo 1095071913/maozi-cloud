@@ -267,6 +267,7 @@ public class MetricVO implements Comparable<MetricVO> {
         return Long.compare(this.timestamp, o.timestamp);
     }
 
+    /** Return a string representation of this VO. */
     @Override
     public String toString() {
         return "MetricVO{"

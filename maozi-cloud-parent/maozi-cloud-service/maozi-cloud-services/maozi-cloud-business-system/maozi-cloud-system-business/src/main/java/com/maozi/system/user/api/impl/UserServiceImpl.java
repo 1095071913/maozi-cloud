@@ -82,7 +82,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
     private static final String RESOURCE_SUFFIX_LIST = "列表";
 
     /** 密码编码器（DelegatingPasswordEncoder，默认 {bcrypt} 算法），用于密码加密与比对校验 */
-    protected final static PasswordEncoder PASSWORD_ENCODER =
+    protected static final PasswordEncoder PASSWORD_ENCODER =
             PasswordEncoderFactories.createDelegatingPasswordEncoder();
 
     /** 获取资源名称 */
@@ -180,7 +180,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
 
             param.setClientId(null);
 
-        }else {
+        } else {
 
             Long clientId = param.getClientId();
             String username = param.getUsername();
@@ -211,7 +211,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
         // 保存后同步更新用户与角色的绑定关系
         userRoleService.updateBind(id, param.getBindRoleIds(), param.getUnbindRoleIds());
 
-        if (hasId && StatusEnum.DISABLE == param.getStatus()){
+        if (hasId && StatusEnum.DISABLE == param.getStatus()) {
             // 更新时目标状态为禁用，销毁该用户的全部OAuth2令牌，强制下线
             UserDO user = super.getByIdThrowError(id, UserDO::getUsername, UserDO::getClientId);
             rpcOauthTokenService.destroyByPrincipalResult(user.getClientId(), user.getUsername())
@@ -234,11 +234,11 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
 
         // 先获取用户的用户名和客户端ID，删除后需用于注销认证令牌
         UserDO user = super.getById(id, UserDO::getUsername, UserDO::getClientId);
-        if (Objects.isNull(user)){
+        if (Objects.isNull(user)) {
             return;
         }
 
-        if (super.removeById(id)){
+        if (super.removeById(id)) {
             // 删除成功后销毁该用户全部 OAuth2 令牌，强制下线
             rpcOauthTokenService.destroyByPrincipalResult(user.getClientId(), user.getUsername())
                     .getResultDataThrowError();
@@ -257,14 +257,14 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
      * @param param 状态参数，包含目标状态值
      */
     @Transactional(rollbackFor = Exception.class)
-    public void adminUpdateStatus(Long id, RequestParam<StatusEnum> param){
+    public void adminUpdateStatus(Long id, RequestParam<StatusEnum> param) {
 
         StatusEnum status = param.getData();
 
         UserDO user = super.getByIdThrowError(id, UserDO::getUsername, UserDO::getClientId, UserDO::getStatus);
 
         // 当前状态与目标状态一致时，无需更新，直接返回
-        if (user.getStatus() == status){
+        if (user.getStatus() == status) {
             return;
         }
 
@@ -274,7 +274,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
         super.updateById(user);
 
         // 禁用用户后销毁其全部OAuth2令牌，强制下线
-        if (StatusEnum.DISABLE == status){
+        if (StatusEnum.DISABLE == status) {
             rpcOauthTokenService.destroyByPrincipalResult(user.getClientId(), user.getUsername())
                     .getResultDataThrowError();
         }
@@ -293,7 +293,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
      * @param param 个人信息更新参数（姓名、头像、旧密码、新密码）
      */
     @Transactional(rollbackFor = Exception.class)
-    public void adminIndividualUpdate(UserIndividualUpdateParam param){
+    public void adminIndividualUpdate(UserIndividualUpdateParam param) {
 
         Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfoDTO::getUserId);
 
@@ -301,11 +301,11 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
         String paramNewPassword = param.getNewPassword();
 
         // 旧密码与新密码同时传入时，先校验旧密码，再将新密码加密
-        if (StringUtils.isNotBlank(paramPassword) && StringUtils.isNotBlank(paramNewPassword)){
+        if (StringUtils.isNotBlank(paramPassword) && StringUtils.isNotBlank(paramNewPassword)) {
             UserDO domain = super.getByIdThrowError(userId, UserDO::getPassword);
 
             // 旧密码与库中密文不匹配时抛出业务异常
-            if (!UserServiceImpl.PASSWORD_ENCODER.matches(paramPassword, domain.getPassword())){
+            if (!UserServiceImpl.PASSWORD_ENCODER.matches(paramPassword, domain.getPassword())) {
                 throw new BusinessResultException("旧密码不正确");
             }
 
@@ -335,7 +335,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
      * @param username 用户名
      * @return OAuth 认证用户信息（含 ID、密码、权限标识列表）
      */
-    public OauthUserInfoResult getOauthUserInfoByUsername(String username){
+    public OauthUserInfoResult getOauthUserInfoByUsername(String username) {
 
         // 缓存资源名称，避免同一方法内重复调用
         String resourceName = getResourceName();

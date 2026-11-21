@@ -20,7 +20,10 @@ import java.util.Properties;
  */
 public class SnailJobConfigInitializer implements ConfigInitializer {
 
-    /** 任务调度与重试相关的 Nacos 共享配置文件导入（optional 前缀保证文件不存在时不阻断启动） */
+    /**
+     * 任务调度与重试相关的 Nacos 共享配置文件导入
+     * （optional 前缀保证文件不存在时不阻断启动）
+     */
     private static final String NACOS_IMPORTS = "optional:nacos:boot-snailjob.yml";
 
     /** SnailJob 启动 banner 特征片段，用于识别并丢弃 banner 输出 */

@@ -91,7 +91,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      * @return 领域模型 Class 对象
      */
     @Getter
-    private Class<T> domainClass;
+    private volatile Class<T> domainClass;
 
     /** get 方法名前缀的长度 */
     private static final int GETTER_PREFIX_LENGTH = 3;

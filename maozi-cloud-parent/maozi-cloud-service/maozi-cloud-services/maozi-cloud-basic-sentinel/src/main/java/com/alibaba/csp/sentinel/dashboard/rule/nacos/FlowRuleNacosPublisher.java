@@ -38,6 +38,7 @@ public class FlowRuleNacosPublisher implements DynamicRulePublisher<List<FlowRul
     /** Nacos connection properties, supplies the rule config group. */
     private final NacosProperties nacosProperties;
 
+    /** Creates the publisher with the given config service and Nacos properties. */
     public FlowRuleNacosPublisher(ConfigService configService, NacosProperties nacosProperties) {
         this.configService = configService;
         this.nacosProperties = nacosProperties;

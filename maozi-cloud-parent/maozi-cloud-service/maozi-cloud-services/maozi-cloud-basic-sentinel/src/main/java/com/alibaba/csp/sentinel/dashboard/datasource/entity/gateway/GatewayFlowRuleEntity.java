@@ -40,6 +40,13 @@ public class GatewayFlowRuleEntity extends BaseRuleEntity {
     /** Interval unit: day. */
     public static final int INTERVAL_UNIT_DAY = 3;
 
+    /** Seconds per minute, used to convert an interval between units. */
+    private static final long SECONDS_PER_MINUTE = 60;
+    /** Seconds per hour, used to convert an interval between units. */
+    private static final long SECONDS_PER_HOUR = 60 * 60;
+    /** Seconds per day, used to convert an interval between units. */
+    private static final long SECONDS_PER_DAY = 60 * 60 * 24;
+
     /** The resource name the rule applies to (route ID or API name depending on resourceMode). */
     private String resource;
     /** Whether the resource is a route ID (0) or a custom API name (1). */
@@ -74,11 +81,11 @@ public class GatewayFlowRuleEntity extends BaseRuleEntity {
             case INTERVAL_UNIT_SECOND:
                 return interval;
             case INTERVAL_UNIT_MINUTE:
-                return interval * 60;
+                return interval * SECONDS_PER_MINUTE;
             case INTERVAL_UNIT_HOUR:
-                return interval * 60 * 60;
+                return interval * SECONDS_PER_HOUR;
             case INTERVAL_UNIT_DAY:
-                return interval * 60 * 60 * 24;
+                return interval * SECONDS_PER_DAY;
             default:
                 break;
         }
@@ -91,16 +98,16 @@ public class GatewayFlowRuleEntity extends BaseRuleEntity {
      * the largest unit that divides it evenly (day, then hour, minute and second).
      */
     public static Object[] parseIntervalSec(Long intervalSec) {
-        if (intervalSec % (60 * 60 * 24) == 0) {
-            return new Object[] {intervalSec / (60 * 60 * 24), INTERVAL_UNIT_DAY};
+        if (intervalSec % SECONDS_PER_DAY == 0) {
+            return new Object[] {intervalSec / SECONDS_PER_DAY, INTERVAL_UNIT_DAY};
         }
 
-        if (intervalSec % (60 * 60 ) == 0) {
-            return new Object[] {intervalSec / (60 * 60), INTERVAL_UNIT_HOUR};
+        if (intervalSec % SECONDS_PER_HOUR == 0) {
+            return new Object[] {intervalSec / SECONDS_PER_HOUR, INTERVAL_UNIT_HOUR};
         }
 
-        if (intervalSec % 60 == 0) {
-            return new Object[] {intervalSec / 60, INTERVAL_UNIT_MINUTE};
+        if (intervalSec % SECONDS_PER_MINUTE == 0) {
+            return new Object[] {intervalSec / SECONDS_PER_MINUTE, INTERVAL_UNIT_MINUTE};
         }
 
         return new Object[] {intervalSec, INTERVAL_UNIT_SECOND};

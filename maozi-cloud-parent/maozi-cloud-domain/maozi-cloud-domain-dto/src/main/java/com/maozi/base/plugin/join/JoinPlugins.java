@@ -20,6 +20,6 @@ import java.lang.annotation.Target;
 public @interface JoinPlugins {
 
     /** JOIN 关联配置数组 */
-    JoinPlugin [] value();
+    JoinPlugin[] value();
 
 }

@@ -4,6 +4,7 @@ import com.maozi.oauth.token.config.authorization.base.BaseGrantAuthenticationTo
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 
+import java.io.Serial;
 import java.util.Map;
 import java.util.Set;
 
@@ -18,6 +19,10 @@ import java.util.Set;
  * @date 2026/11/08
  */
 public class PasswordAuthenticationToken extends BaseGrantAuthenticationToken {
+
+    /** 序列化标识 */
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     /**
      * 构造密码模式认证令牌

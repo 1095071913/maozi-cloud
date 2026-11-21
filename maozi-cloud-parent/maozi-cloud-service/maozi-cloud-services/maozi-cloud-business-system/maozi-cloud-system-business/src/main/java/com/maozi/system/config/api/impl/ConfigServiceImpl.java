@@ -66,7 +66,7 @@ public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper, ConfigDO> i
         wrapper.eq(ConfigDO::getName, name);
 
         ConfigDO domain = super.getOne(wrapper);
-        if (Objects.isNull(domain)){
+        if (Objects.isNull(domain)) {
             return null;
         }
 

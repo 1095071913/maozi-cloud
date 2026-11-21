@@ -12,6 +12,9 @@ package com.maozi.common.constant;
  */
 public final class ApplicationNameConstant {
 
+    /** 私有构造器，防止常量类被实例化 */
+    private ApplicationNameConstant() {}
+
     /** 单体全量服务名（所有服务合并为单个应用部署） */
     public static final String MAOZI_CLOUD_ALL_SERVICE = "maozi-cloud-all-service";
 

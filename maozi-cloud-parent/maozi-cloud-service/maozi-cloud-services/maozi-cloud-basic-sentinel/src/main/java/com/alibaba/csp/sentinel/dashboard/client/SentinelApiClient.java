@@ -637,8 +637,6 @@ public class SentinelApiClient {
         AssertUtil.notEmpty(app, "Bad app name");
         AssertUtil.notEmpty(ip, "Bad machine IP");
         AssertUtil.isTrue(port > 0, "Bad machine port");
-        Map<String, String> params = new HashMap<>(1);
-        params.put("type", AUTHORITY_TYPE);
         List<AuthorityRule> rules = fetchRules(ip, port, AUTHORITY_TYPE, AuthorityRule.class);
         return Optional.ofNullable(rules).map(r -> r.stream()
                     .map(e -> AuthorityRuleEntity.fromAuthorityRule(app, ip, port, e))
@@ -877,7 +875,7 @@ public class SentinelApiClient {
                     if (CommandConstants.MSG_SUCCESS.equals(e)) {
                         return CompletableFuture.completedFuture(null);
                     } else {
-                        logger.warn("Error when modifying cluster server NamespaceSet", e);
+                        logger.warn("Error when modifying cluster server NamespaceSet: {}", e);
                         return AsyncUtils.newFailedFuture(new RuntimeException(e));
                     }
                 });
@@ -993,10 +991,10 @@ public class SentinelApiClient {
             return true;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            logger.warn("Error when modifying gateway apis", e);
+            logger.warn("Error when modifying gateway flow rules", e);
             return false;
         } catch (Exception e) {
-            logger.warn("Error when modifying gateway apis", e);
+            logger.warn("Error when modifying gateway flow rules", e);
             return false;
         }
     }

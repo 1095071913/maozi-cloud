@@ -76,6 +76,7 @@ public class AddFlowRuleReqVO extends BaseFlowRuleReqVO {
         this.resourceMode = resourceMode;
     }
 
+    /** Return a string representation of this VO. */
     @Override
     public String toString() {
         return "AddFlowRuleReqVO{"

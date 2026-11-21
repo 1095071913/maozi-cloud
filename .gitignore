@@ -57,6 +57,10 @@ target
 **/maozi-cloud-utils/maozi-cloud-deploy-services-distributed-record.json
 maozi-cloud-services-monomer-docker-backup.yml
 maozi-cloud-services-distributeds-docker-backup.yml
+maozi-cloud-ai-service-build-docker.sh
+maozi-cloud-gateway-service-build-docker.sh
+maozi-cloud-oauth-service-build-docker.sh
+maozi-cloud-system-service-build-docker.sh
 
 # JAVA基础镜像额外依赖
 !opentelemetry-javaagent.jar

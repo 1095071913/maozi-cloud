@@ -180,7 +180,11 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
         String authKey = authorizationKey(id);
         String payload = write(data);
 
-        removeExistingAuthorizations(data.registeredClientId(), data.principalName(), id);
+        // 缓存客户端 ID 与用户主体名，避免同一方法内重复调用
+        String registeredClientId = data.registeredClientId();
+        String principalName = data.principalName();
+
+        removeExistingAuthorizations(registeredClientId, principalName, id);
 
         OAuth2Authorization previous = findById(id);
         if (previous != null) {
@@ -198,7 +202,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
             setValue(indexKey, id, ttl);
         }
 
-        String principalIndexKey = principalIndexKey(data.registeredClientId(), data.principalName());
+        String principalIndexKey = principalIndexKey(registeredClientId, principalName);
         this.redisTemplate.opsForSet().add(principalIndexKey, id);
         setTtl(principalIndexKey, authorizationTtl);
     }
@@ -220,10 +224,12 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
             return;
         }
         AuthorizationData data = AuthorizationData.from(current);
+        // 缓存令牌索引列表，避免同一方法内重复调用
+        List<TokenIndex> indexes = data.indexes();
         // 列表大小已知：主键 1 个 + 全部令牌索引，按此指定初始容量避免扩容
-        List<String> keys = CollectionUtil.newArrayList(data.indexes().size() + 1);
+        List<String> keys = CollectionUtil.newArrayList(indexes.size() + 1);
         keys.add(authorizationKey(id));
-        for (TokenIndex index : data.indexes()) {
+        for (TokenIndex index : indexes) {
             keys.add(indexKey(index.type(), index.value()));
         }
         this.redisTemplate.delete(keys);
@@ -373,12 +379,13 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
      * @param <T>       OAuth2令牌类型
      */
     private <T extends OAuth2Token> void applyToken(OAuth2Authorization.Builder builder, TokenData<T> tokenData) {
-        if (tokenData == null || tokenData.value() == null) {
+        // 缓存令牌值，避免同一方法内重复调用（同时兼容 tokenData 为 null 的场景）
+        String tokenValue = tokenData != null ? tokenData.value() : null;
+        if (tokenValue == null) {
             return;
         }
 
         TokenKindEnum tokenKind = tokenData.type();
-        String tokenValue = tokenData.value();
         Instant issuedAt = tokenData.issuedAt();
         Instant expiresAt = tokenData.expiresAt();
         Map<String, Object> tokenMetadata = tokenData.metadata();
@@ -748,13 +755,15 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
         static AuthorizationData from(OAuth2Authorization authorization) {
             Map<String, Object> attributes = CollectionUtil.newHashMap(authorization.getAttributes());
             String state = authorization.getAttribute(OAuth2ParameterNames.STATE);
+            // 缓存已授权 scope 集合，避免同一方法内重复调用
+            Set<String> authorizedScopes = authorization.getAuthorizedScopes();
             return new AuthorizationData(
                     authorization.getId(),
                     authorization.getRegisteredClientId(),
                     authorization.getPrincipalName(),
                     authorization.getAuthorizationGrantType().getValue(),
-                    authorization.getAuthorizedScopes() != null
-                            ? new HashSet<>(authorization.getAuthorizedScopes())
+                    authorizedScopes != null
+                            ? new HashSet<>(authorizedScopes)
                             : Collections.emptySet(),
                     attributes,
                     state,

@@ -106,10 +106,12 @@ public class MetricVo implements Comparable<MetricVo> {
         vo.resource = entity.getResource();
         vo.passQps = entity.getPassQps();
         vo.blockQps = entity.getBlockQps();
-        vo.successQps = entity.getSuccessQps();
+        // Cache the success QPS to avoid repeated calls within the same method.
+        Long successQps = entity.getSuccessQps();
+        vo.successQps = successQps;
         vo.exceptionQps = entity.getExceptionQps();
-        if (entity.getSuccessQps() != 0) {
-            vo.rt = entity.getRt() / entity.getSuccessQps();
+        if (successQps != 0) {
+            vo.rt = entity.getRt() / successQps;
         } else {
             vo.rt = 0D;
         }

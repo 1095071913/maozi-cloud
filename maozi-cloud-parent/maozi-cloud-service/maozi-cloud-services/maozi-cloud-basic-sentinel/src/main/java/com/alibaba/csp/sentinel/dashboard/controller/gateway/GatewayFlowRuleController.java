@@ -250,7 +250,7 @@ public class GatewayFlowRuleController {
                 , PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
             return Result.ofFail(-1, "invalid parseStrategy: " + parseStrategy);
         }
-        itemEntity.setParseStrategy(paramItem.getParseStrategy());
+        itemEntity.setParseStrategy(parseStrategy);
 
         // Field name is required for parse strategies 2-Header, 3-URL parameter and 4-Cookie.
         if (Arrays.asList(PARAM_PARSE_STRATEGY_HEADER, PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
@@ -259,7 +259,7 @@ public class GatewayFlowRuleController {
             if (StringUtil.isBlank(fieldName)) {
                 return Result.ofFail(-1, "fieldName can't be null or empty");
             }
-            itemEntity.setFieldName(paramItem.getFieldName());
+            itemEntity.setFieldName(fieldName);
         }
 
         String pattern = paramItem.getPattern();

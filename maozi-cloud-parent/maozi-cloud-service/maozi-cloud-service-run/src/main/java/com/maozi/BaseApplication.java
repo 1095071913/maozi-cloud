@@ -43,6 +43,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.net.URL;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.LinkedHashMap;
@@ -453,7 +454,10 @@ public class BaseApplication {
             return null;
         }
 
-        String urlStr = codeSource.getLocation().toString();
+        // 缓存代码来源地址，避免同一方法内重复调用
+        URL location = codeSource.getLocation();
+
+        String urlStr = location.toString();
 
         // 场景1：jar 包运行（包括传统 jar 和 Spring Boot 3 nested jar）
         // jar:file:/path/to/app.jar!/...
@@ -476,7 +480,7 @@ public class BaseApplication {
         }
 
         // 场景2：IDE/目录运行，直接用 URI
-        return new File(codeSource.getLocation().toURI());
+        return new File(location.toURI());
     }
 
     /**

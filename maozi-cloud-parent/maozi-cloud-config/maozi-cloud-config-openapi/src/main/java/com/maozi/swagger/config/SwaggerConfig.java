@@ -116,8 +116,12 @@ public class SwaggerConfig {
             // 取方法 @RequestMapping 声明的第一个路径（优先 path 属性，未配置时回退 value），
             // 未声明路径或白名单内的接口不注入认证头
             RequestMapping requestMapping = handlerMethod.getMethodAnnotation(RequestMapping.class);
-            String[] paths = Objects.isNull(requestMapping) ? new String[0]
-                    : (requestMapping.path().length > 0 ? requestMapping.path() : requestMapping.value());
+            String[] paths = new String[0];
+            if (Objects.nonNull(requestMapping)) {
+                // 缓存 path 属性值，避免同一方法内重复调用
+                String[] pathAttrs = requestMapping.path();
+                paths = pathAttrs.length > 0 ? pathAttrs : requestMapping.value();
+            }
             if (paths.length == 0 || whitelist.contains(paths[0])) {
                 return operation;
             }
@@ -152,12 +156,13 @@ public class SwaggerConfig {
         return openApi -> {
 
             Components components = openApi.getComponents();
-            if (components == null || components.getSchemas() == null) {
+            if (components == null) {
                 return;
             }
 
+            // 缓存 schemas，避免同一方法内重复调用
             Map<String, Schema> schemas = components.getSchemas();
-            if (CollectionUtil.isEmpty(schemas)) {
+            if (schemas == null || CollectionUtil.isEmpty(schemas)) {
                 return;
             }
 

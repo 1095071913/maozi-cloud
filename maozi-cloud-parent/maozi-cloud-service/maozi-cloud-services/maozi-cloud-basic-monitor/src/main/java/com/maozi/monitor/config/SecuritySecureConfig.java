@@ -120,6 +120,11 @@ public class SecuritySecureConfig {
         CsrfTokenRequestAttributeHandler csrfRequestHandler = new CsrfTokenRequestAttributeHandler();
         csrfRequestHandler.setCsrfRequestAttributeName(null);
 
+        // 缓存重复使用的路径，避免同一方法内多次调用 adminServer.path()
+        String actuatorPath = this.adminServer.path("/actuator/**");
+        String loginPagePath = this.adminServer.path("/login");
+        String logoutPagePath = this.adminServer.path("/logout");
+
         http
                 // Spring Security 6.0+ 默认让整条安全过滤链对 ASYNC / ERROR dispatch 也生效，
                 // 会引发两个问题：
@@ -149,14 +154,14 @@ public class SecuritySecureConfig {
                         // 把用户重定向到这些文件，浏览器直接展示 JS/CSS 文本而非进入主页。
                         .requestMatchers(this.adminServer.path("/sba-settings.js")).permitAll()
                         .requestMatchers(this.adminServer.path("/variables.css")).permitAll()
-                        .requestMatchers(this.adminServer.path("/actuator/**")).permitAll()
-                        .requestMatchers(this.adminServer.path("/login")).permitAll()
+                        .requestMatchers(actuatorPath).permitAll()
+                        .requestMatchers(loginPagePath).permitAll()
                         .anyRequest().authenticated())
                 .formLogin((formLogin) -> formLogin
-                        .loginPage(this.adminServer.path("/login"))
+                        .loginPage(loginPagePath)
                         .successHandler(successHandler))
                 .logout((logout) -> logout
-                        .logoutUrl(this.adminServer.path("/logout"))
+                        .logoutUrl(logoutPagePath)
                         .logoutSuccessUrl(this.adminServer.path("/login?logout")))
                 .httpBasic(Customizer.withDefaults())
                 // 关闭 X-Frame-Options：管理后台"中间件管理"页以内嵌 iframe 打开监控台，
@@ -170,8 +175,8 @@ public class SecuritySecureConfig {
                                         HttpMethod.POST.toString()),
                                 new AntPathRequestMatcher(this.adminServer.path("/instances/*"),
                                         HttpMethod.DELETE.toString()),
-                                new AntPathRequestMatcher(this.adminServer.path("/actuator/**")),
-                                new AntPathRequestMatcher(this.adminServer.path("/logout"))))
+                                new AntPathRequestMatcher(actuatorPath),
+                                new AntPathRequestMatcher(logoutPagePath)))
                 .rememberMe((rememberMe) -> rememberMe
                         .key(UUID.randomUUID().toString())
                         .tokenValiditySeconds(REMEMBER_ME_TOKEN_VALIDITY_SECONDS));

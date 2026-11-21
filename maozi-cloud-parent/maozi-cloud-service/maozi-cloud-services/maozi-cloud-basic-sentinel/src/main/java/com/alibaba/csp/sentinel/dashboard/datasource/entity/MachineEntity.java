@@ -133,8 +133,10 @@ public class MachineEntity {
         machineInfo.setHostname(hostname);
         machineInfo.setIp(ip);
         machineInfo.setPort(port);
-        machineInfo.setLastHeartbeat(timestamp.getTime());
-        machineInfo.setHeartbeatVersion(timestamp.getTime());
+        // Cache the heartbeat timestamp to avoid repeated calls within the same method.
+        Long heartbeatTimestamp = timestamp.getTime();
+        machineInfo.setLastHeartbeat(heartbeatTimestamp);
+        machineInfo.setHeartbeatVersion(heartbeatTimestamp);
 
         return machineInfo;
     }

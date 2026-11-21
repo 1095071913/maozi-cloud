@@ -80,6 +80,9 @@ public class MessageSendStream {
         // 当前请求版本号，链路上下文未设置时取默认版本 main
         String version = VersionContext.CONTEXT.get();
 
+        // 保留原始版本号（version 可能被下方灰度回退逻辑覆盖），供 X-Version 头透传
+        String originalVersion = version;
+
         // 当前为非默认版本且该版本已无存活实例时，灰度标识回退为默认版本，
         // 保证消息仍可被消费
         if(!VersionContext.APPLICATION_DEFAULT_VERSION.equals(version)
@@ -90,7 +93,7 @@ public class MessageSendStream {
         // Gray 头写入用于灰度路由的版本（可能已回退为默认版本）
         messageBuilder.setHeader(HEADER_GRAY, version);
         // X-Version 头透传原始版本号，供消费端恢复链路上下文
-        messageBuilder.setHeader(VersionContext.KEY, VersionContext.CONTEXT.get());
+        messageBuilder.setHeader(VersionContext.KEY, originalVersion);
         // 透传测试流量标记与当前用户信息，供消费端恢复链路上下文
         messageBuilder.setHeader(TestFlowContext.KEY, TestFlowContext.CONTEXT.get());
         messageBuilder.setHeader(CurrentUserInfoContext.KEY, CurrentUserInfoContext.CONTEXT.get());

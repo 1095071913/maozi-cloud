@@ -108,11 +108,10 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        // 获取已有claims并添加authorities
+        // 获取已有claims并添加authorities（缓存 claims 取值结果，避免同一方法内重复调用）
         OAuth2Authorization.Token<OAuth2AccessToken> accessTokenToken = authorization.getAccessToken();
-        Map<String, Object> existingClaims = accessTokenToken != null && accessTokenToken.getClaims() != null
-                ? accessTokenToken.getClaims()
-                : Collections.emptyMap();
+        Map<String, Object> accessTokenClaims = accessTokenToken != null ? accessTokenToken.getClaims() : null;
+        Map<String, Object> existingClaims = accessTokenClaims != null ? accessTokenClaims : Collections.emptyMap();
         Map<String, Object> claims = CollectionUtil.newHashMap(existingClaims);
         claims.put(OAuth2TokenUserClaimConstants.AUTHORITIES, authorities);
         if(userDetails instanceof SecurityUserDetails securityUserDetails){

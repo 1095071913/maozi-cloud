@@ -118,7 +118,9 @@ public class MetricController {
             }
             resources = searched;
         }
-        int totalPage = (resources.size() + pageSize - 1) / pageSize;
+        // Cache the resource count to avoid repeated calls within the same method.
+        int totalCount = resources.size();
+        int totalPage = (totalCount + pageSize - 1) / pageSize;
         List<String> topResource = new ArrayList<>();
         if (pageIndex <= totalPage) {
             topResource = resources.subList((pageIndex - 1) * pageSize,
@@ -139,7 +141,7 @@ public class MetricController {
         Map<String, Object> resultMap = new HashMap<>(16);
         // Send the aggregation granularity N to the frontend: the leading/trailing zero padding of the chart depends on it (N seconds before/after a point).
         resultMap.put("aggregateSeconds", Math.max(1, aggregateSeconds));
-        resultMap.put("totalCount", resources.size());
+        resultMap.put("totalCount", totalCount);
         resultMap.put("totalPage", totalPage);
         resultMap.put("pageIndex", pageIndex);
         resultMap.put("pageSize", pageSize);

@@ -99,8 +99,11 @@ public abstract class BaseGrantAuthenticationConverter<T extends BaseGrantAuthen
     @SneakyThrows
     public Authentication convert(HttpServletRequest request) {
 
+        // 缓存当前转换器支持的授权类型，避免同一方法内重复调用
+        String supportedGrantType = getGrantType();
+
         String grantType = request.getParameter(OAuth2ParameterNames.GRANT_TYPE);
-        if (!Objects.equals(getGrantType(), grantType)) {
+        if (!Objects.equals(supportedGrantType, grantType)) {
             return null;
         }
 
@@ -110,15 +113,16 @@ public abstract class BaseGrantAuthenticationConverter<T extends BaseGrantAuthen
         // 获取请求中的参数
         MultiValueMap<String, String> parameters = getParameters(request);
 
-        // scope 为可选参数
+        // scope 为可选参数；缓存是否携带 scope 的判断结果，避免同一方法内重复调用
         String scope = parameters.getFirst(OAuth2ParameterNames.SCOPE);
-        if (StringUtils.hasText(scope) &&
+        boolean hasScope = StringUtils.hasText(scope);
+        if (hasScope &&
                 parameters.get(OAuth2ParameterNames.SCOPE).size() != 1) {
             throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST,
                     "OAuth 2.0 Parameter: " + OAuth2ParameterNames.SCOPE, ACCESS_TOKEN_REQUEST_ERROR_URI));
         }
         Set<String> requestedScopes = null;
-        if (StringUtils.hasText(scope)) {
+        if (hasScope) {
             requestedScopes = new HashSet<>(
                     Arrays.asList(StringUtils.delimitedListToStringArray(scope, SymbolConstant.COMMA)));
         }
@@ -137,7 +141,7 @@ public abstract class BaseGrantAuthenticationConverter<T extends BaseGrantAuthen
 
         T token = tokenClass.getDeclaredConstructor(AuthorizationGrantType.class,
                 Authentication.class, Set.class, Map.class)
-                .newInstance(new AuthorizationGrantType(getGrantType()), clientPrincipal,
+                .newInstance(new AuthorizationGrantType(supportedGrantType), clientPrincipal,
                 requestedScopes, additionalParameters);
         setTokenResult(request, token);
 

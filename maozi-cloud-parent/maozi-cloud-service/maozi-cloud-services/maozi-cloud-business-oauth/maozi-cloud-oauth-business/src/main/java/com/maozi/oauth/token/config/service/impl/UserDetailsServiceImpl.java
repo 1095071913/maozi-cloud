@@ -72,9 +72,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     .getResultDataThrowError();
 
             // 远程返回对象的集合字段无契约上的非空保证，
-            // 判空防止 NPE（为空视为无权限）
-            List<String> authorities = CollectionUtil.isEmpty(oauthUserInfo.getAuthorities())
-                    ? List.of() : oauthUserInfo.getAuthorities();
+            // 判空防止 NPE（为空视为无权限）；缓存取值结果，避免同一方法内重复调用
+            List<String> authoritiesResult = oauthUserInfo.getAuthorities();
+            List<String> authorities = CollectionUtil.isEmpty(authoritiesResult)
+                    ? List.of() : authoritiesResult;
             // 权限数量已知（等于远程返回的权限数），按此指定初始容量避免扩容
             List<GrantedAuthority> grantedAuthorities = CollectionUtil.newArrayList(authorities.size());
             authorities.forEach((permission)->{

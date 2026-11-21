@@ -129,8 +129,10 @@ public class AuthorityRuleController {
         if (StringUtil.isBlank(entity.getLimitApp())) {
             return Result.ofFail(-1, "limitApp should be valid");
         }
-        if (entity.getStrategy() != RuleConstant.AUTHORITY_WHITE
-            && entity.getStrategy() != RuleConstant.AUTHORITY_BLACK) {
+        // Cache the strategy value to avoid repeated calls within the same method.
+        Integer strategy = entity.getStrategy();
+        if (strategy != RuleConstant.AUTHORITY_WHITE
+            && strategy != RuleConstant.AUTHORITY_BLACK) {
             return Result.ofFail(-1, "Unknown strategy (must be blacklist or whitelist)");
         }
         return null;

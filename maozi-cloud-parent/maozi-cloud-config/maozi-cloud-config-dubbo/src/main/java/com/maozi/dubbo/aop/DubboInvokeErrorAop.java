@@ -10,6 +10,7 @@ import com.maozi.common.result.error.code.ErrorCode;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
@@ -74,10 +75,14 @@ public class DubboInvokeErrorAop {
         // 尝试执行目标方法，如果正常返回则直接返回结果
         try {return proceedingJoinPoint.proceed();} catch (Throwable e) {
 
+            // 缓存方法签名信息与类全限定名，避免同一方法内重复调用
+            Signature signature = proceedingJoinPoint.getSignature();
+            String declaringTypeName = signature.getDeclaringTypeName();
+
             // 解析被调用类的全限定名，按 "." 分割以提取包路径中的各段信息
             // 包路径格式约定为：com.maozi.{服务名}.{模块名}.{层级}.rpc.{类名}
             String[] remoteInvokeClassSplit = DOT_SPLIT_PATTERN
-                    .split(proceedingJoinPoint.getSignature().getDeclaringTypeName());
+                    .split(declaringTypeName);
 
             // 包路径段数不足（切点调整或类移动后无法按约定解析）时
             // 直接抛出原始异常，避免数组越界
@@ -102,8 +107,8 @@ public class DubboInvokeErrorAop {
             // 日志类型：RPC 远程调用
             logs.put(LogTag.TYPE, LogCommonTypeEnum.RPC.getDesc());
             logs.put(LogTag.SERVICE_NAME, serviceName);                              // 被调用的服务名称
-            logs.put(LogTag.FUNCTION, proceedingJoinPoint.getSignature()             // 被调用的方法全路径
-                    .getDeclaringTypeName() + SymbolConstant.COLON + proceedingJoinPoint.getSignature().getName());
+            logs.put(LogTag.FUNCTION, declaringTypeName                               // 被调用的方法全路径
+                    + SymbolConstant.COLON + signature.getName());
             logs.put(LogTag.PARAM, Arrays.toString(proceedingJoinPoint.getArgs()));  // 方法入参
             
             // 记录结构化的错误日志信息

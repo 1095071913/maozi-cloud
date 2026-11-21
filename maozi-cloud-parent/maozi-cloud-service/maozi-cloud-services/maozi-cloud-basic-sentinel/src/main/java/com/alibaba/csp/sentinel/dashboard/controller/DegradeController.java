@@ -229,10 +229,13 @@ public class DegradeController {
             || strategy > RuleConstant.DEGRADE_GRADE_EXCEPTION_COUNT) {
             return Result.ofFail(-1, "Invalid circuit breaker strategy: " + strategy);
         }
-        if (entity.getMinRequestAmount()  == null || entity.getMinRequestAmount() <= 0) {
+        // Cache the field values to avoid repeated calls within the same method.
+        Integer minRequestAmount = entity.getMinRequestAmount();
+        if (minRequestAmount == null || minRequestAmount <= 0) {
             return Result.ofFail(-1, "Invalid minRequestAmount");
         }
-        if (entity.getStatIntervalMs() == null || entity.getStatIntervalMs() <= 0) {
+        Integer statIntervalMs = entity.getStatIntervalMs();
+        if (statIntervalMs == null || statIntervalMs <= 0) {
             return Result.ofFail(-1, "Invalid statInterval");
         }
         if (strategy == RuleConstant.DEGRADE_GRADE_RT) {

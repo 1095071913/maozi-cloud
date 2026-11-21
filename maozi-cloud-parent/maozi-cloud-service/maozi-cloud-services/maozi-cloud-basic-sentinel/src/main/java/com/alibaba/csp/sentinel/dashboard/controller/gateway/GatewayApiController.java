@@ -116,9 +116,11 @@ public class GatewayApiController {
         if (StringUtil.isBlank(app)) {
             return Result.ofFail(-1, "app can't be null or empty");
         }
+        // Cache the trimmed app name to avoid repeated calls within the same method.
+        String trimmedApp = app.trim();
 
         ApiDefinitionEntity entity = new ApiDefinitionEntity();
-        entity.setApp(app.trim());
+        entity.setApp(trimmedApp);
 
         String ip = reqVo.getIp();
         if (StringUtil.isBlank(ip)) {
@@ -137,7 +139,9 @@ public class GatewayApiController {
         if (StringUtil.isBlank(apiName)) {
             return Result.ofFail(-1, "apiName can't be null or empty");
         }
-        entity.setApiName(apiName.trim());
+        // Cache the trimmed API name to avoid repeated calls within the same method.
+        String trimmedApiName = apiName.trim();
+        entity.setApiName(trimmedApiName);
 
         // Predicate items.
         List<ApiPredicateItemVo> predicateItems = reqVo.getPredicateItems();
@@ -168,8 +172,8 @@ public class GatewayApiController {
         entity.setPredicateItems(new LinkedHashSet<>(predicateItemEntities));
 
         // Reject a duplicate API name within the app.
-        List<ApiDefinitionEntity> allApis = repository.findAllByApp(app.trim());
-        if (allApis.stream().map(o -> o.getApiName()).anyMatch(o -> o.equals(apiName.trim()))) {
+        List<ApiDefinitionEntity> allApis = repository.findAllByApp(trimmedApp);
+        if (allApis.stream().map(o -> o.getApiName()).anyMatch(o -> o.equals(trimmedApiName))) {
             return Result.ofFail(-1, "apiName exists: " + apiName);
         }
 

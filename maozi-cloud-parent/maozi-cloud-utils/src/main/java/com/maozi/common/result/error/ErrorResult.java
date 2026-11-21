@@ -189,12 +189,13 @@ public class ErrorResult<D> extends AbstractBaseResult<D> implements Serializabl
     @JsonIgnore
     public Boolean isBusinessError() {
         // 通过 null 安全的 getCode() 取值（未设置编码时兜底为业务默认错误码），
-        // 避免自动拆箱 NPE
-        return SystemErrorCode.MAX_SYSTEM_ERROR_CODE < getCode() 
-            || SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE.equals(getCode())
-            || SystemErrorCode.USER_AUTH_ERROR_DEFAULT_CODE.equals(getCode())
-            || SystemErrorCode.PERMISSION_ERROR_DEFAULT_CODE.equals(getCode())
-            || SystemErrorCode.CURRENT_LIMITING_ERROR_DEFAULT_CODE.equals(getCode());
+        // 避免自动拆箱 NPE；缓存取值结果，避免同一方法内重复调用
+        Integer errorCodeValue = getCode();
+        return SystemErrorCode.MAX_SYSTEM_ERROR_CODE < errorCodeValue
+            || SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE.equals(errorCodeValue)
+            || SystemErrorCode.USER_AUTH_ERROR_DEFAULT_CODE.equals(errorCodeValue)
+            || SystemErrorCode.PERMISSION_ERROR_DEFAULT_CODE.equals(errorCodeValue)
+            || SystemErrorCode.CURRENT_LIMITING_ERROR_DEFAULT_CODE.equals(errorCodeValue);
     }
 
     /**

@@ -31,10 +31,14 @@ public class RedisTemplateConfig {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(factory);
 
-        redisTemplate.setKeySerializer(RedisSerializer.string());
-        redisTemplate.setHashKeySerializer(RedisSerializer.string());
-        redisTemplate.setValueSerializer(RedisSerializer.java());
-        redisTemplate.setHashValueSerializer(RedisSerializer.java());
+        // 缓存序列化器实例，避免同一方法内重复创建
+        RedisSerializer<String> stringSerializer = RedisSerializer.string();
+        RedisSerializer<Object> javaSerializer = RedisSerializer.java();
+
+        redisTemplate.setKeySerializer(stringSerializer);
+        redisTemplate.setHashKeySerializer(stringSerializer);
+        redisTemplate.setValueSerializer(javaSerializer);
+        redisTemplate.setHashValueSerializer(javaSerializer);
 
         redisTemplate.afterPropertiesSet();
 

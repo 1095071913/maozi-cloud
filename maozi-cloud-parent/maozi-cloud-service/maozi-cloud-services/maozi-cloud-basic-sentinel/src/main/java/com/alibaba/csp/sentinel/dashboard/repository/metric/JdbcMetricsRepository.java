@@ -287,9 +287,11 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
     private void bufferAndPersistBuckets(List<MetricEntity> metrics) {
         long bucketMs = aggregateSeconds * 1000L;
         for (MetricEntity metric : metrics) {
-            long bucketStart = metric.getTimestamp().getTime() / bucketMs * bucketMs;
+            // Cache the metric timestamp to avoid repeated calls within the same iteration.
+            long metricTime = metric.getTimestamp().getTime();
+            long bucketStart = metricTime / bucketMs * bucketMs;
             String key = metric.getApp() + "__" + metric.getResource() + "__" + bucketStart;
-            long second = metric.getTimestamp().getTime() / 1000 * 1000;
+            long second = metricTime / 1000 * 1000;
             bucketBuffer.compute(key, (k, acc) -> {
                 BucketAccumulator accumulator = acc;
                 if (accumulator == null) {
@@ -354,14 +356,16 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         if (dirty.isEmpty()) {
             return;
         }
-        List<Integer> snapshots = new ArrayList<>(dirty.size());
-        List<MetricEntity> toPersist = new ArrayList<>(dirty.size());
+        // Cache the dirty bucket count to avoid repeated calls within the same method.
+        int dirtyCount = dirty.size();
+        List<Integer> snapshots = new ArrayList<>(dirtyCount);
+        List<MetricEntity> toPersist = new ArrayList<>(dirtyCount);
         for (BucketAccumulator accumulator : dirty) {
             snapshots.add(accumulator.foldedSeconds.size());
             toPersist.add(normalizeBucket(accumulator));
         }
         doUpsert(toPersist);
-        for (int i = 0; i < dirty.size(); i++) {
+        for (int i = 0; i < dirtyCount; i++) {
             dirty.get(i).flushedSeconds = snapshots.get(i);
         }
     }
@@ -419,16 +423,21 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
                 public void setValues(PreparedStatement ps, int i) throws SQLException {
                     MetricEntity metric = validMetrics.get(i);
                     Timestamp now = new Timestamp(System.currentTimeMillis());
-                    ps.setTimestamp(1, metric.getGmtCreate() == null ? now
-                        : new Timestamp(metric.getGmtCreate().getTime()));
+                    // Cache the nullable field values to avoid repeated calls within the same iteration.
+                    Date gmtCreate = metric.getGmtCreate();
+                    Long passQps = metric.getPassQps();
+                    Long successQps = metric.getSuccessQps();
+                    Long blockQps = metric.getBlockQps();
+                    Long exceptionQps = metric.getExceptionQps();
+                    ps.setTimestamp(1, gmtCreate == null ? now : new Timestamp(gmtCreate.getTime()));
                     ps.setTimestamp(2, now);
                     ps.setString(3, metric.getApp());
                     ps.setLong(4, metric.getTimestamp().getTime());
                     ps.setString(5, metric.getResource());
-                    ps.setLong(6, metric.getPassQps() == null ? 0 : metric.getPassQps());
-                    ps.setLong(7, metric.getSuccessQps() == null ? 0 : metric.getSuccessQps());
-                    ps.setLong(8, metric.getBlockQps() == null ? 0 : metric.getBlockQps());
-                    ps.setLong(9, metric.getExceptionQps() == null ? 0 : metric.getExceptionQps());
+                    ps.setLong(6, passQps == null ? 0 : passQps);
+                    ps.setLong(7, successQps == null ? 0 : successQps);
+                    ps.setLong(8, blockQps == null ? 0 : blockQps);
+                    ps.setLong(9, exceptionQps == null ? 0 : exceptionQps);
                     ps.setDouble(10, metric.getRt());
                     ps.setInt(11, metric.getCount());
                 }

@@ -35,6 +35,7 @@ import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDeniedException;
@@ -184,9 +185,12 @@ public abstract class AbstractRequestEntranceLogAop {
         // 仅 HTTP 请求记录完整的请求 URL
         requestLog(logs);
 
+        // 缓存方法签名信息，避免同一方法内重复调用
+        Signature signature = proceedingJoinPoint.getSignature();
+
         // 记录被调用的方法全路径，格式为 "类全限定名:方法名"
-        logs.put(LogTag.FUNCTION, proceedingJoinPoint.getSignature().getDeclaringTypeName()
-                + SymbolConstant.COLON + proceedingJoinPoint.getSignature().getName());
+        logs.put(LogTag.FUNCTION, signature.getDeclaringTypeName()
+                + SymbolConstant.COLON + signature.getName());
 
         return logs;
 

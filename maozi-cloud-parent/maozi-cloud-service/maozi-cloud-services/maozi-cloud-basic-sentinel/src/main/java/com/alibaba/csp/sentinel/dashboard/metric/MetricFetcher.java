@@ -42,6 +42,7 @@ import org.springframework.stereotype.Component;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.nio.charset.Charset;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -147,7 +148,8 @@ public class MetricFetcher {
         IOReactorConfig ioConfig = IOReactorConfig.custom()
             .setConnectTimeout(HTTP_CONNECT_TIMEOUT_MS)
             .setSoTimeout(HTTP_SO_TIMEOUT_MS)
-            .setIoThreadCount(Runtime.getRuntime().availableProcessors() * CPU_CORE_MULTIPLIER)
+            // reuse the cached core count to avoid a second runtime query
+            .setIoThreadCount(cores)
             .build();
 
         httpclient = HttpAsyncClients.custom()
@@ -182,11 +184,13 @@ public class MetricFetcher {
             return;
         }
         Date date = new Date();
-        for (MetricEntity entity : map.values()) {
+        // Cache the metric collection to avoid repeated calls within the same method.
+        Collection<MetricEntity> metrics = map.values();
+        for (MetricEntity entity : metrics) {
             entity.setGmtCreate(date);
             entity.setGmtModified(date);
         }
-        metricStore.saveAll(map.values());
+        metricStore.saveAll(metrics);
     }
 
     /**
@@ -223,8 +227,10 @@ public class MetricFetcher {
             return;
         }
         Set<MachineInfo> machines = appInfo.getMachines();
+        // Cache the machine count to avoid repeated calls within the same method.
+        int machineCount = machines.size();
         logger.debug("enter fetchOnce({}), machines.size()={}, time intervalMs [{}, {}]",
-            app, machines.size(), startTime, endTime);
+            app, machineCount, startTime, endTime);
         if (machines.isEmpty()) {
             return;
         }
@@ -235,14 +241,17 @@ public class MetricFetcher {
 
         // app_resource_timeSecond -> metric
         final Map<String, MetricEntity> metricMap = new ConcurrentHashMap<>(METRIC_MAP_INITIAL_CAPACITY);
-        final CountDownLatch latch = new CountDownLatch(machines.size());
+        final CountDownLatch latch = new CountDownLatch(machineCount);
         for (final MachineInfo machine : machines) {
             // auto remove the machine whose health status is dead (lost)
             if (!machine.isHealthy()) {
                 latch.countDown();
                 unhealthy.incrementAndGet();
-                appManagement.getDetailApp(app).removeMachine(machine.getIp(), machine.getPort());
-                logger.info("Unhealthy machine removed: {}:{} of {}", machine.getIp(), machine.getPort(), app);
+                // Cache the machine ip and port to avoid repeated calls within the same iteration.
+                String machineIp = machine.getIp();
+                int machinePort = machine.getPort();
+                appManagement.getDetailApp(app).removeMachine(machineIp, machinePort);
+                logger.info("Unhealthy machine removed: {}:{} of {}", machineIp, machinePort, app);
                 continue;
             }
             asyncFetchMachineMetric(machine, startTime, endTime, metricMap, latch, msg, success, fail);
@@ -392,13 +401,15 @@ public class MetricFetcher {
         for (String line : lines) {
             try {
                 MetricNode node = MetricNode.fromThinString(line);
-                if (shouldFilterOut(node.getResource())) {
+                // Cache the resource name to avoid repeated calls within the same iteration.
+                String resource = node.getResource();
+                if (shouldFilterOut(resource)) {
                     continue;
                 }
                 /*
                  * aggregation metrics by app_resource_timeSecond, ignore ip and port.
                  */
-                String key = buildMetricKey(machine.getApp(), node.getResource(), node.getTimestamp());
+                String key = buildMetricKey(machine.getApp(), resource, node.getTimestamp());
 
                 MetricEntity metricEntity = map.computeIfAbsent(key, s -> {
                     MetricEntity initMetricEntity = new MetricEntity();
@@ -409,7 +420,7 @@ public class MetricFetcher {
                     initMetricEntity.setRtAndSuccessQps(0, 0L);
                     initMetricEntity.setExceptionQps(0L);
                     initMetricEntity.setCount(0);
-                    initMetricEntity.setResource(node.getResource());
+                    initMetricEntity.setResource(resource);
                     return initMetricEntity;
                 });
                 metricEntity.addPassQps(node.getPassQps());

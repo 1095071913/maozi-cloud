@@ -25,6 +25,7 @@ import com.alibaba.csp.sentinel.dashboard.domain.Result;
 import com.alibaba.csp.sentinel.dashboard.repository.rule.InMemoryRuleRepositoryAdapter;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRuleProvider;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
+import com.alibaba.csp.sentinel.slots.block.flow.ClusterFlowConfig;
 import com.alibaba.csp.sentinel.util.StringUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -66,8 +67,13 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
         return fetchAndSaveRules(app, rules -> {
             for (FlowRuleEntity entity : rules) {
                 entity.setApp(app);
-                if (entity.getClusterConfig() != null && entity.getClusterConfig().getFlowId() != null) {
-                    entity.setId(entity.getClusterConfig().getFlowId());
+                // Cache the cluster config and flow id to avoid repeated calls within the same loop iteration.
+                ClusterFlowConfig clusterConfig = entity.getClusterConfig();
+                if (clusterConfig != null) {
+                    Long flowId = clusterConfig.getFlowId();
+                    if (flowId != null) {
+                        entity.setId(flowId);
+                    }
                 }
             }
         });

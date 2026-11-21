@@ -116,7 +116,9 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
         readWriteLock.readLock().lock();
         try {
             for (Entry<Long, MetricEntity> entry : metricsMap.entrySet()) {
-                if (entry.getKey() >= startTime && entry.getKey() <= endTime) {
+                // Cache the timestamp key to avoid repeated calls within the same iteration.
+                long timestamp = entry.getKey();
+                if (timestamp >= startTime && timestamp <= endTime) {
                     results.add(entry.getValue());
                 }
             }
@@ -148,7 +150,9 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
         try {
             for (Entry<String, LinkedHashMap<Long, MetricEntity>> resourceMetrics : resourceMap.entrySet()) {
                 for (Entry<Long, MetricEntity> metrics : resourceMetrics.getValue().entrySet()) {
-                    if (metrics.getKey() < startTime || metrics.getKey() > endTime) {
+                    // Cache the timestamp key to avoid repeated calls within the same iteration.
+                    long metricTime = metrics.getKey();
+                    if (metricTime < startTime || metricTime > endTime) {
                         continue;
                     }
                     MetricEntity newEntity = metrics.getValue();

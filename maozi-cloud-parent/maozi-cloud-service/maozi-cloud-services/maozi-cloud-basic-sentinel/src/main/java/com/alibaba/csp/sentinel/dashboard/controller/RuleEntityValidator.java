@@ -41,7 +41,9 @@ public final class RuleEntityValidator {
         if (StringUtil.isBlank(entity.getIp())) {
             return Result.ofFail(-1, "ip can't be null or empty");
         }
-        if (entity.getPort() == null || entity.getPort() <= 0) {
+        // Cache the port to avoid repeated calls within the same method.
+        Integer port = entity.getPort();
+        if (port == null || port <= 0) {
             return Result.ofFail(-1, "port can't be null");
         }
         return null;
@@ -74,25 +76,30 @@ public final class RuleEntityValidator {
         if (StringUtil.isBlank(entity.getResource())) {
             return Result.ofFail(-1, "resource can't be null or empty");
         }
-        if (entity.getGrade() == null) {
+        // Cache the field values to avoid repeated calls within the same method.
+        Integer grade = entity.getGrade();
+        if (grade == null) {
             return Result.ofFail(-1, "grade can't be null");
         }
-        if (entity.getGrade() != 0 && entity.getGrade() != 1) {
-            return Result.ofFail(-1, "grade must be 0 or 1, but " + entity.getGrade() + " got");
+        if (grade != 0 && grade != 1) {
+            return Result.ofFail(-1, "grade must be 0 or 1, but " + grade + " got");
         }
-        if (entity.getCount() == null || entity.getCount() < 0) {
+        Double count = entity.getCount();
+        if (count == null || count < 0) {
             return Result.ofFail(-1, "count should be at lease zero");
         }
-        if (entity.getStrategy() == null) {
+        Integer strategy = entity.getStrategy();
+        if (strategy == null) {
             return Result.ofFail(-1, "strategy can't be null");
         }
-        if (entity.getStrategy() != 0 && StringUtil.isBlank(entity.getRefResource())) {
+        if (strategy != 0 && StringUtil.isBlank(entity.getRefResource())) {
             return Result.ofFail(-1, "refResource can't be null or empty when strategy!=0");
         }
-        if (entity.getControlBehavior() == null) {
+        Integer controlBehaviorValue = entity.getControlBehavior();
+        if (controlBehaviorValue == null) {
             return Result.ofFail(-1, "controlBehavior can't be null");
         }
-        int controlBehavior = entity.getControlBehavior();
+        int controlBehavior = controlBehaviorValue;
         if (controlBehavior == 1 && entity.getWarmUpPeriodSec() == null) {
             return Result.ofFail(-1, "warmUpPeriodSec can't be null when controlBehavior==1");
         }

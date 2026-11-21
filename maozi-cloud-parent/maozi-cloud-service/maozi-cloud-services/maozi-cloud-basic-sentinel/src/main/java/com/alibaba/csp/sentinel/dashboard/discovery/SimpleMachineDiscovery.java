@@ -44,7 +44,9 @@ public class SimpleMachineDiscovery implements MachineDiscovery {
     @Override
     public long addMachine(MachineInfo machineInfo) {
         AssertUtil.notNull(machineInfo, "machineInfo cannot be null");
-        AppInfo appInfo = apps.computeIfAbsent(machineInfo.getApp(), o -> new AppInfo(machineInfo.getApp(), machineInfo.getAppType()));
+        // Cache the app name to avoid repeated calls within the same method.
+        String appName = machineInfo.getApp();
+        AppInfo appInfo = apps.computeIfAbsent(appName, o -> new AppInfo(appName, machineInfo.getAppType()));
         appInfo.addMachine(machineInfo);
         return 1;
     }

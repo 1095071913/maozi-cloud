@@ -414,7 +414,10 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public void checkAvailable(Long id){
 
-        ObjectUtil.isNullThrowError(id, getResourceName());
+        // 缓存资源名称，避免同一方法内重复调用
+        String resourceName = getResourceName();
+
+        ObjectUtil.isNullThrowError(id, resourceName);
 
         QueryWrapper<T> wrapper = Wrappers.query();
 
@@ -424,11 +427,11 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         T domain = super.getOne(wrapper);
 
-        ObjectUtil.isNullThrowError(domain, getResourceName());
+        ObjectUtil.isNullThrowError(domain, resourceName);
 
         if(domain.getStatus() == StatusEnum.DISABLE) {
             throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
-                    .setResource(getResourceName());
+                    .setResource(resourceName);
         }
 
     }
@@ -491,7 +494,10 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public T getAvailableById(Long id, String ... columns){
 
-        ObjectUtil.isNullThrowError(id, getResourceName());
+        // 缓存资源名称，避免同一方法内重复调用
+        String resourceName = getResourceName();
+
+        ObjectUtil.isNullThrowError(id, resourceName);
 
         QueryWrapper<T> wrapper = Wrappers.query();
 
@@ -504,11 +510,11 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         T domain = super.getOne(wrapper);
 
-        ObjectUtil.isNullThrowError(domain, getResourceName());
+        ObjectUtil.isNullThrowError(domain, resourceName);
 
         if(domain.getStatus() == StatusEnum.DISABLE) {
             throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
-                        .setResource(getResourceName());
+                        .setResource(resourceName);
         }
 
         return domain;
@@ -576,7 +582,10 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public DropDownResult dropDown(Long id){
 
-        ObjectUtil.isNullThrowError(id, getResourceName());
+        // 缓存资源名称，避免同一方法内重复调用
+        String resourceName = getResourceName();
+
+        ObjectUtil.isNullThrowError(id, resourceName);
 
         QueryWrapper<T> wrapper = Wrappers.query();
 
@@ -586,7 +595,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         T domain = super.getOne(wrapper);
 
-        ObjectUtil.isNullThrowError(domain, getResourceName());
+        ObjectUtil.isNullThrowError(domain, resourceName);
 
         return CglibUtil.copy(domain, DropDownResult.class);
 
@@ -619,7 +628,10 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public T getByIdThrowError(Long id, String ... columns){
 
-        ObjectUtil.isNullThrowError(id, getResourceName());
+        // 缓存资源名称，避免同一方法内重复调用
+        String resourceName = getResourceName();
+
+        ObjectUtil.isNullThrowError(id, resourceName);
 
         QueryWrapper<T> wrapper = Wrappers.query();
 
@@ -631,7 +643,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         T domain = super.getOne(wrapper);
 
-        ObjectUtil.isNullThrowError(domain, getResourceName());
+        ObjectUtil.isNullThrowError(domain, resourceName);
 
         return domain;
 
@@ -647,12 +659,15 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public T getByIdThrowError(Long id, MPJLambdaWrapper<T> wrapper){
 
-        ObjectUtil.isNullThrowError(id, getResourceName());
+        // 缓存资源名称，避免同一方法内重复调用
+        String resourceName = getResourceName();
+
+        ObjectUtil.isNullThrowError(id, resourceName);
 
         wrapper.eq(getColumn(AbstractBaseDomain::getId), id);
 
         T domain = super.getOne(wrapper);
-        ObjectUtil.isNullThrowError(domain, getResourceName());
+        ObjectUtil.isNullThrowError(domain, resourceName);
 
         return domain;
 
@@ -772,7 +787,10 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public <V, R> V getByParamThrowErrorRelation(R dto, Class<V> clazz) {
 
-        ObjectUtil.isNullThrowError(dto, getResourceName());
+        // 缓存资源名称，避免同一方法内重复调用
+        String resourceName = getResourceName();
+
+        ObjectUtil.isNullThrowError(dto, resourceName);
 
         MPJLambdaWrapper<T> wrapper = buildQueryWrapper(dto, clazz);
 
@@ -780,7 +798,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
         V response = CglibUtil.copy(super.getOne(wrapper), clazz);
 
-        ObjectUtil.isNullThrowError(response, getResourceName());
+        ObjectUtil.isNullThrowError(response, resourceName);
 
         setRelationData(response, clazz);
 
@@ -1346,15 +1364,18 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
             return;
         }
 
+        // 缓存资源名称，避免同一方法内重复调用
+        String resourceName = getResourceName();
+
         String tableName = annotation.tableName();
         ObjectUtil.checkConditionThrowError(StringUtils.isNotEmpty(tableName),
-                getResourceName() + RESOURCE_SUFFIX_MAPPING_NAME);
+                resourceName + RESOURCE_SUFFIX_MAPPING_NAME);
 
         Class<?> relationClazz = resolveRelationClass(tableName);
 
         Class<?> type = field.getType();
         ObjectUtil.checkConditionThrowError(!type.isPrimitive(),
-                getResourceName() + RESOURCE_SUFFIX_MAPPING_TYPE_ERROR);
+                resourceName + RESOURCE_SUFFIX_MAPPING_TYPE_ERROR);
 
         String fieldName = field.getName();
 

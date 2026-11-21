@@ -55,12 +55,15 @@ public abstract class InMemoryRuleRepositoryAdapter<T extends RuleEntity> implem
         }
         T processedEntity = preProcess(entity);
         if (processedEntity != null) {
-            allRules.put(processedEntity.getId(), processedEntity);
-            machineRules.computeIfAbsent(MachineInfo.of(processedEntity.getApp(), processedEntity.getIp(),
+            // Cache the entity id and app name to avoid repeated calls within the same method.
+            Long entityId = processedEntity.getId();
+            String app = processedEntity.getApp();
+            allRules.put(entityId, processedEntity);
+            machineRules.computeIfAbsent(MachineInfo.of(app, processedEntity.getIp(),
                 processedEntity.getPort()), e -> new ConcurrentHashMap<>(32))
-                .put(processedEntity.getId(), processedEntity);
-            appRules.computeIfAbsent(processedEntity.getApp(), v -> new ConcurrentHashMap<>(32))
-                .put(processedEntity.getId(), processedEntity);
+                .put(entityId, processedEntity);
+            appRules.computeIfAbsent(app, v -> new ConcurrentHashMap<>(32))
+                .put(entityId, processedEntity);
         }
 
         return processedEntity;
@@ -96,10 +99,13 @@ public abstract class InMemoryRuleRepositoryAdapter<T extends RuleEntity> implem
     public T delete(Long id) {
         T entity = allRules.remove(id);
         if (entity != null) {
-            if (appRules.get(entity.getApp()) != null) {
-                appRules.get(entity.getApp()).remove(id);
+            // Cache the app name and its rule map to avoid repeated calls within the same method.
+            String app = entity.getApp();
+            Map<Long, T> appRuleMap = appRules.get(app);
+            if (appRuleMap != null) {
+                appRuleMap.remove(id);
             }
-            machineRules.get(MachineInfo.of(entity.getApp(), entity.getIp(), entity.getPort())).remove(id);
+            machineRules.get(MachineInfo.of(app, entity.getIp(), entity.getPort())).remove(id);
         }
         return entity;
     }

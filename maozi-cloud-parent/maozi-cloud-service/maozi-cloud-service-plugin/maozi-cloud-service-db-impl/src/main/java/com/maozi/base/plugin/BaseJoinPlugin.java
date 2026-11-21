@@ -39,13 +39,16 @@ public abstract class BaseJoinPlugin {
      */
     public void apply(String abbreviationModelName, MPJLambdaWrapper<?> wrapper, JoinPlugin joinPlugin) {
 
+        // 缓存关联方式名称，避免同一方法内重复调用
+        String joinName = joinName();
+
         String tableName = joinPlugin.tableName();
         ObjectUtil.checkConditionThrowError(StringUtils.isNotEmpty(tableName),
-            abbreviationModelName + joinName() + JOIN_TARGET_ERROR);
+            abbreviationModelName + joinName + JOIN_TARGET_ERROR);
 
         String on = joinPlugin.on();
         ObjectUtil.checkConditionThrowError(StringUtils.isNotEmpty(on),
-            abbreviationModelName + joinName() + JOIN_CONDITION_ERROR);
+            abbreviationModelName + joinName + JOIN_CONDITION_ERROR);
 
         // 配置了表别名时拼接为 "表名 as 别名"
         String tableAlias = joinPlugin.tableAlias();

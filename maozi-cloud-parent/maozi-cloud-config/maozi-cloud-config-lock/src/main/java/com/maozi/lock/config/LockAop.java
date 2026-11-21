@@ -77,10 +77,13 @@ public class LockAop {
         // 解析业务键名称（来自 SpEL 表达式或 @LockKey 注解的参数）
         String businessKeyName = getKeyName(joinPoint, annotation);
 
+        // 缓存注解配置的锁名称，避免同一方法内重复调用
+        String annotationName = annotation.name();
+
         // 确定锁名称：如果注解指定了名称则使用指定名称，
         // 否则使用 "类名.方法名" 作为默认锁名称
-        String lockName = StringUtils.isNotEmpty(annotation.name()) ?
-                annotation.name()
+        String lockName = StringUtils.isNotEmpty(annotationName) ?
+                annotationName
                 :
                 signature.getDeclaringTypeName() + SymbolConstant.DOT + signature.getMethod().getName();
 
@@ -91,16 +94,20 @@ public class LockAop {
         // 获取等待时间：如果注解未指定（Long.MIN_VALUE），则使用全局配置的默认值
         // （判空防止自动拆箱 NPE）
         Long configuredWaitTime = lockRedissonProperties.getWaitTime();
-        long waitTime = annotation.waitTime() == Long.MIN_VALUE
+        // 缓存注解配置的等待时间，避免同一方法内重复调用
+        long annotationWaitTime = annotation.waitTime();
+        long waitTime = annotationWaitTime == Long.MIN_VALUE
                 ? (configuredWaitTime == null ? LockTypeEnum.DEFAULT_LOCK_TIME : configuredWaitTime)
-                : annotation.waitTime();
+                : annotationWaitTime;
 
         // 获取持有时间：如果注解未指定（Long.MIN_VALUE），则使用全局配置的默认值
         // （判空防止自动拆箱 NPE）
         Long configuredLeaseTime = lockRedissonProperties.getLeaseTime();
-        long leaseTime = annotation.leaseTime() == Long.MIN_VALUE
+        // 缓存注解配置的持有时间，避免同一方法内重复调用
+        long annotationLeaseTime = annotation.leaseTime();
+        long leaseTime = annotationLeaseTime == Long.MIN_VALUE
                 ? (configuredLeaseTime == null ? LockTypeEnum.DEFAULT_LOCK_TIME : configuredLeaseTime)
-                : annotation.leaseTime();
+                : annotationLeaseTime;
 
         // 执行加锁操作，如果加锁失败则根据配置的策略进行处理
         type.lock(lockName, waitTime, leaseTime, annotation.lockTimeoutStrategy());
@@ -135,8 +142,9 @@ public class LockAop {
 
         Object[] args = joinPoint.getArgs();
 
+        // method 已缓存 signature.getMethod() 的结果，直接复用避免重复调用
         method = method.getDeclaringClass().isInterface()
-                ? signature.getMethod()
+                ? method
                 : target.getClass().getDeclaredMethod(signature.getName(),
                         method.getParameterTypes());
 

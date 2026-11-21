@@ -251,19 +251,24 @@ public class ClusterConfigController {
 
     /** Validates the modify request (app/ip/port/mode and version support); returns the first error or null. */
     private Result<Boolean> checkValidRequest(ClusterModifyRequest request) {
-        if (StringUtil.isEmpty(request.getApp())) {
+        // Cache the field values to avoid repeated calls within the same method.
+        String app = request.getApp();
+        String ip = request.getIp();
+        Integer port = request.getPort();
+        Integer mode = request.getMode();
+        if (StringUtil.isEmpty(app)) {
             return Result.ofFail(-1, "app cannot be empty");
         }
-        if (StringUtil.isEmpty(request.getIp())) {
+        if (StringUtil.isEmpty(ip)) {
             return Result.ofFail(-1, "ip cannot be empty");
         }
-        if (request.getPort() == null || request.getPort() < 0) {
+        if (port == null || port < 0) {
             return Result.ofFail(-1, "invalid port");
         }
-        if (request.getMode() == null || request.getMode() < 0) {
+        if (mode == null || mode < 0) {
             return Result.ofFail(-1, "invalid mode");
         }
-        if (!checkIfSupported(request.getApp(), request.getIp(), request.getPort())) {
+        if (!checkIfSupported(app, ip, port)) {
             return unsupportedVersion();
         }
         return null;

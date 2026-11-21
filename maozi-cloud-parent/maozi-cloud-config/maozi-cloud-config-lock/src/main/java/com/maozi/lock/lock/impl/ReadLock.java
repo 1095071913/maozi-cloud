@@ -3,6 +3,7 @@ package com.maozi.lock.lock.impl;
 import com.maozi.lock.lock.Lock;
 import jakarta.annotation.Resource;
 import lombok.SneakyThrows;
+import org.redisson.api.RLock;
 import org.redisson.api.RReadWriteLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
@@ -55,10 +56,13 @@ public class ReadLock implements Lock {
 
         RReadWriteLock lock = redissonClient.getReadWriteLock(key);
 
+        // 缓存读锁对象，避免同一方法内重复调用
+        RLock readLock = lock.readLock();
+
         // 判断读锁是否由当前线程持有，如果是则异步强制释放读锁并等待结果，
         // 否则返回 false；Boolean.TRUE.equals 包装结果为 null 时返回 false，避免自动拆箱 NPE
-        return lock.readLock().isHeldByCurrentThread()
-                && Boolean.TRUE.equals(lock.readLock().forceUnlockAsync().get());
+        return readLock.isHeldByCurrentThread()
+                && Boolean.TRUE.equals(readLock.forceUnlockAsync().get());
 
     }
 

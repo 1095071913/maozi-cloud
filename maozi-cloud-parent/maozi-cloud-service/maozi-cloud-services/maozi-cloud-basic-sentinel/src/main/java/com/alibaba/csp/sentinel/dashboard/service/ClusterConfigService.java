@@ -19,6 +19,7 @@ import com.alibaba.csp.sentinel.cluster.ClusterStateManager;
 import com.alibaba.csp.sentinel.dashboard.client.SentinelApiClient;
 import com.alibaba.csp.sentinel.dashboard.discovery.AppInfo;
 import com.alibaba.csp.sentinel.dashboard.discovery.AppManagement;
+import com.alibaba.csp.sentinel.dashboard.discovery.MachineInfo;
 import com.alibaba.csp.sentinel.dashboard.domain.cluster.ClusterGroupEntity;
 import com.alibaba.csp.sentinel.dashboard.domain.cluster.config.ClusterClientConfig;
 import com.alibaba.csp.sentinel.dashboard.domain.cluster.config.ServerFlowConfig;
@@ -83,9 +84,15 @@ public class ClusterConfigService {
      */
     private boolean notClientRequestValid(/*@NonNull */ ClusterClientModifyRequest request) {
         ClusterClientConfig config = request.getClientConfig();
-        return config == null || StringUtil.isEmpty(config.getServerHost())
-            || config.getServerPort() == null || config.getServerPort() <= 0
-            || config.getRequestTimeout() == null || config.getRequestTimeout() <= 0;
+        if (config == null) {
+            return true;
+        }
+        // Cache the field values to avoid repeated calls within the same method.
+        Integer serverPort = config.getServerPort();
+        Integer requestTimeout = config.getRequestTimeout();
+        return StringUtil.isEmpty(config.getServerHost())
+            || serverPort == null || serverPort <= 0
+            || requestTimeout == null || requestTimeout <= 0;
     }
 
     /**
@@ -128,14 +135,24 @@ public class ClusterConfigService {
             return AsyncUtils.newFailedFuture(new IllegalArgumentException("app cannot be empty"));
         }
         AppInfo appInfo = appManagement.getDetailApp(app);
-        if (appInfo == null || appInfo.getMachines() == null) {
+        if (appInfo == null) {
+            return CompletableFuture.completedFuture(new ArrayList<>());
+        }
+        // Cache the machine set to avoid repeated calls within the same method.
+        Set<MachineInfo> machines = appInfo.getMachines();
+        if (machines == null) {
             return CompletableFuture.completedFuture(new ArrayList<>());
         }
 
-        List<CompletableFuture<ClusterUniversalStatePairVO>> futures = appInfo.getMachines().stream()
+        List<CompletableFuture<ClusterUniversalStatePairVO>> futures = machines.stream()
             .filter(e -> e.isHealthy())
-            .map(machine -> getClusterUniversalState(app, machine.getIp(), machine.getPort())
-                .thenApply(e -> new ClusterUniversalStatePairVO(machine.getIp(), machine.getPort(), e)))
+            .map(machine -> {
+                // Cache the machine ip and port to avoid repeated calls within the same element.
+                String machineIp = machine.getIp();
+                int machinePort = machine.getPort();
+                return getClusterUniversalState(app, machineIp, machinePort)
+                    .thenApply(e -> new ClusterUniversalStatePairVO(machineIp, machinePort, e));
+            })
             .collect(Collectors.toList());
 
         return AsyncUtils.sequenceSuccessFuture(futures);
@@ -152,11 +169,16 @@ public class ClusterConfigService {
             return AsyncUtils.newFailedFuture(new IllegalArgumentException("app cannot be empty"));
         }
         AppInfo appInfo = appManagement.getDetailApp(app);
-        if (appInfo == null || appInfo.getMachines() == null) {
+        if (appInfo == null) {
+            return AsyncUtils.newFailedFuture(new IllegalArgumentException("app does not have machines"));
+        }
+        // Cache the machine set to avoid repeated calls within the same method.
+        Set<MachineInfo> machines = appInfo.getMachines();
+        if (machines == null) {
             return AsyncUtils.newFailedFuture(new IllegalArgumentException("app does not have machines"));
         }
 
-        boolean machineOk = appInfo.getMachines().stream()
+        boolean machineOk = machines.stream()
             .filter(e -> e.isHealthy())
             .map(e -> e.getIp() + '@' + e.getPort())
             .anyMatch(e -> e.equals(machineId));
@@ -204,8 +226,14 @@ public class ClusterConfigService {
      * or non-positive.
      */
     private boolean invalidTransportConfig(ServerTransportConfig transportConfig) {
-        return transportConfig == null || transportConfig.getPort() == null || transportConfig.getPort() <= 0
-            || transportConfig.getIdleSeconds() == null || transportConfig.getIdleSeconds() <= 0;
+        if (transportConfig == null) {
+            return true;
+        }
+        // Cache the field values to avoid repeated calls within the same method.
+        Integer port = transportConfig.getPort();
+        Integer idleSeconds = transportConfig.getIdleSeconds();
+        return port == null || port <= 0
+            || idleSeconds == null || idleSeconds <= 0;
     }
 
     /**
@@ -214,9 +242,16 @@ public class ClusterConfigService {
      * maxAllowedQps is missing or negative.
      */
     private boolean invalidFlowConfig(ServerFlowConfig flowConfig) {
-        return flowConfig == null || flowConfig.getSampleCount() == null || flowConfig.getSampleCount() <= 0
-            || flowConfig.getIntervalMs() == null || flowConfig.getIntervalMs() <= 0
-            || flowConfig.getIntervalMs() % flowConfig.getSampleCount() != 0
-            || flowConfig.getMaxAllowedQps() == null || flowConfig.getMaxAllowedQps() < 0;
+        if (flowConfig == null) {
+            return true;
+        }
+        // Cache the field values to avoid repeated calls within the same method.
+        Integer sampleCount = flowConfig.getSampleCount();
+        Integer intervalMs = flowConfig.getIntervalMs();
+        Double maxAllowedQps = flowConfig.getMaxAllowedQps();
+        return sampleCount == null || sampleCount <= 0
+            || intervalMs == null || intervalMs <= 0
+            || intervalMs % sampleCount != 0
+            || maxAllowedQps == null || maxAllowedQps < 0;
     }
 }

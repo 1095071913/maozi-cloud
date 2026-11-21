@@ -366,10 +366,11 @@ public class ChatServiceImpl implements ChatService {
         Integer countParam = param.getCount();
         int count = ObjectUtil.isNotNull(countParam) ? countParam : DEFAULT_IMAGE_COUNT;
 
-        // 写入对话与文生图进行中标记，过期时间按生成数量放大，防止异常导致标记残留
-        stringValueOperations.setIfAbsent(chatStopLockKey, Boolean.TRUE.toString(),
+        // 缓存标记值，避免同一方法内重复调用；过期时间按生成数量放大，防止异常导致标记残留
+        String stopFlag = Boolean.TRUE.toString();
+        stringValueOperations.setIfAbsent(chatStopLockKey, stopFlag,
                 CHAT_STOP_KEY_EXPIRE_SECONDS * count, TimeUnit.SECONDS);
-        stringValueOperations.setIfAbsent(chatGenerateImageStopLockKey, Boolean.TRUE.toString(),
+        stringValueOperations.setIfAbsent(chatGenerateImageStopLockKey, stopFlag,
                 CHAT_STOP_KEY_EXPIRE_SECONDS * count, TimeUnit.SECONDS);
 
         try {

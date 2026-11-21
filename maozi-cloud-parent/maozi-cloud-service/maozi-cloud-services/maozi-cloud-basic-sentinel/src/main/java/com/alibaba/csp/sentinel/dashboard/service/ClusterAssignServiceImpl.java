@@ -18,12 +18,14 @@ package com.alibaba.csp.sentinel.dashboard.service;
 import com.alibaba.csp.sentinel.cluster.ClusterStateManager;
 import com.alibaba.csp.sentinel.dashboard.client.SentinelApiClient;
 import com.alibaba.csp.sentinel.dashboard.domain.cluster.ClusterAppAssignResultVO;
+import com.alibaba.csp.sentinel.dashboard.domain.cluster.ClusterClientInfoVO;
 import com.alibaba.csp.sentinel.dashboard.domain.cluster.ClusterGroupEntity;
 import com.alibaba.csp.sentinel.dashboard.domain.cluster.config.ClusterClientConfig;
 import com.alibaba.csp.sentinel.dashboard.domain.cluster.config.ServerFlowConfig;
 import com.alibaba.csp.sentinel.dashboard.domain.cluster.config.ServerTransportConfig;
 import com.alibaba.csp.sentinel.dashboard.domain.cluster.request.ClusterAppAssignMap;
 import com.alibaba.csp.sentinel.dashboard.domain.cluster.state.ClusterUniversalStatePairVO;
+import com.alibaba.csp.sentinel.dashboard.domain.cluster.state.ClusterUniversalStateVO;
 import com.alibaba.csp.sentinel.dashboard.util.MachineUtils;
 import com.alibaba.csp.sentinel.util.AssertUtil;
 import com.alibaba.csp.sentinel.util.function.Tuple2;
@@ -90,9 +92,16 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
             List<ClusterUniversalStatePairVO> list = clusterConfigService.getClusterUniversalState(app)
                 .get(10, TimeUnit.SECONDS);
             Set<String> toModifySet = list.stream()
-                .filter(e -> e.getState().getStateInfo().getMode() == ClusterStateManager.CLUSTER_CLIENT)
-                .filter(e -> machineId.equals(e.getState().getClient().getClientConfig().getServerHost() + ':' +
-                    e.getState().getClient().getClientConfig().getServerPort()))
+                .filter(e -> {
+                    // Cache the state object to avoid repeated calls within the same element.
+                    ClusterUniversalStateVO state = e.getState();
+                    if (state.getStateInfo().getMode() != ClusterStateManager.CLUSTER_CLIENT) {
+                        return false;
+                    }
+                    // Cache the client config to avoid repeated calls within the same element.
+                    ClusterClientInfoVO clientConfig = state.getClient().getClientConfig();
+                    return machineId.equals(clientConfig.getServerHost() + ':' + clientConfig.getServerPort());
+                })
                 .map(e -> e.getIp() + '@' + e.getCommandPort())
                 .collect(Collectors.toSet());
             // Modify mode to NOT-STARTED for all associated token clients.

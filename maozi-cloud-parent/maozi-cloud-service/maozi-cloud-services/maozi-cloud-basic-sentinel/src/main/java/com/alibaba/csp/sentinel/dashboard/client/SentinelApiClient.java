@@ -225,11 +225,13 @@ public class SentinelApiClient {
     private StringBuilder queryString(Map<String, String> params) {
         StringBuilder queryStringBuilder = new StringBuilder();
         for (Entry<String, String> entry : params.entrySet()) {
-            if (StringUtil.isEmpty(entry.getValue())) {
+            // Cache the entry value to avoid repeated calls within the same loop iteration.
+            String entryValue = entry.getValue();
+            if (StringUtil.isEmpty(entryValue)) {
                 continue;
             }
             String name = urlEncode(entry.getKey());
-            String value = urlEncode(entry.getValue());
+            String value = urlEncode(entryValue);
             if (name != null && value != null) {
                 if (queryStringBuilder.length() > 0) {
                     queryStringBuilder.append('&');

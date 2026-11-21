@@ -143,7 +143,8 @@ public class SystemController {
 
         int notNullCount = countNotNullAndNotNegative(highestSystemLoad, avgRt, maxThread, qps, highestCpuUsage);
         if (notNullCount != 1) {
-            return Result.ofFail(Result.CODE_ERROR, "only one of [highestSystemLoad, avgRt, maxThread, qps,highestCpuUsage] "
+            return Result.ofFail(Result.CODE_ERROR,
+                "only one of [highestSystemLoad, avgRt, maxThread, qps,highestCpuUsage] "
                 + "value must be set > 0, but " + notNullCount + " values get");
         }
         if (null != highestCpuUsage && highestCpuUsage > 1) {

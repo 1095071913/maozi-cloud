@@ -7,9 +7,7 @@ import io.opentelemetry.javaagent.shaded.io.opentelemetry.api.trace.Span;
 import io.opentelemetry.javaagent.shaded.io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.javaagent.shaded.io.opentelemetry.context.Context;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 
 /**
  * HTTP 响应追踪 ID 注入定制器
@@ -29,10 +27,10 @@ public class AgentHttpResponseCustomizer implements HttpServerResponseCustomizer
     /** 追踪 ID 响应头名称 */
     private static final String TRACE_ID_HEADER_KEY = "X-TraceId";
 
-    /** 需要注入追踪 ID 的响应类型（网关转发的 Netty 响应） */
-    private static final List<String> ADD_TRACEID_CLASS = Collections.unmodifiableList(
-        Arrays.asList("io.netty.handler.codec.http.DefaultHttpResponse",
-                "io.netty.handler.codec.http.DefaultFullHttpResponse")
+    /** 需要注入追踪 ID 的响应类型集合（网关转发的 Netty 响应；Set 类型保证 O(1) 查找） */
+    private static final Set<String> ADD_TRACEID_CLASS = Set.of(
+        "io.netty.handler.codec.http.DefaultHttpResponse",
+        "io.netty.handler.codec.http.DefaultFullHttpResponse"
     );
 
     /**

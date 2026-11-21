@@ -250,7 +250,8 @@ public class DegradeController {
         if (strategy == RuleConstant.DEGRADE_GRADE_RT) {
             Double slowRatio = entity.getSlowRatioThreshold();
             if (slowRatio == null) {
-                return Result.ofFail(Result.CODE_ERROR, "SlowRatioThreshold is required for slow request ratio strategy");
+                return Result.ofFail(Result.CODE_ERROR,
+                    "SlowRatioThreshold is required for slow request ratio strategy");
             } else if (slowRatio < 0 || slowRatio > 1) {
                 return Result.ofFail(Result.CODE_ERROR, "SlowRatioThreshold should be in range: [0.0, 1.0]");
             }

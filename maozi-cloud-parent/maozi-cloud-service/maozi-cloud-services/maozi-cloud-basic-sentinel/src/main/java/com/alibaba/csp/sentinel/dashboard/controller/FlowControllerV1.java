@@ -165,7 +165,8 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
             if (controlBehavior != RuleConstant.CONTROL_BEHAVIOR_DEFAULT
                 && controlBehavior != RuleConstant.CONTROL_BEHAVIOR_WARM_UP
                 && controlBehavior != RuleConstant.CONTROL_BEHAVIOR_RATE_LIMITER) {
-                return Result.ofFail(Result.CODE_ERROR, "controlBehavior must be in [0, 1, 2], but " + controlBehavior + " got");
+                return Result.ofFail(Result.CODE_ERROR,
+                    "controlBehavior must be in [0, 1, 2], but " + controlBehavior + " got");
             }
             if (controlBehavior == RuleConstant.CONTROL_BEHAVIOR_WARM_UP && warmUpPeriodSec == null) {
                 return Result.ofFail(Result.CODE_ERROR, "warmUpPeriodSec can't be null when controlBehavior==1");

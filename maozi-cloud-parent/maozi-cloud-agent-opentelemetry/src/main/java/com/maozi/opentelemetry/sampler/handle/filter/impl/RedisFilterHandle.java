@@ -9,6 +9,7 @@ import lombok.EqualsAndHashCode;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Redis Span 过滤器
@@ -28,8 +29,8 @@ public class RedisFilterHandle extends BaseFilterHandle {
     /** 来源标识，匹配 Span 属性 {@code db.system} */
     private final List<String> names = List.of("redis");
 
-    /** 需要排除的 Redis 指令列表（连接保活、认证等指令） */
-    private static final List<String> EXCLUDED_STATEMENT = List.of(
+    /** 需要排除的 Redis 指令集合（连接保活、认证等指令；Set 类型保证热路径 O(1) 查找） */
+    private static final Set<String> EXCLUDED_STATEMENT = Set.of(
             "PING",
             "AUTH ?",
             "INFO server",

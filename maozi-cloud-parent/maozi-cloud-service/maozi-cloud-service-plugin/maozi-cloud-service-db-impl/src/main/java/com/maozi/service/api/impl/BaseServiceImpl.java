@@ -55,6 +55,7 @@ import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -1163,6 +1164,11 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
             String fieldName = field.getName();
             if (SerializeUtil.SERIAL_VERSION_UID_FIELD_NAME.equals(fieldName)){
+                continue;
+            }
+
+            // 静态常量（如 SORT_KEY）不属于查询条件且无 getter 方法，直接跳过
+            if (Modifier.isStatic(field.getModifiers())) {
                 continue;
             }
 

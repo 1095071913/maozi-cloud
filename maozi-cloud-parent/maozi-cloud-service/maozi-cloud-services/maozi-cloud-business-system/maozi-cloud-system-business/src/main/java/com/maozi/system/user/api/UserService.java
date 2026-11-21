@@ -39,7 +39,7 @@ public interface UserService {
      * @param id 用户ID
      * @return 客户端用户信息参数对象，包含用户名和客户端ID
      */
-    ClientUserParam getClientUser(Long id);
+    ClientUserParam getClientUserById(Long id);
 
     /**
      * 根据用户ID列表批量获取客户端用户信息
@@ -47,6 +47,6 @@ public interface UserService {
      * @param ids 用户ID列表
      * @return 客户端用户信息参数对象列表
      */
-    List<ClientUserParam> listClientUser(List<Long> ids);
+    List<ClientUserParam> listClientUserByIds(List<Long> ids);
 
 }

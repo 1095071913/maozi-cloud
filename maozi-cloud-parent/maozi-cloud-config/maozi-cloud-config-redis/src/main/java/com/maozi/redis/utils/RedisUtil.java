@@ -33,7 +33,8 @@ public class RedisUtil {
 
         REDIS_CLIENT = SpringUtil.getBean(StringRedisTemplate.class);
 
-        REDIS_KEY_PREFIX = REDIS_KEY_PROJECT_PREFIX + SymbolConstant.COLON + ApplicationEnvironmentContext.serviceName + SymbolConstant.COLON;
+        REDIS_KEY_PREFIX = REDIS_KEY_PROJECT_PREFIX + SymbolConstant.COLON
+                + ApplicationEnvironmentContext.serviceName + SymbolConstant.COLON;
 
     }
 

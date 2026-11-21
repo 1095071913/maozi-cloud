@@ -59,7 +59,8 @@ public interface RestChatMessageService {
      * @return 返回 AI 回复的分片流（SSE），最后追加一条对话完成（FINISH）消息
      */
     @Post(value = PATH + "/send", produces = MediaType.TEXT_EVENT_STREAM_VALUE, description = "发起")
-    Flux<AbstractBaseResult<ChatResult>> chatResult(@PathVariable Long conversationId, @RequestBody @Valid ChatParam param);
+    Flux<AbstractBaseResult<ChatResult>> chatResult(@PathVariable Long conversationId,
+            @RequestBody @Valid ChatParam param);
 
     /**
      * 停止会话进行中的对话或文生图

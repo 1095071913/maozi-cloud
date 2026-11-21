@@ -4,6 +4,8 @@ import com.maozi.common.CollectionUtil;
 import com.maozi.common.JacksonUtil;
 import com.maozi.common.LogUtil;
 import com.maozi.common.context.TraceIdContext;
+import com.maozi.common.result.error.code.SystemErrorCode;
+import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.common.result.success.SuccessResult;
 import io.opentelemetry.api.trace.Span;
 import jakarta.annotation.Nonnull;
@@ -173,8 +175,10 @@ public class ServerHttpResponseAgent extends ServerHttpResponseDecorator {
         try {
             buffer = bufferFactory.wrap(outputStream.toByteArray());
         } catch (Exception e) {
+            // 包装失败时包装为业务异常向上抛出：若吞掉异常返回 null，
+            // Reactor 的 map 会因 null 抛 NPE，掩盖真正的失败原因
             log.error("wrap response body error", e);
-            buffer = null;
+            throw new BusinessResultException(SystemErrorCode.DEFAULT_ERROR, e);
         } finally {
             try {
                 outputStream.close();

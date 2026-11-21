@@ -116,41 +116,10 @@ public class StreamEntranceLogAop {
         Map<String, String> logs = new LinkedHashMap<>(16);
 
         // 记录消息类型、消息 ID、Topic 与消费方法
-        logs.put(LogTag.TYPE, LogCommonTypeEnum.MQ.getDesc());
+        fillMessageLogs(headers, logs, proceedingJoinPoint.getSignature());
 
-        // 非 RocketMQ 绑定器传输时消息头不存在，判空后按需记录，避免消费前置逻辑 NPE
-        Object messageId = headers.get(HEADER_ROCKET_MQ_MESSAGE_ID);
-        if (messageId != null) {
-            logs.put(LOG_TAG_MESSAGE_ID, messageId.toString());
-        }
-
-        Object topic = headers.get(HEADER_ROCKET_MQ_TOPIC);
-        if (topic != null) {
-            logs.put(LOG_TAG_TOPIC, topic.toString());
-        }
-
-        Signature signature = proceedingJoinPoint.getSignature();
-
-        logs.put(LogTag.FUNCTION, signature.getDeclaringTypeName()
-            + SymbolConstant.COLON + signature.getName());
-
-        // 从消息头中提取版本号设置到链路上下文
-        Object versionObj = headers.get(VersionContext.KEY);
-        if(ObjectUtil.isNotNull(versionObj)){
-            VersionContext.CONTEXT.set(versionObj.toString());
-        }
-
-        // 从消息头中提取测试流量标记设置到链路上下文
-        Object testFlowObj = headers.get(TestFlowContext.KEY);
-        if(ObjectUtil.isNotNull(testFlowObj)){
-            TestFlowContext.CONTEXT.set(testFlowObj.toString());
-        }
-
-        // 从消息头中提取当前登录用户信息设置到链路上下文
-        Object currentUserInfoObj = headers.get(CurrentUserInfoContext.KEY);
-        if(ObjectUtil.isNotNull(currentUserInfoObj)){
-            CurrentUserInfoContext.CONTEXT.set(currentUserInfoObj.toString());
-        }
+        // 从消息头中恢复版本号、测试流量标记与当前登录用户信息到链路上下文
+        restoreContextFromHeaders(headers);
 
         Exception ex = null;
         try {
@@ -187,6 +156,67 @@ public class StreamEntranceLogAop {
             // 清理线程上下文，防止线程池复用导致数据泄漏
             AbstractRequestContextHolder.clearContext();
 
+        }
+
+    }
+
+    /**
+     * 填充消息链路日志
+     * <p>
+     * 记录消息类型、消息 ID、Topic 与消费方法到日志集合。
+     * </p>
+     *
+     * @param headers 消息头
+     * @param logs 日志信息集合
+     * @param signature 消费方法签名
+     */
+    private void fillMessageLogs(MessageHeaders headers, Map<String, String> logs, Signature signature) {
+
+        logs.put(LogTag.TYPE, LogCommonTypeEnum.MQ.getDesc());
+
+        // 非 RocketMQ 绑定器传输时消息头不存在，判空后按需记录，避免消费前置逻辑 NPE
+        Object messageId = headers.get(HEADER_ROCKET_MQ_MESSAGE_ID);
+        if (messageId != null) {
+            logs.put(LOG_TAG_MESSAGE_ID, messageId.toString());
+        }
+
+        Object topic = headers.get(HEADER_ROCKET_MQ_TOPIC);
+        if (topic != null) {
+            logs.put(LOG_TAG_TOPIC, topic.toString());
+        }
+
+        logs.put(LogTag.FUNCTION, signature.getDeclaringTypeName()
+            + SymbolConstant.COLON + signature.getName());
+
+    }
+
+    /**
+     * 从消息头恢复链路上下文
+     * <p>
+     * 将消息头中的版本号、测试流量标记与当前登录用户信息
+     * 设置到对应链路上下文，供消费逻辑与日志读取。
+     * </p>
+     *
+     * @param headers 消息头
+     */
+    private void restoreContextFromHeaders(MessageHeaders headers) {
+
+        // 从消息头中提取版本号设置到链路上下文
+        Object versionObj = headers.get(VersionContext.KEY);
+        if(ObjectUtil.isNotNull(versionObj)){
+            VersionContext.CONTEXT.set(versionObj.toString());
+        }
+
+        // 从消息头中提取测试流量标记设置到链路上下文
+        Object testFlowObj = headers.get(TestFlowContext.KEY);
+        if(ObjectUtil.isNotNull(testFlowObj)){
+            TestFlowContext.CONTEXT.set(testFlowObj.toString());
+        }
+
+        // 从消息头中提取当前登录用户信息设置到链路上下文
+        Object currentUserInfoObj = headers.get(CurrentUserInfoContext.KEY);
+        if(ObjectUtil.isNotNull(currentUserInfoObj)){
+            CurrentUserInfoContext.CONTEXT.set(currentUserInfoObj.toString());
         }
 
     }

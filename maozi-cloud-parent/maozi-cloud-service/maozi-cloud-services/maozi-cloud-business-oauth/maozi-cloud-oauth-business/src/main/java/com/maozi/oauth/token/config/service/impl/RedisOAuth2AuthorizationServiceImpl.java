@@ -220,7 +220,8 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
             return;
         }
         AuthorizationData data = AuthorizationData.from(current);
-        List<String> keys = CollectionUtil.newArrayList();
+        // 列表大小已知：主键 1 个 + 全部令牌索引，按此指定初始容量避免扩容
+        List<String> keys = CollectionUtil.newArrayList(data.indexes().size() + 1);
         keys.add(authorizationKey(id));
         for (TokenIndex index : data.indexes()) {
             keys.add(indexKey(index.type(), index.value()));
@@ -309,7 +310,8 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
      */
     @Nullable
     private OAuth2Authorization findByTokenIndex(String type, String token, String... fallbackTypes) {
-        List<String> types = CollectionUtil.newArrayList();
+        // 列表大小已知：首选类型 1 个 + 全部备用类型，按此指定初始容量避免扩容
+        List<String> types = CollectionUtil.newArrayList(fallbackTypes.length + 1);
         types.add(type);
         Collections.addAll(types, fallbackTypes);
         for (String candidateType : types) {
@@ -774,7 +776,8 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
          * @return 令牌索引列表
          */
         List<TokenIndex> indexes() {
-            List<TokenIndex> indexes = CollectionUtil.newArrayList();
+            // 索引上限固定 7 个（state + 6 种令牌），按此指定初始容量避免扩容
+            List<TokenIndex> indexes = CollectionUtil.newArrayList(7);
             if (StringUtils.hasText(this.state)) {
                 indexes.add(new TokenIndex(STATE_TYPE, this.state));
             }
@@ -793,7 +796,8 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
          * @return 令牌数据列表
          */
         List<TokenData<?>> tokens() {
-            List<TokenData<?>> tokens = CollectionUtil.newArrayList();
+            // 令牌数据上限固定 6 种，按此指定初始容量避免扩容
+            List<TokenData<?>> tokens = CollectionUtil.newArrayList(6);
             if (this.authorizationCode != null) {
                 tokens.add(this.authorizationCode);
             }

@@ -140,7 +140,8 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
 
         // 以下令牌生成流程参考OAuth2AuthorizationCodeAuthenticationProvider实现
         DefaultOAuth2TokenContext.Builder tokenContextBuilder =
-                buildTokenContextBuilder(registeredClient, userAuthenticationToken, authorizedScopes, authenticationToken);
+                buildTokenContextBuilder(registeredClient, userAuthenticationToken, authorizedScopes,
+                        authenticationToken);
 
         // 初始化OAuth2Authorization构建器
         OAuth2Authorization.Builder authorizationBuilder =
@@ -280,7 +281,8 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
         if (generatedAccessToken instanceof ClaimAccessor) {
             Authentication finalUserAuthenticationToken = userAuthenticationToken;
             authorizationBuilder.token(accessToken, (metadata) -> {
-                Map<String, Object> claims = CollectionUtil.newHashMap(((ClaimAccessor) generatedAccessToken).getClaims());
+                Map<String, Object> claims = CollectionUtil
+                        .newHashMap(((ClaimAccessor) generatedAccessToken).getClaims());
                 List<String> authorities = finalUserAuthenticationToken.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.toList());

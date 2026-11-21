@@ -8,6 +8,7 @@ import com.maozi.service.api.rpc.BaseDBServiceResult;
  * @date 2026/11/20 01:21
  */
 @SuppressWarnings({"rawtypes"})
-public class BaseDBServiceResultImpl<S extends BaseServiceImpl> extends BaseDBTServiceResultImpl<S, Void> implements BaseDBServiceResult<Void> {
+public class BaseDBServiceResultImpl<S extends BaseServiceImpl>
+        extends BaseDBTServiceResultImpl<S, Void> implements BaseDBServiceResult<Void> {
 
 }

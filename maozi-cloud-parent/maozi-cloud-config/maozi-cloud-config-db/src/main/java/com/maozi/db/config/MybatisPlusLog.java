@@ -115,7 +115,9 @@ public class MybatisPlusLog implements Log {
                 for (String param : params) {
 
                     // 提取参数值部分（"(" 之前的字符串），并加上单引号包裹
-                    param = SymbolConstant.SINGLE_QUOTE + param.substring(0, param.indexOf(SymbolConstant.LEFT_PARENTHESIS)) + SymbolConstant.SINGLE_QUOTE;
+                    param = SymbolConstant.SINGLE_QUOTE
+                            + param.substring(0, param.indexOf(SymbolConstant.LEFT_PARENTHESIS))
+                            + SymbolConstant.SINGLE_QUOTE;
 
                     // 在 SQL 模板中找到第一个 "?" 占位符，用参数值替换
                     int index = sqlLog.indexOf(SymbolConstant.QUESTION_MARK);

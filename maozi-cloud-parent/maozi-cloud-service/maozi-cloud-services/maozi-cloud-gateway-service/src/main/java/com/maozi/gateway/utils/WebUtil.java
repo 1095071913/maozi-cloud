@@ -6,6 +6,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 /**
  * Web 工具类
@@ -25,7 +26,7 @@ public class WebUtil {
             "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR", "X-Real-IP");
 
     /** 逗号分隔切分模式（多 IP 场景取首段，预编译） */
-    private static final java.util.regex.Pattern COMMA_SPLIT_PATTERN = java.util.regex.Pattern.compile(SymbolConstant.COMMA);
+    private static final Pattern COMMA_SPLIT_PATTERN = Pattern.compile(SymbolConstant.COMMA);
 
     /**
      * 获取客户端真实 IP 地址

@@ -2,8 +2,8 @@ package com.maozi.oauth.token.config.authorization.password;
 
 import com.maozi.oauth.token.config.authorization.base.BaseGrantAuthenticationConverter;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
@@ -20,7 +20,7 @@ import org.springframework.util.StringUtils;
  * @author maozi
  * @date 2026/11/08
  */
-@Data
+@Getter
 @EqualsAndHashCode(callSuper = true)
 public class PasswordAuthenticationConverter extends BaseGrantAuthenticationConverter<PasswordAuthenticationToken> {
 

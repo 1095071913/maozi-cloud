@@ -30,7 +30,8 @@ import java.util.List;
  */
 @RestService
 @RequiredArgsConstructor
-public class RestChatMessageServiceImpl extends BaseServiceResultImpl<ChatServiceImpl> implements RestChatMessageService {
+public class RestChatMessageServiceImpl extends BaseServiceResultImpl<ChatServiceImpl>
+        implements RestChatMessageService {
 
     /** AI文生图 */
     @Override

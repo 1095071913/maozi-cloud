@@ -68,6 +68,9 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
     /** SCAN 遍历的批量提示值：每次向 Redis 提示扫描的 key 数量 */
     private static final long SCAN_BATCH_COUNT = 1000L;
 
+    /** ZSET score 边界偏移量：将"不含等于该时间戳"的开区间转换为 ZRANGEBYSCORE 的闭区间起点 */
+    private static final long SCORE_EXCLUSIVE_OFFSET = 1L;
+
     /**
      * 查询全部会话 ID
      * <p>
@@ -136,7 +139,8 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
     @Override
     public List<Message> findRecordAfterTimestamp(@NotNull String conversationId, Long timestamp) {
         Objects.requireNonNull(timestamp, "timestamp must not be null");
-        return findMessageByIndexSuffix(conversationId, AI_CHAT_MEMORY_RECORD_KEY_SUFFIX, timestamp + 1);
+        return findMessageByIndexSuffix(conversationId, AI_CHAT_MEMORY_RECORD_KEY_SUFFIX,
+                timestamp + SCORE_EXCLUSIVE_OFFSET);
     }
 
     /**

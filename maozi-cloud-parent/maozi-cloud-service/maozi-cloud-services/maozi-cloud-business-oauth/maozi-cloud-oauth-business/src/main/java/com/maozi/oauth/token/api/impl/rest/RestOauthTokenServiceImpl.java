@@ -20,7 +20,8 @@ import java.util.Map;
  * @date 2026/7/8 17:15
  */
 @RestService
-public class RestOauthTokenServiceImpl extends BaseServiceResultImpl<OauthTokenServiceImpl> implements RestOauthTokenService {
+public class RestOauthTokenServiceImpl extends BaseServiceResultImpl<OauthTokenServiceImpl>
+        implements RestOauthTokenService {
 
     /**
      * REST 令牌内省，返回统一结果封装

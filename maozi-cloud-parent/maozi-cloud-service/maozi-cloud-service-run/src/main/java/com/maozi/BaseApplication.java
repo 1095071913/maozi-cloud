@@ -141,6 +141,9 @@ public class BaseApplication {
     /** 属性键：日志文件路径 */
     private static final String LOGGING_FILE_NAME_KEY = "logging.file.name";
 
+    /** 日志文件路径值：按服务名输出到 logs 目录（占位符由日志系统解析） */
+    private static final String LOGGING_FILE_NAME_VALUE = "logs/${spring.application.name}.log";
+
     /** jar 包文件后缀 */
     private static final String JAR_SUFFIX = ".jar";
 
@@ -301,7 +304,7 @@ public class BaseApplication {
         // 非本地环境输出异步文件日志，本地环境输出异步控制台日志
         if(!Objects.equals(environment, EnvironmentTypeEnum.LOCAL.getDesc())){
             properties.put(LOGGING_APPENDER_KEY, APPENDER_ASYNC_FILE);
-            properties.put(LOGGING_FILE_NAME_KEY, "logs/${spring.application.name}.log");
+            properties.put(LOGGING_FILE_NAME_KEY, LOGGING_FILE_NAME_VALUE);
         }else{
             properties.put(LOGGING_APPENDER_KEY, APPENDER_ASYNC_CONSOLE);
         }

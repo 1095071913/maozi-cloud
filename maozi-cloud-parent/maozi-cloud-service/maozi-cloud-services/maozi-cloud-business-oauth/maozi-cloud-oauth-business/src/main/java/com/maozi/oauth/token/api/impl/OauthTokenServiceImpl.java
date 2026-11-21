@@ -80,15 +80,17 @@ public class OauthTokenServiceImpl implements OauthTokenService {
     private static Map<String, Object> getClaims(OAuth2Authorization authorization,
             RegisteredClient authorizedClient, OAuth2Authorization.Token<OAuth2AccessToken> accessToken) {
 
-        Map<String, Object> claims = CollectionUtil.newHashMap();
+        // 合并令牌原有claims，并移除iss（issuer）声明
+        Map<String, Object> oldClaims = accessToken.getClaims();
+
+        // 固定写入 4 个基础声明（active、sub、client_id、token_type）并合并原有 claims，按此预估容量
+        Map<String, Object> claims = CollectionUtil.newHashMap(4 + (oldClaims == null ? 0 : oldClaims.size()));
 
         claims.put(OAuth2TokenIntrospectionClaimNames.ACTIVE, true);
         claims.put(OAuth2TokenIntrospectionClaimNames.SUB, authorization.getPrincipalName());
         claims.put(OAuth2TokenIntrospectionClaimNames.CLIENT_ID, authorizedClient.getId());
         claims.put(OAuth2TokenIntrospectionClaimNames.TOKEN_TYPE, accessToken.getToken().getTokenType().getValue());
 
-        // 合并令牌原有claims，并移除iss（issuer）声明
-        Map<String, Object> oldClaims = accessToken.getClaims();
         if (oldClaims != null) {
             claims.putAll(oldClaims);
             claims.remove(OAuth2TokenIntrospectionClaimNames.ISS);

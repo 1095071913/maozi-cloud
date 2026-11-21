@@ -6,6 +6,8 @@ import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.enums.BaseEnum;
 import lombok.Getter;
 
+import java.util.Objects;
+
 
 /**
  * 授权类型枚举
@@ -87,7 +89,7 @@ public enum AuthTypeEnum implements BaseEnum {
 
         AuthTypeEnum[] values = values();
         for (AuthTypeEnum authType : values) {
-            if(authType.auth.equals(auth)){
+            if(Objects.equals(authType.auth, auth)){
                 return authType;
             }
         }

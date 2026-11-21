@@ -43,6 +43,12 @@ public class DubboInvokeErrorAop {
     /** impl 包名标识，用于区分接口调用和实现调用 */
     private static final String IMPL = "impl";
 
+    /** 服务名在包路径中的段下标：com.maozi.{服务名}.{模块名}.{层级}.rpc.{类名} */
+    private static final int SERVICE_NAME_SEGMENT_INDEX = 2;
+
+    /** 层级段（rpc/impl）在包路径中的段下标：com.maozi.{服务名}.{模块名}.{层级}.rpc.{类名} */
+    private static final int RPC_SEGMENT_INDEX = 5;
+
     /** 包名分隔符切分模式（预编译） */
     private static final Pattern DOT_SPLIT_PATTERN = Pattern.compile("\\.");
 
@@ -75,20 +81,20 @@ public class DubboInvokeErrorAop {
 
             // 包路径段数不足（切点调整或类移动后无法按约定解析）时
             // 直接抛出原始异常，避免数组越界
-            if(remoteInvokeClassSplit.length <= 5){
+            if(remoteInvokeClassSplit.length <= RPC_SEGMENT_INDEX){
                 throw e;
             }
 
-            // 判断是否为接口层调用：remoteInvokeClassSplit[5] 对应包路径中 api 下的子包名。
+            // 判断是否为接口层调用：按层级段下标取值，对应包路径中 api 下的子包名。
             // 当前切点限定的子包名恒为 "rpc"，下方条件恒不成立；
             // 若未来切点扩展到 api.impl 包，此处可让实现层内部调用的异常继续向上抛出
-            if(IMPL.equals(remoteInvokeClassSplit[5])){
+            if(IMPL.equals(remoteInvokeClassSplit[RPC_SEGMENT_INDEX])){
                 // impl 层的调用直接抛出原始异常（当前切点下不可达，见类注释说明）
                 throw e;
             }
 
             // 从包路径第3段提取服务名称，例如 "com.maozi.user.xxx" 中的 "user"
-            String serviceName = remoteInvokeClassSplit[2];
+            String serviceName = remoteInvokeClassSplit[SERVICE_NAME_SEGMENT_INDEX];
 
             // 构建结构化的错误日志信息
             Map<String, String> logs = new LinkedHashMap<>(16);

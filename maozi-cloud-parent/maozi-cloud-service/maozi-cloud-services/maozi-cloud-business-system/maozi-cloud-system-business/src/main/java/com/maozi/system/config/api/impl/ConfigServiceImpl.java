@@ -33,6 +33,9 @@ public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper, ConfigDO> i
     /** 资源名称，用于日志和异常信息中标识当前操作的资源类型 */
     private static final String RESOURCE_NAME = "配置";
 
+    /** 资源名称后缀：类型，用于异常提示信息 */
+    private static final String RESOURCE_SUFFIX_TYPE = "类型";
+
     /**
      * 获取资源名称
      */
@@ -83,7 +86,7 @@ public class ConfigServiceImpl extends BaseServiceImpl<ConfigMapper, ConfigDO> i
     public List<ConfigDropDownResult> commonDropDownList(String type) {
 
         // 配置类型为空时抛出业务异常
-        ObjectUtil.isNullThrowError(type, getResourceName() + "类型");
+        ObjectUtil.isNullThrowError(type, getResourceName() + RESOURCE_SUFFIX_TYPE);
 
         LambdaQueryWrapper<ConfigDO> wrapper = Wrappers.lambdaQuery();
 

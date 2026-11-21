@@ -80,8 +80,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
         // （后续固定写入 IP/TYPE/URL/METHOD 等标签，指定初始容量）
         Map<String, String> logs = new LinkedHashMap<>(16);
 
-
-        // HTTP 响应对象，用于 finally 中统一关闭
+        // HTTP 请求与响应对象，用于 finally 中统一关闭
         ClientHttpRequest request = null;
         ClientHttpResponse response = null;
         try {
@@ -118,63 +117,109 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
                 logs.put(LogTag.DATA, data.toString());
             }
 
-            // 从请求输出流中读取请求参数内容，用于日志记录
             // 非生产环境才记录请求参数，避免生产环境敏感信息写入日志
             if (EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD)) {
-                InputStream paramData = parse(request.getBody());
-                String requestParam = new String(readStream(paramData), StandardCharsets.UTF_8);
-                logs.put(LogTag.PARAM, requestParam);
+                appendRequestParamLog(request, logs);
             }
 
             return data;
 
         } catch (Exception e) {
 
-            // 标记为异常状态
+            // 标记为异常状态，并暂存异常引用（堆栈在 finally 中随结构化日志合并输出，避免重复打印）
             error = true;
-
-            // 暂存异常引用，堆栈在 finally 中随结构化日志合并输出，避免同一异常重复打印
             ex = e;
 
-            // 记录异常相关的用户、描述和堆栈位置到日志
-            Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
-            if (ObjectUtil.isNotNull(userId)) {
-                logs.put(LogTag.ERROR_USER, userId.toString());
-            }
+            // 记录异常相关的用户与请求参数到日志
+            fillErrorLog(request, logs, ex);
 
-            if(ObjectUtil.isNotNull(request)){
-                try {
-                    OutputStream body = request.getBody();
-                    InputStream paramData = parse(body);
-                    String requestParam = new String(readStream(paramData), StandardCharsets.UTF_8);
-                    logs.put(LogTag.PARAM, requestParam);
-                } catch (Exception exc) {
-                    // 辅助读取请求参数失败不覆盖原始异常，追加为被抑制异常保留原因链
-                    ex.addSuppressed(exc);
-                }
-            }
-            
             // RestClientException 原样上抛，其他异常包装为 RestClientException
             throw (ex instanceof RestClientException restClientException) ? restClientException
                 : new RestClientException(ex.getMessage(), ex);
 
         } finally {
 
-            // 确保响应流被关闭，防止资源泄漏
-            if (response != null) {
-                response.close();
+            // 关闭响应、收集 SQL 日志并输出完整的请求链路日志
+            outputFinallyLog(response, logs, error, ex);
+
+        }
+
+    }
+
+    /**
+     * 关闭响应并输出请求链路日志
+     * <p>
+     * 确保响应流被关闭防止资源泄漏，收集本次请求链路中累积的 SQL 日志，
+     * 并根据是否有异常以对应级别输出完整日志
+     * （异常时结构化字段与异常堆栈合并为一条日志，避免重复打印）。
+     * </p>
+     *
+     * @param response HTTP 响应对象，可能为 null（请求执行前即失败）
+     * @param logs 请求链路日志收集 Map
+     * @param error 是否发生异常，决定最终日志级别
+     * @param ex 捕获的异常引用，无异常时为 null
+     */
+    private void outputFinallyLog(ClientHttpResponse response, Map<String, String> logs, boolean error, Throwable ex) {
+
+        // 确保响应流被关闭，防止资源泄漏
+        if (response != null) {
+            response.close();
+        }
+
+        // 收集本次请求链路中累积的 SQL 日志
+        StringBuilder sqlLog = SqlLogContext.CONTEXT.get();
+        if (ObjectUtil.isNotNull(sqlLog)) {
+            logs.put(LogTag.SQL, sqlLog.toString());
+        }
+
+        // 根据是否有异常，以对应日志级别输出完整的请求日志
+        LogUtil.log(log, error, logs, ex);
+
+    }
+
+    /**
+     * 追加请求参数日志
+     * <p>
+     * 从请求输出流中读取请求参数内容并写入日志，
+     * 仅供非生产环境的请求链路日志使用。
+     * </p>
+     *
+     * @param request HTTP 请求对象
+     * @param logs 请求链路日志收集 Map
+     * @throws Exception 流读取异常，由调用方决定处理方式
+     */
+    private void appendRequestParamLog(ClientHttpRequest request, Map<String, String> logs) throws Exception {
+        InputStream paramData = parse(request.getBody());
+        String requestParam = new String(readStream(paramData), StandardCharsets.UTF_8);
+        logs.put(LogTag.PARAM, requestParam);
+    }
+
+    /**
+     * 记录异常上下文日志
+     * <p>
+     * 将异常发生时的当前用户标识与请求参数写入日志；
+     * 辅助读取请求参数失败不覆盖原始异常，追加为被抑制异常保留原因链。
+     * </p>
+     *
+     * @param request HTTP 请求对象，可能为 null（请求创建前即失败）
+     * @param logs 请求链路日志收集 Map
+     * @param ex 原始异常引用
+     */
+    private void fillErrorLog(ClientHttpRequest request, Map<String, String> logs, Throwable ex) {
+
+        // 记录异常相关的用户标识
+        Long userId = CurrentUserInfoContext.CONTEXT.get(CurrentUserInfo::getUserId);
+        if (ObjectUtil.isNotNull(userId)) {
+            logs.put(LogTag.ERROR_USER, userId.toString());
+        }
+
+        // 记录请求参数，读取失败时追加为被抑制异常，不覆盖原始异常
+        if(ObjectUtil.isNotNull(request)){
+            try {
+                appendRequestParamLog(request, logs);
+            } catch (Exception exc) {
+                ex.addSuppressed(exc);
             }
-
-            // 收集本次请求链路中累积的 SQL 日志
-            StringBuilder sqlLog = SqlLogContext.CONTEXT.get();
-            if (ObjectUtil.isNotNull(sqlLog)) {
-                logs.put(LogTag.SQL, sqlLog.toString());
-            }
-
-            // 根据是否有异常，以对应日志级别输出完整的请求日志
-            // （异常时结构化字段与异常堆栈合并为一条日志，避免重复打印）
-            LogUtil.log(log, error, logs, ex);
-
         }
 
     }

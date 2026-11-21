@@ -53,6 +53,9 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, Per
     /** 资源名称，用于异常提示信息 */
     public static final String RESOURCE_NAME = "权限";
 
+    /** 删除校验失败提示语：存在子权限 */
+    private static final String DELETE_FORBIDDEN_BY_CHILDREN_MESSAGE = "存在子权限，不允许删除";
+
     /** 角色权限关系服务，用于校验权限是否被角色绑定 */
     @Resource(name = SystemServiceConstant.ROLE_PERMISSION_SERVICE)
     protected RolePermissionService rolePermissionService;
@@ -81,7 +84,7 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, Per
                 .eq(PermissionDO::getParentId, id);
         ObjectUtil.checkConditionThrowError(super.count(wrapper) < 1,
                 SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE,
-                getResourceName() + "存在子权限，不允许删除");
+                getResourceName() + DELETE_FORBIDDEN_BY_CHILDREN_MESSAGE);
 
     }
 

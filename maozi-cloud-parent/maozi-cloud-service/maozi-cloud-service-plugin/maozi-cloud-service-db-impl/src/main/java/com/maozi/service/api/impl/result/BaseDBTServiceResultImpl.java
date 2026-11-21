@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -46,7 +47,8 @@ import java.util.stream.Collectors;
  * @date 2026/11/11 21:41
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D> extends BaseServiceResultImpl<S> implements BaseDBServiceResult<D> {
+public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
+        extends BaseServiceResultImpl<S> implements BaseDBServiceResult<D> {
 
     /** 数据传输对象（DTO）Class 对象 */
     protected Class<D> resultClass;
@@ -201,7 +203,8 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D> extends Base
 
         ObjectUtil.isNullThrowError(id, resourceName);
 
-        ObjectUtil.checkConditionThrowError(StringUtils.isNotEmpty(relationField), resourceName + RESOURCE_SUFFIX_GROUP);
+        ObjectUtil.checkConditionThrowError(StringUtils.isNotEmpty(relationField),
+                resourceName + RESOURCE_SUFFIX_GROUP);
 
         QueryWrapper<AbstractBaseDomain> wrapper = Wrappers.query();
         if(columns.length > 0) {
@@ -230,7 +233,8 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D> extends Base
 
         CollectionUtil.collectionIsEmptyThrowError(ids, resourceName + RESOURCE_SUFFIX_LIST);
 
-        ObjectUtil.checkConditionThrowError(StringUtils.isNotEmpty(relationField), resourceName + RESOURCE_SUFFIX_GROUP);
+        ObjectUtil.checkConditionThrowError(StringUtils.isNotEmpty(relationField),
+                resourceName + RESOURCE_SUFFIX_GROUP);
 
         QueryWrapper<AbstractBaseDomain> wrapper = Wrappers.query();
         if(columns.length > 0) {
@@ -240,7 +244,7 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D> extends Base
 
         List<AbstractBaseDomain> domains = service.list(wrapper);
         if(CollectionUtil.isEmpty(domains)) {
-            return ResultUtil.success(CollectionUtil.newHashMap());
+            return ResultUtil.success(Collections.emptyMap());
         }
 
         List<D> responseItems = CglibUtil.copyList(domains, () -> ReflectUtil.newInstance(getResultClass()));

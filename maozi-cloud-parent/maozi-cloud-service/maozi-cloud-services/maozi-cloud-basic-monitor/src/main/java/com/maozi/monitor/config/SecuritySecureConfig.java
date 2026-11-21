@@ -44,6 +44,15 @@ public class SecuritySecureConfig {
     /** Remember-Me 令牌有效期：14 天（单位：秒） */
     private static final int REMEMBER_ME_TOKEN_VALIDITY_SECONDS = 14 * 24 * 60 * 60;
 
+    /** 登录成功后重定向目标地址的请求参数名 */
+    private static final String REDIRECT_TO_PARAMETER = "redirectTo";
+
+    /** 明文密码前缀：Spring Security DelegatingPasswordEncoder 约定，表示不经过加密 */
+    private static final String PASSWORD_NOOP_PREFIX = "{noop}";
+
+    /** 监控台默认角色 */
+    private static final String ROLE_USER = "USER";
+
     /** Spring Boot Admin 服务端属性 */
     private final AdminServerProperties adminServer;
 
@@ -93,7 +102,7 @@ public class SecuritySecureConfig {
         // 登录成功后重定向处理器
         SavedRequestAwareAuthenticationSuccessHandler successHandler =
                 new SavedRequestAwareAuthenticationSuccessHandler();
-        successHandler.setTargetUrlParameter("redirectTo");
+        successHandler.setTargetUrlParameter(REDIRECT_TO_PARAMETER);
         // 首页 UiController 的映射经前缀化后是去尾斜杠的 "/monitor" (Spring 6
         // PathPattern 不再将 "/monitor/" 归一到 "/monitor"), 而 adminServer.path("/")
         // 在配置了 context-path 时返回 "/monitor/" —— 直接作默认落点会 404, 需去掉尾斜杠
@@ -185,8 +194,8 @@ public class SecuritySecureConfig {
 
         UserDetails user = User.builder()
                 .username(securityUser.getName())
-                .password("{noop}" + securityUser.getPassword())
-                .roles("USER")
+                .password(PASSWORD_NOOP_PREFIX + securityUser.getPassword())
+                .roles(ROLE_USER)
                 .build();
         return new InMemoryUserDetailsManager(user);
     }

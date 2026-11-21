@@ -26,7 +26,8 @@ import java.util.Map;
  */
 @RemoteService
 @RequiredArgsConstructor
-public class RpcOauthTokenServiceImpl extends BaseServiceResultImpl<OauthTokenServiceImpl> implements RpcOauthTokenService {
+public class RpcOauthTokenServiceImpl extends BaseServiceResultImpl<OauthTokenServiceImpl>
+        implements RpcOauthTokenService {
 
     /** OAuth2授权信息服务，用于按用户注销授权记录 */
     protected final OAuth2AuthorizationService authorizationService;

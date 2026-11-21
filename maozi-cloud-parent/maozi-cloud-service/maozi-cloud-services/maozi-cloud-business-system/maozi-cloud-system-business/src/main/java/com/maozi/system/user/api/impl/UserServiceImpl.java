@@ -47,7 +47,7 @@ import com.maozi.system.user.param.UserIndividualUpdateParam;
 import com.maozi.system.user.param.UserSaveUpdateParam;
 import com.maozi.system.user.result.OauthUserInfoResult;
 import jakarta.annotation.Resource;
-import lombok.Data;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -71,12 +71,15 @@ import java.util.Objects;
  * @author maozi
  * @date 2026/11/08
  */
-@Data
+@Getter
 @Service
 public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> implements UserService {
 
     /** 资源名称常量，用于异常提示信息 */
     public static final String RESOURCE_NAME = "用户";
+
+    /** 资源名称后缀：列表，用于异常提示信息 */
+    private static final String RESOURCE_SUFFIX_LIST = "列表";
 
     /** 密码编码器（DelegatingPasswordEncoder，默认 {bcrypt} 算法），用于密码加密与比对校验 */
     protected final static PasswordEncoder PASSWORD_ENCODER =
@@ -126,7 +129,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
      * @return 客户端用户信息（用户名与客户端ID）
      */
     @Override
-    public ClientUserParam getClientUser(Long id) {
+    public ClientUserParam getClientUserById(Long id) {
         return super.getByIdThrowError(id, ClientUserParam.class);
     }
 
@@ -138,9 +141,9 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
      * @return 客户端用户信息列表
      */
     @Override
-    public List<ClientUserParam> listClientUser(List<Long> ids) {
+    public List<ClientUserParam> listClientUserByIds(List<Long> ids) {
 
-        CollectionUtil.collectionIsEmptyThrowError(ids, getResourceName() + "列表");
+        CollectionUtil.collectionIsEmptyThrowError(ids, getResourceName() + RESOURCE_SUFFIX_LIST);
 
         // 构建查询条件：按用户 ID 列表查询，仅取用户名与客户端 ID 字段
         LambdaQueryWrapper<UserDO> wrapper = Wrappers.lambdaQuery();
@@ -386,7 +389,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
 
         // 未绑定角色时直接返回空列表，避免无效的权限查询
         if(roleIds.isEmpty()) {
-            return CollectionUtil.newArrayList();
+            return List.of();
         }
 
         // 查询角色关联的权限 ID 集合，转换为权限标识列表返回

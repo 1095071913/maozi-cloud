@@ -45,7 +45,7 @@ public enum FilterTypeEnum {
 
         this.handle = handle;
 
-    };
+    }
 
     /** 枚举的整型值 */
     @Getter

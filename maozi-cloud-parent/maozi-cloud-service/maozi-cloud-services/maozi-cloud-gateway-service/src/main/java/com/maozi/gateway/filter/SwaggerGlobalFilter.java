@@ -125,7 +125,8 @@ public class SwaggerGlobalFilter implements GlobalFilter, Ordered {
                         dataBuffer.read(content);
                         DataBufferUtils.release(dataBuffer);
 
-                        // 改写 OpenAPI JSON；统一按 UTF-8 取字节数组，保证 Content-Length 与响应体字节数一致
+                        // 改写 OpenAPI JSON；统一按 UTF-8 取字节数组，
+                        // 保证 Content-Length 与响应体字节数一致
                         byte[] responseBytes = rewriteOpenApiDocument(content, host, port, basePath);
                         HttpHeaders headers = originalResponse.getHeaders();
                         headers.setContentLength(responseBytes.length);
@@ -179,7 +180,8 @@ public class SwaggerGlobalFilter implements GlobalFilter, Ordered {
 
         // 为每个 API 路径添加微服务前缀（循环体内使用 StringBuilder 拼接）
         for (Entry<String, Object> entry : entries) {
-            String key = SymbolConstant.SLASH + basePath + entry.getKey();
+            String key = new StringBuilder()
+                    .append(SymbolConstant.SLASH).append(basePath).append(entry.getKey()).toString();
             pathJsonObject.put(key, entry.getValue());
         }
 

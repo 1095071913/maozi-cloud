@@ -36,6 +36,9 @@ public class MessageSendStream {
     /** Gray 灰度版本消息头键（写入用于灰度路由的版本号） */
     private static final String HEADER_GRAY = "Gray";
 
+    /** RocketMQ 延迟级别偏移量：延迟级别从 1 开始计数，而枚举值从 0 开始，发送时需加该偏移 */
+    private static final int DELAY_LEVEL_OFFSET = 1;
+
     /** Stream 桥接器，用于动态发送消息 */
     @Resource
     private StreamBridge stream;
@@ -141,8 +144,8 @@ public class MessageSendStream {
 
         MessageBuilder<D> messageBuilder = MessageBuilder.withPayload(data);
 
-        // RocketMQ 延迟级别从 1 开始计数，枚举值从 0 开始，发送时需 +1 转换
-        messageBuilder.setHeader(MessageConst.PROPERTY_DELAY_TIME_LEVEL, level.getValue() + 1);
+        // RocketMQ 延迟级别从 1 开始计数，枚举值从 0 开始，发送时需加偏移量转换
+        messageBuilder.setHeader(MessageConst.PROPERTY_DELAY_TIME_LEVEL, level.getValue() + DELAY_LEVEL_OFFSET);
 
         return sendMessage(bindingName, messageBuilder.build());
 
@@ -165,8 +168,8 @@ public class MessageSendStream {
         // 设置 RocketMQ 消息标签
         messageBuilder.setHeader(MessageConst.PROPERTY_TAGS, tags);
 
-        // RocketMQ 延迟级别从 1 开始计数，枚举值从 0 开始，发送时需 +1 转换
-        messageBuilder.setHeader(MessageConst.PROPERTY_DELAY_TIME_LEVEL, level.getValue() + 1);
+        // RocketMQ 延迟级别从 1 开始计数，枚举值从 0 开始，发送时需加偏移量转换
+        messageBuilder.setHeader(MessageConst.PROPERTY_DELAY_TIME_LEVEL, level.getValue() + DELAY_LEVEL_OFFSET);
 
         return sendMessage(bindingName, messageBuilder.build());
 

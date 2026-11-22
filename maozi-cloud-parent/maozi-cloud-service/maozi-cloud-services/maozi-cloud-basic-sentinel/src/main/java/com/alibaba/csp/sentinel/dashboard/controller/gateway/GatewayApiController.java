@@ -86,14 +86,9 @@ public class GatewayApiController {
     @AuthAction(AuthService.PrivilegeType.READ_RULE)
     public Result<List<ApiDefinitionEntity>> queryApis(String app, String ip, Integer port) {
 
-        if (StringUtil.isEmpty(app)) {
-            return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
-        }
-        if (StringUtil.isEmpty(ip)) {
-            return Result.ofFail(Result.CODE_ERROR, "ip can't be null or empty");
-        }
-        if (port == null) {
-            return Result.ofFail(Result.CODE_ERROR, "port can't be null");
+        String error = checkAppIpPort(app, ip, port);
+        if (error != null) {
+            return Result.ofFail(Result.CODE_ERROR, error);
         }
 
         try {
@@ -119,84 +114,42 @@ public class GatewayApiController {
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
     public Result<ApiDefinitionEntity> addApi(HttpServletRequest request, @RequestBody AddApiReqVO reqVo) {
 
-        String app = reqVo.getApp();
-        if (StringUtil.isBlank(app)) {
-            return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
+        String error = checkAppIpPort(reqVo.getApp(), reqVo.getIp(), reqVo.getPort());
+        if (error != null) {
+            return Result.ofFail(Result.CODE_ERROR, error);
         }
-        String trimmedApp = app.trim();
-
-        ApiDefinitionEntity entity = new ApiDefinitionEntity();
-        entity.setApp(trimmedApp);
-
-        String ip = reqVo.getIp();
-        if (StringUtil.isBlank(ip)) {
-            return Result.ofFail(Result.CODE_ERROR, "ip can't be null or empty");
-        }
-        entity.setIp(ip.trim());
-
-        Integer port = reqVo.getPort();
-        if (port == null) {
-            return Result.ofFail(Result.CODE_ERROR, "port can't be null");
-        }
-        entity.setPort(port);
+        String trimmedApp = reqVo.getApp().trim();
 
         // API 名称
         String apiName = reqVo.getApiName();
         if (StringUtil.isBlank(apiName)) {
             return Result.ofFail(Result.CODE_ERROR, "apiName can't be null or empty");
         }
-        String trimmedApiName = apiName.trim();
-        entity.setApiName(trimmedApiName);
+
+        ApiDefinitionEntity entity = new ApiDefinitionEntity();
+        entity.setApp(trimmedApp);
+        entity.setIp(reqVo.getIp().trim());
+        entity.setPort(reqVo.getPort());
+        entity.setApiName(apiName.trim());
 
         // 断言条目
-        List<ApiPredicateItemVO> predicateItems = reqVo.getPredicateItems();
-        if (CollectionUtils.isEmpty(predicateItems)) {
-            return Result.ofFail(Result.CODE_ERROR, "predicateItems can't empty");
-        }
-
-        List<ApiPredicateItemEntity> predicateItemEntities = new ArrayList<>(predicateItems.size());
-        for (ApiPredicateItemVO predicateItem : predicateItems) {
-            ApiPredicateItemEntity predicateItemEntity = new ApiPredicateItemEntity();
-
-            // 匹配策略
-            Integer matchStrategy = predicateItem.getMatchStrategy();
-            if (!Arrays.asList(URL_MATCH_STRATEGY_EXACT, URL_MATCH_STRATEGY_PREFIX, 
-                URL_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
-                return Result.ofFail(Result.CODE_ERROR, "invalid matchStrategy: " + matchStrategy);
-            }
-            predicateItemEntity.setMatchStrategy(matchStrategy);
-
-            // 匹配模式
-            String pattern = predicateItem.getPattern();
-            if (StringUtil.isBlank(pattern)) {
-                return Result.ofFail(Result.CODE_ERROR, "pattern can't be null or empty");
-            }
-            predicateItemEntity.setPattern(pattern);
-
-            predicateItemEntities.add(predicateItemEntity);
+        List<ApiPredicateItemEntity> predicateItemEntities;
+        try {
+            predicateItemEntities = toPredicateItemEntities(reqVo.getPredicateItems());
+        } catch (IllegalArgumentException e) {
+            return Result.ofFail(Result.CODE_ERROR, e.getMessage());
         }
         entity.setPredicateItems(new LinkedHashSet<>(predicateItemEntities));
 
         // 应用内 API 名称重复则拒绝
         List<ApiDefinitionEntity> allApis = repository.findAllByApp(trimmedApp);
-        if (allApis.stream().map(ApiDefinitionEntity::getApiName).anyMatch(trimmedApiName::equals)) {
+        if (allApis.stream().map(ApiDefinitionEntity::getApiName).anyMatch(apiName.trim()::equals)) {
             return Result.ofFail(Result.CODE_ERROR, "apiName exists: " + apiName);
         }
 
         entity.setGmtCreateAndModified(new Date());
 
-        try {
-            entity = repository.save(entity);
-        } catch (Throwable throwable) {
-            logger.error("add gateway api error:", throwable);
-            return Result.ofThrowable(Result.CODE_ERROR, throwable);
-        }
-
-        if (!publishApis(app)) {
-            logger.warn("publish gateway apis fail after add");
-        }
-
-        return Result.ofSuccess(entity);
+        return saveAndPublish(entity, reqVo.getApp(), "add");
     }
 
     /** 更新指定 id 的 API 分组的断言条目，随后将应用的 API 分组推送至 Nacos。 */
@@ -219,55 +172,22 @@ public class GatewayApiController {
         }
 
         // 断言条目
-        List<ApiPredicateItemVO> predicateItems = reqVo.getPredicateItems();
-        if (CollectionUtils.isEmpty(predicateItems)) {
-            return Result.ofFail(Result.CODE_ERROR, "predicateItems can't empty");
-        }
-
-        List<ApiPredicateItemEntity> predicateItemEntities = new ArrayList<>(predicateItems.size());
-        for (ApiPredicateItemVO predicateItem : predicateItems) {
-            ApiPredicateItemEntity predicateItemEntity = new ApiPredicateItemEntity();
-
-            // 匹配策略
-            Integer matchStrategy = predicateItem.getMatchStrategy();
-            if (!Arrays.asList(URL_MATCH_STRATEGY_EXACT, URL_MATCH_STRATEGY_PREFIX,
-                URL_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
-                return Result.ofFail(Result.CODE_ERROR, "Invalid matchStrategy: " + matchStrategy);
-            }
-            predicateItemEntity.setMatchStrategy(matchStrategy);
-
-            // 匹配模式
-            String pattern = predicateItem.getPattern();
-            if (StringUtil.isBlank(pattern)) {
-                return Result.ofFail(Result.CODE_ERROR, "pattern can't be null or empty");
-            }
-            predicateItemEntity.setPattern(pattern);
-
-            predicateItemEntities.add(predicateItemEntity);
+        List<ApiPredicateItemEntity> predicateItemEntities;
+        try {
+            predicateItemEntities = toPredicateItemEntities(reqVo.getPredicateItems());
+        } catch (IllegalArgumentException e) {
+            return Result.ofFail(Result.CODE_ERROR, e.getMessage());
         }
         entity.setPredicateItems(new LinkedHashSet<>(predicateItemEntities));
 
-        Date date = new Date();
-        entity.setGmtModified(date);
+        entity.setGmtModified(new Date());
 
-        try {
-            entity = repository.save(entity);
-        } catch (Throwable throwable) {
-            logger.error("update gateway api error:", throwable);
-            return Result.ofThrowable(Result.CODE_ERROR, throwable);
-        }
-
-        if (!publishApis(app)) {
-            logger.warn("publish gateway apis fail after update");
-        }
-
-        return Result.ofSuccess(entity);
+        return saveAndPublish(entity, app, "update");
     }
 
     /** 删除指定 id 的 API 分组并推送应用的 API 分组；id 不存在时直接成功返回（数据为 null）。 */
     @PostMapping("/delete.json")
     @AuthAction(AuthService.PrivilegeType.DELETE_RULE)
-
     public Result<Long> deleteApi(Long id) {
         if (id == null) {
             return Result.ofFail(Result.CODE_ERROR, "id can't be null");
@@ -290,6 +210,64 @@ public class GatewayApiController {
         }
 
         return Result.ofSuccess(id);
+    }
+
+    /** 校验 app、ip、port 三个参数，全部合法返回 null，否则返回错误信息。 */
+    private String checkAppIpPort(String app, String ip, Integer port) {
+        if (StringUtil.isBlank(app)) {
+            return "app can't be null or empty";
+        }
+        if (StringUtil.isBlank(ip)) {
+            return "ip can't be null or empty";
+        }
+        if (port == null) {
+            return "port can't be null";
+        }
+        return null;
+    }
+
+    /** 校验并转换断言条目 VO 列表为实体列表，非法时抛出携带错误信息的 {@link IllegalArgumentException}。 */
+    private List<ApiPredicateItemEntity> toPredicateItemEntities(List<ApiPredicateItemVO> predicateItems) {
+        if (CollectionUtils.isEmpty(predicateItems)) {
+            throw new IllegalArgumentException("predicateItems can't empty");
+        }
+
+        List<ApiPredicateItemEntity> entities = new ArrayList<>(predicateItems.size());
+        for (ApiPredicateItemVO predicateItem : predicateItems) {
+            // 匹配策略
+            Integer matchStrategy = predicateItem.getMatchStrategy();
+            if (!Arrays.asList(URL_MATCH_STRATEGY_EXACT, URL_MATCH_STRATEGY_PREFIX,
+                URL_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
+                throw new IllegalArgumentException("invalid matchStrategy: " + matchStrategy);
+            }
+
+            // 匹配模式
+            String pattern = predicateItem.getPattern();
+            if (StringUtil.isBlank(pattern)) {
+                throw new IllegalArgumentException("pattern can't be null or empty");
+            }
+
+            ApiPredicateItemEntity predicateItemEntity = new ApiPredicateItemEntity();
+            predicateItemEntity.setMatchStrategy(matchStrategy);
+            predicateItemEntity.setPattern(pattern);
+            entities.add(predicateItemEntity);
+        }
+        return entities;
+    }
+
+    /** 保存 API 分组并将应用全部分组推送至 Nacos；action 用于区分日志（add/update）。 */
+    private Result<ApiDefinitionEntity> saveAndPublish(ApiDefinitionEntity entity, String app, String action) {
+        try {
+            entity = repository.save(entity);
+        } catch (Throwable throwable) {
+            logger.error(action + " gateway api error:", throwable);
+            return Result.ofThrowable(Result.CODE_ERROR, throwable);
+        }
+
+        if (!publishApis(app)) {
+            logger.warn("publish gateway apis fail after " + action);
+        }
+        return Result.ofSuccess(entity);
     }
 
     /** 将应用在本地的全部 API 分组推送至 Nacos；出错时返回 false。 */

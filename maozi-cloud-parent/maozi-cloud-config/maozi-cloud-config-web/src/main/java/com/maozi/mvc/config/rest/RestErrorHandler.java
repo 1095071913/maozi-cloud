@@ -7,7 +7,6 @@ import com.maozi.common.result.error.code.SystemErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -26,8 +25,9 @@ import java.util.Map;
  * <p>
  * 使用 {@code @RestControllerAdvice} 统一拦截 Controller 层抛出的各类异常，
  * 将异常转换为标准错误响应格式（通过 {@link ResultUtil#error}），
- * 避免将原始异常堆栈直接暴露给前端；权限不足与异步请求连接失效两类异常
- * 原样抛出，交由对应框架机制处理。
+ * 避免将原始异常堆栈直接暴露给前端；异步请求连接失效异常原样抛出，
+ * 交由 Spring 底层异步机制处理。权限不足异常由 maozi-cloud-config-oauth 模块
+ * 的 SecurityErrorHandler 负责，本模块不依赖 Spring Security。
  * </p>
  *
  * @author maozi
@@ -127,23 +127,6 @@ public class RestErrorHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public Object handleMethodArgumentTypeMismatchException() {
         return ResultUtil.error(SystemErrorCode.PARAM_ERROR);
-    }
-
-    /**
-     * 处理权限不足异常
-     * <p>
-     * 当 Spring Security 判定当前用户无权访问时抛出 AccessDeniedException，
-     * 此处不做处理，直接重新抛出，交由 Spring Security 的异常处理机制
-     * （如返回 403 或重定向到登录页）统一处理。
-     * </p>
-     *
-     * @param e AccessDeniedException 权限不足异常
-     * @return 不会返回，直接抛出异常
-     * @throws AccessDeniedException 原样上抛，交由 Spring Security 异常处理机制统一处理
-     */
-    @ExceptionHandler(AccessDeniedException.class)
-    public Object handleAccessDeniedException(AccessDeniedException e) {
-        throw e;
     }
 
     /**

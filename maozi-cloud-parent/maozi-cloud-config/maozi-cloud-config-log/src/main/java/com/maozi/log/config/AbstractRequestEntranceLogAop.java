@@ -25,6 +25,7 @@ import com.maozi.common.ResultUtil;
 import com.maozi.common.constant.LogTag;
 import com.maozi.common.constant.SymbolConstant;
 import com.maozi.common.context.CurrentUserInfoContext;
+import com.maozi.common.context.PassThroughExceptionContainer;
 import com.maozi.common.context.SqlLogContext;
 import com.maozi.common.dto.CurrentUserInfoDTO;
 import com.maozi.common.enums.EnvironmentTypeEnum;
@@ -38,7 +39,6 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.access.AccessDeniedException;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -50,6 +50,11 @@ import java.util.Map;
  * 拦截接口入口和基础服务实现类的请求，记录请求日志、响应日志和异常日志。
  * 在非生产环境下记录请求参数；异常发生时根据错误类型自动分类记录
  * （业务错误 warn 级别、系统错误 error 级别）。
+ * </p>
+ * <p>
+ * 需原样上抛的异常（如 Spring Security 的权限拒绝异常）由各组件模块启动时注册到
+ * {@link PassThroughExceptionContainer}，本类捕获异常后判断其类型是否在容器中，
+ * 在则原样上抛交由对应框架处理，不封装为错误结果；本模块不依赖具体的异常来源框架。
  * </p>
  * <p>
  * 子类职责：
@@ -76,14 +81,14 @@ public abstract class AbstractRequestEntranceLogAop {
      * <ol>
      *   <li>记录请求开始时间和基本信息</li>
      *   <li>执行业务方法</li>
-     *   <li>捕获异常并转换为统一错误结果</li>
+     *   <li>捕获异常并转换为统一错误结果（容器中注册的透传异常原样上抛）</li>
      *   <li>在 finally 块中记录 SQL 日志、响应时间并按结果分类输出日志</li>
      * </ol>
      * </p>
      *
      * @param proceedingJoinPoint AOP 连接点
      * @return 业务方法执行结果
-     * @throws AccessDeniedException 权限拒绝异常原样上抛，交由 Spring Security 处理
+     * @throws Throwable 目标方法抛出的异常原样上抛，其中透传异常交由对应框架处理
      */
     protected Object doAround(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 
@@ -103,16 +108,17 @@ public abstract class AbstractRequestEntranceLogAop {
                 logs.put(LogTag.PARAM, Arrays.toString(proceedingJoinPoint.getArgs()));
             }
 
-        // 权限拒绝异常交由 Spring Security 处理
-        } catch (AccessDeniedException accessDeniedException) {
-            throw accessDeniedException;
-            
         // 业务异常：封装为业务错误结果（已包含错误码和错误信息），不记录 error 日志
         } catch (BusinessResultException businessResultException) {
             resultData = businessResultException.getErrorResult();
-            
+
         // 未预期的系统异常：封装为统一的系统错误结果，并记录详细的错误日志
         } catch (Exception e) {
+
+            // 透传异常（如 Spring Security 权限拒绝异常）原样上抛，交由对应框架处理
+            if (PassThroughExceptionContainer.contains(e)) {
+                throw e;
+            }
 
             // 记录异常堆栈日志，便于排查问题
             ex = e;

@@ -26,7 +26,6 @@ import com.maozi.log.config.AbstractRequestEntranceLogAop;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -37,7 +36,7 @@ import java.util.Objects;
  * <p>
  * 拦截 REST 实现层（{@code api.impl.rest} 包）方法的请求入口，复用
  * {@link AbstractRequestEntranceLogAop} 的统一日志逻辑。权限拒绝异常
- * （{@link AccessDeniedException}）原样抛出，交由 Spring Security 处理，
+ * （Spring Security 的 {@code AccessDeniedException}）原样抛出，交由 Spring Security 处理，
  * 不封装为统一响应。
  * </p>
  *
@@ -66,7 +65,7 @@ public class RestRequestEntranceLogAop extends AbstractRequestEntranceLogAop {
      *
      * @param proceedingJoinPoint AOP 连接点
      * @return 业务方法执行结果；业务异常或系统异常时为基类封装的统一错误结果
-     * @throws Throwable 仅权限拒绝异常（{@link AccessDeniedException}）经基类原样上抛，
+     * @throws Throwable 仅权限拒绝异常（Spring Security 的 {@code AccessDeniedException}）经基类原样上抛，
      * 交由 Spring Security 处理
      */
     @Around(POINT)

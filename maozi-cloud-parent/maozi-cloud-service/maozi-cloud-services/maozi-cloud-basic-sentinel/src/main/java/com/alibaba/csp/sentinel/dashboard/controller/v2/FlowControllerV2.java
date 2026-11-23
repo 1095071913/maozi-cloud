@@ -69,7 +69,7 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
         }
-        return fetchAndSaveRules(app, rules -> {
+        return super.fetchAndSaveRules(app, rules -> {
             for (FlowRuleEntity entity : rules) {
                 entity.setApp(app);
                 ClusterFlowConfig clusterConfig = entity.getClusterConfig();
@@ -102,7 +102,7 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
     @PostMapping("/rule")
     @AuthAction(value = AuthService.PrivilegeType.WRITE_RULE)
     public Result<FlowRuleEntity> apiAddFlowRule(@RequestBody FlowRuleEntity entity) {
-        return addFlowRule(entity);
+        return super.addFlowRule(entity);
     }
 
     /**
@@ -134,7 +134,7 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
         entity.setId(id);
         entity.setGmtCreate(oldEntity.getGmtCreate());
         entity.setGmtModified(new Date());
-        return saveAndPublish(entity);
+        return super.saveAndPublish(entity);
     }
 
     /** 删除指定 id 的规则并推送应用的规则；id 不存在时直接成功返回（数据为 null）。 */
@@ -144,6 +144,6 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
         if (id == null || id <= 0) {
             return Result.ofFail(Result.CODE_ERROR, "Invalid id");
         }
-        return deleteAndPublish(id);
+        return super.deleteAndPublish(id);
     }
 }

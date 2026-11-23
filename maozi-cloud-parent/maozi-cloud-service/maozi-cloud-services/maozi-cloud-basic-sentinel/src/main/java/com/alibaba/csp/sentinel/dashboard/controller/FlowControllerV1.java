@@ -80,7 +80,7 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
         if (!appManagement.isValidMachineOfApp(app, ip)) {
             return Result.ofFail(Result.CODE_ERROR, "given ip does not belong to given app");
         }
-        return fetchAndSaveRules(app, rules -> {
+        return super.fetchAndSaveRules(app, rules -> {
             for (FlowRuleEntity entity : rules) {
                 entity.setApp(app);
                 entity.setIp(ip);
@@ -106,7 +106,7 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
     @PostMapping("/rule")
     @AuthAction(PrivilegeType.WRITE_RULE)
     public Result<FlowRuleEntity> apiAddFlowRule(@RequestBody FlowRuleEntity entity) {
-        return addFlowRule(entity);
+        return super.addFlowRule(entity);
     }
 
     /**
@@ -181,7 +181,7 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
             }
         }
         entity.setGmtModified(new Date());
-        return saveAndPublish(entity);
+        return super.saveAndPublish(entity);
     }
 
     /** 删除指定 id 的规则并推送应用的规则；id 不存在时直接成功返回（数据为 null）。 */
@@ -191,6 +191,6 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
         if (id == null) {
             return Result.ofFail(Result.CODE_ERROR, "id can't be null");
         }
-        return deleteAndPublish(id);
+        return super.deleteAndPublish(id);
     }
 }

@@ -153,7 +153,7 @@ public class ServerHttpResponseAgent extends ServerHttpResponseDecorator {
         }
 
         // 根据响应状态和业务码决定日志级别
-        if (Objects.requireNonNull(getDelegate().getStatusCode()).value() != HttpStatus.OK.value()) {
+        if (Objects.requireNonNull(super.getDelegate().getStatusCode()).value() != HttpStatus.OK.value()) {
             // HTTP 状态码非 200，记录错误日志
             LogUtil.error(log, logs);
         } else if (CollectionUtil.isNotEmpty(result) && result.containsKey(RESULT_CODE_KEY)

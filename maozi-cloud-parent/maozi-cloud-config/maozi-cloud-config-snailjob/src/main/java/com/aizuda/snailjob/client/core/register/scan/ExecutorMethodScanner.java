@@ -170,6 +170,9 @@ public class ExecutorMethodScanner implements Scanner, ApplicationContextAware {
      */
     private RetryerInfo resolvingRetryable(ExecutorMethodRegister retryable, Object executor) {
 
+        // 缓存执行器类型（可能为代理类），构造重试信息与异常日志共用，避免同一方法内重复调用
+        Class<? extends ExecutorMethod> executorClass = (Class<? extends ExecutorMethod>) executor.getClass();
+
         try {
             Class<?> executorNotProxy = AopUtils.getTargetClass(executor);
             String executorClassName = executorNotProxy.getName();
@@ -192,7 +195,7 @@ public class ExecutorMethodScanner implements Scanner, ApplicationContextAware {
                     UNIFIED_HANDLER_LOCAL_RETRY_INTERVAL,
                     idempotentIdGenerate,
                     retryable.bizNo(),
-                    (Class<? extends ExecutorMethod>) executor.getClass(),
+                    executorClass,
                     Boolean.TRUE,
                     retryCompleteCallback,
                     async,
@@ -202,7 +205,7 @@ public class ExecutorMethodScanner implements Scanner, ApplicationContextAware {
                     RetryCondition.NoRetry.class
             );
         } catch (Exception e) {
-            SnailJobLog.LOCAL.error("Error loading retry information for {}: {}", executor.getClass().getName(), e);
+            SnailJobLog.LOCAL.error("Error loading retry information for {}: {}", executorClass.getName(), e);
         }
 
         return null;

@@ -258,12 +258,15 @@ public class BaseApplication {
 
         Properties properties = System.getProperties();
 
+        // 缓存本地环境标识，默认环境与日志输出方式判断共用，避免同一方法内重复调用
+        String localEnvironment = EnvironmentTypeEnum.LOCAL.getDesc();
+
         // 解析运行环境：系统属性 > 环境变量 > 默认本地环境
         String environment = (String) properties.get(APPLICATION_ENVIRONMENT_KEY);
         if (StringUtils.isEmpty(environment)) {
             environment = System.getenv(APPLICATION_ENVIRONMENT_ENV);
             if (StringUtils.isEmpty(environment)) {
-                environment = EnvironmentTypeEnum.LOCAL.getDesc();
+                environment = localEnvironment;
             }
             properties.put(APPLICATION_ENVIRONMENT_KEY, environment);
         }
@@ -299,7 +302,7 @@ public class BaseApplication {
         properties.put(LOGGING_LEVEL_PROJECT_KEY, LOG_LEVEL_INFO);
 
         // 非本地环境输出异步文件日志，本地环境输出异步控制台日志
-        if (!Objects.equals(environment, EnvironmentTypeEnum.LOCAL.getDesc())) {
+        if (!Objects.equals(environment, localEnvironment)) {
             properties.put(LOGGING_APPENDER_KEY, APPENDER_ASYNC_FILE);
             properties.put(LOGGING_FILE_NAME_KEY, LOGGING_FILE_NAME_VALUE);
         } else {

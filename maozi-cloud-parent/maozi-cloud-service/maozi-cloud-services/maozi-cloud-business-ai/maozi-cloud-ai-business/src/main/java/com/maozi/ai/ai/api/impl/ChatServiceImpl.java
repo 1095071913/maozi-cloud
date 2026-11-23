@@ -413,8 +413,8 @@ public class ChatServiceImpl implements ChatService {
 
         } finally {
 
-            // 无论成功与否，最后清除对话与文生图进行中标记
-            RedisUtil.getRedisClient().delete(
+            // 无论成功与否，最后清除对话与文生图进行中标记（复用方法开头的 Redis 客户端，避免重复获取）
+            redisClient.delete(
                     CollectionUtil.newArrayList(
                             chatStopLockKey,
                             chatGenerateImageStopLockKey

@@ -175,10 +175,13 @@ public class RetryExecutorTask implements ExecutorMethod {
         Method method = bean.getClass().getMethod(task.getMethodName(), task.getParamTypes());
 
         Object result = method.invoke(bean, task.getData());
-        if (!RetryCondition.NoRetry.class.getName().equals(task.getRetryIfResultClassName())) {
+
+        // 缓存重试结果判断器类名，避免同一方法内重复调用
+        String retryIfResultClassName = task.getRetryIfResultClassName();
+        if (!RetryCondition.NoRetry.class.getName().equals(retryIfResultClassName)) {
 
             RetryCondition retryCondition =
-                (RetryCondition) SpringUtil.getBean(Class.forName(task.getRetryIfResultClassName()));
+                (RetryCondition) SpringUtil.getBean(Class.forName(retryIfResultClassName));
 
             return !retryCondition.shouldRetry(result);
 

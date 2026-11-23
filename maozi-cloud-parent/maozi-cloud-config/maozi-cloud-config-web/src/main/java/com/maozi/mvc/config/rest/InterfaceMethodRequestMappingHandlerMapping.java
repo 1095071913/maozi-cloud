@@ -112,12 +112,16 @@ public class InterfaceMethodRequestMappingHandlerMapping extends RequestMappingH
      * @return 接口上同签名的方法；接口未声明时返回 {@code null}
      */
     private Method getDeclaredMethodOrNull(Class<?> interfaceClass, Method method) {
+
+        // 缓存方法名，方法查找与日志留痕共用，避免同一方法内重复调用
+        String methodName = method.getName();
+
         try {
-            return interfaceClass.getDeclaredMethod(method.getName(), method.getParameterTypes());
+            return interfaceClass.getDeclaredMethod(methodName, method.getParameterTypes());
         } catch (NoSuchMethodException e) {
             // 当前接口未声明同签名方法
             // （debug 级别留痕，避免异常被静默吞掉）
-            log.debug("Interface {} does not declare method {}", interfaceClass.getName(), method.getName(), e);
+            log.debug("Interface {} does not declare method {}", interfaceClass.getName(), methodName, e);
             return null;
         }
     }

@@ -134,11 +134,13 @@ public abstract class AbstractFlowRuleController {
         if (oldEntity == null) {
             return Result.ofSuccess(null);
         }
+        // 缓存应用名，删除推送与异常日志共用，避免同一方法内重复调用
+        String app = oldEntity.getApp();
         try {
             repository.delete(id);
-            publishRules(oldEntity.getApp());
+            publishRules(app);
         } catch (Throwable t) {
-            logger.error("Error when deleting flow rule, app={}, id={}", oldEntity.getApp(), id, t);
+            logger.error("Error when deleting flow rule, app={}, id={}", app, id, t);
             return Result.ofFail(Result.CODE_ERROR, t.getMessage());
         }
         return Result.ofSuccess(id);

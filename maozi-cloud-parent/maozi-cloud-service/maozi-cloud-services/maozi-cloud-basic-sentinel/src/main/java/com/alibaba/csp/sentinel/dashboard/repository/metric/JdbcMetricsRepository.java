@@ -286,14 +286,17 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         for (MetricEntity metric : metrics) {
             long metricTime = metric.getTimestamp().getTime();
             long bucketStart = metricTime / bucketMs * bucketMs;
-            String key = metric.getApp() + "__" + metric.getResource() + "__" + bucketStart;
+            // 缓存应用名与资源名，桶 key 与桶实体初始化共用，避免同一方法内重复调用
+            String app = metric.getApp();
+            String resource = metric.getResource();
+            String key = app + "__" + resource + "__" + bucketStart;
             long second = metricTime / 1000 * 1000;
             bucketBuffer.compute(key, (k, acc) -> {
                 BucketAccumulator accumulator = acc;
                 if (accumulator == null) {
                     MetricEntity bucket = new MetricEntity();
-                    bucket.setApp(metric.getApp());
-                    bucket.setResource(metric.getResource());
+                    bucket.setApp(app);
+                    bucket.setResource(resource);
                     bucket.setTimestamp(new Date(bucketStart));
                     bucket.setGmtCreate(metric.getGmtCreate());
                     bucket.setPassQps(0L);

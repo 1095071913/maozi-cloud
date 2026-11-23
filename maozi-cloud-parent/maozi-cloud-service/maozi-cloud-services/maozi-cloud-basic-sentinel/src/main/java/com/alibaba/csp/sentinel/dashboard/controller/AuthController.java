@@ -65,12 +65,15 @@ public class AuthController {
      */
     @PostMapping("/login")
     public Result<AuthService.AuthUser> login(HttpServletRequest request, String username, String password) {
-        if (StringUtils.isNotBlank(DashboardConfig.getAuthUsername())) {
-            authUsername = DashboardConfig.getAuthUsername();
+        // 缓存认证配置，避免同一方法内重复获取
+        String configAuthUsername = DashboardConfig.getAuthUsername();
+        String configAuthPassword = DashboardConfig.getAuthPassword();
+        if (StringUtils.isNotBlank(configAuthUsername)) {
+            authUsername = configAuthUsername;
         }
 
-        if (StringUtils.isNotBlank(DashboardConfig.getAuthPassword())) {
-            authPassword = DashboardConfig.getAuthPassword();
+        if (StringUtils.isNotBlank(configAuthPassword)) {
+            authPassword = configAuthPassword;
         }
 
         /*

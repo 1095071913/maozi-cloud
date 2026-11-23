@@ -125,8 +125,10 @@ public class DegradeController {
             logger.error("Failed to add new degrade rule, app={}, ip={}", entity.getApp(), entity.getIp(), t);
             return Result.ofThrowable(Result.CODE_ERROR, t);
         }
-        if (!publishRules(entity.getApp())) {
-            logger.warn("Publish degrade rules failed, app={}", entity.getApp());
+        // 缓存应用名，规则推送与失败日志共用，避免同一方法内重复调用
+        String app = entity.getApp();
+        if (!publishRules(app)) {
+            logger.warn("Publish degrade rules failed, app={}", app);
         }
         return Result.ofSuccess(entity);
     }
@@ -160,8 +162,10 @@ public class DegradeController {
             logger.error("Failed to save degrade rule, id={}, rule={}", id, entity, t);
             return Result.ofThrowable(Result.CODE_ERROR, t);
         }
-        if (!publishRules(entity.getApp())) {
-            logger.warn("Publish degrade rules failed, app={}", entity.getApp());
+        // 缓存应用名，规则推送与失败日志共用，避免同一方法内重复调用
+        String app = entity.getApp();
+        if (!publishRules(app)) {
+            logger.warn("Publish degrade rules failed, app={}", app);
         }
         return Result.ofSuccess(entity);
     }
@@ -185,8 +189,10 @@ public class DegradeController {
             logger.error("Failed to delete degrade rule, id={}", id, throwable);
             return Result.ofThrowable(Result.CODE_ERROR, throwable);
         }
-        if (!publishRules(oldEntity.getApp())) {
-            logger.warn("Publish degrade rules failed, app={}", oldEntity.getApp());
+        // 缓存应用名，规则推送与失败日志共用，避免同一方法内重复调用
+        String app = oldEntity.getApp();
+        if (!publishRules(app)) {
+            logger.warn("Publish degrade rules failed, app={}", app);
         }
         return Result.ofSuccess(id);
     }

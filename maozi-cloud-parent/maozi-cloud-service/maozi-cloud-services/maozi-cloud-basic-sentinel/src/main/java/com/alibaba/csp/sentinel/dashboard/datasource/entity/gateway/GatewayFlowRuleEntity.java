@@ -143,8 +143,10 @@ public class GatewayFlowRuleEntity extends BaseRuleEntity {
             ruleItem.setFieldName(paramItem.getFieldName());
             ruleItem.setPattern(paramItem.getPattern());
 
-            if (paramItem.getMatchStrategy() != null) {
-                ruleItem.setMatchStrategy(paramItem.getMatchStrategy());
+            // 缓存匹配策略，避免同一方法内重复调用
+            Integer matchStrategy = paramItem.getMatchStrategy();
+            if (matchStrategy != null) {
+                ruleItem.setMatchStrategy(matchStrategy);
             }
         }
 

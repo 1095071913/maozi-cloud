@@ -84,7 +84,9 @@ public class ResourceVO extends BaseResourceMetricsVO {
      * 递归收集可见节点的 VO：节点自身或任一父节点可见即视为可见，根节点本身不收集。
      */
     private static void visit(ResourceTreeNode node, List<ResourceVO> list, boolean parentVisible, boolean isRoot) {
-        boolean visible = !isRoot && (node.isVisible() || parentVisible);
+        // 缓存节点可见性，避免同一方法内重复调用
+        boolean nodeVisible = node.isVisible();
+        boolean visible = !isRoot && (nodeVisible || parentVisible);
         if (visible) {
             ResourceVO vo = new ResourceVO();
             vo.parentTtId = node.getParentId();
@@ -100,7 +102,7 @@ public class ResourceVO extends BaseResourceMetricsVO {
             vo.oneMinuteBlock = node.getOneMinuteBlock();
             vo.oneMinuteException = node.getOneMinuteException();
             vo.oneMinuteTotal = node.getOneMinuteTotal();
-            vo.visible = node.isVisible();
+            vo.visible = nodeVisible;
             list.add(vo);
         }
         for (ResourceTreeNode c : node.getChildren()) {

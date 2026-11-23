@@ -161,8 +161,10 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
                 .get(CLUSTER_OP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             Set<String> toModifySet = new HashSet<>();
             toModifySet.add(machineId);
-            if (entity.getClientSet() != null) {
-                toModifySet.addAll(entity.getClientSet());
+            // 缓存机器的 Token 客户端集合，避免同一方法内重复调用
+            Set<String> clientSet = entity.getClientSet();
+            if (clientSet != null) {
+                toModifySet.addAll(clientSet);
             }
             // 将选中的 Token 服务端及其关联的 Token 客户端重置为 NOT-STARTED 模式
             modifyToNonStarted(toModifySet, failedSet);

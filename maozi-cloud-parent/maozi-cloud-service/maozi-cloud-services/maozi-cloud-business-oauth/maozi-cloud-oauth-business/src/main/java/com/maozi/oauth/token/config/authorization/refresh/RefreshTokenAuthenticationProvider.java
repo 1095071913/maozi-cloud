@@ -102,8 +102,11 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
             return;
         }
 
+        // 缓存用户主体名，加载用户与日志留痕共用，避免同一方法内重复调用
+        String principalName = authorization.getPrincipalName();
+
         // 重新加载用户当前权限
-        UserDetails userDetails = userDetailsService.loadUserByUsername(authorization.getPrincipalName());
+        UserDetails userDetails = userDetailsService.loadUserByUsername(principalName);
         List<String> authorities = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
@@ -127,7 +130,7 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
 
         if (log.isTraceEnabled()) {
             log.trace("Refreshed access token enriched with {} authorities for user: {}",
-                    authorities.size(), authorization.getPrincipalName());
+                    authorities.size(), principalName);
         }
     }
 

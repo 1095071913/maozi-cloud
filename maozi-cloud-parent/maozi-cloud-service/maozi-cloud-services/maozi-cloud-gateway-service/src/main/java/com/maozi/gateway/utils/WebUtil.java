@@ -47,15 +47,19 @@ public class WebUtil {
 
         // 按优先级依次从反向代理 header 中获取
         String requestHost = null;
+
+        // 缓存判空结果，避免同一方法内重复调用（循环终止与兜底判断共用）
+        boolean requestHostBlankOrUnknown = true;
         for (String header : CLIENT_IP_HEADERS) {
             requestHost = headers.getFirst(header);
-            if (!isBlankOrUnknown(requestHost)) {
+            requestHostBlankOrUnknown = isBlankOrUnknown(requestHost);
+            if (!requestHostBlankOrUnknown) {
                 break;
             }
         }
 
         // 兜底：直接获取远程地址
-        if (isBlankOrUnknown(requestHost)) {
+        if (requestHostBlankOrUnknown) {
             requestHost = Objects.requireNonNull(request.getRemoteAddress()).getAddress().getHostAddress();
         }
 

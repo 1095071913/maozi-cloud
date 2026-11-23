@@ -42,11 +42,14 @@ public class NacosConfig {
     public ConfigService nacosConfigService(NacosProperties nacosProperties) throws Exception {
         Properties properties = new Properties();
         properties.setProperty(PropertyKeyConst.SERVER_ADDR, nacosProperties.getServerAddr());
-        if (StringUtil.isNotBlank(nacosProperties.getNamespace())) {
-            properties.setProperty(PropertyKeyConst.NAMESPACE, nacosProperties.getNamespace());
+        // 缓存命名空间与用户名，避免同一方法内重复调用
+        String namespace = nacosProperties.getNamespace();
+        String username = nacosProperties.getUsername();
+        if (StringUtil.isNotBlank(namespace)) {
+            properties.setProperty(PropertyKeyConst.NAMESPACE, namespace);
         }
-        if (StringUtil.isNotBlank(nacosProperties.getUsername())) {
-            properties.setProperty(PropertyKeyConst.USERNAME, nacosProperties.getUsername());
+        if (StringUtil.isNotBlank(username)) {
+            properties.setProperty(PropertyKeyConst.USERNAME, username);
             properties.setProperty(PropertyKeyConst.PASSWORD, nacosProperties.getPassword());
         }
         return ConfigFactory.createConfigService(properties);

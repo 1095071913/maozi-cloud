@@ -152,11 +152,14 @@ public class MachineInfo implements Comparable<MachineInfo> {
         if (this == o) {
             return 0;
         }
-        if (!port.equals(o.getPort())) {
-            return port.compareTo(o.getPort());
+        // 缓存对方端口与应用名，避免同一方法内重复调用
+        Integer otherPort = o.getPort();
+        if (!port.equals(otherPort)) {
+            return port.compareTo(otherPort);
         }
-        if (!StringUtil.equals(app, o.getApp())) {
-            return app.compareToIgnoreCase(o.getApp());
+        String otherApp = o.getApp();
+        if (!StringUtil.equals(app, otherApp)) {
+            return app.compareToIgnoreCase(otherApp);
         }
         return ip.compareToIgnoreCase(o.getIp());
     }

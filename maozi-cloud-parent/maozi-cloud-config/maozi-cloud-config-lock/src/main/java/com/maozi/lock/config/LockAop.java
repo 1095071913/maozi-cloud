@@ -210,12 +210,13 @@ public class LockAop {
 
             Parameter parameter = parameters[i];
 
+            // 缓存参数上的 @LockKey 注解，避免同一方法内重复调用
+            LockKey keyAnnotation = parameter.getAnnotation(LockKey.class);
+
             // 检查参数上是否有 @LockKey 注解
-            if (parameter.getAnnotation(LockKey.class) != null) {
+            if (keyAnnotation != null) {
 
                 Object parameterValue = parameterValues[i];
-
-                LockKey keyAnnotation = parameter.getAnnotation(LockKey.class);
 
                 String spel = keyAnnotation.value();
 

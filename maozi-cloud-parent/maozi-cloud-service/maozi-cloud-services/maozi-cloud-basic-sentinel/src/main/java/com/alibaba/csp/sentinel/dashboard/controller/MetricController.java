@@ -111,7 +111,9 @@ public class MetricController {
         endTime = alignToBucketEnd(endTime);
         // 严格按查询窗口列出资源：窗口内无数据点的资源不展示
         List<String> resources = metricStore.listResourcesOfApp(app, startTime, endTime);
-        logger.debug("queryTopResourceMetric(), resources.size()={}", resources.size());
+        // 缓存资源总数，调试日志与分页计算共用，避免同一方法内重复调用
+        int totalCount = resources.size();
+        logger.debug("queryTopResourceMetric(), resources.size()={}", totalCount);
 
         if (resources.isEmpty()) {
             return Result.ofSuccess(null);
@@ -127,13 +129,14 @@ public class MetricController {
                 }
             }
             resources = searched;
+            // 按搜索关键字过滤后资源总数随之变化，同步刷新缓存值
+            totalCount = searched.size();
         }
-        int totalCount = resources.size();
         int totalPage = (totalCount + pageSize - 1) / pageSize;
         List<String> topResource = new ArrayList<>();
         if (pageIndex <= totalPage) {
             topResource = resources.subList((pageIndex - 1) * pageSize,
-                Math.min(pageIndex * pageSize, resources.size()));
+                Math.min(pageIndex * pageSize, totalCount));
         }
         final Map<String, Iterable<MetricVO>> map = new ConcurrentHashMap<>(topResource.size());
         logger.debug("topResource={}", topResource);
@@ -216,9 +219,11 @@ public class MetricController {
         }
         Map<Long, MetricVO> map = new TreeMap<>();
         for (MetricVO vo : vos) {
-            MetricVO oldVo = map.get(vo.getTimestamp());
+            // 缓存时间戳，避免同一方法内重复调用
+            Long timestamp = vo.getTimestamp();
+            MetricVO oldVo = map.get(timestamp);
             if (oldVo == null || vo.getGmtCreate() > oldVo.getGmtCreate()) {
-                map.put(vo.getTimestamp(), vo);
+                map.put(timestamp, vo);
             }
         }
         return map.values();

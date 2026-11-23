@@ -114,23 +114,30 @@ public class GatewayApiController {
     @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
     public Result<ApiDefinitionEntity> addApi(HttpServletRequest request, @RequestBody AddApiReqVO reqVo) {
 
-        String error = checkAppIpPort(reqVo.getApp(), reqVo.getIp(), reqVo.getPort());
+        // 缓存应用、IP、端口与 API 名称，避免同一方法内重复调用
+        String app = reqVo.getApp();
+        String ip = reqVo.getIp();
+        Integer port = reqVo.getPort();
+        String apiName = reqVo.getApiName();
+
+        String error = checkAppIpPort(app, ip, port);
         if (error != null) {
             return Result.ofFail(Result.CODE_ERROR, error);
         }
-        String trimmedApp = reqVo.getApp().trim();
+        String trimmedApp = app.trim();
 
         // API 名称
-        String apiName = reqVo.getApiName();
         if (StringUtil.isBlank(apiName)) {
             return Result.ofFail(Result.CODE_ERROR, "apiName can't be null or empty");
         }
+        // 缓存去除首尾空白后的 API 名称，避免同一方法内重复调用
+        String trimmedApiName = apiName.trim();
 
         ApiDefinitionEntity entity = new ApiDefinitionEntity();
         entity.setApp(trimmedApp);
-        entity.setIp(reqVo.getIp().trim());
-        entity.setPort(reqVo.getPort());
-        entity.setApiName(apiName.trim());
+        entity.setIp(ip.trim());
+        entity.setPort(port);
+        entity.setApiName(trimmedApiName);
 
         // 断言条目
         List<ApiPredicateItemEntity> predicateItemEntities;
@@ -143,13 +150,13 @@ public class GatewayApiController {
 
         // 应用内 API 名称重复则拒绝
         List<ApiDefinitionEntity> allApis = repository.findAllByApp(trimmedApp);
-        if (allApis.stream().map(ApiDefinitionEntity::getApiName).anyMatch(apiName.trim()::equals)) {
+        if (allApis.stream().map(ApiDefinitionEntity::getApiName).anyMatch(trimmedApiName::equals)) {
             return Result.ofFail(Result.CODE_ERROR, "apiName exists: " + apiName);
         }
 
         entity.setGmtCreateAndModified(new Date());
 
-        return saveAndPublish(entity, reqVo.getApp(), "add");
+        return saveAndPublish(entity, app, "add");
     }
 
     /** 更新指定 id 的 API 分组的断言条目，随后将应用的 API 分组推送至 Nacos。 */

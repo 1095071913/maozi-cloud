@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
@@ -57,12 +58,19 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
      */
     @Override
     public void save(MetricEntity entity) {
-        if (entity == null || StringUtil.isBlank(entity.getApp())) {
+        if (entity == null) {
             return;
         }
-        readWriteLock.writeLock().lock();
+        // 缓存应用名，避免同一方法内重复调用
+        String app = entity.getApp();
+        if (StringUtil.isBlank(app)) {
+            return;
+        }
+        // 缓存写锁对象，加锁与解锁共用，避免同一方法内重复调用
+        Lock writeLock = readWriteLock.writeLock();
+        writeLock.lock();
         try {
-            allMetrics.computeIfAbsent(entity.getApp(), e -> new HashMap<>(16))
+            allMetrics.computeIfAbsent(app, e -> new HashMap<>(16))
                     .computeIfAbsent(entity.getResource(), e -> new LinkedHashMap<Long, MetricEntity>() {
                         /** 每次插入时淘汰超过 {@link #MAX_METRIC_LIVE_TIME_MS} 的旧指标 */
                         @Override
@@ -71,7 +79,7 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
                         }
                     }).put(entity.getTimestamp().getTime(), entity);
         } finally {
-            readWriteLock.writeLock().unlock();
+            writeLock.unlock();
         }
 
     }
@@ -85,11 +93,13 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
         if (metrics == null) {
             return;
         }
-        readWriteLock.writeLock().lock();
+        // 缓存写锁对象，加锁与解锁共用，避免同一方法内重复调用
+        Lock writeLock = readWriteLock.writeLock();
+        writeLock.lock();
         try {
             metrics.forEach(this::save);
         } finally {
-            readWriteLock.writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -112,7 +122,9 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
         if (metricsMap == null) {
             return results;
         }
-        readWriteLock.readLock().lock();
+        // 缓存读锁对象，加锁与解锁共用，避免同一方法内重复调用
+        Lock readLock = readWriteLock.readLock();
+        readLock.lock();
         try {
             for (Entry<Long, MetricEntity> entry : metricsMap.entrySet()) {
                 long timestamp = entry.getKey();
@@ -122,7 +134,7 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
             }
             return results;
         } finally {
-            readWriteLock.readLock().unlock();
+            readLock.unlock();
         }
     }
 
@@ -144,16 +156,20 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
         }
         Map<String, MetricEntity> resourceCount = new ConcurrentHashMap<>(32);
 
-        readWriteLock.readLock().lock();
+        // 缓存读锁对象，加锁与解锁共用，避免同一方法内重复调用
+        Lock readLock = readWriteLock.readLock();
+        readLock.lock();
         try {
             for (Entry<String, LinkedHashMap<Long, MetricEntity>> resourceMetrics : resourceMap.entrySet()) {
+                // 缓存资源名，避免同一方法内重复调用
+                String resourceName = resourceMetrics.getKey();
                 for (Entry<Long, MetricEntity> metrics : resourceMetrics.getValue().entrySet()) {
                     long metricTime = metrics.getKey();
                     if (metricTime < startTime || metricTime > endTime) {
                         continue;
                     }
                     MetricEntity newEntity = metrics.getValue();
-                    MetricEntity oldEntity = resourceCount.get(resourceMetrics.getKey());
+                    MetricEntity oldEntity = resourceCount.get(resourceName);
                     if (oldEntity != null) {
                         oldEntity.addPassQps(newEntity.getPassQps());
                         oldEntity.addRtAndSuccessQps(newEntity.getRt(), newEntity.getSuccessQps());
@@ -161,7 +177,7 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
                         oldEntity.addExceptionQps(newEntity.getExceptionQps());
                         oldEntity.addCount(1);
                     } else {
-                        resourceCount.put(resourceMetrics.getKey(), MetricEntity.copyOf(newEntity));
+                        resourceCount.put(resourceName, MetricEntity.copyOf(newEntity));
                     }
                 }
             }
@@ -180,7 +196,7 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
                     .map(Entry::getKey)
                     .collect(Collectors.toList());
         } finally {
-            readWriteLock.readLock().unlock();
+            readLock.unlock();
         }
     }
 }

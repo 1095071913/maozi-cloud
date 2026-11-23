@@ -87,8 +87,12 @@ public class GrayReactiveLoadBalancerClientFilter extends ReactiveLoadBalancerCl
 
         // 获取路由方案前缀
         String schemePrefix = exchange.getAttribute(GATEWAY_SCHEME_PREFIX_ATTR);
+
+        // 缓存请求协议（URL 不可变），负载均衡判断与协议覆盖共用，避免同一方法内重复调用
+        String scheme = url.getScheme();
+
         // 非 lb（负载均衡）协议的请求直接放行
-        boolean isLoadBalancerRoute = SCHEME_LB.equals(url.getScheme()) || SCHEME_LB.equals(schemePrefix);
+        boolean isLoadBalancerRoute = SCHEME_LB.equals(scheme) || SCHEME_LB.equals(schemePrefix);
         if (!isLoadBalancerRoute) {
             return chain.filter(exchange);
         }
@@ -109,7 +113,7 @@ public class GrayReactiveLoadBalancerClientFilter extends ReactiveLoadBalancerCl
             // 协议覆盖方案
             String overrideScheme = null;
             if (schemePrefix != null) {
-                overrideScheme = url.getScheme();
+                overrideScheme = scheme;
             }
 
             // 创建委托服务实例

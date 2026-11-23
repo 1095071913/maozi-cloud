@@ -219,13 +219,16 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
             }
 
             messageMap.put(messageId, Objects.requireNonNull(messageToJson(message)));
-            orderTuples.add(ZSetOperations.TypedTuple.of(messageId, Double.parseDouble(createTime)));
+
+            // 缓存写入时间戳分值，顺序索引与用户对话记录索引共用，避免同一方法内重复调用
+            double createTimeScore = Double.parseDouble(createTime);
+            orderTuples.add(ZSetOperations.TypedTuple.of(messageId, createTimeScore));
 
             MessageType messageType = message.getMessageType();
 
             // 用户对话记录索引仅收集 USER / ASSISTANT 消息
             if (MessageType.USER == messageType || MessageType.ASSISTANT == messageType) {
-                recordTuples.add(ZSetOperations.TypedTuple.of(messageId, Double.parseDouble(createTime)));
+                recordTuples.add(ZSetOperations.TypedTuple.of(messageId, createTimeScore));
             }
 
         });

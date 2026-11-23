@@ -141,11 +141,14 @@ public abstract class AbstractBaseResult<D> implements Serializable {
             throwError();
         }
 
-        if (Objects.isNull(getData())) {
+        // 缓存响应数据，判空与返回共用，避免同一方法内重复调用
+        D data = getData();
+
+        if (Objects.isNull(data)) {
             throw new BusinessResultException(SystemErrorCode.DATA_NOT_EXIST_ERROR).setResource(resourceName);
         }
 
-        return getData();
+        return data;
 
     }
 

@@ -247,7 +247,8 @@ public class MetricFetcher {
                 unhealthy.incrementAndGet();
                 String machineIp = machine.getIp();
                 int machinePort = machine.getPort();
-                appManagement.getDetailApp(app).removeMachine(machineIp, machinePort);
+                // 复用方法开头获取的应用信息，避免同一方法内重复调用
+                appInfo.removeMachine(machineIp, machinePort);
                 logger.info("Unhealthy machine removed: {}:{} of {}", machineIp, machinePort, app);
                 continue;
             }
@@ -400,12 +401,15 @@ public class MetricFetcher {
                 /*
                  * 按 app_resource_timeSecond 聚合指标，忽略 ip 与端口
                  */
-                String key = buildMetricKey(machine.getApp(), resource, node.getTimestamp());
+                // 缓存应用名与秒级时间戳，聚合 key 与实体初始化共用，避免同一方法内重复调用
+                String app = machine.getApp();
+                long timestamp = node.getTimestamp();
+                String key = buildMetricKey(app, resource, timestamp);
 
                 MetricEntity metricEntity = map.computeIfAbsent(key, s -> {
                     MetricEntity initMetricEntity = new MetricEntity();
-                    initMetricEntity.setApp(machine.getApp());
-                    initMetricEntity.setTimestamp(new Date(node.getTimestamp()));
+                    initMetricEntity.setApp(app);
+                    initMetricEntity.setTimestamp(new Date(timestamp));
                     initMetricEntity.setPassQps(0L);
                     initMetricEntity.setBlockQps(0L);
                     initMetricEntity.setRtAndSuccessQps(0, 0L);

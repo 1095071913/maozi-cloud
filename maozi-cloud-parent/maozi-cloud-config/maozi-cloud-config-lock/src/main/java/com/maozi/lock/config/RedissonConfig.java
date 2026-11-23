@@ -47,11 +47,14 @@ public class RedissonConfig {
         Config config = new Config();
 
         String password = lockRedissonProperties.getPassword();
-        if (ObjectUtil.isNotNull(lockRedissonProperties.getNodeAddresses())) {
+
+        // 缓存集群节点地址，避免同一方法内重复调用
+        String[] nodeAddresses = lockRedissonProperties.getNodeAddresses();
+        if (ObjectUtil.isNotNull(nodeAddresses)) {
             // 集群模式：配置多个 Redis 节点地址和密码
             config.useClusterServers()
                     .setPassword(password)
-                    .addNodeAddress(lockRedissonProperties.getNodeAddresses());
+                    .addNodeAddress(nodeAddresses);
         } else {
             Integer database = lockRedissonProperties.getDatabase();
             // 单节点模式：配置单个 Redis 地址、数据库编号和密码

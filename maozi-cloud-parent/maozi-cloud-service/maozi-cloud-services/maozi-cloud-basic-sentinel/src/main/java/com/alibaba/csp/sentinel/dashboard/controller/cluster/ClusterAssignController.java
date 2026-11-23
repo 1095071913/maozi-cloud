@@ -19,6 +19,7 @@ import com.alibaba.csp.sentinel.dashboard.domain.Result;
 import com.alibaba.csp.sentinel.dashboard.domain.cluster.ClusterAppAssignResultVO;
 import com.alibaba.csp.sentinel.dashboard.domain.cluster.ClusterAppFullAssignRequest;
 import com.alibaba.csp.sentinel.dashboard.domain.cluster.ClusterAppSingleServerAssignRequest;
+import com.alibaba.csp.sentinel.dashboard.domain.cluster.request.ClusterAppAssignMap;
 import com.alibaba.csp.sentinel.dashboard.service.ClusterAssignService;
 import com.alibaba.csp.sentinel.util.StringUtil;
 import org.slf4j.Logger;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -63,13 +65,17 @@ public class ClusterAssignController {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(Result.CODE_ERROR, "app cannot be null or empty");
         }
-        if (assignRequest == null || assignRequest.getClusterMap() == null
-            || assignRequest.getRemainingList() == null) {
+        if (assignRequest == null) {
+            return Result.ofFail(Result.CODE_ERROR, "bad request body");
+        }
+        // 缓存集群分配映射与剩余机器列表，避免同一方法内重复调用
+        List<ClusterAppAssignMap> clusterMap = assignRequest.getClusterMap();
+        Set<String> remainingList = assignRequest.getRemainingList();
+        if (clusterMap == null || remainingList == null) {
             return Result.ofFail(Result.CODE_ERROR, "bad request body");
         }
         try {
-            return Result.ofSuccess(clusterAssignService.applyAssignToApp(app, assignRequest.getClusterMap(),
-                assignRequest.getRemainingList()));
+            return Result.ofSuccess(clusterAssignService.applyAssignToApp(app, clusterMap, remainingList));
         } catch (Throwable throwable) {
             logger.error("Error when assigning full cluster servers for app: {}", app, throwable);
             return Result.ofFail(Result.CODE_ERROR, throwable.getMessage());
@@ -85,12 +91,17 @@ public class ClusterAssignController {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(Result.CODE_ERROR, "app cannot be null or empty");
         }
-        if (assignRequest == null || assignRequest.getClusterMap() == null) {
+        if (assignRequest == null) {
+            return Result.ofFail(Result.CODE_ERROR, "bad request body");
+        }
+        // 缓存集群分配映射，避免同一方法内重复调用
+        ClusterAppAssignMap clusterMap = assignRequest.getClusterMap();
+        if (clusterMap == null) {
             return Result.ofFail(Result.CODE_ERROR, "bad request body");
         }
         try {
             return Result.ofSuccess(clusterAssignService.applyAssignToApp(app, 
-                Collections.singletonList(assignRequest.getClusterMap()),
+                Collections.singletonList(clusterMap),
                 assignRequest.getRemainingList()));
         } catch (Throwable throwable) {
             logger.error("Error when assigning single cluster servers for app: {}", app, throwable);

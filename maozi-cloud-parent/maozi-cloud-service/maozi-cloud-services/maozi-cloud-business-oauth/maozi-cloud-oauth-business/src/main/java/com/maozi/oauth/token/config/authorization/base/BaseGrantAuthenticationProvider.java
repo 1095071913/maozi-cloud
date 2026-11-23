@@ -397,11 +397,14 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
      * @return 校验通过的最终授权scope集合
      */
     private Set<String> getAuthorizedScopes(RegisteredClient registeredClient, Set<String> requestedScopes) {
+        // 缓存客户端配置的 scope，避免同一方法内重复调用（lambda 捕获要求为不变引用）
+        Set<String> clientScopes = registeredClient.getScopes();
+
         // 默认使用客户端配置的scope
-        Set<String> authorizedScopes = registeredClient.getScopes();
+        Set<String> authorizedScopes = clientScopes;
         if (!CollectionUtil.isEmpty(requestedScopes)) {
             Set<String> unauthorizedScopes = requestedScopes.stream()
-                    .filter(requestedScope -> !registeredClient.getScopes().contains(requestedScope))
+                    .filter(requestedScope -> !clientScopes.contains(requestedScope))
                     .collect(Collectors.toSet());
             if (!CollectionUtil.isEmpty(unauthorizedScopes)) {
                 throw new OAuth2AuthenticationException(new OAuth2Error( OAuth2ErrorCodes.INVALID_REQUEST,

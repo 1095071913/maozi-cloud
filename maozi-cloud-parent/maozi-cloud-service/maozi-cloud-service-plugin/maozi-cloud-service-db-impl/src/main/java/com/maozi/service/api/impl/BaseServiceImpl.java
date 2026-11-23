@@ -334,17 +334,20 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
                     String annotationField = annotation.field();
                     String annotationTableName = annotation.tableName();
 
-                    if (annotation.ignore() && (StringUtils.isNotEmpty(annotationField)
-                            || StringUtils.isNotEmpty(annotationTableName))) {
+                    // 缓存注解字段、表名的非空判断结果，避免同一方法内重复调用
+                    boolean hasAnnotationField = StringUtils.isNotEmpty(annotationField);
+                    boolean hasAnnotationTableName = StringUtils.isNotEmpty(annotationTableName);
 
-                    // ignore 且显式指定来源字段或表名：按注解配置生成列名，
-                    // 未指定的部分回退字段名/默认别名
-                    String tableName = StringUtils.isNotEmpty(annotationTableName) ?
+                    if (annotation.ignore() && (hasAnnotationField || hasAnnotationTableName)) {
+
+                        // ignore 且显式指定来源字段或表名：按注解配置生成列名，
+                        // 未指定的部分回退字段名/默认别名
+                        String tableName = hasAnnotationTableName ?
                                 annotationTableName
                                 :
                                 QueryEnvironmentContext.defaultOrderKey;
 
-                        String columnName = StringUtils.isNotEmpty(annotationField) ?
+                        String columnName = hasAnnotationField ?
                             annotationField : StrUtil.toUnderlineCase(fieldName);
 
                         if (Boolean.TRUE.equals(isJoin)) {
@@ -452,7 +455,10 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public void checkAvailable(List<Long> ids) {
 
-        CollectionUtil.collectionIsEmptyThrowError(ids, getResourceName() + RESOURCE_SUFFIX_LIST);
+        // 缓存资源名称，避免同一方法内重复调用
+        String resourceName = getResourceName();
+
+        CollectionUtil.collectionIsEmptyThrowError(ids, resourceName + RESOURCE_SUFFIX_LIST);
 
         QueryWrapper<T> wrapper = Wrappers.query();
 
@@ -465,7 +471,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
             if (domain.getStatus() == StatusEnum.DISABLE) {
                 throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
-                        .setResource(getResourceName());
+                        .setResource(resourceName);
             }
 
         });
@@ -536,16 +542,19 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public T getAvailableByParam(MPJLambdaWrapper<T> wrapper) {
 
+        // 缓存资源名称，避免同一方法内重复调用
+        String resourceName = getResourceName();
+
         wrapper.selectAsClass(domainClass, domainClass);
         wrapper.select(getColumn(AbstractBaseDomain::getStatus));
 
         T domain = super.getOne(wrapper);
 
-        ObjectUtil.isNullThrowError(domain, getResourceName());
+        ObjectUtil.isNullThrowError(domain, resourceName);
 
         if (domain.getStatus() == StatusEnum.DISABLE) {
             throw new BusinessResultException(SystemErrorCode.FORBIDDEN_ERROR)
-                    .setResource(getResourceName());
+                    .setResource(resourceName);
         }
 
         return domain;
@@ -1008,7 +1017,10 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
      */
     public boolean saveUpdate(T domain) {
 
-        ObjectUtil.isNullThrowError(domain, getResourceName());
+        // 缓存资源名称，避免同一方法内重复调用
+        String resourceName = getResourceName();
+
+        ObjectUtil.isNullThrowError(domain, resourceName);
 
         // 携带 ID 视为更新：先校验数据存在
         Long id = domain.getId();
@@ -1021,7 +1033,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
             ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
             ObjectUtil.checkConditionThrowError(super.count(wrapper) > 0, errorCode,
-                getResourceName() + errorCode.getMessage());
+                resourceName + errorCode.getMessage());
 
         }
 
@@ -1043,7 +1055,10 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     @Transactional(rollbackFor = Exception.class)
     public Long saveUpdate(Long id, Object param) {
 
-        ObjectUtil.isNullThrowError(param, getResourceName());
+        // 缓存资源名称，避免同一方法内重复调用
+        String resourceName = getResourceName();
+
+        ObjectUtil.isNullThrowError(param, resourceName);
 
         T domain = CglibUtil.copy(param, domainClass);
         // 携带 ID 视为更新：回填 ID 并校验数据存在
@@ -1056,7 +1071,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
             ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
             ObjectUtil.checkConditionThrowError(super.count(wrapper) > 0, errorCode,
-                getResourceName() + errorCode.getMessage());
+                resourceName + errorCode.getMessage());
 
         } else {
             // 未携带 ID 视为新增：校验参数合法性
@@ -1080,7 +1095,10 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
     @Transactional(rollbackFor = Exception.class)
     public void saveUpdateBatch(List<T> domains) {
 
-        CollectionUtil.collectionIsEmptyThrowError(domains, getResourceName() + RESOURCE_SUFFIX_LIST);
+        // 缓存资源名称，避免同一方法内重复调用
+        String resourceName = getResourceName();
+
+        CollectionUtil.collectionIsEmptyThrowError(domains, resourceName + RESOURCE_SUFFIX_LIST);
 
         Consumer<T> consumer = (domain) -> {
 
@@ -1094,7 +1112,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
                 ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
                 ObjectUtil.checkConditionThrowError(super.count(wrapper) > 0, errorCode,
-                    getResourceName() + errorCode.getMessage());
+                    resourceName + errorCode.getMessage());
 
             }
 

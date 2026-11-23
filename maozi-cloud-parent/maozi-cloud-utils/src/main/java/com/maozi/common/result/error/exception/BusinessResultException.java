@@ -3,7 +3,9 @@ package com.maozi.common.result.error.exception;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.result.error.ErrorResult;
 import com.maozi.common.result.error.code.ErrorCode;
+import com.maozi.common.result.error.code.SystemErrorCode;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
 
@@ -19,6 +21,7 @@ import java.io.Serial;
  * @date 2026/11/08
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class BusinessResultException extends RuntimeException {
 
     /** 序列化标识 */
@@ -179,15 +182,10 @@ public class BusinessResultException extends RuntimeException {
         return this;
     }
 
-    /**
-     * 同时设置错误结果中的错误信息和异常错误信息
-     *
-     * @param message 错误信息
-     * @param exceptionMessage 异常错误信息
-     * @return 当前实例（链式调用）
-     */
-    public BusinessResultException setMessage(String message, String exceptionMessage) {
-        this.errorResult.setMessage(message, exceptionMessage);
+    public BusinessResultException setExceptionMessage(String exceptionMessage) {
+        this.errorResult.setCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
+        this.errorResult.setExceptionMessage(exceptionMessage);
+        this.errorResult.setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
         return this;
     }
 

@@ -7,6 +7,7 @@ import com.maozi.ai.ai.constant.ChatMessageConstant;
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.JacksonUtil;
 import com.maozi.common.constant.SymbolConstant;
+import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.redis.utils.RedisUtil;
 import jakarta.annotation.Resource;
@@ -314,12 +315,12 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
 
         ChatMessage chatMessage = JacksonUtil.jsonToObject(json, ChatMessage.class);
         if (Objects.isNull(chatMessage)) {
-            throw new BusinessResultException("消息数据转换失败");
+            throw new BusinessResultException(SystemErrorCode.SYSTEM_ERROR).setExceptionMessage("AI消息转换失败");
         }
 
         String messageTypeString = chatMessage.getMessageType();
         if (StringUtils.isEmpty(messageTypeString)) {
-            throw new BusinessResultException("消息类型缺失");
+            throw new BusinessResultException(SystemErrorCode.SYSTEM_ERROR).setExceptionMessage("消息类型缺失");
         }
 
         // 按消息类型还原为对应的消息对象
@@ -342,7 +343,7 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
             case TOOL -> {
                 return new ToolResponseMessage(chatMessage.getToolResponses(), chatMessage.getMetadata());
             }
-            default -> throw new BusinessResultException("message data conversion error");
+            default -> throw new BusinessResultException(SystemErrorCode.SYSTEM_ERROR).setExceptionMessage("AI消息转换失败");
         }
 
     }

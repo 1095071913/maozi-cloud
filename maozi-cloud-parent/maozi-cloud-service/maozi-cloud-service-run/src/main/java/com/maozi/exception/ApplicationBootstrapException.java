@@ -1,4 +1,4 @@
-package com.maozi;
+package com.maozi.exception;
 
 import java.io.Serial;
 

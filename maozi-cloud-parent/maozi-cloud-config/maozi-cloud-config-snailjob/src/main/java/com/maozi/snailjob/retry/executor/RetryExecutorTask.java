@@ -18,6 +18,8 @@ import com.maozi.common.context.TraceIdContext;
 import com.maozi.common.context.VersionContext;
 import com.maozi.common.enums.EnvironmentTypeEnum;
 import com.maozi.common.enums.LogCommonTypeEnum;
+import com.maozi.common.result.error.code.ErrorCode;
+import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.snailjob.retry.context.RetryContextHolder;
 import com.maozi.snailjob.retry.param.RetryTaskParam;
@@ -109,7 +111,9 @@ public class RetryExecutorTask implements ExecutorMethod {
 
             boolean result = executeTask(retryParam);
             if (!result) {
-                throw new BusinessResultException("远程重试失败");
+                throw new BusinessResultException(
+                    new ErrorCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE, "远程重试失败")
+                );
             }
 
             // 非生产环境记录请求参数

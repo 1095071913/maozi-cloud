@@ -174,7 +174,7 @@ public class ServerHttpResponseAgent extends ServerHttpResponseDecorator {
             // 包装失败时包装为业务异常向上抛出：若吞掉异常返回 null，
             // Reactor 的 map 会因 null 抛 NPE，掩盖真正的失败原因
             log.error("wrap response body error", e);
-            throw new BusinessResultException(SystemErrorCode.DEFAULT_ERROR, e);
+            throw new BusinessResultException(SystemErrorCode.SYSTEM_ERROR, e);
         } finally {
             try {
                 outputStream.close();

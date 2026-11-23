@@ -25,6 +25,7 @@ import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.common.context.VersionContext;
 import com.maozi.common.enums.EnvironmentTypeEnum;
 import com.maozi.common.spi.ConfigInitializer;
+import com.maozi.exception.ApplicationBootstrapException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

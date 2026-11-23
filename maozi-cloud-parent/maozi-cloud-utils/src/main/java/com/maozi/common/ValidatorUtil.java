@@ -28,20 +28,25 @@ public class ValidatorUtil {
     /** 校验器（线程安全，全局单例） */
     private static final Validator VALIDATOR;
 
-    static {
-
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-
-        VALIDATOR = factory.getValidator();
-
-        // 校验器已获取，关闭工厂释放资源，已创建的 Validator 不受影响
-        factory.close();
-    }
+    /** 参数为空的提示信息 */
+    private static final String PARAM_EMPTY_MESSAGE = "参数不能为空";
 
     /**
      * 工具类私有化构造，禁止实例化
      */
     private ValidatorUtil() {}
+
+    static {
+        
+        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            VALIDATOR = factory.getValidator();
+        }
+        
+    }
+    
+    public static Validator getValidator(){
+        return VALIDATOR;
+    }
 
     /**
      * 统一校验方法：支持单个对象 / 集合自动包装校验
@@ -52,7 +57,7 @@ public class ValidatorUtil {
     public static void validate(Object data) {
 
         if (Objects.isNull(data)) {
-            throw new BusinessResultException(SystemErrorCode.PARAM_ERROR, "参数不能为空");
+            throw new BusinessResultException(SystemErrorCode.PARAM_ERROR, PARAM_EMPTY_MESSAGE);
         }
 
         Object target = data;

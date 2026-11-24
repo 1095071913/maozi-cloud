@@ -55,7 +55,7 @@ public final class LogUtil {
      */
     public static void info(Logger log, Map<String, String> content) {
         if (log.isInfoEnabled()) {
-            log(log, false, content, null);
+            log.info(LogUtil.convertLog(content));
         }
     }
 

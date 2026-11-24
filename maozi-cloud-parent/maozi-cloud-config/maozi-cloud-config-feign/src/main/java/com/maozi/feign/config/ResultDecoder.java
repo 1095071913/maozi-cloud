@@ -93,10 +93,10 @@ public class ResultDecoder implements Decoder {
      * Feign 响应到 Spring ClientHttpResponse 的适配器
      *
      * @author maozi
+     * @date 2026/11/08
      */
     @Slf4j
     public static final class FeignResponseAdapter implements ClientHttpResponse {
-
 
         /** Feign 原始响应 */
         private final Response response;
@@ -141,8 +141,7 @@ public class ResultDecoder implements Decoder {
         public void close() {
             try {
                 this.response.body().close();
-            }
-            catch (IOException ex) {
+            } catch (IOException ex) {
                 // 关闭失败不影响主流程，保留 debug 日志便于排查资源泄漏
                 log.debug("Close feign response body failed", ex);
             }
@@ -179,7 +178,7 @@ public class ResultDecoder implements Decoder {
      * @param headers Feign 响应头映射
      * @return Spring HttpHeaders 对象
      */
-    static HttpHeaders getHttpHeaders(Map<String, Collection<String>> headers) {
+    private static HttpHeaders getHttpHeaders(Map<String, Collection<String>> headers) {
         HttpHeaders httpHeaders = new HttpHeaders();
         // 逐项复制 Feign 响应头到 Spring HttpHeaders
         for (Map.Entry<String, Collection<String>> entry : headers.entrySet()) {

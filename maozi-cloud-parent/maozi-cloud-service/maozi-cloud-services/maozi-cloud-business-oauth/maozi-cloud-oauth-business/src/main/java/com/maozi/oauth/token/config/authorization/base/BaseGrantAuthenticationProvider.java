@@ -3,7 +3,7 @@ package com.maozi.oauth.token.config.authorization.base;
 import com.baomidou.mybatisplus.core.toolkit.ReflectionKit;
 import com.maozi.common.CollectionUtil;
 import com.maozi.oauth.token.config.domain.SecurityUserDetails;
-import com.maozi.oauth.token.constants.OAuth2TokenUserClaimConstants;
+import com.maozi.oauth.token.constants.Oauth2TokenUserClaimConstants;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -78,15 +78,18 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
     /** ID Token的令牌类型标识 */
     private static final OAuth2TokenType ID_TOKEN_TOKEN_TYPE = new OAuth2TokenType(OidcParameterNames.ID_TOKEN);
 
+    /** 令牌 claims 的初始容量（授权类型、签发/过期时间、主体等基础声明数） */
+    private static final int CLAIMS_INIT_CAPACITY = 8;
+
     /** 当前泛型对应的Token令牌Class对象，用于判断支持的认证类型 */
-    protected Class<T> tokenClass = currentTokenClass();
+    private Class<T> tokenClass = currentTokenClass();
 
     /**
      * 通过反射获取当前子类的泛型Token类型
      *
      * @return 泛型Token的Class对象
      */
-    protected Class<T> currentTokenClass() {
+    private Class<T> currentTokenClass() {
         return (Class<T>) ReflectionKit.getSuperClassGenericType(this.getClass(),
                 BaseGrantAuthenticationProvider.class, 0);
     }
@@ -123,7 +126,7 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 
-        T authenticationToken = (T)authentication;
+        T authenticationToken = (T) authentication;
 
         // 确保客户端已通过认证
         OAuth2ClientAuthenticationToken clientPrincipal =
@@ -278,33 +281,31 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
         OAuth2AccessToken accessToken = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER,
                 generatedAccessToken.getTokenValue(), generatedAccessToken.getIssuedAt(),
                 generatedAccessToken.getExpiresAt(), tokenContext.getAuthorizedScopes());
-        if (generatedAccessToken instanceof ClaimAccessor) {
-            Authentication finalUserAuthenticationToken = userAuthenticationToken;
-            authorizationBuilder.token(accessToken, (metadata) -> {
-                Map<String, Object> claims = CollectionUtil
-                        .newHashMap(((ClaimAccessor) generatedAccessToken).getClaims());
-                List<String> authorities = finalUserAuthenticationToken.getAuthorities().stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .collect(Collectors.toList());
-                claims.put(OAuth2TokenUserClaimConstants.AUTHORITIES, authorities);
-                if (finalUserAuthenticationToken.getPrincipal() instanceof SecurityUserDetails securityUserDetails) {
-                    claims.putAll(securityUserDetails.getAttributes());
-                }
-                metadata.put(OAuth2Authorization.Token.CLAIMS_METADATA_NAME, claims);
-            });
-        } else {
-            Map<String, Object> claims = CollectionUtil.newHashMap(8);
-            List<String> authorities = userAuthenticationToken.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .collect(Collectors.toList());
-            claims.put(OAuth2TokenUserClaimConstants.AUTHORITIES, authorities);
-            if (userAuthenticationToken.getPrincipal() instanceof SecurityUserDetails securityUserDetails) {
-                claims.putAll(securityUserDetails.getAttributes());
-            }
-            authorizationBuilder.token(accessToken, (metadata) ->
-                    metadata.put(OAuth2Authorization.Token.CLAIMS_METADATA_NAME, claims));
+        // JWT 类型令牌在生成器产出的 claims 基础上补充用户权限与附加属性（后者优先）；
+        // 不透明令牌直接以用户权限与附加属性构建 claims
+        Map<String, Object> claims = generatedAccessToken instanceof ClaimAccessor claimAccessor
+                ? CollectionUtil.newHashMap(claimAccessor.getClaims())
+                : CollectionUtil.newHashMap(CLAIMS_INIT_CAPACITY);
+        claims.put(Oauth2TokenUserClaimConstants.AUTHORITIES, getAuthorities(userAuthenticationToken));
+        if (userAuthenticationToken.getPrincipal() instanceof SecurityUserDetails securityUserDetails) {
+            claims.putAll(securityUserDetails.getAttributes());
         }
+
+        authorizationBuilder.token(accessToken, (metadata) ->
+                metadata.put(OAuth2Authorization.Token.CLAIMS_METADATA_NAME, claims));
         return accessToken;
+    }
+
+    /**
+     * 提取用户认证令牌携带的权限标识列表
+     *
+     * @param userAuthenticationToken 用户认证令牌
+     * @return 权限标识列表
+     */
+    private static List<String> getAuthorities(Authentication userAuthenticationToken) {
+        return userAuthenticationToken.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -322,8 +323,8 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
     private OAuth2RefreshToken generateRefreshToken(DefaultOAuth2TokenContext.Builder tokenContextBuilder,
             OAuth2Authorization.Builder authorizationBuilder, OAuth2ClientAuthenticationToken clientPrincipal) {
         if (!(clientPrincipal.getRegisteredClient().getAuthorizationGrantTypes()
-                .contains(AuthorizationGrantType.REFRESH_TOKEN) &&
-                // 不向公共客户端颁发refresh token
+                .contains(AuthorizationGrantType.REFRESH_TOKEN)
+                && // 不向公共客户端颁发refresh token
                 !ClientAuthenticationMethod.NONE.equals(clientPrincipal.getClientAuthenticationMethod()))) {
             return null;
         }
@@ -407,7 +408,7 @@ public abstract class BaseGrantAuthenticationProvider<T extends BaseGrantAuthent
                     .filter(requestedScope -> !clientScopes.contains(requestedScope))
                     .collect(Collectors.toSet());
             if (!CollectionUtil.isEmpty(unauthorizedScopes)) {
-                throw new OAuth2AuthenticationException(new OAuth2Error( OAuth2ErrorCodes.INVALID_REQUEST,
+                throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST,
                         "OAuth 2.0 Parameter: " + OAuth2ParameterNames.SCOPE, ERROR_URI));
             }
 

@@ -10,4 +10,4 @@ import com.maozi.system.permission.domain.UserRoleDO;
  * @author maozi
  * @date 2026/11/08
  */
-public interface UserRoleMapper extends IBaseMapper<UserRoleDO>{}
+public interface UserRoleMapper extends IBaseMapper<UserRoleDO> {}

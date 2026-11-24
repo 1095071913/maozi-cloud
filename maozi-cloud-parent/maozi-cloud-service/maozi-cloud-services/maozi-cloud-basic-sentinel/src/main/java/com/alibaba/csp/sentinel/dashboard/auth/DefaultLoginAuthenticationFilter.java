@@ -73,9 +73,7 @@ public class DefaultLoginAuthenticationFilter implements LoginAuthenticationFilt
 
     /** {@inheritDoc} 空实现：无需初始化。 */
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-
-    }
+    public void init(FilterConfig filterConfig) throws ServletException {}
 
     /**
      * 匹配排除 URL 模式或后缀的请求直接放行；其余请求经 {@link AuthService} 认证，
@@ -132,7 +130,5 @@ public class DefaultLoginAuthenticationFilter implements LoginAuthenticationFilt
 
     /** {@inheritDoc} 空实现：无需释放资源。 */
     @Override
-    public void destroy() {
-
-    }
+    public void destroy() {}
 }

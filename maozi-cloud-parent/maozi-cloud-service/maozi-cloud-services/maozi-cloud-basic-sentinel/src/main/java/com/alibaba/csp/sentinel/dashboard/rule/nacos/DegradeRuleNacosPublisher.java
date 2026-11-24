@@ -55,9 +55,9 @@ public class DegradeRuleNacosPublisher implements DynamicRulePublisher<List<Degr
             return;
         }
         List<DegradeRule> degradeRules = rules.stream()
-            .map(DegradeRuleEntity::toRule)
-            .collect(Collectors.toList());
+                .map(DegradeRuleEntity::toRule)
+                .collect(Collectors.toList());
         NacosConfigUtil.publishJsonConfig(configService, app,
-            NacosConfigUtil.DEGRADE_DATA_ID_POSTFIX, nacosProperties.getGroup(), degradeRules);
+                NacosConfigUtil.DEGRADE_DATA_ID_POSTFIX, nacosProperties.getGroup(), degradeRules);
     }
 }

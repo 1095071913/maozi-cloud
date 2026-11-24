@@ -32,6 +32,7 @@ public class JobProperties {
      * 调度中心配置
      *
      * @author maozi
+     * @date 2026/11/08
      */
     @Data
     public static class Admin {
@@ -45,6 +46,7 @@ public class JobProperties {
      * 执行器配置
      *
      * @author maozi
+     * @date 2026/11/08
      */
     @Data
     public static class Executor {

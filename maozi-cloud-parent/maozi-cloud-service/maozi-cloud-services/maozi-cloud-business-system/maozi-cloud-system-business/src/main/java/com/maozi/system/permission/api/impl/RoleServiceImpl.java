@@ -29,11 +29,11 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleMapper, RoleDO> impleme
 
     /** 用户角色关系服务，用于校验角色是否被用户绑定 */
     @Resource(name = SystemServiceConstant.USER_ROLE_SERVICE)
-    protected UserRoleService userRoleService;
+    private UserRoleService userRoleService;
 
     /** 角色权限关系服务，用于管理角色与权限的绑定关系 */
     @Resource(name = SystemServiceConstant.ROLE_PERMISSION_SERVICE)
-    protected RolePermissionService rolePermissionService;
+    private RolePermissionService rolePermissionService;
 
     /** 获取资源名称 */
     @Override

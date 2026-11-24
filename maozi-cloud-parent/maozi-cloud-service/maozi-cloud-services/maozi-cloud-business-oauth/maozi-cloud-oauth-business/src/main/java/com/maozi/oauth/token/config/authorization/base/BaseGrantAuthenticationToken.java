@@ -1,4 +1,5 @@
 package com.maozi.oauth.token.config.authorization.base;
+
 import lombok.Getter;
 import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -55,9 +56,8 @@ public class BaseGrantAuthenticationToken extends AbstractAuthenticationToken {
      * @param additionalParameters   附加参数（如用户名、密码等），可为空
      */
     public BaseGrantAuthenticationToken(AuthorizationGrantType authorizationGrantType,
-                                              Authentication clientPrincipal,
-                                              @Nullable Set<String> scopes,
-                                              @Nullable Map<String, Object> additionalParameters) {
+            Authentication clientPrincipal, @Nullable Set<String> scopes,
+            @Nullable Map<String, Object> additionalParameters) {
         super(Collections.emptyList());
         this.scopes = scopes;
         this.clientPrincipal = clientPrincipal;

@@ -49,6 +49,7 @@ import java.time.LocalDateTime;
 @SuperBuilder(toBuilder = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class AbstractBaseDomain implements Serializable {
+
     /** 序列化标识 */
     @Serial
     private static final long serialVersionUID = 1L;

@@ -15,7 +15,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
  * @author pengjinlong
  * @date 2026/5/8
  */
-public class RedisUtil {
+public final class RedisUtil {
 
     /** Redis 全局键前缀，格式：maozi-cloud:<服务名>: */
     public static final String REDIS_KEY_PREFIX;
@@ -26,16 +26,17 @@ public class RedisUtil {
     /** StringRedisTemplate 客户端实例 */
     private static final StringRedisTemplate REDIS_CLIENT;
 
+    /** 私有构造器，防止工具类被实例化 */
+    private RedisUtil() {}
+
     // 类加载时通过 SpringUtil 获取 StringRedisTemplate Bean，并基于服务名拼接全局键前缀
     // 注意：本类的首次访问必须晚于 Spring 容器就绪，
     // 否则 SpringUtil.getBean 会因上下文未注入而抛出异常
     static {
-
         REDIS_CLIENT = SpringUtil.getBean(StringRedisTemplate.class);
 
         REDIS_KEY_PREFIX = REDIS_KEY_PROJECT_PREFIX + SymbolConstant.COLON
                 + ApplicationEnvironmentContext.serviceName + SymbolConstant.COLON;
-
     }
 
     /**

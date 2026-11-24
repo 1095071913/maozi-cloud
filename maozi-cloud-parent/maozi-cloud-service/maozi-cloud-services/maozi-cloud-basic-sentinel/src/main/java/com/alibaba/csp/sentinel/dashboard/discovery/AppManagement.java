@@ -60,7 +60,7 @@ public class AppManagement implements MachineDiscovery {
     public long addMachine(MachineInfo machineInfo) {
         return machineDiscovery.addMachine(machineInfo);
     }
-    
+
     /** 从应用中移除指定 ip 和 port 的机器。 */
     @Override
     public boolean removeMachine(String app, String ip, int port) {
@@ -78,7 +78,7 @@ public class AppManagement implements MachineDiscovery {
     public AppInfo getDetailApp(String app) {
         return machineDiscovery.getDetailApp(app);
     }
-    
+
     /** 移除指定名称的应用。 */
     @Override
     public void removeApp(String app) {
@@ -91,8 +91,7 @@ public class AppManagement implements MachineDiscovery {
             return false;
         }
         return Optional.ofNullable(getDetailApp(app))
-            .flatMap(a -> a.getMachine(ip))
-            .isPresent();
+                .flatMap(appInfo -> appInfo.getMachine(ip))
+                .isPresent();
     }
-
 }

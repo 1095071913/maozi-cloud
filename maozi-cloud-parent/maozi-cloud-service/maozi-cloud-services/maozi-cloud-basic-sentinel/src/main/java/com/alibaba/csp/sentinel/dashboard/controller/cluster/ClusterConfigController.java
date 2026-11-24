@@ -58,11 +58,18 @@ import java.util.concurrent.ExecutionException;
 @RequestMapping(value = "/cluster")
 public class ClusterConfigController {
 
-    /** 日志记录器。 */
-    private final Logger logger = LoggerFactory.getLogger(ClusterConfigController.class);
+    /** 客户端版本不支持集群流控时返回的错误码。 */
+    private static final int CODE_UNSUPPORTED_CLIENT = 4041;
+
+    /** 修改请求报文中集群模式字段的 JSON 字段名。 */
+    private static final String KEY_MODE = "mode";
 
     /** 支持集群流控的最低 Sentinel 客户端版本（1.4.0）。 */
-    private final SentinelVersion version140 = new SentinelVersion().setMajorVersion(1).setMinorVersion(4);
+    private static final SentinelVersion MIN_SUPPORTED_VERSION =
+            new SentinelVersion().setMajorVersion(1).setMinorVersion(4);
+
+    /** 日志记录器。 */
+    private static final Logger logger = LoggerFactory.getLogger(ClusterConfigController.class);
 
     /** 用于查询应用机器的应用管理服务。 */
     private final AppManagement appManagement;
@@ -91,21 +98,23 @@ public class ClusterConfigController {
                 int mode = body.getInteger(KEY_MODE);
                 switch (mode) {
                     case ClusterStateManager.CLUSTER_CLIENT:
-                        ClusterClientModifyRequest data = JSON.parseObject(payload, ClusterClientModifyRequest.class);
-                        Result<Boolean> res = checkValidRequest(data);
-                        if (res != null) {
-                            return res;
+                        ClusterClientModifyRequest clientRequest =
+                                JSON.parseObject(payload, ClusterClientModifyRequest.class);
+                        Result<Boolean> clientCheckResult = checkValidRequest(clientRequest);
+                        if (clientCheckResult != null) {
+                            return clientCheckResult;
                         }
-                        clusterConfigService.modifyClusterClientConfig(data).get();
+                        clusterConfigService.modifyClusterClientConfig(clientRequest).get();
                         return Result.ofSuccess(true);
                     case ClusterStateManager.CLUSTER_SERVER:
-                        ClusterServerModifyRequest d = JSON.parseObject(payload, ClusterServerModifyRequest.class);
-                        Result<Boolean> r = checkValidRequest(d);
-                        if (r != null) {
-                            return r;
+                        ClusterServerModifyRequest serverRequest =
+                                JSON.parseObject(payload, ClusterServerModifyRequest.class);
+                        Result<Boolean> serverCheckResult = checkValidRequest(serverRequest);
+                        if (serverCheckResult != null) {
+                            return serverCheckResult;
                         }
                         // TODO maozi 2026/11/21 此处设计不佳，待重构
-                        clusterConfigService.modifyClusterServerConfig(d).get();
+                        clusterConfigService.modifyClusterServerConfig(serverRequest).get();
                         return Result.ofSuccess(true);
                     default:
                         return Result.ofFail(Result.CODE_ERROR, "invalid mode");
@@ -117,7 +126,7 @@ public class ClusterConfigController {
             return errorResponse(ex);
         } catch (InterruptedException ex) {
             return onInterrupted(logger, "Error when modifying cluster config", ex);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             logger.error("Error when modifying cluster config", ex);
             return Result.ofFail(Result.CODE_ERROR, ex.getMessage());
         }
@@ -127,16 +136,15 @@ public class ClusterConfigController {
     private <T> Result<T> errorResponse(ExecutionException ex) {
         if (isNotSupported(ex.getCause())) {
             return unsupportedVersion();
-        } else {
-            return Result.ofThrowable(Result.CODE_ERROR, ex.getCause());
         }
+        return Result.ofThrowable(Result.CODE_ERROR, ex.getCause());
     }
 
     /** 获取应用指定单台机器的通用集群状态。 */
     @GetMapping("/state_single")
     public Result<ClusterUniversalStateVO> apiGetClusterState(@RequestParam String app,
-                                                              @RequestParam String ip,
-                                                              @RequestParam Integer port) {
+            @RequestParam String ip,
+            @RequestParam Integer port) {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(Result.CODE_ERROR, "app cannot be null or empty");
         }
@@ -151,16 +159,16 @@ public class ClusterConfigController {
         }
         try {
             return clusterConfigService.getClusterUniversalState(app, ip, port)
-                .thenApply(Result::ofSuccess)
-                .get();
+                    .thenApply(Result::ofSuccess)
+                    .get();
         } catch (ExecutionException ex) {
             logger.error("Error when fetching cluster state", ex.getCause());
             return errorResponse(ex);
         } catch (InterruptedException ex) {
             return onInterrupted(logger, "Error when fetching cluster state", ex);
-        } catch (Throwable throwable) {
-            logger.error("Error when fetching cluster state", throwable);
-            return Result.ofFail(Result.CODE_ERROR, throwable.getMessage());
+        } catch (Exception ex) {
+            logger.error("Error when fetching cluster state", ex);
+            return Result.ofFail(Result.CODE_ERROR, ex.getMessage());
         }
     }
 
@@ -172,17 +180,17 @@ public class ClusterConfigController {
         }
         try {
             return clusterConfigService.getClusterUniversalState(app)
-                .thenApply(ClusterEntityUtils::wrapToAppClusterServerState)
-                .thenApply(Result::ofSuccess)
-                .get();
+                    .thenApply(ClusterEntityUtils::wrapToAppClusterServerState)
+                    .thenApply(Result::ofSuccess)
+                    .get();
         } catch (ExecutionException ex) {
             logger.error("Error when fetching cluster server state of app: {}", app, ex.getCause());
             return errorResponse(ex);
         } catch (InterruptedException ex) {
             return onInterrupted(logger, "Error when fetching cluster server state of app: " + app, ex);
-        } catch (Throwable throwable) {
-            logger.error("Error when fetching cluster server state of app: {}", app, throwable);
-            return Result.ofFail(Result.CODE_ERROR, throwable.getMessage());
+        } catch (Exception ex) {
+            logger.error("Error when fetching cluster server state of app: {}", app, ex);
+            return Result.ofFail(Result.CODE_ERROR, ex.getMessage());
         }
     }
 
@@ -194,17 +202,17 @@ public class ClusterConfigController {
         }
         try {
             return clusterConfigService.getClusterUniversalState(app)
-                .thenApply(ClusterEntityUtils::wrapToAppClusterClientState)
-                .thenApply(Result::ofSuccess)
-                .get();
+                    .thenApply(ClusterEntityUtils::wrapToAppClusterClientState)
+                    .thenApply(Result::ofSuccess)
+                    .get();
         } catch (ExecutionException ex) {
             logger.error("Error when fetching cluster token client state of app: {}", app, ex.getCause());
             return errorResponse(ex);
         } catch (InterruptedException ex) {
             return onInterrupted(logger, "Error when fetching cluster token client state of app: " + app, ex);
-        } catch (Throwable throwable) {
-            logger.error("Error when fetching cluster token client state of app: {}", app, throwable);
-            return Result.ofFail(Result.CODE_ERROR, throwable.getMessage());
+        } catch (Exception ex) {
+            logger.error("Error when fetching cluster token client state of app: {}", app, ex);
+            return Result.ofFail(Result.CODE_ERROR, ex.getMessage());
         }
     }
 
@@ -216,22 +224,22 @@ public class ClusterConfigController {
         }
         try {
             return clusterConfigService.getClusterUniversalState(app)
-                .thenApply(Result::ofSuccess)
-                .get();
+                    .thenApply(Result::ofSuccess)
+                    .get();
         } catch (ExecutionException ex) {
             logger.error("Error when fetching cluster state of app: {}", app, ex.getCause());
             return errorResponse(ex);
         } catch (InterruptedException ex) {
             return onInterrupted(logger, "Error when fetching cluster state of app: " + app, ex);
-        } catch (Throwable throwable) {
-            logger.error("Error when fetching cluster state of app: {}", app, throwable);
-            return Result.ofFail(Result.CODE_ERROR, throwable.getMessage());
+        } catch (Exception ex) {
+            logger.error("Error when fetching cluster state of app: {}", app, ex);
+            return Result.ofFail(Result.CODE_ERROR, ex.getMessage());
         }
     }
 
     /** 判断异常是否表示目标 Sentinel 客户端不支持该命令。 */
-    private boolean isNotSupported(Throwable ex) {
-        return ex instanceof CommandNotFoundException;
+    private boolean isNotSupported(Throwable throwable) {
+        return throwable instanceof CommandNotFoundException;
     }
 
     /**
@@ -241,12 +249,12 @@ public class ClusterConfigController {
     private boolean checkIfSupported(String app, String ip, int port) {
         try {
             return Optional.ofNullable(appManagement.getDetailApp(app))
-                .flatMap(e -> e.getMachine(ip, port))
-                .flatMap(m -> VersionUtils.parseVersion(m.getVersion())
-                    .map(v -> v.greaterOrEqual(version140)))
-                .orElse(true);
-            // 出错或无法获取机器信息时返回 true
+                    .flatMap(appInfo -> appInfo.getMachine(ip, port))
+                    .flatMap(machine -> VersionUtils.parseVersion(machine.getVersion())
+                            .map(version -> version.greaterOrEqual(MIN_SUPPORTED_VERSION)))
+                    .orElse(true);
         } catch (Exception ex) {
+            // 出错或无法获取机器信息时返回 true
             return true;
         }
     }
@@ -275,17 +283,11 @@ public class ClusterConfigController {
         return null;
     }
 
-    /** 客户端版本不支持集群流控时返回的错误码。 */
-    private static final int CODE_UNSUPPORTED_CLIENT = 4041;
-
     /** 构造客户端版本不支持集群流控时的错误结果。 */
     private <R> Result<R> unsupportedVersion() {
-        return Result.ofFail(CODE_UNSUPPORTED_CLIENT, 
-            "Sentinel client not supported for cluster flow control (unsupported version or dependency absent)");
+        return Result.ofFail(CODE_UNSUPPORTED_CLIENT,
+                "Sentinel client not supported for cluster flow control (unsupported version or dependency absent)");
     }
-
-    /** 修改请求报文中集群模式字段的 JSON 字段名。 */
-    private static final String KEY_MODE = "mode";
 
     /** 恢复中断标记，记录消息与异常并返回失败结果。 */
     public static <T> Result<T> onInterrupted(Logger logger, String message, InterruptedException ex) {
@@ -293,5 +295,5 @@ public class ClusterConfigController {
         logger.error(message, ex);
         return Result.ofFail(Result.CODE_ERROR, ex.getMessage());
     }
-    
+
 }

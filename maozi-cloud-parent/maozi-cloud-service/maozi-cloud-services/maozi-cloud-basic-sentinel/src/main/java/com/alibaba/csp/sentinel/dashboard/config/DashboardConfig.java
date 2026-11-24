@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentMap;
  * @date 2026/11/22
  * @since 1.5.0
  */
-public class DashboardConfig {
+public final class DashboardConfig {
 
     /** 判定机器不健康的默认超时时间（毫秒）。 */
     public static final int DEFAULT_MACHINE_HEALTHY_TIMEOUT_MS = 60_000;
@@ -56,8 +56,11 @@ public class DashboardConfig {
     public static final String CONFIG_UNHEALTHY_MACHINE_MILLIS = "sentinel.dashboard.unhealthyMachineMillis";
 
     /** 已解析配置值的缓存，键为配置名。 */
-    private static final ConcurrentMap<String, Object> cacheMap = new ConcurrentHashMap<>();
-    
+    private static final ConcurrentMap<String, Object> CACHE_MAP = new ConcurrentHashMap<>();
+
+    /** 工具类禁止实例化。 */
+    private DashboardConfig() {}
+
     /**
      * 获取原始配置值：先查环境变量，再查系统属性，均未设置时返回空字符串。
      *
@@ -86,8 +89,9 @@ public class DashboardConfig {
      * @return 配置值，未设置时返回 null
      */
     protected static String getConfigStr(String name) {
-        if (cacheMap.containsKey(name)) {
-            return (String) cacheMap.get(name);
+        Object cachedValue = CACHE_MAP.get(name);
+        if (cachedValue != null) {
+            return (String) cachedValue;
         }
 
         String val = getConfig(name);
@@ -96,7 +100,7 @@ public class DashboardConfig {
             return null;
         }
 
-        cacheMap.put(name, val);
+        CACHE_MAP.put(name, val);
         return val;
     }
 
@@ -109,16 +113,17 @@ public class DashboardConfig {
      * @return 配置值
      */
     protected static int getConfigInt(String name, int defaultVal, int minVal) {
-        if (cacheMap.containsKey(name)) {
-            return (int)cacheMap.get(name);
+        Object cachedValue = CACHE_MAP.get(name);
+        if (cachedValue != null) {
+            return (Integer) cachedValue;
         }
         int val = NumberUtils.toInt(getConfig(name));
-        if (val == 0) {
+        if (val == DISABLED_PERIOD_MS) {
             val = defaultVal;
         } else if (val < minVal) {
             val = minVal;
         }
-        cacheMap.put(name, val);
+        CACHE_MAP.put(name, val);
         return val;
     }
 
@@ -164,11 +169,12 @@ public class DashboardConfig {
      * @return 超时时间（毫秒）
      */
     public static int getUnhealthyMachineMillis() {
-        return getConfigInt(CONFIG_UNHEALTHY_MACHINE_MILLIS, DEFAULT_MACHINE_HEALTHY_TIMEOUT_MS, MIN_UNHEALTHY_MACHINE_MS);
+        return getConfigInt(CONFIG_UNHEALTHY_MACHINE_MILLIS, DEFAULT_MACHINE_HEALTHY_TIMEOUT_MS,
+                MIN_UNHEALTHY_MACHINE_MS);
     }
-    
+
     /** 清空已解析配置值的缓存。 */
     public static void clearCache() {
-        cacheMap.clear();
+        CACHE_MAP.clear();
     }
 }

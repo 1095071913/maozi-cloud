@@ -41,7 +41,7 @@ public class ClusterAppFullAssignRequest {
 
     /** 设置 token server 分配列表并返回当前对象。 */
     public ClusterAppFullAssignRequest setClusterMap(
-        List<ClusterAppAssignMap> clusterMap) {
+            List<ClusterAppAssignMap> clusterMap) {
         this.clusterMap = clusterMap;
         return this;
     }
@@ -60,9 +60,9 @@ public class ClusterAppFullAssignRequest {
     /** 返回该请求的字符串表示。 */
     @Override
     public String toString() {
-        return "ClusterAppFullAssignRequest{" +
-            "clusterMap=" + clusterMap +
-            ", remainingList=" + remainingList +
-            '}';
+        return "ClusterAppFullAssignRequest{"
+                + "clusterMap=" + clusterMap
+                + ", remainingList=" + remainingList
+                + '}';
     }
 }

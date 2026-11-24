@@ -56,5 +56,4 @@ public enum DeletedEnum implements BaseEnum {
         return value + SymbolConstant.DOT + desc;
     }
 
-
 }

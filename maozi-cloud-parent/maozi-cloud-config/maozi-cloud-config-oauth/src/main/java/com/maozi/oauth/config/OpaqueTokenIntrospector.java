@@ -4,7 +4,7 @@ import com.maozi.common.WebUtil;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.oauth.token.api.OauthTokenService;
-import com.maozi.oauth.token.constants.OAuth2TokenUserClaimConstants;
+import com.maozi.oauth.token.constants.Oauth2TokenUserClaimConstants;
 import jakarta.annotation.Resource;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -71,7 +71,7 @@ public class OpaqueTokenIntrospector
             throw new BadOpaqueTokenException(e.getMessage(),
                     new BusinessResultException(SystemErrorCode.SYSTEM_ERROR, e)
                             .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE));
-        }catch (BusinessResultException e) {
+        } catch (BusinessResultException e) {
             // 业务异常（如RPC调用返回的业务错误），
             // 转换为令牌无效异常并保留原始业务错误信息与堆栈
             BusinessResultException businessException = new BusinessResultException(e.getErrorResult());
@@ -108,7 +108,7 @@ public class OpaqueTokenIntrospector
      * @return 权限集合，没有 authorities 字段时返回空集合
      */
     private Set<GrantedAuthority> extractAuthorities(Map<String, Object> claims) {
-        Object authoritiesObj = claims.get(OAuth2TokenUserClaimConstants.AUTHORITIES);
+        Object authoritiesObj = claims.get(Oauth2TokenUserClaimConstants.AUTHORITIES);
         // 如果authorities不存在或不是List类型，返回空权限集合
         if (!(authoritiesObj instanceof List<?> list)) {
             return Collections.emptySet();

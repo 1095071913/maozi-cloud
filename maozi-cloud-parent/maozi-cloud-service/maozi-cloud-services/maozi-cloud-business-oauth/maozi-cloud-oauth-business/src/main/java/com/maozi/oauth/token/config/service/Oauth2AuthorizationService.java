@@ -1,6 +1,5 @@
 package com.maozi.oauth.token.config.service;
 
-
 import com.maozi.oauth.token.param.ClientUserParam;
 
 import java.util.List;
@@ -17,7 +16,7 @@ import java.util.List;
  * @author maozi
  * @date 2026/11/08
  */
-public interface OAuth2AuthorizationService extends
+public interface Oauth2AuthorizationService extends
         org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService {
 
     /**
@@ -47,4 +46,3 @@ public interface OAuth2AuthorizationService extends
     void removeAllByPrincipals(List<ClientUserParam> clientUsers);
 
 }
-

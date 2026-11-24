@@ -55,7 +55,7 @@ public enum LockTimeoutStrategyEnum implements LockTimeoutHandler {
         public void handle(String key, Long waitTime, Long leaseTime, Lock lock) {
 
             // 初始重试间隔 100ms
-            Long interval = DEFAULT_INTERVAL;
+            long interval = DEFAULT_INTERVAL;
 
             // 持续尝试获取锁，直到成功或重试间隔超过上限
             while (!lock.lock(key, waitTime, leaseTime)) {

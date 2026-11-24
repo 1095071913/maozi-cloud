@@ -38,7 +38,7 @@ public class ResourceServerConfig {
 
     /** API 白名单配置 */
     @Resource
-    public ApiWhitelistProperties apiWhitelistProperties;
+    private ApiWhitelistProperties apiWhitelistProperties;
 
     /**
      * 创建默认安全过滤器链：白名单路径放行、其余请求需要认证，
@@ -80,8 +80,10 @@ public class ResourceServerConfig {
         http.oauth2ResourceServer((resourceServer) -> resourceServer
                 // 使用不透明令牌（Opaque Token）方式进行令牌校验
                 .opaqueToken(Customizer.withDefaults())
-                .accessDeniedHandler(new AccessDeniedHandler())  // 自定义权限不足时的响应处理
-                .authenticationEntryPoint(new AuthenticationEntryPoint())  // 自定义未认证时的响应处理
+                // 自定义权限不足时的响应处理
+                .accessDeniedHandler(new AccessDeniedHandler())
+                // 自定义未认证时的响应处理
+                .authenticationEntryPoint(new AuthenticationEntryPoint())
         );
 
         return http.build();

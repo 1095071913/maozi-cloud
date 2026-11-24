@@ -67,10 +67,10 @@ public class ClusterStateSingleVO {
     /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
-        return "ClusterStateSingleVO{" +
-            "address='" + address + '\'' +
-            ", mode=" + mode +
-            ", target='" + target + '\'' +
-            '}';
+        return "ClusterStateSingleVO{"
+                + "address='" + address + '\''
+                + ", mode=" + mode
+                + ", target='" + target + '\''
+                + '}';
     }
 }

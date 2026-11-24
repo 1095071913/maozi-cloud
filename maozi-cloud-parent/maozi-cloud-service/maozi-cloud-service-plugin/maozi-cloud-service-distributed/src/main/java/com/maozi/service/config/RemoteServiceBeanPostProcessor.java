@@ -82,7 +82,6 @@ public class RemoteServiceBeanPostProcessor
     @Override
     public void postProcessBeanFactory(@NotNull ConfigurableListableBeanFactory beanFactory) throws BeansException {
     }
-
     // ==================== 阶段二：暴露 @RemoteService Bean 为 Dubbo 服务 ====================
 
     /**
@@ -118,10 +117,12 @@ public class RemoteServiceBeanPostProcessor
      * 此时的 {@code bean} 已经是 AOP 代理后的最终实例，Dubbo 调用方法时会经过所有切面。
      * </p>
      *
+     * Dubbo {@code ServiceConfig} 未提供带泛型的构造方式，原始类型无法避免，
+     * 此处抑制 {@code unchecked/rawtypes} 告警。
+     *
      * @param bean      Spring 容器中的 bean 实例（已含 AOP 代理），作为服务实现引用
      * @param beanClass 去除 CGLIB 增强后的真实实现类
      */
-    // Dubbo ServiceConfig 未提供带泛型的构造方式，原始类型无法避免，此处抑制 unchecked/rawtypes 告警
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void exportService(Object bean, Class<?> beanClass) {
         Class<?> interfaceClass = resolveServiceInterface(beanClass);
@@ -151,7 +152,7 @@ public class RemoteServiceBeanPostProcessor
             }
         }
         throw new IllegalStateException("被 @RemoteService 标注的类 " + beanClass.getName()
-            + " 未直接实现任何业务接口，无法暴露为 Dubbo 服务");
+                + " 未直接实现任何业务接口，无法暴露为 Dubbo 服务");
     }
 
 }

@@ -46,7 +46,7 @@ import java.util.Set;
 public class ClusterAssignController {
 
     /** 日志记录器。 */
-    private final Logger logger = LoggerFactory.getLogger(ClusterAssignController.class);
+    private static final Logger logger = LoggerFactory.getLogger(ClusterAssignController.class);
 
     /** 为机器应用或解绑集群角色分配的服务。 */
     private final ClusterAssignService clusterAssignService;
@@ -59,9 +59,7 @@ public class ClusterAssignController {
     /** 将全量集群分配（server 映射及剩余 client 列表）应用到应用的全部机器。 */
     @PostMapping("/all_server/{app}")
     public Result<ClusterAppAssignResultVO> apiAssignAllClusterServersOfApp(@PathVariable String app,
-                                                                            @RequestBody
-                                                                                ClusterAppFullAssignRequest
-                                                                                    assignRequest) {
+            @RequestBody ClusterAppFullAssignRequest assignRequest) {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(Result.CODE_ERROR, "app cannot be null or empty");
         }
@@ -76,18 +74,16 @@ public class ClusterAssignController {
         }
         try {
             return Result.ofSuccess(clusterAssignService.applyAssignToApp(app, clusterMap, remainingList));
-        } catch (Throwable throwable) {
-            logger.error("Error when assigning full cluster servers for app: {}", app, throwable);
-            return Result.ofFail(Result.CODE_ERROR, throwable.getMessage());
+        } catch (Exception e) {
+            logger.error("Error when assigning full cluster servers for app: {}", app, e);
+            return Result.ofFail(Result.CODE_ERROR, e.getMessage());
         }
     }
 
     /** 应用单个集群 server 的分配，将其 clusterMap 条目包装为列表处理。 */
     @PostMapping("/single_server/{app}")
     public Result<ClusterAppAssignResultVO> apiAssignSingleClusterServersOfApp(@PathVariable String app,
-                                                                               @RequestBody
-                                                                                   ClusterAppSingleServerAssignRequest
-                                                                                   assignRequest) {
+            @RequestBody ClusterAppSingleServerAssignRequest assignRequest) {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(Result.CODE_ERROR, "app cannot be null or empty");
         }
@@ -100,19 +96,18 @@ public class ClusterAssignController {
             return Result.ofFail(Result.CODE_ERROR, "bad request body");
         }
         try {
-            return Result.ofSuccess(clusterAssignService.applyAssignToApp(app, 
-                Collections.singletonList(clusterMap),
-                assignRequest.getRemainingList()));
-        } catch (Throwable throwable) {
-            logger.error("Error when assigning single cluster servers for app: {}", app, throwable);
-            return Result.ofFail(Result.CODE_ERROR, throwable.getMessage());
+            return Result.ofSuccess(clusterAssignService.applyAssignToApp(app, Collections.singletonList(clusterMap),
+                    assignRequest.getRemainingList()));
+        } catch (Exception e) {
+            logger.error("Error when assigning single cluster servers for app: {}", app, e);
+            return Result.ofFail(Result.CODE_ERROR, e.getMessage());
         }
     }
 
     /** 按指定机器 id 解绑应用对应的集群 server。 */
     @PostMapping("/unbind_server/{app}")
     public Result<ClusterAppAssignResultVO> apiUnbindClusterServersOfApp(@PathVariable String app,
-                                                                         @RequestBody Set<String> machineIds) {
+            @RequestBody Set<String> machineIds) {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(Result.CODE_ERROR, "app cannot be null or empty");
         }
@@ -121,9 +116,9 @@ public class ClusterAssignController {
         }
         try {
             return Result.ofSuccess(clusterAssignService.unbindClusterServers(app, machineIds));
-        } catch (Throwable throwable) {
-            logger.error("Error when unbinding cluster server {} for app <{}>", machineIds, app, throwable);
-            return Result.ofFail(Result.CODE_ERROR, throwable.getMessage());
+        } catch (Exception e) {
+            logger.error("Error when unbinding cluster server {} for app <{}>", machineIds, app, e);
+            return Result.ofFail(Result.CODE_ERROR, e.getMessage());
         }
     }
 }

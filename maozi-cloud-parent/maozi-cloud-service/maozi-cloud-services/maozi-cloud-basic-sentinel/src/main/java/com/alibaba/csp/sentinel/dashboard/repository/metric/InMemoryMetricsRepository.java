@@ -45,12 +45,15 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
     /** 指标实体在内存缓存中的最长保留时间（毫秒） */
     private static final long MAX_METRIC_LIVE_TIME_MS = 1000 * 60 * 5;
 
+    /** 集合初始化的默认容量 */
+    private static final int INITIAL_CAPACITY = 16;
+
     /** 全部缓存指标，结构为 {@code app -> resource -> timestamp -> metric} */
-    private Map<String, Map<String, LinkedHashMap<Long, MetricEntity>>> allMetrics = new ConcurrentHashMap<>();
+    private Map<String, Map<String, LinkedHashMap<Long, MetricEntity>>> allMetrics =
+            new ConcurrentHashMap<>(INITIAL_CAPACITY);
 
     /** 保护 {@link #allMetrics} 访问的读写锁 */
     private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-
 
     /**
      * 按应用/资源/时间戳保存单个指标实体，入参为 null 或应用名为空时忽略，
@@ -70,7 +73,7 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
         Lock writeLock = readWriteLock.writeLock();
         writeLock.lock();
         try {
-            allMetrics.computeIfAbsent(app, e -> new HashMap<>(16))
+            allMetrics.computeIfAbsent(app, e -> new HashMap<>(INITIAL_CAPACITY))
                     .computeIfAbsent(entity.getResource(), e -> new LinkedHashMap<Long, MetricEntity>() {
                         /** 每次插入时淘汰超过 {@link #MAX_METRIC_LIVE_TIME_MS} 的旧指标 */
                         @Override
@@ -109,7 +112,7 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
      */
     @Override
     public List<MetricEntity> queryByAppAndResourceBetween(String app, String resource,
-                                                           long startTime, long endTime) {
+            long startTime, long endTime) {
         List<MetricEntity> results = new ArrayList<>();
         if (StringUtil.isBlank(app)) {
             return results;
@@ -154,7 +157,7 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
         if (resourceMap == null) {
             return results;
         }
-        Map<String, MetricEntity> resourceCount = new ConcurrentHashMap<>(32);
+        Map<String, MetricEntity> resourceCount = new ConcurrentHashMap<>(INITIAL_CAPACITY);
 
         // 缓存读锁对象，加锁与解锁共用，避免同一方法内重复调用
         Lock readLock = readWriteLock.readLock();
@@ -187,9 +190,9 @@ public class InMemoryMetricsRepository implements MetricsRepository<MetricEntity
                     .sorted((o1, o2) -> {
                         MetricEntity e1 = o1.getValue();
                         MetricEntity e2 = o2.getValue();
-                        int t = e2.getBlockQps().compareTo(e1.getBlockQps());
-                        if (t != 0) {
-                            return t;
+                        int blockQpsComparison = e2.getBlockQps().compareTo(e1.getBlockQps());
+                        if (blockQpsComparison != 0) {
+                            return blockQpsComparison;
                         }
                         return e2.getPassQps().compareTo(e1.getPassQps());
                     })

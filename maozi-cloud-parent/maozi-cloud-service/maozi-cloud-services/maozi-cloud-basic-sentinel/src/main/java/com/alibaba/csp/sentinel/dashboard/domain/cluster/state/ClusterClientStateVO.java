@@ -43,8 +43,8 @@ public class ClusterClientStateVO {
     /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
-        return "ClusterClientStateVO{" +
-            "clientConfig=" + clientConfig +
-            '}';
+        return "ClusterClientStateVO{"
+                + "clientConfig=" + clientConfig
+                + '}';
     }
 }

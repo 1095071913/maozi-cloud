@@ -47,6 +47,9 @@ import java.util.Objects;
 @Component
 public class RequestLogFilter implements GlobalFilter, Ordered {
 
+    /** 入口日志 Map 的初始容量 */
+    private static final int LOG_MAP_INITIAL_CAPACITY = 8;
+
     /**
      * 过滤器核心逻辑。
      * <p>
@@ -64,7 +67,7 @@ public class RequestLogFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
         // 构建日志信息 Map（后续固定写入 IP/TYPE/URL/METHOD 及 RT/DATA 标签，指定初始容量）
-        Map<String, String> logs = new LinkedHashMap<>(8);
+        Map<String, String> logs = new LinkedHashMap<>(LOG_MAP_INITIAL_CAPACITY);
 
         ServerHttpRequest request = exchange.getRequest();
 
@@ -78,8 +81,9 @@ public class RequestLogFilter implements GlobalFilter, Ordered {
         logs.put(LogTag.METHOD, Objects.requireNonNull(request.getMethod()).toString());
 
         // 使用 ServerHttpResponseAgent 包装响应，在响应写入时自动记录日志
-        return chain.filter(exchange.mutate().response(new ServerHttpResponseAgent(logs, 
-                exchange.getResponse(), request)).build());
+        return chain.filter(exchange.mutate()
+                .response(new ServerHttpResponseAgent(logs, exchange.getResponse(), request))
+                .build());
 
     }
 

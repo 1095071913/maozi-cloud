@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.controller;
 
 import com.alibaba.csp.sentinel.dashboard.auth.AuthAction;
-import com.alibaba.csp.sentinel.dashboard.auth.AuthService.PrivilegeType;
+import com.alibaba.csp.sentinel.dashboard.auth.AuthService.PrivilegeTypeEnum;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.AuthorityRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.discovery.AppManagement;
 import com.alibaba.csp.sentinel.dashboard.domain.Result;
@@ -54,7 +54,7 @@ import java.util.List;
 public class AuthorityRuleController {
 
     /** 日志记录器。 */
-    private final Logger logger = LoggerFactory.getLogger(AuthorityRuleController.class);
+    private static final Logger logger = LoggerFactory.getLogger(AuthorityRuleController.class);
 
     /** 授权规则实体的本地存储。 */
     private final RuleRepository<AuthorityRuleEntity, Long> repository;
@@ -67,12 +67,9 @@ public class AuthorityRuleController {
     private final DynamicRulePublisher<List<AuthorityRuleEntity>> rulePublisher;
 
     /** 注入规则仓储、应用管理、规则提供者与发布者。 */
-    public AuthorityRuleController(RuleRepository<AuthorityRuleEntity, Long> repository,
-                                   AppManagement appManagement,
-                                   @Qualifier("authorityRuleNacosProvider")
-                                       DynamicRuleProvider<List<AuthorityRuleEntity>> ruleProvider,
-                                   @Qualifier("authorityRuleNacosPublisher")
-                                       DynamicRulePublisher<List<AuthorityRuleEntity>> rulePublisher) {
+    public AuthorityRuleController(RuleRepository<AuthorityRuleEntity, Long> repository, AppManagement appManagement,
+            @Qualifier("authorityRuleNacosProvider") DynamicRuleProvider<List<AuthorityRuleEntity>> ruleProvider,
+            @Qualifier("authorityRuleNacosPublisher") DynamicRulePublisher<List<AuthorityRuleEntity>> rulePublisher) {
         this.repository = repository;
         this.appManagement = appManagement;
         this.ruleProvider = ruleProvider;
@@ -84,10 +81,10 @@ public class AuthorityRuleController {
      * 持久化到本地仓储。
      */
     @GetMapping("/rules")
-    @AuthAction(PrivilegeType.READ_RULE)
+    @AuthAction(PrivilegeTypeEnum.READ_RULE)
     public Result<List<AuthorityRuleEntity>> apiQueryAllRulesForMachine(@RequestParam String app,
-                                                                        @RequestParam String ip,
-                                                                        @RequestParam Integer port) {
+            @RequestParam String ip,
+            @RequestParam Integer port) {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(Result.CODE_ERROR, "app cannot be null or empty");
         }
@@ -109,9 +106,9 @@ public class AuthorityRuleController {
             }
             rules = repository.saveAll(rules);
             return Result.ofSuccess(rules);
-        } catch (Throwable throwable) {
-            logger.error("Error when querying authority rules", throwable);
-            return Result.ofFail(Result.CODE_ERROR, throwable.getMessage());
+        } catch (Exception e) {
+            logger.error("Error when querying authority rules", e);
+            return Result.ofFail(Result.CODE_ERROR, e.getMessage());
         }
     }
 
@@ -137,8 +134,9 @@ public class AuthorityRuleController {
             return Result.ofFail(Result.CODE_ERROR, "limitApp should be valid");
         }
         Integer strategy = entity.getStrategy();
-        if (strategy != RuleConstant.AUTHORITY_WHITE
-            && strategy != RuleConstant.AUTHORITY_BLACK) {
+        boolean validStrategy = strategy != null
+                && (strategy == RuleConstant.AUTHORITY_WHITE || strategy == RuleConstant.AUTHORITY_BLACK);
+        if (!validStrategy) {
             return Result.ofFail(Result.CODE_ERROR, "Unknown strategy (must be blacklist or whitelist)");
         }
         return null;
@@ -146,7 +144,7 @@ public class AuthorityRuleController {
 
     /** 校验通过后新增规则，并将应用的规则推送至 Nacos。 */
     @PostMapping("/rule")
-    @AuthAction(PrivilegeType.WRITE_RULE)
+    @AuthAction(PrivilegeTypeEnum.WRITE_RULE)
     public Result<AuthorityRuleEntity> apiAddAuthorityRule(@RequestBody AuthorityRuleEntity entity) {
         Result<AuthorityRuleEntity> checkResult = checkEntityInternal(entity);
         if (checkResult != null) {
@@ -156,9 +154,9 @@ public class AuthorityRuleController {
         entity.setGmtCreateAndModified(new Date());
         try {
             entity = repository.save(entity);
-        } catch (Throwable throwable) {
-            logger.error("Failed to add authority rule", throwable);
-            return Result.ofThrowable(Result.CODE_ERROR, throwable);
+        } catch (Exception e) {
+            logger.error("Failed to add authority rule", e);
+            return Result.ofThrowable(Result.CODE_ERROR, e);
         }
         if (!publishRules(entity.getApp())) {
             logger.info("Publish authority rules failed after rule add");
@@ -168,9 +166,9 @@ public class AuthorityRuleController {
 
     /** 更新指定 id 的规则（清空 gmtCreate），并将应用的规则推送至 Nacos。 */
     @PutMapping("/rule/{id}")
-    @AuthAction(PrivilegeType.WRITE_RULE)
-    public Result<AuthorityRuleEntity> apiUpdateParamFlowRule(@PathVariable("id") Long id,
-                                                              @RequestBody AuthorityRuleEntity entity) {
+    @AuthAction(PrivilegeTypeEnum.WRITE_RULE)
+    public Result<AuthorityRuleEntity> apiUpdateAuthorityRule(@PathVariable("id") Long id,
+            @RequestBody AuthorityRuleEntity entity) {
         if (id == null || id <= 0) {
             return Result.ofFail(Result.CODE_ERROR, "Invalid id");
         }
@@ -187,9 +185,9 @@ public class AuthorityRuleController {
             if (entity == null) {
                 return Result.ofFail(Result.CODE_ERROR, "Failed to save authority rule");
             }
-        } catch (Throwable throwable) {
-            logger.error("Failed to save authority rule", throwable);
-            return Result.ofThrowable(Result.CODE_ERROR, throwable);
+        } catch (Exception e) {
+            logger.error("Failed to save authority rule", e);
+            return Result.ofThrowable(Result.CODE_ERROR, e);
         }
         if (!publishRules(entity.getApp())) {
             logger.info("Publish authority rules failed after rule update");
@@ -199,7 +197,7 @@ public class AuthorityRuleController {
 
     /** 删除指定 id 的规则并推送应用的规则；id 不存在时直接成功返回（数据为 null）。 */
     @DeleteMapping("/rule/{id}")
-    @AuthAction(PrivilegeType.DELETE_RULE)
+    @AuthAction(PrivilegeTypeEnum.DELETE_RULE)
     public Result<Long> apiDeleteRule(@PathVariable("id") Long id) {
         if (id == null) {
             return Result.ofFail(Result.CODE_ERROR, "id cannot be null");

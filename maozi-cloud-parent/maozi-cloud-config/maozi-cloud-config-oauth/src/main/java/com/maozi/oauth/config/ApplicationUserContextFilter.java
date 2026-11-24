@@ -3,7 +3,7 @@ package com.maozi.oauth.config;
 import com.maozi.common.ObjectUtil;
 import com.maozi.common.context.CurrentUserInfoContext;
 import com.maozi.common.dto.CurrentUserInfoDTO;
-import com.maozi.oauth.token.constants.OAuth2TokenUserClaimConstants;
+import com.maozi.oauth.token.constants.Oauth2TokenUserClaimConstants;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -39,27 +39,27 @@ public class ApplicationUserContextFilter implements HandlerInterceptor {
      */
     @Override
     public boolean preHandle(@Nonnull HttpServletRequest request, @Nonnull HttpServletResponse response,
-        @Nonnull Object handler) {
+            @Nonnull Object handler) {
 
         // 获取当前认证信息（OAuth2 认证时主体为 DefaultOAuth2AuthenticatedPrincipal）
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (ObjectUtil.isNotNull(authentication) && authentication.isAuthenticated()
-            && authentication.getPrincipal() instanceof DefaultOAuth2AuthenticatedPrincipal authenticatedPrincipal) {
+                && authentication.getPrincipal() instanceof DefaultOAuth2AuthenticatedPrincipal principal) {
 
-            Long userId = authenticatedPrincipal.getAttribute(OAuth2TokenUserClaimConstants.USER_ID);
+            Long userId = principal.getAttribute(Oauth2TokenUserClaimConstants.USER_ID);
 
             // client_id 在令牌声明中以字符串形式存储，需转换为 Long
             Long clientId = null;
-            String clientIdStr = authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.CLIENT_ID);
+            String clientIdStr = principal.getAttribute(OAuth2TokenIntrospectionClaimNames.CLIENT_ID);
             if (StringUtils.isNotEmpty(clientIdStr)) {
                 clientId = Long.parseLong(clientIdStr);
             }
 
             // 封装用户信息（含权限列表）存入线程上下文
-            List<String> authorities =
-                authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+            List<String> authorities = authentication.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority).toList();
             CurrentUserInfoDTO currentUserInfo =
-                new CurrentUserInfoDTO(userId, clientId, authentication.getName(), authorities);
+                    new CurrentUserInfoDTO(userId, clientId, authentication.getName(), authorities);
             CurrentUserInfoContext.CONTEXT.set(currentUserInfo);
         }
 

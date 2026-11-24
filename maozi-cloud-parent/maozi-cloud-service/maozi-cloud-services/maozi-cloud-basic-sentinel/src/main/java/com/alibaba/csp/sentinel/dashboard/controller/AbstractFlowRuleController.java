@@ -47,8 +47,8 @@ public abstract class AbstractFlowRuleController {
 
     /** 注入流控规则仓储、规则提供者与规则发布者。 */
     protected AbstractFlowRuleController(AbstractInMemoryRuleRepository<FlowRuleEntity> repository,
-                                         DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider,
-                                         DynamicRulePublisher<List<FlowRuleEntity>> rulePublisher) {
+            DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider,
+            DynamicRulePublisher<List<FlowRuleEntity>> rulePublisher) {
         this.repository = repository;
         this.ruleProvider = ruleProvider;
         this.rulePublisher = rulePublisher;
@@ -79,9 +79,9 @@ public abstract class AbstractFlowRuleController {
             }
             rules = repository.saveAll(rules);
             return Result.ofSuccess(rules);
-        } catch (Throwable throwable) {
-            logger.error("Error when querying flow rules", throwable);
-            return Result.ofThrowable(Result.CODE_ERROR, throwable);
+        } catch (Exception e) {
+            logger.error("Error when querying flow rules", e);
+            return Result.ofThrowable(Result.CODE_ERROR, e);
         }
     }
 
@@ -117,9 +117,9 @@ public abstract class AbstractFlowRuleController {
             }
             publishRules(saved.getApp());
             return Result.ofSuccess(saved);
-        } catch (Throwable t) {
-            logger.error("Failed to save flow rule, app={}", entity.getApp(), t);
-            return Result.ofFail(Result.CODE_ERROR, t.getMessage());
+        } catch (Exception e) {
+            logger.error("Failed to save flow rule, app={}", entity.getApp(), e);
+            return Result.ofFail(Result.CODE_ERROR, e.getMessage());
         }
     }
 
@@ -139,9 +139,9 @@ public abstract class AbstractFlowRuleController {
         try {
             repository.delete(id);
             publishRules(app);
-        } catch (Throwable t) {
-            logger.error("Error when deleting flow rule, app={}, id={}", app, id, t);
-            return Result.ofFail(Result.CODE_ERROR, t.getMessage());
+        } catch (Exception e) {
+            logger.error("Error when deleting flow rule, app={}, id={}", app, id, e);
+            return Result.ofFail(Result.CODE_ERROR, e.getMessage());
         }
         return Result.ofSuccess(id);
     }

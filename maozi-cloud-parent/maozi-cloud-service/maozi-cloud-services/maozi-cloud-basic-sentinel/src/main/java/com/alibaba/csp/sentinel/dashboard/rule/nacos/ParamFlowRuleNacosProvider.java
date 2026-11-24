@@ -55,13 +55,14 @@ public class ParamFlowRuleNacosProvider implements DynamicRuleProvider<List<Para
     @Override
     public List<ParamFlowRuleEntity> getRules(String appName) throws Exception {
         String rules = NacosConfigUtil.readFreshConfig(configService, appName,
-            NacosConfigUtil.PARAM_FLOW_DATA_ID_POSTFIX, nacosProperties.getGroup(), NacosConfigUtil.READ_TIMEOUT_MS);
+                NacosConfigUtil.PARAM_FLOW_DATA_ID_POSTFIX, nacosProperties.getGroup(),
+                NacosConfigUtil.READ_TIMEOUT_MS);
         if (StringUtil.isEmpty(rules)) {
             return new ArrayList<>();
         }
         List<ParamFlowRule> list = JSON.parseArray(rules, ParamFlowRule.class);
         return list.stream()
-            .map(rule -> ParamFlowRuleEntity.fromParamFlowRule(appName, null, null, rule))
-            .collect(Collectors.toList());
+                .map(rule -> ParamFlowRuleEntity.fromParamFlowRule(appName, null, null, rule))
+                .collect(Collectors.toList());
     }
 }

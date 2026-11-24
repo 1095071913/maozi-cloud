@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2012-2018 the original author or authors.
  *
@@ -13,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 package com.maozi.oauth.token.config;
@@ -89,41 +88,32 @@ public class AuthorizationServerConfiguration {
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
 
         http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-
-            // 开启端点
-            .oidc(Customizer.withDefaults())
-
-            // 客户端认证失败
-            .clientAuthentication(client -> client
-                .errorResponseHandler(new ClientAuthenticationFailureHandler())
-            )
-
-            .tokenRevocationEndpoint(tokenRevocationEndpoint -> tokenRevocationEndpoint
-                // 销毁令牌成功响应
-                .revocationResponseHandler(new TokenRevocationSuccessHandler())
-                // 自定义撤销处理器：撤销令牌后物理删除对应授权记录
-                .authenticationProvider(SpringUtil.getBean(TokenRevocationAuthenticationProvider.class))
-            )
-
-            .tokenEndpoint(tokenEndpoint -> tokenEndpoint
-                // 用户认证授权成功响应
-                .accessTokenResponseHandler(new UserAuthenticationSuccessHandler())
-                // 注册各种登陆参数转换器
-                .accessTokenRequestConverter(accessTokenRequestConverter())
-                // 用户认证授权失败
-                .errorResponseHandler(new UserAuthenticationFailureHandler())
-                // 替换默认的刷新Token处理器，添加权限信息
-                .authenticationProviders(authenticationProviders -> {
-                    authenticationProviders.removeIf(
-                        provider -> provider instanceof OAuth2RefreshTokenAuthenticationProvider);
-                    RefreshTokenAuthenticationProvider refreshProvider =
-                            SpringUtil.getBean(RefreshTokenAuthenticationProvider.class);
-                    refreshProvider.setTokenGenerator(http.getSharedObject(OAuth2TokenGenerator.class));
-                    authenticationProviders.add(refreshProvider);
-                })
-            )
-
-        ;
+                // 开启端点
+                .oidc(Customizer.withDefaults())
+                // 客户端认证失败
+                .clientAuthentication(client -> client
+                        .errorResponseHandler(new ClientAuthenticationFailureHandler()))
+                .tokenRevocationEndpoint(tokenRevocationEndpoint -> tokenRevocationEndpoint
+                        // 销毁令牌成功响应
+                        .revocationResponseHandler(new TokenRevocationSuccessHandler())
+                        // 自定义撤销处理器：撤销令牌后物理删除对应授权记录
+                        .authenticationProvider(SpringUtil.getBean(TokenRevocationAuthenticationProvider.class)))
+                .tokenEndpoint(tokenEndpoint -> tokenEndpoint
+                        // 用户认证授权成功响应
+                        .accessTokenResponseHandler(new UserAuthenticationSuccessHandler())
+                        // 注册各种登陆参数转换器
+                        .accessTokenRequestConverter(accessTokenRequestConverter())
+                        // 用户认证授权失败
+                        .errorResponseHandler(new UserAuthenticationFailureHandler())
+                        // 替换默认的刷新Token处理器，添加权限信息
+                        .authenticationProviders(authenticationProviders -> {
+                            authenticationProviders.removeIf(
+                                    provider -> provider instanceof OAuth2RefreshTokenAuthenticationProvider);
+                            RefreshTokenAuthenticationProvider refreshProvider =
+                                    SpringUtil.getBean(RefreshTokenAuthenticationProvider.class);
+                            refreshProvider.setTokenGenerator(http.getSharedObject(OAuth2TokenGenerator.class));
+                            authenticationProviders.add(refreshProvider);
+                        }));
 
         // 客户端未认证授权
         http.exceptionHandling(ex -> ex.authenticationEntryPoint(new ClientAuthenticationEntryPoint()));
@@ -131,7 +121,7 @@ public class AuthorizationServerConfiguration {
         DefaultSecurityFilterChain securityFilterChain = http.build();
 
         // 注册各种认证模式
-        addCustomOAuth2GrantAuthenticationProvider(http);
+        addCustomOauth2GrantAuthenticationProvider(http);
 
         return securityFilterChain;
 
@@ -145,13 +135,13 @@ public class AuthorizationServerConfiguration {
      */
     private AuthenticationConverter accessTokenRequestConverter() {
         return new DelegatingAuthenticationConverter(
-            Arrays.asList(
-                new PasswordAuthenticationConverter(),
-                new OAuth2RefreshTokenAuthenticationConverter(),
-                new OAuth2ClientCredentialsAuthenticationConverter(),
-                new OAuth2AuthorizationCodeAuthenticationConverter(),
-                new OAuth2AuthorizationCodeRequestAuthenticationConverter()
-            )
+                Arrays.asList(
+                        new PasswordAuthenticationConverter(),
+                        new OAuth2RefreshTokenAuthenticationConverter(),
+                        new OAuth2ClientCredentialsAuthenticationConverter(),
+                        new OAuth2AuthorizationCodeAuthenticationConverter(),
+                        new OAuth2AuthorizationCodeRequestAuthenticationConverter()
+                )
         );
     }
 
@@ -160,7 +150,7 @@ public class AuthorizationServerConfiguration {
      *
      * @param http HttpSecurity对象，用于注册认证处理器并获取共享的令牌生成器
      */
-    private void addCustomOAuth2GrantAuthenticationProvider(HttpSecurity http) {
+    private void addCustomOauth2GrantAuthenticationProvider(HttpSecurity http) {
 
         OAuth2TokenGenerator<?> tokenGenerator = http.getSharedObject(OAuth2TokenGenerator.class);
 
@@ -170,8 +160,6 @@ public class AuthorizationServerConfiguration {
         http.authenticationProvider(passwordProvider);
 
     }
-
-
 
     /**
      * 将AuthenticationManager注入ioc中，其它需要使用地方可以直接从ioc中获取

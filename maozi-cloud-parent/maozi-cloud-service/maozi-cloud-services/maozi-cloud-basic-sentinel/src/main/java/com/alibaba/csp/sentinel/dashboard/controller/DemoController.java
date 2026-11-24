@@ -53,13 +53,22 @@ public class DemoController {
     /** 慢调用模式下每次 entry 后的休眠时间（毫秒）。 */
     private static final long SLOW_CALL_SLEEP_MS = 3000L;
 
-    /** 每次 loop/slow 请求启动的演示流量线程数。 */
+    /** 每次 loop/slow 请求启动的演示流量线程数，同时作为线程池的核心与最大线程数。 */
     private static final int LOOP_THREAD_COUNT = 10;
+
+    /** 演示流量线程池空闲线程的存活时间（秒）。 */
+    private static final long DEMO_KEEP_ALIVE_SECONDS = 60L;
+
+    /** 演示流量线程池的任务队列容量。 */
+    private static final int DEMO_QUEUE_CAPACITY = 100;
+
+    /** 演示流量循环每轮之间随机暂停时长的上限（毫秒）。 */
+    private static final int LOOP_PAUSE_MAX_MILLIS = 200;
 
     /** 演示流量线程池，使用带业务含义名称的 ThreadPoolExecutor。 */
     private static final ExecutorService DEMO_EXECUTOR = new ThreadPoolExecutor(LOOP_THREAD_COUNT, LOOP_THREAD_COUNT,
-            60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(100), new NamedThreadFactory("demo-traffic", true),
-            new ThreadPoolExecutor.CallerRunsPolicy());
+            DEMO_KEEP_ALIVE_SECONDS, TimeUnit.SECONDS, new LinkedBlockingQueue<>(DEMO_QUEUE_CAPACITY),
+            new NamedThreadFactory("demo-traffic", true), new ThreadPoolExecutor.CallerRunsPolicy());
 
     /** 返回 "index" 视图名。 */
     @GetMapping("/greeting")
@@ -105,19 +114,22 @@ public class DemoController {
         return "successfully create a loop thread";
     }
 
-    /** 在独立 context 中持续进入 Sentinel 资源直至时长耗尽的任务。 */
-    static class RunTask implements Runnable {
+    /**
+     * 在独立 context 中持续进入 Sentinel 资源直至时长耗尽的任务。
+     *
+     * @author maozi
+     * @date 2026/11/22
+     */
+    private static final class RunTask implements Runnable {
         /** 任务持续运行的秒数。 */
-        int time;
-        /** 为 true 时停止运行循环。 */
-        boolean stop = false;
+        private final int time;
         /** 待进入的 Sentinel 资源名。 */
-        String name;
+        private final String name;
         /** 是否在每次 entry 后休眠 3 秒以模拟慢调用。 */
-        boolean slow = false;
+        private final boolean slow;
 
         /** 构造在指定秒数内进入指定资源的任务，慢调用模式下每次 entry 休眠 3 秒。 */
-        public RunTask(String name, int time, boolean slow) {
+        private RunTask(String name, int time, boolean slow) {
             super();
             this.time = time;
             this.name = name;
@@ -132,16 +144,15 @@ public class DemoController {
         public void run() {
             long startTime = System.currentTimeMillis();
             ContextUtil.enter(String.valueOf(startTime));
+            boolean stop = false;
             while (!stop) {
-
                 long now = System.currentTimeMillis();
                 if (now - startTime > time * MILLIS_PER_SECOND) {
                     stop = true;
                 }
-                Entry e1 = null;
+                Entry entry = null;
                 try {
-                    e1 = SphU.entry(name);
-
+                    entry = SphU.entry(name);
                     if (slow) {
                         TimeUnit.MILLISECONDS.sleep(SLOW_CALL_SLEEP_MS);
                     }
@@ -153,22 +164,20 @@ public class DemoController {
                     // 进入演示资源被限流或系统异常：保留堆栈便于观察
                     logger.warn("Demo task entry error, resource: {}", name, e);
                 } finally {
-                    if (e1 != null) {
-                        e1.exit();
+                    if (entry != null) {
+                        entry.exit();
                     }
                 }
                 try {
-                    TimeUnit.MILLISECONDS.sleep(ThreadLocalRandom.current().nextInt(200));
+                    TimeUnit.MILLISECONDS.sleep(ThreadLocalRandom.current().nextInt(LOOP_PAUSE_MAX_MILLIS));
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     stop = true;
                     logger.warn("Demo loop task interrupted", e);
                 }
-
             }
             ContextUtil.exit();
         }
-
     }
 
 }

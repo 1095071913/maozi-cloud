@@ -75,10 +75,10 @@ public class MessageSendStream {
         // （元数据缺失 version 的实例归入默认版本分组，
         // 避免 groupingBy 分类函数返回 null 抛 NPE）
         Map<String, List<ServiceInstance>> applicationClients = instances.stream()
-                .collect(Collectors.groupingBy((instance)-> {
-            String instanceVersion = instance.getMetadata().get(VersionContext.NACOS_VERSION_KEY);
-            return instanceVersion != null ? instanceVersion : VersionContext.APPLICATION_DEFAULT_VERSION;
-        }));
+                .collect(Collectors.groupingBy(instance -> {
+                    String instanceVersion = instance.getMetadata().get(VersionContext.NACOS_VERSION_KEY);
+                    return instanceVersion != null ? instanceVersion : VersionContext.APPLICATION_DEFAULT_VERSION;
+                }));
 
         // 当前请求版本号，链路上下文未设置时取默认版本 main
         String version = VersionContext.CONTEXT.get();

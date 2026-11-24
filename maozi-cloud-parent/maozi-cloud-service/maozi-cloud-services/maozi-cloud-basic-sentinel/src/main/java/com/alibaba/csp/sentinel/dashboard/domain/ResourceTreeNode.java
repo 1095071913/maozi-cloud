@@ -17,6 +17,7 @@ package com.alibaba.csp.sentinel.dashboard.domain;
 
 import com.alibaba.csp.sentinel.command.vo.NodeVo;
 import com.alibaba.csp.sentinel.dashboard.domain.vo.BaseResourceMetricsVO;
+import com.alibaba.csp.sentinel.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,17 +54,19 @@ public class ResourceTreeNode extends BaseResourceMetricsVO {
             return null;
         }
         ResourceTreeNode root = null;
-        Map<String, ResourceTreeNode> map = new HashMap<>();
+        Map<String, ResourceTreeNode> map = new HashMap<>(nodeVos.size());
         for (NodeVo vo : nodeVos) {
             ResourceTreeNode node = fromNodeVo(vo);
             map.put(node.id, node);
             // 无父节点 id 的为真正的根节点
-            if (node.parentId == null || node.parentId.isEmpty()) {
+            if (StringUtil.isEmpty(node.parentId)) {
                 root = node;
-            } else if (map.containsKey(node.parentId)) {
-                map.get(node.parentId).children.add(node);
             } else {
-                // 父节点不在列表中，理论上不可能出现
+                ResourceTreeNode parent = map.get(node.parentId);
+                // 父节点尚未出现在列表中时不挂载，保持上游行为
+                if (parent != null) {
+                    parent.children.add(node);
+                }
             }
         }
         return root;
@@ -96,26 +99,22 @@ public class ResourceTreeNode extends BaseResourceMetricsVO {
      * @param searchKey 搜索关键字
      */
     public void searchIgnoreCase(String searchKey) {
-        search(this, searchKey);
+        search(this, searchKey == null ? null : searchKey.toLowerCase());
     }
 
     /**
      * 递归计算节点可见性：搜索关键字命中节点资源名或任一子节点可见时，该节点可见。
      */
-    private boolean search(ResourceTreeNode node, String searchKey) {
+    private boolean search(ResourceTreeNode node, String lowerSearchKey) {
         // 空关键字匹配全部资源
-        if (searchKey == null || searchKey.isEmpty() ||
-            node.resource.toLowerCase().contains(searchKey.toLowerCase())) {
-            node.visible = true;
-        } else {
-            node.visible = false;
-        }
+        node.visible = StringUtil.isEmpty(lowerSearchKey)
+                || node.resource.toLowerCase().contains(lowerSearchKey);
 
-        boolean found = false;
-        for (ResourceTreeNode c : node.children) {
-            found |= search(c, searchKey);
+        boolean childVisible = false;
+        for (ResourceTreeNode child : node.children) {
+            childVisible |= search(child, lowerSearchKey);
         }
-        node.visible |= found;
+        node.visible |= childVisible;
         return node.visible;
     }
 

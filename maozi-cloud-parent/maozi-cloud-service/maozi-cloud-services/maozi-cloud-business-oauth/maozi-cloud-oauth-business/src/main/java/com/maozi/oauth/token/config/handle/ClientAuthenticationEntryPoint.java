@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 package com.maozi.oauth.token.config.handle;
@@ -56,14 +56,14 @@ public class ClientAuthenticationEntryPoint implements AuthenticationEntryPoint 
      * @param authException 认证异常信息
      */
     @Override
-    public void commence(HttpServletRequest request, 
+    public void commence(HttpServletRequest request,
             HttpServletResponse response, AuthenticationException authException) {
 
         AbstractBaseResult<Object> error = ResultUtil.error(NO_AUTHENTICATION_CODE_DATA)
                 .autoIdentifyHttpCode(NO_AUTHENTICATION_CODE);
-            
+
         WebUtil.writeResponseBody(response, error);
-        
+
     }
-    
+
 }

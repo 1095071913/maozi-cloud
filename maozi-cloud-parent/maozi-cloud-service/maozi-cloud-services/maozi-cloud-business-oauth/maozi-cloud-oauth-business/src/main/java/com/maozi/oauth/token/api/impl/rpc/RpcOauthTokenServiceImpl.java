@@ -4,7 +4,7 @@ import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.oauth.token.api.impl.OauthTokenServiceImpl;
 import com.maozi.oauth.token.api.rpc.RpcOauthTokenService;
-import com.maozi.oauth.token.config.service.OAuth2AuthorizationService;
+import com.maozi.oauth.token.config.service.Oauth2AuthorizationService;
 import com.maozi.oauth.token.param.ClientUserParam;
 import com.maozi.service.api.annotation.RemoteService;
 import com.maozi.service.api.impl.rest.BaseServiceResultImpl;
@@ -30,8 +30,8 @@ public class RpcOauthTokenServiceImpl extends BaseServiceResultImpl<OauthTokenSe
         implements RpcOauthTokenService {
 
     /** OAuth2授权信息服务，用于按用户注销授权记录 */
-    protected final OAuth2AuthorizationService authorizationService;
-    
+    private final Oauth2AuthorizationService authorizationService;
+
     /**
      * RPC 令牌内省，返回统一结果封装
      */

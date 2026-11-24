@@ -190,21 +190,21 @@ public class MetricEntity extends BaseEntity {
     /** 拼接全部字段构建字符串。 */
     @Override
     public String toString() {
-        return "MetricEntity{" +
-            "id=" + id +
-            ", gmtCreate=" + gmtCreate +
-            ", gmtModified=" + gmtModified +
-            ", app='" + app + '\'' +
-            ", timestamp=" + timestamp +
-            ", resource='" + resource + '\'' +
-            ", passQps=" + passQps +
-            ", blockQps=" + blockQps +
-            ", successQps=" + successQps +
-            ", exceptionQps=" + exceptionQps +
-            ", rt=" + rt +
-            ", count=" + count +
-            ", resourceCode=" + resourceCode +
-            '}';
+        return "MetricEntity{"
+                + "id=" + id
+                + ", gmtCreate=" + gmtCreate
+                + ", gmtModified=" + gmtModified
+                + ", app='" + app + '\''
+                + ", timestamp=" + timestamp
+                + ", resource='" + resource + '\''
+                + ", passQps=" + passQps
+                + ", blockQps=" + blockQps
+                + ", successQps=" + successQps
+                + ", exceptionQps=" + exceptionQps
+                + ", rt=" + rt
+                + ", count=" + count
+                + ", resourceCode=" + resourceCode
+                + '}';
     }
 
 }

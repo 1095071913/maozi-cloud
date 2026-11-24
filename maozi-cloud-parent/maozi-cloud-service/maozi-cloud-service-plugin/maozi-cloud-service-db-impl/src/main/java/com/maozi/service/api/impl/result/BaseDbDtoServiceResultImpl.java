@@ -20,7 +20,7 @@ import com.maozi.db.domain.AbstractBaseDomain;
 import com.maozi.db.domain.AbstractBaseNameDomain;
 import com.maozi.service.api.impl.BaseServiceImpl;
 import com.maozi.service.api.impl.rest.BaseServiceResultImpl;
-import com.maozi.service.api.rpc.BaseDBServiceResult;
+import com.maozi.service.api.rpc.BaseDbServiceResult;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,11 +47,11 @@ import java.util.stream.Collectors;
  * @date 2026/11/11 21:41
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
-        extends BaseServiceResultImpl<S> implements BaseDBServiceResult<D> {
+public class BaseDbDtoServiceResultImpl<S extends BaseServiceImpl, D>
+        extends BaseServiceResultImpl<S> implements BaseDbServiceResult<D> {
 
     /** 数据传输对象（DTO）Class 对象（懒加载缓存，volatile 保证多线程可见性） */
-    protected volatile Class<D> resultClass;
+    private volatile Class<D> resultClass;
 
     /** 资源名称后缀：列表 */
     private static final String RESOURCE_SUFFIX_LIST = "列表";
@@ -176,15 +176,12 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
 
         List<D> responseItems = CglibUtil.copyList(domains, () -> ReflectUtil.newInstance(getResultClass()));
 
-        return ResultUtil.success(
-                responseItems.stream().collect(
-                        Collectors.toMap(
-                                ReflectUtil::invokeFunGetId,
-                                Function.identity(),
-                                (oldValue, newValue) -> oldValue
-                        )
-                )
-        );
+        // 以主键 ID 为键汇总，主键重复时保留先出现的元素
+        Map<Long, D> idToItem = responseItems.stream()
+                .collect(Collectors.toMap(ReflectUtil::invokeFunGetId, Function.identity(),
+                        (oldValue, newValue) -> oldValue));
+
+        return ResultUtil.success(idToItem);
 
     }
 
@@ -248,15 +245,13 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
         }
 
         List<D> responseItems = CglibUtil.copyList(domains, () -> ReflectUtil.newInstance(getResultClass()));
-        return ResultUtil.success(
 
-                responseItems.stream().collect(
-                        Collectors.groupingBy((resultData) ->
-                                ReflectUtil.invokeGet(resultData, relationField), Collectors.toList()
-                        )
-                )
+        // 按关联字段值分组
+        Map<Long, List<D>> relationIdToItems = responseItems.stream()
+                .collect(Collectors.groupingBy(
+                        resultData -> ReflectUtil.invokeGet(resultData, relationField), Collectors.toList()));
 
-        );
+        return ResultUtil.success(relationIdToItems);
 
     }
 
@@ -302,8 +297,6 @@ public class BaseDBTServiceResultImpl<S extends BaseServiceImpl, D>
         return ResultUtil.success();
 
     }
-
-
 
     /**
      * 更新实体状态

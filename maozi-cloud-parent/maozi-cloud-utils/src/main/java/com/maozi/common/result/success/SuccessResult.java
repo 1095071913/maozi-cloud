@@ -39,7 +39,7 @@ import java.io.Serializable;
  */
 @NoArgsConstructor
 @ToString(callSuper = true)
-@EqualsAndHashCode(callSuper=true)
+@EqualsAndHashCode(callSuper = true)
 @Schema(description = "接口成功结果集")
 public class SuccessResult<D> extends AbstractBaseResult<D> implements Serializable {
 

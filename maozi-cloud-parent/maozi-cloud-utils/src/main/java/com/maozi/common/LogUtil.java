@@ -46,12 +46,17 @@ public final class LogUtil {
 
     /**
      * 输出 info 级别日志（Map 格式）
+     * <p>
+     * 输出前先判断 info 级别是否开启，未开启时不做日志字符串的拼接。
+     * </p>
      *
      * @param log Logger 实例
      * @param content 日志内容键值对
      */
     public static void info(Logger log, Map<String, String> content) {
-        log(log, false, content, null);
+        if (log.isInfoEnabled()) {
+            log(log, false, content, null);
+        }
     }
 
     /**
@@ -98,6 +103,10 @@ public final class LogUtil {
 
     /**
      * 根据 error 标志输出日志（Map 格式）
+     * <p>
+     * isException 为 true 时输出 error 日志（随日志输出堆栈），
+     * 否则输出 info 日志（info 级别未开启时不拼接日志字符串）。
+     * </p>
      *
      * @param log Logger 实例
      * @param isException 是否为错误日志
@@ -105,12 +114,11 @@ public final class LogUtil {
      * @param e 异常对象（isException 为 true 时随日志输出堆栈）
      */
     public static void log(Logger log, boolean isException, Map<String, String> content, Throwable e) {
-        String message = LogUtil.convertLog(content);
         if (isException) {
-            log.error(message, e);
-        } else {
-            log.info(message);
+            log.error(LogUtil.convertLog(content), e);
+            return;
         }
+        info(log, content);
     }
 
     /**

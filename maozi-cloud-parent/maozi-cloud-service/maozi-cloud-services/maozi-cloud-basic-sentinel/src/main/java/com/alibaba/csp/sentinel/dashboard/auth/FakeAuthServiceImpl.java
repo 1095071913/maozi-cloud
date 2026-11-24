@@ -30,11 +30,11 @@ import javax.servlet.http.HttpServletRequest;
 public class FakeAuthServiceImpl implements AuthService<HttpServletRequest> {
 
     /** 用于警告未配置真实认证实现的日志记录器。 */
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private static final Logger logger = LoggerFactory.getLogger(FakeAuthServiceImpl.class);
 
     /** 构造时记录警告日志，提示当前使用伪实现跳过了全部权限校验。 */
     public FakeAuthServiceImpl() {
-        this.logger.warn("there is no auth, use {} by implementation {}", AuthService.class, this.getClass());
+        logger.warn("there is no auth, use {} by implementation {}", AuthService.class, FakeAuthServiceImpl.class);
     }
 
     /** {@inheritDoc} 始终返回一个通过全部权限校验的伪用户。 */
@@ -43,14 +43,20 @@ public class FakeAuthServiceImpl implements AuthService<HttpServletRequest> {
         return new AuthUserImpl();
     }
 
-    /** 伪认证用户，所有权限校验均返回 true，身份信息为固定伪值。 */
+    /**
+     * 伪认证用户，所有权限校验均返回 true，身份信息为固定伪值。
+     *
+     * @author Carpenter Lee
+     * @date 2026/11/22
+     */
     static final class AuthUserImpl implements AuthUser {
 
+        /** 序列化版本号 */
         private static final long serialVersionUID = 1L;
 
         /** {@inheritDoc} 始终返回 true，不校验目标与权限。 */
         @Override
-        public boolean authTarget(String target, PrivilegeType privilegeType) {
+        public boolean authTarget(String target, PrivilegeTypeEnum privilegeType) {
             return true;
         }
 

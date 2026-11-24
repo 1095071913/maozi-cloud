@@ -81,12 +81,12 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI openApi() {
         return new OpenAPI().info(
-            new Info()
-                .title(ApplicationEnvironmentContext.title)
-                .version(ApplicationEnvironmentContext.version)
-                .description(ApplicationEnvironmentContext.details)
-                .termsOfService(OFFICIAL_URL)
-                .license(new License().name(LICENSE_NAME).url(OFFICIAL_URL))
+                new Info()
+                        .title(ApplicationEnvironmentContext.title)
+                        .version(ApplicationEnvironmentContext.version)
+                        .description(ApplicationEnvironmentContext.details)
+                        .termsOfService(OFFICIAL_URL)
+                        .license(new License().name(LICENSE_NAME).url(OFFICIAL_URL))
         );
     }
 

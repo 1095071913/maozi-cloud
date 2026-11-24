@@ -16,6 +16,4 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @LoadBalancerClients(defaultConfiguration = GrayLoadBalancerClientConfiguration.class)
-public class GrayLoadBalancerAutoConfiguration {
-
-}
+public class GrayLoadBalancerAutoConfiguration {}

@@ -55,13 +55,14 @@ public class FlowRuleNacosProvider implements DynamicRuleProvider<List<FlowRuleE
     @Override
     public List<FlowRuleEntity> getRules(String appName) throws Exception {
         String rules = NacosConfigUtil.readFreshConfig(configService, appName,
-            NacosConfigUtil.FLOW_DATA_ID_POSTFIX, nacosProperties.getGroup(), NacosConfigUtil.READ_TIMEOUT_MS);
+                NacosConfigUtil.FLOW_DATA_ID_POSTFIX, nacosProperties.getGroup(),
+                NacosConfigUtil.READ_TIMEOUT_MS);
         if (StringUtil.isEmpty(rules)) {
             return new ArrayList<>();
         }
         List<FlowRule> list = JSON.parseArray(rules, FlowRule.class);
         return list.stream()
-            .map(rule -> FlowRuleEntity.fromFlowRule(appName, null, null, rule))
-            .collect(Collectors.toList());
+                .map(rule -> FlowRuleEntity.fromFlowRule(appName, null, null, rule))
+                .collect(Collectors.toList());
     }
 }

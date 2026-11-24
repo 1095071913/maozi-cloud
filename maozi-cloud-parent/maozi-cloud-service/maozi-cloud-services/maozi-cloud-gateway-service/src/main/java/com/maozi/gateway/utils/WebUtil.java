@@ -18,7 +18,10 @@ import java.util.regex.Pattern;
  * @author maozi
  * @date 2026/11/08
  */
-public class WebUtil {
+public final class WebUtil {
+
+    /** 私有构造器，防止工具类被实例化 */
+    private WebUtil() {}
 
     /** 获取客户端真实 IP 的代理请求头，按优先级从高到低排列 */
     private static final List<String> CLIENT_IP_HEADERS = List.of(

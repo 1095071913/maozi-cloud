@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.maozi.dubbo.provider;
 
 import org.apache.dubbo.registry.support.DefaultProviderFirstParams;
@@ -65,7 +66,7 @@ public class ProviderFirstParams extends DefaultProviderFirstParams {
      * </p>
      */
     private static final Set<String> PARAMS = Set.of(
-        RELEASE_KEY, DUBBO_VERSION_KEY, METHODS_KEY, TIMESTAMP_KEY, TAG_KEY, APPLICATION_VERSION_KEY
+            RELEASE_KEY, DUBBO_VERSION_KEY, METHODS_KEY, TIMESTAMP_KEY, TAG_KEY, APPLICATION_VERSION_KEY
     );
 
     /**

@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2012-2018 the original author or authors.
  *
@@ -63,6 +62,9 @@ import java.util.function.Consumer;
 @Order(value = Ordered.HIGHEST_PRECEDENCE + 1)
 public class StreamEntranceLogAop {
 
+    /** 入口日志 Map 的初始容量 */
+    private static final int LOG_MAP_INITIAL_CAPACITY = 16;
+
     /** 日志中 Topic 的标签 */
     private static final String LOG_TAG_TOPIC = "Topic";
 
@@ -113,7 +115,7 @@ public class StreamEntranceLogAop {
         MessageHeaders headers = message.getHeaders();
 
         // 日志信息集合
-        Map<String, String> logs = new LinkedHashMap<>(16);
+        Map<String, String> logs = new LinkedHashMap<>(LOG_MAP_INITIAL_CAPACITY);
 
         // 记录消息类型、消息 ID、Topic 与消费方法
         fillMessageLogs(headers, logs, proceedingJoinPoint.getSignature());
@@ -186,7 +188,7 @@ public class StreamEntranceLogAop {
         }
 
         logs.put(LogTag.FUNCTION, signature.getDeclaringTypeName()
-            + SymbolConstant.COLON + signature.getName());
+                + SymbolConstant.COLON + signature.getName());
 
     }
 

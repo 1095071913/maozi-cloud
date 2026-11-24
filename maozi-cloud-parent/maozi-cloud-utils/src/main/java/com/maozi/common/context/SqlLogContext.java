@@ -10,7 +10,7 @@ package com.maozi.common.context;
  * @author maozi
  * @date 2026/11/13
  */
-public class SqlLogContext extends AbstractRequestContextHolder<StringBuilder> {
+public final class SqlLogContext extends AbstractRequestContextHolder<StringBuilder> {
 
     /** 单例实例 */
     public static final SqlLogContext CONTEXT = new SqlLogContext();

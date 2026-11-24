@@ -55,13 +55,14 @@ public class AuthorityRuleNacosProvider implements DynamicRuleProvider<List<Auth
     @Override
     public List<AuthorityRuleEntity> getRules(String appName) throws Exception {
         String rules = NacosConfigUtil.readFreshConfig(configService, appName,
-            NacosConfigUtil.AUTHORITY_DATA_ID_POSTFIX, nacosProperties.getGroup(), NacosConfigUtil.READ_TIMEOUT_MS);
+                NacosConfigUtil.AUTHORITY_DATA_ID_POSTFIX, nacosProperties.getGroup(),
+                NacosConfigUtil.READ_TIMEOUT_MS);
         if (StringUtil.isEmpty(rules)) {
             return new ArrayList<>();
         }
         List<AuthorityRule> list = JSON.parseArray(rules, AuthorityRule.class);
         return list.stream()
-            .map(rule -> AuthorityRuleEntity.fromAuthorityRule(appName, null, null, rule))
-            .collect(Collectors.toList());
+                .map(rule -> AuthorityRuleEntity.fromAuthorityRule(appName, null, null, rule))
+                .collect(Collectors.toList());
     }
 }

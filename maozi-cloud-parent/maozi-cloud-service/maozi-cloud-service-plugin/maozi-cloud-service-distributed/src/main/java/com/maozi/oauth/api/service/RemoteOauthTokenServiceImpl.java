@@ -4,7 +4,7 @@ import com.maozi.common.ObjectUtil;
 import com.maozi.oauth.token.api.OauthTokenService;
 import com.maozi.oauth.token.api.rest.RestOauthTokenService;
 import com.maozi.oauth.token.api.rpc.RpcOauthTokenService;
-import com.maozi.oauth.token.constants.OAuth2TokenUserClaimConstants;
+import com.maozi.oauth.token.constants.Oauth2TokenUserClaimConstants;
 import com.maozi.service.api.annotation.RemoteResource;
 import com.maozi.service.config.RemoteOauthTokenServiceConfiguration;
 import jakarta.annotation.Resource;
@@ -78,9 +78,9 @@ public class RemoteOauthTokenServiceImpl implements OauthTokenService {
                 introspectResultData.put(OAuth2TokenIntrospectionClaimNames.NBF, Instant.parse(nbfObj.toString()));
             }
 
-            Object userIdObj = introspectResultData.get(OAuth2TokenUserClaimConstants.USER_ID);
+            Object userIdObj = introspectResultData.get(Oauth2TokenUserClaimConstants.USER_ID);
             if (ObjectUtil.isNotNull(userIdObj)) {
-                introspectResultData.put(OAuth2TokenUserClaimConstants.USER_ID, Long.parseLong(userIdObj.toString()));
+                introspectResultData.put(Oauth2TokenUserClaimConstants.USER_ID, Long.parseLong(userIdObj.toString()));
             }
 
             return introspectResultData;

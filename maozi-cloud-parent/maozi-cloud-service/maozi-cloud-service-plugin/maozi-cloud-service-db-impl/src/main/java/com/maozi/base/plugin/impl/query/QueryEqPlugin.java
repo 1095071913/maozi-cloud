@@ -12,7 +12,7 @@ import com.maozi.base.plugin.BaseQueryPlugin;
  * @author maozi
  * @date 2026/11/08
  */
-public class QueryEqPlugin extends BaseQueryPlugin{
+public class QueryEqPlugin extends BaseQueryPlugin {
 
     /**
      * 应用等于条件

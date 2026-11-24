@@ -15,7 +15,6 @@
  */
 package com.alibaba.csp.sentinel.dashboard.domain.cluster;
 
-
 /**
  * 到集群 token server 的一条连接描述。
  *
@@ -55,9 +54,9 @@ public class ConnectionDescriptorVO {
     /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
-        return "ConnectionDescriptorVO{" +
-            "address='" + address + '\'' +
-            ", host='" + host + '\'' +
-            '}';
+        return "ConnectionDescriptorVO{"
+                + "address='" + address + '\''
+                + ", host='" + host + '\''
+                + '}';
     }
 }

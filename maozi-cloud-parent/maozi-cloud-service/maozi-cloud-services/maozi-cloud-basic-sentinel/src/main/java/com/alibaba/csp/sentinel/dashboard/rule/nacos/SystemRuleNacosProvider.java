@@ -55,13 +55,14 @@ public class SystemRuleNacosProvider implements DynamicRuleProvider<List<SystemR
     @Override
     public List<SystemRuleEntity> getRules(String appName) throws Exception {
         String rules = NacosConfigUtil.readFreshConfig(configService, appName,
-            NacosConfigUtil.SYSTEM_DATA_ID_POSTFIX, nacosProperties.getGroup(), NacosConfigUtil.READ_TIMEOUT_MS);
+                NacosConfigUtil.SYSTEM_DATA_ID_POSTFIX, nacosProperties.getGroup(),
+                NacosConfigUtil.READ_TIMEOUT_MS);
         if (StringUtil.isEmpty(rules)) {
             return new ArrayList<>();
         }
         List<SystemRule> list = JSON.parseArray(rules, SystemRule.class);
         return list.stream()
-            .map(rule -> SystemRuleEntity.fromSystemRule(appName, null, null, rule))
-            .collect(Collectors.toList());
+                .map(rule -> SystemRuleEntity.fromSystemRule(appName, null, null, rule))
+                .collect(Collectors.toList());
     }
 }

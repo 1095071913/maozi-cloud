@@ -55,9 +55,9 @@ public class FlowRuleNacosPublisher implements DynamicRulePublisher<List<FlowRul
             return;
         }
         List<FlowRule> flowRules = rules.stream()
-            .map(FlowRuleEntity::toRule)
-            .collect(Collectors.toList());
+                .map(FlowRuleEntity::toRule)
+                .collect(Collectors.toList());
         NacosConfigUtil.publishJsonConfig(configService, app,
-            NacosConfigUtil.FLOW_DATA_ID_POSTFIX, nacosProperties.getGroup(), flowRules);
+                NacosConfigUtil.FLOW_DATA_ID_POSTFIX, nacosProperties.getGroup(), flowRules);
     }
 }

@@ -12,14 +12,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 package com.maozi.oauth.client.mapper;
 
 import com.maozi.oauth.client.domain.ClientDO;
 import com.maozi.service.api.IBaseMapper;
-
 
 /**
  * OAuth2客户端Mapper接口
@@ -30,4 +29,4 @@ import com.maozi.service.api.IBaseMapper;
  * @author maozi
  * @date 2026/11/08
  */
-public interface ClientMapper extends IBaseMapper<ClientDO>{}
+public interface ClientMapper extends IBaseMapper<ClientDO> {}

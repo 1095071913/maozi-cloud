@@ -24,7 +24,7 @@ import java.util.Map;
  * </p>
  * <p>
  * {@code @JsonTypeInfo(Id.CLASS)} 多态反序列化安全性说明：本类的 JSON 报文
- * 仅由 {@code RedisOAuth2AuthorizationServiceImpl} 写入 Redis 并从 Redis 读回
+ * 仅由 {@code RedisOauth2AuthorizationServiceImpl} 写入 Redis 并从 Redis 读回
  * （注册了 Spring Security 官方 SecurityJackson2Modules），报文内容完全由
  * 服务端生成；外部用户输入（令牌字符串）仅用作 Redis 键，不会成为被反序列化
  * 的 JSON 报文，攻击者无法通过 {@code @class} 属性驱动任意类实例化，配置安全。
@@ -81,12 +81,12 @@ public class SecurityUserDetails extends User implements Serializable {
      */
     @JsonCreator
     public SecurityUserDetails(@JsonProperty("username") String username, @JsonProperty("password") String password,
-                               @JsonProperty("enabled") boolean enabled,
-                               @JsonProperty("accountNonExpired") boolean accountNonExpired,
-                               @JsonProperty("credentialsNonExpired") boolean credentialsNonExpired,
-                               @JsonProperty("accountNonLocked") boolean accountNonLocked,
-                               @JsonProperty("authorities") Collection<SimpleGrantedAuthority> authorities,
-                               @JsonProperty("attributes") Map<String, Object> attributes) {
+            @JsonProperty("enabled") boolean enabled,
+            @JsonProperty("accountNonExpired") boolean accountNonExpired,
+            @JsonProperty("credentialsNonExpired") boolean credentialsNonExpired,
+            @JsonProperty("accountNonLocked") boolean accountNonLocked,
+            @JsonProperty("authorities") Collection<SimpleGrantedAuthority> authorities,
+            @JsonProperty("attributes") Map<String, Object> attributes) {
         super(username, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
         this.attributes = attributes;
     }

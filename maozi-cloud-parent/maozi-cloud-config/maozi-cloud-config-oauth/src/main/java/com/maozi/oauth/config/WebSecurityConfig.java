@@ -20,6 +20,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebSecurityConfig implements WebMvcConfigurer {
 
+    /** 拦截器生效的全部路径模式 */
+    private static final String ALL_PATH_PATTERN = "/**";
+
     /** 应用用户上下文拦截器 */
     @Resource
     private ApplicationUserContextFilter applicationUserContextFilter;
@@ -34,7 +37,8 @@ public class WebSecurityConfig implements WebMvcConfigurer {
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(applicationUserContextFilter).addPathPatterns("/**").order(Integer.MIN_VALUE);
+        registry.addInterceptor(applicationUserContextFilter).addPathPatterns(ALL_PATH_PATTERN)
+                .order(Integer.MIN_VALUE);
     }
 
 }

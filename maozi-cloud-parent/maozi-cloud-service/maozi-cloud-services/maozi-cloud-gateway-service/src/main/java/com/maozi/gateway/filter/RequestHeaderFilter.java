@@ -41,8 +41,8 @@ public class RequestHeaderFilter implements GlobalFilter, Ordered {
 
         // 重建请求，移除携带登录用户身份的请求头，防止外部伪造
         ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
-            .headers(headers -> headers.remove(CurrentUserInfoContext.KEY))
-            .build();
+                .headers(headers -> headers.remove(CurrentUserInfoContext.KEY))
+                .build();
 
         return chain.filter(exchange.mutate().request(mutatedRequest).build());
 

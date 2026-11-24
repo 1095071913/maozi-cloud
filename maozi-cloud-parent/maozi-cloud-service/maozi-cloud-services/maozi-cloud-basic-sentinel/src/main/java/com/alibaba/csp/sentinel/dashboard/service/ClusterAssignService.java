@@ -57,5 +57,5 @@ public interface ClusterAssignService {
      * @return 分配结果
      */
     ClusterAppAssignResultVO applyAssignToApp(String app, List<ClusterAppAssignMap> clusterMap,
-                                              Set<String> remainingSet);
+            Set<String> remainingSet);
 }

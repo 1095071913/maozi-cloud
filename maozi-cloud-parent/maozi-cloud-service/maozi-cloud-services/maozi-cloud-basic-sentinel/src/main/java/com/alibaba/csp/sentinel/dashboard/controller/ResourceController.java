@@ -43,6 +43,11 @@ public class ResourceController {
     /** 日志记录器。 */
     private static final Logger logger = LoggerFactory.getLogger(ResourceController.class);
 
+    /** 节点类型：从树根节点获取。 */
+    private static final String NODE_TYPE_ROOT = "root";
+    /** 节点类型：从树默认节点获取。 */
+    private static final String NODE_TYPE_DEFAULT = "default";
+
     /** 通过 HTTP 从 Sentinel 客户端拉取资源节点信息的客户端。 */
     private final SentinelApiClient httpFetcher;
 
@@ -63,17 +68,14 @@ public class ResourceController {
      */
     @GetMapping("/machineResource.json")
     public Result<List<ResourceVO>> fetchResourceChainListOfMachine(String ip, Integer port, String type,
-                                                                    String searchKey) {
+            String searchKey) {
         if (StringUtil.isEmpty(ip) || port == null) {
             return Result.ofFail(Result.CODE_ERROR, "invalid param, give ip, port");
         }
-        // 支持的节点类型局部常量，以小驼峰命名作为局部变量
-        final String typeRoot = "root";
-        final String typeDefault = "default";
         if (StringUtil.isEmpty(type)) {
-            type = typeRoot;
+            type = NODE_TYPE_ROOT;
         }
-        if (typeRoot.equalsIgnoreCase(type) || typeDefault.equalsIgnoreCase(type)) {
+        if (NODE_TYPE_ROOT.equalsIgnoreCase(type) || NODE_TYPE_DEFAULT.equalsIgnoreCase(type)) {
             List<NodeVo> nodeVos = httpFetcher.fetchResourceOfMachine(ip, port, type);
             ResourceTreeNode treeNode = ResourceTreeNode.fromNodeVoList(nodeVos);
             if (treeNode == null) {
@@ -81,15 +83,15 @@ public class ResourceController {
             }
             treeNode.searchIgnoreCase(searchKey);
             return Result.ofSuccess(ResourceVO.fromResourceTreeNode(treeNode));
-        } else {
-            // 其余类型按集群节点处理
-            List<NodeVo> nodeVos = httpFetcher.fetchClusterNodeOfMachine(ip, port, true);
-            if (StringUtil.isNotEmpty(searchKey)) {
-                nodeVos = nodeVos.stream().filter(node -> node.getResource()
-                    .toLowerCase().contains(searchKey.toLowerCase()))
-                    .collect(Collectors.toList());
-            }
-            return Result.ofSuccess(ResourceVO.fromNodeVoList(nodeVos));
         }
+        // 其余类型按集群节点处理
+        List<NodeVo> nodeVos = httpFetcher.fetchClusterNodeOfMachine(ip, port, true);
+        if (StringUtil.isNotEmpty(searchKey)) {
+            String lowerSearchKey = searchKey.toLowerCase();
+            nodeVos = nodeVos.stream()
+                    .filter(node -> node.getResource().toLowerCase().contains(lowerSearchKey))
+                    .collect(Collectors.toList());
+        }
+        return Result.ofSuccess(ResourceVO.fromNodeVoList(nodeVos));
     }
 }

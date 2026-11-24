@@ -45,7 +45,7 @@ public class ClusterServerModifyRequest extends AbstractClusterModifyRequest {
 
     /** 设置流控配置并返回当前对象。 */
     public ClusterServerModifyRequest setFlowConfig(
-        ServerFlowConfig flowConfig) {
+            ServerFlowConfig flowConfig) {
         this.flowConfig = flowConfig;
         return this;
     }
@@ -57,7 +57,7 @@ public class ClusterServerModifyRequest extends AbstractClusterModifyRequest {
 
     /** 设置传输配置并返回当前对象。 */
     public ClusterServerModifyRequest setTransportConfig(
-        ServerTransportConfig transportConfig) {
+            ServerTransportConfig transportConfig) {
         this.transportConfig = transportConfig;
         return this;
     }
@@ -76,14 +76,14 @@ public class ClusterServerModifyRequest extends AbstractClusterModifyRequest {
     /** 返回该请求的字符串表示。 */
     @Override
     public String toString() {
-        return "ClusterServerModifyRequest{" +
-            "app='" + app + '\'' +
-            ", ip='" + ip + '\'' +
-            ", port=" + port +
-            ", mode=" + mode +
-            ", flowConfig=" + flowConfig +
-            ", transportConfig=" + transportConfig +
-            ", namespaceSet=" + namespaceSet +
-            '}';
+        return "ClusterServerModifyRequest{"
+                + "app='" + app + '\''
+                + ", ip='" + ip + '\''
+                + ", port=" + port
+                + ", mode=" + mode
+                + ", flowConfig=" + flowConfig
+                + ", transportConfig=" + transportConfig
+                + ", namespaceSet=" + namespaceSet
+                + '}';
     }
 }

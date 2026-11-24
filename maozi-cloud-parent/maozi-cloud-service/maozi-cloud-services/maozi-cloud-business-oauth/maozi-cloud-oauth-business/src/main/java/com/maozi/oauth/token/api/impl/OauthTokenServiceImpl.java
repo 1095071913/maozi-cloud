@@ -2,7 +2,7 @@ package com.maozi.oauth.token.api.impl;
 
 import com.maozi.common.CollectionUtil;
 import com.maozi.oauth.token.api.OauthTokenService;
-import com.maozi.oauth.token.config.service.OAuth2AuthorizationService;
+import com.maozi.oauth.token.config.service.Oauth2AuthorizationService;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Resource;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
@@ -31,16 +31,19 @@ public class OauthTokenServiceImpl implements OauthTokenService {
 
     /** OAuth2授权信息服务，用于管理授权记录的存储、查找和删除 */
     @Resource
-    protected OAuth2AuthorizationService authorizationService;
+    private Oauth2AuthorizationService authorizationService;
 
     /** OAuth2 客户端注册信息仓库，用于按 clientId 查询已注册客户端 */
     @Resource
-    protected RegisteredClientRepository registeredClientRepository;
+    private RegisteredClientRepository registeredClientRepository;
 
     /**
      * 内省访问令牌，令牌无效（授权记录不存在、已失效或客户端未注册）
      * 时返回 active=false
      */
+    /** 内省响应固定写入的基础声明个数（active、sub、client_id、token_type） */
+    private static final int BASIC_CLAIM_COUNT = 4;
+
     @Override
     public Map<String, Object> introspect(String token) {
 
@@ -83,8 +86,9 @@ public class OauthTokenServiceImpl implements OauthTokenService {
         // 合并令牌原有claims，并移除iss（issuer）声明
         Map<String, Object> oldClaims = accessToken.getClaims();
 
-        // 固定写入 4 个基础声明（active、sub、client_id、token_type）并合并原有 claims，按此预估容量
-        Map<String, Object> claims = CollectionUtil.newHashMap(4 + (oldClaims == null ? 0 : oldClaims.size()));
+        // 固定写入基础声明并合并原有 claims，按此预估容量
+        Map<String, Object> claims = CollectionUtil.newHashMap(
+                BASIC_CLAIM_COUNT + (oldClaims == null ? 0 : oldClaims.size()));
 
         claims.put(OAuth2TokenIntrospectionClaimNames.ACTIVE, true);
         claims.put(OAuth2TokenIntrospectionClaimNames.SUB, authorization.getPrincipalName());

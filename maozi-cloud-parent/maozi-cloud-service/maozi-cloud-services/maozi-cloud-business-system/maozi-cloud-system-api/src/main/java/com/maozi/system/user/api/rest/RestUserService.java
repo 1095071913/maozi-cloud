@@ -71,11 +71,7 @@ public interface RestUserService {
     @PreAuthorize("hasAuthority('system:user:save')")
     AbstractBaseResult<Long> saveResult(@RequestBody UserSaveUpdateParam param);
 
-
-
-
-
-//================== 指定资源 ===================
+    // ================== 指定资源 ===================
 
     /** 单资源路径常量，用于指定具体用户 ID 的请求路径前缀 */
     String CURRENT_PATH = PATH + "/{id}";
@@ -122,11 +118,7 @@ public interface RestUserService {
     @PreAuthorize("hasAuthority('system:user:update')")
     AbstractBaseResult<Void> updateResult(@PathVariable Long id, @RequestBody UserSaveUpdateParam param);
 
-
-
-
-
-//====================== 个人 =========================
+    // ====================== 个人 =========================
 
     /** 个人信息路径常量，用于当前登录用户个人信息相关的请求路径前缀 */
     String INDIVIDUAL_PATH = PATH + "/individual";

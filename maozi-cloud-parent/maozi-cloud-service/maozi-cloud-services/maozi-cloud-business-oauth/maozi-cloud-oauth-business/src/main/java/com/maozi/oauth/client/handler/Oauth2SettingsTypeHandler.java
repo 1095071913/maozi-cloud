@@ -23,7 +23,7 @@ import java.lang.reflect.Field;
  * @date 2026/11/08
  */
 @Slf4j
-public class OAuth2SettingsTypeHandler extends JacksonTypeHandler {
+public class Oauth2SettingsTypeHandler extends JacksonTypeHandler {
 
     /** OAuth2专用的ObjectMapper，复用ClientServiceImpl中已注册安全模块的实例 */
     private static final ObjectMapper OAUTH2_OBJECT_MAPPER = ClientServiceImpl.OAUTH_OBJECT_MAPPER;
@@ -33,7 +33,7 @@ public class OAuth2SettingsTypeHandler extends JacksonTypeHandler {
      *
      * @param type 字段类型
      */
-    public OAuth2SettingsTypeHandler(Class<?> type) {
+    public Oauth2SettingsTypeHandler(Class<?> type) {
         super(type);
     }
 
@@ -43,7 +43,7 @@ public class OAuth2SettingsTypeHandler extends JacksonTypeHandler {
      * @param type  字段类型
      * @param field 字段反射对象
      */
-    public OAuth2SettingsTypeHandler(Class<?> type, Field field) {
+    public Oauth2SettingsTypeHandler(Class<?> type, Field field) {
         super(type, field);
     }
 

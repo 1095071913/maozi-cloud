@@ -72,13 +72,13 @@ public class ApplicationEntity extends BaseEntity {
     /** 拼接除 appType 之外的字段构建字符串。 */
     @Override
     public String toString() {
-        return "ApplicationEntity{" +
-            "id=" + id +
-            ", gmtCreate=" + gmtCreate +
-            ", gmtModified=" + gmtModified +
-            ", app='" + app + '\'' +
-            ", activeConsole='" + activeConsole + '\'' +
-            ", lastFetch=" + lastFetch +
-            '}';
+        return "ApplicationEntity{"
+                + "id=" + id
+                + ", gmtCreate=" + gmtCreate
+                + ", gmtModified=" + gmtModified
+                + ", app='" + app + '\''
+                + ", activeConsole='" + activeConsole + '\''
+                + ", lastFetch=" + lastFetch
+                + '}';
     }
 }

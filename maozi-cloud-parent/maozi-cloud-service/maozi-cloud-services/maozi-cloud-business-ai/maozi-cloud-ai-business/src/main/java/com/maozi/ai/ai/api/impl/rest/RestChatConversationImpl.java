@@ -10,7 +10,7 @@ import com.maozi.base.result.PageResult;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.service.api.annotation.RestService;
-import com.maozi.service.api.impl.result.BaseDBServiceResultImpl;
+import com.maozi.service.api.impl.result.BaseDbServiceResultImpl;
 
 /**
  * AI会话管理服务 REST 实现
@@ -19,7 +19,7 @@ import com.maozi.service.api.impl.result.BaseDBServiceResultImpl;
  * @date 2026/11/14
  */
 @RestService
-public class RestChatConversationImpl extends BaseDBServiceResultImpl<ChatConversationServiceImpl>
+public class RestChatConversationImpl extends BaseDbServiceResultImpl<ChatConversationServiceImpl>
         implements RestChatConversationService {
 
     /** 查询当前用户的会话分页列表 */

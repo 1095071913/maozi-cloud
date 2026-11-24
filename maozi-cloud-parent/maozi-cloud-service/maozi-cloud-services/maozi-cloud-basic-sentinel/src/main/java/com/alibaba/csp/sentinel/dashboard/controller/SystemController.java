@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.controller;
 
 import com.alibaba.csp.sentinel.dashboard.auth.AuthAction;
-import com.alibaba.csp.sentinel.dashboard.auth.AuthService.PrivilegeType;
+import com.alibaba.csp.sentinel.dashboard.auth.AuthService.PrivilegeTypeEnum;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.SystemRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.discovery.AppManagement;
 import com.alibaba.csp.sentinel.dashboard.domain.Result;
@@ -44,8 +44,11 @@ import java.util.List;
 @RequestMapping("/system")
 public class SystemController {
 
+    /** 合法 TCP/UDP 端口的最大值。 */
+    private static final int MAX_PORT = 65535;
+
     /** 日志记录器。 */
-    private final Logger logger = LoggerFactory.getLogger(SystemController.class);
+    private static final Logger logger = LoggerFactory.getLogger(SystemController.class);
 
     /** 存储系统规则实体的内存仓储。 */
     private final RuleRepository<SystemRuleEntity, Long> repository;
@@ -56,16 +59,10 @@ public class SystemController {
     /** 向指定应用推送系统规则的发布者。 */
     private final DynamicRulePublisher<List<SystemRuleEntity>> rulePublisher;
 
-    /** 合法 TCP/UDP 端口的最大值。 */
-    private static final int MAX_PORT = 65535;
-
     /** 注入规则仓储、应用管理、规则提供者与发布者。 */
-    public SystemController(RuleRepository<SystemRuleEntity, Long> repository,
-                            AppManagement appManagement,
-                            @Qualifier("systemRuleNacosProvider") DynamicRuleProvider<List<SystemRuleEntity>>
-                                ruleProvider,
-                            @Qualifier("systemRuleNacosPublisher") DynamicRulePublisher<List<SystemRuleEntity>>
-                                rulePublisher) {
+    public SystemController(RuleRepository<SystemRuleEntity, Long> repository, AppManagement appManagement,
+            @Qualifier("systemRuleNacosProvider") DynamicRuleProvider<List<SystemRuleEntity>> ruleProvider,
+            @Qualifier("systemRuleNacosPublisher") DynamicRulePublisher<List<SystemRuleEntity>> rulePublisher) {
         this.repository = repository;
         this.appManagement = appManagement;
         this.ruleProvider = ruleProvider;
@@ -94,9 +91,9 @@ public class SystemController {
 
     /** 从 Nacos 拉取应用的系统规则，为每条补充机器信息后持久化并返回。 */
     @GetMapping("/rules.json")
-    @AuthAction(PrivilegeType.READ_RULE)
+    @AuthAction(PrivilegeTypeEnum.READ_RULE)
     public Result<List<SystemRuleEntity>> apiQueryMachineRules(String app, String ip,
-                                                               Integer port) {
+            Integer port) {
         Result<List<SystemRuleEntity>> checkResult = checkBasicParams(app, ip, port);
         if (checkResult != null) {
             return checkResult;
@@ -110,17 +107,17 @@ public class SystemController {
             }
             rules = repository.saveAll(rules);
             return Result.ofSuccess(rules);
-        } catch (Throwable throwable) {
-            logger.error("Query machine system rules error", throwable);
-            return Result.ofThrowable(Result.CODE_ERROR, throwable);
+        } catch (Exception e) {
+            logger.error("Query machine system rules error", e);
+            return Result.ofThrowable(Result.CODE_ERROR, e);
         }
     }
 
     /** 统计指定数值中非空且非负的个数。 */
     private int countNotNullAndNotNegative(Number... values) {
         int notNullCount = 0;
-        for (int i = 0; i < values.length; i++) {
-            if (values[i] != null && values[i].doubleValue() >= 0) {
+        for (Number value : values) {
+            if (value != null && value.doubleValue() >= 0) {
                 notNullCount++;
             }
         }
@@ -132,10 +129,10 @@ public class SystemController {
      * （占位值表示“未启用”），随后将应用的规则推送至 Nacos。
      */
     @GetMapping("/new.json")
-    @AuthAction(PrivilegeType.WRITE_RULE)
+    @AuthAction(PrivilegeTypeEnum.WRITE_RULE)
     public Result<SystemRuleEntity> apiAdd(String app, String ip, Integer port,
-                                           Double highestSystemLoad, Double highestCpuUsage, Long avgRt,
-                                           Long maxThread, Double qps) {
+            Double highestSystemLoad, Double highestCpuUsage, Long avgRt,
+            Long maxThread, Double qps) {
 
         Result<SystemRuleEntity> checkResult = checkBasicParams(app, ip, port);
         if (checkResult != null) {
@@ -145,10 +142,10 @@ public class SystemController {
         int notNullCount = countNotNullAndNotNegative(highestSystemLoad, avgRt, maxThread, qps, highestCpuUsage);
         if (notNullCount != 1) {
             return Result.ofFail(Result.CODE_ERROR,
-                "only one of [highestSystemLoad, avgRt, maxThread, qps,highestCpuUsage] "
-                + "value must be set > 0, but " + notNullCount + " values get");
+                    "only one of [highestSystemLoad, avgRt, maxThread, qps,highestCpuUsage] "
+                    + "value must be set > 0, but " + notNullCount + " values get");
         }
-        if (null != highestCpuUsage && highestCpuUsage > 1) {
+        if (highestCpuUsage != null && highestCpuUsage > 1) {
             return Result.ofFail(Result.CODE_ERROR, "highestCpuUsage must between [0.0, 1.0]");
         }
         SystemRuleEntity entity = new SystemRuleEntity();
@@ -156,13 +153,13 @@ public class SystemController {
         entity.setIp(ip.trim());
         entity.setPort(port);
         // -1 为占位值，表示该阈值未启用
-        if (null != highestSystemLoad) {
+        if (highestSystemLoad != null) {
             entity.setHighestSystemLoad(highestSystemLoad);
         } else {
             entity.setHighestSystemLoad(-1D);
         }
 
-        if (null != highestCpuUsage) {
+        if (highestCpuUsage != null) {
             entity.setHighestCpuUsage(highestCpuUsage);
         } else {
             entity.setHighestCpuUsage(-1D);
@@ -186,9 +183,9 @@ public class SystemController {
         entity.setGmtCreateAndModified(new Date());
         try {
             entity = repository.save(entity);
-        } catch (Throwable throwable) {
-            logger.error("Add SystemRule error", throwable);
-            return Result.ofThrowable(Result.CODE_ERROR, throwable);
+        } catch (Exception e) {
+            logger.error("Add SystemRule error", e);
+            return Result.ofThrowable(Result.CODE_ERROR, e);
         }
         if (!publishRules(app)) {
             logger.warn("Publish system rules fail after rule add");
@@ -200,7 +197,7 @@ public class SystemController {
      * 更新指定 id 的规则：仅应用非空参数（负阈值被拒绝），并推送应用的规则。
      */
     @GetMapping("/save.json")
-    @AuthAction(PrivilegeType.WRITE_RULE)
+    @AuthAction(PrivilegeTypeEnum.WRITE_RULE)
     public Result<SystemRuleEntity> apiUpdateIfNotNull(Long id, String app, Double highestSystemLoad,
             Double highestCpuUsage, Long avgRt, Long maxThread, Double qps) {
         if (id == null) {
@@ -208,7 +205,7 @@ public class SystemController {
         }
         SystemRuleEntity entity = repository.findById(id);
         if (entity == null) {
-            return Result.ofFail(Result.CODE_ERROR, "id " + id + " dose not exist");
+            return Result.ofFail(Result.CODE_ERROR, "id " + id + " does not exist");
         }
 
         if (StringUtil.isNotBlank(app)) {
@@ -251,19 +248,19 @@ public class SystemController {
         entity.setGmtModified(date);
         try {
             entity = repository.save(entity);
-        } catch (Throwable throwable) {
-            logger.error("save error:", throwable);
-            return Result.ofThrowable(Result.CODE_ERROR, throwable);
+        } catch (Exception e) {
+            logger.error("Failed to save system rule, id={}", id, e);
+            return Result.ofThrowable(Result.CODE_ERROR, e);
         }
         if (!publishRules(entity.getApp())) {
-            logger.info("publish system rules fail after rule update");
+            logger.warn("Publish system rules failed after rule update");
         }
         return Result.ofSuccess(entity);
     }
 
     /** 删除指定 id 的规则并推送应用的规则；id 不存在时直接成功返回（数据为 null）。 */
     @GetMapping("/delete.json")
-    @AuthAction(PrivilegeType.DELETE_RULE)
+    @AuthAction(PrivilegeTypeEnum.DELETE_RULE)
     public Result<?> delete(Long id) {
         if (id == null) {
             return Result.ofFail(Result.CODE_ERROR, "id can't be null");
@@ -274,12 +271,12 @@ public class SystemController {
         }
         try {
             repository.delete(id);
-        } catch (Throwable throwable) {
-            logger.error("delete error:", throwable);
-            return Result.ofThrowable(Result.CODE_ERROR, throwable);
+        } catch (Exception e) {
+            logger.error("Failed to delete system rule, id={}", id, e);
+            return Result.ofThrowable(Result.CODE_ERROR, e);
         }
         if (!publishRules(oldEntity.getApp())) {
-            logger.info("publish system rules fail after rule delete");
+            logger.warn("Publish system rules failed after rule delete");
         }
         return Result.ofSuccess(id);
     }

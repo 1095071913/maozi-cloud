@@ -129,8 +129,11 @@ public class StripFirstPathFilter extends OncePerRequestFilter {
      * Spring 6 中 {@code DispatcherServlet} 会调用 {@code ServletRequestPathUtils.parseAndCache}
      * 对 {@code getRequestURI()} 进行解析，因此重写该方法即可让控制器匹配使用新路径。
      * </p>
+     *
+     * @author maozi
+     * @date 2026/11/08
      */
-    private static class StrippedRequestWrapper extends HttpServletRequestWrapper {
+    private static final class StrippedRequestWrapper extends HttpServletRequestWrapper {
 
         /** 原始请求 URI，用于重写 getRequestURL 时定位替换位置 */
         private final String originalRequestUri;

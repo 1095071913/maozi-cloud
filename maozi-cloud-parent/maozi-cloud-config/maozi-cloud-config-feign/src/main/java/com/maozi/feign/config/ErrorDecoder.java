@@ -36,9 +36,11 @@ public class ErrorDecoder implements feign.codec.ErrorDecoder {
         // 缓存 HTTP 状态码，避免同一方法内重复调用
         int status = response.status();
 
-        try {return new BusinessResultException(status,
-                Util.toString(response.body().asReader(Charset.defaultCharset())))
-                .setHttpCode(status);} catch (IOException e) {
+        try {
+            return new BusinessResultException(status,
+                    Util.toString(response.body().asReader(Charset.defaultCharset())))
+                    .setHttpCode(status);
+        } catch (IOException e) {
             return e;
         }
 

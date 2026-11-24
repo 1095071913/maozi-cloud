@@ -48,7 +48,6 @@ public interface RestChatMessageService {
      */
     @Post(value = PATH + "/generate/image", description = "发起图片生成")
     AbstractBaseResult<ChatGenerateImageResult> generateImageResult(@RequestBody @Valid ChatGenerateImageParam param);
-    
 
     /**
      * AI流式对话
@@ -80,9 +79,8 @@ public interface RestChatMessageService {
      */
     @Get(value = PATH + "/getAfterMessages", description = "获取后续消息列表")
     AbstractBaseResult<List<ChatItemResult>> getAfterMessagesResult(@PathVariable Long conversationId,
-        @RequestParam Long createTime);
+            @RequestParam Long createTime);
 
-    
     /** 当前消息基础路径，携带消息 ID 路径变量 */
     String CURRENT_PATH = PATH + "/{messageId}";
 

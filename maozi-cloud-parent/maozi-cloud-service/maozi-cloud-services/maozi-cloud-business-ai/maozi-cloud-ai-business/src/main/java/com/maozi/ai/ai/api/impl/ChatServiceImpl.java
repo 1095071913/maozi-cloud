@@ -75,26 +75,26 @@ import java.util.stream.Collectors;
 public class ChatServiceImpl implements ChatService {
 
     /** 文生图默认生成图片数量 */
-    protected static final int DEFAULT_IMAGE_COUNT = 1;
+    private static final int DEFAULT_IMAGE_COUNT = 1;
 
     /** 文生图默认图片尺寸（宽与高相同） */
-    protected static final int DEFAULT_IMAGE_SIZE = 1024;
+    private static final int DEFAULT_IMAGE_SIZE = 1024;
 
     /** 视觉模型（图生文）对话温度参数 */
-    protected static final double VISION_MODEL_TEMPERATURE = 0.7D;
+    private static final double VISION_MODEL_TEMPERATURE = 0.7D;
 
     /** 对话进行中标记的过期时间（秒），防止异常导致标记残留 */
-    protected static final long CHAT_STOP_KEY_EXPIRE_SECONDS = 60L;
+    private static final long CHAT_STOP_KEY_EXPIRE_SECONDS = 60L;
 
     /** 对话进行中标记 key 前缀：key 存在表示该会话正在对话，删除即停止对话 */
-    protected static final String AI_CHAT_STOP_KEY = RedisUtil.REDIS_KEY_PREFIX + "chat:status:";
+    private static final String AI_CHAT_STOP_KEY = RedisUtil.REDIS_KEY_PREFIX + "chat:status:";
 
     /** 文生图进行中标记 key 前缀：key 被删除表示文生图请求已被停止 */
-    protected static final String AI_CHAT_GENERATE_IMAGE_STOP_KEY = RedisUtil.REDIS_KEY_PREFIX
+    private static final String AI_CHAT_GENERATE_IMAGE_STOP_KEY = RedisUtil.REDIS_KEY_PREFIX
             + "chat:generate:image:status:";
 
     /** 文生图完成后的默认回复文案，会写入会话记忆并返回给用户 */
-    protected static final String IMAGE_GENERATE_FINISH_MESSAGE = "图片生成完成 ...";
+    private static final String IMAGE_GENERATE_FINISH_MESSAGE = "图片生成完成 ...";
 
     /** 支持的图片后缀与 MIME 类型映射 */
     private static final Map<String, MimeType> IMAGE_MIME_TYPE_MAP = Map.of(
@@ -106,31 +106,31 @@ public class ChatServiceImpl implements ChatService {
 
     /** 图片模型，用于文生图 */
     @Resource
-    protected ImageModel imageModel;
+    private ImageModel imageModel;
 
     /** 对话记忆，用于保存和读取会话上下文 */
     @Resource
-    protected ChatMemory chatMemory;
+    private ChatMemory chatMemory;
 
     /** 对话客户端，用于与 AI 模型交互 */
     @Resource
-    protected ChatClient chatClient;
+    private ChatClient chatClient;
 
     /** 系统配置 RPC 服务，用于获取提示词配置 */
     @RemoteResource
-    protected RpcConfigService rpcConfigService;
+    private RpcConfigService rpcConfigService;
 
     /** 对话记忆存储，直接操作底层会话消息数据 */
     @Resource
-    protected ChatMemoryRepository chatMemoryRepository;
+    private ChatMemoryRepository chatMemoryRepository;
 
     /** 会话记录服务，用于校验会话是否存在 */
     @Resource(name = "chatConversationServiceImpl")
-    protected ChatConversationService chatConversationService;
+    private ChatConversationService chatConversationService;
 
     /** 图生文（视觉理解）模型名称 */
     @Value("${spring.ai.dashscope.chat.options.text_image_model:}")
-    protected String imageModelName;
+    private String imageModelName;
 
     /**
      * AI流式对话
@@ -433,7 +433,7 @@ public class ChatServiceImpl implements ChatService {
     public ChatListResult adminList(Long conversationId) {
 
         // 是否对话中：对话进行中标记存在即正在对话
-        Boolean isLocked = RedisUtil.getRedisClient().hasKey(AI_CHAT_STOP_KEY + conversationId);
+        boolean isLocked = RedisUtil.getRedisClient().hasKey(AI_CHAT_STOP_KEY + conversationId);
 
         List<Message> messages = chatMemoryRepository.findRecordByConversationId(conversationId.toString());
         if (CollectionUtil.isEmpty(messages)) {

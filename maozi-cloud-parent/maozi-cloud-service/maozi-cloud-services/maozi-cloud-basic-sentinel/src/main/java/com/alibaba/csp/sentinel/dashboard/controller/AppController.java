@@ -29,7 +29,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -61,7 +60,7 @@ public class AppController {
     @GetMapping("/briefinfos.json")
     public Result<List<AppInfo>> queryAppInfos(HttpServletRequest request) {
         List<AppInfo> list = new ArrayList<>(appManagement.getBriefApps());
-        Collections.sort(list, Comparator.comparing(AppInfo::getApp));
+        list.sort(Comparator.comparing(AppInfo::getApp));
         return Result.ofSuccess(list);
     }
 
@@ -73,12 +72,11 @@ public class AppController {
             return Result.ofSuccess(null);
         }
         List<MachineInfo> list = new ArrayList<>(appInfo.getMachines());
-        Collections.sort(list,
-            Comparator.comparing(MachineInfo::getApp).thenComparing(MachineInfo::getIp)
+        list.sort(Comparator.comparing(MachineInfo::getApp).thenComparing(MachineInfo::getIp)
                 .thenComparingInt(MachineInfo::getPort));
         return Result.ofSuccess(MachineInfoVO.fromMachineInfoList(list));
     }
-    
+
     /**
      * 从注册表移除 app/ip/port 标识的机器；应用不存在时成功返回（数据为 null），
      * 移除失败返回 code 1。

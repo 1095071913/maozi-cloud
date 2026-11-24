@@ -82,11 +82,11 @@ public class ClusterClientInfoVO {
     /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
-        return "ClusterClientInfoVO{" +
-            "serverHost='" + serverHost + '\'' +
-            ", serverPort=" + serverPort +
-            ", clientState=" + clientState +
-            ", requestTimeout=" + requestTimeout +
-            '}';
+        return "ClusterClientInfoVO{"
+                + "serverHost='" + serverHost + '\''
+                + ", serverPort=" + serverPort
+                + ", clientState=" + clientState
+                + ", requestTimeout=" + requestTimeout
+                + '}';
     }
 }

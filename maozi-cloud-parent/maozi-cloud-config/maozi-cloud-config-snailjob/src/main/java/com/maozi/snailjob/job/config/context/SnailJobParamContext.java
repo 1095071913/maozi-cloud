@@ -19,10 +19,13 @@ import com.alibaba.ttl.TransmittableThreadLocal;
  * @author maozi
  * @date 2026/11/08
  */
-public class SnailJobParamContext {
+public final class SnailJobParamContext {
 
     /** 当前任务业务参数（SnailJob 服务端配置的任务参数） */
     private static final TransmittableThreadLocal<String> JOB_PARAMS = new TransmittableThreadLocal<>();
+
+    /** 私有构造器，防止上下文工具类被实例化 */
+    private SnailJobParamContext() {}
 
     /**
      * 获取当前任务业务参数

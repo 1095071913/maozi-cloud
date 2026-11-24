@@ -24,10 +24,11 @@ package com.alibaba.csp.sentinel.dashboard.client;
  */
 public class CommandNotFoundException extends Exception {
 
+    /** 序列化版本号 */
     private static final long serialVersionUID = 1L;
 
     /** 构造无详细消息的异常。 */
-    public CommandNotFoundException() { }
+    public CommandNotFoundException() {}
 
     /** 使用指定详细消息构造异常。 */
     public CommandNotFoundException(String message) {

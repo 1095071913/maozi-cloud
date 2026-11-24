@@ -12,4 +12,4 @@ import com.maozi.system.config.domain.RegionDO;
  * @author maozi
  * @date 2026/11/08
  */
-public interface RegionMapper extends IBaseMapper<RegionDO>{}
+public interface RegionMapper extends IBaseMapper<RegionDO> {}

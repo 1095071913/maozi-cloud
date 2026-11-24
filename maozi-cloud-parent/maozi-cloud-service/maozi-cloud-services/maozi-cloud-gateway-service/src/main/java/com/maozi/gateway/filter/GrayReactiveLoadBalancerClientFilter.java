@@ -24,7 +24,6 @@ import java.util.Objects;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR;
 
-
 /**
  * 灰度发布响应式负载均衡客户端过滤器。
  * <p>
@@ -54,11 +53,10 @@ public class GrayReactiveLoadBalancerClientFilter extends ReactiveLoadBalancerCl
      * @param properties    网关负载均衡属性配置
      */
     public GrayReactiveLoadBalancerClientFilter(LoadBalancerClientFactory clientFactory,
-        GatewayLoadBalancerProperties properties) {
+            GatewayLoadBalancerProperties properties) {
         super(clientFactory, properties);
         this.grayClientFactory = clientFactory;
     }
-
 
     /**
      * 过滤器核心逻辑。
@@ -83,7 +81,6 @@ public class GrayReactiveLoadBalancerClientFilter extends ReactiveLoadBalancerCl
         if (Objects.isNull(url)) {
             return chain.filter(exchange);
         }
-
 
         // 获取路由方案前缀
         String schemePrefix = exchange.getAttribute(GATEWAY_SCHEME_PREFIX_ATTR);
@@ -118,7 +115,7 @@ public class GrayReactiveLoadBalancerClientFilter extends ReactiveLoadBalancerCl
 
             // 创建委托服务实例
             DelegatingServiceInstance serviceInstance =
-                new DelegatingServiceInstance(response.getServer(), overrideScheme);
+                    new DelegatingServiceInstance(response.getServer(), overrideScheme);
 
             // 根据服务实例信息重构请求 URI
             URI requestUrl = this.reconstructURI(serviceInstance, uri);
@@ -145,7 +142,7 @@ public class GrayReactiveLoadBalancerClientFilter extends ReactiveLoadBalancerCl
         GrayRoundRobinLoadBalancer loadBalancer = null;
         if (uri != null) {
             loadBalancer = new GrayRoundRobinLoadBalancer(
-                grayClientFactory.getLazyProvider(uri.getHost(), ServiceInstanceListSupplier.class));
+                    grayClientFactory.getLazyProvider(uri.getHost(), ServiceInstanceListSupplier.class));
         }
         if (loadBalancer != null) {
             return loadBalancer.choose(this.createRequest(exchange));
@@ -178,6 +175,7 @@ public class GrayReactiveLoadBalancerClientFilter extends ReactiveLoadBalancerCl
      * @param original        原始请求 URI
      * @return 重构后的请求 URI
      */
+    @Override
     protected URI reconstructURI(ServiceInstance serviceInstance, URI original) {
         return LoadBalancerUriTools.reconstructURI(serviceInstance, original);
     }

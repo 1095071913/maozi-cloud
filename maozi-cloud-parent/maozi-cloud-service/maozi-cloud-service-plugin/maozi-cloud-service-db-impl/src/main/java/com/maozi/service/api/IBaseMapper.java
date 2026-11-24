@@ -13,6 +13,4 @@ import com.github.yulichang.base.MPJBaseMapper;
  * @author maozi
  * @date 2026/11/08
  */
-public interface IBaseMapper<T> extends MPJBaseMapper<T> {
-
-}
+public interface IBaseMapper<T> extends MPJBaseMapper<T> {}

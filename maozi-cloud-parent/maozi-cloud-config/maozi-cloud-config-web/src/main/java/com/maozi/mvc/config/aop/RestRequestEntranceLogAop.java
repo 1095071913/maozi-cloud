@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2012-2018 the original author or authors.
  *
@@ -49,13 +48,13 @@ public class RestRequestEntranceLogAop extends AbstractRequestEntranceLogAop {
 
     /** REST 实现层切点表达式（匹配 api.impl.rest 包下的方法） */
     private static final String REST_POINT = "* " + ApplicationEnvironmentContext.PACKAGE_PREFIX
-        + ".*.*.api.impl.rest..*(..)";
+            + ".*.*.api.impl.rest..*(..)";
 
     /** 基础服务实现类切点表达式 */
     private static final String BASE_RPC_POINT = ApplicationEnvironmentContext.PACKAGE_PREFIX
-        + ".common.result.AbstractBaseResult "
-        + ApplicationEnvironmentContext.PACKAGE_PREFIX
-        + ".service.api.impl.result.BaseDBServiceResultImpl.*(..)";
+            + ".common.result.AbstractBaseResult "
+            + ApplicationEnvironmentContext.PACKAGE_PREFIX
+            + ".service.api.impl.result.BaseDbServiceResultImpl.*(..)";
 
     /** 组合切点表达式 */
     private static final String POINT = "execution(" + REST_POINT + ") || execution(" + BASE_RPC_POINT + ")";
@@ -69,6 +68,7 @@ public class RestRequestEntranceLogAop extends AbstractRequestEntranceLogAop {
      * 交由 Spring Security 处理
      */
     @Around(POINT)
+    @Override
     public Object doAround(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 
         // 非 HTTP 流量时直接放行，不记录 HTTP 入口日志

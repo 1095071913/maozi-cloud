@@ -97,6 +97,12 @@ public interface OrderParam {
 
         Map<String, List<String>> orderDescFieldsMap = CollectionUtil.newHashMap(orderMainFieldsMapSize);
 
+        // 前端传入的排序规则（无状态取值），循环外获取一次即可；未传入时使用空 Map，避免空指针
+        Map<String, Boolean> orderFieldMap = getOrderFieldMap();
+        if (CollectionUtil.isEmpty(orderFieldMap)) {
+            orderFieldMap = CollectionUtil.newHashMap();
+        }
+
         for (Map.Entry<String, Map<String, Boolean>> orderMainEntry : orderMainFieldsMap.entrySet()) {
 
             String key = orderMainEntry.getKey();
@@ -109,24 +115,18 @@ public interface OrderParam {
 
             List<String> orderDescFields = CollectionUtil.newArrayList(orderMainFieldsSize);
 
+            // 表别名仅取决于当前主表，内层循环外转换一次
+            String underlineCase = StrUtil.toUnderlineCase(key);
+
             for (Map.Entry<String, Boolean> orderMainFieldEntry : orderMainFields.entrySet()) {
 
                 String orderMainField = orderMainFieldEntry.getKey();
-
-                Map<String, Boolean> orderFieldMap = getOrderFieldMap();
-
-                // 前端未传入排序规则时使用空 Map，避免空指针
-                if (CollectionUtil.isEmpty(orderFieldMap)) {
-                    orderFieldMap = CollectionUtil.newHashMap();
-                }
 
                 // 优先使用前端传入的排序方向，未指定时使用字段默认排序方向
                 Boolean orderMainFieldValue =
                         orderFieldMap.getOrDefault(orderMainField, orderMainFieldEntry.getValue());
 
                 if (ObjectUtil.isNotNull(orderMainFieldValue)) {
-
-                    String underlineCase = StrUtil.toUnderlineCase(key);
 
                     // 表别名非空时拼接为 "表别名.下划线字段名"；
                     // 为空时仅取表别名的下划线形式（结果不含字段名）

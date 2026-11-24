@@ -41,6 +41,7 @@ import java.io.Serial;
 @EqualsAndHashCode(callSuper = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class AbstractBaseNameDomain extends AbstractBaseDomain {
+
     /** 序列化标识 */
     @Serial
     private static final long serialVersionUID = 1L;

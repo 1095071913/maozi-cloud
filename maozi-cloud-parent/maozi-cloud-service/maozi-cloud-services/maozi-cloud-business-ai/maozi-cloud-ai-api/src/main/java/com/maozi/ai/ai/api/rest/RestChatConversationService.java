@@ -42,7 +42,6 @@ public interface RestChatConversationService {
     @Post(value = PATH + "/create", description = "保存")
     AbstractBaseResult<Long> createResult(@RequestBody RequestParam<String> param);
 
-
     /** 当前会话基础路径，携带会话 ID 路径变量 */
     String CURRENT_PATH = PATH + "/{conversationId}";
 

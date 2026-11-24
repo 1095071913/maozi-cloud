@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2012-2018 the original author or authors.
  *
@@ -46,13 +45,13 @@ public class DubboRequestEntranceLogAop extends AbstractRequestEntranceLogAop {
 
     /** RPC 接口切点表达式：用 .. 替代 *.*，避免 AspectJ 解析歧义 */
     private static final String RPC_POINT = "* " + ApplicationEnvironmentContext.PACKAGE_PREFIX
-        + ".*.*.api.impl.rpc..*(..)";
+            + ".*.*.api.impl.rpc..*(..)";
 
     /** 基础服务实现类切点表达式 */
     private static final String BASE_RPC_POINT = ApplicationEnvironmentContext.PACKAGE_PREFIX
-        + ".common.result.AbstractBaseResult "
-        + ApplicationEnvironmentContext.PACKAGE_PREFIX
-        + ".service.api.impl.result.BaseDBServiceResultImpl.*(..)";
+            + ".common.result.AbstractBaseResult "
+            + ApplicationEnvironmentContext.PACKAGE_PREFIX
+            + ".service.api.impl.result.BaseDbServiceResultImpl.*(..)";
 
     /** 组合切点表达式 */
     private static final String POINT = "execution(" + RPC_POINT + ") || execution(" + BASE_RPC_POINT + ")";

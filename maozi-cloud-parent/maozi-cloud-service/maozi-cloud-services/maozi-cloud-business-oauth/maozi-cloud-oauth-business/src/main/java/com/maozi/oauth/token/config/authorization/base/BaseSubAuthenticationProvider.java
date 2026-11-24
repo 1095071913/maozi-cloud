@@ -21,14 +21,14 @@ public abstract class BaseSubAuthenticationProvider<T extends AbstractAuthentica
         implements AuthenticationProvider {
 
     /** 当前泛型对应的Token令牌Class对象，用于判断支持的认证类型 */
-    protected Class<T> tokenClass = currentTokenClass();
+    private Class<T> tokenClass = currentTokenClass();
 
     /**
      * 通过反射获取当前子类的泛型Token类型
      *
      * @return 泛型Token的Class对象
      */
-    protected Class<T> currentTokenClass() {
+    private Class<T> currentTokenClass() {
         return (Class<T>) ReflectionKit.getSuperClassGenericType(this.getClass(),
                 BaseSubAuthenticationProvider.class, 0);
     }

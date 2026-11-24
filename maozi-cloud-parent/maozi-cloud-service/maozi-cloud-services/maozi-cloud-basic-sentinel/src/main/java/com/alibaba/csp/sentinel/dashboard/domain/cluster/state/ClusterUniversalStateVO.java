@@ -62,7 +62,7 @@ public class ClusterUniversalStateVO {
 
     /** 设置简要集群状态信息并返回当前对象。 */
     public ClusterUniversalStateVO setStateInfo(
-        ClusterStateSimpleEntity stateInfo) {
+            ClusterStateSimpleEntity stateInfo) {
         this.stateInfo = stateInfo;
         return this;
     }
@@ -70,10 +70,10 @@ public class ClusterUniversalStateVO {
     /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
-        return "ClusterUniversalStateVO{" +
-            "stateInfo=" + stateInfo +
-            ", client=" + client +
-            ", server=" + server +
-            '}';
+        return "ClusterUniversalStateVO{"
+                + "stateInfo=" + stateInfo
+                + ", client=" + client
+                + ", server=" + server
+                + '}';
     }
 }

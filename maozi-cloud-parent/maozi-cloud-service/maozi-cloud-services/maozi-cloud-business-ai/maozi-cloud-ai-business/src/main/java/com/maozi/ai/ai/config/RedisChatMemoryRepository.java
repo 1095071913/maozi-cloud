@@ -201,9 +201,10 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
         // 全量重写：先删除该会话原有数据
         deleteByConversationId(conversationId);
 
-        Map<String, String> messageMap = CollectionUtil.newHashMap();
-        Set<ZSetOperations.TypedTuple<String>> orderTuples = CollectionUtil.newHashSet();
-        Set<ZSetOperations.TypedTuple<String>> recordTuples = CollectionUtil.newHashSet();
+        // 消息主体与两个索引均按消息条数预留容量，避免写入过程中扩容
+        Map<String, String> messageMap = CollectionUtil.newHashMap(messages.size());
+        Set<ZSetOperations.TypedTuple<String>> orderTuples = CollectionUtil.newHashSet(messages.size());
+        Set<ZSetOperations.TypedTuple<String>> recordTuples = CollectionUtil.newHashSet(messages.size());
         messages.forEach(message -> {
 
             Map<String, Object> metadata = message.getMetadata();
@@ -282,7 +283,7 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
      * @param message 消息对象
      * @return 消息 JSON
      */
-    public String messageToJson(Message message) {
+    private String messageToJson(Message message) {
 
         ChatMessage chatMessage = CglibUtil.copy(message, ChatMessage.class);
         chatMessage.setMessageType(message.getMessageType().getValue().toLowerCase());
@@ -314,7 +315,7 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
      * @return 消息对象
      * @throws RuntimeException 消息数据非法（反序列化为空或消息类型缺失、无法识别）时抛出
      */
-    public Message jsonToMessage(String json) {
+    private Message jsonToMessage(String json) {
 
         ChatMessage chatMessage = JacksonUtil.jsonToObject(json, ChatMessage.class);
         if (Objects.isNull(chatMessage)) {
@@ -332,7 +333,7 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
             case SYSTEM -> {
                 return new SystemMessage(chatMessage.getTextContent());
             }
-            case USER ->  {
+            case USER -> {
                 return UserMessage.builder()
                         .text(chatMessage.getTextContent())
                         .metadata(chatMessage.getMetadata())

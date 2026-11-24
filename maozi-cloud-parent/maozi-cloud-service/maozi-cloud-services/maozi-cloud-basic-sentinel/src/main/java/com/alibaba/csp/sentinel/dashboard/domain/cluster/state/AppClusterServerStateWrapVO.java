@@ -111,12 +111,12 @@ public class AppClusterServerStateWrapVO {
     /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
-        return "AppClusterServerStateWrapVO{" +
-            "id='" + id + '\'' +
-            ", ip='" + ip + '\'' +
-            ", port='" + port + '\'' +
-            ", belongToApp=" + belongToApp +
-            ", state=" + state +
-            '}';
+        return "AppClusterServerStateWrapVO{"
+                + "id='" + id + '\''
+                + ", ip='" + ip + '\''
+                + ", port='" + port + '\''
+                + ", belongToApp=" + belongToApp
+                + ", state=" + state
+                + '}';
     }
 }

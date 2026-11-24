@@ -124,13 +124,13 @@ public class ServerFlowConfig {
     /** 返回该配置的字符串表示。 */
     @Override
     public String toString() {
-        return "ServerFlowConfig{" +
-            "namespace='" + namespace + '\'' +
-            ", exceedCount=" + exceedCount +
-            ", maxOccupyRatio=" + maxOccupyRatio +
-            ", intervalMs=" + intervalMs +
-            ", sampleCount=" + sampleCount +
-            ", maxAllowedQps=" + maxAllowedQps +
-            '}';
+        return "ServerFlowConfig{"
+                + "namespace='" + namespace + '\''
+                + ", exceedCount=" + exceedCount
+                + ", maxOccupyRatio=" + maxOccupyRatio
+                + ", intervalMs=" + intervalMs
+                + ", sampleCount=" + sampleCount
+                + ", maxAllowedQps=" + maxAllowedQps
+                + '}';
     }
 }

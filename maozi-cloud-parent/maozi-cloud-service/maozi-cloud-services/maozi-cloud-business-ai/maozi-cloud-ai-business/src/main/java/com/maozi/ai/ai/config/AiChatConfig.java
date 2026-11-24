@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Configuration;
  * @date 2026/8/15
  */
 @Configuration
-public class AIChatConfig {
+public class AiChatConfig {
 
     /** 对话记忆每个会话最大保留的消息条数 */
     private static final int CHAT_MEMORY_MAX_MESSAGES = 200;
@@ -72,8 +72,8 @@ public class AIChatConfig {
      */
     @Bean
     public ChatClient chatClient(ChatClient.Builder chatClientBuilder, Advisor chatMemoryAdvisor,
-                                 SystemFunctionCall systemFunctionCall,
-                                 OauthFunctionCall oauthFunctionCall) {
+            SystemFunctionCall systemFunctionCall,
+            OauthFunctionCall oauthFunctionCall) {
         return chatClientBuilder
                 .defaultAdvisors(chatMemoryAdvisor)
                 .defaultTools(systemFunctionCall, oauthFunctionCall)

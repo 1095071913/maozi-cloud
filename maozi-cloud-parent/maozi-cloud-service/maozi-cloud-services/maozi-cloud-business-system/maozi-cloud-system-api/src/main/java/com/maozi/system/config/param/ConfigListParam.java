@@ -70,12 +70,8 @@ public class ConfigListParam implements OrderParam, Serializable {
     @Override
     public Map<String, Map<String, Boolean>> getOrderMainFieldsMap() {
         if (orderMainFieldsMap == null) {
-            orderMainFieldsMap = Map.of(
-                QueryEnvironmentContext.defaultOrderKey, Map.of(
-                    SORT_KEY, Boolean.FALSE,
-                    CREATE_TIME_KEY, Boolean.TRUE
-                )
-            );
+            orderMainFieldsMap = Map.of(QueryEnvironmentContext.defaultOrderKey,
+                    Map.of(SORT_KEY, Boolean.FALSE, CREATE_TIME_KEY, Boolean.TRUE));
         }
         return orderMainFieldsMap;
     }

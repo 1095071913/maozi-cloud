@@ -41,11 +41,15 @@ public class ApiPredicateItemEntity extends BasePatternItemEntity {
     /** 判断指定对象是否与本条目的匹配模式和匹配策略相同。 */
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ApiPredicateItemEntity that = (ApiPredicateItemEntity) o;
-        return Objects.equals(pattern, that.pattern) &&
-                Objects.equals(matchStrategy, that.matchStrategy);
+        return Objects.equals(pattern, that.pattern)
+                && Objects.equals(matchStrategy, that.matchStrategy);
     }
 
     /** 以匹配模式与匹配策略计算哈希码。 */
@@ -57,9 +61,9 @@ public class ApiPredicateItemEntity extends BasePatternItemEntity {
     /** 拼接全部字段构建字符串。 */
     @Override
     public String toString() {
-        return "ApiPredicateItemEntity{" +
-                "pattern='" + pattern + '\'' +
-                ", matchStrategy=" + matchStrategy +
-                '}';
+        return "ApiPredicateItemEntity{"
+                + "pattern='" + pattern + '\''
+                + ", matchStrategy=" + matchStrategy
+                + '}';
     }
 }

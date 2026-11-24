@@ -113,7 +113,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
     public long getHeartbeatVersion() {
         return heartbeatVersion;
     }
-    
+
     /** 设置心跳版本号。 */
     public void setHeartbeatVersion(long heartbeatVersion) {
         this.heartbeatVersion = heartbeatVersion;
@@ -129,7 +129,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
         this.version = version;
         return this;
     }
-    
+
     /** 机器是否健康（最近一次心跳距当前时间小于不健康阈值）。 */
     public boolean isHealthy() {
         long delta = System.currentTimeMillis() - lastHeartbeat;
@@ -140,7 +140,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
     public long getLastHeartbeat() {
         return lastHeartbeat;
     }
-    
+
     /** 设置最近一次心跳时间戳。 */
     public void setLastHeartbeat(long lastHeartbeat) {
         this.lastHeartbeat = lastHeartbeat;
@@ -168,27 +168,31 @@ public class MachineInfo implements Comparable<MachineInfo> {
     @Override
     public String toString() {
         return new StringBuilder("MachineInfo {")
-            .append("app='").append(app).append('\'')
-            .append(",appType='").append(appType).append('\'')
-            .append(", hostname='").append(hostname).append('\'')
-            .append(", ip='").append(ip).append('\'')
-            .append(", port=").append(port)
-            .append(", heartbeatVersion=").append(heartbeatVersion)
-            .append(", lastHeartbeat=").append(lastHeartbeat)
-            .append(", version='").append(version).append('\'')
-            .append(", healthy=").append(isHealthy())
-            .append('}').toString();
+                .append("app='").append(app).append('\'')
+                .append(",appType='").append(appType).append('\'')
+                .append(", hostname='").append(hostname).append('\'')
+                .append(", ip='").append(ip).append('\'')
+                .append(", port=").append(port)
+                .append(", heartbeatVersion=").append(heartbeatVersion)
+                .append(", lastHeartbeat=").append(lastHeartbeat)
+                .append(", version='").append(version).append('\'')
+                .append(", healthy=").append(isHealthy())
+                .append('}').toString();
     }
 
     /** 两台机器的 app、ip、port 均相同则视为相等。 */
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (!(o instanceof MachineInfo)) { return false; }
-        MachineInfo that = (MachineInfo)o;
-        return Objects.equals(app, that.app) &&
-            Objects.equals(ip, that.ip) &&
-            Objects.equals(port, that.port);
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof MachineInfo)) {
+            return false;
+        }
+        MachineInfo that = (MachineInfo) o;
+        return Objects.equals(app, that.app)
+                && Objects.equals(ip, that.ip)
+                && Objects.equals(port, that.port);
     }
 
     /** 由 app、ip、port 计算哈希值。 */

@@ -13,7 +13,7 @@ import org.apache.commons.lang3.StringUtils;
  * @author maozi
  * @date 2026/11/13
  */
-public class VersionContext extends AbstractRequestContextHolder<String> {
+public final class VersionContext extends AbstractRequestContextHolder<String> {
 
     /** 版本号请求头名称 */
     public static final String KEY = "X-Version";

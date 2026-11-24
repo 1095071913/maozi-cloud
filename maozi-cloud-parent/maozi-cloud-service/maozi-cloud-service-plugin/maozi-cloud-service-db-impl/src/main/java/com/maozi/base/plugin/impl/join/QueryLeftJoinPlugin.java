@@ -15,6 +15,9 @@ import com.maozi.base.plugin.BaseJoinPlugin;
  */
 public class QueryLeftJoinPlugin extends BaseJoinPlugin {
 
+    /** 关联方式名称（用于异常信息标识） */
+    private static final String JOIN_NAME = "左联";
+
     /**
      * 获取关联方式名称，用于异常信息标识
      *
@@ -22,7 +25,7 @@ public class QueryLeftJoinPlugin extends BaseJoinPlugin {
      */
     @Override
     protected String joinName() {
-        return "左联";
+        return JOIN_NAME;
     }
 
     /**

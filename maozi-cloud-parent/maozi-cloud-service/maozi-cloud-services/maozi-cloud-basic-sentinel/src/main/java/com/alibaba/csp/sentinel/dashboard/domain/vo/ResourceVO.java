@@ -105,8 +105,8 @@ public class ResourceVO extends BaseResourceMetricsVO {
             vo.visible = nodeVisible;
             list.add(vo);
         }
-        for (ResourceTreeNode c : node.getChildren()) {
-            visit(c, list, visible, false);
+        for (ResourceTreeNode child : node.getChildren()) {
+            visit(child, list, visible, false);
         }
     }
 

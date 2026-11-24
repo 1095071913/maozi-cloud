@@ -37,34 +37,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class NacosConfigUtil {
 
-    /**
-     * 发布快照的存活时间：{@link ConfigService#getConfig} 读取的是本地客户端
-     * 缓存，该缓存依赖服务端推送刷新，发布后立即读取可能返回旧的缓存内容
-     * （前端保存后会立刻刷新规则列表，曾导致修改"看似未生效"需手动刷新）。
-     * 发布成功后的这段短时间内改读刚发布内容的快照
-     */
-    private static final long SNAPSHOT_TTL_MS = 5000;
-
-    /**
-     * 最近发布的配置内容，key 为 {@code dataId@group}，
-     * 由 {@link #readFreshConfig} 在发布后 {@link #SNAPSHOT_TTL_MS} 内使用
-     */
-    private static final Map<String, PublishSnapshot> PUBLISH_SNAPSHOTS = new ConcurrentHashMap<>();
-
-    /** 刚发布的配置内容的不可变记录 */
-    private static final class PublishSnapshot {
-        /** 发布的配置内容 */
-        private final String content;
-        /** 发布时刻的毫秒时间戳 */
-        private final long publishTime;
-
-        /** 记录发布内容与发布时间戳 */
-        private PublishSnapshot(String content, long publishTime) {
-            this.content = content;
-            this.publishTime = publishTime;
-        }
-    }
-
     /** 全部 Sentinel 规则配置的默认 Nacos 分组 */
     public static final String GROUP_ID = "SENTINEL_GROUP";
 
@@ -97,12 +69,49 @@ public final class NacosConfigUtil {
     /** 集群服务端命名空间集合的 DataId 后缀 */
     public static final String SERVER_NAMESPACE_SET_DATA_ID_POSTFIX = "-cs-namespace-set";
 
+    /** 发布快照缓存的初始容量 */
+    private static final int SNAPSHOT_CACHE_INITIAL_CAPACITY = 16;
+
+    /**
+     * 发布快照的存活时间：{@link ConfigService#getConfig} 读取的是本地客户端
+     * 缓存，该缓存依赖服务端推送刷新，发布后立即读取可能返回旧的缓存内容
+     * （前端保存后会立刻刷新规则列表，曾导致修改"看似未生效"需手动刷新）。
+     * 发布成功后的这段短时间内改读刚发布内容的快照
+     */
+    private static final long SNAPSHOT_TTL_MS = 5000;
+
+    /**
+     * 最近发布的配置内容，key 为 {@code dataId@group}，
+     * 由 {@link #readFreshConfig} 在发布后 {@link #SNAPSHOT_TTL_MS} 内使用
+     */
+    private static final Map<String, PublishSnapshot> PUBLISH_SNAPSHOTS =
+            new ConcurrentHashMap<>(SNAPSHOT_CACHE_INITIAL_CAPACITY);
+
+    /**
+     * 刚发布的配置内容的不可变记录
+     *
+     * @author maozi
+     * @date 2026/11/08
+     */
+    private static final class PublishSnapshot {
+        /** 发布的配置内容 */
+        private final String content;
+        /** 发布时刻的毫秒时间戳 */
+        private final long publishTime;
+
+        /** 记录发布内容与发布时间戳 */
+        private PublishSnapshot(String content, long publishTime) {
+            this.content = content;
+            this.publishTime = publishTime;
+        }
+    }
+
     /**
      * 将规则以格式化 JSON 发布到 {@code appName + dataIdPostfix}，
      * Nacos 配置类型标记为 {@code json}
      */
     public static void publishJsonConfig(ConfigService configService, String appName,
-                                         String dataIdPostfix, String group, Object rules) throws NacosException {
+            String dataIdPostfix, String group, Object rules) throws NacosException {
         AssertUtil.notEmpty(appName, "app name cannot be empty");
         String dataId = appName + dataIdPostfix;
         String content = JSON.toJSONString(rules, SerializerFeature.PrettyFormat);
@@ -115,7 +124,7 @@ public final class NacosConfigUtil {
      * 直接返回快照，否则回退到 {@link ConfigService#getConfig}
      */
     public static String readFreshConfig(ConfigService configService, String appName,
-                                         String dataIdPostfix, String group, long timeoutMs) throws NacosException {
+            String dataIdPostfix, String group, long timeoutMs) throws NacosException {
         String dataId = appName + dataIdPostfix;
         long now = System.currentTimeMillis();
         PublishSnapshot snapshot = PUBLISH_SNAPSHOTS.get(snapshotKey(dataId, group));

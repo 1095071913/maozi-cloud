@@ -36,7 +36,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 为监控页面提供监控指标查询的控制器。
@@ -60,6 +59,12 @@ public class MetricController {
     /** 热点资源指标查询的最大每页数量。 */
     private static final int MAX_PAGE_SIZE = 20;
 
+    /** 每秒毫秒数，用于换算聚合桶的时长。 */
+    private static final long MILLIS_PER_SECOND = 1000L;
+
+    /** 热点资源查询响应的键数量（分页信息、聚合粒度与指标）。 */
+    private static final int RESULT_ENTRY_COUNT = 6;
+
     /** 存储与查询指标实体的仓储。 */
     private final MetricsRepository<MetricEntity> metricStore;
 
@@ -81,11 +86,8 @@ public class MetricController {
      */
     @ResponseBody
     @GetMapping("/queryTopResourceMetric.json")
-    public Result<?> queryTopResourceMetric(final String app,
-                                            Integer pageIndex,
-                                            Integer pageSize,
-                                            Boolean desc,
-                                            Long startTime, Long endTime, String searchKey) {
+    public Result<?> queryTopResourceMetric(final String app, Integer pageIndex, Integer pageSize,
+            Boolean desc, Long startTime, Long endTime, String searchKey) {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
         }
@@ -107,14 +109,13 @@ public class MetricController {
         if (startTime == null) {
             startTime = endTime - DEFAULT_QUERY_INTERVAL_MS;
         }
-        startTime = alignToBucket(startTime);
-        endTime = alignToBucketEnd(endTime);
+        long alignedStartTime = alignToBucket(startTime);
+        long alignedEndTime = alignToBucketEnd(endTime);
         // 严格按查询窗口列出资源：窗口内无数据点的资源不展示
-        List<String> resources = metricStore.listResourcesOfApp(app, startTime, endTime);
+        List<String> resources = metricStore.listResourcesOfApp(app, alignedStartTime, alignedEndTime);
         // 缓存资源总数，调试日志与分页计算共用，避免同一方法内重复调用
         int totalCount = resources.size();
         logger.debug("queryTopResourceMetric(), resources.size()={}", totalCount);
-
         if (resources.isEmpty()) {
             return Result.ofSuccess(null);
         }
@@ -122,49 +123,16 @@ public class MetricController {
             Collections.reverse(resources);
         }
         if (StringUtil.isNotEmpty(searchKey)) {
-            List<String> searched = new ArrayList<>();
-            for (String resource : resources) {
-                if (resource.contains(searchKey)) {
-                    searched.add(resource);
-                }
-            }
-            resources = searched;
+            resources = filterResources(resources, searchKey);
             // 按搜索关键字过滤后资源总数随之变化，同步刷新缓存值
-            totalCount = searched.size();
+            totalCount = resources.size();
         }
         int totalPage = (totalCount + pageSize - 1) / pageSize;
-        List<String> topResource = new ArrayList<>();
-        if (pageIndex <= totalPage) {
-            topResource = resources.subList((pageIndex - 1) * pageSize,
-                Math.min(pageIndex * pageSize, totalCount));
-        }
-        final Map<String, Iterable<MetricVO>> map = new ConcurrentHashMap<>(topResource.size());
-        logger.debug("topResource={}", topResource);
-        long time = System.currentTimeMillis();
-        for (final String resource : topResource) {
-            List<MetricEntity> entities = metricStore.queryByAppAndResourceBetween(
-                app, resource, startTime, endTime);
-            logger.debug("resource={}, entities.size()={}", resource, entities == null ? "null" : entities.size());
-            List<MetricVO> vos = MetricVO.fromMetricEntities(entities, resource);
-            Iterable<MetricVO> vosSorted = sortMetricVOAndDistinct(vos);
-            map.put(resource, vosSorted);
-        }
-        logger.debug("queryTopResourceMetric() total query time={} ms", System.currentTimeMillis() - time);
-        Map<String, Object> resultMap = new HashMap<>(16);
-        // 将聚合粒度 N 下发给前端：图表首尾补零依赖该值（数据点前后各补 N 秒）
-        resultMap.put("aggregateSeconds", Math.max(1, aggregateSeconds));
-        resultMap.put("totalCount", totalCount);
-        resultMap.put("totalPage", totalPage);
-        resultMap.put("pageIndex", pageIndex);
-        resultMap.put("pageSize", pageSize);
-
-        Map<String, Iterable<MetricVO>> map2 = new LinkedHashMap<>();
-        // 顺序有意义，需保持资源排列顺序
-        for (String identity : topResource) {
-            map2.put(identity, map.get(identity));
-        }
-        resultMap.put("metric", map2);
-        return Result.ofSuccess(resultMap);
+        List<String> topResources = pageResources(resources, pageIndex, pageSize, totalCount, totalPage);
+        logger.debug("topResource={}", topResources);
+        Map<String, Iterable<MetricVO>> metrics = queryResourceMetrics(app, topResources, alignedStartTime,
+                alignedEndTime);
+        return Result.ofSuccess(buildResultMap(totalCount, totalPage, pageIndex, pageSize, metrics));
     }
 
     /**
@@ -186,9 +154,63 @@ public class MetricController {
             startTime = endTime - DEFAULT_QUERY_INTERVAL_MS;
         }
         List<MetricEntity> entities = metricStore.queryByAppAndResourceBetween(
-            app, identity, alignToBucket(startTime), alignToBucketEnd(endTime));
-        List<MetricVO> vos = MetricVO.fromMetricEntities(entities, identity);
-        return Result.ofSuccess(sortMetricVOAndDistinct(vos));
+                app, identity, alignToBucket(startTime), alignToBucketEnd(endTime));
+        List<MetricVO> metricVos = MetricVO.fromMetricEntities(entities, identity);
+        return Result.ofSuccess(sortMetricVoAndDistinct(metricVos));
+    }
+
+    /** 返回名称包含搜索关键字的资源，保持原有顺序。 */
+    private List<String> filterResources(List<String> resources, String searchKey) {
+        List<String> matched = new ArrayList<>();
+        for (String resource : resources) {
+            if (resource.contains(searchKey)) {
+                matched.add(resource);
+            }
+        }
+        return matched;
+    }
+
+    /** 截取指定页的资源；页码超出总页数时返回空列表。 */
+    private List<String> pageResources(List<String> resources, int pageIndex, int pageSize, int totalCount,
+            int totalPage) {
+        if (pageIndex > totalPage) {
+            return new ArrayList<>();
+        }
+        return resources.subList((pageIndex - 1) * pageSize, Math.min(pageIndex * pageSize, totalCount));
+    }
+
+    /** 查询各资源在时间范围内的指标并排序去重，按给定资源顺序保存。 */
+    private Map<String, Iterable<MetricVO>> queryResourceMetrics(String app, List<String> resources,
+            long startTime, long endTime) {
+        Map<String, Iterable<MetricVO>> metrics = new LinkedHashMap<>();
+        long beginTime = System.currentTimeMillis();
+        for (String resource : resources) {
+            List<MetricEntity> entities = metricStore.queryByAppAndResourceBetween(app, resource, startTime, endTime);
+            logger.debug("resource={}, entities.size()={}", resource, entities == null ? "null" : entities.size());
+            List<MetricVO> metricVos = MetricVO.fromMetricEntities(entities, resource);
+            metrics.put(resource, sortMetricVoAndDistinct(metricVos));
+        }
+        logger.debug("queryResourceMetrics() total query time={} ms", System.currentTimeMillis() - beginTime);
+        return metrics;
+    }
+
+    /** 组装热点资源查询的响应：分页信息、下发前端的聚合粒度与各资源指标。 */
+    private Map<String, Object> buildResultMap(int totalCount, int totalPage, Integer pageIndex, Integer pageSize,
+            Map<String, Iterable<MetricVO>> metrics) {
+        Map<String, Object> resultMap = new HashMap<>(RESULT_ENTRY_COUNT);
+        // 将聚合粒度 N 下发给前端：图表首尾补零依赖该值（数据点前后各补 N 秒）
+        resultMap.put("aggregateSeconds", effectiveAggregateSeconds());
+        resultMap.put("totalCount", totalCount);
+        resultMap.put("totalPage", totalPage);
+        resultMap.put("pageIndex", pageIndex);
+        resultMap.put("pageSize", pageSize);
+        resultMap.put("metric", metrics);
+        return resultMap;
+    }
+
+    /** 生效的聚合粒度（秒）：配置为非正数时按 1 秒处理。 */
+    private int effectiveAggregateSeconds() {
+        return Math.max(1, aggregateSeconds);
     }
 
     /**
@@ -196,7 +218,7 @@ public class MetricController {
      * 向下对齐既能看到正在采集中的桶，又不会引入更早的桶。
      */
     private long alignToBucket(long startTime) {
-        long bucketMs = Math.max(1, aggregateSeconds) * 1000L;
+        long bucketMs = effectiveAggregateSeconds() * MILLIS_PER_SECOND;
         return startTime / bucketMs * bucketMs;
     }
 
@@ -205,7 +227,7 @@ public class MetricController {
      * 窗口结束于桶中间时也能看到下一个桶，使两端均落在完整桶上。
      */
     private long alignToBucketEnd(long endTime) {
-        long bucketMs = Math.max(1, aggregateSeconds) * 1000L;
+        long bucketMs = effectiveAggregateSeconds() * MILLIS_PER_SECOND;
         if (endTime % bucketMs == 0) {
             return endTime;
         }
@@ -213,19 +235,19 @@ public class MetricController {
     }
 
     /** 按时间戳升序排序 VO，重复时间戳仅保留创建时间最近的一条。 */
-    private Iterable<MetricVO> sortMetricVOAndDistinct(List<MetricVO> vos) {
-        if (vos == null) {
+    private Iterable<MetricVO> sortMetricVoAndDistinct(List<MetricVO> metricVos) {
+        if (metricVos == null) {
             return null;
         }
-        Map<Long, MetricVO> map = new TreeMap<>();
-        for (MetricVO vo : vos) {
+        Map<Long, MetricVO> metricByTimestamp = new TreeMap<>();
+        for (MetricVO metricVo : metricVos) {
             // 缓存时间戳，避免同一方法内重复调用
-            Long timestamp = vo.getTimestamp();
-            MetricVO oldVo = map.get(timestamp);
-            if (oldVo == null || vo.getGmtCreate() > oldVo.getGmtCreate()) {
-                map.put(timestamp, vo);
+            Long timestamp = metricVo.getTimestamp();
+            MetricVO existing = metricByTimestamp.get(timestamp);
+            if (existing == null || metricVo.getGmtCreate() > existing.getGmtCreate()) {
+                metricByTimestamp.put(timestamp, metricVo);
             }
         }
-        return map.values();
+        return metricByTimestamp.values();
     }
 }

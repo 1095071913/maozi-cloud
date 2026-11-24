@@ -29,6 +29,9 @@ import java.util.Optional;
  */
 public final class VersionUtils {
 
+    /** 版本号（x.x.x）的段数 */
+    private static final int VERSION_SEGMENT_COUNT = 3;
+
     /**
      * 从原始字符串解析 Sentinel 版本
      *
@@ -60,16 +63,16 @@ public final class VersionUtils {
 
             // 解析 x.x.x 三段版本号
             int segment = 0;
-            int[] ver = new int[3];
+            int[] ver = new int[VERSION_SEGMENT_COUNT];
             while (segment < ver.length) {
                 index = versionFull.indexOf('.');
                 if (index < 0) {
                     if (versionFull.length() > 0) {
-                        ver[segment] = Integer.valueOf(versionFull);
+                        ver[segment] = Integer.parseInt(versionFull);
                     }
                     break;
                 }
-                ver[segment] = Integer.valueOf(versionFull.substring(0, index));
+                ver[segment] = Integer.parseInt(versionFull.substring(0, index));
                 versionFull = versionFull.substring(index + 1);
                 segment++;
             }
@@ -77,12 +80,11 @@ public final class VersionUtils {
             if (ver[0] < 1) {
                 // 主版本号小于 1，视为格式非法
                 return Optional.empty();
-            } else {
-                return Optional.of(version
-                        .setMajorVersion(ver[0])
-                        .setMinorVersion(ver[1])
-                        .setFixVersion(ver[2]));
             }
+            return Optional.of(version
+                    .setMajorVersion(ver[0])
+                    .setMinorVersion(ver[1])
+                    .setFixVersion(ver[2]));
         } catch (Exception ex) {
             // 解析异常时返回 empty
             return Optional.empty();

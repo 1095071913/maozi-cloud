@@ -51,6 +51,18 @@ public class NacosConfigInitializer implements ConfigInitializer {
     /** Nacos 注册中心（服务发现）命名空间属性键 */
     private static final String NACOS_DISCOVERY_NAMESPACE_KEY = "spring.cloud.nacos.discovery.namespace";
 
+    /** Nacos 配置导入前缀（optional 前缀保证文件不存在时不阻断启动） */
+    private static final String NACOS_IMPORT_PREFIX = "optional:nacos:";
+
+    /** 应用自身配置文件后缀 */
+    private static final String CONFIG_FILE_SUFFIX = ".yml";
+
+    /** Spring 属性占位符前缀 */
+    private static final String PLACEHOLDER_PREFIX = "${";
+
+    /** Spring 属性占位符后缀 */
+    private static final String PLACEHOLDER_SUFFIX = "}";
+
     /**
      * 初始化 Nacos 配置中心与注册中心的连接属性。
      * <p>
@@ -70,16 +82,20 @@ public class NacosConfigInitializer implements ConfigInitializer {
         // 导入列表末尾（spring.config.import 中越靠后的导入优先级越高，应用自身配置因此
         // 优先于各共享配置文件）；optional 前缀保证文件不存在时不阻断启动
         properties.merge(
-            SpringPropertyConstant.SPRING_CONFIG_IMPORT,
-            "optional:nacos:" + properties.getProperty(SpringPropertyConstant.SPRING_APPLICATION_NAME) + ".yml",
-            (existing, incoming) -> existing + SymbolConstant.COMMA + incoming
+                SpringPropertyConstant.SPRING_CONFIG_IMPORT,
+                NACOS_IMPORT_PREFIX + properties.getProperty(SpringPropertyConstant.SPRING_APPLICATION_NAME)
+                        + CONFIG_FILE_SUFFIX,
+                (existing, incoming) -> existing + SymbolConstant.COMMA + incoming
         );
 
         // 若已存在项目级 nacos.server 定义，
         // 则配置中心与注册中心地址以占位符方式引用该值
         if (properties.containsKey(PROJECT_NACOS_SERVER_KEY)) {
-            properties.put(NACOS_CONFIG_SERVER_KEY, "${" + PROJECT_NACOS_SERVER_KEY + "}");
-            properties.put(NACOS_DISCOVERY_SERVER_KEY, "${" + PROJECT_NACOS_SERVER_KEY + "}");
+            // 两个地址引用同一属性，占位符只拼接一次
+            String projectNacosServerPlaceholder =
+                    PLACEHOLDER_PREFIX + PROJECT_NACOS_SERVER_KEY + PLACEHOLDER_SUFFIX;
+            properties.put(NACOS_CONFIG_SERVER_KEY, projectNacosServerPlaceholder);
+            properties.put(NACOS_DISCOVERY_SERVER_KEY, projectNacosServerPlaceholder);
         } else {
             // 否则写入默认占位符：优先取环境变量 APPLICATION_NACOS_SERVER，
             // 缺省使用内置 Nacos 服务地址

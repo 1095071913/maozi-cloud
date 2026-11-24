@@ -65,6 +65,9 @@ public class ChatMessage implements Serializable {
     /** Media JSON 字段名：媒体名称 */
     private static final String FIELD_NAME = "name";
 
+    /** MIME 参数表 Map 的初始容量 */
+    private static final int MIME_PARAMETERS_INIT_CAPACITY = 8;
+
     /** 消息类型（SYSTEM / USER / ASSISTANT / TOOL 等） */
     private String messageType;
 
@@ -142,6 +145,7 @@ public class ChatMessage implements Serializable {
      * </p>
      *
      * @author maozi
+     * @date 2026/8/17
      */
     public static class MediaDeserializer extends JsonDeserializer<Media> {
 
@@ -170,7 +174,7 @@ public class ChatMessage implements Serializable {
                 throw new IOException("Media JSON 缺少 MIME 主/子类型字段");
             }
 
-            Map<String, String> parameters = new LinkedHashMap<>(8);
+            Map<String, String> parameters = new LinkedHashMap<>(MIME_PARAMETERS_INIT_CAPACITY);
             JsonNode parametersNode = mimeTypeNode.get(FIELD_PARAMETERS);
             if (parametersNode != null) {
                 parametersNode.fieldNames().forEachRemaining(
@@ -220,6 +224,7 @@ public class ChatMessage implements Serializable {
      * </p>
      *
      * @author maozi
+     * @date 2026/8/17
      */
     public static class MediaSerializer extends JsonSerializer<Media> {
 

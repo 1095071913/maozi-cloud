@@ -60,11 +60,7 @@ public interface RestRoleService {
     @PreAuthorize("hasAuthority('system:role:save') or hasAuthority('system:role:update')")
     AbstractBaseResult<List<DropDownResult>> dropDownListResult();
 
-
-
-
-
-//===================== 单资源 =======================
+    // ===================== 单资源 =======================
 
     /** 单资源路径常量，用于指定具体角色 ID 的请求路径前缀 */
     String CURRENT_PATH = PATH + "/{id}";

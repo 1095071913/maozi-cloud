@@ -51,7 +51,7 @@ public class AuthConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public AuthService<HttpServletRequest> httpServletRequestAuthService() {
-        if (this.authProperties.isEnabled()) {
+        if (authProperties.isEnabled()) {
             return new SimpleWebAuthServiceImpl();
         }
         return new FakeAuthServiceImpl();
@@ -60,17 +60,14 @@ public class AuthConfiguration {
     /** 提供基于指定认证服务的默认登录认证过滤器。 */
     @Bean
     @ConditionalOnMissingBean
-    public LoginAuthenticationFilter loginAuthenticationFilter(AuthService<HttpServletRequest>
-        httpServletRequestAuthService) {
-        return new DefaultLoginAuthenticationFilter(httpServletRequestAuthService);
+    public LoginAuthenticationFilter loginAuthenticationFilter(AuthService<HttpServletRequest> authService) {
+        return new DefaultLoginAuthenticationFilter(authService);
     }
 
     /** 提供基于指定认证服务的默认权限校验拦截器。 */
     @Bean
     @ConditionalOnMissingBean
-    public AuthorizationInterceptor authorizationInterceptor(AuthService<HttpServletRequest>
-        httpServletRequestAuthService) {
-        return new DefaultAuthorizationInterceptor(httpServletRequestAuthService);
+    public AuthorizationInterceptor authorizationInterceptor(AuthService<HttpServletRequest> authService) {
+        return new DefaultAuthorizationInterceptor(authService);
     }
-
 }

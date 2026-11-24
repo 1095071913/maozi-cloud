@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.controller;
 
 import com.alibaba.csp.sentinel.dashboard.auth.AuthAction;
-import com.alibaba.csp.sentinel.dashboard.auth.AuthService.PrivilegeType;
+import com.alibaba.csp.sentinel.dashboard.auth.AuthService.PrivilegeTypeEnum;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.DegradeRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.discovery.AppManagement;
 import com.alibaba.csp.sentinel.dashboard.domain.Result;
@@ -53,7 +53,7 @@ import java.util.List;
 public class DegradeController {
 
     /** 日志记录器。 */
-    private final Logger logger = LoggerFactory.getLogger(DegradeController.class);
+    private static final Logger logger = LoggerFactory.getLogger(DegradeController.class);
 
     /** 存储降级规则实体的内存仓储。 */
     private final RuleRepository<DegradeRuleEntity, Long> repository;
@@ -65,12 +65,9 @@ public class DegradeController {
     private final DynamicRulePublisher<List<DegradeRuleEntity>> rulePublisher;
 
     /** 注入规则仓储、应用管理、规则提供者与发布者。 */
-    public DegradeController(RuleRepository<DegradeRuleEntity, Long> repository,
-                             AppManagement appManagement,
-                             @Qualifier("degradeRuleNacosProvider") DynamicRuleProvider<List<DegradeRuleEntity>>
-                                 ruleProvider,
-                             @Qualifier("degradeRuleNacosPublisher") DynamicRulePublisher<List<DegradeRuleEntity>>
-                                 rulePublisher) {
+    public DegradeController(RuleRepository<DegradeRuleEntity, Long> repository, AppManagement appManagement,
+            @Qualifier("degradeRuleNacosProvider") DynamicRuleProvider<List<DegradeRuleEntity>> ruleProvider,
+            @Qualifier("degradeRuleNacosPublisher") DynamicRulePublisher<List<DegradeRuleEntity>> rulePublisher) {
         this.repository = repository;
         this.appManagement = appManagement;
         this.ruleProvider = ruleProvider;
@@ -81,7 +78,7 @@ public class DegradeController {
      * 从 Nacos 拉取应用的降级规则，为每条规则补充指定机器信息后持久化到仓储并返回。
      */
     @GetMapping("/rules.json")
-    @AuthAction(PrivilegeType.READ_RULE)
+    @AuthAction(PrivilegeTypeEnum.READ_RULE)
     public Result<List<DegradeRuleEntity>> apiQueryMachineRules(String app, String ip, Integer port) {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
@@ -104,15 +101,15 @@ public class DegradeController {
             }
             rules = repository.saveAll(rules);
             return Result.ofSuccess(rules);
-        } catch (Throwable throwable) {
-            logger.error("queryApps error:", throwable);
-            return Result.ofThrowable(Result.CODE_ERROR, throwable);
+        } catch (Exception e) {
+            logger.error("Error when querying degrade rules", e);
+            return Result.ofThrowable(Result.CODE_ERROR, e);
         }
     }
 
     /** 校验通过后新增降级规则，并将应用的规则推送至 Nacos。 */
     @PostMapping("/rule")
-    @AuthAction(PrivilegeType.WRITE_RULE)
+    @AuthAction(PrivilegeTypeEnum.WRITE_RULE)
     public Result<DegradeRuleEntity> apiAddRule(@RequestBody DegradeRuleEntity entity) {
         Result<DegradeRuleEntity> checkResult = checkEntityInternal(entity);
         if (checkResult != null) {
@@ -121,9 +118,9 @@ public class DegradeController {
         entity.setGmtCreateAndModified(new Date());
         try {
             entity = repository.save(entity);
-        } catch (Throwable t) {
-            logger.error("Failed to add new degrade rule, app={}, ip={}", entity.getApp(), entity.getIp(), t);
-            return Result.ofThrowable(Result.CODE_ERROR, t);
+        } catch (Exception e) {
+            logger.error("Failed to add new degrade rule, app={}, ip={}", entity.getApp(), entity.getIp(), e);
+            return Result.ofThrowable(Result.CODE_ERROR, e);
         }
         // 缓存应用名，规则推送与失败日志共用，避免同一方法内重复调用
         String app = entity.getApp();
@@ -135,9 +132,9 @@ public class DegradeController {
 
     /** 更新指定 id 的规则（app/ip/port/id/gmtCreate 沿用旧实体），并推送应用的规则。 */
     @PutMapping("/rule/{id}")
-    @AuthAction(PrivilegeType.WRITE_RULE)
+    @AuthAction(PrivilegeTypeEnum.WRITE_RULE)
     public Result<DegradeRuleEntity> apiUpdateRule(@PathVariable("id") Long id,
-                                                     @RequestBody DegradeRuleEntity entity) {
+            @RequestBody DegradeRuleEntity entity) {
         if (id == null || id <= 0) {
             return Result.ofFail(Result.CODE_ERROR, "id can't be null or negative");
         }
@@ -158,9 +155,9 @@ public class DegradeController {
         entity.setGmtModified(new Date());
         try {
             entity = repository.save(entity);
-        } catch (Throwable t) {
-            logger.error("Failed to save degrade rule, id={}, rule={}", id, entity, t);
-            return Result.ofThrowable(Result.CODE_ERROR, t);
+        } catch (Exception e) {
+            logger.error("Failed to save degrade rule, id={}, rule={}", id, entity, e);
+            return Result.ofThrowable(Result.CODE_ERROR, e);
         }
         // 缓存应用名，规则推送与失败日志共用，避免同一方法内重复调用
         String app = entity.getApp();
@@ -172,7 +169,7 @@ public class DegradeController {
 
     /** 删除指定 id 的规则并推送应用的规则；id 不存在时直接成功返回（数据为 null）。 */
     @DeleteMapping("/rule/{id}")
-    @AuthAction(PrivilegeType.DELETE_RULE)
+    @AuthAction(PrivilegeTypeEnum.DELETE_RULE)
     public Result<Long> delete(@PathVariable("id") Long id) {
         if (id == null) {
             return Result.ofFail(Result.CODE_ERROR, "id can't be null");
@@ -185,9 +182,9 @@ public class DegradeController {
 
         try {
             repository.delete(id);
-        } catch (Throwable throwable) {
-            logger.error("Failed to delete degrade rule, id={}", id, throwable);
-            return Result.ofThrowable(Result.CODE_ERROR, throwable);
+        } catch (Exception e) {
+            logger.error("Failed to delete degrade rule, id={}", id, e);
+            return Result.ofThrowable(Result.CODE_ERROR, e);
         }
         // 缓存应用名，规则推送与失败日志共用，避免同一方法内重复调用
         String app = oldEntity.getApp();
@@ -236,7 +233,7 @@ public class DegradeController {
             return Result.ofFail(Result.CODE_ERROR, "circuit breaker strategy cannot be null");
         }
         if (strategy < CircuitBreakerStrategy.SLOW_REQUEST_RATIO.getType()
-            || strategy > RuleConstant.DEGRADE_GRADE_EXCEPTION_COUNT) {
+                || strategy > RuleConstant.DEGRADE_GRADE_EXCEPTION_COUNT) {
             return Result.ofFail(Result.CODE_ERROR, "Invalid circuit breaker strategy: " + strategy);
         }
         Integer minRequestAmount = entity.getMinRequestAmount();
@@ -251,14 +248,13 @@ public class DegradeController {
             Double slowRatio = entity.getSlowRatioThreshold();
             if (slowRatio == null) {
                 return Result.ofFail(Result.CODE_ERROR,
-                    "SlowRatioThreshold is required for slow request ratio strategy");
-            } else if (slowRatio < 0 || slowRatio > 1) {
+                        "SlowRatioThreshold is required for slow request ratio strategy");
+            }
+            if (slowRatio < 0 || slowRatio > 1) {
                 return Result.ofFail(Result.CODE_ERROR, "SlowRatioThreshold should be in range: [0.0, 1.0]");
             }
-        } else if (strategy == RuleConstant.DEGRADE_GRADE_EXCEPTION_RATIO) {
-            if (threshold > 1) {
-                return Result.ofFail(Result.CODE_ERROR, "Ratio threshold should be in range: [0.0, 1.0]");
-            }
+        } else if (strategy == RuleConstant.DEGRADE_GRADE_EXCEPTION_RATIO && threshold > 1) {
+            return Result.ofFail(Result.CODE_ERROR, "Ratio threshold should be in range: [0.0, 1.0]");
         }
         return null;
     }

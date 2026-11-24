@@ -35,21 +35,26 @@ public class SimpleWebAuthServiceImpl implements AuthService<HttpServletRequest>
     @Override
     public AuthUser getAuthUser(HttpServletRequest request) {
         HttpSession session = request.getSession();
-        Object sentinelUserObj = session.getAttribute(SimpleWebAuthServiceImpl.WEB_SESSION_KEY);
-        if (sentinelUserObj != null && sentinelUserObj instanceof AuthUser) {
+        Object sentinelUserObj = session.getAttribute(WEB_SESSION_KEY);
+        if (sentinelUserObj instanceof AuthUser) {
             return (AuthUser) sentinelUserObj;
         }
-
         return null;
     }
 
-    /** 仅以用户名标识的认证用户，视为超级用户，所有权限校验均通过。 */
+    /**
+     * 仅以用户名标识的认证用户，视为超级用户，所有权限校验均通过。
+     *
+     * @author cdfive
+     * @date 2026/11/22
+     */
     public static final class SimpleWebAuthUserImpl implements AuthUser {
 
+        /** 序列化版本号 */
         private static final long serialVersionUID = 1L;
 
         /** 登录用户名。 */
-        private String username;
+        private final String username;
 
         /** 使用指定用户名构建认证用户。 */
         public SimpleWebAuthUserImpl(String username) {
@@ -58,7 +63,7 @@ public class SimpleWebAuthServiceImpl implements AuthService<HttpServletRequest>
 
         /** {@inheritDoc} 始终返回 true。 */
         @Override
-        public boolean authTarget(String target, PrivilegeType privilegeType) {
+        public boolean authTarget(String target, PrivilegeTypeEnum privilegeType) {
             return true;
         }
 

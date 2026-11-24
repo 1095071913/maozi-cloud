@@ -14,7 +14,6 @@ import com.maozi.common.context.VersionContext;
 import com.maozi.common.enums.EnvironmentTypeEnum;
 import com.maozi.common.enums.LogCommonTypeEnum;
 import com.maozi.snailjob.job.config.context.SnailJobParamContext;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
@@ -47,18 +46,20 @@ import java.util.Map;
  * @author maozi
  * @date 2026/11/08
  */
-@Slf4j
 @Aspect
 @Component
 @Order(value = Ordered.HIGHEST_PRECEDENCE + 1)
 public class SnailJobEntranceLogAop {
+
+    /** 入口日志 Map 的初始容量 */
+    private static final int LOG_MAP_INITIAL_CAPACITY = 16;
 
     /**
      * SnailJob 注解执行器任务入口切点表达式
      * （入口方法声明于父类 AbstractJobExecutor，拦截全部注解执行器子类）
      */
     private static final String POINT =
-        "execution(* com.aizuda.snailjob.client.job.core.executor.AbstractJobExecutor.jobExecute(..))";
+            "execution(* com.aizuda.snailjob.client.job.core.executor.AbstractJobExecutor.jobExecute(..))";
 
     /**
      * 环绕通知，记录定时任务调度入口日志
@@ -79,9 +80,9 @@ public class SnailJobEntranceLogAop {
         // 提取任务业务参数，供任务执行过程读取
         JobContext jobContext = (JobContext) args[0];
         String businessParam = (String) jobContext.getJobArgsHolder().getJobParams();
-        
+
         // 日志信息集合
-        Map<String, String> logs = new LinkedHashMap<>(16);
+        Map<String, String> logs = new LinkedHashMap<>(LOG_MAP_INITIAL_CAPACITY);
 
         Throwable ex = null;
         try {
@@ -124,11 +125,11 @@ public class SnailJobEntranceLogAop {
             }
 
             // 按执行结果输出远程日志（上报至 SnailJob 服务端）
-            String log = LogUtil.convertLog(logs);
+            String logMessage = LogUtil.convertLog(logs);
             if (ObjectUtil.isNotNull(ex)) {
-                SnailJobLog.REMOTE.error(log, ex);
+                SnailJobLog.REMOTE.error(logMessage, ex);
             } else {
-                SnailJobLog.REMOTE.info(log);
+                SnailJobLog.REMOTE.info(logMessage);
             }
 
             // 清理线程上下文与任务参数，防止线程池复用导致数据泄漏
@@ -164,7 +165,7 @@ public class SnailJobEntranceLogAop {
 
         Signature signature = proceedingJoinPoint.getSignature();
         return signature.getDeclaringTypeName()
-            + SymbolConstant.COLON + signature.getName();
+                + SymbolConstant.COLON + signature.getName();
 
     }
 

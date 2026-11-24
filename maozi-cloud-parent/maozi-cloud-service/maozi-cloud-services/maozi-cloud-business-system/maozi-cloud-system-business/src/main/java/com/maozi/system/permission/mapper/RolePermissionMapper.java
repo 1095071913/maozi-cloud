@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 package com.maozi.system.permission.mapper;
@@ -27,4 +27,4 @@ import com.maozi.system.permission.domain.RolePermissionDO;
  * @author maozi
  * @date 2026/11/08
  */
-public interface RolePermissionMapper extends IBaseMapper<RolePermissionDO>{}
+public interface RolePermissionMapper extends IBaseMapper<RolePermissionDO> {}

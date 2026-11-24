@@ -23,6 +23,15 @@ package com.alibaba.csp.sentinel.dashboard.datasource.entity;
  * @since 0.2.1
  */
 public class SentinelVersion {
+    /** 完整版本号中主版本号的进位基数。 */
+    private static final int MAJOR_VERSION_FACTOR = 1_000_000;
+
+    /** 完整版本号中次版本号的进位基数。 */
+    private static final int MINOR_VERSION_FACTOR = 1_000;
+
+    /** 计算哈希码使用的质数。 */
+    private static final int HASH_PRIME = 31;
+
     /** 主版本号。 */
     private int majorVersion;
     /** 次版本号。 */
@@ -31,17 +40,17 @@ public class SentinelVersion {
     private int fixVersion;
     /** 版本后缀，可为 null。 */
     private String postfix;
-    
+
     /** 构造 0.0.0 版本。 */
     public SentinelVersion() {
         this(0, 0, 0);
     }
-    
+
     /** 以指定版本号构造无后缀版本。 */
     public SentinelVersion(int major, int minor, int fix) {
         this(major, minor, fix, null);
     }
-    
+
     /** 以指定版本号与后缀构造版本。 */
     public SentinelVersion(int major, int minor, int fix, String postfix) {
         this.majorVersion = major;
@@ -49,10 +58,10 @@ public class SentinelVersion {
         this.fixVersion = fix;
         this.postfix = postfix;
     }
-    
+
     /** 获取整数形式的完整版本号：major * 1000000 + minor * 1000 + fix。 */
     public int getFullVersion() {
-        return majorVersion * 1000000 + minorVersion * 1000 + fixVersion;
+        return majorVersion * MAJOR_VERSION_FACTOR + minorVersion * MINOR_VERSION_FACTOR + fixVersion;
     }
 
     /** 获取主版本号。 */
@@ -122,12 +131,18 @@ public class SentinelVersion {
     /** 判断指定对象是否为版本号与后缀均相同的版本。 */
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
-        SentinelVersion that = (SentinelVersion)o;
+        SentinelVersion that = (SentinelVersion) o;
 
-        if (getFullVersion() != that.getFullVersion()) { return false; }
+        if (getFullVersion() != that.getFullVersion()) {
+            return false;
+        }
         return postfix != null ? postfix.equals(that.postfix) : that.postfix == null;
     }
 
@@ -135,20 +150,20 @@ public class SentinelVersion {
     @Override
     public int hashCode() {
         int result = majorVersion;
-        result = 31 * result + minorVersion;
-        result = 31 * result + fixVersion;
-        result = 31 * result + (postfix != null ? postfix.hashCode() : 0);
+        result = HASH_PRIME * result + minorVersion;
+        result = HASH_PRIME * result + fixVersion;
+        result = HASH_PRIME * result + (postfix != null ? postfix.hashCode() : 0);
         return result;
     }
 
     /** 拼接全部字段构建字符串。 */
     @Override
     public String toString() {
-        return "SentinelVersion{" +
-            "majorVersion=" + majorVersion +
-            ", minorVersion=" + minorVersion +
-            ", fixVersion=" + fixVersion +
-            ", postfix='" + postfix + '\'' +
-            '}';
+        return "SentinelVersion{"
+                + "majorVersion=" + majorVersion
+                + ", minorVersion=" + minorVersion
+                + ", fixVersion=" + fixVersion
+                + ", postfix='" + postfix + '\''
+                + '}';
     }
 }

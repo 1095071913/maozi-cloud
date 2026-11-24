@@ -3,7 +3,7 @@ package com.maozi.system.user.api.impl.rpc;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.service.api.annotation.RemoteService;
-import com.maozi.service.api.impl.result.BaseDBServiceResultImpl;
+import com.maozi.service.api.impl.result.BaseDbServiceResultImpl;
 import com.maozi.system.user.api.impl.UserServiceImpl;
 import com.maozi.system.user.api.rpc.RpcUserService;
 import com.maozi.system.user.result.AiGetUserInfoResult;
@@ -20,7 +20,7 @@ import com.maozi.system.user.result.OauthUserInfoResult;
  * @date 2026/11/08
  */
 @RemoteService
-public class RpcUserServiceImpl extends BaseDBServiceResultImpl<UserServiceImpl> implements RpcUserService {
+public class RpcUserServiceImpl extends BaseDbServiceResultImpl<UserServiceImpl> implements RpcUserService {
 
     /**
      * 根据用户名获取 OAuth 认证所需的用户信息

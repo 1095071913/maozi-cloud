@@ -12,5 +12,4 @@ package com.maozi.system.config.api;
  * @date 2026/11/08
  */
 public interface SystemService {
-
 }

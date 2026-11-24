@@ -12,7 +12,7 @@ import com.maozi.common.ObjectUtil;
  * @author maozi
  * @date 2026/11/13
  */
-public class TestFlowContext extends AbstractRequestContextHolder<Boolean> {
+public final class TestFlowContext extends AbstractRequestContextHolder<Boolean> {
 
     /** 测试流量标记请求头名称 */
     public static final String KEY = "X-Test-Flow";

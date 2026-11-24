@@ -43,8 +43,8 @@ public class ApiDefinitionEntity extends BaseRuleEntity {
      * 由指定 {@link ApiDefinition} 构建实体，取每个 {@link ApiPathPredicateItem}
      * 的 pattern 与 matchStrategy 作为断言条目。
      */
-    public static ApiDefinitionEntity fromApiDefinition(String app, String ip, Integer port, 
-        ApiDefinition apiDefinition) {
+    public static ApiDefinitionEntity fromApiDefinition(String app, String ip, Integer port,
+            ApiDefinition apiDefinition) {
         ApiDefinitionEntity entity = new ApiDefinitionEntity();
         entity.setApp(app);
         entity.setIp(ip);
@@ -92,9 +92,7 @@ public class ApiDefinitionEntity extends BaseRuleEntity {
     }
 
     /** 构造空实体。 */
-    public ApiDefinitionEntity() {
-
-    }
+    public ApiDefinitionEntity() {}
 
     /** 以指定 API 名称与断言条目构造实体。 */
     public ApiDefinitionEntity(String apiName, Set<ApiPredicateItemEntity> predicateItems) {
@@ -131,17 +129,21 @@ public class ApiDefinitionEntity extends BaseRuleEntity {
     /** 判断指定对象是否与本实体全部字段相同。 */
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ApiDefinitionEntity entity = (ApiDefinitionEntity) o;
-        return Objects.equals(id, entity.id) &&
-                Objects.equals(app, entity.app) &&
-                Objects.equals(ip, entity.ip) &&
-                Objects.equals(port, entity.port) &&
-                Objects.equals(gmtCreate, entity.gmtCreate) &&
-                Objects.equals(gmtModified, entity.gmtModified) &&
-                Objects.equals(apiName, entity.apiName) &&
-                Objects.equals(predicateItems, entity.predicateItems);
+        return Objects.equals(id, entity.id)
+                && Objects.equals(app, entity.app)
+                && Objects.equals(ip, entity.ip)
+                && Objects.equals(port, entity.port)
+                && Objects.equals(gmtCreate, entity.gmtCreate)
+                && Objects.equals(gmtModified, entity.gmtModified)
+                && Objects.equals(apiName, entity.apiName)
+                && Objects.equals(predicateItems, entity.predicateItems);
     }
 
     /** 以全部字段计算哈希码。 */
@@ -153,15 +155,15 @@ public class ApiDefinitionEntity extends BaseRuleEntity {
     /** 拼接全部字段构建字符串。 */
     @Override
     public String toString() {
-        return "ApiDefinitionEntity{" +
-                "id=" + id +
-                ", app='" + app + '\'' +
-                ", ip='" + ip + '\'' +
-                ", port=" + port +
-                ", gmtCreate=" + gmtCreate +
-                ", gmtModified=" + gmtModified +
-                ", apiName='" + apiName + '\'' +
-                ", predicateItems=" + predicateItems +
-                '}';
+        return "ApiDefinitionEntity{"
+                + "id=" + id
+                + ", app='" + app + '\''
+                + ", ip='" + ip + '\''
+                + ", port=" + port
+                + ", gmtCreate=" + gmtCreate
+                + ", gmtModified=" + gmtModified
+                + ", apiName='" + apiName + '\''
+                + ", predicateItems=" + predicateItems
+                + '}';
     }
 }

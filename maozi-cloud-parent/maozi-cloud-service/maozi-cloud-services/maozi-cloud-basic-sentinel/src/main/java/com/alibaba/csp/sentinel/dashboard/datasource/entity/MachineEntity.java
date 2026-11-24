@@ -96,15 +96,15 @@ public class MachineEntity extends BaseEntity {
     /** 拼接全部字段构建字符串。 */
     @Override
     public String toString() {
-        return "MachineEntity{" +
-            "id=" + id +
-            ", gmtCreate=" + gmtCreate +
-            ", gmtModified=" + gmtModified +
-            ", app='" + app + '\'' +
-            ", ip='" + ip + '\'' +
-            ", hostname='" + hostname + '\'' +
-            ", timestamp=" + timestamp +
-            ", port=" + port +
-            '}';
+        return "MachineEntity{"
+                + "id=" + id
+                + ", gmtCreate=" + gmtCreate
+                + ", gmtModified=" + gmtModified
+                + ", app='" + app + '\''
+                + ", ip='" + ip + '\''
+                + ", hostname='" + hostname + '\''
+                + ", timestamp=" + timestamp
+                + ", port=" + port
+                + '}';
     }
 }

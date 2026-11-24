@@ -44,8 +44,10 @@ public class SimpleMachineDiscovery implements MachineDiscovery {
     public long addMachine(MachineInfo machineInfo) {
         AssertUtil.notNull(machineInfo, "machineInfo cannot be null");
         // 缓存应用名，避免同一方法内重复获取
+        // 缓存应用类型，创建应用信息时与注册机器时取值一致，避免重复获取
         String appName = machineInfo.getApp();
-        AppInfo appInfo = apps.computeIfAbsent(appName, o -> new AppInfo(appName, machineInfo.getAppType()));
+        Integer appType = machineInfo.getAppType();
+        AppInfo appInfo = apps.computeIfAbsent(appName, key -> new AppInfo(appName, appType));
         appInfo.addMachine(machineInfo);
         return 1;
     }
@@ -88,5 +90,4 @@ public class SimpleMachineDiscovery implements MachineDiscovery {
         AssertUtil.assertNotBlank(app, "app name cannot be blank");
         apps.remove(app);
     }
-
 }

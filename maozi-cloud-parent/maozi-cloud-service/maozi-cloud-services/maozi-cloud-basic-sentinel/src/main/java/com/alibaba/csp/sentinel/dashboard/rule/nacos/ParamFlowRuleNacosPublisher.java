@@ -55,9 +55,9 @@ public class ParamFlowRuleNacosPublisher implements DynamicRulePublisher<List<Pa
             return;
         }
         List<ParamFlowRule> paramFlowRules = rules.stream()
-            .map(ParamFlowRuleEntity::getRule)
-            .collect(Collectors.toList());
+                .map(ParamFlowRuleEntity::getRule)
+                .collect(Collectors.toList());
         NacosConfigUtil.publishJsonConfig(configService, app,
-            NacosConfigUtil.PARAM_FLOW_DATA_ID_POSTFIX, nacosProperties.getGroup(), paramFlowRules);
+                NacosConfigUtil.PARAM_FLOW_DATA_ID_POSTFIX, nacosProperties.getGroup(), paramFlowRules);
     }
 }

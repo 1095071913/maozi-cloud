@@ -62,6 +62,9 @@ public class DubboInvokeErrorAop {
     /** 组合切点表达式 */
     private static final String POINT = "execution(" + RPC_POINT + ")";
 
+    /** 结构化错误日志 Map 的初始容量 */
+    private static final int LOG_MAP_INITIAL_CAPACITY = 16;
+
     /**
      * 环绕通知，捕获远程调用异常
      *
@@ -73,7 +76,9 @@ public class DubboInvokeErrorAop {
     public Object doAround(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 
         // 尝试执行目标方法，如果正常返回则直接返回结果
-        try {return proceedingJoinPoint.proceed();} catch (Throwable e) {
+        try {
+            return proceedingJoinPoint.proceed();
+        } catch (Throwable e) {
 
             // 缓存方法签名信息与类全限定名，避免同一方法内重复调用
             Signature signature = proceedingJoinPoint.getSignature();
@@ -102,15 +107,17 @@ public class DubboInvokeErrorAop {
             String serviceName = remoteInvokeClassSplit[SERVICE_NAME_SEGMENT_INDEX];
 
             // 构建结构化的错误日志信息
-            Map<String, String> logs = new LinkedHashMap<>(16);
+            Map<String, String> logs = new LinkedHashMap<>(LOG_MAP_INITIAL_CAPACITY);
 
             // 日志类型：RPC 远程调用
             logs.put(LogTag.TYPE, LogCommonTypeEnum.RPC.getDesc());
-            logs.put(LogTag.SERVICE_NAME, serviceName);                              // 被调用的服务名称
-            logs.put(LogTag.FUNCTION, declaringTypeName                               // 被调用的方法全路径
-                    + SymbolConstant.COLON + signature.getName());
-            logs.put(LogTag.PARAM, Arrays.toString(proceedingJoinPoint.getArgs()));  // 方法入参
-            
+            // 被调用的服务名称
+            logs.put(LogTag.SERVICE_NAME, serviceName);
+            // 被调用的方法全路径
+            logs.put(LogTag.FUNCTION, declaringTypeName + SymbolConstant.COLON + signature.getName());
+            // 方法入参
+            logs.put(LogTag.PARAM, Arrays.toString(proceedingJoinPoint.getArgs()));
+
             // 记录结构化的错误日志信息
             LogUtil.error(log, logs, e);
 

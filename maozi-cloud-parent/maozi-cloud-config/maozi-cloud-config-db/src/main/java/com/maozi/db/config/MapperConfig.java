@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Configuration;
 public class MapperConfig {
 
     /** Mapper 接口扫描包模式（拼接在项目包前缀之后，匹配各模块下的 mapper 包）；
-     * 包级可见以便本类注解引用 */
+     * 类声明上的注解不在类体作用域内，故须包级可见才能被注解引用 */
     static final String MAPPER_SCAN_PATTERN = ".*.*.mapper";
-    
+
 }

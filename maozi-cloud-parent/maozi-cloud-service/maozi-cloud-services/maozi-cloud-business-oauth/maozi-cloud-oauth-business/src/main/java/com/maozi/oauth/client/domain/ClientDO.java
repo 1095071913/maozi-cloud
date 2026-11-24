@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 package com.maozi.oauth.client.domain;
@@ -22,8 +22,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.maozi.db.domain.AbstractBaseDomain;
 import com.maozi.db.handler.CommaSeparatedTypeHandler;
 import com.maozi.oauth.client.enums.AuthTypeEnum;
-import com.maozi.oauth.client.handler.OAuth2SettingsTypeHandler;
 import com.maozi.oauth.client.handler.Oauth2AuthTypeHandler;
+import com.maozi.oauth.client.handler.Oauth2SettingsTypeHandler;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -86,11 +86,11 @@ public class ClientDO extends AbstractBaseDomain {
     private Set<String> redirectUris;
 
     /** 客户端配置项，存储OAuth2.0客户端的自定义配置（如是否需要用户确认授权等） */
-    @TableField(typeHandler = OAuth2SettingsTypeHandler.class)
+    @TableField(typeHandler = Oauth2SettingsTypeHandler.class)
     private Map<String, Object> clientSettings;
 
     /** 令牌配置项，存储OAuth2.0令牌相关的自定义配置（如令牌有效期、格式等） */
-    @TableField(typeHandler = OAuth2SettingsTypeHandler.class)
+    @TableField(typeHandler = Oauth2SettingsTypeHandler.class)
     private Map<String, Object> tokenSettings;
-    
+
 }

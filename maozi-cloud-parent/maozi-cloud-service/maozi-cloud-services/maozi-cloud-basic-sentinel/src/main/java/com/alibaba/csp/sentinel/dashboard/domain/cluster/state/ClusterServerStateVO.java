@@ -146,15 +146,15 @@ public class ClusterServerStateVO {
     /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
-        return "ClusterServerStateVO{" +
-            "appName='" + appName + '\'' +
-            ", transport=" + transport +
-            ", flow=" + flow +
-            ", namespaceSet=" + namespaceSet +
-            ", port=" + port +
-            ", connection=" + connection +
-            ", requestLimitData=" + requestLimitData +
-            ", embedded=" + embedded +
-            '}';
+        return "ClusterServerStateVO{"
+                + "appName='" + appName + '\''
+                + ", transport=" + transport
+                + ", flow=" + flow
+                + ", namespaceSet=" + namespaceSet
+                + ", port=" + port
+                + ", connection=" + connection
+                + ", requestLimitData=" + requestLimitData
+                + ", embedded=" + embedded
+                + '}';
     }
 }

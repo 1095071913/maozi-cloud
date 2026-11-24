@@ -48,7 +48,9 @@ public class MybatisPlusLog implements Log {
      * @return 始终返回 true
      */
     @Override
-    public boolean isDebugEnabled() {return true;}
+    public boolean isDebugEnabled() {
+        return true;
+    }
 
     /**
      * 是否启用 trace 级别
@@ -56,7 +58,9 @@ public class MybatisPlusLog implements Log {
      * @return 始终返回 true
      */
     @Override
-    public boolean isTraceEnabled() {return true;}
+    public boolean isTraceEnabled() {
+        return true;
+    }
 
     /**
      * 记录 error 日志（含异常堆栈）
@@ -65,7 +69,9 @@ public class MybatisPlusLog implements Log {
      * @param e 异常对象
      */
     @Override
-    public void error(String s, Throwable e) {log.error(s, e);}
+    public void error(String s, Throwable e) {
+        log.error(s, e);
+    }
 
     /**
      * 记录 error 日志
@@ -73,7 +79,9 @@ public class MybatisPlusLog implements Log {
      * @param s 日志内容
      */
     @Override
-    public void error(String s) {log.error(s);}
+    public void error(String s) {
+        log.error(s);
+    }
 
     /**
      * 收集 SQL 日志
@@ -108,10 +116,10 @@ public class MybatisPlusLog implements Log {
             s = s.replace(PARAMETERS_PREFIX, SymbolConstant.EMPTY);
 
             if (StringUtils.isNotEmpty(s)) {
-                
+
                 // 参数格式为 "value(Type),value(Type),..." 按 "),"(右括号+逗号) 拆分
                 String[] params = PARAM_SPLIT_PATTERN.split(s);
-                
+
                 for (String param : params) {
 
                     // 提取参数值部分（"(" 之前的字符串），并加上单引号包裹

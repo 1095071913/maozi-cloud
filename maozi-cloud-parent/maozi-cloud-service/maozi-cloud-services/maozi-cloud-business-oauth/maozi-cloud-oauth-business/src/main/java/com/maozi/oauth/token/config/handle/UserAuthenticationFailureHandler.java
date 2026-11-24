@@ -52,20 +52,20 @@ public class UserAuthenticationFailureHandler implements
 
         ErrorResult<?> errorResult;
         if (ObjectUtil.isNotNull(cause) && cause instanceof BusinessResultException businessResultException) {
-            
+
             errorResult = businessResultException.getErrorResult().autoIdentifyHttpCode();
             if (errorResult.isSystemError()) {
                 log.error("用户认证授权内部服务错误", businessResultException);
             }
-            
+
         } else {
             errorResult = ResultUtil.error(SystemErrorCode.USER_AUTH_ERROR)
-                .autoIdentifyHttpCode(SystemErrorCode.USER_AUTH_ERROR_DEFAULT_CODE);
+                    .autoIdentifyHttpCode(SystemErrorCode.USER_AUTH_ERROR_DEFAULT_CODE);
         }
 
         // 将错误结果写入HTTP响应体
         WebUtil.writeResponseBody(response, errorResult);
-        
+
     }
 
 }

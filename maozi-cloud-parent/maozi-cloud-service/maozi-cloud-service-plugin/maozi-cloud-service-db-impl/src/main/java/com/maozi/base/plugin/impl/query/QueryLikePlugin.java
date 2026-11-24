@@ -12,7 +12,7 @@ import com.maozi.base.plugin.BaseQueryPlugin;
  * @author maozi
  * @date 2026/11/08
  */
-public class QueryLikePlugin extends BaseQueryPlugin{
+public class QueryLikePlugin extends BaseQueryPlugin {
 
     /**
      * 应用全模糊匹配条件

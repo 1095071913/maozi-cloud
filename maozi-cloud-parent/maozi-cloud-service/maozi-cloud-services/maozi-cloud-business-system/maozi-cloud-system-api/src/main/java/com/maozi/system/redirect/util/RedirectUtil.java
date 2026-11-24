@@ -15,7 +15,10 @@ import jakarta.servlet.http.HttpServletResponse;
  * @author pengjinlong
  * @date 2026/8/14
  */
-public class RedirectUtil {
+public final class RedirectUtil {
+
+    /** 私有构造器，防止工具类被实例化 */
+    private RedirectUtil() {}
 
     /** 重定向指示响应头名称 */
     public static final String REDIRECT_KEY = "X-Redirect";

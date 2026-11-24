@@ -12,7 +12,10 @@ import java.io.Serializable;
  * @author pengjinlong
  * @date 2026/8/23
  */
-public class ChatMessageConstant implements Serializable {
+public final class ChatMessageConstant implements Serializable {
+
+    /** 常量类私有构造，禁止实例化 */
+    private ChatMessageConstant() {}
     /** 序列化标识 */
     @Serial
     private static final long serialVersionUID = 1L;

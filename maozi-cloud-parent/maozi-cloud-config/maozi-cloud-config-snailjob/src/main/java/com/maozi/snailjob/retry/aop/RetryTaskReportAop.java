@@ -129,7 +129,7 @@ public class RetryTaskReportAop {
      * @return 本地重试结果（本地重试未启用或重试失败时为失败结果）
      */
     private LocalRetryResult retryAndReport(ProceedingJoinPoint proceedingJoinPoint, MethodSignature signature,
-        Method method, RetryTask retryTask) {
+            Method method, RetryTask retryTask) {
 
         RetryType retryStrategy = retryTask.retryStrategy();
 
@@ -137,10 +137,10 @@ public class RetryTaskReportAop {
 
         // 本地重试
         if (retryStrategy == RetryType.ONLY_LOCAL
-            || retryStrategy == RetryType.LOCAL_REMOTE) {
+                || retryStrategy == RetryType.LOCAL_REMOTE) {
 
-            localRetryResult =
-                localRetry(retryTask.localTimes(), retryTask.localInterval(), proceedingJoinPoint, retryTask);
+            localRetryResult = localRetry(retryTask.localTimes(), retryTask.localInterval(),
+                    proceedingJoinPoint, retryTask);
             if (localRetryResult.success()) {
                 return localRetryResult;
             }
@@ -149,9 +149,9 @@ public class RetryTaskReportAop {
 
         // 本地重试未启用或失败后，将方法信息封装为重试任务上报 SnailJob 服务端
         if (retryStrategy == RetryType.ONLY_REMOTE
-            || retryStrategy == RetryType.LOCAL_REMOTE) {
+                || retryStrategy == RetryType.LOCAL_REMOTE) {
             reportRetryTask(retryTask.scene(),
-                buildRetryTaskParam(proceedingJoinPoint, signature, method, retryTask));
+                    buildRetryTaskParam(proceedingJoinPoint, signature, method, retryTask));
         }
 
         return localRetryResult;
@@ -172,7 +172,7 @@ public class RetryTaskReportAop {
      * @return 重试任务参数
      */
     private RetryTaskParam buildRetryTaskParam(ProceedingJoinPoint proceedingJoinPoint, MethodSignature signature,
-        Method method, RetryTask retryTask) {
+            Method method, RetryTask retryTask) {
 
         RetryTaskParam retryTaskParam = new RetryTaskParam();
         retryTaskParam.setBeanName(getBeanName(proceedingJoinPoint.getTarget()));
@@ -186,11 +186,9 @@ public class RetryTaskReportAop {
         // OpenTelemetry 无有效追踪上下文时 traceId 为全 0 占位值，
         // 此时回退链路上下文中的 traceId
         String traceId = Span.current().getSpanContext().getTraceId();
-        retryTaskParam.setTraceId(TraceIdContext.TRACE_ID_VALUE.equals(traceId) ?
-                TraceIdContext.CONTEXT.get()
-                :
-                traceId
-        );
+        retryTaskParam.setTraceId(TraceIdContext.TRACE_ID_VALUE.equals(traceId)
+                ? TraceIdContext.CONTEXT.get()
+                : traceId);
 
         return retryTaskParam;
 
@@ -209,8 +207,7 @@ public class RetryTaskReportAop {
     private boolean retryCondition(RetryTask retryTask, Object result) {
         Class<? extends RetryCondition> retryCondition = retryTask.retryIfResult();
         return RetryCondition.NoRetry.class.isAssignableFrom(retryCondition)
-                ||
-                !SpringUtil.getBean(retryCondition).shouldRetry(result);
+                || !SpringUtil.getBean(retryCondition).shouldRetry(result);
     }
 
     /**
@@ -242,10 +239,10 @@ public class RetryTaskReportAop {
     private void reportRetryTask(String scene, RetryTaskParam retryTaskParam) {
 
         SnailJobTemplate snailJobTemplate = RetryTaskTemplateBuilder.newBuilder()
-            .withScene(RetryExecutorTask.buildScene(scene))
-            .withExecutorMethod(RetryExecutorTask.class)
-            .withParam(retryTaskParam)
-            .build();
+                .withScene(RetryExecutorTask.buildScene(scene))
+                .withExecutorMethod(RetryExecutorTask.class)
+                .withParam(retryTaskParam)
+                .build();
 
         snailJobTemplate.executeRetry();
 
@@ -266,7 +263,7 @@ public class RetryTaskReportAop {
      * @return 本地重试结果
      */
     private LocalRetryResult localRetry(int localTimes, int localInterval, ProceedingJoinPoint proceedingJoinPoint,
-        RetryTask retryTask) {
+            RetryTask retryTask) {
 
         int currentLocalTimes = 0;
 
@@ -300,7 +297,7 @@ public class RetryTaskReportAop {
      * @return 本次重试结果
      */
     private LocalRetryResult doSingleRetry(int localInterval, ProceedingJoinPoint proceedingJoinPoint,
-        RetryTask retryTask) {
+            RetryTask retryTask) {
 
         try {
 
@@ -341,9 +338,10 @@ public class RetryTaskReportAop {
      * </p>
      *
      * @param success 是否重试成功
-     * @param result  重试成功的结果集
+     * @param result 重试成功的结果集
      * @author maozi
+     * @date 2026/11/08
      */
-     private record LocalRetryResult(boolean success, Object result) {}
+    private record LocalRetryResult(boolean success, Object result) {}
 
 }

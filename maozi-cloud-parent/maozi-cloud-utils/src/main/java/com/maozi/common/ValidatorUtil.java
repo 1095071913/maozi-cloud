@@ -23,7 +23,7 @@ import java.util.Set;
  * @author maozi
  * @date 2026/11/08
  */
-public class ValidatorUtil {
+public final class ValidatorUtil {
 
     /** 校验器（线程安全，全局单例） */
     private static final Validator VALIDATOR;
@@ -37,14 +37,17 @@ public class ValidatorUtil {
     private ValidatorUtil() {}
 
     static {
-        
         try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
             VALIDATOR = factory.getValidator();
         }
-        
     }
-    
-    public static Validator getValidator(){
+
+    /**
+     * 获取全局校验器
+     *
+     * @return 全局校验器
+     */
+    public static Validator getValidator() {
         return VALIDATOR;
     }
 

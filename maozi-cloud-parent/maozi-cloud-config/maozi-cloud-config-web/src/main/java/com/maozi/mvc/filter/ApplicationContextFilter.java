@@ -82,7 +82,6 @@ public class ApplicationContextFilter extends OncePerRequestFilter {
             response.setHeader(TraceIdContext.KEY, traceId);
         }
 
-
         try {
             // 继续执行过滤器链（包括 Spring Security 认证和后续业务处理）
             filterChain.doFilter(request, response);

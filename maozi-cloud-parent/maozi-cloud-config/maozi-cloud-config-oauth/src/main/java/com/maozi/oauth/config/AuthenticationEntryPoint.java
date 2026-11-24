@@ -73,7 +73,7 @@ public class AuthenticationEntryPoint implements org.springframework.security.we
 
         } else {
             errorResult = ResultUtil.error(SystemErrorCode.USER_AUTH_ERROR)
-                .autoIdentifyHttpCode(SystemErrorCode.USER_AUTH_ERROR_DEFAULT_CODE);
+                    .autoIdentifyHttpCode(SystemErrorCode.USER_AUTH_ERROR_DEFAULT_CODE);
         }
 
         // 将错误结果写入HTTP响应体

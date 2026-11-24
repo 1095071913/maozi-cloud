@@ -58,7 +58,7 @@ public class GrayRouter extends AbstractRouter {
      */
     @Override
     public <T> RouterResult<Invoker<T>> route(List<Invoker<T>> invokers, URL url, Invocation invocation,
-        boolean needToPrintMessage) throws RpcException {
+            boolean needToPrintMessage) throws RpcException {
 
         // 从线程上下文中获取当前请求的版本号，用于灰度匹配
         String version = VersionContext.CONTEXT.get();
@@ -70,11 +70,11 @@ public class GrayRouter extends AbstractRouter {
         List<Invoker<T>> grayApplicationClients = CollectionUtil.newArrayList(invokerSize);
 
         // 遍历所有可用的服务实例，按版本号分类
-        invokers.forEach(invoker ->{
+        invokers.forEach(invoker -> {
 
             // 获取服务实例的 application.version 参数，用于版本匹配
             String clientApplicationVersion =
-                invoker.getUrl().getParameter(ProviderFirstParams.APPLICATION_VERSION_KEY);
+                    invoker.getUrl().getParameter(ProviderFirstParams.APPLICATION_VERSION_KEY);
 
             // 如果请求版本号非空且与服务实例版本完全匹配，则归为灰度节点
             if (StringUtils.isNotBlank(version) && Objects.equals(version, clientApplicationVersion)) {

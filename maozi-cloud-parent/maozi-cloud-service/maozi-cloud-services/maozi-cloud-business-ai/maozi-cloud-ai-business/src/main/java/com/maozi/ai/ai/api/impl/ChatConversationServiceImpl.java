@@ -31,8 +31,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class ChatConversationServiceImpl extends BaseServiceImpl<ChatConversationMapper,
-        ChatConversationDO>
+public class ChatConversationServiceImpl
+        extends BaseServiceImpl<ChatConversationMapper, ChatConversationDO>
         implements ChatConversationService {
 
     /** 资源名称，用于异常提示信息 */
@@ -157,11 +157,11 @@ public class ChatConversationServiceImpl extends BaseServiceImpl<ChatConversatio
      */
     @Transactional(rollbackFor = Exception.class)
     public void adminRemove(String conversationId) {
-        
+
         LambdaQueryWrapper<ChatConversationDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ChatConversationDO::getId, conversationId);
         wrapper.eq(ChatConversationDO::getUserId, CurrentUserInfoContext.CONTEXT.get(CurrentUserInfoDTO::getUserId));
-        if (remove(wrapper)) {
+        if (super.remove(wrapper)) {
             chatMemory.clear(conversationId);
         }
     }

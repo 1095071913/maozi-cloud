@@ -52,7 +52,7 @@ public class RoleInfoResult implements Serializable {
     /** 角色关联的权限ID列表，通过角色权限关系服务查询自动填充 */
     @Schema(description = "权限列表", ref = "StringArrayList")
     @QueryMapping(isService = true, serviceName = SystemServiceConstant.ROLE_PERMISSION_SERVICE,
-        functionName = "listPermissionByRoleId", relationField = "id")
+                functionName = "listPermissionByRoleId", relationField = "id")
     private List<Long> permissionIds;
 
 }

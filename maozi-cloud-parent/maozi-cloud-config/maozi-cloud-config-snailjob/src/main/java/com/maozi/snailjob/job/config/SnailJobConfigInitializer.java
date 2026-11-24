@@ -47,9 +47,9 @@ public class SnailJobConfigInitializer implements ConfigInitializer {
     @Override
     public void initialize(Properties properties) {
         properties.merge(
-            SpringPropertyConstant.SPRING_CONFIG_IMPORT,
-            NACOS_IMPORTS,
-            (existing, incoming) -> incoming + SymbolConstant.COMMA + existing
+                SpringPropertyConstant.SPRING_CONFIG_IMPORT,
+                NACOS_IMPORTS,
+                (existing, incoming) -> incoming + SymbolConstant.COMMA + existing
         );
 
         BaseApplication.addBannerFilter(BANNER_FLAG);

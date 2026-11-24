@@ -97,7 +97,7 @@ public class JdbcRegisteredClientRepository
     private RegisteredClient findByEnabled(String sql, Object arg) {
         List<RegisteredClient> result = super.getJdbcOperations().query(
                 sql, super.getRegisteredClientRowMapper(), arg, StatusEnum.ENABLE.getValue());
-        return !result.isEmpty() ? result.get(0) : null;
+        return result.isEmpty() ? null : result.get(0);
     }
 
 }

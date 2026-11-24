@@ -72,9 +72,9 @@ public class ServerTransportConfig {
     /** 返回该配置的字符串表示。 */
     @Override
     public String toString() {
-        return "ServerTransportConfig{" +
-            "port=" + port +
-            ", idleSeconds=" + idleSeconds +
-            '}';
+        return "ServerTransportConfig{"
+                + "port=" + port
+                + ", idleSeconds=" + idleSeconds
+                + '}';
     }
 }

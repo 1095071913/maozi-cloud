@@ -60,7 +60,7 @@ public final class TokenRevocationAuthenticationProvider implements Authenticati
         if (authentication instanceof OAuth2TokenRevocationAuthenticationToken tokenRequest) {
             OAuth2TokenType tokenType = resolveTokenType(tokenRequest.getTokenTypeHint());
             OAuth2Authorization authorization =
-                this.authorizationService.findByToken(tokenRequest.getToken(), tokenType);
+                    this.authorizationService.findByToken(tokenRequest.getToken(), tokenType);
             if (authorization != null) {
                 this.authorizationService.remove(authorization);
             }

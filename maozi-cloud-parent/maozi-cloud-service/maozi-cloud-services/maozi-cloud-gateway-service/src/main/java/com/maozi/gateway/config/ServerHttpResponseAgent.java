@@ -11,8 +11,8 @@ import io.opentelemetry.api.trace.Span;
 import jakarta.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jboss.logging.MDC;
 import org.reactivestreams.Publisher;
+import org.slf4j.MDC;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -62,8 +62,8 @@ public class ServerHttpResponseAgent extends ServerHttpResponseDecorator {
      * @param response    原始服务端响应对象
      * @param request     服务端请求对象，用于读取链路追踪 ID 请求头
      */
-    public ServerHttpResponseAgent(Map<String, String> logs, ServerHttpResponse response, 
-                                   ServerHttpRequest request) {
+    public ServerHttpResponseAgent(Map<String, String> logs, ServerHttpResponse response,
+            ServerHttpRequest request) {
 
         super(response);
 
@@ -119,22 +119,17 @@ public class ServerHttpResponseAgent extends ServerHttpResponseDecorator {
         // 合并所有数据缓冲区的字节数据
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-        dataBuffers.forEach(i -> {
-
-            byte[] array = new byte[i.readableByteCount()];
-
-            i.read(array);
-
+        dataBuffers.forEach(dataBuffer -> {
+            byte[] array = new byte[dataBuffer.readableByteCount()];
+            dataBuffer.read(array);
             try {
                 outputStream.write(array);
             } catch (IOException e) {
                 // 内存字节流写入不会真正发生 IO 异常，防御性捕获并记录
                 log.warn("write response buffer error", e);
             }
-
             // 释放 DataBuffer 资源，防止内存泄漏
-            DataBufferUtils.release(i);
-
+            DataBufferUtils.release(dataBuffer);
         });
 
         String responseBody = outputStream.toString();
@@ -153,17 +148,17 @@ public class ServerHttpResponseAgent extends ServerHttpResponseDecorator {
         }
 
         // 根据响应状态和业务码决定日志级别
-        if (Objects.requireNonNull(super.getDelegate().getStatusCode()).value() != HttpStatus.OK.value()) {
-            // HTTP 状态码非 200，记录错误日志
-            LogUtil.error(log, logs);
-        } else if (CollectionUtil.isNotEmpty(result) && result.containsKey(RESULT_CODE_KEY)
-                && !String.valueOf(SuccessResult.RESULT_SUCCESS_DEFAULT_CODE)
-                    .equals(result.get(RESULT_CODE_KEY).toString())) {
-            // 业务码非 200，记录错误日志
-            LogUtil.error(log, logs);
-        } else {
+        boolean httpOk = Objects.requireNonNull(super.getDelegate().getStatusCode()).value() == HttpStatus.OK.value();
+        // 无响应体或无业务码时视为业务成功
+        boolean businessSuccess = CollectionUtil.isEmpty(result) || !result.containsKey(RESULT_CODE_KEY)
+                || String.valueOf(SuccessResult.RESULT_SUCCESS_DEFAULT_CODE)
+                        .equals(result.get(RESULT_CODE_KEY).toString());
+        if (httpOk && businessSuccess) {
             // 正常响应，记录信息日志
             LogUtil.info(log, logs);
+        } else {
+            // HTTP 状态码或业务码非成功，记录错误日志
+            LogUtil.error(log, logs);
         }
 
         // 包装结果字节并返回，同时在 finally 中关闭流和清理 MDC

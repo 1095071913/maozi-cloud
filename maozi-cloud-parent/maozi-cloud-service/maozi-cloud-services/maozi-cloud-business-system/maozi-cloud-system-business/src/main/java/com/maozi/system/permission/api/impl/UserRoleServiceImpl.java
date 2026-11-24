@@ -41,7 +41,7 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
 
     /** 角色服务，用于校验角色是否存在 */
     @Resource(name = SystemServiceConstant.ROLE_SERVICE)
-    protected RoleService roleService;
+    private RoleService roleService;
 
     /** 获取资源名称 */
     @Override
@@ -94,8 +94,7 @@ public class UserRoleServiceImpl extends BaseServiceImpl<UserRoleMapper, UserRol
         if (CollectionUtil.isNotEmpty(unbindRoleIds)) {
 
             Consumer<Long> consumer = (roleId) -> super.remove(
-                Wrappers.lambdaQuery(UserRoleDO.builder().userId(userId).roleId(roleId).build()
-            ));
+                    Wrappers.lambdaQuery(UserRoleDO.builder().userId(userId).roleId(roleId).build()));
 
             unbindRoleIds.forEach(consumer);
 

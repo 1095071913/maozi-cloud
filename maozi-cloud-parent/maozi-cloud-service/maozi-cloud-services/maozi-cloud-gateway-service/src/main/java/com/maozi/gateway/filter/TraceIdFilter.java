@@ -58,15 +58,15 @@ public class TraceIdFilter implements GlobalFilter, Ordered {
 
             // 将 traceId 写入请求头，供下游路由服务延续链路
             ServerHttpRequest mutatedRequest = request.mutate()
-                .header(TraceIdContext.KEY, traceId)
-                .build();
+                    .header(TraceIdContext.KEY, traceId)
+                    .build();
 
             // 写入 MDC 与线程上下文，使当前线程的网关日志可关联链路追踪 ID
             TraceIdContext.CONTEXT.set(traceId);
 
             return chain.filter(exchange.mutate().request(mutatedRequest).build())
-                // 请求结束后清理 MDC 与链路上下文，防止线程复用导致的数据泄漏
-                .doFinally(signal -> AbstractRequestContextHolder.clearContext());
+                    // 请求结束后清理 MDC 与链路上下文，防止线程复用导致的数据泄漏
+                    .doFinally(signal -> AbstractRequestContextHolder.clearContext());
 
         }
 

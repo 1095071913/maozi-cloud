@@ -55,9 +55,9 @@ public class ApiDefinitionNacosPublisher implements DynamicRulePublisher<List<Ap
             return;
         }
         List<ApiDefinition> apiDefinitions = rules.stream()
-            .map(ApiDefinitionEntity::toApiDefinition)
-            .collect(Collectors.toList());
+                .map(ApiDefinitionEntity::toApiDefinition)
+                .collect(Collectors.toList());
         NacosConfigUtil.publishJsonConfig(configService, app,
-            NacosConfigUtil.GATEWAY_API_DATA_ID_POSTFIX, nacosProperties.getGroup(), apiDefinitions);
+                NacosConfigUtil.GATEWAY_API_DATA_ID_POSTFIX, nacosProperties.getGroup(), apiDefinitions);
     }
 }

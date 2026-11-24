@@ -62,29 +62,51 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
 
     /** 插入指标行，唯一键（app+resource+timestamp）冲突时更新各指标列 */
     private static final String UPSERT_SQL =
-        "INSERT INTO sentinel_metric (gmt_create, gmt_modified, app, `timestamp`, resource, "
-            + "pass_qps, success_qps, block_qps, exception_qps, rt, `count`) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
-            + "ON DUPLICATE KEY UPDATE gmt_modified = VALUES(gmt_modified), pass_qps = VALUES(pass_qps), "
-            + "success_qps = VALUES(success_qps), block_qps = VALUES(block_qps), "
-            + "exception_qps = VALUES(exception_qps), rt = VALUES(rt), `count` = VALUES(`count`)";
+            "INSERT INTO sentinel_metric (gmt_create, gmt_modified, app, `timestamp`, resource, "
+                + "pass_qps, success_qps, block_qps, exception_qps, rt, `count`) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+                + "ON DUPLICATE KEY UPDATE gmt_modified = VALUES(gmt_modified), pass_qps = VALUES(pass_qps), "
+                + "success_qps = VALUES(success_qps), block_qps = VALUES(block_qps), "
+                + "exception_qps = VALUES(exception_qps), rt = VALUES(rt), `count` = VALUES(`count`)";
 
     /** 按时间戳升序加载一个 app+resource 在时间区间内的指标 */
     private static final String QUERY_SQL =
-        "SELECT id, gmt_create, gmt_modified, app, `timestamp`, resource, "
-            + "pass_qps, success_qps, block_qps, exception_qps, rt, `count` "
-            + "FROM sentinel_metric WHERE app = ? AND resource = ? AND `timestamp` BETWEEN ? AND ? "
-            + "ORDER BY `timestamp` ASC";
+            "SELECT id, gmt_create, gmt_modified, app, `timestamp`, resource, "
+                + "pass_qps, success_qps, block_qps, exception_qps, rt, `count` "
+                + "FROM sentinel_metric WHERE app = ? AND resource = ? AND `timestamp` BETWEEN ? AND ? "
+                + "ORDER BY `timestamp` ASC";
 
     /** 按资源汇总一个应用在窗口内的阻塞/通过 QPS，阻塞最多的资源排在前 */
     private static final String LIST_RESOURCES_SQL =
-        "SELECT resource, SUM(block_qps) AS block_qps_total, SUM(pass_qps) AS pass_qps_total "
-            + "FROM sentinel_metric WHERE app = ? AND `timestamp` >= ? AND `timestamp` <= ? "
-            + "GROUP BY resource ORDER BY block_qps_total DESC, pass_qps_total DESC";
+            "SELECT resource, SUM(block_qps) AS block_qps_total, SUM(pass_qps) AS pass_qps_total "
+                + "FROM sentinel_metric WHERE app = ? AND `timestamp` >= ? AND `timestamp` <= ? "
+                + "GROUP BY resource ORDER BY block_qps_total DESC, pass_qps_total DESC";
 
     /** 每次执行最多删除 {@link #MAX_BATCH_DELETE_ROWS} 行早于指定时间戳的数据 */
     private static final String DELETE_EXPIRED_SQL =
-        "DELETE FROM sentinel_metric WHERE `timestamp` < ? LIMIT " + MAX_BATCH_DELETE_ROWS;
+            "DELETE FROM sentinel_metric WHERE `timestamp` < ? LIMIT " + MAX_BATCH_DELETE_ROWS;
+
+    /** 一秒对应的毫秒数 */
+    private static final long ONE_SECOND_MS = 1000L;
+
+    /**
+     * 超过该时长的聚合桶从内存淘汰。拉取器重启后最多回拉 15 秒数据，
+     * 15 分钟远大于任何迟到数据
+     */
+    private static final long BUCKET_EVICT_MS = 1000 * 60 * 15;
+
+    /**
+     * 后台刷盘存在未落盘秒数的桶的调度间隔。桶在每次 {@link #saveAll} 时已同步
+     * 落盘，该调度仅兜底尾部数据（流量停止后拉取器不再调用 {@code saveAll}）
+     * 并淘汰过期桶，短周期保证尾部数据近实时可见
+     */
+    private static final int BUCKET_FLUSH_INTERVAL_SECONDS = 2;
+
+    /** 每日过期指标清理任务的初始延迟（分钟） */
+    private static final int CLEAN_INITIAL_DELAY_MINUTES = 5;
+
+    /** 每日过期指标清理任务的执行周期（分钟），即一天一次 */
+    private static final int CLEAN_PERIOD_MINUTES = 1440;
 
     /** 操作指标表的 Spring JDBC 访问器 */
     private final JdbcTemplate jdbcTemplate;
@@ -106,49 +128,6 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
      */
     @Value("${sentinel.metric.aggregate-seconds:1}")
     private int aggregateSeconds;
-
-    /**
-     * 超过该时长的聚合桶从内存淘汰。拉取器重启后最多回拉 15 秒数据，
-     * 15 分钟远大于任何迟到数据
-     */
-    private static final long BUCKET_EVICT_MS = 1000 * 60 * 15;
-
-    /**
-     * 后台刷盘存在未落盘秒数的桶的调度间隔。桶在每次 {@link #saveAll} 时已同步
-     * 落盘，该调度仅兜底尾部数据（流量停止后拉取器不再调用 {@code saveAll}）
-     * 并淘汰过期桶，短周期保证尾部数据近实时可见
-     */
-    private static final int BUCKET_FLUSH_INTERVAL_SECONDS = 2;
-
-    /** 每日过期指标清理任务的初始延迟（分钟） */
-    private static final int CLEAN_INITIAL_DELAY_MINUTES = 5;
-
-    /** 每日过期指标清理任务的执行周期（分钟），即一天一次 */
-    private static final int CLEAN_PERIOD_MINUTES = 1440;
-
-    /**
-     * 一个 N 秒桶的内存累加器：按秒实体折叠出的累计值与已折叠的秒数。
-     * 拉取器的窗口不重叠推进，重复到达的秒只能来自调度停顿后的回拉
-     * （见 {@code MetricFetcher} 的 {@code MAX_LAST_FETCH_INTERVAL_MS}），
-     * 跳过这类重复秒避免重复计数
-     * <p>
-     * {@code flushedSeconds} 记录当前累计值中已落盘的秒数；由于
-     * {@code foldedSeconds} 只增不减，比较两者大小即为无竞态的"脏"判定，
-     * 保证每批新秒数只触发一次写入
-     */
-    private static final class BucketAccumulator {
-        /** 桶的累计值，保存在一个时间戳为桶起始时间的指标实体中 */
-        final MetricEntity entity;
-        /** 已折叠进累计值的秒（毫秒、截断后），同时用于去重 */
-        final Set<Long> foldedSeconds = ConcurrentHashMap.newKeySet();
-        /** 累计值中已落盘的秒数 */
-        volatile int flushedSeconds;
-
-        /** 基于一个初始化（全零）的桶实体创建累加器 */
-        BucketAccumulator(MetricEntity entity) {
-            this.entity = entity;
-        }
-    }
 
     /**
      * {@code app__resource__bucketStartMs -> 累计中的桶}，
@@ -184,6 +163,33 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         }
     };
 
+    /**
+     * 一个 N 秒桶的内存累加器：按秒实体折叠出的累计值与已折叠的秒数。
+     * 拉取器的窗口不重叠推进，重复到达的秒只能来自调度停顿后的回拉
+     * （见 {@code MetricFetcher} 的 {@code MAX_LAST_FETCH_INTERVAL_MS}），
+     * 跳过这类重复秒避免重复计数
+     * <p>
+     * {@code flushedSeconds} 记录当前累计值中已落盘的秒数；由于
+     * {@code foldedSeconds} 只增不减，比较两者大小即为无竞态的"脏"判定，
+     * 保证每批新秒数只触发一次写入
+     *
+     * @author maozi
+     * @date 2026/11/08
+     */
+    private static final class BucketAccumulator {
+        /** 桶的累计值，保存在一个时间戳为桶起始时间的指标实体中 */
+        private final MetricEntity entity;
+        /** 已折叠进累计值的秒（毫秒、截断后），同时用于去重 */
+        private final Set<Long> foldedSeconds = ConcurrentHashMap.newKeySet();
+        /** 累计值中已落盘的秒数 */
+        private volatile int flushedSeconds;
+
+        /** 基于一个初始化（全零）的桶实体创建累加器 */
+        BucketAccumulator(MetricEntity entity) {
+            this.entity = entity;
+        }
+    }
+
     /** 使用操作指标表的 JDBC 访问器创建仓储 */
     public JdbcMetricsRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -202,9 +208,9 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
                 return thread;
             });
             bucketFlushScheduler.scheduleWithFixedDelay(this::flushDirtyBucketsQuietly,
-                BUCKET_FLUSH_INTERVAL_SECONDS, BUCKET_FLUSH_INTERVAL_SECONDS, TimeUnit.SECONDS);
+                    BUCKET_FLUSH_INTERVAL_SECONDS, BUCKET_FLUSH_INTERVAL_SECONDS, TimeUnit.SECONDS);
             logger.info("Metric aggregation enabled: {} seconds per bucket, buckets are persisted as data arrives "
-                + "and the tail is flushed every {} seconds", aggregateSeconds, BUCKET_FLUSH_INTERVAL_SECONDS);
+                    + "and the tail is flushed every {} seconds", aggregateSeconds, BUCKET_FLUSH_INTERVAL_SECONDS);
         }
         if (retentionDays <= 0) {
             logger.info("Metric retention cleanup is disabled (sentinel.metric.retention-days={})", retentionDays);
@@ -216,7 +222,7 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
             return thread;
         });
         cleanerScheduler.scheduleAtFixedRate(this::cleanExpiredMetrics,
-            CLEAN_INITIAL_DELAY_MINUTES, CLEAN_PERIOD_MINUTES, TimeUnit.MINUTES);
+                CLEAN_INITIAL_DELAY_MINUTES, CLEAN_PERIOD_MINUTES, TimeUnit.MINUTES);
     }
 
     /** 关闭调度器，并尽力把内存中残留的聚合桶刷盘 */
@@ -282,7 +288,7 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
      * 桶收集期间数据即可近实时可见
      */
     private void bufferAndPersistBuckets(List<MetricEntity> metrics) {
-        long bucketMs = aggregateSeconds * 1000L;
+        long bucketMs = aggregateSeconds * ONE_SECOND_MS;
         for (MetricEntity metric : metrics) {
             long metricTime = metric.getTimestamp().getTime();
             long bucketStart = metricTime / bucketMs * bucketMs;
@@ -290,7 +296,7 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
             String app = metric.getApp();
             String resource = metric.getResource();
             String key = app + "__" + resource + "__" + bucketStart;
-            long second = metricTime / 1000 * 1000;
+            long second = metricTime / ONE_SECOND_MS * ONE_SECOND_MS;
             bucketBuffer.compute(key, (k, acc) -> {
                 BucketAccumulator accumulator = acc;
                 if (accumulator == null) {
@@ -452,7 +458,7 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
      */
     @Override
     public List<MetricEntity> queryByAppAndResourceBetween(String app, String resource,
-                                                           long startTime, long endTime) {
+            long startTime, long endTime) {
         List<MetricEntity> results = new ArrayList<>();
         if (StringUtil.isBlank(app) || StringUtil.isBlank(resource)) {
             return results;
@@ -477,7 +483,7 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
         }
         try {
             return jdbcTemplate.query(LIST_RESOURCES_SQL,
-                (rs, rowNum) -> rs.getString("resource"), app, startTime, endTime);
+                    (rs, rowNum) -> rs.getString("resource"), app, startTime, endTime);
         } catch (Exception e) {
             logger.error("Error when listing resources of app from MySQL, app={}", app, e);
             return results;
@@ -497,7 +503,7 @@ public class JdbcMetricsRepository implements MetricsRepository<MetricEntity> {
             }
             if (totalDeleted > 0) {
                 logger.info("Cleaned expired metrics older than {} days, at least {} rows deleted",
-                    retentionDays, totalDeleted);
+                        retentionDays, totalDeleted);
             }
         } catch (Exception e) {
             logger.error("Error when cleaning expired metrics", e);

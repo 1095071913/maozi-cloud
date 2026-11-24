@@ -25,7 +25,7 @@ import java.util.Map;
  * @date 2026/11/08
  */
 @Component
-public class StoreClassDBScan implements ApplicationRunner {
+public class StoreClassDbScan implements ApplicationRunner {
 
     /**
      * 应用启动时执行数据库实体类扫描
@@ -35,28 +35,28 @@ public class StoreClassDBScan implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
 
-        Map<String, Class<?>> storeClassDBMap = CollectionUtil.newHashMap();
+        Map<String, Class<?>> storeClassDbMap = CollectionUtil.newHashMap();
 
         // 聚合服务（maozi-cloud-all-service）扫描全包，普通服务仅扫描自身项目子包
         String subPath =
                 ApplicationNameConstant.MAOZI_CLOUD_ALL_SERVICE.equals(ApplicationEnvironmentContext.serviceName)
                 ? SymbolConstant.EMPTY
                 : SymbolConstant.DOT + ApplicationEnvironmentContext.applicationProjectAbbreviation;
-        ClassUtil.scanPackage(ApplicationEnvironmentContext.PACKAGE_PREFIX + subPath).forEach(clazz ->{
+        ClassUtil.scanPackage(ApplicationEnvironmentContext.PACKAGE_PREFIX + subPath).forEach(clazz -> {
 
             // 仅收集标注 @TableName 的实体类，建立表名到类类型的映射
             if (clazz.isAnnotationPresent(TableName.class)) {
 
                 TableName annotation = clazz.getAnnotation(TableName.class);
 
-                storeClassDBMap.put(annotation.value(), clazz);
+                storeClassDbMap.put(annotation.value(), clazz);
 
             }
 
         });
 
         // 以 DB 类型注册到全局存储类映射，供运行时按表名反查实体类
-        StoreClass.STORE_CLASS_MAP.put(StoreClassTypeEnum.DB, storeClassDBMap);
+        StoreClass.STORE_CLASS_MAP.put(StoreClassTypeEnum.DB, storeClassDbMap);
 
     }
 

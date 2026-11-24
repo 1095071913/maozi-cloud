@@ -32,16 +32,19 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public abstract class AbstractInMemoryRuleRepository<T extends RuleEntity> implements RuleRepository<T, Long> {
 
-    /** 按机器分组的规则（{@code <machine, <id, rule>>}） */
-    private Map<MachineInfo, Map<Long, T>> machineRules = new ConcurrentHashMap<>(16);
-    /** 按规则 id 索引的全部规则（{@code <id, rule>}） */
-    private Map<Long, T> allRules = new ConcurrentHashMap<>(16);
-
-    /** 按应用名分组的规则（{@code <app, <id, rule>>}） */
-    private Map<String, Map<Long, T>> appRules = new ConcurrentHashMap<>(16);
-
     /** 仓储可容纳的最大规则数；当前代码并未实际校验该上限 */
     private static final int MAX_RULES_SIZE = 10000;
+
+    /** 集合初始化的默认容量 */
+    private static final int INITIAL_CAPACITY = 16;
+
+    /** 按机器分组的规则（{@code <machine, <id, rule>>}） */
+    private Map<MachineInfo, Map<Long, T>> machineRules = new ConcurrentHashMap<>(INITIAL_CAPACITY);
+    /** 按规则 id 索引的全部规则（{@code <id, rule>}） */
+    private Map<Long, T> allRules = new ConcurrentHashMap<>(INITIAL_CAPACITY);
+
+    /** 按应用名分组的规则（{@code <app, <id, rule>>}） */
+    private Map<String, Map<Long, T>> appRules = new ConcurrentHashMap<>(INITIAL_CAPACITY);
 
     /**
      * 保存给定实体，无 id 时为其分配生成的 id。实体先经过 {@link #preProcess} 处理，
@@ -58,10 +61,10 @@ public abstract class AbstractInMemoryRuleRepository<T extends RuleEntity> imple
             String app = processedEntity.getApp();
             allRules.put(entityId, processedEntity);
             machineRules.computeIfAbsent(MachineInfo.of(app, processedEntity.getIp(),
-                processedEntity.getPort()), e -> new ConcurrentHashMap<>(32))
+                            processedEntity.getPort()), e -> new ConcurrentHashMap<>(INITIAL_CAPACITY))
                 .put(entityId, processedEntity);
-            appRules.computeIfAbsent(app, v -> new ConcurrentHashMap<>(32))
-                .put(entityId, processedEntity);
+            appRules.computeIfAbsent(app, v -> new ConcurrentHashMap<>(INITIAL_CAPACITY))
+                    .put(entityId, processedEntity);
         }
 
         return processedEntity;

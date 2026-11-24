@@ -36,13 +36,13 @@ public @interface Lock {
     /** 加锁成功后自动释放锁的时长（秒），默认 Long.MIN_VALUE 表示回退到全局配置 */
     long leaseTime() default Long.MIN_VALUE;
 
-     /** 自定义业务键（支持 SpEL 表达式） */
-     String[] keys() default {};
+    /** 自定义业务键（支持 SpEL 表达式） */
+    String[] keys() default {};
 
-     /** 加锁超时的处理策略，默认持续获取（指数退避重试） */
-     LockTimeoutStrategyEnum lockTimeoutStrategy() default LockTimeoutStrategyEnum.KEEP_ACQUIRE;
+    /** 加锁超时的处理策略，默认持续获取（指数退避重试） */
+    LockTimeoutStrategyEnum lockTimeoutStrategy() default LockTimeoutStrategyEnum.KEEP_ACQUIRE;
 
-     /** 释放锁时已超时的处理策略，默认不做处理 */
-     UnLockTimeoutStrategyEnum releaseTimeoutStrategy() default UnLockTimeoutStrategyEnum.NO_OPERATION;
+    /** 释放锁时已超时的处理策略，默认不做处理 */
+    UnLockTimeoutStrategyEnum releaseTimeoutStrategy() default UnLockTimeoutStrategyEnum.NO_OPERATION;
 
 }

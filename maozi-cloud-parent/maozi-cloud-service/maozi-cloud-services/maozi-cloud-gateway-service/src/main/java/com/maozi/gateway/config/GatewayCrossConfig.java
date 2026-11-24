@@ -20,7 +20,6 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
-
 /**
  * 网关跨域与路由发现配置类。
  * <p>
@@ -57,7 +56,7 @@ public class GatewayCrossConfig {
      */
     @Bean
     public RouteDefinitionLocator discoveryClientRouteDefinitionLocator(ReactiveDiscoveryClient discoveryClient,
-        DiscoveryLocatorProperties properties) {
+            DiscoveryLocatorProperties properties) {
         return new DiscoveryClientRouteDefinitionLocator(discoveryClient, properties);
     }
 

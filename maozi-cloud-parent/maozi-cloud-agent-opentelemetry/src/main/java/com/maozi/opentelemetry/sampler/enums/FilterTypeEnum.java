@@ -29,7 +29,6 @@ public enum FilterTypeEnum {
 
     ;
 
-
     /**
      * 构造过滤器类型
      *

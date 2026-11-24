@@ -30,8 +30,7 @@ public class ApplicationEnvironmentContext {
     /** 基础包路径前缀 */
     public static final String PACKAGE_PREFIX = "com.maozi";
 
-    /** 项目缩写 */
-    // Spring 初始化线程写入、业务线程读取，volatile 保证可见性
+    /** 项目缩写（Spring 初始化线程写入、业务线程读取，volatile 保证可见性） */
     public static volatile String applicationProjectAbbreviation;
 
     /** 注入项目缩写配置项 {@code application-project-abbreviation} */
@@ -94,8 +93,7 @@ public class ApplicationEnvironmentContext {
         ApplicationEnvironmentContext.details = details;
     }
 
-    /** Spring Environment 实例 */
-    // Spring 初始化线程写入、业务线程读取，volatile 保证可见性
+    /** Spring Environment 实例（Spring 初始化线程写入、业务线程读取，volatile 保证可见性） */
     public static volatile Environment config;
 
     /** 注入 Spring {@link Environment} 实例 */

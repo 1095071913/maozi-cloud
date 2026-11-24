@@ -28,23 +28,15 @@ import java.util.Optional;
  */
 public final class MachineUtils {
 
+    /** 机器 ID 中 ip 与命令端口之间的分隔符 */
+    public static final String MACHINE_ID_SEPARATOR = "@";
+
     /**
      * 从 {@code ip@commandPort} 形式的机器 ID 解析命令端口，
      * ID 无端口或无法解析时返回 empty
      */
     public static Optional<Integer> parseCommandPort(String machineIp) {
-        try {
-            if (!machineIp.contains("@")) {
-                return Optional.empty();
-            }
-            String[] str = machineIp.split("@");
-            if (str.length <= 1) {
-                return Optional.empty();
-            }
-            return Optional.of(Integer.parseInt(str[1]));
-        } catch (Exception ex) {
-            return Optional.empty();
-        }
+        return parseCommandIpAndPort(machineIp).map(ipPort -> ipPort.r2);
     }
 
     /**
@@ -53,15 +45,16 @@ public final class MachineUtils {
      */
     public static Optional<Tuple2<String, Integer>> parseCommandIpAndPort(String machineIp) {
         try {
-            if (StringUtil.isEmpty(machineIp) || !machineIp.contains("@")) {
+            if (StringUtil.isEmpty(machineIp) || !machineIp.contains(MACHINE_ID_SEPARATOR)) {
                 return Optional.empty();
             }
-            String[] str = machineIp.split("@");
-            if (str.length <= 1) {
+            String[] segments = machineIp.split(MACHINE_ID_SEPARATOR);
+            if (segments.length <= 1) {
                 return Optional.empty();
             }
-            return Optional.of(Tuple2.of(str[0], Integer.parseInt(str[1])));
+            return Optional.of(Tuple2.of(segments[0], Integer.parseInt(segments[1])));
         } catch (Exception ex) {
+            // 机器 ID 格式非法（如端口非数字）时视为无法解析
             return Optional.empty();
         }
     }

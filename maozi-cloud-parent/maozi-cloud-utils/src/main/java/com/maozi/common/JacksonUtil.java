@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -55,10 +54,9 @@ public final class JacksonUtil {
     private JacksonUtil() {}
 
     /** 全局 ObjectMapper 实例 */
-    @Getter
     private static final ObjectMapper OBJECT_MAPPER;
 
-    static{
+    static {
         OBJECT_MAPPER = initObjectMapperConfig();
     }
 
@@ -148,7 +146,9 @@ public final class JacksonUtil {
      */
     public static String objectToJson(Object data) {
 
-        try {return OBJECT_MAPPER.writeValueAsString(data);} catch (JsonProcessingException e) {
+        try {
+            return OBJECT_MAPPER.writeValueAsString(data);
+        } catch (JsonProcessingException e) {
             log.error(e.getLocalizedMessage(), e);
             return null;
         }
@@ -170,7 +170,9 @@ public final class JacksonUtil {
             return null;
         }
 
-        try {return OBJECT_MAPPER.readValue(jsonString, type);} catch (JsonProcessingException e) {
+        try {
+            return OBJECT_MAPPER.readValue(jsonString, type);
+        } catch (JsonProcessingException e) {
             log.error(e.getLocalizedMessage(), e);
             return null;
         }
@@ -188,7 +190,9 @@ public final class JacksonUtil {
 
         TypeReference<List<T>> typeReference = new TypeReference<>() {};
 
-        try {return OBJECT_MAPPER.readValue(json, typeReference);} catch (Exception e) {
+        try {
+            return OBJECT_MAPPER.readValue(json, typeReference);
+        } catch (Exception e) {
             log.error("json deserialize failed, json={}", json, e);
             return Collections.emptyList();
         }
@@ -206,7 +210,9 @@ public final class JacksonUtil {
 
         TypeReference<Map<String, T>> typeReference = new TypeReference<>() {};
 
-        try {return OBJECT_MAPPER.readValue(json, typeReference);} catch (Exception e) {
+        try {
+            return OBJECT_MAPPER.readValue(json, typeReference);
+        } catch (Exception e) {
             log.error(e.getLocalizedMessage(), e);
             return Collections.emptyMap();
         }
@@ -224,7 +230,9 @@ public final class JacksonUtil {
 
         TypeReference<Map<String, T>> typeReference = new TypeReference<>() {};
 
-        try {return OBJECT_MAPPER.convertValue(data, typeReference);} catch (Exception e) {
+        try {
+            return OBJECT_MAPPER.convertValue(data, typeReference);
+        } catch (Exception e) {
             log.error(e.getLocalizedMessage(), e);
             return Collections.emptyMap();
         }
@@ -241,7 +249,9 @@ public final class JacksonUtil {
      */
     public static <T> T mapToObject(Map<String, ?> data, Class<T> type) {
 
-        try {return OBJECT_MAPPER.convertValue(data, type);} catch (Exception e) {
+        try {
+            return OBJECT_MAPPER.convertValue(data, type);
+        } catch (Exception e) {
             log.error(e.getLocalizedMessage(), e);
             return null;
         }
@@ -260,7 +270,9 @@ public final class JacksonUtil {
 
         JavaType constructType = TypeFactory.defaultInstance().constructType(type);
 
-        try {return OBJECT_MAPPER.convertValue(data, constructType);} catch (Exception e) {
+        try {
+            return OBJECT_MAPPER.convertValue(data, constructType);
+        } catch (Exception e) {
             log.error(e.getLocalizedMessage(), e);
             return null;
         }
@@ -278,7 +290,9 @@ public final class JacksonUtil {
 
         TypeReference<List<T>> typeReference = new TypeReference<>() {};
 
-        try {return OBJECT_MAPPER.convertValue(data, typeReference);} catch (Exception e) {
+        try {
+            return OBJECT_MAPPER.convertValue(data, typeReference);
+        } catch (Exception e) {
             log.error(e.getLocalizedMessage(), e);
             return Collections.emptyList();
         }
@@ -295,7 +309,9 @@ public final class JacksonUtil {
 
         TypeReference<List<Map<String, Object>>> typeReference = new TypeReference<>() {};
 
-        try {return OBJECT_MAPPER.convertValue(data, typeReference);} catch (Exception e) {
+        try {
+            return OBJECT_MAPPER.convertValue(data, typeReference);
+        } catch (Exception e) {
             log.error(e.getLocalizedMessage(), e);
             return Collections.emptyList();
         }

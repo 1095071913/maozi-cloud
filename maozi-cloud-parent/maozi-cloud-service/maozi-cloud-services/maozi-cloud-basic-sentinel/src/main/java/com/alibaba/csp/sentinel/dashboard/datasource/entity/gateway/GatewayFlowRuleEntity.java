@@ -297,54 +297,58 @@ public class GatewayFlowRuleEntity extends BaseRuleEntity {
     /** 判断指定对象是否与本实体全部字段相同。 */
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         GatewayFlowRuleEntity that = (GatewayFlowRuleEntity) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(app, that.app) &&
-                Objects.equals(ip, that.ip) &&
-                Objects.equals(port, that.port) &&
-                Objects.equals(gmtCreate, that.gmtCreate) &&
-                Objects.equals(gmtModified, that.gmtModified) &&
-                Objects.equals(resource, that.resource) &&
-                Objects.equals(resourceMode, that.resourceMode) &&
-                Objects.equals(grade, that.grade) &&
-                Objects.equals(count, that.count) &&
-                Objects.equals(interval, that.interval) &&
-                Objects.equals(intervalUnit, that.intervalUnit) &&
-                Objects.equals(controlBehavior, that.controlBehavior) &&
-                Objects.equals(burst, that.burst) &&
-                Objects.equals(maxQueueingTimeoutMs, that.maxQueueingTimeoutMs) &&
-                Objects.equals(paramItem, that.paramItem);
+        return Objects.equals(id, that.id)
+                && Objects.equals(app, that.app)
+                && Objects.equals(ip, that.ip)
+                && Objects.equals(port, that.port)
+                && Objects.equals(gmtCreate, that.gmtCreate)
+                && Objects.equals(gmtModified, that.gmtModified)
+                && Objects.equals(resource, that.resource)
+                && Objects.equals(resourceMode, that.resourceMode)
+                && Objects.equals(grade, that.grade)
+                && Objects.equals(count, that.count)
+                && Objects.equals(interval, that.interval)
+                && Objects.equals(intervalUnit, that.intervalUnit)
+                && Objects.equals(controlBehavior, that.controlBehavior)
+                && Objects.equals(burst, that.burst)
+                && Objects.equals(maxQueueingTimeoutMs, that.maxQueueingTimeoutMs)
+                && Objects.equals(paramItem, that.paramItem);
     }
 
     /** 以全部字段计算哈希码。 */
     @Override
     public int hashCode() {
-        return Objects.hash(id, app, ip, port, gmtCreate, gmtModified, resource, resourceMode, grade, count, interval, 
-            intervalUnit, controlBehavior, burst, maxQueueingTimeoutMs, paramItem);
+        return Objects.hash(id, app, ip, port, gmtCreate, gmtModified, resource, resourceMode, grade, count, interval,
+                intervalUnit, controlBehavior, burst, maxQueueingTimeoutMs, paramItem);
     }
 
     /** 拼接全部字段构建字符串。 */
     @Override
     public String toString() {
-        return "GatewayFlowRuleEntity{" +
-                "id=" + id +
-                ", app='" + app + '\'' +
-                ", ip='" + ip + '\'' +
-                ", port=" + port +
-                ", gmtCreate=" + gmtCreate +
-                ", gmtModified=" + gmtModified +
-                ", resource='" + resource + '\'' +
-                ", resourceMode=" + resourceMode +
-                ", grade=" + grade +
-                ", count=" + count +
-                ", interval=" + interval +
-                ", intervalUnit=" + intervalUnit +
-                ", controlBehavior=" + controlBehavior +
-                ", burst=" + burst +
-                ", maxQueueingTimeoutMs=" + maxQueueingTimeoutMs +
-                ", paramItem=" + paramItem +
-                '}';
+        return "GatewayFlowRuleEntity{"
+                + "id=" + id
+                + ", app='" + app + '\''
+                + ", ip='" + ip + '\''
+                + ", port=" + port
+                + ", gmtCreate=" + gmtCreate
+                + ", gmtModified=" + gmtModified
+                + ", resource='" + resource + '\''
+                + ", resourceMode=" + resourceMode
+                + ", grade=" + grade
+                + ", count=" + count
+                + ", interval=" + interval
+                + ", intervalUnit=" + intervalUnit
+                + ", controlBehavior=" + controlBehavior
+                + ", burst=" + burst
+                + ", maxQueueingTimeoutMs=" + maxQueueingTimeoutMs
+                + ", paramItem=" + paramItem
+                + '}';
     }
 }

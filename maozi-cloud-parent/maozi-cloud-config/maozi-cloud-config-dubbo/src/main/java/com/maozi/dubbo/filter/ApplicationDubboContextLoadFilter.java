@@ -67,7 +67,9 @@ public class ApplicationDubboContextLoadFilter implements Filter {
 
         // 执行实际调用，在 finally 中清理上下文，
         // 确保即使发生异常也不会造成线程数据泄漏
-        try{return invoker.invoke(invocation);} finally{
+        try {
+            return invoker.invoke(invocation);
+        } finally {
             AbstractRequestContextHolder.clearContext();
         }
 

@@ -58,9 +58,9 @@ public class ClusterAppSingleServerAssignRequest {
     /** 返回该请求的字符串表示。 */
     @Override
     public String toString() {
-        return "ClusterAppSingleServerAssignRequest{" +
-            "clusterMap=" + clusterMap +
-            ", remainingList=" + remainingList +
-            '}';
+        return "ClusterAppSingleServerAssignRequest{"
+                + "clusterMap=" + clusterMap
+                + ", remainingList=" + remainingList
+                + '}';
     }
 }

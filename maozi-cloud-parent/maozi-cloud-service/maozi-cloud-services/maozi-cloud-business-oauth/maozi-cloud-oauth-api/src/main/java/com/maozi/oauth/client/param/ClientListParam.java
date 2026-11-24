@@ -53,11 +53,8 @@ public class ClientListParam implements OrderParam, Serializable {
     @Override
     public Map<String, Map<String, Boolean>> getOrderMainFieldsMap() {
         if (orderMainFieldsMap == null) {
-            orderMainFieldsMap = Map.of(
-                QueryEnvironmentContext.defaultOrderKey, Map.of(
-                    CREATE_TIME_KEY, Boolean.TRUE
-                )
-            );
+            orderMainFieldsMap = Map.of(QueryEnvironmentContext.defaultOrderKey,
+                    Map.of(CREATE_TIME_KEY, Boolean.TRUE));
         }
         return orderMainFieldsMap;
     }

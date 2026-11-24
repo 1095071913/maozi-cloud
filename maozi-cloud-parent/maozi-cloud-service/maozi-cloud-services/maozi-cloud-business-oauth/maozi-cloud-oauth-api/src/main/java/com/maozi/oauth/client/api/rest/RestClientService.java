@@ -64,11 +64,7 @@ public interface RestClientService {
     @PreAuthorize("hasAuthority('system:client:list')")
     AbstractBaseResult<List<DropDownResult>> dropDownListResult();
 
-
-
-
-
-//==================== 单资源 ===================
+    // ==================== 单资源 ====================
 
     /** 单资源操作的基础路径，包含客户端 ID 路径变量 */
     String CURRENT_PATH = PATH + "/{id}";
@@ -92,7 +88,7 @@ public interface RestClientService {
      */
     @Post(value = CURRENT_PATH + "/update", description = "更新")
     @PreAuthorize("hasAuthority('system:client:update')")
-    AbstractBaseResult<Void> updateResult(@PathVariable Long id,@RequestBody ClientSaveUpdateParam param);
+    AbstractBaseResult<Void> updateResult(@PathVariable Long id, @RequestBody ClientSaveUpdateParam param);
 
     /**
      * 根据客户端 ID 更新客户端状态（启用/禁用）

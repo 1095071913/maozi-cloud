@@ -27,12 +27,12 @@ public class ClusterGroupEntity extends BaseClusterServerMachine {
     /** 返回该实体的字符串表示。 */
     @Override
     public String toString() {
-        return "ClusterGroupEntity{" +
-            "machineId='" + machineId + '\'' +
-            ", ip='" + ip + '\'' +
-            ", port=" + port +
-            ", clientSet=" + clientSet +
-            ", belongToApp=" + belongToApp +
-            '}';
+        return "ClusterGroupEntity{"
+                + "machineId='" + machineId + '\''
+                + ", ip='" + ip + '\''
+                + ", port=" + port
+                + ", clientSet=" + clientSet
+                + ", belongToApp=" + belongToApp
+                + '}';
     }
 }

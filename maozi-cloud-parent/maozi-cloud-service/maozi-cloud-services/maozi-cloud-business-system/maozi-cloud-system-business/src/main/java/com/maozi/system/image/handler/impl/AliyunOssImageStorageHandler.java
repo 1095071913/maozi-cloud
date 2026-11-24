@@ -96,7 +96,7 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
         }
 
         OSSClientBuilder builder = OSSClient.newBuilder()
-            .region(aliyun.getRegion());
+                .region(aliyun.getRegion());
 
         String endpoint = aliyun.getEndpoint();
 
@@ -104,9 +104,11 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
             builder.endpoint(endpoint);
         }
 
+        StaticCredentialsProvider credentialsProvider =
+                new StaticCredentialsProvider(aliyun.getAccessKeyId(), aliyun.getAccessKeySecret());
         ossClient = builder
-            .credentialsProvider(new StaticCredentialsProvider(aliyun.getAccessKeyId(), aliyun.getAccessKeySecret()))
-            .build();
+                .credentialsProvider(credentialsProvider)
+                .build();
 
     }
 
@@ -166,11 +168,11 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
             String fileKey = buildObjectKey(path, originalFilename);
 
             PutObjectRequest request = PutObjectRequest.newBuilder()
-                .bucket(aliyun.getBucket())
-                .key(fileKey)
-                .contentType(file.getContentType())
-                .body(BinaryData.fromStream(file.getInputStream(), fileSize))
-                .build();
+                    .bucket(aliyun.getBucket())
+                    .key(fileKey)
+                    .contentType(file.getContentType())
+                    .body(BinaryData.fromStream(file.getInputStream(), fileSize))
+                    .build();
 
             ossClient.putObject(request);
 
@@ -237,19 +239,15 @@ public class AliyunOssImageStorageHandler implements ImageStorageHandler {
 
         String domain = aliyun.getDomain();
 
-        if (StringUtils.isNotEmpty(domain)) {
+                if (StringUtils.isNotEmpty(domain)) {
             return StringUtils.removeEnd(domain, SymbolConstant.SLASH) + SymbolConstant.SLASH + fileKey;
         }
 
         String endpoint = aliyun.getEndpoint();
-
         if (StringUtils.isNotEmpty(endpoint)) {
-
             URI endpointUri = URI.create(endpoint);
-
             return endpointUri.getScheme() + PROTOCOL_SEPARATOR + bucket
                     + SymbolConstant.DOT + endpointUri.getHost() + SymbolConstant.SLASH + fileKey;
-
         }
 
         return HTTPS_SCHEME_PREFIX + bucket + OSS_REGION_PREFIX + aliyun.getRegion()

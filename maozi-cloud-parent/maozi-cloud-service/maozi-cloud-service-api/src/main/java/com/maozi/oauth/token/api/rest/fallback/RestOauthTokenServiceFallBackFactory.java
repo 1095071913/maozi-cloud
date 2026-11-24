@@ -25,7 +25,7 @@ import java.util.Objects;
  * @date 2026/11/08
  */
 @Component
-public class RestOauthTokenServiceFallBackFactory implements FallbackFactory<RestOauthTokenService>{
+public class RestOauthTokenServiceFallBackFactory implements FallbackFactory<RestOauthTokenService> {
 
     /**
      * 创建降级实例

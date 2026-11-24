@@ -51,7 +51,7 @@ public class ConnectionGroupVO {
 
     /** 设置分组内的连接列表并返回当前对象。 */
     public ConnectionGroupVO setConnectionSet(
-        List<ConnectionDescriptorVO> connectionSet) {
+            List<ConnectionDescriptorVO> connectionSet) {
         this.connectionSet = connectionSet;
         return this;
     }
@@ -70,10 +70,10 @@ public class ConnectionGroupVO {
     /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
-        return "ConnectionGroupVO{" +
-            "namespace='" + namespace + '\'' +
-            ", connectionSet=" + connectionSet +
-            ", connectedCount=" + connectedCount +
-            '}';
+        return "ConnectionGroupVO{"
+                + "namespace='" + namespace + '\''
+                + ", connectionSet=" + connectionSet
+                + ", connectedCount=" + connectedCount
+                + '}';
     }
 }

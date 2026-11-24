@@ -259,7 +259,6 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
     }
 
-
     /**
      * 批量获取数据库列名
      *
@@ -338,17 +337,17 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
                     boolean hasAnnotationField = StringUtils.isNotEmpty(annotationField);
                     boolean hasAnnotationTableName = StringUtils.isNotEmpty(annotationTableName);
 
-                    if (annotation.ignore() && (hasAnnotationField || hasAnnotationTableName)) {
+                    boolean hasExplicitSource = hasAnnotationField || hasAnnotationTableName;
+
+                    if (annotation.ignore() && hasExplicitSource) {
 
                         // ignore 且显式指定来源字段或表名：按注解配置生成列名，
                         // 未指定的部分回退字段名/默认别名
-                        String tableName = hasAnnotationTableName ?
-                                annotationTableName
-                                :
-                                QueryEnvironmentContext.defaultOrderKey;
+                        String tableName = hasAnnotationTableName
+                                ? annotationTableName
+                                : QueryEnvironmentContext.defaultOrderKey;
 
-                        String columnName = hasAnnotationField ?
-                            annotationField : StrUtil.toUnderlineCase(fieldName);
+                        String columnName = hasAnnotationField ? annotationField : StrUtil.toUnderlineCase(fieldName);
 
                         if (Boolean.TRUE.equals(isJoin)) {
                             columnName = String.join(SymbolConstant.DOT, tableName, columnName);
@@ -1033,7 +1032,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
             ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
             ObjectUtil.checkConditionThrowError(super.count(wrapper) > 0, errorCode,
-                resourceName + errorCode.getMessage());
+                    resourceName + errorCode.getMessage());
 
         }
 
@@ -1071,7 +1070,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
             ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
             ObjectUtil.checkConditionThrowError(super.count(wrapper) > 0, errorCode,
-                resourceName + errorCode.getMessage());
+                    resourceName + errorCode.getMessage());
 
         } else {
             // 未携带 ID 视为新增：校验参数合法性
@@ -1112,7 +1111,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
                 ErrorCode errorCode = SystemErrorCode.DATA_NOT_EXIST_ERROR;
                 ObjectUtil.checkConditionThrowError(super.count(wrapper) > 0, errorCode,
-                    resourceName + errorCode.getMessage());
+                        resourceName + errorCode.getMessage());
 
             }
 
@@ -1160,7 +1159,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
 
     }
 
-// ====================== 工具方法 ======================
+    // ====================== 工具方法 ======================
 
     /**
      * 根据参数对象的注解信息构建查询条件
@@ -1563,8 +1562,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         }
 
         ObjectUtil.checkConditionThrowError(
-            StringUtils.isNotEmpty(annotation.relationField()) || StringUtils.isNotEmpty(annotation.functionName()),
-            getResourceName() + RESOURCE_SUFFIX_RELATION_FIELD_NOT_SET
+                StringUtils.isNotEmpty(annotation.relationField()) || StringUtils.isNotEmpty(annotation.functionName()),
+                getResourceName() + RESOURCE_SUFFIX_RELATION_FIELD_NOT_SET
         );
 
         return annotation.isService() ? annotation : null;
@@ -1707,8 +1706,8 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         }
 
         AbstractBaseResult<Map<Long, List<?>>> rpcResult = ReflectUtil.invoke(
-            service, ResultFunName.LIST_BY_RELATION_IDS_RESULT, relationIds,
-            relationFieldName, getColumns(field.getType()));
+                service, ResultFunName.LIST_BY_RELATION_IDS_RESULT, relationIds,
+                relationFieldName, getColumns(field.getType()));
         Map<Long, List<?>> resultData = rpcResult.getResultNotNullDataThrowError(getResourceName());
 
         for (Object response : responses) {
@@ -1738,7 +1737,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         }
 
         AbstractBaseResult<List<DropDownResult>> rpcResult = ReflectUtil.invoke(
-            service, ResultFunName.DROP_DOWN_LIST_RESULT, relationIds);
+                service, ResultFunName.DROP_DOWN_LIST_RESULT, relationIds);
         List<DropDownResult> resultData = rpcResult.getResultNotNullDataThrowError(getResourceName());
 
         Map<Long, DropDownResult> relationsMap = toMapByIds(resultData, DropDownResult::getId);
@@ -1764,7 +1763,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         }
 
         AbstractBaseResult<Map<Long, Object>> rpcResult = ReflectUtil.invoke(
-            service, ResultFunName.LIST_BY_IDS_RESULT, relationIds, getColumns(field.getType()));
+                service, ResultFunName.LIST_BY_IDS_RESULT, relationIds, getColumns(field.getType()));
         Map<Long, Object> resultData = rpcResult.getResultNotNullDataThrowError(getResourceName());
 
         setRelationFieldFromMap(responses, relationFieldName, field.getName(), resultData);
@@ -1880,7 +1879,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         Long id = ReflectUtil.invokeFunGetId(data);
 
         AbstractBaseResult<List<?>> rpcResult = ReflectUtil.invoke(
-            service, ResultFunName.LIST_BY_RELATION_ID_RESULT, id, relationFieldName, getColumns(field.getType()));
+                service, ResultFunName.LIST_BY_RELATION_ID_RESULT, id, relationFieldName, getColumns(field.getType()));
         List<?> resultData = rpcResult.getResultDataThrowError();
 
         if (CollectionUtil.isNotEmpty(resultData)) {
@@ -1906,7 +1905,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         }
 
         AbstractBaseResult<DropDownResult> rpcResult = ReflectUtil.invoke(
-            service, ResultFunName.DROP_DOWN_RESULT, relationId);
+                service, ResultFunName.DROP_DOWN_RESULT, relationId);
         DropDownResult resultData = rpcResult.getResultDataThrowError();
 
         if (ObjectUtil.isNotNull(resultData)) {
@@ -1932,7 +1931,7 @@ public abstract class BaseServiceImpl<M extends IBaseMapper<T>, T extends Abstra
         }
 
         AbstractBaseResult<Object> rpcResult = ReflectUtil.invoke(
-            service, ResultFunName.GET_BY_ID_RESULT, relationId, getColumns(field.getType()));
+                service, ResultFunName.GET_BY_ID_RESULT, relationId, getColumns(field.getType()));
         Object resultData = rpcResult.getResultDataThrowError();
 
         if (ObjectUtil.isNotNull(resultData)) {

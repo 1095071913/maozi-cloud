@@ -10,11 +10,10 @@ package com.maozi.base.constant;
  * @author pengjinlong
  * @date 2026/5/6
  */
-public class ResultFunName {
+public final class ResultFunName {
 
     /** 常量类私有构造，禁止实例化 */
-    private ResultFunName() {
-    }
+    private ResultFunName() {}
 
     /** getByIdResult 方法名 */
     public static final String GET_BY_ID_RESULT = "getByIdResult";

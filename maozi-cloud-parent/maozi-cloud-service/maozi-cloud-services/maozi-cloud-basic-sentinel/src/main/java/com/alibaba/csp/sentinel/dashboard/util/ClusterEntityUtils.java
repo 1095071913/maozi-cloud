@@ -44,18 +44,21 @@ import java.util.Set;
  */
 public final class ClusterEntityUtils {
 
+    /** 地址（ip:port）中 ip 与端口之间的分隔符 */
+    private static final String ADDRESS_SEPARATOR = ":";
+
     /**
      * 将机器状态封装为应用级 Token 服务端状态：先处理运行在本应用机器上的
      * Token 服务端（含连接数），再处理从客户端配置推断出的外部 Token 服务端
      * （标记为不属于本应用）
      */
     public static List<AppClusterServerStateWrapVO> wrapToAppClusterServerState(
-        List<ClusterUniversalStatePairVO> list) {
+            List<ClusterUniversalStatePairVO> list) {
         if (list == null || list.isEmpty()) {
             return new ArrayList<>();
         }
-        Map<String, AppClusterServerStateWrapVO> map = new HashMap<>();
-        Set<String> tokenServerSet = new HashSet<>();
+        Map<String, AppClusterServerStateWrapVO> map = new HashMap<>(list.size());
+        Set<String> tokenServerSet = new HashSet<>(list.size());
         // 处理属于本应用的 Token 服务端
         for (ClusterUniversalStatePairVO stateVO : list) {
             ClusterUniversalStateVO state = stateVO.getState();
@@ -63,21 +66,21 @@ public final class ClusterEntityUtils {
 
             if (Objects.equals(mode, ClusterStateManager.CLUSTER_SERVER)) {
                 String ip = stateVO.getIp();
-                String serverId = ip + '@' + stateVO.getCommandPort();
+                String serverId = ip + MachineUtils.MACHINE_ID_SEPARATOR + stateVO.getCommandPort();
                 ClusterServerStateVO serverStateVO = state.getServer();
                 Integer serverStatePort = serverStateVO.getPort();
                 map.computeIfAbsent(serverId, v -> new AppClusterServerStateWrapVO()
-                    .setId(serverId)
-                    .setIp(ip)
-                    .setPort(serverStatePort)
-                    .setState(serverStateVO)
-                    .setBelongToApp(true)
-                    .setConnectedCount(serverStateVO.getConnection().stream()
-                        .mapToInt(ConnectionGroupVO::getConnectedCount)
-                        .sum()
-                    )
+                        .setId(serverId)
+                        .setIp(ip)
+                        .setPort(serverStatePort)
+                        .setState(serverStateVO)
+                        .setBelongToApp(true)
+                        .setConnectedCount(serverStateVO.getConnection().stream()
+                                .mapToInt(ConnectionGroupVO::getConnectedCount)
+                                .sum()
+                        )
                 );
-                tokenServerSet.add(ip + ":" + serverStatePort);
+                tokenServerSet.add(ip + ADDRESS_SEPARATOR + serverStatePort);
             }
         }
         // 处理来自其他应用的 Token 服务端
@@ -100,16 +103,16 @@ public final class ClusterEntityUtils {
                 if (StringUtil.isBlank(serverIp) || serverPort == null || serverPort <= 0) {
                     continue;
                 }
-                if (tokenServerSet.contains(serverIp + ":" + serverPort)) {
+                if (tokenServerSet.contains(serverIp + ADDRESS_SEPARATOR + serverPort)) {
                     continue;
                 }
                 // 无法直接获取外部 Token 服务端的命令端口
-                String serverId = String.format("%s:%d", serverIp, serverPort);
+                String serverId = serverIp + ADDRESS_SEPARATOR + serverPort;
                 map.computeIfAbsent(serverId, v -> new AppClusterServerStateWrapVO()
-                    .setId(serverId)
-                    .setIp(serverIp)
-                    .setPort(serverPort)
-                    .setBelongToApp(false)
+                        .setId(serverId)
+                        .setIp(serverIp)
+                        .setPort(serverPort)
+                        .setBelongToApp(false)
                 );
             }
         }
@@ -121,11 +124,11 @@ public final class ClusterEntityUtils {
      * 每台运行在 Token 客户端模式的机器生成一个条目
      */
     public static List<AppClusterClientStateWrapVO> wrapToAppClusterClientState(
-        List<ClusterUniversalStatePairVO> list) {
+            List<ClusterUniversalStatePairVO> list) {
         if (list == null || list.isEmpty()) {
             return new ArrayList<>();
         }
-        Map<String, AppClusterClientStateWrapVO> map = new HashMap<>();
+        Map<String, AppClusterClientStateWrapVO> map = new HashMap<>(list.size());
         for (ClusterUniversalStatePairVO stateVO : list) {
             ClusterUniversalStateVO state = stateVO.getState();
             Integer mode = state.getStateInfo().getMode();
@@ -133,13 +136,13 @@ public final class ClusterEntityUtils {
             if (Objects.equals(mode, ClusterStateManager.CLUSTER_CLIENT)) {
                 String ip = stateVO.getIp();
                 Integer commandPort = stateVO.getCommandPort();
-                String clientId = ip + '@' + commandPort;
+                String clientId = ip + MachineUtils.MACHINE_ID_SEPARATOR + commandPort;
                 ClusterClientStateVO clientStateVO = state.getClient();
                 map.computeIfAbsent(clientId, v -> new AppClusterClientStateWrapVO()
-                    .setId(clientId)
-                    .setIp(ip)
-                    .setState(clientStateVO)
-                    .setCommandPort(commandPort)
+                        .setId(clientId)
+                        .setIp(ip)
+                        .setState(clientStateVO)
+                        .setCommandPort(commandPort)
                 );
             }
         }
@@ -155,7 +158,7 @@ public final class ClusterEntityUtils {
         if (list == null || list.isEmpty()) {
             return new ArrayList<>();
         }
-        Map<String, ClusterGroupEntity> map = new HashMap<>();
+        Map<String, ClusterGroupEntity> map = new HashMap<>(list.size());
         for (ClusterUniversalStatePairVO stateVO : list) {
             ClusterUniversalStateVO state = stateVO.getState();
             Integer mode = state.getStateInfo().getMode();
@@ -170,11 +173,11 @@ public final class ClusterEntityUtils {
                     continue;
                 }
                 String serverAddress = getIp(ip);
-                String targetAddress = serverAddress + ":" + port;
+                String targetAddress = serverAddress + ADDRESS_SEPARATOR + port;
                 map.computeIfAbsent(targetAddress, v -> {
                     ClusterGroupEntity group = new ClusterGroupEntity();
                     group.setBelongToApp(true);
-                    group.setMachineId(ip + '@' + stateVO.getCommandPort());
+                    group.setMachineId(ip + MachineUtils.MACHINE_ID_SEPARATOR + stateVO.getCommandPort());
                     group.setIp(ip);
                     group.setPort(port);
                     return group;
@@ -199,7 +202,7 @@ public final class ClusterEntityUtils {
                 if (StringUtil.isBlank(targetServer) || targetPort == null || targetPort <= 0) {
                     continue;
                 }
-                String targetAddress = targetServer + ":" + targetPort;
+                String targetAddress = targetServer + ADDRESS_SEPARATOR + targetPort;
                 ClusterGroupEntity group = map.computeIfAbsent(targetAddress, v -> {
                     ClusterGroupEntity serverGroup = new ClusterGroupEntity();
                     serverGroup.setBelongToApp(true);
@@ -208,7 +211,7 @@ public final class ClusterEntityUtils {
                     serverGroup.setPort(targetPort);
                     return serverGroup;
                 });
-                group.getClientSet().add(ip + '@' + stateVO.getCommandPort());
+                group.getClientSet().add(ip + MachineUtils.MACHINE_ID_SEPARATOR + stateVO.getCommandPort());
             }
         }
         return new ArrayList<>(map.values());
@@ -216,8 +219,8 @@ public final class ClusterEntityUtils {
 
     /** 返回 {@code ip:port} 字符串的 ip 部分，不含冒号时返回整个字符串 */
     private static String getIp(String str) {
-        if (str.contains(":")) {
-            return str.split(":")[0];
+        if (str.contains(ADDRESS_SEPARATOR)) {
+            return str.split(ADDRESS_SEPARATOR)[0];
         }
         return str;
     }

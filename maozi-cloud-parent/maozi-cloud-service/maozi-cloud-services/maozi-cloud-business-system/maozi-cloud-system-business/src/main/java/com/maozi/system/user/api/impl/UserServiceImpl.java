@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 package com.maozi.system.user.api.impl;
@@ -46,7 +46,6 @@ import com.maozi.system.user.param.UserIndividualUpdateParam;
 import com.maozi.system.user.param.UserSaveUpdateParam;
 import com.maozi.system.user.result.OauthUserInfoResult;
 import jakarta.annotation.Resource;
-import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -70,7 +69,6 @@ import java.util.Objects;
  * @author maozi
  * @date 2026/11/08
  */
-@Getter
 @Service
 public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> implements UserService {
 
@@ -80,12 +78,17 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
     /** 资源名称后缀：列表，用于异常提示信息 */
     private static final String RESOURCE_SUFFIX_LIST = "列表";
 
-    /** 密码修改校验失败提示语：旧密码不正确 */
-    @SuppressWarnings("java:S2068") // 误报：该常量为业务提示语，并非硬编码密码
+    /**
+     * 密码修改校验失败提示语：旧密码不正确
+     * <p>
+     * SuppressWarnings 说明：静态扫描会误判该提示语为硬编码密码。
+     * </p>
+     */
+    @SuppressWarnings("java:S2068")
     private static final String OLD_PASSWORD_MISMATCH_MESSAGE = "旧密码不正确";
 
     /** 密码编码器（DelegatingPasswordEncoder，默认 {bcrypt} 算法），用于密码加密与比对校验 */
-    protected static final PasswordEncoder PASSWORD_ENCODER =
+    private static final PasswordEncoder PASSWORD_ENCODER =
             PasswordEncoderFactories.createDelegatingPasswordEncoder();
 
     /** 获取资源名称 */
@@ -96,23 +99,23 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
 
     /** 用户角色服务，用于管理用户与角色的关联关系 */
     @Resource(name = SystemServiceConstant.USER_ROLE_SERVICE)
-    protected UserRoleService userRoleService;
+    private UserRoleService userRoleService;
 
     /** 权限服务，用于查询权限标识信息 */
     @Resource(name = SystemServiceConstant.PERMISSION_SERVICE)
-    protected PermissionService permissionService;
+    private PermissionService permissionService;
 
     /** 客户端RPC服务，用于远程调用客户端相关接口 */
     @RemoteResource
-    protected RpcClientService rpcClientService;
+    private RpcClientService rpcClientService;
 
     /** OAuth令牌RPC服务，用于远程调用认证令牌相关接口 */
     @RemoteResource
-    protected RpcOauthTokenService rpcOauthTokenService;
+    private RpcOauthTokenService rpcOauthTokenService;
 
     /** 角色权限服务，用于查询角色关联的权限信息 */
     @Resource(name = SystemServiceConstant.ROLE_PERMISSION_SERVICE)
-    protected RolePermissionService rolePermissionService;
+    private RolePermissionService rolePermissionService;
 
     /**
      * 解绑用户的所有角色关联关系
@@ -308,11 +311,11 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, UserDO> impleme
             UserDO domain = super.getByIdThrowError(userId, UserDO::getPassword);
 
             // 旧密码与库中密文不匹配时抛出业务异常
-            if (!UserServiceImpl.PASSWORD_ENCODER.matches(paramPassword, domain.getPassword())) {
+            if (!PASSWORD_ENCODER.matches(paramPassword, domain.getPassword())) {
                 throw new BusinessResultException(OLD_PASSWORD_MISMATCH_MESSAGE);
             }
 
-            paramNewPassword = UserServiceImpl.PASSWORD_ENCODER.encode(paramNewPassword);
+            paramNewPassword = PASSWORD_ENCODER.encode(paramNewPassword);
         }
 
         // 复制参数并更新用户基本信息与新密码

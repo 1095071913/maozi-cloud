@@ -55,9 +55,9 @@ public class GatewayFlowRuleNacosPublisher implements DynamicRulePublisher<List<
             return;
         }
         List<GatewayFlowRule> gatewayFlowRules = rules.stream()
-            .map(GatewayFlowRuleEntity::toGatewayFlowRule)
-            .collect(Collectors.toList());
+                .map(GatewayFlowRuleEntity::toGatewayFlowRule)
+                .collect(Collectors.toList());
         NacosConfigUtil.publishJsonConfig(configService, app,
-            NacosConfigUtil.GATEWAY_FLOW_DATA_ID_POSTFIX, nacosProperties.getGroup(), gatewayFlowRules);
+                NacosConfigUtil.GATEWAY_FLOW_DATA_ID_POSTFIX, nacosProperties.getGroup(), gatewayFlowRules);
     }
 }

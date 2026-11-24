@@ -92,7 +92,7 @@ public class RetryExecutorTask implements ExecutorMethod {
 
         // 日志信息集合（在 try 外声明，供 finally 记录使用）
         Map<String, String> logs = CollectionUtil.newHashMap();
-        
+
         Throwable ex = null;
         try {
 
@@ -112,7 +112,7 @@ public class RetryExecutorTask implements ExecutorMethod {
             boolean result = executeTask(retryParam);
             if (!result) {
                 throw new BusinessResultException(
-                    new ErrorCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE, "远程重试失败")
+                        new ErrorCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE, "远程重试失败")
                 );
             }
 
@@ -148,7 +148,7 @@ public class RetryExecutorTask implements ExecutorMethod {
             // 清理重试流量标记与链路上下文
             RetryContextHolder.clear();
             AbstractRequestContextHolder.clearContext();
-            
+
         }
 
         return true;
@@ -181,7 +181,7 @@ public class RetryExecutorTask implements ExecutorMethod {
         if (!RetryCondition.NoRetry.class.getName().equals(retryIfResultClassName)) {
 
             RetryCondition retryCondition =
-                (RetryCondition) SpringUtil.getBean(Class.forName(retryIfResultClassName));
+                    (RetryCondition) SpringUtil.getBean(Class.forName(retryIfResultClassName));
 
             return !retryCondition.shouldRetry(result);
 

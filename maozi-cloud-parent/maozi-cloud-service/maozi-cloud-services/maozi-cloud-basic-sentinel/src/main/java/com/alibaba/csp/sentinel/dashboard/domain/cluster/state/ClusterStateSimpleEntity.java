@@ -83,11 +83,11 @@ public class ClusterStateSimpleEntity {
     /** 返回该实体的字符串表示。 */
     @Override
     public String toString() {
-        return "ClusterStateSimpleEntity{" +
-            "mode=" + mode +
-            ", lastModified=" + lastModified +
-            ", clientAvailable=" + clientAvailable +
-            ", serverAvailable=" + serverAvailable +
-            '}';
+        return "ClusterStateSimpleEntity{"
+                + "mode=" + mode
+                + ", lastModified=" + lastModified
+                + ", clientAvailable=" + clientAvailable
+                + ", serverAvailable=" + serverAvailable
+                + '}';
     }
 }

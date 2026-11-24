@@ -79,10 +79,10 @@ public class ClusterUniversalStatePairVO {
     /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
-        return "ClusterUniversalStatePairVO{" +
-            "ip='" + ip + '\'' +
-            ", commandPort=" + commandPort +
-            ", state=" + state +
-            '}';
+        return "ClusterUniversalStatePairVO{"
+                + "ip='" + ip + '\''
+                + ", commandPort=" + commandPort
+                + ", state=" + state
+                + '}';
     }
 }

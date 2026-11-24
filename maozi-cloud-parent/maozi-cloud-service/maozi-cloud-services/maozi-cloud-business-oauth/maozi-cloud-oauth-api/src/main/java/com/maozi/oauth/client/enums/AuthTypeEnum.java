@@ -8,7 +8,6 @@ import lombok.Getter;
 
 import java.util.Objects;
 
-
 /**
  * 授权类型枚举
  * <p>
@@ -34,7 +33,7 @@ public enum AuthTypeEnum implements BaseEnum {
     PASSWORD(3, "密码模式", "password"),
 
     ;
-    
+
     /**
      * 枚举构造函数
      *
@@ -43,15 +42,11 @@ public enum AuthTypeEnum implements BaseEnum {
      * @param auth  授权类型标识，对应OAuth2.0协议中的grant_type参数值
      */
     AuthTypeEnum(Integer value, String desc, String auth) {
-        
         this.value = value;
-        
-        this.desc = desc;
-        
-        this.auth = auth;
-        
-    }
-    
+this.desc = desc;
+this.auth = auth;
+}
+
     /** 枚举值，授权类型的唯一编号 */
     @Getter
     private final Integer value;
@@ -95,5 +90,5 @@ public enum AuthTypeEnum implements BaseEnum {
         }
         return null;
     }
-    
+
 }

@@ -55,9 +55,9 @@ public class SystemRuleNacosPublisher implements DynamicRulePublisher<List<Syste
             return;
         }
         List<SystemRule> systemRules = rules.stream()
-            .map(SystemRuleEntity::toRule)
-            .collect(Collectors.toList());
+                .map(SystemRuleEntity::toRule)
+                .collect(Collectors.toList());
         NacosConfigUtil.publishJsonConfig(configService, app,
-            NacosConfigUtil.SYSTEM_DATA_ID_POSTFIX, nacosProperties.getGroup(), systemRules);
+                NacosConfigUtil.SYSTEM_DATA_ID_POSTFIX, nacosProperties.getGroup(), systemRules);
     }
 }

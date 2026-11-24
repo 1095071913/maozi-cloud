@@ -61,6 +61,9 @@ public class HttpFilterHandle extends BaseFilterHandle {
     /** 协议分隔符切分模式（剥离协议前缀用，预编译，避免热路径重复编译） */
     private static final Pattern PROTOCOL_SEPARATOR_PATTERN = Pattern.compile(PROTOCOL_SEPARATOR);
 
+    /** 按协议分隔符切分后的最小段数：索引 0 为协议前缀，索引 1 为域名及路径 */
+    private static final int MIN_PROTOCOL_SEGMENT_COUNT = 2;
+
     /**
      * 返回需要排除的 URL 路径模式列表
      *
@@ -101,7 +104,7 @@ public class HttpFilterHandle extends BaseFilterHandle {
 
             // split 会剔除尾部空串，属性值恰为 "http://" 时数组长度不足，先做索引越界检查
             String[] urlSegments = PROTOCOL_SEPARATOR_PATTERN.split(httpPath);
-            if (urlSegments.length < 2) {
+            if (urlSegments.length < MIN_PROTOCOL_SEGMENT_COUNT) {
                 return false;
             }
             httpPath = urlSegments[1];

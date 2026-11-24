@@ -55,13 +55,14 @@ public class GatewayFlowRuleNacosProvider implements DynamicRuleProvider<List<Ga
     @Override
     public List<GatewayFlowRuleEntity> getRules(String appName) throws Exception {
         String rules = NacosConfigUtil.readFreshConfig(configService, appName,
-            NacosConfigUtil.GATEWAY_FLOW_DATA_ID_POSTFIX, nacosProperties.getGroup(), NacosConfigUtil.READ_TIMEOUT_MS);
+                NacosConfigUtil.GATEWAY_FLOW_DATA_ID_POSTFIX, nacosProperties.getGroup(),
+                NacosConfigUtil.READ_TIMEOUT_MS);
         if (StringUtil.isEmpty(rules)) {
             return new ArrayList<>();
         }
         List<GatewayFlowRule> list = JSON.parseArray(rules, GatewayFlowRule.class);
         return list.stream()
-            .map(rule -> GatewayFlowRuleEntity.fromGatewayFlowRule(appName, null, null, rule))
-            .collect(Collectors.toList());
+                .map(rule -> GatewayFlowRuleEntity.fromGatewayFlowRule(appName, null, null, rule))
+                .collect(Collectors.toList());
     }
 }

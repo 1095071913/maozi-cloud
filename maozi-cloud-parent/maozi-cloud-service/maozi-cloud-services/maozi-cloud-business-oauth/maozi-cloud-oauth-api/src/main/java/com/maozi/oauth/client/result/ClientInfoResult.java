@@ -54,5 +54,5 @@ public class ClientInfoResult implements Serializable {
     @Schema(description = "状态")
     @JsonFormat(shape = JsonFormat.Shape.NUMBER_INT)
     private StatusEnum status;
-    
+
 }

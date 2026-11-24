@@ -59,14 +59,14 @@ public class ClusterAppAssignMap extends BaseClusterServerMachine {
     /** 返回该分配信息的字符串表示。 */
     @Override
     public String toString() {
-        return "ClusterAppAssignMap{" +
-            "machineId='" + machineId + '\'' +
-            ", ip='" + ip + '\'' +
-            ", port=" + port +
-            ", belongToApp=" + belongToApp +
-            ", clientSet=" + clientSet +
-            ", namespaceSet=" + namespaceSet +
-            ", maxAllowedQps=" + maxAllowedQps +
-            '}';
+        return "ClusterAppAssignMap{"
+                + "machineId='" + machineId + '\''
+                + ", ip='" + ip + '\''
+                + ", port=" + port
+                + ", belongToApp=" + belongToApp
+                + ", clientSet=" + clientSet
+                + ", namespaceSet=" + namespaceSet
+                + ", maxAllowedQps=" + maxAllowedQps
+                + '}';
     }
 }

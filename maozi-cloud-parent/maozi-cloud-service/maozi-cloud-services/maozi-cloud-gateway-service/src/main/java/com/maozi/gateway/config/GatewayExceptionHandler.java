@@ -31,7 +31,7 @@ import jakarta.annotation.Nonnull;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jboss.logging.MDC;
+import org.slf4j.MDC;
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.http.MediaType;
@@ -74,6 +74,9 @@ import java.util.UUID;
 @Slf4j
 @Component
 public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
+
+    /** 入口日志 Map 的初始容量 */
+    private static final int LOG_MAP_INITIAL_CAPACITY = 8;
 
     /** HTTP 消息读取器列表，用于解析请求体 */
     private List<HttpMessageReader<?>> messageReaders = Collections.emptyList();
@@ -200,7 +203,7 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
         }
 
         // 构建错误日志信息
-        Map<String, String> logs = new LinkedHashMap<>(8);
+        Map<String, String> logs = new LinkedHashMap<>(LOG_MAP_INITIAL_CAPACITY);
 
         // 记录请求基本信息（类型、IP、URL、方法）
         logs.put(LogTag.TYPE, LogCommonTypeEnum.GATEWAY.getDesc());
@@ -214,16 +217,16 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
         if (e instanceof NotFoundException) {
             // 服务未找到异常
             result = ResultUtil.error(SystemErrorCode.SERVICE_NOT_EXIST_ERROR)
-                               .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
+                    .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
 
-        }else if (BlockException.isBlockException(e)) {
+        } else if (BlockException.isBlockException(e)) {
             // Sentinel 限流异常
             result = ResultUtil.error(SystemErrorCode.CURRENT_LIMITING_ERROR)
-                               .setHttpCode(SystemErrorCode.CURRENT_LIMITING_ERROR_DEFAULT_CODE);
+                    .setHttpCode(SystemErrorCode.CURRENT_LIMITING_ERROR_DEFAULT_CODE);
         } else {
             // 其他未知系统异常
             result = ResultUtil.error(SystemErrorCode.SYSTEM_ERROR)
-                               .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
+                    .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
         }
 
         // 记录错误响应日志

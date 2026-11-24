@@ -82,32 +82,16 @@ public class LockAop {
 
         // 确定锁名称：如果注解指定了名称则使用指定名称，
         // 否则使用 "类名.方法名" 作为默认锁名称
-        String lockName = StringUtils.isNotEmpty(annotationName) ?
-                annotationName
-                :
-                signature.getDeclaringTypeName() + SymbolConstant.DOT + signature.getMethod().getName();
+        String lockName = StringUtils.isNotEmpty(annotationName) ? annotationName
+                : signature.getDeclaringTypeName() + SymbolConstant.DOT + signature.getMethod().getName();
 
         // 拼接锁键名：maozi-cloud:服务名:lock:锁名称_业务键名
         // （REDIS_KEY_PREFIX 尾部自带冒号，业务键以 "_" 为前缀连接）
         lockName = RedisUtil.REDIS_KEY_PREFIX + LockTypeEnum.LOCK_PREFIX + lockName + businessKeyName;
 
-        // 获取等待时间：如果注解未指定（Long.MIN_VALUE），则使用全局配置的默认值
-        // （判空防止自动拆箱 NPE）
-        Long configuredWaitTime = lockRedissonProperties.getWaitTime();
-        // 缓存注解配置的等待时间，避免同一方法内重复调用
-        long annotationWaitTime = annotation.waitTime();
-        long waitTime = annotationWaitTime == Long.MIN_VALUE
-                ? (configuredWaitTime == null ? LockTypeEnum.DEFAULT_LOCK_TIME : configuredWaitTime)
-                : annotationWaitTime;
-
-        // 获取持有时间：如果注解未指定（Long.MIN_VALUE），则使用全局配置的默认值
-        // （判空防止自动拆箱 NPE）
-        Long configuredLeaseTime = lockRedissonProperties.getLeaseTime();
-        // 缓存注解配置的持有时间，避免同一方法内重复调用
-        long annotationLeaseTime = annotation.leaseTime();
-        long leaseTime = annotationLeaseTime == Long.MIN_VALUE
-                ? (configuredLeaseTime == null ? LockTypeEnum.DEFAULT_LOCK_TIME : configuredLeaseTime)
-                : annotationLeaseTime;
+        // 解析等待时间与持有时间：注解未指定时回退到全局配置
+        long waitTime = resolveDuration(annotation.waitTime(), lockRedissonProperties.getWaitTime());
+        long leaseTime = resolveDuration(annotation.leaseTime(), lockRedissonProperties.getLeaseTime());
 
         // 执行加锁操作，如果加锁失败则根据配置的策略进行处理
         type.lock(lockName, waitTime, leaseTime, annotation.lockTimeoutStrategy());
@@ -120,6 +104,21 @@ public class LockAop {
             type.unlock(lockName, annotation.releaseTimeoutStrategy());
         }
 
+    }
+
+    /**
+     * 解析生效时长：注解已指定（非 {@link Long#MIN_VALUE}）时以注解为准，
+     * 否则回退到全局配置；全局配置也未设置时使用默认锁时长（判空防止自动拆箱 NPE）
+     *
+     * @param annotationDuration 注解配置的时长（秒）
+     * @param configuredDuration 全局配置的时长（秒），可能为 null
+     * @return 生效的时长（秒）
+     */
+    private long resolveDuration(long annotationDuration, Long configuredDuration) {
+        if (annotationDuration != Long.MIN_VALUE) {
+            return annotationDuration;
+        }
+        return configuredDuration == null ? LockTypeEnum.DEFAULT_LOCK_TIME : configuredDuration;
     }
 
     /**

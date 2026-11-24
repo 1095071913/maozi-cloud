@@ -55,9 +55,9 @@ public class AuthorityRuleNacosPublisher implements DynamicRulePublisher<List<Au
             return;
         }
         List<AuthorityRule> authorityRules = rules.stream()
-            .map(AuthorityRuleEntity::getRule)
-            .collect(Collectors.toList());
+                .map(AuthorityRuleEntity::getRule)
+                .collect(Collectors.toList());
         NacosConfigUtil.publishJsonConfig(configService, app,
-            NacosConfigUtil.AUTHORITY_DATA_ID_POSTFIX, nacosProperties.getGroup(), authorityRules);
+                NacosConfigUtil.AUTHORITY_DATA_ID_POSTFIX, nacosProperties.getGroup(), authorityRules);
     }
 }

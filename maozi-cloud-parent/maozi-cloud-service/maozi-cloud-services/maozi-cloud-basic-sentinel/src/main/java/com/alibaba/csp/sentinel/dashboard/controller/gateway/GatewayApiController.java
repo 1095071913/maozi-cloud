@@ -60,7 +60,7 @@ import static com.alibaba.csp.sentinel.adapter.gateway.common.SentinelGatewayCon
 public class GatewayApiController {
 
     /** 日志记录器。 */
-    private final Logger logger = LoggerFactory.getLogger(GatewayApiController.class);
+    private static final Logger logger = LoggerFactory.getLogger(GatewayApiController.class);
 
     /** 保存网关 API 分组的内存仓储。 */
     private final InMemApiDefinitionStore repository;
@@ -72,10 +72,8 @@ public class GatewayApiController {
 
     /** 注入 API 分组仓储、规则提供者与发布者。 */
     public GatewayApiController(InMemApiDefinitionStore repository,
-                                @Qualifier("apiDefinitionNacosProvider") DynamicRuleProvider<List<ApiDefinitionEntity>>
-                                    ruleProvider,
-                                @Qualifier("apiDefinitionNacosPublisher")
-                                    DynamicRulePublisher<List<ApiDefinitionEntity>> rulePublisher) {
+            @Qualifier("apiDefinitionNacosProvider") DynamicRuleProvider<List<ApiDefinitionEntity>> ruleProvider,
+            @Qualifier("apiDefinitionNacosPublisher") DynamicRulePublisher<List<ApiDefinitionEntity>> rulePublisher) {
         this.repository = repository;
         this.ruleProvider = ruleProvider;
         this.rulePublisher = rulePublisher;
@@ -83,7 +81,7 @@ public class GatewayApiController {
 
     /** 从 Nacos 拉取应用的网关 API 分组，为每条补充机器信息后持久化并返回。 */
     @GetMapping("/list.json")
-    @AuthAction(AuthService.PrivilegeType.READ_RULE)
+    @AuthAction(AuthService.PrivilegeTypeEnum.READ_RULE)
     public Result<List<ApiDefinitionEntity>> queryApis(String app, String ip, Integer port) {
 
         String error = checkAppIpPort(app, ip, port);
@@ -100,9 +98,9 @@ public class GatewayApiController {
             }
             apis = repository.saveAll(apis);
             return Result.ofSuccess(apis);
-        } catch (Throwable throwable) {
-            logger.error("queryApis error:", throwable);
-            return Result.ofThrowable(Result.CODE_ERROR, throwable);
+        } catch (Exception e) {
+            logger.error("Error when querying gateway apis", e);
+            return Result.ofThrowable(Result.CODE_ERROR, e);
         }
     }
 
@@ -111,7 +109,7 @@ public class GatewayApiController {
      * API 分组推送至 Nacos。
      */
     @PostMapping("/new.json")
-    @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
+    @AuthAction(AuthService.PrivilegeTypeEnum.WRITE_RULE)
     public Result<ApiDefinitionEntity> addApi(HttpServletRequest request, @RequestBody AddApiReqVO reqVo) {
 
         // 缓存应用、IP、端口与 API 名称，避免同一方法内重复调用
@@ -161,7 +159,7 @@ public class GatewayApiController {
 
     /** 更新指定 id 的 API 分组的断言条目，随后将应用的 API 分组推送至 Nacos。 */
     @PostMapping("/save.json")
-    @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
+    @AuthAction(AuthService.PrivilegeTypeEnum.WRITE_RULE)
     public Result<ApiDefinitionEntity> updateApi(@RequestBody UpdateApiReqVO reqVo) {
         String app = reqVo.getApp();
         if (StringUtil.isBlank(app)) {
@@ -194,7 +192,7 @@ public class GatewayApiController {
 
     /** 删除指定 id 的 API 分组并推送应用的 API 分组；id 不存在时直接成功返回（数据为 null）。 */
     @PostMapping("/delete.json")
-    @AuthAction(AuthService.PrivilegeType.DELETE_RULE)
+    @AuthAction(AuthService.PrivilegeTypeEnum.DELETE_RULE)
     public Result<Long> deleteApi(Long id) {
         if (id == null) {
             return Result.ofFail(Result.CODE_ERROR, "id can't be null");
@@ -207,9 +205,9 @@ public class GatewayApiController {
 
         try {
             repository.delete(id);
-        } catch (Throwable throwable) {
-            logger.error("delete gateway api error:", throwable);
-            return Result.ofThrowable(Result.CODE_ERROR, throwable);
+        } catch (Exception e) {
+            logger.error("Error when deleting gateway api", e);
+            return Result.ofThrowable(Result.CODE_ERROR, e);
         }
 
         if (!publishApis(oldEntity.getApp())) {
@@ -244,7 +242,7 @@ public class GatewayApiController {
             // 匹配策略
             Integer matchStrategy = predicateItem.getMatchStrategy();
             if (!Arrays.asList(URL_MATCH_STRATEGY_EXACT, URL_MATCH_STRATEGY_PREFIX,
-                URL_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
+                    URL_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
                 throw new IllegalArgumentException("invalid matchStrategy: " + matchStrategy);
             }
 
@@ -266,13 +264,13 @@ public class GatewayApiController {
     private Result<ApiDefinitionEntity> saveAndPublish(ApiDefinitionEntity entity, String app, String action) {
         try {
             entity = repository.save(entity);
-        } catch (Throwable throwable) {
-            logger.error(action + " gateway api error:", throwable);
-            return Result.ofThrowable(Result.CODE_ERROR, throwable);
+        } catch (Exception e) {
+            logger.error("{} gateway api error:", action, e);
+            return Result.ofThrowable(Result.CODE_ERROR, e);
         }
 
         if (!publishApis(app)) {
-            logger.warn("publish gateway apis fail after " + action);
+            logger.warn("publish gateway apis fail after {}", action);
         }
         return Result.ofSuccess(entity);
     }

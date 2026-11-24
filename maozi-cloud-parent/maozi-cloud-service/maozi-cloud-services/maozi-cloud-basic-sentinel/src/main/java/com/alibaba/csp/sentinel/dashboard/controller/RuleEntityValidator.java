@@ -31,8 +31,7 @@ import com.alibaba.csp.sentinel.util.StringUtil;
 public final class RuleEntityValidator {
 
     /** 工具类禁止实例化。 */
-    private RuleEntityValidator() {
-    }
+    private RuleEntityValidator() {}
 
     /**
      * 校验全部规则实体共有的基础机器字段（app、ip、port）；

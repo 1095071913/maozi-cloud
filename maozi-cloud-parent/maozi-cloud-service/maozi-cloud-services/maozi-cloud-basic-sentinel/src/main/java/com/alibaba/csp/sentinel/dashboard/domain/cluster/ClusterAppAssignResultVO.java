@@ -70,10 +70,10 @@ public class ClusterAppAssignResultVO {
     /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
-        return "ClusterAppAssignResultVO{" +
-            "failedServerSet=" + failedServerSet +
-            ", failedClientSet=" + failedClientSet +
-            ", totalCount=" + totalCount +
-            '}';
+        return "ClusterAppAssignResultVO{"
+                + "failedServerSet=" + failedServerSet
+                + ", failedClientSet=" + failedClientSet
+                + ", totalCount=" + totalCount
+                + '}';
     }
 }

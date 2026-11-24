@@ -72,7 +72,7 @@ public class RemoteResourceBeanPostProcessor implements InstantiationAwareBeanPo
      */
     @Override
     public PropertyValues postProcessProperties(@NotNull PropertyValues pvs, Object bean,
-        @NotNull String beanName) throws BeansException {
+            @NotNull String beanName) throws BeansException {
         ReflectionUtils.doWithFields(bean.getClass(), field -> {
             if (field.isAnnotationPresent(RemoteResource.class) && !Modifier.isStatic(field.getModifiers())) {
                 Object reference = referenceCache.computeIfAbsent(field.getType(), this::createReference);

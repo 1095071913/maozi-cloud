@@ -43,14 +43,14 @@ public abstract class BaseGrantAuthenticationConverter<T extends BaseGrantAuthen
             "https://datatracker.ietf.org/doc/html/rfc6749#section-5.2";
 
     /** 当前泛型对应的Token令牌Class对象，用于反射创建Token实例 */
-    protected Class<T> tokenClass = currentTokenClass();
+    private Class<T> tokenClass = currentTokenClass();
 
     /**
      * 通过反射获取当前子类的泛型Token类型
      *
      * @return 泛型Token的Class对象
      */
-    protected Class<T> currentTokenClass() {
+    private Class<T> currentTokenClass() {
         return (Class<T>) ReflectionKit.getSuperClassGenericType(this.getClass(),
                 BaseGrantAuthenticationConverter.class, 0);
     }
@@ -116,8 +116,8 @@ public abstract class BaseGrantAuthenticationConverter<T extends BaseGrantAuthen
         // scope 为可选参数；缓存是否携带 scope 的判断结果，避免同一方法内重复调用
         String scope = parameters.getFirst(OAuth2ParameterNames.SCOPE);
         boolean hasScope = StringUtils.hasText(scope);
-        if (hasScope &&
-                parameters.get(OAuth2ParameterNames.SCOPE).size() != 1) {
+        if (hasScope
+                && parameters.get(OAuth2ParameterNames.SCOPE).size() != 1) {
             throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST,
                     "OAuth 2.0 Parameter: " + OAuth2ParameterNames.SCOPE, ACCESS_TOKEN_REQUEST_ERROR_URI));
         }
@@ -133,8 +133,8 @@ public abstract class BaseGrantAuthenticationConverter<T extends BaseGrantAuthen
         // 提取附加参数（排除grant_type与client_id）
         Map<String, Object> additionalParameters = CollectionUtil.newHashMap(parameters.size());
         parameters.forEach((key, value) -> {
-            if (!OAuth2ParameterNames.GRANT_TYPE.equals(key) &&
-                    !OAuth2ParameterNames.CLIENT_ID.equals(key)) {
+            if (!OAuth2ParameterNames.GRANT_TYPE.equals(key)
+                    && !OAuth2ParameterNames.CLIENT_ID.equals(key)) {
                 additionalParameters.put(key, value.get(0));
             }
         });

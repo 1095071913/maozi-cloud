@@ -46,7 +46,7 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
 
     /** 轮询位置计数器（初始位置随机打散，多实例错峰） */
     private final AtomicInteger position =
-        new AtomicInteger(ThreadLocalRandom.current().nextInt(INITIAL_POSITION_BOUND));
+            new AtomicInteger(ThreadLocalRandom.current().nextInt(INITIAL_POSITION_BOUND));
 
     /**
      * 构造方法
@@ -78,7 +78,7 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
         // 上下文为 DefaultRequestContext 时，从其封装的客户端请求中提取请求头
         if (requestContext instanceof DefaultRequestContext defaultRequestContext) {
 
-            RequestData clientRequest = (RequestData)defaultRequestContext.getClientRequest();
+            RequestData clientRequest = (RequestData) defaultRequestContext.getClientRequest();
 
             headers = clientRequest.getHeaders();
 
@@ -89,7 +89,7 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
 
         // 获取服务实例列表提供者，容器中不存在时退化为空实现
         ServiceInstanceListSupplier supplier =
-            serviceInstanceListSupplierProvider.getIfAvailable(NoopServiceInstanceListSupplier::new);
+                serviceInstanceListSupplierProvider.getIfAvailable(NoopServiceInstanceListSupplier::new);
 
         // 异步获取服务实例列表，并基于请求头进行灰度路由选择
         return supplier.get().next().map(list -> getInstanceResponse(list, headers));
@@ -113,7 +113,7 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
         // 无可用服务实例时直接抛出服务不存在异常
         if (CollectionUtil.isEmpty(instances)) {
             throw new BusinessResultException(SystemErrorCode.SERVICE_NOT_EXIST_ERROR)
-                .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
+                    .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
         }
 
         // 从请求头获取调用方携带的版本号（可能为空，为空时不参与灰度匹配）
@@ -154,14 +154,14 @@ public class GrayRoundRobinLoadBalancer implements ReactorServiceInstanceLoadBal
 
         // 优先使用灰度节点，若无匹配的灰度节点则回退到主版本节点
         List<ServiceInstance> applicationClients =
-            CollectionUtil.isNotEmpty(grayApplicationClients)
-                ? grayApplicationClients
-                : mainApplicationClients;
+                CollectionUtil.isNotEmpty(grayApplicationClients)
+                        ? grayApplicationClients
+                        : mainApplicationClients;
 
         // 灰度分组与主版本分组均为空时，抛出服务不存在异常
         if (CollectionUtil.isEmpty(applicationClients)) {
             throw new BusinessResultException(SystemErrorCode.SERVICE_NOT_EXIST_ERROR)
-                .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
+                    .setHttpCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
         }
 
         // 轮询计数器自增后按位与 Integer.MAX_VALUE 屏蔽符号位保证非负，

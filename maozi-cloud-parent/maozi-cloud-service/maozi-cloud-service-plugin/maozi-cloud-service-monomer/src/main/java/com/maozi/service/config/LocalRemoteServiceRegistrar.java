@@ -1,5 +1,6 @@
 package com.maozi.service.config;
 
+import com.maozi.common.context.ApplicationEnvironmentContext;
 import com.maozi.service.api.annotation.RemoteService;
 import jakarta.annotation.Nonnull;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -34,7 +35,7 @@ import org.springframework.stereotype.Component;
 public class LocalRemoteServiceRegistrar implements BeanDefinitionRegistryPostProcessor {
 
     /** 扫描根包，覆盖所有业务模块 */
-    private static final String BASE_PACKAGE = "com.maozi";
+    private static final String BASE_PACKAGE = ApplicationEnvironmentContext.PACKAGE_PREFIX;
 
     /**
      * 扫描 {@link RemoteService} 类并注册为本地 Bean 定义。
@@ -70,5 +71,4 @@ public class LocalRemoteServiceRegistrar implements BeanDefinitionRegistryPostPr
     @Override
     public void postProcessBeanFactory(@Nonnull ConfigurableListableBeanFactory beanFactory) {
     }
-
 }

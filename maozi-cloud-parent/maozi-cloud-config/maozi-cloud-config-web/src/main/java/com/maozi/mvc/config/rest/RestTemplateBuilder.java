@@ -19,7 +19,10 @@ import java.io.IOException;
  * @author maozi
  * @date 2026/11/08
  */
-public class RestTemplateBuilder {
+public final class RestTemplateBuilder {
+
+    /** 私有构造器，防止工具类被实例化 */
+    private RestTemplateBuilder() {}
 
     /**
      * 构建带链路日志增强与 400 容错错误处理器的 RestTemplate
@@ -28,7 +31,7 @@ public class RestTemplateBuilder {
      * @return 设置了自定义错误处理器的 RestTemplate 实例
      */
     public static RestTemplate buildRestTemplate(
-        org.springframework.boot.web.client.RestTemplateBuilder restTemplateBuilder) {
+            org.springframework.boot.web.client.RestTemplateBuilder restTemplateBuilder) {
         RestTemplate restTemplate = restTemplateBuilder.build(RestTemplate.class);
         restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
 
@@ -44,7 +47,6 @@ public class RestTemplateBuilder {
                     super.handleError(response);
                 }
             }
-
         });
         return restTemplate;
     }

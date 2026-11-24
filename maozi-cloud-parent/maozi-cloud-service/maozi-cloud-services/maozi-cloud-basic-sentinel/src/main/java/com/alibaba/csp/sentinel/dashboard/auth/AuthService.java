@@ -36,8 +36,11 @@ public interface AuthService<R> {
 
     /**
      * 权限类型。
+     *
+     * @author Carpenter Lee
+     * @date 2026/11/22
      */
-    enum PrivilegeType {
+    enum PrivilegeTypeEnum {
         /**
          * 查看规则
          */
@@ -66,6 +69,9 @@ public interface AuthService<R> {
 
     /**
      * 当前用户抽象。实现 Serializable 以便存入可能被容器持久化的 HTTP session。
+     *
+     * @author Carpenter Lee
+     * @date 2026/11/22
      */
     interface AuthUser extends Serializable {
 
@@ -76,7 +82,7 @@ public interface AuthService<R> {
          * @param privilegeType 权限类型
          * @return 拥有权限返回 true，否则返回 false
          */
-        boolean authTarget(String target, PrivilegeType privilegeType);
+        boolean authTarget(String target, PrivilegeTypeEnum privilegeType);
 
         /**
          * 判断当前用户是否为超级用户。

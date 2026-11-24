@@ -113,7 +113,7 @@ public class SwaggerGlobalFilter implements GlobalFilter, Ordered {
             @Override
             public Mono<Void> writeWith(@Nonnull Publisher<? extends DataBuffer> body) {
 
-                if (Objects.equals(super.getStatusCode(), HttpStatus.OK) && body instanceof Flux) {
+                if (Objects.equals(super.getStatusCode(), HttpStatus.OK) && body instanceof Flux<?>) {
 
                     Flux<DataBuffer> fluxBody = Flux.from(body);
                     return DataBufferUtils.join(fluxBody).flatMap(dataBuffer -> {
@@ -172,15 +172,13 @@ public class SwaggerGlobalFilter implements GlobalFilter, Ordered {
         jsonObject.put(BASE_PATH_KEY, SymbolConstant.SLASH + basePath);
 
         // 获取原始 paths 对象
-        JSONObject paths = (JSONObject)jsonObject.get(PATHS_KEY);
+        JSONObject paths = (JSONObject) jsonObject.get(PATHS_KEY);
         JSONObject pathJsonObject = new JSONObject();
         Set<Entry<String, Object>> entries = paths.entrySet();
 
-        // 为每个 API 路径添加微服务前缀（循环体内使用 StringBuilder 拼接）
+        // 为每个 API 路径添加微服务前缀
         for (Entry<String, Object> entry : entries) {
-            String key = new StringBuilder()
-                    .append(SymbolConstant.SLASH).append(basePath).append(entry.getKey()).toString();
-            pathJsonObject.put(key, entry.getValue());
+            pathJsonObject.put(SymbolConstant.SLASH + basePath + entry.getKey(), entry.getValue());
         }
 
         // 替换原始 paths 为改写后的 paths

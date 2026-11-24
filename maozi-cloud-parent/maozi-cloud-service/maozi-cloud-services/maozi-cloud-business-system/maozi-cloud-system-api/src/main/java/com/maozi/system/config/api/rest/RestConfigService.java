@@ -85,7 +85,7 @@ public interface RestConfigService {
     @Get(value = PATH + "/{name}/dropDown", description = "名称获取配置")
     AbstractBaseResult<ConfigDropDownResult> dropDownResult(@PathVariable("name") String name);
 
-//===================== 单资源 =======================
+    // ===================== 单资源 =======================
 
     /** 单资源路径常量，用于指定具体配置 ID 的请求路径前缀 */
     String CURRENT_PATH = PATH + "/{id}";

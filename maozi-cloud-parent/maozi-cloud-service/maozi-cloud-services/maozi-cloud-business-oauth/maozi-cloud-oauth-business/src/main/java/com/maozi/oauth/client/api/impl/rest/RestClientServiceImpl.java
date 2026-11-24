@@ -12,21 +12,20 @@ import com.maozi.oauth.client.param.ClientSaveUpdateParam;
 import com.maozi.oauth.client.result.ClientInfoResult;
 import com.maozi.oauth.client.result.ClientListResult;
 import com.maozi.service.api.annotation.RestService;
-import com.maozi.service.api.impl.result.BaseDBTServiceResultImpl;
-
+import com.maozi.service.api.impl.result.BaseDbDtoServiceResultImpl;
 
 /**
  * OAuth2客户端REST接口实现类
  * <p>
  * 委托注入的 ClientServiceImpl 完成业务处理，
- * 未覆写的方法沿用 BaseDBServiceResultImpl 的通用实现。
+ * 未覆写的方法沿用 BaseDbServiceResultImpl 的通用实现。
  * </p>
  *
  * @author maozi
  * @date 2026/11/08
  */
 @RestService
-public class RestClientServiceImpl extends BaseDBTServiceResultImpl<ClientServiceImpl, ClientDTO>
+public class RestClientServiceImpl extends BaseDbDtoServiceResultImpl<ClientServiceImpl, ClientDTO>
         implements RestClientService {
 
     /** 分页查询客户端列表 */
@@ -53,6 +52,5 @@ public class RestClientServiceImpl extends BaseDBTServiceResultImpl<ClientServic
         service.adminSaveUpdate(id, param);
         return ResultUtil.success();
     }
-
 
 }

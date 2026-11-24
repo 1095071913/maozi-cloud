@@ -62,11 +62,7 @@ public interface RestPermissionService {
     @PreAuthorize("hasAuthority('system:permission:save') or hasAuthority('system:permission:update')")
     AbstractBaseResult<List<DropDownResult>> dropDownListResult();
 
-
-
-
-
-//================== 单资源 ==================
+    // ================== 单资源 ==================
 
     /** 单资源路径常量，用于指定具体权限 ID 的请求路径前缀 */
     String CURRENT_PATH = PATH + "/{id}";

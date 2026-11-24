@@ -81,11 +81,11 @@ public class ClusterClientConfig {
     /** 返回该配置的字符串表示。 */
     @Override
     public String toString() {
-        return "ClusterClientConfig{" +
-            "serverHost='" + serverHost + '\'' +
-            ", serverPort=" + serverPort +
-            ", requestTimeout=" + requestTimeout +
-            ", connectTimeout=" + connectTimeout +
-            '}';
+        return "ClusterClientConfig{"
+                + "serverHost='" + serverHost + '\''
+                + ", serverPort=" + serverPort
+                + ", requestTimeout=" + requestTimeout
+                + ", connectTimeout=" + connectTimeout
+                + '}';
     }
 }

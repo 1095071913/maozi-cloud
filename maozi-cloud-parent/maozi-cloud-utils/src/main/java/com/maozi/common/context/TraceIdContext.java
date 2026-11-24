@@ -13,7 +13,7 @@ import org.slf4j.MDC;
  * @author maozi
  * @date 2026/11/13
  */
-public class TraceIdContext extends AbstractRequestContextHolder<String> {
+public final class TraceIdContext extends AbstractRequestContextHolder<String> {
 
     /** 链路追踪 ID 请求头名称 */
     public static final String KEY = "X-TraceId";

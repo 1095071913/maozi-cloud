@@ -47,8 +47,21 @@ import java.util.Set;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    /** 全部 URL 的路径模式。 */
+    private static final String ALL_URL_PATTERN = "/*";
+
+    /** 登录认证过滤器的注册顺序，需先于 Sentinel 过滤器执行。 */
+    private static final int AUTHENTICATION_FILTER_ORDER = 0;
+
+    /** Sentinel CommonFilter 的注册顺序。 */
+    private static final int SENTINEL_FILTER_ORDER = 1;
+
+    /** 不纳入 Sentinel Web 统计的静态资源 URL 后缀。 */
+    private static final Set<String> STATIC_RESOURCE_SUFFIXES = new HashSet<>(Arrays.asList(
+            ".js", ".css", ".html", ".ico", ".txt", ".woff", ".woff2"));
+
     /** 日志记录器。 */
-    private final Logger logger = LoggerFactory.getLogger(WebConfig.class);
+    private static final Logger logger = LoggerFactory.getLogger(WebConfig.class);
 
     /** 待注册的登录认证过滤器。 */
     private final LoginAuthenticationFilter loginAuthenticationFilter;
@@ -58,7 +71,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     /** 注入登录认证过滤器与授权拦截器。 */
     public WebConfig(LoginAuthenticationFilter loginAuthenticationFilter,
-                     AuthorizationInterceptor authorizationInterceptor) {
+            AuthorizationInterceptor authorizationInterceptor) {
         this.loginAuthenticationFilter = loginAuthenticationFilter;
         this.authorizationInterceptor = authorizationInterceptor;
     }
@@ -76,8 +89,8 @@ public class WebConfig implements WebMvcConfigurer {
         // 若被浏览器缓存，重新发布后页面会继续使用旧的 JS/HTML，
         // 因此禁用缓存并通过每次请求的 304 协商重新校验新鲜度。
         registry.addResourceHandler("/**")
-            .addResourceLocations("classpath:/resources/")
-            .setCacheControl(CacheControl.noCache());
+                .addResourceLocations("classpath:/resources/")
+                .setCacheControl(CacheControl.noCache());
     }
 
     /** 将根路径 "/" 转发到 /index.htm。 */
@@ -93,12 +106,12 @@ public class WebConfig implements WebMvcConfigurer {
      * @return 过滤器注册 Bean
      */
     @Bean
-    public FilterRegistrationBean sentinelFilterRegistration() {
+    public FilterRegistrationBean<Filter> sentinelFilterRegistration() {
         FilterRegistrationBean<Filter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new CommonFilter());
-        registration.addUrlPatterns("/*");
+        registration.addUrlPatterns(ALL_URL_PATTERN);
         registration.setName("sentinelFilter");
-        registration.setOrder(1);
+        registration.setOrder(SENTINEL_FILTER_ORDER);
         // 开启后所有 Web URL 资源的入口将统一为同一个 context 名，
         // 绝大多数场景已足够，且可降低内存占用。
         registration.addInitParameter(CommonFilter.WEB_CONTEXT_UNIFY, "true");
@@ -111,13 +124,11 @@ public class WebConfig implements WebMvcConfigurer {
     /** 注册 UrlCleaner，按后缀将常见静态资源 URL 排除出 Sentinel Web 统计。 */
     @PostConstruct
     public void doInit() {
-        Set<String> suffixSet = new HashSet<>(Arrays.asList(".js", ".css", ".html", ".ico", ".txt",
-            ".woff", ".woff2"));
         WebCallbackManager.setUrlCleaner(url -> {
             if (StringUtil.isEmpty(url)) {
                 return url;
             }
-            if (suffixSet.stream().anyMatch(url::endsWith)) {
+            if (STATIC_RESOURCE_SUFFIXES.stream().anyMatch(url::endsWith)) {
                 return null;
             }
             return url;
@@ -129,9 +140,9 @@ public class WebConfig implements WebMvcConfigurer {
     public FilterRegistrationBean authenticationFilterRegistration() {
         FilterRegistrationBean<Filter> registration = new FilterRegistrationBean<>();
         registration.setFilter(loginAuthenticationFilter);
-        registration.addUrlPatterns("/*");
+        registration.addUrlPatterns(ALL_URL_PATTERN);
         registration.setName("authenticationFilter");
-        registration.setOrder(0);
+        registration.setOrder(AUTHENTICATION_FILTER_ORDER);
         return registration;
     }
 }

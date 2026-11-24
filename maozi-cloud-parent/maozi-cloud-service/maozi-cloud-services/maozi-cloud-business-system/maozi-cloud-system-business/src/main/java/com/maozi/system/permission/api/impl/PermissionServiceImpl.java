@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 package com.maozi.system.permission.api.impl;
@@ -37,7 +37,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
 /**
  * 权限服务实现类
  * <p>实现权限相关的业务逻辑，包括权限存在性判断、权限标识查询、
@@ -58,7 +57,7 @@ public class PermissionServiceImpl extends BaseServiceImpl<PermissionMapper, Per
 
     /** 角色权限关系服务，用于校验权限是否被角色绑定 */
     @Resource(name = SystemServiceConstant.ROLE_PERMISSION_SERVICE)
-    protected RolePermissionService rolePermissionService;
+    private RolePermissionService rolePermissionService;
 
     /** 获取资源名称 */
     @Override

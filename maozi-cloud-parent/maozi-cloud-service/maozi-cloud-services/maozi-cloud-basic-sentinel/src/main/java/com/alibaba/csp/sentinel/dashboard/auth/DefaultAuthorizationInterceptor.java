@@ -63,7 +63,7 @@ public class DefaultAuthorizationInterceptor implements AuthorizationInterceptor
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
-        if (handler.getClass().isAssignableFrom(HandlerMethod.class)) {
+        if (handler instanceof HandlerMethod) {
             Method method = ((HandlerMethod) handler).getMethod();
 
             AuthAction authAction = method.getAnnotation(AuthAction.class);
@@ -93,9 +93,8 @@ public class DefaultAuthorizationInterceptor implements AuthorizationInterceptor
      * @throws IOException 写入响应流出错时抛出
      */
     private void responseNoPrivilegeMsg(HttpServletResponse response, String message) throws IOException {
-        Result result = Result.ofFail(Result.CODE_ERROR, message);
+        Result<?> result = Result.ofFail(Result.CODE_ERROR, message);
         response.addHeader(HTTP_HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON_UTF8);
         response.getOutputStream().write(JSON.toJSONBytes(result));
     }
-
 }

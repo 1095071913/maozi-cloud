@@ -9,4 +9,4 @@ import com.maozi.service.api.IBaseMapper;
  * @author maozi
  * @date 2026/11/08
  */
-public interface ChatConversationMapper extends IBaseMapper<ChatConversationDO>{}
+public interface ChatConversationMapper extends IBaseMapper<ChatConversationDO> {}

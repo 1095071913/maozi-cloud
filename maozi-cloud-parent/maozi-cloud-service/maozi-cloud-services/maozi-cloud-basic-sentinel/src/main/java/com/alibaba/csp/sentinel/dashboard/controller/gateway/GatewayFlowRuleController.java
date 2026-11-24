@@ -15,7 +15,6 @@
  */
 package com.alibaba.csp.sentinel.dashboard.controller.gateway;
 
-
 import com.alibaba.csp.sentinel.dashboard.auth.AuthAction;
 import com.alibaba.csp.sentinel.dashboard.auth.AuthService;
 import com.alibaba.csp.sentinel.dashboard.controller.RuleEntityValidator;
@@ -73,7 +72,7 @@ import static com.alibaba.csp.sentinel.slots.block.RuleConstant.FLOW_GRADE_THREA
 public class GatewayFlowRuleController {
 
     /** 日志记录器。 */
-    private final Logger logger = LoggerFactory.getLogger(GatewayFlowRuleController.class);
+    private static final Logger logger = LoggerFactory.getLogger(GatewayFlowRuleController.class);
 
     /** 保存网关流控规则的内存仓储。 */
     private final InMemGatewayFlowRuleStore repository;
@@ -85,10 +84,9 @@ public class GatewayFlowRuleController {
 
     /** 注入网关流控规则仓储、规则提供者与发布者。 */
     public GatewayFlowRuleController(InMemGatewayFlowRuleStore repository,
-                                     @Qualifier("gatewayFlowRuleNacosProvider")
-                                         DynamicRuleProvider<List<GatewayFlowRuleEntity>> ruleProvider,
-                                     @Qualifier("gatewayFlowRuleNacosPublisher")
-                                         DynamicRulePublisher<List<GatewayFlowRuleEntity>> rulePublisher) {
+            @Qualifier("gatewayFlowRuleNacosProvider") DynamicRuleProvider<List<GatewayFlowRuleEntity>> ruleProvider,
+            @Qualifier("gatewayFlowRuleNacosPublisher")
+            DynamicRulePublisher<List<GatewayFlowRuleEntity>> rulePublisher) {
         this.repository = repository;
         this.ruleProvider = ruleProvider;
         this.rulePublisher = rulePublisher;
@@ -96,7 +94,7 @@ public class GatewayFlowRuleController {
 
     /** 从 Nacos 拉取应用的网关流控规则，为每条补充机器信息后持久化并返回。 */
     @GetMapping("/list.json")
-    @AuthAction(AuthService.PrivilegeType.READ_RULE)
+    @AuthAction(AuthService.PrivilegeTypeEnum.READ_RULE)
     public Result<List<GatewayFlowRuleEntity>> queryFlowRules(String app, String ip, Integer port) {
 
         if (StringUtil.isEmpty(app)) {
@@ -118,15 +116,15 @@ public class GatewayFlowRuleController {
             }
             rules = repository.saveAll(rules);
             return Result.ofSuccess(rules);
-        } catch (Throwable throwable) {
-            logger.error("query gateway flow rules error:", throwable);
-            return Result.ofThrowable(Result.CODE_ERROR, throwable);
+        } catch (Exception e) {
+            logger.error("Error when querying gateway flow rules", e);
+            return Result.ofThrowable(Result.CODE_ERROR, e);
         }
     }
 
     /** 全字段校验通过后新增网关流控规则，并将应用的规则推送至 Nacos。 */
     @PostMapping("/new.json")
-    @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
+    @AuthAction(AuthService.PrivilegeTypeEnum.WRITE_RULE)
     public Result<GatewayFlowRuleEntity> addFlowRule(@RequestBody AddFlowRuleReqVO reqVo) {
 
         GatewayFlowRuleEntity entity = new GatewayFlowRuleEntity();
@@ -162,7 +160,7 @@ public class GatewayFlowRuleController {
             return checkResult;
         }
         checkResult = checkAndFillRuleFields(reqVo.getGrade(), reqVo.getCount(), reqVo.getInterval(),
-            reqVo.getIntervalUnit(), reqVo.getControlBehavior(), reqVo.getBurst(), reqVo.getMaxQueueingTimeoutMs(), 
+                reqVo.getIntervalUnit(), reqVo.getControlBehavior(), reqVo.getBurst(), reqVo.getMaxQueueingTimeoutMs(),
                 entity);
         if (checkResult != null) {
             return checkResult;
@@ -176,7 +174,7 @@ public class GatewayFlowRuleController {
      * 更新指定 id 的规则（参数条目被替换，请求未携带时清空），校验通过后推送应用的规则。
      */
     @PostMapping("/save.json")
-    @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
+    @AuthAction(AuthService.PrivilegeTypeEnum.WRITE_RULE)
     public Result<GatewayFlowRuleEntity> updateFlowRule(@RequestBody UpdateFlowRuleReqVO reqVo) {
 
         if (StringUtil.isBlank(reqVo.getApp())) {
@@ -198,7 +196,7 @@ public class GatewayFlowRuleController {
             return checkResult;
         }
         checkResult = checkAndFillRuleFields(reqVo.getGrade(), reqVo.getCount(), reqVo.getInterval(),
-            reqVo.getIntervalUnit(), reqVo.getControlBehavior(), reqVo.getBurst(), reqVo.getMaxQueueingTimeoutMs(), 
+                reqVo.getIntervalUnit(), reqVo.getControlBehavior(), reqVo.getBurst(), reqVo.getMaxQueueingTimeoutMs(),
                 entity);
         if (checkResult != null) {
             return checkResult;
@@ -208,10 +206,9 @@ public class GatewayFlowRuleController {
         return saveAndPublish(entity, "update");
     }
 
-
     /** 删除指定 id 的规则并推送应用的规则；id 不存在时直接成功返回（数据为 null）。 */
     @PostMapping("/delete.json")
-    @AuthAction(AuthService.PrivilegeType.DELETE_RULE)
+    @AuthAction(AuthService.PrivilegeTypeEnum.DELETE_RULE)
     public Result<Long> deleteFlowRule(Long id) {
 
         if (id == null) {
@@ -225,9 +222,9 @@ public class GatewayFlowRuleController {
 
         try {
             repository.delete(id);
-        } catch (Throwable throwable) {
-            logger.error("delete gateway flow rule error:", throwable);
-            return Result.ofThrowable(Result.CODE_ERROR, throwable);
+        } catch (Exception e) {
+            logger.error("Error when deleting gateway flow rule", e);
+            return Result.ofThrowable(Result.CODE_ERROR, e);
         }
 
         if (!publishRules(oldEntity.getApp())) {
@@ -253,15 +250,15 @@ public class GatewayFlowRuleController {
 
         // 解析策略：0-ClientIP、1-Remote Host、2-Header、3-URL 参数、4-Cookie
         Integer parseStrategy = paramItem.getParseStrategy();
-        if (!Arrays.asList(PARAM_PARSE_STRATEGY_CLIENT_IP, PARAM_PARSE_STRATEGY_HOST, PARAM_PARSE_STRATEGY_HEADER
-                , PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
+        if (!Arrays.asList(PARAM_PARSE_STRATEGY_CLIENT_IP, PARAM_PARSE_STRATEGY_HOST, PARAM_PARSE_STRATEGY_HEADER,
+                PARAM_PARSE_STRATEGY_URL_PARAM, PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
             return Result.ofFail(Result.CODE_ERROR, "invalid parseStrategy: " + parseStrategy);
         }
         itemEntity.setParseStrategy(parseStrategy);
 
         // 解析策略 2-Header、3-URL 参数、4-Cookie 必须提供字段名
-        if (Arrays.asList(PARAM_PARSE_STRATEGY_HEADER, PARAM_PARSE_STRATEGY_URL_PARAM, 
-            PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
+        if (Arrays.asList(PARAM_PARSE_STRATEGY_HEADER, PARAM_PARSE_STRATEGY_URL_PARAM,
+                PARAM_PARSE_STRATEGY_COOKIE).contains(parseStrategy)) {
             // 字段名
             String fieldName = paramItem.getFieldName();
             if (StringUtil.isBlank(fieldName)) {
@@ -275,8 +272,8 @@ public class GatewayFlowRuleController {
         if (StringUtil.isNotEmpty(pattern)) {
             itemEntity.setPattern(pattern);
             Integer matchStrategy = paramItem.getMatchStrategy();
-            if (!Arrays.asList(PARAM_MATCH_STRATEGY_EXACT, PARAM_MATCH_STRATEGY_CONTAINS, 
-                PARAM_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
+            if (!Arrays.asList(PARAM_MATCH_STRATEGY_EXACT, PARAM_MATCH_STRATEGY_CONTAINS,
+                    PARAM_MATCH_STRATEGY_REGEX).contains(matchStrategy)) {
                 return Result.ofFail(Result.CODE_ERROR, "invalid matchStrategy: " + matchStrategy);
             }
             itemEntity.setMatchStrategy(matchStrategy);
@@ -290,8 +287,8 @@ public class GatewayFlowRuleController {
      * 返回首个错误结果，校验通过返回 null。
      */
     private <R> Result<R> checkAndFillRuleFields(Integer grade, Double count, Long interval, Integer intervalUnit,
-                                                 Integer controlBehavior, Integer burst, Integer maxQueueingTimeoutMs,
-                                                 GatewayFlowRuleEntity entity) {
+            Integer controlBehavior, Integer burst, Integer maxQueueingTimeoutMs,
+            GatewayFlowRuleEntity entity) {
         // 阈值类型：0-线程数、1-QPS
         if (grade == null) {
             return Result.ofFail(Result.CODE_ERROR, "grade can't be null");
@@ -323,8 +320,8 @@ public class GatewayFlowRuleController {
         if (intervalUnit == null) {
             return Result.ofFail(Result.CODE_ERROR, "intervalUnit can't be null");
         }
-        if (!Arrays.asList(INTERVAL_UNIT_SECOND, INTERVAL_UNIT_MINUTE, INTERVAL_UNIT_HOUR, 
-            INTERVAL_UNIT_DAY).contains(intervalUnit)) {
+        if (!Arrays.asList(INTERVAL_UNIT_SECOND, INTERVAL_UNIT_MINUTE, INTERVAL_UNIT_HOUR,
+                INTERVAL_UNIT_DAY).contains(intervalUnit)) {
             return Result.ofFail(Result.CODE_ERROR, "Invalid intervalUnit: " + intervalUnit);
         }
         entity.setIntervalUnit(intervalUnit);
@@ -338,7 +335,7 @@ public class GatewayFlowRuleController {
         }
         entity.setControlBehavior(controlBehavior);
 
-        if (CONTROL_BEHAVIOR_DEFAULT == controlBehavior) {
+        if (controlBehavior == CONTROL_BEHAVIOR_DEFAULT) {
             // 流控效果 0（快速失败）必须提供突发增量
             if (burst == null) {
                 return Result.ofFail(Result.CODE_ERROR, "burst can't be null");
@@ -347,7 +344,7 @@ public class GatewayFlowRuleController {
                 return Result.ofFail(Result.CODE_ERROR, "invalid burst: " + burst);
             }
             entity.setBurst(burst);
-        } else if (CONTROL_BEHAVIOR_RATE_LIMITER == controlBehavior) {
+        } else if (controlBehavior == CONTROL_BEHAVIOR_RATE_LIMITER) {
             // 流控效果 2（匀速排队）必须提供排队超时时间
             if (maxQueueingTimeoutMs == null) {
                 return Result.ofFail(Result.CODE_ERROR, "maxQueueingTimeoutMs can't be null");
@@ -366,9 +363,9 @@ public class GatewayFlowRuleController {
     private Result<GatewayFlowRuleEntity> saveAndPublish(GatewayFlowRuleEntity entity, String action) {
         try {
             entity = repository.save(entity);
-        } catch (Throwable throwable) {
-            logger.error("{} gateway flow rule error:", action, throwable);
-            return Result.ofThrowable(Result.CODE_ERROR, throwable);
+        } catch (Exception e) {
+            logger.error("{} gateway flow rule error:", action, e);
+            return Result.ofThrowable(Result.CODE_ERROR, e);
         }
 
         if (!publishRules(entity.getApp())) {

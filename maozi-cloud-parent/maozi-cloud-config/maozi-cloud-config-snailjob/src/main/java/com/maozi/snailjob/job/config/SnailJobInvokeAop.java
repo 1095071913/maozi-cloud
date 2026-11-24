@@ -53,10 +53,10 @@ public class SnailJobInvokeAop {
 
         Object result = proceedingJoinPoint.proceed();
 
-        return signature.getMethod().getReturnType().isAssignableFrom(ExecuteResult.class) ?
-                result
-                :
-                ExecuteResult.success(result);
+        // 方法声明的返回类型可承载 ExecuteResult 时原样返回，其余（含 void）统一包装为成功结果
+        return signature.getMethod().getReturnType().isAssignableFrom(ExecuteResult.class)
+                ? result
+                : ExecuteResult.success(result);
 
     }
 

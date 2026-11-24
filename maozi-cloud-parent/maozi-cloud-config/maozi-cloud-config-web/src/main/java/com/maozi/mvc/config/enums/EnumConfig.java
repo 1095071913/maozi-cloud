@@ -37,6 +37,9 @@ public class EnumConfig {
      */
     private static final Map<String, List<BaseEnum>> ENUMS = new ConcurrentHashMap<>();
 
+    /** 基础枚举所在包的后缀（拼接在项目包前缀之后） */
+    private static final String BASE_ENUM_PACKAGE_SUFFIX = ".base.enums";
+
     /**
      * 启动时初始化全局枚举映射表：先加载基础枚举包，再按当前服务加载业务枚举包
      */
@@ -44,7 +47,7 @@ public class EnumConfig {
     public void init() {
 
         // 先加载基础枚举包下的所有枚举类
-        initEnum(ApplicationEnvironmentContext.PACKAGE_PREFIX + ".base.enums");
+        initEnum(ApplicationEnvironmentContext.PACKAGE_PREFIX + BASE_ENUM_PACKAGE_SUFFIX);
 
         // 再加载业务枚举：聚合服务（maozi-cloud-all-service）时扫描整个基础包，
         // 普通服务仅扫描当前项目缩写对应的子包
@@ -64,27 +67,24 @@ public class EnumConfig {
     private void initEnum(String packageName) {
 
         // 扫描指定包下的所有类
-        ClassUtil.scanPackage(packageName)
+        ClassUtil.scanPackage(packageName).forEach(item -> {
 
-            .forEach(item -> {
+            // 仅处理枚举类且实现了 BaseEnum 接口的类
+            if (item.isEnum() && item.getEnumConstants() instanceof BaseEnum[] enumConstants) {
 
-                // 仅处理枚举类且实现了 BaseEnum 接口的类
-                if (item.isEnum() && item.getEnumConstants() instanceof BaseEnum[] enumConstants) {
+                // 将类名首字母转为小写作为映射键（如 UserType -> userType），
+                // 使用 Character.toLowerCase 避免首字符非大写字母时产生错误字符
+                String simpleName = item.getSimpleName();
+                String enumKey = Character.toLowerCase(simpleName.charAt(0)) + simpleName.substring(1);
 
-                    // 将类名首字母转为小写作为映射键（如 UserType -> userType），
-                    // 使用 Character.toLowerCase 避免首字符非大写字母时产生错误字符
-                    String simpleName = item.getSimpleName();
-                    String enumKey = Character.toLowerCase(simpleName.charAt(0)) + simpleName.substring(1);
+                // 以不可变列表注册，防止外部通过引用修改枚举常量列表
+                List<BaseEnum> constants = Collections.unmodifiableList(CollectionUtil.newArrayList(enumConstants));
 
-                    // 以不可变列表注册，防止外部通过引用修改枚举常量列表
-                    List<BaseEnum> constants = Collections.unmodifiableList(CollectionUtil.newArrayList(enumConstants));
+                // 将枚举常量列表注册到全局枚举映射表
+                ENUMS.put(enumKey, constants);
 
-                    // 将枚举常量列表注册到全局映射表
-                    ENUMS.put(enumKey, constants);
-
-                }
-
-            });
+            }
+        });
 
     }
 

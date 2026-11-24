@@ -42,6 +42,7 @@ import org.springframework.stereotype.Component;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -105,11 +106,21 @@ public class MetricFetcher {
     private static final String METRIC_URL_PATH = "metric";
     /** 日志记录器 */
     private static final Logger logger = LoggerFactory.getLogger(MetricFetcher.class);
+    /** 拉取线程池空闲线程的存活时间（毫秒），0 表示空闲线程立即回收 */
+    private static final long THREAD_KEEP_ALIVE_TIME_MS = 0L;
+    /** 应用最近拉取时间 Map 的初始容量 */
+    private static final int APP_LAST_FETCH_TIME_INITIAL_CAPACITY = 16;
+    /** 不参与聚合的排除资源：总入口请求数、系统负载与 CPU 使用率 */
+    private static final Set<String> RES_EXCLUSION_SET = new HashSet<>(Arrays.asList(
+            Constants.TOTAL_IN_RESOURCE_NAME,
+            Constants.SYSTEM_LOAD_RESOURCE_NAME,
+            Constants.CPU_USAGE_RESOURCE_NAME));
     /** 定时拉取全部应用任务的执行周期（秒） */
     private final long intervalSecond = 1;
 
     /** 各应用最近一次拉取窗口的结束时间（毫秒），用于计算下一次拉取窗口 */
-    private Map<String, AtomicLong> appLastFetchTime = new ConcurrentHashMap<>();
+    private final Map<String, AtomicLong> appLastFetchTime =
+            new ConcurrentHashMap<>(APP_LAST_FETCH_TIME_INITIAL_CAPACITY);
 
     /** 指标仓储，用于持久化拉取到的指标实体 */
     private final MetricsRepository<MetricEntity> metricStore;
@@ -136,33 +147,31 @@ public class MetricFetcher {
         this.metricStore = metricStore;
         this.appManagement = appManagement;
         int cores = Runtime.getRuntime().availableProcessors() * CPU_CORE_MULTIPLIER;
-        long keepAliveTime = 0;
-        int queueSize = FETCH_QUEUE_SIZE;
         RejectedExecutionHandler handler = new DiscardPolicy();
         fetchService = new ThreadPoolExecutor(cores, cores,
-            keepAliveTime, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(queueSize),
-            new NamedThreadFactory("sentinel-dashboard-metrics-fetchService", true), handler);
+                THREAD_KEEP_ALIVE_TIME_MS, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(FETCH_QUEUE_SIZE),
+                new NamedThreadFactory("sentinel-dashboard-metrics-fetchService", true), handler);
         fetchWorker = new ThreadPoolExecutor(cores, cores,
-            keepAliveTime, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(queueSize),
-            new NamedThreadFactory("sentinel-dashboard-metrics-fetchWorker", true), handler);
+                THREAD_KEEP_ALIVE_TIME_MS, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(FETCH_QUEUE_SIZE),
+                new NamedThreadFactory("sentinel-dashboard-metrics-fetchWorker", true), handler);
         IOReactorConfig ioConfig = IOReactorConfig.custom()
-            .setConnectTimeout(HTTP_CONNECT_TIMEOUT_MS)
-            .setSoTimeout(HTTP_SO_TIMEOUT_MS)
-            // 复用已计算的核数，避免再次查询运行时
-            .setIoThreadCount(cores)
-            .build();
-
+                .setConnectTimeout(HTTP_CONNECT_TIMEOUT_MS)
+                .setSoTimeout(HTTP_SO_TIMEOUT_MS)
+                // 复用已计算的核数，避免再次查询运行时
+                .setIoThreadCount(cores)
+                .build();
         httpclient = HttpAsyncClients.custom()
-            .setRedirectStrategy(new DefaultRedirectStrategy() {
-                /** 拉取指标时不跟随重定向 */
-                @Override
-                protected boolean isRedirectable(final String method) {
-                    return false;
-                }
-            }).setMaxConnTotal(MAX_CONN_TOTAL)
-            .setMaxConnPerRoute(MAX_CONN_PER_ROUTE)
-            .setDefaultIOReactorConfig(ioConfig)
-            .build();
+                .setRedirectStrategy(new DefaultRedirectStrategy() {
+                    /** 拉取指标时不跟随重定向 */
+                    @Override
+                    protected boolean isRedirectable(final String method) {
+                        return false;
+                    }
+                })
+                .setMaxConnTotal(MAX_CONN_TOTAL)
+                .setMaxConnPerRoute(MAX_CONN_PER_ROUTE)
+                .setDefaultIOReactorConfig(ioConfig)
+                .build();
         httpclient.start();
         start();
     }
@@ -228,7 +237,7 @@ public class MetricFetcher {
         Set<MachineInfo> machines = appInfo.getMachines();
         int machineCount = machines.size();
         logger.debug("enter fetchOnce({}), machines.size()={}, time intervalMs [{}, {}]",
-            app, machineCount, startTime, endTime);
+                app, machineCount, startTime, endTime);
         if (machines.isEmpty()) {
             return;
         }
@@ -272,7 +281,7 @@ public class MetricFetcher {
             final Map<String, MetricEntity> metricMap, final CountDownLatch latch, final String msg,
             final AtomicLong success, final AtomicLong fail) {
         final String url = "http://" + machine.getIp() + ":" + machine.getPort() + "/" + METRIC_URL_PATH
-            + "?startTime=" + startTime + "&endTime=" + endTime + "&refetch=" + false;
+                + "?startTime=" + startTime + "&endTime=" + endTime + "&refetch=" + false;
         final HttpGet httpGet = new HttpGet(url);
         httpGet.setHeader(HTTP.CONN_DIRECTIVE, HTTP.CONN_CLOSE);
         httpclient.execute(httpGet, new FutureCallback<HttpResponse>() {
@@ -299,7 +308,7 @@ public class MetricFetcher {
                     logger.error("Failed to fetch metric from <{}>: socket timeout", url, ex);
                 } else if (ex instanceof ConnectException) {
                     logger.error("Failed to fetch metric from <{}> (ConnectionException: {})",
-                        url, ex.getMessage(), ex);
+                            url, ex.getMessage(), ex);
                 } else {
                     logger.error("{} metric {} error", msg, url, ex);
                 }
@@ -323,8 +332,9 @@ public class MetricFetcher {
     private void doFetchAppMetric(final String app) {
         long now = System.currentTimeMillis();
         long lastFetchMs = now - MAX_LAST_FETCH_INTERVAL_MS;
-        if (appLastFetchTime.containsKey(app)) {
-            lastFetchMs = Math.max(lastFetchMs, appLastFetchTime.get(app).get() + ONE_SECOND_MS);
+        AtomicLong lastFetchEndTime = appLastFetchTime.get(app);
+        if (lastFetchEndTime != null) {
+            lastFetchMs = Math.max(lastFetchMs, lastFetchEndTime.get() + ONE_SECOND_MS);
         }
         // 截断毫秒
         lastFetchMs = lastFetchMs / ONE_SECOND_MS * ONE_SECOND_MS;
@@ -357,7 +367,7 @@ public class MetricFetcher {
      * {@link #NO_METRICS} 前缀响应体，其余行交由 {@link #handleBody} 解析
      */
     private void handleResponse(final HttpResponse response, MachineInfo machine,
-                                Map<String, MetricEntity> metricMap) throws Exception {
+            Map<String, MetricEntity> metricMap) throws Exception {
         int code = response.getStatusLine().getStatusCode();
         if (code != HTTP_OK) {
             return;
@@ -398,15 +408,12 @@ public class MetricFetcher {
                 if (shouldFilterOut(resource)) {
                     continue;
                 }
-                /*
-                 * 按 app_resource_timeSecond 聚合指标，忽略 ip 与端口
-                 */
                 // 缓存应用名与秒级时间戳，聚合 key 与实体初始化共用，避免同一方法内重复调用
                 String app = machine.getApp();
                 long timestamp = node.getTimestamp();
                 String key = buildMetricKey(app, resource, timestamp);
 
-                MetricEntity metricEntity = map.computeIfAbsent(key, s -> {
+                MetricEntity metricEntity = map.computeIfAbsent(key, ignored -> {
                     MetricEntity initMetricEntity = new MetricEntity();
                     initMetricEntity.setApp(app);
                     initMetricEntity.setTimestamp(new Date(timestamp));
@@ -431,22 +438,11 @@ public class MetricFetcher {
 
     /** 生成 {@code app__resource__秒级时间戳} 形式的聚合 key */
     private String buildMetricKey(String app, String resource, long timestamp) {
-        return app + "__" + resource + "__" + (timestamp / 1000);
+        return app + "__" + resource + "__" + (timestamp / ONE_SECOND_MS);
     }
 
     /** 判断资源是否在排除集合中，命中则跳过该指标 */
     private boolean shouldFilterOut(String resource) {
         return RES_EXCLUSION_SET.contains(resource);
     }
-
-    /** 不参与聚合的排除资源：总入口请求数、系统负载与 CPU 使用率 */
-    private static final Set<String> RES_EXCLUSION_SET = new HashSet<String>() {{
-       super.add(Constants.TOTAL_IN_RESOURCE_NAME);
-       super.add(Constants.SYSTEM_LOAD_RESOURCE_NAME);
-       super.add(Constants.CPU_USAGE_RESOURCE_NAME);
-    }};
-
 }
-
-
-

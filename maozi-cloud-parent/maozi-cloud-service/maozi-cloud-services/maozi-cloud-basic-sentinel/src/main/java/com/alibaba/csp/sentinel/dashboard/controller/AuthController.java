@@ -76,12 +76,11 @@ public class AuthController {
             authPassword = configAuthPassword;
         }
 
-        /*
-         * 若 auth.username 或 auth.password 为空（在 application.properties 或 VM 参数中设置），
-         * 则校验直接通过：前端已保证输入非空，此时用户可用任意非空的用户名和密码登录。
-         */
-        if (StringUtils.isNotBlank(authUsername) && !authUsername.equals(username)
-                || StringUtils.isNotBlank(authPassword) && !authPassword.equals(password)) {
+        // 若 auth.username 或 auth.password 为空（在 application.properties 或 VM 参数中设置），
+        // 则校验直接通过：前端已保证输入非空，此时用户可用任意非空的用户名和密码登录。
+        boolean usernameMismatch = StringUtils.isNotBlank(authUsername) && !authUsername.equals(username);
+        boolean passwordMismatch = StringUtils.isNotBlank(authPassword) && !authPassword.equals(password);
+        if (usernameMismatch || passwordMismatch) {
             LOGGER.error("Login failed: Invalid username or password, username={}", username);
             return Result.ofFail(Result.CODE_ERROR, "Invalid username or password");
         }

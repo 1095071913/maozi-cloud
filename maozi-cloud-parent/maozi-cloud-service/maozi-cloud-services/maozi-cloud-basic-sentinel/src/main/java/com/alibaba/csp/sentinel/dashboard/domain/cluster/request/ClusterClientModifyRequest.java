@@ -36,7 +36,7 @@ public class ClusterClientModifyRequest extends AbstractClusterModifyRequest {
 
     /** 设置集群客户端配置并返回当前对象。 */
     public ClusterClientModifyRequest setClientConfig(
-        ClusterClientConfig clientConfig) {
+            ClusterClientConfig clientConfig) {
         this.clientConfig = clientConfig;
         return this;
     }

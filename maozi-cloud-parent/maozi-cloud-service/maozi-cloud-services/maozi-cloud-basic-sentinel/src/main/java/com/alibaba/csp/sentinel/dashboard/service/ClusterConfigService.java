@@ -31,6 +31,7 @@ import com.alibaba.csp.sentinel.dashboard.domain.cluster.state.ClusterUniversalS
 import com.alibaba.csp.sentinel.dashboard.domain.cluster.state.ClusterUniversalStateVO;
 import com.alibaba.csp.sentinel.dashboard.util.AsyncUtils;
 import com.alibaba.csp.sentinel.dashboard.util.ClusterEntityUtils;
+import com.alibaba.csp.sentinel.dashboard.util.MachineUtils;
 import com.alibaba.csp.sentinel.util.StringUtil;
 import org.springframework.stereotype.Service;
 
@@ -73,14 +74,14 @@ public class ClusterConfigService {
         String ip = request.getIp();
         int port = request.getPort();
         return sentinelApiClient.modifyClusterClientConfig(app, ip, port, request.getClientConfig())
-            .thenCompose(v -> sentinelApiClient.modifyClusterMode(ip, port, ClusterStateManager.CLUSTER_CLIENT));
+                .thenCompose(v -> sentinelApiClient.modifyClusterMode(ip, port, ClusterStateManager.CLUSTER_CLIENT));
     }
 
     /**
      * 判断客户端请求是否不合法：客户端配置为 null、serverHost 为空，
      * 或 serverPort/requestTimeout 缺失及非正数
      */
-    private boolean notClientRequestValid(/*@NonNull */ ClusterClientModifyRequest request) {
+    private boolean notClientRequestValid(ClusterClientModifyRequest request) {
         ClusterClientConfig config = request.getClientConfig();
         if (config == null) {
             return true;
@@ -88,8 +89,8 @@ public class ClusterConfigService {
         Integer serverPort = config.getServerPort();
         Integer requestTimeout = config.getRequestTimeout();
         return StringUtil.isEmpty(config.getServerHost())
-            || serverPort == null || serverPort <= 0
-            || requestTimeout == null || requestTimeout <= 0;
+                || serverPort == null || serverPort <= 0
+                || requestTimeout == null || requestTimeout <= 0;
     }
 
     /**
@@ -114,9 +115,9 @@ public class ClusterConfigService {
         String ip = request.getIp();
         int port = request.getPort();
         return sentinelApiClient.modifyClusterServerNamespaceSet(app, ip, port, namespaceSet)
-            .thenCompose(v -> sentinelApiClient.modifyClusterServerTransportConfig(app, ip, port, transportConfig))
-            .thenCompose(v -> sentinelApiClient.modifyClusterServerFlowConfig(app, ip, port, flowConfig))
-            .thenCompose(v -> sentinelApiClient.modifyClusterMode(ip, port, ClusterStateManager.CLUSTER_SERVER));
+                .thenCompose(v -> sentinelApiClient.modifyClusterServerTransportConfig(app, ip, port, transportConfig))
+                .thenCompose(v -> sentinelApiClient.modifyClusterServerFlowConfig(app, ip, port, flowConfig))
+                .thenCompose(v -> sentinelApiClient.modifyClusterMode(ip, port, ClusterStateManager.CLUSTER_SERVER));
     }
 
     /**
@@ -140,14 +141,14 @@ public class ClusterConfigService {
         }
 
         List<CompletableFuture<ClusterUniversalStatePairVO>> futures = machines.stream()
-            .filter(e -> e.isHealthy())
-            .map(machine -> {
-                String machineIp = machine.getIp();
-                int machinePort = machine.getPort();
-                return getClusterUniversalState(app, machineIp, machinePort)
-                    .thenApply(e -> new ClusterUniversalStatePairVO(machineIp, machinePort, e));
-            })
-            .collect(Collectors.toList());
+                .filter(MachineInfo::isHealthy)
+                .map(machine -> {
+                    String machineIp = machine.getIp();
+                    int machinePort = machine.getPort();
+                    return getClusterUniversalState(app, machineIp, machinePort)
+                            .thenApply(e -> new ClusterUniversalStatePairVO(machineIp, machinePort, e));
+                })
+                .collect(Collectors.toList());
 
         return AsyncUtils.sequenceSuccessFuture(futures);
     }
@@ -171,21 +172,22 @@ public class ClusterConfigService {
         }
 
         boolean machineOk = machines.stream()
-            .filter(e -> e.isHealthy())
-            .map(e -> e.getIp() + '@' + e.getPort())
-            .anyMatch(e -> e.equals(machineId));
+                .filter(MachineInfo::isHealthy)
+                .map(machine -> machine.getIp() + MachineUtils.MACHINE_ID_SEPARATOR + machine.getPort())
+                .anyMatch(machineId::equals);
         if (!machineOk) {
             return AsyncUtils.newFailedFuture(new IllegalStateException("machine does not exist or disconnected"));
         }
 
         return getClusterUniversalState(app)
-            .thenApply(ClusterEntityUtils::wrapToClusterGroup)
-            .thenCompose(e -> e.stream()
-                .filter(e1 -> e1.getMachineId().equals(machineId))
-                .findAny()
-                .map(CompletableFuture::completedFuture)
-                .orElse(AsyncUtils.newFailedFuture(new IllegalStateException("not a server: " + machineId)))
-            );
+                .thenApply(ClusterEntityUtils::wrapToClusterGroup)
+                .thenCompose(e -> e.stream()
+                        .filter(e1 -> e1.getMachineId().equals(machineId))
+                        .findAny()
+                        .map(CompletableFuture::completedFuture)
+                        .orElse(AsyncUtils.newFailedFuture(
+                                new IllegalStateException("not a server: " + machineId)))
+                );
     }
 
     /**
@@ -194,22 +196,22 @@ public class ClusterConfigService {
      */
     public CompletableFuture<ClusterUniversalStateVO> getClusterUniversalState(String app, String ip, int port) {
         return sentinelApiClient.fetchClusterMode(ip, port)
-            .thenApply(e -> new ClusterUniversalStateVO().setStateInfo(e))
-            .thenCompose(vo -> {
-                if (Boolean.TRUE.equals(vo.getStateInfo().getClientAvailable())) {
-                    return sentinelApiClient.fetchClusterClientInfoAndConfig(ip, port)
-                        .thenApply(cc -> vo.setClient(new ClusterClientStateVO().setClientConfig(cc)));
-                } else {
-                    return CompletableFuture.completedFuture(vo);
-                }
-            }).thenCompose(vo -> {
-                if (Boolean.TRUE.equals(vo.getStateInfo().getServerAvailable())) {
-                    return sentinelApiClient.fetchClusterServerBasicInfo(ip, port)
-                        .thenApply(vo::setServer);
-                } else {
-                    return CompletableFuture.completedFuture(vo);
-                }
-            });
+                .thenApply(e -> new ClusterUniversalStateVO().setStateInfo(e))
+                .thenCompose(vo -> {
+                    if (Boolean.TRUE.equals(vo.getStateInfo().getClientAvailable())) {
+                        return sentinelApiClient.fetchClusterClientInfoAndConfig(ip, port)
+                                .thenApply(cc -> vo.setClient(new ClusterClientStateVO().setClientConfig(cc)));
+                    } else {
+                        return CompletableFuture.completedFuture(vo);
+                    }
+                }).thenCompose(vo -> {
+                    if (Boolean.TRUE.equals(vo.getStateInfo().getServerAvailable())) {
+                        return sentinelApiClient.fetchClusterServerBasicInfo(ip, port)
+                                .thenApply(vo::setServer);
+                    } else {
+                        return CompletableFuture.completedFuture(vo);
+                    }
+                });
     }
 
     /**
@@ -222,7 +224,7 @@ public class ClusterConfigService {
         Integer port = transportConfig.getPort();
         Integer idleSeconds = transportConfig.getIdleSeconds();
         return port == null || port <= 0
-            || idleSeconds == null || idleSeconds <= 0;
+                || idleSeconds == null || idleSeconds <= 0;
     }
 
     /**
@@ -237,8 +239,8 @@ public class ClusterConfigService {
         Integer intervalMs = flowConfig.getIntervalMs();
         Double maxAllowedQps = flowConfig.getMaxAllowedQps();
         return sampleCount == null || sampleCount <= 0
-            || intervalMs == null || intervalMs <= 0
-            || intervalMs % sampleCount != 0
-            || maxAllowedQps == null || maxAllowedQps < 0;
+                || intervalMs == null || intervalMs <= 0
+                || intervalMs % sampleCount != 0
+                || maxAllowedQps == null || maxAllowedQps < 0;
     }
 }

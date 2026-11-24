@@ -58,8 +58,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * 应用启动基类
  * <p>
- * 微服务应用的统一启动基类，各服务启动入口直接继承此类
- * （或继承 {@code BaseApplicationDB}，其内部委托本类执行启动）。
+ * 微服务应用的统一启动基类，各服务启动入口直接继承此类。
  * 负责统一初始化运行环境、应用名称、日志等启动参数，并在启动前扫描
  * classpath 下 {@code META-INF/run/config/*.properties} 登记的
  * {@link ConfigInitializer}，由各初始化器写入 Nacos、缓存、定时任务等
@@ -82,7 +81,7 @@ public class BaseApplication {
 
     /** 构建产物目录名集合，目录运行时往上跳过这些目录以推导项目根目录名 */
     private static final Set<String> BUILD_DIR_NAMES = Set.of(
-        "target", "build", "classes", "bin", "java", "main", "test");
+            "target", "build", "classes", "bin", "java", "main", "test");
 
     /** banner 过滤特征列表，由各组件模块在配置初始化阶段注册，{@link BannerFilterPrintStream} 过滤时实时读取 */
     private static final List<String> BANNER_FILTERS = new CopyOnWriteArrayList<>();
@@ -197,7 +196,7 @@ public class BaseApplication {
 
             // 记录错误日志并退出进程
             LogUtil.error(log, logs, e);
-            
+
             System.exit(1);
 
         }
@@ -288,7 +287,7 @@ public class BaseApplication {
         }
         String applicationProjectAbbreviation = applicationName.replace(PROJECT_PREFIX, SymbolConstant.EMPTY);
         applicationProjectAbbreviation = applicationProjectAbbreviation.substring(0,
-            applicationProjectAbbreviation.length() - PROJECT_NAME_SUFFIX_LENGTH);
+                applicationProjectAbbreviation.length() - PROJECT_NAME_SUFFIX_LENGTH);
 
         // 设置应用名、项目简称及基础启动参数（关闭启动信息日志、允许循环依赖）
         properties.put(SpringPropertyConstant.SPRING_APPLICATION_NAME, applicationName);
@@ -301,12 +300,12 @@ public class BaseApplication {
         properties.put(LOGGING_LEVEL_ROOT_KEY, LOG_LEVEL_ERROR);
         properties.put(LOGGING_LEVEL_PROJECT_KEY, LOG_LEVEL_INFO);
 
-        // 非本地环境输出异步文件日志，本地环境输出异步控制台日志
-        if (!Objects.equals(environment, localEnvironment)) {
+        // 本地环境输出异步控制台日志，非本地环境输出异步文件日志
+        if (Objects.equals(environment, localEnvironment)) {
+            properties.put(LOGGING_APPENDER_KEY, APPENDER_ASYNC_CONSOLE);
+        } else {
             properties.put(LOGGING_APPENDER_KEY, APPENDER_ASYNC_FILE);
             properties.put(LOGGING_FILE_NAME_KEY, LOGGING_FILE_NAME_VALUE);
-        } else {
-            properties.put(LOGGING_APPENDER_KEY, APPENDER_ASYNC_CONSOLE);
         }
 
     }
@@ -471,7 +470,7 @@ public class BaseApplication {
                 String path = beforeJar.substring(colonIndex + 1);
                 // 处理 Windows 路径可能出现的前导 /
                 if (path.startsWith(SymbolConstant.SLASH) && path.length() > WINDOWS_DRIVE_SEPARATOR_INDEX
-                    && path.charAt(WINDOWS_DRIVE_SEPARATOR_INDEX) == SymbolConstant.COLON_CHAR) {
+                        && path.charAt(WINDOWS_DRIVE_SEPARATOR_INDEX) == SymbolConstant.COLON_CHAR) {
                     path = path.substring(1);
                 }
                 return new File(path);

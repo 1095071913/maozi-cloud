@@ -17,7 +17,7 @@ package com.alibaba.csp.sentinel.dashboard.controller.v2;
 
 import com.alibaba.csp.sentinel.dashboard.auth.AuthAction;
 import com.alibaba.csp.sentinel.dashboard.auth.AuthService;
-import com.alibaba.csp.sentinel.dashboard.auth.AuthService.PrivilegeType;
+import com.alibaba.csp.sentinel.dashboard.auth.AuthService.PrivilegeTypeEnum;
 import com.alibaba.csp.sentinel.dashboard.controller.AbstractFlowRuleController;
 import com.alibaba.csp.sentinel.dashboard.controller.RuleEntityValidator;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.FlowRuleEntity;
@@ -54,9 +54,8 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
 
     /** 注入规则仓储、规则提供者与发布者。 */
     public FlowControllerV2(AbstractInMemoryRuleRepository<FlowRuleEntity> repository,
-                            @Qualifier("flowRuleNacosProvider") DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider,
-                            @Qualifier("flowRuleNacosPublisher") DynamicRulePublisher<List<FlowRuleEntity>>
-                                rulePublisher) {
+            @Qualifier("flowRuleNacosProvider") DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider,
+            @Qualifier("flowRuleNacosPublisher") DynamicRulePublisher<List<FlowRuleEntity>> rulePublisher) {
         super(repository, ruleProvider, rulePublisher);
     }
 
@@ -64,7 +63,7 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
      * 从 Nacos 拉取应用的流控规则，用集群流控 id 还原实体 id 后持久化并返回。
      */
     @GetMapping("/rules")
-    @AuthAction(PrivilegeType.READ_RULE)
+    @AuthAction(PrivilegeTypeEnum.READ_RULE)
     public Result<List<FlowRuleEntity>> apiQueryMachineRules(@RequestParam String app) {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
@@ -73,11 +72,8 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
             for (FlowRuleEntity entity : rules) {
                 entity.setApp(app);
                 ClusterFlowConfig clusterConfig = entity.getClusterConfig();
-                if (clusterConfig != null) {
-                    Long flowId = clusterConfig.getFlowId();
-                    if (flowId != null) {
-                        entity.setId(flowId);
-                    }
+                if (clusterConfig != null && clusterConfig.getFlowId() != null) {
+                    entity.setId(clusterConfig.getFlowId());
                 }
             }
         });
@@ -100,7 +96,7 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
 
     /** 校验通过后新增流控规则（重置 id 以便生成），并推送应用的规则。 */
     @PostMapping("/rule")
-    @AuthAction(value = AuthService.PrivilegeType.WRITE_RULE)
+    @AuthAction(AuthService.PrivilegeTypeEnum.WRITE_RULE)
     public Result<FlowRuleEntity> apiAddFlowRule(@RequestBody FlowRuleEntity entity) {
         return super.addFlowRule(entity);
     }
@@ -109,9 +105,9 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
      * 更新指定 id 的规则（app/ip/port/gmtCreate 沿用旧实体），并推送应用的规则。
      */
     @PutMapping("/rule/{id}")
-    @AuthAction(AuthService.PrivilegeType.WRITE_RULE)
+    @AuthAction(AuthService.PrivilegeTypeEnum.WRITE_RULE)
     public Result<FlowRuleEntity> apiUpdateFlowRule(@PathVariable("id") Long id,
-                                                    @RequestBody FlowRuleEntity entity) {
+            @RequestBody FlowRuleEntity entity) {
         if (id == null || id <= 0) {
             return Result.ofFail(Result.CODE_ERROR, "Invalid id");
         }
@@ -139,7 +135,7 @@ public class FlowControllerV2 extends AbstractFlowRuleController {
 
     /** 删除指定 id 的规则并推送应用的规则；id 不存在时直接成功返回（数据为 null）。 */
     @DeleteMapping("/rule/{id}")
-    @AuthAction(PrivilegeType.DELETE_RULE)
+    @AuthAction(PrivilegeTypeEnum.DELETE_RULE)
     public Result<Long> apiDeleteRule(@PathVariable("id") Long id) {
         if (id == null || id <= 0) {
             return Result.ofFail(Result.CODE_ERROR, "Invalid id");

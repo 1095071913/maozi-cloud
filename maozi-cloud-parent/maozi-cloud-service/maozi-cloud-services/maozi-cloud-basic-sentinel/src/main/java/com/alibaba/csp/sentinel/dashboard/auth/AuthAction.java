@@ -25,6 +25,7 @@ import java.lang.annotation.Target;
  * 标记控制器方法需要指定权限才可访问的注解。
  *
  * @author lkxiaolou
+ * @date 2026/11/22
  * @since 1.7.1
  */
 @Retention(RetentionPolicy.RUNTIME)
@@ -35,7 +36,7 @@ public @interface AuthAction {
     /**
      * @return 所需的权限类型
      */
-    AuthService.PrivilegeType value();
+    AuthService.PrivilegeTypeEnum value();
 
     /**
      * @return 携带授权目标（应用名）的请求参数名，默认 "app"

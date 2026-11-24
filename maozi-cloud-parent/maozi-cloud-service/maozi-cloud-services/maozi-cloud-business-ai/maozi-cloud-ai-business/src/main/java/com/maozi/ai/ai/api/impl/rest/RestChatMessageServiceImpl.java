@@ -52,7 +52,6 @@ public class RestChatMessageServiceImpl extends BaseServiceResultImpl<ChatServic
         return ResultUtil.success(service.adminList(conversationId));
     }
 
-
     /** 停止会话进行中的对话或文生图 */
     @Override
     public AbstractBaseResult<Void> stopResult(Long conversationId) {

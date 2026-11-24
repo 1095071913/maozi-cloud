@@ -32,13 +32,17 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class CodeConfig {
 
+    /** 全局错误码映射表初始容量 */
+    private static final int ERROR_CODE_MAP_INITIAL_CAPACITY = 256;
+
     /**
      * 全局错误码映射表，键为错误码值，值为错误码对象
      * （仅类内部可写，外部通过 {@link #getErrorCodes()} 只读视图
      * 或 {@link #getErrorCode(Integer)} 访问；启动线程写入后供任意请求线程并发读，
      * 使用 ConcurrentHashMap 保证跨线程安全发布）
      */
-    private static final Map<Integer, ErrorCode> ERROR_CODES = new ConcurrentHashMap<>(256);
+    private static final Map<Integer, ErrorCode> ERROR_CODES =
+            new ConcurrentHashMap<>(ERROR_CODE_MAP_INITIAL_CAPACITY);
 
     /**
      * 初始化错误码
@@ -89,7 +93,7 @@ public class CodeConfig {
 
         } catch (Exception e) {
             // 仅捕获 Exception，OutOfMemoryError 等 Error 交由 JVM 处理，避免掩盖启动期致命问题
-            LogUtil.error(log, "注册错误错误码失败", e);
+            LogUtil.error(log, "注册错误码失败", e);
         }
 
     }

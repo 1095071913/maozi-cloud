@@ -45,16 +45,16 @@ public class Result<R> {
     /** 创建携带指定数据、消息为 "success" 的成功结果。 */
     public static <R> Result<R> ofSuccess(R data) {
         return new Result<R>()
-            .setSuccess(true)
-            .setMsg(DEFAULT_SUCCESS_MSG)
-            .setData(data);
+                .setSuccess(true)
+                .setMsg(DEFAULT_SUCCESS_MSG)
+                .setData(data);
     }
 
     /** 创建携带指定消息的成功结果。 */
     public static <R> Result<R> ofSuccessMsg(String msg) {
         return new Result<R>()
-            .setSuccess(true)
-            .setMsg(msg);
+                .setSuccess(true)
+                .setMsg(msg);
     }
 
     /** 创建携带指定错误码和消息的失败结果。 */
@@ -122,11 +122,11 @@ public class Result<R> {
     /** 返回结果的字符串表示。 */
     @Override
     public String toString() {
-        return "Result{" +
-            "success=" + success +
-            ", code=" + code +
-            ", msg='" + msg + '\'' +
-            ", data=" + data +
-            '}';
+        return "Result{"
+                + "success=" + success
+                + ", code=" + code
+                + ", msg='" + msg + '\''
+                + ", data=" + data
+                + '}';
     }
 }

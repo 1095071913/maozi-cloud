@@ -49,10 +49,10 @@ public class RestTemplateConfig {
      */
     public static ClientHttpResponse handleException(HttpRequest request, byte[] body,
             ClientHttpRequestExecution execution, BlockException exception) {
-        ErrorCode errorCode = exception instanceof AuthorityException ?
-                SystemErrorCode.BLACKLIST_ERROR
-                :
-                SystemErrorCode.CURRENT_LIMITING_ERROR;
+        // 授权规则（黑名单）拦截返回黑名单错误码，其余阻断（如限流）返回限流错误码
+        ErrorCode errorCode = exception instanceof AuthorityException
+                ? SystemErrorCode.BLACKLIST_ERROR
+                : SystemErrorCode.CURRENT_LIMITING_ERROR;
         return new SentinelClientHttpResponse(JacksonUtil.objectToJson(ResultUtil.error(errorCode)));
     }
 

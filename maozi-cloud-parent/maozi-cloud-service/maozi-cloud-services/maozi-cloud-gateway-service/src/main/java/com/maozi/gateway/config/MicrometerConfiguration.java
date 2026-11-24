@@ -38,6 +38,9 @@ public class MicrometerConfiguration {
     /** 路径模板通配后缀（如 /a/b/**） */
     private static final String PATH_WILDCARD_SUFFIX = "/**";
 
+    /** 路径模板所需的最小段数（前导空段加前两段路径） */
+    private static final int PATH_TEMPLATE_MIN_SECTION_COUNT = 3;
+
     /** URL 路径分隔符切分模式（预编译） */
     private static final Pattern PATH_SPLIT_PATTERN = Pattern.compile(SymbolConstant.SLASH);
 
@@ -69,7 +72,7 @@ public class MicrometerConfiguration {
 
                     String[] pathSection = PATH_SPLIT_PATTERN.split(path);
 
-                    path = pathSection.length > 2
+                    path = pathSection.length >= PATH_TEMPLATE_MIN_SECTION_COUNT
                             ? SymbolConstant.SLASH + pathSection[1]
                                     + SymbolConstant.SLASH + pathSection[2] + PATH_WILDCARD_SUFFIX
                             : UNKNOWN;

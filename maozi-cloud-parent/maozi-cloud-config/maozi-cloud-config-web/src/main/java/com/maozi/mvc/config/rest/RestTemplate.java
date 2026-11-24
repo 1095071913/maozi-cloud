@@ -47,6 +47,9 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
     /** 流读取缓冲区大小（字节） */
     private static final int BUFFER_SIZE = 1024;
 
+    /** 请求链路日志 Map 的初始容量 */
+    private static final int LOG_MAP_INITIAL_CAPACITY = 16;
+
     /**
      * 执行 HTTP 请求的核心方法（增强版）
      * <p>
@@ -67,7 +70,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
     @Nullable
     @Override
     protected <T> T doExecute(@Nonnull URI url, @Nullable String uriTemplate, @Nullable HttpMethod method,
-        @Nullable RequestCallback requestCallback, @Nullable ResponseExtractor<T> responseExtractor)
+            @Nullable RequestCallback requestCallback, @Nullable ResponseExtractor<T> responseExtractor)
         throws RestClientException {
 
         // 标记请求是否发生异常，用于最终日志级别判断
@@ -78,7 +81,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
 
         // 使用有序 Map 收集请求全链路日志信息
         // （后续固定写入 IP/TYPE/URL/METHOD 等标签，指定初始容量）
-        Map<String, String> logs = new LinkedHashMap<>(16);
+        Map<String, String> logs = new LinkedHashMap<>(LOG_MAP_INITIAL_CAPACITY);
 
         // HTTP 请求与响应对象，用于 finally 中统一关闭
         ClientHttpRequest request = null;
@@ -135,8 +138,8 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
             fillErrorLog(request, logs, ex);
 
             // RestClientException 原样上抛，其他异常包装为 RestClientException
-            throw (ex instanceof RestClientException restClientException) ? restClientException
-                : new RestClientException(ex.getMessage(), ex);
+            throw ex instanceof RestClientException restClientException ? restClientException
+                    : new RestClientException(ex.getMessage(), ex);
 
         } finally {
 
@@ -235,7 +238,7 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
      * @param out 输出流（实际类型为 ByteArrayOutputStream）
      * @return 包含相同字节数据的输入流
      */
-    public ByteArrayInputStream parse(final OutputStream out) {
+    private ByteArrayInputStream parse(final OutputStream out) {
         ByteArrayOutputStream byteArrayOutputStream = (ByteArrayOutputStream) out;
         return new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
     }
@@ -251,12 +254,13 @@ public class RestTemplate extends org.springframework.web.client.RestTemplate {
      * @return 包含流中全部数据的字节数组
      * @throws Exception 流读取异常
      */
-    public byte[] readStream(InputStream inStream) throws Exception {
+    private byte[] readStream(InputStream inStream) throws Exception {
         try (inStream; ByteArrayOutputStream outStream = new ByteArrayOutputStream()) {
             byte[] buffer = new byte[BUFFER_SIZE];
-            int len;
-            while ((len = inStream.read(buffer)) != -1) {
+            int len = inStream.read(buffer);
+            while (len != -1) {
                 outStream.write(buffer, 0, len);
+                len = inStream.read(buffer);
             }
             return outStream.toByteArray();
         }

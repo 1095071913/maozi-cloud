@@ -38,18 +38,20 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping(value = "/registry", produces = MediaType.APPLICATION_JSON_VALUE)
 public class MachineRegistryController {
 
-    /** 日志记录器。 */
-    private final Logger logger = LoggerFactory.getLogger(MachineRegistryController.class);
-
-    /** 维护已注册机器的应用管理服务。 */
-    private final AppManagement appManagement;
-
     /** 上报应用名的最大允许长度。 */
     private static final int MAX_APP_NAME_LENGTH = 256;
     /** 上报 IP 地址字符串的最大允许长度。 */
     private static final int MAX_IP_LENGTH = 128;
     /** 上报主机名的最大允许长度。 */
     private static final int MAX_HOSTNAME_LENGTH = 256;
+    /** 客户端端口尚未设置时上报的端口值。 */
+    private static final int PORT_UNSET = -1;
+
+    /** 日志记录器。 */
+    private static final Logger logger = LoggerFactory.getLogger(MachineRegistryController.class);
+
+    /** 维护已注册机器的应用管理服务。 */
+    private final AppManagement appManagement;
 
     /** 注入应用管理服务。 */
     public MachineRegistryController(AppManagement appManagement) {
@@ -63,9 +65,8 @@ public class MachineRegistryController {
     @ResponseBody
     @PostMapping("/machine")
     public Result<?> receiveHeartBeat(String app,
-                                      @RequestParam(value = "app_type", required = false, defaultValue = "0")
-                                          Integer appType, Long version, String v, String hostname, String ip,
-                                      Integer port) {
+            @RequestParam(value = "app_type", required = false, defaultValue = "0") Integer appType,
+            Long version, String v, String hostname, String ip, Integer port) {
         if (StringUtil.isBlank(app) || app.length() > MAX_APP_NAME_LENGTH) {
             return Result.ofFail(Result.CODE_ERROR, "invalid appName");
         }
@@ -75,13 +76,13 @@ public class MachineRegistryController {
         if (!InetAddressUtils.isIPv4Address(ip) && !InetAddressUtils.isIPv6Address(ip)) {
             return Result.ofFail(Result.CODE_ERROR, "invalid ip: " + ip);
         }
-        if (port == null || port < -1) {
+        if (port == null || port < PORT_UNSET) {
             return Result.ofFail(Result.CODE_ERROR, "invalid port");
         }
         if (hostname != null && hostname.length() > MAX_HOSTNAME_LENGTH) {
             return Result.ofFail(Result.CODE_ERROR, "hostname too long");
         }
-        if (port == -1) {
+        if (port == PORT_UNSET) {
             logger.warn("Receive heartbeat from {} but port not set yet", ip);
             return Result.ofFail(Result.CODE_ERROR, "your port not set yet");
         }

@@ -39,7 +39,7 @@ public class AppInfo {
     private Integer appType = 0;
 
     /** 注册到该应用的机器集合。 */
-    private Set<MachineInfo> machines = ConcurrentHashMap.newKeySet();
+    private final Set<MachineInfo> machines = ConcurrentHashMap.newKeySet();
 
     /** 默认构造方法。 */
     public AppInfo() {}
@@ -87,7 +87,7 @@ public class AppInfo {
     /** 返回包含应用名和机器集合的字符串表示。 */
     @Override
     public String toString() {
-        return "AppInfo{" + "app='" + app + ", machines=" + machines + '}';
+        return "AppInfo{" + "app='" + app + "', machines=" + machines + '}';
     }
 
     /**
@@ -109,11 +109,11 @@ public class AppInfo {
      * @return 找到并移除返回 true，否则返回 false
      */
     public synchronized boolean removeMachine(String ip, int port) {
-        Iterator<MachineInfo> it = machines.iterator();
-        while (it.hasNext()) {
-            MachineInfo machine = it.next();
-            if (Objects.equals(machine.getIp(), ip) && machine.getPort() == port) {
-                it.remove();
+        Iterator<MachineInfo> iterator = machines.iterator();
+        while (iterator.hasNext()) {
+            MachineInfo machine = iterator.next();
+            if (Objects.equals(machine.getIp(), ip) && Objects.equals(machine.getPort(), port)) {
+                iterator.remove();
                 return true;
             }
         }
@@ -129,8 +129,8 @@ public class AppInfo {
      */
     public Optional<MachineInfo> getMachine(String ip, int port) {
         return machines.stream()
-            .filter(e -> Objects.equals(e.getIp(), ip) && e.getPort().equals(port))
-            .findFirst();
+                .filter(machine -> Objects.equals(machine.getIp(), ip) && Objects.equals(machine.getPort(), port))
+                .findFirst();
     }
 
     /**
@@ -141,8 +141,8 @@ public class AppInfo {
      */
     public Optional<MachineInfo> getMachine(String ip) {
         return machines.stream()
-            .filter(e -> Objects.equals(e.getIp(), ip))
-            .findFirst();
+                .filter(machine -> Objects.equals(machine.getIp(), ip))
+                .findFirst();
     }
 
     /**
@@ -156,14 +156,14 @@ public class AppInfo {
         }
         if (threshold > 0) {
             long healthyCount = machines.stream()
-                .filter(MachineInfo::isHealthy)
-                .count();
+                    .filter(MachineInfo::isHealthy)
+                    .count();
             if (healthyCount == 0) {
                 // 无健康机器时，退化为按最新心跳时间判断
                 return machines.stream()
-                    .max(Comparator.comparingLong(MachineInfo::getLastHeartbeat))
-                    .map(e -> System.currentTimeMillis() - e.getLastHeartbeat() < threshold)
-                    .orElse(false);
+                        .max(Comparator.comparingLong(MachineInfo::getLastHeartbeat))
+                        .map(machine -> System.currentTimeMillis() - machine.getLastHeartbeat() < threshold)
+                        .orElse(false);
             }
         }
         return true;

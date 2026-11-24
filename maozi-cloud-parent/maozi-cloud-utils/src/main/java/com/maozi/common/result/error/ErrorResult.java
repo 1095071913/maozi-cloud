@@ -60,7 +60,7 @@ public class ErrorResult<D> extends AbstractBaseResult<D> implements Serializabl
 
     /** HTTP 状态码（仅服务端使用，不序列化到响应体） */
     @JsonIgnore
-    protected Integer httpCode;
+    private Integer httpCode;
 
     /** 错误内码 */
     @Schema(description = "错误内码")
@@ -192,10 +192,10 @@ public class ErrorResult<D> extends AbstractBaseResult<D> implements Serializabl
         // 避免自动拆箱 NPE；缓存取值结果，避免同一方法内重复调用
         Integer errorCodeValue = getCode();
         return SystemErrorCode.MAX_SYSTEM_ERROR_CODE < errorCodeValue
-            || SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE.equals(errorCodeValue)
-            || SystemErrorCode.USER_AUTH_ERROR_DEFAULT_CODE.equals(errorCodeValue)
-            || SystemErrorCode.PERMISSION_ERROR_DEFAULT_CODE.equals(errorCodeValue)
-            || SystemErrorCode.CURRENT_LIMITING_ERROR_DEFAULT_CODE.equals(errorCodeValue);
+                || SystemErrorCode.BUSINESS_ERROR_DEFAULT_CODE.equals(errorCodeValue)
+                || SystemErrorCode.USER_AUTH_ERROR_DEFAULT_CODE.equals(errorCodeValue)
+                || SystemErrorCode.PERMISSION_ERROR_DEFAULT_CODE.equals(errorCodeValue)
+                || SystemErrorCode.CURRENT_LIMITING_ERROR_DEFAULT_CODE.equals(errorCodeValue);
     }
 
     /**

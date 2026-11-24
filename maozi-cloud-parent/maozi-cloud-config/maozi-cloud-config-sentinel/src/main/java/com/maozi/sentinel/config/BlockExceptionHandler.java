@@ -38,13 +38,11 @@ public class BlockExceptionHandler
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
             String resourceName, BlockException exception) {
-        ErrorCode errorCode = exception instanceof AuthorityException ?
-                SystemErrorCode.BLACKLIST_ERROR
-                :
-                SystemErrorCode.CURRENT_LIMITING_ERROR;
+        // 授权规则（黑名单）拦截返回黑名单错误码，其余流控/熔断拦截返回限流错误码
+        ErrorCode errorCode = exception instanceof AuthorityException
+                ? SystemErrorCode.BLACKLIST_ERROR
+                : SystemErrorCode.CURRENT_LIMITING_ERROR;
         WebUtil.writeResponseBody(response, ResultUtil.error(errorCode).autoIdentifyHttpCode(errorCode.getCode()));
     }
-
-    
 
 }

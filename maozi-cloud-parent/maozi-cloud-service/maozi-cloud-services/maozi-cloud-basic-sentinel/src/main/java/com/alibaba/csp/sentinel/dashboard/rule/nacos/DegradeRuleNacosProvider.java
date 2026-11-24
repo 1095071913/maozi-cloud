@@ -55,13 +55,14 @@ public class DegradeRuleNacosProvider implements DynamicRuleProvider<List<Degrad
     @Override
     public List<DegradeRuleEntity> getRules(String appName) throws Exception {
         String rules = NacosConfigUtil.readFreshConfig(configService, appName,
-            NacosConfigUtil.DEGRADE_DATA_ID_POSTFIX, nacosProperties.getGroup(), NacosConfigUtil.READ_TIMEOUT_MS);
+                NacosConfigUtil.DEGRADE_DATA_ID_POSTFIX, nacosProperties.getGroup(),
+                NacosConfigUtil.READ_TIMEOUT_MS);
         if (StringUtil.isEmpty(rules)) {
             return new ArrayList<>();
         }
         List<DegradeRule> list = JSON.parseArray(rules, DegradeRule.class);
         return list.stream()
-            .map(rule -> DegradeRuleEntity.fromDegradeRule(appName, null, null, rule))
-            .collect(Collectors.toList());
+                .map(rule -> DegradeRuleEntity.fromDegradeRule(appName, null, null, rule))
+                .collect(Collectors.toList());
     }
 }

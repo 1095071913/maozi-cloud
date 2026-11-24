@@ -54,22 +54,22 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
     public static final String RESOURCE_NAME = "客户端";
 
     /** 授权码存活时间（秒）：5 分钟 */
-    protected static final long AUTH_CODE_TTL_SECONDS = 300;
+    private static final long AUTH_CODE_TTL_SECONDS = 300;
 
     /** 设备码存活时间（秒）：5 分钟 */
-    protected static final long DEVICE_CODE_TTL_SECONDS = 300;
+    private static final long DEVICE_CODE_TTL_SECONDS = 300;
 
     /** 访问令牌（Access Token）默认有效期：2小时 */
-    protected static final long DEFAULT_ACCESS_TOKEN_VALIDITY_SECONDS = 60 * 60 * 2L;
+    private static final long DEFAULT_ACCESS_TOKEN_VALIDITY_SECONDS = 60 * 60 * 2L;
 
     /** 刷新令牌（Refresh Token）默认有效期：7天 */
-    protected static final long DEFAULT_REFRESH_TOKEN_VALIDITY_SECONDS = 60 * 60 * 24 * 7L;
+    private static final long DEFAULT_REFRESH_TOKEN_VALIDITY_SECONDS = 60 * 60 * 24 * 7L;
 
     /** OAuth2专用的JSON序列化/反序列化对象，注册了Spring Security OAuth2的Jackson模块 */
     public static final ObjectMapper OAUTH_OBJECT_MAPPER;
 
     /** 密码编码器，用于对客户端密钥进行加密存储 */
-    protected static final PasswordEncoder PASSWORD_ENCODER;
+    private static final PasswordEncoder PASSWORD_ENCODER;
 
     // 初始化OAuth2专用ObjectMapper与委托式密码编码器
     static {
@@ -82,7 +82,6 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
         PASSWORD_ENCODER = PasswordEncoderFactories.createDelegatingPasswordEncoder();
 
     }
-
 
     /** 获取资源名称 */
     @Override
@@ -126,7 +125,7 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
             // 更新：清空clientId，防止客户端标识被修改
             param.setClientId(null);
         }
-        
+
         // 客户端密钥非空时加密存储（更新未传密钥则保持原值）
         String clientSecret = param.getClientSecret();
         if (StringUtils.isNotBlank(clientSecret)) {
@@ -146,16 +145,16 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
             builder.deviceCodeTimeToLive(Duration.ofSeconds(DEVICE_CODE_TTL_SECONDS));
             // 不重用 Refresh Token（每次刷新时签发新的 Refresh Token）
             builder.reuseRefreshTokens(Boolean.FALSE);
-            
+
             builder.accessTokenTimeToLive(Duration.ofSeconds(accessTokenValiditySeconds));
             builder.refreshTokenTimeToLive(Duration.ofSeconds(refreshTokenValiditySeconds));
 
             param.setTokenSettings(builder.build().getSettings());
 
         }
-        
+
         return super.saveUpdate(id, param);
-        
+
     }
 
     /**
@@ -244,12 +243,12 @@ public class ClientServiceImpl extends BaseServiceImpl<ClientMapper, ClientDO> i
         LambdaQueryWrapper<ClientDO> wrapper = Wrappers.lambdaQuery();
 
         wrapper.select(ClientDO::getId, ClientDO::getClientId);
-        
+
         wrapper.in(ClientDO::getId, ids);
 
         return super.list(wrapper).stream().collect(Collectors.toMap(ClientDO::getId, ClientDO::getClientId,
-                (v1, v2) -> v1));
-        
+                (oldValue, newValue) -> oldValue));
+
     }
 
 }

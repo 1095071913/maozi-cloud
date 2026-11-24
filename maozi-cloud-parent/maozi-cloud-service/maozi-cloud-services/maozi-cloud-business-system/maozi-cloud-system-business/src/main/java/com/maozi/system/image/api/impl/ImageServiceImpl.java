@@ -91,11 +91,8 @@ public class ImageServiceImpl implements ImageService {
     public List<ImageUploadResult> upload(ImageUploadParam param) {
 
         // 存储类型未配置时默认使用阿里云 OSS
-        String storeTypeCode = imageStorageProperties.getStoreType();
-        storeTypeCode = StringUtils.isEmpty(storeTypeCode) ?
-                DEFAULT_IMAGE_STORAGE_TYPE_CODE
-                :
-                storeTypeCode;
+        String storeTypeCode = StringUtils.defaultIfEmpty(imageStorageProperties.getStoreType(),
+                DEFAULT_IMAGE_STORAGE_TYPE_CODE);
 
         ImageStorageTypeEnum storeType = ImageStorageTypeEnum.get(storeTypeCode);
 
@@ -108,7 +105,9 @@ public class ImageServiceImpl implements ImageService {
 
         List<ImageUploadResult> results = CollectionUtil.newArrayList(files.size());
 
-        files.forEach(file -> results.add(handler.upload(file, param.getPath())));
+        // 保存路径为所有文件共用的目录前缀，循环外获取一次即可
+        String path = param.getPath();
+    files.forEach(file -> results.add(handler.upload(file, path)));
 
         return results;
 

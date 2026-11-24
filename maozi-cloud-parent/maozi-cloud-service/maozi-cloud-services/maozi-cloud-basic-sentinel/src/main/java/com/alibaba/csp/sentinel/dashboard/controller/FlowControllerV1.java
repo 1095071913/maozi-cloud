@@ -16,7 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.controller;
 
 import com.alibaba.csp.sentinel.dashboard.auth.AuthAction;
-import com.alibaba.csp.sentinel.dashboard.auth.AuthService.PrivilegeType;
+import com.alibaba.csp.sentinel.dashboard.auth.AuthService.PrivilegeTypeEnum;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.FlowRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.discovery.AppManagement;
 import com.alibaba.csp.sentinel.dashboard.domain.Result;
@@ -54,20 +54,19 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
 
     /** 注入规则仓储、应用管理、规则提供者与发布者。 */
     public FlowControllerV1(AbstractInMemoryRuleRepository<FlowRuleEntity> repository,
-                            AppManagement appManagement,
-                            @Qualifier("flowRuleNacosProvider") DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider,
-                            @Qualifier("flowRuleNacosPublisher") DynamicRulePublisher<List<FlowRuleEntity>>
-                                rulePublisher) {
+            AppManagement appManagement,
+            @Qualifier("flowRuleNacosProvider") DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider,
+            @Qualifier("flowRuleNacosPublisher") DynamicRulePublisher<List<FlowRuleEntity>> rulePublisher) {
         super(repository, ruleProvider, rulePublisher);
         this.appManagement = appManagement;
     }
 
     /** 从 Nacos 拉取应用的流控规则，为每条补充机器信息后持久化并返回。 */
     @GetMapping("/rules")
-    @AuthAction(PrivilegeType.READ_RULE)
+    @AuthAction(PrivilegeTypeEnum.READ_RULE)
     public Result<List<FlowRuleEntity>> apiQueryMachineRules(@RequestParam String app,
-                                                             @RequestParam String ip,
-                                                             @RequestParam Integer port) {
+            @RequestParam String ip,
+            @RequestParam Integer port) {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(Result.CODE_ERROR, "app can't be null or empty");
         }
@@ -104,7 +103,7 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
 
     /** 校验通过后新增流控规则（重置 id 以便仓储生成），并推送应用的规则。 */
     @PostMapping("/rule")
-    @AuthAction(PrivilegeType.WRITE_RULE)
+    @AuthAction(PrivilegeTypeEnum.WRITE_RULE)
     public Result<FlowRuleEntity> apiAddFlowRule(@RequestBody FlowRuleEntity entity) {
         return super.addFlowRule(entity);
     }
@@ -115,18 +114,18 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
      * warmUpPeriodSec / maxQueueingTimeMs。
      */
     @PutMapping("/save.json")
-    @AuthAction(PrivilegeType.WRITE_RULE)
+    @AuthAction(PrivilegeTypeEnum.WRITE_RULE)
     public Result<FlowRuleEntity> apiUpdateFlowRule(Long id, String app,
-                                                  String limitApp, String resource, Integer grade,
-                                                  Double count, Integer strategy, String refResource,
-                                                  Integer controlBehavior, Integer warmUpPeriodSec,
-                                                  Integer maxQueueingTimeMs) {
+            String limitApp, String resource, Integer grade,
+            Double count, Integer strategy, String refResource,
+            Integer controlBehavior, Integer warmUpPeriodSec,
+            Integer maxQueueingTimeMs) {
         if (id == null) {
             return Result.ofFail(Result.CODE_ERROR, "id can't be null");
         }
         FlowRuleEntity entity = repository.findById(id);
         if (entity == null) {
-            return Result.ofFail(Result.CODE_ERROR, "id " + id + " dose not exist");
+            return Result.ofFail(Result.CODE_ERROR, "id " + id + " does not exist");
         }
         if (StringUtil.isNotBlank(app)) {
             entity.setApp(app.trim());
@@ -148,7 +147,7 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
         }
         if (strategy != null) {
             if (strategy != RuleConstant.STRATEGY_DIRECT && strategy != RuleConstant.STRATEGY_RELATE
-                && strategy != RuleConstant.STRATEGY_CHAIN) {
+                    && strategy != RuleConstant.STRATEGY_CHAIN) {
                 return Result.ofFail(Result.CODE_ERROR, "strategy must be in [0, 1, 2], but " + strategy + " got");
             }
             entity.setStrategy(strategy);
@@ -161,10 +160,10 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
         }
         if (controlBehavior != null) {
             if (controlBehavior != RuleConstant.CONTROL_BEHAVIOR_DEFAULT
-                && controlBehavior != RuleConstant.CONTROL_BEHAVIOR_WARM_UP
-                && controlBehavior != RuleConstant.CONTROL_BEHAVIOR_RATE_LIMITER) {
+                    && controlBehavior != RuleConstant.CONTROL_BEHAVIOR_WARM_UP
+                    && controlBehavior != RuleConstant.CONTROL_BEHAVIOR_RATE_LIMITER) {
                 return Result.ofFail(Result.CODE_ERROR,
-                    "controlBehavior must be in [0, 1, 2], but " + controlBehavior + " got");
+                        "controlBehavior must be in [0, 1, 2], but " + controlBehavior + " got");
             }
             if (controlBehavior == RuleConstant.CONTROL_BEHAVIOR_WARM_UP && warmUpPeriodSec == null) {
                 return Result.ofFail(Result.CODE_ERROR, "warmUpPeriodSec can't be null when controlBehavior==1");
@@ -186,7 +185,7 @@ public class FlowControllerV1 extends AbstractFlowRuleController {
 
     /** 删除指定 id 的规则并推送应用的规则；id 不存在时直接成功返回（数据为 null）。 */
     @DeleteMapping("/delete.json")
-    @AuthAction(PrivilegeType.WRITE_RULE)
+    @AuthAction(PrivilegeTypeEnum.WRITE_RULE)
     public Result<Long> apiDeleteFlowRule(Long id) {
         if (id == null) {
             return Result.ofFail(Result.CODE_ERROR, "id can't be null");

@@ -6,7 +6,7 @@ import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.service.api.annotation.RestService;
-import com.maozi.service.api.impl.result.BaseDBServiceResultImpl;
+import com.maozi.service.api.impl.result.BaseDbServiceResultImpl;
 import com.maozi.system.config.api.impl.ConfigServiceImpl;
 import com.maozi.system.config.api.rest.RestConfigService;
 import com.maozi.system.config.param.ConfigListParam;
@@ -28,7 +28,7 @@ import java.util.List;
  * @date 2026/11/08
  */
 @RestService
-public class RestConfigServiceImpl extends BaseDBServiceResultImpl<ConfigServiceImpl> implements RestConfigService {
+public class RestConfigServiceImpl extends BaseDbServiceResultImpl<ConfigServiceImpl> implements RestConfigService {
 
     /**
      * 分页查询全局配置列表

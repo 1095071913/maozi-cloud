@@ -11,5 +11,4 @@ package com.maozi.ai.ai.api;
  * @author pengjinlong
  * @date 2026/8/16
  */
-public interface ChatService {
-}
+public interface ChatService {}

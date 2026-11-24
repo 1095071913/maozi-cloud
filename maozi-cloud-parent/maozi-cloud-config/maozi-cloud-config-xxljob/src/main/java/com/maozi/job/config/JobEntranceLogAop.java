@@ -41,6 +41,9 @@ import java.util.Map;
 @Order(value = Ordered.HIGHEST_PRECEDENCE + 1)
 public class JobEntranceLogAop {
 
+    /** 入口日志 Map 的初始容量 */
+    private static final int LOG_MAP_INITIAL_CAPACITY = 16;
+
     /** XxlJob 注解切点表达式 */
     private static final String POINT = "@annotation(com.xxl.job.core.handler.annotation.XxlJob)";
 
@@ -62,14 +65,14 @@ public class JobEntranceLogAop {
         VersionContext.CONTEXT.set(ApplicationEnvironmentContext.version);
 
         // 日志信息集合
-        Map<String, String> logs = new LinkedHashMap<>(16);
+        Map<String, String> logs = new LinkedHashMap<>(LOG_MAP_INITIAL_CAPACITY);
 
         // 记录日志类型与任务方法
         logs.put(LogTag.TYPE, LogCommonTypeEnum.JOB.getDesc());
         Signature signature = proceedingJoinPoint.getSignature();
 
         logs.put(LogTag.FUNCTION, signature.getDeclaringTypeName()
-            + SymbolConstant.COLON + signature.getName());
+                + SymbolConstant.COLON + signature.getName());
 
         Exception ex = null;
         try {
@@ -83,9 +86,9 @@ public class JobEntranceLogAop {
             }
 
             return result;
-            
+
         } catch (Exception e) {
-            
+
             ex = e;
 
             logs.put(LogTag.PARAM, XxlJobHelper.getJobParam());

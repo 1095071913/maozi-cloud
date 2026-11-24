@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2012-2018 the original author or authors.
  *
@@ -74,6 +73,9 @@ import java.util.Map;
 @Order(value = Ordered.HIGHEST_PRECEDENCE + 1)
 public abstract class AbstractRequestEntranceLogAop {
 
+    /** 入口日志 Map 的初始容量 */
+    private static final int LOG_MAP_INITIAL_CAPACITY = 16;
+
     /**
      * 环绕通知：记录请求日志、执行业务逻辑并记录响应日志。
      * <p>
@@ -101,9 +103,8 @@ public abstract class AbstractRequestEntranceLogAop {
 
         // 执行目标业务方法
         try {
-            
             resultData = proceedingJoinPoint.proceed();
-            
+
             if (EnvironmentUtil.notEnvironment(EnvironmentTypeEnum.PROD)) {
                 logs.put(LogTag.PARAM, Arrays.toString(proceedingJoinPoint.getArgs()));
             }
@@ -147,10 +148,8 @@ public abstract class AbstractRequestEntranceLogAop {
             }
 
             // 判断结果是否为框架统一响应类型且请求失败（业务或系统错误）
-            if (ObjectUtil.isNotNull(resultData) 
-                && resultData instanceof AbstractBaseResult<?> result
-                && !result.isSuccess()
-            ) {
+            if (ObjectUtil.isNotNull(resultData) && resultData instanceof AbstractBaseResult<?> result
+                    && !result.isSuccess()) {
 
                 // 获取错误详情，用于判断是业务错误还是系统错误
                 ErrorResult<?> errorResult = result.getErrorResult();
@@ -180,7 +179,7 @@ public abstract class AbstractRequestEntranceLogAop {
      */
     private Map<String, String> requestLog(ProceedingJoinPoint proceedingJoinPoint) {
 
-        Map<String, String> logs = new LinkedHashMap<>(16);
+        Map<String, String> logs = new LinkedHashMap<>(LOG_MAP_INITIAL_CAPACITY);
 
         // 记录请求类型标识（WEB 或 RPC）
         logs.put(LogTag.TYPE, getType().getDesc());
@@ -229,8 +228,6 @@ public abstract class AbstractRequestEntranceLogAop {
      *
      * @param logs 当前已收集的日志字段 Map（可变，允许子类追加条目）
      */
-    protected void requestLog(Map<String, String> logs) {
-
-    }
+    protected void requestLog(Map<String, String> logs) {}
 
 }

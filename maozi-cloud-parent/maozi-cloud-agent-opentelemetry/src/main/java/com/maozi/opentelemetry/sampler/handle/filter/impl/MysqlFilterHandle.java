@@ -27,7 +27,7 @@ import java.util.Set;
 public class MysqlFilterHandle extends BaseFilterHandle {
 
     /** 来源标识，匹配 Span 属性 {@code db.system} */
-    private List<String> names = List.of("mysql");
+    private final List<String> names = List.of("mysql");
 
     /** 需要排除的 SQL 语句集合（连接探活、版本查询、锁检测等框架内部维护 SQL；Set 类型保证热路径 O(1) 查找） */
     private static final Set<String> EXCLUDED_STATEMENT = Set.of(

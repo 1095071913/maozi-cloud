@@ -41,14 +41,13 @@ public class VersionController {
     /** 返回截取首个 "-" 之前的控制台版本号，未配置时返回错误结果。 */
     @GetMapping("/version")
     public Result<String> apiGetVersion() {
-        if (StringUtil.isNotBlank(sentinelDashboardVersion)) {
-            String res = sentinelDashboardVersion;
-            if (sentinelDashboardVersion.contains(VERSION_PATTERN)) {
-                res = sentinelDashboardVersion.substring(0, sentinelDashboardVersion.indexOf(VERSION_PATTERN));
-            }
-            return Result.ofSuccess(res);
-        } else {
+        if (StringUtil.isBlank(sentinelDashboardVersion)) {
             return Result.ofFail(Result.CODE_FAIL, "getVersion failed: empty version");
         }
+        int separatorIndex = sentinelDashboardVersion.indexOf(VERSION_PATTERN);
+        if (separatorIndex < 0) {
+            return Result.ofSuccess(sentinelDashboardVersion);
+        }
+        return Result.ofSuccess(sentinelDashboardVersion.substring(0, separatorIndex));
     }
 }

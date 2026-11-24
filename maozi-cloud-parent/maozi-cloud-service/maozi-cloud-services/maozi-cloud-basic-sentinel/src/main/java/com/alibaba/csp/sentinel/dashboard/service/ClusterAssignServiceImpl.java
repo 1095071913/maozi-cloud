@@ -69,6 +69,9 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
     /** 集群服务端最大允许 QPS 的上限（不含） */
     private static final double MAX_ALLOWED_QPS_LIMIT = 200_000D;
 
+    /** 不属于本应用的 Token 服务端地址（ip:port）中 ip 与端口的分隔符 */
+    private static final String NOT_IN_APP_ADDRESS_SEPARATOR = ":";
+
     /** 向机器发送集群模式/配置修改请求的客户端 */
     private final SentinelApiClient sentinelApiClient;
     /** 查询应用机器集群状态的服务 */
@@ -76,7 +79,7 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
 
     /** 注入 Sentinel API 客户端与集群配置服务 */
     public ClusterAssignServiceImpl(SentinelApiClient sentinelApiClient,
-                                    ClusterConfigService clusterConfigService) {
+            ClusterConfigService clusterConfigService) {
         this.sentinelApiClient = sentinelApiClient;
         this.clusterConfigService = clusterConfigService;
     }
@@ -86,8 +89,8 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
      * 本应用机器的 Token 服务端（应用内机器 ID 为 {@code ip@commandPort} 形式）。
      * 注意：尽管方法名为 isMachineInApp，返回 {@code true} 实际表示"不在应用内"
      */
-    private boolean isMachineInApp(/*@NonEmpty*/ String machineId) {
-        return machineId.contains(":");
+    private boolean isMachineInApp(String machineId) {
+        return machineId.contains(NOT_IN_APP_ADDRESS_SEPARATOR);
     }
 
     /**
@@ -100,30 +103,32 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
         Set<String> failedSet = new HashSet<>();
         try {
             List<ClusterUniversalStatePairVO> list = clusterConfigService.getClusterUniversalState(app)
-                .get(CLUSTER_OP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                    .get(CLUSTER_OP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             Set<String> toModifySet = list.stream()
-                .filter(e -> {
-                    ClusterUniversalStateVO state = e.getState();
-                    if (state.getStateInfo().getMode() != ClusterStateManager.CLUSTER_CLIENT) {
-                        return false;
-                    }
-                    ClusterClientInfoVO clientConfig = state.getClient().getClientConfig();
-                    return machineId.equals(clientConfig.getServerHost() + ':' + clientConfig.getServerPort());
-                })
-                .map(e -> e.getIp() + '@' + e.getCommandPort())
-                .collect(Collectors.toSet());
+                    .filter(pair -> {
+                        ClusterUniversalStateVO state = pair.getState();
+                        if (!Objects.equals(state.getStateInfo().getMode(), ClusterStateManager.CLUSTER_CLIENT)) {
+                            return false;
+                        }
+                        ClusterClientInfoVO clientConfig = state.getClient().getClientConfig();
+                        String serverAddress = clientConfig.getServerHost() + NOT_IN_APP_ADDRESS_SEPARATOR
+                                + clientConfig.getServerPort();
+                        return machineId.equals(serverAddress);
+                    })
+                    .map(pair -> pair.getIp() + MachineUtils.MACHINE_ID_SEPARATOR + pair.getCommandPort())
+                    .collect(Collectors.toSet());
             // 将所有关联的 Token 客户端重置为 NOT-STARTED 模式
             modifyToNonStarted(toModifySet, failedSet);
         } catch (InterruptedException ex) {
             onInterrupted(machineId, "Failed to unbind machine <{}>", ex, failedSet);
         } catch (Exception ex) {
-            Throwable e = ex instanceof ExecutionException ? ex.getCause() : ex;
-            LOGGER.error("Failed to unbind machine <{}>", machineId, e);
+            Throwable cause = ex instanceof ExecutionException ? ex.getCause() : ex;
+            LOGGER.error("Failed to unbind machine <{}>", machineId, cause);
             failedSet.add(machineId);
         }
         return new ClusterAppAssignResultVO()
-            .setFailedClientSet(failedSet)
-            .setFailedServerSet(new HashSet<>());
+                .setFailedClientSet(failedSet)
+                .setFailedServerSet(new HashSet<>());
     }
 
     /**
@@ -132,14 +137,15 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
      */
     private void modifyToNonStarted(Set<String> toModifySet, Set<String> failedSet) {
         toModifySet.parallelStream()
-            .map(MachineUtils::parseCommandIpAndPort)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .map(e -> {
-                CompletableFuture<Void> f = modifyMode(e.r1, e.r2, ClusterStateManager.CLUSTER_NOT_STARTED);
-                return Tuple2.of(e.r1 + '@' + e.r2, f);
-            })
-            .forEach(f -> handleFutureSync(f, failedSet));
+                .map(MachineUtils::parseCommandIpAndPort)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(ipPort -> {
+                    CompletableFuture<Void> future = modifyMode(ipPort.r1, ipPort.r2,
+                            ClusterStateManager.CLUSTER_NOT_STARTED);
+                    return Tuple2.of(ipPort.r1 + MachineUtils.MACHINE_ID_SEPARATOR + ipPort.r2, future);
+                })
+                .forEach(futureTuple -> handleFutureSync(futureTuple, failedSet));
     }
 
     /**
@@ -158,7 +164,7 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
         Set<String> failedSet = new HashSet<>();
         try {
             ClusterGroupEntity entity = clusterConfigService.getClusterUniversalStateForAppMachine(app, machineId)
-                .get(CLUSTER_OP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                    .get(CLUSTER_OP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             Set<String> toModifySet = new HashSet<>();
             toModifySet.add(machineId);
             // 缓存机器的 Token 客户端集合，避免同一方法内重复调用
@@ -171,13 +177,13 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
         } catch (InterruptedException ex) {
             onInterrupted(machineId, "Failed to unbind machine <{}>", ex, failedSet);
         } catch (Exception ex) {
-            Throwable e = ex instanceof ExecutionException ? ex.getCause() : ex;
-            LOGGER.error("Failed to unbind machine <{}>", machineId, e);
+            Throwable cause = ex instanceof ExecutionException ? ex.getCause() : ex;
+            LOGGER.error("Failed to unbind machine <{}>", machineId, cause);
             failedSet.add(machineId);
         }
         return new ClusterAppAssignResultVO()
-            .setFailedClientSet(failedSet)
-            .setFailedServerSet(new HashSet<>());
+                .setFailedClientSet(failedSet)
+                .setFailedServerSet(new HashSet<>());
     }
 
     /**
@@ -188,8 +194,8 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
         AssertUtil.assertNotBlank(app, "app cannot be blank");
         AssertUtil.isTrue(machineIdSet != null && !machineIdSet.isEmpty(), "machineIdSet cannot be empty");
         ClusterAppAssignResultVO result = new ClusterAppAssignResultVO()
-            .setFailedClientSet(new HashSet<>())
-            .setFailedServerSet(new HashSet<>());
+                .setFailedClientSet(new HashSet<>())
+                .setFailedServerSet(new HashSet<>());
         for (String machineId : machineIdSet) {
             ClusterAppAssignResultVO resultVO = unbindClusterServer(app, machineId);
             result.getFailedClientSet().addAll(resultVO.getFailedClientSet());
@@ -206,7 +212,7 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
      */
     @Override
     public ClusterAppAssignResultVO applyAssignToApp(String app, List<ClusterAppAssignMap> clusterMap,
-                                                     Set<String> remainingSet) {
+            Set<String> remainingSet) {
         AssertUtil.assertNotBlank(app, "app cannot be blank");
         AssertUtil.notNull(clusterMap, "clusterMap cannot be null");
         Set<String> failedServerSet = new HashSet<>();
@@ -214,51 +220,52 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
 
         // 分配服务端并下发配置
         clusterMap.stream()
-            .filter(Objects::nonNull)
-            // belongToApp 为 Boolean 包装类型，请求体缺省时为 null，需判空避免拆箱 NPE
-            .filter(e -> Boolean.TRUE.equals(e.getBelongToApp()))
-            .map(e -> {
-                String ip = e.getIp();
-                int commandPort = parsePort(e);
-                CompletableFuture<Void> f = modifyMode(ip, commandPort, ClusterStateManager.CLUSTER_SERVER)
-                    .thenCompose(v -> applyServerConfigChange(app, ip, commandPort, e));
-                return Tuple2.of(e.getMachineId(), f);
-            })
-            .forEach(t -> handleFutureSync(t, failedServerSet));
+                .filter(Objects::nonNull)
+                // belongToApp 为 Boolean 包装类型，请求体缺省时为 null，需判空避免拆箱 NPE
+                .filter(assignMap -> Boolean.TRUE.equals(assignMap.getBelongToApp()))
+                .map(assignMap -> {
+                    String ip = assignMap.getIp();
+                    int commandPort = parsePort(assignMap);
+                    CompletableFuture<Void> future = modifyMode(ip, commandPort, ClusterStateManager.CLUSTER_SERVER)
+                            .thenCompose(v -> applyServerConfigChange(app, ip, commandPort, assignMap));
+                    return Tuple2.of(assignMap.getMachineId(), future);
+                })
+                .forEach(futureTuple -> handleFutureSync(futureTuple, failedServerSet));
 
         // 分配各服务端的客户端并下发配置
         clusterMap.parallelStream()
-            .filter(Objects::nonNull)
-            .forEach(e -> applyAllClientConfigChange(app, e, failedClientSet));
+                .filter(Objects::nonNull)
+                .forEach(assignMap -> applyAllClientConfigChange(app, assignMap, failedClientSet));
 
         // 解绑剩余（未分配的）机器
-        applyAllRemainingMachineSet(app, remainingSet, failedClientSet);
+        applyAllRemainingMachineSet(remainingSet, failedClientSet);
 
         return new ClusterAppAssignResultVO()
-            .setFailedClientSet(failedClientSet)
-            .setFailedServerSet(failedServerSet);
+                .setFailedClientSet(failedClientSet)
+                .setFailedServerSet(failedServerSet);
     }
 
     /**
      * 将 {@code remainingSet} 中剩余（未分配的）机器并行重置为 NOT-STARTED 模式，
      * 失败项记入 {@code failedSet}；集合为 null 或空时不做任何操作
      */
-    private void applyAllRemainingMachineSet(String app, Set<String> remainingSet, Set<String> failedSet) {
+    private void applyAllRemainingMachineSet(Set<String> remainingSet, Set<String> failedSet) {
         if (remainingSet == null || remainingSet.isEmpty()) {
             return;
         }
         remainingSet.parallelStream()
-            .filter(Objects::nonNull)
-            .map(MachineUtils::parseCommandIpAndPort)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .map(ipPort -> {
-                String ip = ipPort.r1;
-                int commandPort = ipPort.r2;
-                CompletableFuture<Void> f = modifyMode(ip, commandPort, ClusterStateManager.CLUSTER_NOT_STARTED);
-                return Tuple2.of(ip + '@' + commandPort, f);
-            })
-            .forEach(t -> handleFutureSync(t, failedSet));
+                .filter(Objects::nonNull)
+                .map(MachineUtils::parseCommandIpAndPort)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(ipPort -> {
+                    String ip = ipPort.r1;
+                    int commandPort = ipPort.r2;
+                    CompletableFuture<Void> future =
+                            modifyMode(ip, commandPort, ClusterStateManager.CLUSTER_NOT_STARTED);
+                    return Tuple2.of(ip + MachineUtils.MACHINE_ID_SEPARATOR + commandPort, future);
+                })
+                .forEach(futureTuple -> handleFutureSync(futureTuple, failedSet));
     }
 
     /**
@@ -266,7 +273,7 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
      * 该映射的服务端（固定 20ms 请求超时），失败项记入 {@code failedSet}
      */
     private void applyAllClientConfigChange(String app, ClusterAppAssignMap assignMap,
-                                            Set<String> failedSet) {
+            Set<String> failedSet) {
         Set<String> clientSet = assignMap.getClientSet();
         if (clientSet == null || clientSet.isEmpty()) {
             return;
@@ -274,38 +281,38 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
         final String serverIp = assignMap.getIp();
         final int serverPort = assignMap.getPort();
         clientSet.stream()
-            .map(MachineUtils::parseCommandIpAndPort)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .map(ipPort -> {
-                CompletableFuture<Void> f = sentinelApiClient
-                    .modifyClusterMode(ipPort.r1, ipPort.r2, ClusterStateManager.CLUSTER_CLIENT)
-                    .thenCompose(v -> sentinelApiClient.modifyClusterClientConfig(app, ipPort.r1, ipPort.r2,
-                        new ClusterClientConfig().setRequestTimeout(CLIENT_REQUEST_TIMEOUT_MS)
-                            .setServerHost(serverIp)
-                            .setServerPort(serverPort)
-                    ));
-                return Tuple2.of(ipPort.r1 + '@' + ipPort.r2, f);
-            })
-            .forEach(t -> handleFutureSync(t, failedSet));
+                .map(MachineUtils::parseCommandIpAndPort)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(ipPort -> {
+                    CompletableFuture<Void> future = sentinelApiClient
+                            .modifyClusterMode(ipPort.r1, ipPort.r2, ClusterStateManager.CLUSTER_CLIENT)
+                            .thenCompose(v -> sentinelApiClient.modifyClusterClientConfig(app, ipPort.r1, ipPort.r2,
+                                    new ClusterClientConfig().setRequestTimeout(CLIENT_REQUEST_TIMEOUT_MS)
+                                            .setServerHost(serverIp)
+                                            .setServerPort(serverPort)
+                            ));
+                    return Tuple2.of(ipPort.r1 + MachineUtils.MACHINE_ID_SEPARATOR + ipPort.r2, future);
+                })
+                .forEach(futureTuple -> handleFutureSync(futureTuple, failedSet));
     }
 
     /**
      * 最多等待 10 秒直到给定 Future 完成；失败时记录错误日志
      * 并将机器 ID 记入 {@code failedSet}
      */
-    private void handleFutureSync(Tuple2<String, CompletableFuture<Void>> t, Set<String> failedSet) {
+    private void handleFutureSync(Tuple2<String, CompletableFuture<Void>> futureTuple, Set<String> failedSet) {
         try {
-            t.r2.get(CLUSTER_OP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            futureTuple.r2.get(CLUSTER_OP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (InterruptedException ex) {
-            onInterrupted(t.r1, "Request for <{}> failed", ex, failedSet);
+            onInterrupted(futureTuple.r1, "Request for <{}> failed", ex, failedSet);
         } catch (Exception ex) {
             if (ex instanceof ExecutionException) {
-                LOGGER.error("Request for <{}> failed", t.r1, ex.getCause());
+                LOGGER.error("Request for <{}> failed", futureTuple.r1, ex.getCause());
             } else {
-                LOGGER.error("Request for <{}> failed", t.r1, ex);
+                LOGGER.error("Request for <{}> failed", futureTuple.r1, ex);
             }
-            failedSet.add(t.r1);
+            failedSet.add(futureTuple.r1);
         }
     }
 
@@ -324,13 +331,13 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
      * （固定 600 秒空闲时间）、流控配置、命名空间集合
      */
     private CompletableFuture<Void> applyServerConfigChange(String app, String ip, int commandPort,
-                                                            ClusterAppAssignMap assignMap) {
+            ClusterAppAssignMap assignMap) {
         ServerTransportConfig transportConfig = new ServerTransportConfig()
-            .setPort(assignMap.getPort())
-            .setIdleSeconds(SERVER_IDLE_SECONDS);
+                .setPort(assignMap.getPort())
+                .setIdleSeconds(SERVER_IDLE_SECONDS);
         return sentinelApiClient.modifyClusterServerTransportConfig(app, ip, commandPort, transportConfig)
-            .thenCompose(v -> applyServerFlowConfigChange(app, ip, commandPort, assignMap))
-            .thenCompose(v -> applyServerNamespaceSetConfig(app, ip, commandPort, assignMap));
+                .thenCompose(v -> applyServerFlowConfigChange(app, ip, commandPort, assignMap))
+                .thenCompose(v -> applyServerNamespaceSetConfig(app, ip, commandPort, assignMap));
     }
 
     /**
@@ -338,20 +345,20 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
      * 值缺失、非正数或大于 200000 时跳过
      */
     private CompletableFuture<Void> applyServerFlowConfigChange(String app, String ip, int commandPort,
-                                                                ClusterAppAssignMap assignMap) {
+            ClusterAppAssignMap assignMap) {
         Double maxAllowedQps = assignMap.getMaxAllowedQps();
         if (maxAllowedQps == null || maxAllowedQps <= 0 || maxAllowedQps > MAX_ALLOWED_QPS_LIMIT) {
             return CompletableFuture.completedFuture(null);
         }
         return sentinelApiClient.modifyClusterServerFlowConfig(app, ip, commandPort,
-            new ServerFlowConfig().setMaxAllowedQps(maxAllowedQps));
+                new ServerFlowConfig().setMaxAllowedQps(maxAllowedQps));
     }
 
     /**
      * 向 Token 服务端下发命名空间集合，集合为 null 或空时跳过
      */
     private CompletableFuture<Void> applyServerNamespaceSetConfig(String app, String ip, int commandPort,
-                                                                  ClusterAppAssignMap assignMap) {
+            ClusterAppAssignMap assignMap) {
         Set<String> namespaceSet = assignMap.getNamespaceSet();
         if (namespaceSet == null || namespaceSet.isEmpty()) {
             return CompletableFuture.completedFuture(null);
@@ -370,6 +377,6 @@ public class ClusterAssignServiceImpl implements ClusterAssignService {
      */
     private int parsePort(ClusterAppAssignMap assignMap) {
         return MachineUtils.parseCommandPort(assignMap.getMachineId())
-            .orElse(ServerTransportConfig.DEFAULT_PORT);
+                .orElse(ServerTransportConfig.DEFAULT_PORT);
     }
 }

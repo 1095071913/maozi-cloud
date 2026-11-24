@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.maozi.oauth.token.config.service.impl;
 
+package com.maozi.oauth.token.config.service.impl;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.Module;
@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.maozi.common.CollectionUtil;
 import com.maozi.common.constant.SymbolConstant;
 import com.maozi.oauth.client.enums.AuthTypeEnum;
-import com.maozi.oauth.token.config.service.OAuth2AuthorizationService;
+import com.maozi.oauth.token.config.service.Oauth2AuthorizationService;
 import com.maozi.oauth.token.param.ClientUserParam;
 import com.maozi.redis.utils.RedisUtil;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -69,7 +69,7 @@ import java.util.Set;
  * authorization:index:{tokenType}:{tokenValue} 键作为state和令牌值的辅助查找索引，
  * authorization:principal:{clientId}:{principalName} 键作为用户主体索引（以上键均带
  * {@code RedisUtil.REDIS_KEY_PREFIX} 前缀）。支持按ID或按令牌（可选令牌类型）查找，
- * 并实现{@link OAuth2AuthorizationService}扩展的按用户单个/批量注销授权能力。
+ * 并实现{@link Oauth2AuthorizationService}扩展的按用户单个/批量注销授权能力。
  * </p>
  *
  * @author maozi
@@ -77,7 +77,7 @@ import java.util.Set;
  */
 
 @Service
-public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationService {
+public class RedisOauth2AuthorizationServiceImpl implements Oauth2AuthorizationService {
 
     /** 授权数据的Redis键前缀 */
     private static final String AUTHORIZATION_KEY_PREFIX = RedisUtil.REDIS_KEY_PREFIX + "authorization:";
@@ -93,6 +93,12 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
 
     /** OIDC ID令牌类型的标识常量 */
     private static final String OIDC_ID_TOKEN_TYPE = "oidc_id_token";
+
+    /** 批量注销时授权 ID 集合的最小初始容量 */
+    private static final int AUTH_ID_MIN_CAPACITY = 16;
+
+    /** 批量注销时按用户数预估授权 ID 数量的放大系数 */
+    private static final int AUTH_IDS_PER_USER = 8;
 
     /** 授权码类型的标识常量，值须与 {@link AuthTypeEnum#AUTHORIZATION_CODE} 的 auth 值保持一致
      * （switch case 标签要求编译期常量，无法直接引用枚举的运行时取值） */
@@ -113,7 +119,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
      * @param redisTemplate             Redis字符串操作模板
      * @param registeredClientRepository 已注册客户端仓库
      */
-    public RedisOAuth2AuthorizationServiceImpl(StringRedisTemplate redisTemplate,
+    public RedisOauth2AuthorizationServiceImpl(StringRedisTemplate redisTemplate,
             RegisteredClientRepository registeredClientRepository) {
         this.objectMapper = createObjectMapper();
         this.redisTemplate = redisTemplate;
@@ -131,7 +137,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
      */
     private static ObjectMapper createObjectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
-        ClassLoader classLoader = RedisOAuth2AuthorizationServiceImpl.class.getClassLoader();
+        ClassLoader classLoader = RedisOauth2AuthorizationServiceImpl.class.getClassLoader();
         List<Module> securityModules = SecurityJackson2Modules.getModules(classLoader);
         objectMapper.registerModules(securityModules);
         objectMapper.registerModule(new OAuth2AuthorizationServerJackson2Module());
@@ -154,10 +160,10 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
      * @return 配置好的 TypeResolverBuilder 实例
      */
     private static TypeResolverBuilder<?> trustedDefaultTyping() {
-        PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
+        PolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
                 .allowIfSubType(Object.class)
                 .build();
-        return new ObjectMapper.DefaultTypeResolverBuilder(ObjectMapper.DefaultTyping.NON_FINAL, ptv)
+        return new ObjectMapper.DefaultTypeResolverBuilder(ObjectMapper.DefaultTyping.NON_FINAL, typeValidator)
                 .init(JsonTypeInfo.Id.CLASS, null)
                 .inclusion(JsonTypeInfo.As.PROPERTY);
     }
@@ -277,30 +283,17 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
                     OAuth2ParameterNames.DEVICE_CODE);
         }
 
-        String tokenTypeValue = tokenType.getValue();
-
-        if (OAuth2ParameterNames.STATE.equals(tokenTypeValue)) {
-            return findByTokenIndex(STATE_TYPE, token);
-        }
-        if (OAuth2ParameterNames.CODE.equals(tokenTypeValue)) {
-            return findByTokenIndex(AUTHORIZATION_CODE_TYPE, token);
-        }
-        if (OAuth2TokenType.ACCESS_TOKEN.equals(tokenType)) {
-            return findByTokenIndex(OAuth2ParameterNames.ACCESS_TOKEN, token);
-        }
-        if (OidcParameterNames.ID_TOKEN.equals(tokenTypeValue)) {
-            return findByTokenIndex(OIDC_ID_TOKEN_TYPE, token);
-        }
-        if (OAuth2TokenType.REFRESH_TOKEN.equals(tokenType)) {
-            return findByTokenIndex(OAuth2ParameterNames.REFRESH_TOKEN, token);
-        }
-        if (OAuth2ParameterNames.USER_CODE.equals(tokenTypeValue)) {
-            return findByTokenIndex(OAuth2ParameterNames.USER_CODE, token);
-        }
-        if (OAuth2ParameterNames.DEVICE_CODE.equals(tokenTypeValue)) {
-            return findByTokenIndex(OAuth2ParameterNames.DEVICE_CODE, token);
-        }
-        return null;
+        // 按令牌类型值分发到对应的索引类型，未知类型无法命中任何索引
+        return switch (tokenType.getValue()) {
+            case OAuth2ParameterNames.STATE -> findByTokenIndex(STATE_TYPE, token);
+            case OAuth2ParameterNames.CODE -> findByTokenIndex(AUTHORIZATION_CODE_TYPE, token);
+            case OAuth2ParameterNames.ACCESS_TOKEN -> findByTokenIndex(OAuth2ParameterNames.ACCESS_TOKEN, token);
+            case OidcParameterNames.ID_TOKEN -> findByTokenIndex(OIDC_ID_TOKEN_TYPE, token);
+            case OAuth2ParameterNames.REFRESH_TOKEN -> findByTokenIndex(OAuth2ParameterNames.REFRESH_TOKEN, token);
+            case OAuth2ParameterNames.USER_CODE -> findByTokenIndex(OAuth2ParameterNames.USER_CODE, token);
+            case OAuth2ParameterNames.DEVICE_CODE -> findByTokenIndex(OAuth2ParameterNames.DEVICE_CODE, token);
+            default -> null;
+        };
     }
 
     /**
@@ -473,7 +466,10 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
         for (TokenData<?> token : data.tokens()) {
             if (token != null) {
                 Instant expiresAt = token.expiresAt();
-                if (expiresAt != null && (maxExpiry == null || expiresAt.isAfter(maxExpiry))) {
+                // 令牌有过期时间，且（尚无记录，或晚于已记录的最晚过期时间）
+                boolean laterThanKnown = expiresAt != null
+                        && (maxExpiry == null || expiresAt.isAfter(maxExpiry));
+                if (laterThanKnown) {
                     maxExpiry = expiresAt;
                 }
             }
@@ -564,7 +560,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
     private void removeExistingAuthorizations(String registeredClientId, String principalName,
             String currentAuthorizationId) {
         Set<String> ids = this.redisTemplate.opsForSet().members(principalIndexKey(registeredClientId, principalName));
-        if (ids == null || ids.isEmpty()) {
+        if (CollectionUtil.isEmpty(ids)) {
             return;
         }
         for (String id : ids) {
@@ -591,7 +587,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
     public void removeAllByPrincipal(Long registeredClientId, String principalName) {
         Set<String> ids = this.redisTemplate.opsForSet().members(
                 principalIndexKey(registeredClientId.toString(), principalName));
-        if (ids == null || ids.isEmpty()) {
+        if (CollectionUtil.isEmpty(ids)) {
             return;
         }
         for (String id : ids) {
@@ -614,7 +610,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
      */
     @Override
     public void removeAllByPrincipals(List<ClientUserParam> clientUsers) {
-        if (clientUsers == null || clientUsers.isEmpty()) {
+        if (CollectionUtil.isEmpty(clientUsers)) {
             return;
         }
 
@@ -623,12 +619,12 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
         int clientUserSize = clientUsers.size();
 
         List<String> principalIndexKeys = CollectionUtil.newArrayList(clientUserSize);
-        // 预估容量：每个用户可能持有多个授权 ID，按用户数 8 倍预分配减少扩容 rehash
-        Set<String> allAuthIds = new HashSet<>(Math.max(16, clientUserSize * 8));
+        // 预估容量：每个用户可能持有多个授权 ID，按用户数放大预分配减少扩容 rehash
+        Set<String> allAuthIds = new HashSet<>(Math.max(AUTH_ID_MIN_CAPACITY, clientUserSize * AUTH_IDS_PER_USER));
         for (ClientUserParam clientUser : clientUsers) {
-            String pKey = principalIndexKey(clientUser.getClientId().toString(), clientUser.getUsername());
-            principalIndexKeys.add(pKey);
-            Set<String> ids = this.redisTemplate.opsForSet().members(pKey);
+            String principalKey = principalIndexKey(clientUser.getClientId().toString(), clientUser.getUsername());
+            principalIndexKeys.add(principalKey);
+            Set<String> ids = this.redisTemplate.opsForSet().members(principalKey);
             if (ids != null) {
                 allAuthIds.addAll(ids);
             }
@@ -704,7 +700,12 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
         return Base64.getUrlEncoder().withoutPadding().encodeToString(value.getBytes(StandardCharsets.UTF_8));
     }
 
-    /** 令牌类型枚举，用于标识不同种类的OAuth2令牌 */
+    /**
+     * 令牌类型枚举，用于标识不同种类的OAuth2令牌
+     *
+     * @author maozi
+     * @date 2026/11/08
+     */
     private enum TokenKindEnum {
         /** 授权码 */
         AUTHORIZATION_CODE,
@@ -720,13 +721,23 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
         DEVICE_CODE
     }
 
-    /** 令牌索引记录，包含令牌类型和令牌值 */
+    /**
+     * 令牌索引记录，包含令牌类型和令牌值
+     *
+     * @author maozi
+     * @date 2026/11/08
+     */
     private record TokenIndex(String type, String value) {}
 
-    /** 令牌数据记录，包含令牌的完整信息 */
+    /**
+     * 令牌数据记录，包含令牌的完整信息
+     *
+     * @author maozi
+     * @date 2026/11/08
+     */
     private record TokenData<T extends OAuth2Token>(TokenKindEnum type, String value,
-                                                    @Nullable Instant issuedAt, @Nullable Instant expiresAt,
-                                                    Map<String, Object> metadata, @Nullable Set<String> scopes) {
+            @Nullable Instant issuedAt, @Nullable Instant expiresAt,
+            Map<String, Object> metadata, @Nullable Set<String> scopes) {
     }
 
     /**
@@ -735,16 +746,25 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
      * 包含授权ID、客户端ID、用户主体名称、授权类型、授权范围、属性、
      * state以及各类令牌（授权码、AccessToken、IDToken、RefreshToken、UserCode、DeviceCode）的数据。
      * </p>
+     *
+     * @author maozi
+     * @date 2026/11/08
      */
     private record AuthorizationData(String id, String registeredClientId, String principalName,
-                                     String authorizationGrantType, Set<String> authorizedScopes,
-                                     Map<String, Object> attributes, @Nullable String state,
-                                     @Nullable TokenData<OAuth2AuthorizationCode> authorizationCode,
-                                     @Nullable TokenData<OAuth2AccessToken> accessToken,
-                                     @Nullable TokenData<OidcIdToken> oidcIdToken,
-                                     @Nullable TokenData<OAuth2RefreshToken> refreshToken,
-                                     @Nullable TokenData<OAuth2UserCode> userCode,
-                                     @Nullable TokenData<OAuth2DeviceCode> deviceCode) {
+            String authorizationGrantType, Set<String> authorizedScopes,
+            Map<String, Object> attributes, @Nullable String state,
+            @Nullable TokenData<OAuth2AuthorizationCode> authorizationCode,
+            @Nullable TokenData<OAuth2AccessToken> accessToken,
+            @Nullable TokenData<OidcIdToken> oidcIdToken,
+            @Nullable TokenData<OAuth2RefreshToken> refreshToken,
+            @Nullable TokenData<OAuth2UserCode> userCode,
+            @Nullable TokenData<OAuth2DeviceCode> deviceCode) {
+
+        /** 令牌索引上限：state 加 6 种令牌 */
+        private static final int MAX_INDEX_COUNT = 7;
+
+        /** 令牌种类数 */
+        private static final int TOKEN_KIND_COUNT = 6;
 
         /**
          * 从OAuth2Authorization对象创建AuthorizationData记录
@@ -752,7 +772,7 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
          * @param authorization OAuth2授权对象
          * @return 转换后的AuthorizationData记录
          */
-        static AuthorizationData from(OAuth2Authorization authorization) {
+        private static AuthorizationData from(OAuth2Authorization authorization) {
             Map<String, Object> attributes = CollectionUtil.newHashMap(authorization.getAttributes());
             String state = authorization.getAttribute(OAuth2ParameterNames.STATE);
             // 缓存已授权 scope 集合，避免同一方法内重复调用
@@ -784,9 +804,9 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
          *
          * @return 令牌索引列表
          */
-        List<TokenIndex> indexes() {
-            // 索引上限固定 7 个（state + 6 种令牌），按此指定初始容量避免扩容
-            List<TokenIndex> indexes = CollectionUtil.newArrayList(7);
+        private List<TokenIndex> indexes() {
+            // 索引上限固定（state + 6 种令牌），按此指定初始容量避免扩容
+            List<TokenIndex> indexes = CollectionUtil.newArrayList(MAX_INDEX_COUNT);
             if (StringUtils.hasText(this.state)) {
                 indexes.add(new TokenIndex(STATE_TYPE, this.state));
             }
@@ -804,9 +824,9 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
          *
          * @return 令牌数据列表
          */
-        List<TokenData<?>> tokens() {
-            // 令牌数据上限固定 6 种，按此指定初始容量避免扩容
-            List<TokenData<?>> tokens = CollectionUtil.newArrayList(6);
+        private List<TokenData<?>> tokens() {
+            // 令牌数据上限固定为令牌种类数，按此指定初始容量避免扩容
+            List<TokenData<?>> tokens = CollectionUtil.newArrayList(TOKEN_KIND_COUNT);
             if (this.authorizationCode != null) {
                 tokens.add(this.authorizationCode);
             }

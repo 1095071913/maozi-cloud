@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 package com.maozi.system.permission.api.impl;
@@ -58,7 +58,7 @@ public class RolePermissionServiceImpl extends BaseServiceImpl<RolePermissionMap
 
     /** 权限服务，用于校验权限是否存在 */
     @Resource(name = SystemServiceConstant.PERMISSION_SERVICE)
-    protected PermissionService permissionService;
+    private PermissionService permissionService;
 
     /** 获取资源名称 */
     @Override

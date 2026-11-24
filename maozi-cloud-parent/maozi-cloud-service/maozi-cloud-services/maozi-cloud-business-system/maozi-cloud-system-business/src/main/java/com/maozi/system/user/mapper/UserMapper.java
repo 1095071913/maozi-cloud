@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 package com.maozi.system.user.mapper;
@@ -29,4 +29,4 @@ import com.maozi.system.user.domain.UserDO;
  * @author maozi
  * @date 2026/11/08
  */
-public interface UserMapper extends IBaseMapper<UserDO>{}
+public interface UserMapper extends IBaseMapper<UserDO> {}

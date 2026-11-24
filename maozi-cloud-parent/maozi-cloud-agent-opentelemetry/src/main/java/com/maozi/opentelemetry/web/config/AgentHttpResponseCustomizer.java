@@ -29,8 +29,8 @@ public class AgentHttpResponseCustomizer implements HttpServerResponseCustomizer
 
     /** 需要注入追踪 ID 的响应类型集合（网关转发的 Netty 响应；Set 类型保证 O(1) 查找） */
     private static final Set<String> ADD_TRACEID_CLASS = Set.of(
-        "io.netty.handler.codec.http.DefaultHttpResponse",
-        "io.netty.handler.codec.http.DefaultFullHttpResponse"
+            "io.netty.handler.codec.http.DefaultHttpResponse",
+            "io.netty.handler.codec.http.DefaultFullHttpResponse"
     );
 
     /**

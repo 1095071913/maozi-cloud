@@ -15,10 +15,13 @@ import com.alibaba.ttl.TransmittableThreadLocal;
  * @author maozi
  * @date 2026/11/08
  */
-public class RetryContextHolder {
+public final class RetryContextHolder {
 
     /** 是否是远程重试流量的线程变量（TTL） */
     private static final ThreadLocal<Boolean> THREAD_LOCAL_RETRY = new TransmittableThreadLocal<>();
+
+    /** 私有构造器，防止上下文工具类被实例化 */
+    private RetryContextHolder() {}
 
     /**
      * 获取当前线程是否是重试请求

@@ -182,6 +182,12 @@ public class BusinessResultException extends RuntimeException {
         return this;
     }
 
+    /**
+     * 设置异常错误信息，并同步将错误码和 HTTP 状态码置为系统错误默认码
+     *
+     * @param exceptionMessage 异常错误信息
+     * @return 当前实例（链式调用）
+     */
     public BusinessResultException setExceptionMessage(String exceptionMessage) {
         this.errorResult.setCode(SystemErrorCode.SYSTEM_ERROR_DEFAULT_CODE);
         this.errorResult.setExceptionMessage(exceptionMessage);

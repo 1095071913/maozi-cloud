@@ -7,6 +7,7 @@ import com.maozi.common.result.error.code.SystemErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -18,6 +19,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -80,10 +82,10 @@ public class RestErrorHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Object handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        Map<String, String> errorMap = CollectionUtil.newHashMap();
-        e.getFieldErrors().forEach(error ->
-            errorMap.put(error.getField(), error.getDefaultMessage())
-        );
+        // 缓存字段校验错误列表，按错误数指定 Map 初始容量并遍历取值，避免同一方法内重复调用
+        List<FieldError> fieldErrors = e.getFieldErrors();
+        Map<String, String> errorMap = CollectionUtil.newHashMap(fieldErrors.size());
+        fieldErrors.forEach(error -> errorMap.put(error.getField(), error.getDefaultMessage()));
         return ResultUtil.error(SystemErrorCode.PARAM_ERROR, errorMap);
     }
 

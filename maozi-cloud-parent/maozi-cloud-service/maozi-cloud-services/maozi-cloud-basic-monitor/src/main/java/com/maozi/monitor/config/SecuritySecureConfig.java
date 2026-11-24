@@ -53,6 +53,33 @@ public class SecuritySecureConfig {
     /** 监控台默认角色 */
     private static final String ROLE_USER = "USER";
 
+    /** SBA 静态资源路径模式 */
+    private static final String ASSETS_PATH_PATTERN = "/assets/**";
+
+    /** SBA 前端运行时配置脚本路径 */
+    private static final String SBA_SETTINGS_SCRIPT_PATH = "/sba-settings.js";
+
+    /** SBA 主题变量样式路径 */
+    private static final String VARIABLES_STYLE_PATH = "/variables.css";
+
+    /** 探针端点路径模式 */
+    private static final String ACTUATOR_PATH_PATTERN = "/actuator/**";
+
+    /** 登录页路径 */
+    private static final String LOGIN_PATH = "/login";
+
+    /** 登出路径 */
+    private static final String LOGOUT_PATH = "/logout";
+
+    /** 登出成功后的跳转地址 */
+    private static final String LOGOUT_SUCCESS_PATH = "/login?logout";
+
+    /** 客户端实例注册路径 */
+    private static final String INSTANCES_PATH = "/instances";
+
+    /** 单个客户端实例路径模式 */
+    private static final String INSTANCE_PATH_PATTERN = "/instances/*";
+
     /** Spring Boot Admin 服务端属性 */
     private final AdminServerProperties adminServer;
 
@@ -108,9 +135,9 @@ public class SecuritySecureConfig {
         csrfRequestHandler.setCsrfRequestAttributeName(null);
 
         // 缓存重复使用的路径，避免同一方法内多次调用 adminServer.path()
-        String actuatorPath = this.adminServer.path("/actuator/**");
-        String loginPagePath = this.adminServer.path("/login");
-        String logoutPagePath = this.adminServer.path("/logout");
+        String actuatorPath = this.adminServer.path(ACTUATOR_PATH_PATTERN);
+        String loginPagePath = this.adminServer.path(LOGIN_PATH);
+        String logoutPagePath = this.adminServer.path(LOGOUT_PATH);
 
         http
                 // Spring Security 6.0+ 默认让整条安全过滤链对 ASYNC / ERROR dispatch 也生效，
@@ -132,15 +159,15 @@ public class SecuritySecureConfig {
                     return type != DispatcherType.ASYNC && type != DispatcherType.ERROR;
                 })
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers(this.adminServer.path("/assets/**")).permitAll()
+                        .requestMatchers(this.adminServer.path(ASSETS_PATH_PATTERN)).permitAll()
                         // SBA 在根路径动态生成的两个运行时资源（不在 /assets/ 下），
                         // 登录页 HTML 就引用它们：
                         // /sba-settings.js 是前端运行时配置，/variables.css 是主题变量。
                         // 必须匿名可访问，否则会被重定向到登录页成为 saved request，
                         // 登录成功后 successHandler
                         // 把用户重定向到这些文件，浏览器直接展示 JS/CSS 文本而非进入主页。
-                        .requestMatchers(this.adminServer.path("/sba-settings.js")).permitAll()
-                        .requestMatchers(this.adminServer.path("/variables.css")).permitAll()
+                        .requestMatchers(this.adminServer.path(SBA_SETTINGS_SCRIPT_PATH)).permitAll()
+                        .requestMatchers(this.adminServer.path(VARIABLES_STYLE_PATH)).permitAll()
                         .requestMatchers(actuatorPath).permitAll()
                         .requestMatchers(loginPagePath).permitAll()
                         .anyRequest().authenticated())
@@ -149,7 +176,7 @@ public class SecuritySecureConfig {
                         .successHandler(successHandler))
                 .logout((logout) -> logout
                         .logoutUrl(logoutPagePath)
-                        .logoutSuccessUrl(this.adminServer.path("/login?logout")))
+                        .logoutSuccessUrl(this.adminServer.path(LOGOUT_SUCCESS_PATH)))
                 .httpBasic(Customizer.withDefaults())
                 // 关闭 X-Frame-Options：管理后台"中间件管理"页以内嵌 iframe 打开监控台，
                 // Spring Security 默认下发的 DENY 会导致浏览器拒绝在 frame 中展示
@@ -158,9 +185,9 @@ public class SecuritySecureConfig {
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(csrfRequestHandler)
                         .ignoringRequestMatchers(
-                                new AntPathRequestMatcher(this.adminServer.path("/instances"),
+                                new AntPathRequestMatcher(this.adminServer.path(INSTANCES_PATH),
                                         HttpMethod.POST.toString()),
-                                new AntPathRequestMatcher(this.adminServer.path("/instances/*"),
+                                new AntPathRequestMatcher(this.adminServer.path(INSTANCE_PATH_PATTERN),
                                         HttpMethod.DELETE.toString()),
                                 new AntPathRequestMatcher(actuatorPath),
                                 new AntPathRequestMatcher(logoutPagePath)))

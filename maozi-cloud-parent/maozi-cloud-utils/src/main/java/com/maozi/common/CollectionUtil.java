@@ -28,6 +28,9 @@ public final class CollectionUtil {
     /** HashMap/HashSet 默认负载因子，用于按预期元素个数换算初始容量 */
     private static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
+    /** HashMap/HashSet 默认初始容量（与 JDK 默认值一致） */
+    private static final int DEFAULT_INITIAL_CAPACITY = 16;
+
     /** 私有构造器，防止工具类被实例化 */
     private CollectionUtil() {}
 
@@ -48,7 +51,7 @@ public final class CollectionUtil {
      * @param <T> 元素类型
      * @return 包含指定元素的 ArrayList
      */
-    public static <T> List<T> newArrayList(T ... array) {
+    public static <T> List<T> newArrayList(T... array) {
         List<T> list = CollectionUtil.newArrayList(array.length);
         Collections.addAll(list, array);
         return list;
@@ -84,7 +87,7 @@ public final class CollectionUtil {
      * @return 空的 HashMap
      */
     public static <K, V> Map<K, V> newHashMap() {
-        return new HashMap<>();
+        return new HashMap<>(DEFAULT_INITIAL_CAPACITY);
     }
 
     /**
@@ -124,7 +127,7 @@ public final class CollectionUtil {
      * @return 空的 HashSet
      */
     public static <T> Set<T> newHashSet() {
-        return new HashSet<>();
+        return new HashSet<>(DEFAULT_INITIAL_CAPACITY);
     }
 
     /**
@@ -148,7 +151,7 @@ public final class CollectionUtil {
      * @param <T> 元素类型
      * @return 包含指定元素的 HashSet
      */
-    public static <T> Set<T> newHashSet(T ... array) {
+    public static <T> Set<T> newHashSet(T... array) {
         return new HashSet<>(newArrayList(array));
     }
 
@@ -190,7 +193,7 @@ public final class CollectionUtil {
      * @param map Map 对象
      * @return 为 null 或空时返回 true
      */
-    public static boolean isEmpty(Map<?,?> map) {
+    public static boolean isEmpty(Map<?, ?> map) {
         return map == null || map.isEmpty();
     }
 
@@ -200,7 +203,7 @@ public final class CollectionUtil {
      * @param map Map 对象
      * @return 不为 null 且不为空时返回 true
      */
-    public static boolean isNotEmpty(Map<?,?> map) {
+    public static boolean isNotEmpty(Map<?, ?> map) {
         return !isEmpty(map);
     }
 

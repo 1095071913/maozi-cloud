@@ -25,6 +25,4 @@ import org.springframework.web.servlet.HandlerInterceptor;
  * @date 2026/11/22
  * @since 1.7.1
  */
-public interface AuthorizationInterceptor extends HandlerInterceptor {
-
-}
+public interface AuthorizationInterceptor extends HandlerInterceptor {}

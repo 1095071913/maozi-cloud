@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 package com.maozi.oauth.client.param;
@@ -29,7 +29,6 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
-
 
 /**
  * 客户端保存/更新参数
@@ -90,5 +89,5 @@ public class ClientSaveUpdateParam implements Serializable {
     /** 令牌配置项，存储OAuth2.0令牌相关的自定义配置，API接口中隐藏 */
     @Schema(hidden = true)
     private Map<String, Object> tokenSettings;
-    
+
 }

@@ -15,7 +15,6 @@
  *
  */
 
-
 package com.maozi.gateway.config;
 
 import org.springframework.beans.factory.ObjectProvider;

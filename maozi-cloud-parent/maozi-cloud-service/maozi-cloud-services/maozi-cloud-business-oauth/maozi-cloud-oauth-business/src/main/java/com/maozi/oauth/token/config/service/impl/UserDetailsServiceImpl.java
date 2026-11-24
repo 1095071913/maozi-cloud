@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 package com.maozi.oauth.token.config.service.impl;
@@ -23,7 +23,7 @@ import com.maozi.common.result.error.ErrorResult;
 import com.maozi.common.result.error.code.SystemErrorCode;
 import com.maozi.common.result.error.exception.BusinessResultException;
 import com.maozi.oauth.token.config.domain.SecurityUserDetails;
-import com.maozi.oauth.token.constants.OAuth2TokenUserClaimConstants;
+import com.maozi.oauth.token.constants.Oauth2TokenUserClaimConstants;
 import com.maozi.service.api.annotation.RemoteResource;
 import com.maozi.system.user.api.rpc.RpcUserService;
 import com.maozi.system.user.result.OauthUserInfoResult;
@@ -65,9 +65,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        
-        try{
-            
+
+        try {
+
             OauthUserInfoResult oauthUserInfo = rpcUserService.getOauthUserInfoByUsernameResult(username)
                     .getResultDataThrowError();
 
@@ -85,11 +85,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             // 将用户ID写入附加属性，颁发令牌时会合并进claims；
             // 固定仅写入 1 个 entry，按此指定初始容量
             Map<String, Object> attributes = CollectionUtil.newHashMap(1);
-            attributes.put(OAuth2TokenUserClaimConstants.USER_ID, oauthUserInfo.getUserId());
+            attributes.put(Oauth2TokenUserClaimConstants.USER_ID, oauthUserInfo.getUserId());
 
             return new SecurityUserDetails(username, oauthUserInfo.getPassword(), grantedAuthorities, attributes);
 
-        }catch (Exception e) {
+        } catch (Exception e) {
 
             // 业务错误（如用户不存在）转为用户认证失败，
             // 其余统一转为系统错误（均保留原始异常链）
@@ -97,7 +97,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 ErrorResult<?> errorResult = businessResultException.getErrorResult();
                 if (errorResult.isBusinessError()) {
                     errorResult = ResultUtil.error(SystemErrorCode.USER_AUTH_ERROR)
-                        .setHttpCode(SystemErrorCode.USER_AUTH_ERROR_DEFAULT_CODE);
+                            .setHttpCode(SystemErrorCode.USER_AUTH_ERROR_DEFAULT_CODE);
                 }
                 throw new BusinessResultException(errorResult, e);
             }

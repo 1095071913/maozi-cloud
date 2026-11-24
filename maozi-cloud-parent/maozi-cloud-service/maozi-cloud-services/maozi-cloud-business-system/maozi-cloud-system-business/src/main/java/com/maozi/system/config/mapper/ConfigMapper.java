@@ -12,4 +12,4 @@ import com.maozi.system.config.domain.ConfigDO;
  * @author maozi
  * @date 2026/11/08
  */
-public interface ConfigMapper extends IBaseMapper<ConfigDO>{}
+public interface ConfigMapper extends IBaseMapper<ConfigDO> {}

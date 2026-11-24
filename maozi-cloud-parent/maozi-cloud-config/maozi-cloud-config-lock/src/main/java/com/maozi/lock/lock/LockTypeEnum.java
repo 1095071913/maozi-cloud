@@ -54,7 +54,7 @@ public enum LockTypeEnum implements BaseEnum {
      * @param desc 枚举描述
      * @param lockClass 锁实现类
      */
-    LockTypeEnum(Integer value, String desc, Class< ? extends Lock> lockClass) {
+    LockTypeEnum(Integer value, String desc, Class<? extends Lock> lockClass) {
 
         this.value = value;
 
@@ -83,7 +83,7 @@ public enum LockTypeEnum implements BaseEnum {
     }
 
     /** 锁实现类 */
-    private final Class< ? extends Lock > lockClass;
+    private final Class<? extends Lock> lockClass;
 
     /**
      * 从 Spring 容器中获取锁实现类实例
@@ -189,7 +189,7 @@ public enum LockTypeEnum implements BaseEnum {
      *
      * @param key 锁键名
      */
-    public void lock(String key)  {
+    public void lock(String key) {
         lock(key, DEFAULT_LOCK_TIME, DEFAULT_LOCK_TIME, LockTimeoutStrategyEnum.KEEP_ACQUIRE);
     }
 

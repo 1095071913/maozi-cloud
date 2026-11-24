@@ -57,13 +57,17 @@ public class GatewayParamFlowItemEntity extends BasePatternItemEntity {
     /** 判断指定对象是否与本条目全部字段相同。 */
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         GatewayParamFlowItemEntity that = (GatewayParamFlowItemEntity) o;
-        return Objects.equals(parseStrategy, that.parseStrategy) &&
-                Objects.equals(fieldName, that.fieldName) &&
-                Objects.equals(pattern, that.pattern) &&
-                Objects.equals(matchStrategy, that.matchStrategy);
+        return Objects.equals(parseStrategy, that.parseStrategy)
+                && Objects.equals(fieldName, that.fieldName)
+                && Objects.equals(pattern, that.pattern)
+                && Objects.equals(matchStrategy, that.matchStrategy);
     }
 
     /** 以全部字段计算哈希码。 */
@@ -75,11 +79,11 @@ public class GatewayParamFlowItemEntity extends BasePatternItemEntity {
     /** 拼接全部字段构建字符串。 */
     @Override
     public String toString() {
-        return "GatewayParamFlowItemEntity{" +
-                "parseStrategy=" + parseStrategy +
-                ", fieldName='" + fieldName + '\'' +
-                ", pattern='" + pattern + '\'' +
-                ", matchStrategy=" + matchStrategy +
-                '}';
+        return "GatewayParamFlowItemEntity{"
+                + "parseStrategy=" + parseStrategy
+                + ", fieldName='" + fieldName + '\''
+                + ", pattern='" + pattern + '\''
+                + ", matchStrategy=" + matchStrategy
+                + '}';
     }
 }

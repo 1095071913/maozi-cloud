@@ -4,7 +4,7 @@ import com.maozi.base.result.DropDownResult;
 import com.maozi.common.ResultUtil;
 import com.maozi.common.result.AbstractBaseResult;
 import com.maozi.service.api.annotation.RestService;
-import com.maozi.service.api.impl.result.BaseDBServiceResultImpl;
+import com.maozi.service.api.impl.result.BaseDbServiceResultImpl;
 import com.maozi.system.permission.api.impl.PermissionServiceImpl;
 import com.maozi.system.permission.api.rest.RestPermissionService;
 import com.maozi.system.permission.param.PermissionSaveUpdateParam;
@@ -23,7 +23,7 @@ import java.util.List;
  * @date 2026/11/08
  */
 @RestService
-public class RestPermissionServiceImpl extends BaseDBServiceResultImpl<PermissionServiceImpl>
+public class RestPermissionServiceImpl extends BaseDbServiceResultImpl<PermissionServiceImpl>
         implements RestPermissionService {
 
     /**

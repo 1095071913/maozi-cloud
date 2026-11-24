@@ -33,8 +33,7 @@ public abstract class AbstractRuleEntity<T extends AbstractRule> extends BaseRul
     protected T rule;
 
     /** 构造不包装规则的实体。 */
-    protected AbstractRuleEntity() {
-    }
+    protected AbstractRuleEntity() {}
 
     /** 构造包装指定规则的实体，规则不能为 null。 */
     protected AbstractRuleEntity(T rule) {

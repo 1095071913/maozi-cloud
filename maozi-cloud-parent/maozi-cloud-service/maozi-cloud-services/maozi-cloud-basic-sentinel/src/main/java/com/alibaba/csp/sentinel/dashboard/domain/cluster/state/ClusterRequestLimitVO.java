@@ -69,10 +69,10 @@ public class ClusterRequestLimitVO {
     /** 返回该 VO 的字符串表示。 */
     @Override
     public String toString() {
-        return "ClusterRequestLimitVO{" +
-            "namespace='" + namespace + '\'' +
-            ", currentQps=" + currentQps +
-            ", maxAllowedQps=" + maxAllowedQps +
-            '}';
+        return "ClusterRequestLimitVO{"
+                + "namespace='" + namespace + '\''
+                + ", currentQps=" + currentQps
+                + ", maxAllowedQps=" + maxAllowedQps
+                + '}';
     }
 }

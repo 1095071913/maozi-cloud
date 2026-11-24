@@ -17,7 +17,7 @@ import java.util.function.Function;
  * @author maozi
  * @date 2026/11/13
  */
-public class CurrentUserInfoContext extends AbstractRequestContextHolder<CurrentUserInfoDTO> {
+public final class CurrentUserInfoContext extends AbstractRequestContextHolder<CurrentUserInfoDTO> {
 
     /** 当前登录用户信息请求头名称 */
     public static final String KEY = "X-CurrentUserInfo";

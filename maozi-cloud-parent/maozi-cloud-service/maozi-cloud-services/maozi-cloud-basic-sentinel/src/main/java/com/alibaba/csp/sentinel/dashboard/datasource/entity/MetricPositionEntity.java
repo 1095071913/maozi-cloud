@@ -78,15 +78,15 @@ public class MetricPositionEntity extends BaseEntity {
     /** 拼接全部字段构建字符串。 */
     @Override
     public String toString() {
-        return "MetricPositionEntity{" +
-            "id=" + id +
-            ", gmtCreate=" + gmtCreate +
-            ", gmtModified=" + gmtModified +
-            ", app='" + app + '\'' +
-            ", ip='" + ip + '\'' +
-            ", port=" + port +
-            ", hostname='" + hostname + '\'' +
-            ", lastFetch=" + lastFetch +
-            '}';
+        return "MetricPositionEntity{"
+                + "id=" + id
+                + ", gmtCreate=" + gmtCreate
+                + ", gmtModified=" + gmtModified
+                + ", app='" + app + '\''
+                + ", ip='" + ip + '\''
+                + ", port=" + port
+                + ", hostname='" + hostname + '\''
+                + ", lastFetch=" + lastFetch
+                + '}';
     }
 }
